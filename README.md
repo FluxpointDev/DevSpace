@@ -35,7 +35,12 @@ You can then install the Agent service on your linux server (currently ubuntu su
 
 ---
 
-### Current Planned Features
+### Current/Planned Features
+2FA will be required for all users that register in your instance (self-host)
+
+Support for Email, Authenticator app, Passkeys and Recovery code has already been added.
+![image](https://github.com/user-attachments/assets/53e167bb-50e4-44a9-ba4d-6f15a29da24b)
+
 - Server/VPS management with docker containers, firewall, files, status, database and webhooks.
 - Image manipulation and generation tools with different formats webp, resize and convert or generate banners/templates. 
 - Website management with cloudflare support and network tools.
