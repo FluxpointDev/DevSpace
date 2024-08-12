@@ -18,3 +18,12 @@ The project is currently WIP so any kind of code contributions wont really be ac
 There is also a project board here https://github.com/orgs/FluxpointDev/projects/7 with todo or in progress features for the project.
 
 You can also join the [Fluxpoint Discord Server](https://discord.gg/fluxpoint.dev)
+
+---
+
+### How does this work?
+This project uses .net 8 with asp.net blazor web server with SSR (server-side rendering) and MongoDB for the database.
+
+The website will be self-hostable on any linux server.
+
+You can then install the Agent service on your linux server (currently ubuntu supported) which will remotely manage your server using a websocket communication to the dashboard.
