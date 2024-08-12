@@ -9,6 +9,7 @@ This is written in C# using asp.net blazor and various other frameworks, libs an
 
 > [!WARNING]  
 > This project is currently WIP and should not be used until a release is confirmed.
+> If you fork or pull this repo i may not offer support unless you use the release version.
 
 ---
 
