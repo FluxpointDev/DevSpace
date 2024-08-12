@@ -5,14 +5,15 @@ Most developer tools can be clunky to use, needs a lot of ram or lacks basic fea
 
 Dev Space is a self-hostable and easy to use dashboard that allows you to manage your VPS servers, websites, projects and other services and is 100% free and open source!
 
-I will also be adding other tools such as service status monitoring, error logging, image generation/transformation and other integrated developer tools.
-
 This is written in C# using asp.net blazor and various other frameworks, libs and tools which will be much better in terms of ram usage too.
 
 > [!WARNING]  
 > This project is currently WIP and should not be used until a release is confirmed.
 > 
 > If you fork or pull this repo i may not offer support if something breaks unless you use the release version.
+
+![image](https://github.com/user-attachments/assets/37493e01-4cf0-4add-a6f8-2429bf66fb71)
+
 
 ---
 
@@ -31,3 +32,24 @@ This project uses .net 8 with asp.net blazor web server with SSR (server-side re
 The website will be self-hostable on any linux server.
 
 You can then install the Agent service on your linux server (currently ubuntu supported) which will remotely manage your server using a websocket communication to the dashboard.
+
+---
+
+### Current Planned Features
+- Server/VPS management with docker containers, firewall, files, status, database and webhooks.
+- Image manipulation and generation tools with different formats webp, resize and convert or generate banners/templates. 
+- Website management with cloudflare support and network tools.
+- Project management with todo/kanban boards, internal documentation to share with other developers/users, notes/memos and other related tools
+- Error logging which will use the Sentry protocol for a drop-in replacement and linked projects/websites
+- Status monitoring which will check the uptime of your servers, websites, projects and also process checking directly.
+
+---
+
+### Inspiration/Ideas
+I will be taking ideas from other similar developer tools such as:
+- [Sentry](https://sentry.io/welcome/)
+- [Portainer](https://www.portainer.io/)
+- [Pterodactyl](https://pterodactyl.io)
+- [HetrixTools](https://hetrixtools.com)
+- [DnsChecker](https://dnschecker.org)
+- [Coolify](https://coolify.io)
