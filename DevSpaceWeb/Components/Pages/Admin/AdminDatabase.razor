@@ -1,0 +1,322 @@
+﻿@using DevSpaceShared.Responses
+@using DevSpaceShared.WebSocket
+@using MongoDB.Driver
+
+<div class="dash-box">
+    @switch (Database)
+    {
+        case DatabaseType.Teams:
+            {
+                <MudTable @ref="TeamsTables.Table" HorizontalScrollbar="true" Height="350px" RowClass="cursor-pointer" SelectOnRowClick="true" ServerData="@TeamsTables.ServerReload"
+                          Dense="true" Hover="true" Elevation="0"
+                          MultiSelection="true" Breakpoint="Breakpoint.Sm" T="TeamData">
+                    <ToolBarContent>
+                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:database"></span></div>
+                        <MudText Typo="Typo.h6">Database - Teams</MudText>
+                        <MudSpacer />
+                        <MudSelect T="DatabaseType" Label="Type" @bind-Value="@Database" Dense Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" ShrinkLabel>
+                            <MudSelectItem Value="@DatabaseType.Teams" />
+                            <MudSelectItem Value="@DatabaseType.Servers" />
+                            <MudSelectItem Value="@DatabaseType.Projects" />
+                            <MudSelectItem Value="@DatabaseType.Websites" />
+                            <MudSelectItem Value="@DatabaseType.Logs" />
+                        </MudSelect>
+                        <MudTextField T="string" Margin="Margin.Dense" @bind-Value="@searchString" DebounceInterval="500" OnDebounceIntervalElapsed="@(s=>OnSearch(s))" Placeholder="Search Name" Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true" IconSize="Size.Small" Variant="Variant.Outlined"></MudTextField>
+
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col style="width: 40px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 140px;" />
+                        <col />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>Id</MudTh>
+                        <MudTh>Name</MudTh>
+                        <MudTh>OwnerId</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd DataLabel="Id">@context.Id.ToString()</MudTd>
+                        <MudTd DataLabel="Name">@context.Name</MudTd>
+                        <MudTd DataLabel="OwnerId">@context.OwnerId.ToString()</MudTd>
+                    </RowTemplate>
+
+                    <NoRecordsContent>
+                        <MudText>No matching records found</MudText>
+                    </NoRecordsContent>
+                    <LoadingContent>
+                        <MudText>Loading...</MudText>
+                    </LoadingContent>
+                </MudTable>
+            }
+            break;
+        case DatabaseType.Servers:
+            {
+                <MudTable @ref="ServersTables.Table" HorizontalScrollbar="true" Height="350px" RowClass="cursor-pointer" SelectOnRowClick="true" ServerData="@ServersTables.ServerReload"
+                          Dense="true" Hover="true" Elevation="0"
+                          MultiSelection="true" Breakpoint="Breakpoint.Sm" T="ServerData">
+                    <ToolBarContent>
+                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:database"></span></div>
+                        <MudText Typo="Typo.h6">Database - Servers</MudText>
+                        <MudSpacer />
+                        <MudSelect T="DatabaseType" Label="Type" @bind-Value="@Database" Dense Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" ShrinkLabel>
+                            <MudSelectItem Value="@DatabaseType.Teams" />
+                            <MudSelectItem Value="@DatabaseType.Servers" />
+                            <MudSelectItem Value="@DatabaseType.Projects" />
+                            <MudSelectItem Value="@DatabaseType.Websites" />
+                            <MudSelectItem Value="@DatabaseType.Logs" />
+                        </MudSelect>
+                        <MudTextField T="string" Margin="Margin.Dense" @bind-Value="@searchString" DebounceInterval="500" OnDebounceIntervalElapsed="@(s=>OnSearch(s))" Placeholder="Search Name" Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true" IconSize="Size.Small" Variant="Variant.Outlined"></MudTextField>
+
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col style="width: 40px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 120px;" />
+                        <col style="width: 120px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 140px;" />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>Id</MudTh>
+                        <MudTh>Name</MudTh>
+                        <MudTh>AgentIp</MudTh>
+                        <MudTh>AgentPort</MudTh>
+                        <MudTh>AgentKey</MudTh>
+                        <MudTh>TeamId</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd DataLabel="Id">@context.Id.ToString()</MudTd>
+                        <MudTd DataLabel="Name">@context.Name</MudTd>
+                        <MudTd DataLabel="AgentIp">@context.AgentIp</MudTd>
+                        <MudTd DataLabel="AgentPort">@context.AgentPort</MudTd>
+                        <MudTd DataLabel="AgentKey">@context.AgentKey</MudTd>
+                        <MudTd DataLabel="TeamId">@context.TeamId.ToString()</MudTd>
+                    </RowTemplate>
+
+                    <NoRecordsContent>
+                        <MudText>No matching records found</MudText>
+                    </NoRecordsContent>
+                    <LoadingContent>
+                        <MudText>Loading...</MudText>
+                    </LoadingContent>
+                </MudTable>
+            }
+            break;
+        case DatabaseType.Projects:
+            {
+                <MudTable @ref="ProjectsTables.Table" HorizontalScrollbar="true" Height="350px" RowClass="cursor-pointer" SelectOnRowClick="true" ServerData="@ProjectsTables.ServerReload"
+                          Dense="true" Hover="true" Elevation="0"
+                          MultiSelection="true" Breakpoint="Breakpoint.Sm" T="ProjectData">
+                    <ToolBarContent>
+                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:database"></span></div>
+                        <MudText Typo="Typo.h6">Database - Projects</MudText>
+                        <MudSpacer />
+                        <MudSelect T="DatabaseType" Label="Type" @bind-Value="@Database" Dense Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" ShrinkLabel>
+                            <MudSelectItem Value="@DatabaseType.Teams" />
+                            <MudSelectItem Value="@DatabaseType.Servers" />
+                            <MudSelectItem Value="@DatabaseType.Projects" />
+                            <MudSelectItem Value="@DatabaseType.Websites" />
+                            <MudSelectItem Value="@DatabaseType.Logs" />
+                        </MudSelect>
+                        <MudTextField T="string" Margin="Margin.Dense" @bind-Value="@searchString" DebounceInterval="500" OnDebounceIntervalElapsed="@(s=>OnSearch(s))" Placeholder="Search Name" Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true" IconSize="Size.Small" Variant="Variant.Outlined"></MudTextField>
+
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col style="width: 40px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 140px;" />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>Id</MudTh>
+                        <MudTh>Name</MudTh>
+                        <MudTh>TeamId</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd DataLabel="Id">@context.Id.ToString()</MudTd>
+                        <MudTd DataLabel="Name">@context.Name</MudTd>
+                        <MudTd DataLabel="TeamId">@context.TeamId.ToString()</MudTd>
+                    </RowTemplate>
+
+                    <NoRecordsContent>
+                        <MudText>No matching records found</MudText>
+                    </NoRecordsContent>
+                    <LoadingContent>
+                        <MudText>Loading...</MudText>
+                    </LoadingContent>
+                </MudTable>
+            }
+            break;
+        case DatabaseType.Websites:
+            {
+                <MudTable @ref="WebsitesTables.Table" HorizontalScrollbar="true" Height="350px" RowClass="cursor-pointer" SelectOnRowClick="true" ServerData="@WebsitesTables.ServerReload"
+                          Dense="true" Hover="true" Elevation="0"
+                          MultiSelection="true" Breakpoint="Breakpoint.Sm" T="WebsiteData">
+                    <ToolBarContent>
+                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:web"></span></div>
+                        <MudText Typo="Typo.h6">Database - Websites</MudText>
+                        <MudSpacer />
+                        <MudSelect T="DatabaseType" Label="Type" @bind-Value="@Database" Dense Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" ShrinkLabel>
+                            <MudSelectItem Value="@DatabaseType.Teams" />
+                            <MudSelectItem Value="@DatabaseType.Servers" />
+                            <MudSelectItem Value="@DatabaseType.Projects" />
+                            <MudSelectItem Value="@DatabaseType.Websites" />
+                            <MudSelectItem Value="@DatabaseType.Logs" />
+                        </MudSelect>
+                        <MudTextField T="string" Margin="Margin.Dense" @bind-Value="@searchString" DebounceInterval="500" OnDebounceIntervalElapsed="@(s=>OnSearch(s))" Placeholder="Search Name" Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true" IconSize="Size.Small" Variant="Variant.Outlined"></MudTextField>
+
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col style="width: 40px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 140px;" />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>Id</MudTh>
+                        <MudTh>Name</MudTh>
+                        <MudTh>TeamId</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd DataLabel="Id">@context.Id.ToString()</MudTd>
+                        <MudTd DataLabel="Name">@context.Name</MudTd>
+                        <MudTd DataLabel="TeamId">@context.TeamId.ToString()</MudTd>
+                    </RowTemplate>
+
+                    <NoRecordsContent>
+                        <MudText>No matching records found</MudText>
+                    </NoRecordsContent>
+                    <LoadingContent>
+                        <MudText>Loading...</MudText>
+                    </LoadingContent>
+                </MudTable>
+            }
+            break;
+        case DatabaseType.Logs:
+            {
+                <MudTable @ref="LogsTables.Table" HorizontalScrollbar="true" Height="350px" RowClass="cursor-pointer" SelectOnRowClick="true" ServerData="@LogsTables.ServerReload"
+                          Dense="true" Hover="true" Elevation="0"
+                          MultiSelection="true" Breakpoint="Breakpoint.Sm" T="LogData">
+                    <ToolBarContent>
+                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:database"></span></div>
+                        <MudText Typo="Typo.h6">Database - Logs</MudText>
+                        <MudSpacer />
+                        <MudSelect T="DatabaseType" Label="Type" @bind-Value="@Database" Dense Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" ShrinkLabel>
+                            <MudSelectItem Value="@DatabaseType.Teams" />
+                            <MudSelectItem Value="@DatabaseType.Servers" />
+                            <MudSelectItem Value="@DatabaseType.Projects" />
+                            <MudSelectItem Value="@DatabaseType.Websites" />
+                            <MudSelectItem Value="@DatabaseType.Logs" />
+                        </MudSelect>
+                        <MudTextField T="string" Margin="Margin.Dense" @bind-Value="@searchString" DebounceInterval="500" OnDebounceIntervalElapsed="@(s=>OnSearch(s))" Placeholder="Search Name" Adornment="Adornment.Start"
+                                      AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true" IconSize="Size.Small" Variant="Variant.Outlined"></MudTextField>
+
+                    </ToolBarContent>
+                    <ColGroup>
+                        <col style="width: 40px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 140px;" />
+                        <col style="width: 140px;" />
+                    </ColGroup>
+                    <HeaderContent>
+                        <MudTh>Id</MudTh>
+                        <MudTh>Name</MudTh>
+                        <MudTh>TeamId</MudTh>
+                    </HeaderContent>
+
+                    <RowTemplate>
+                        <MudTd DataLabel="Id">@context.Id.ToString()</MudTd>
+                        <MudTd DataLabel="Name">@context.Name</MudTd>
+                        <MudTd DataLabel="TeamId">@context.TeamId.ToString()</MudTd>
+                    </RowTemplate>
+
+                    <NoRecordsContent>
+                        <MudText>No matching records found</MudText>
+                    </NoRecordsContent>
+                    <LoadingContent>
+                        <MudText>Loading...</MudText>
+                    </LoadingContent>
+                </MudTable>
+            }
+            break;
+    }
+
+
+</div>
+
+<style>
+    .mud-main-content .mud-select {
+        max-width: 180px;
+        margin-right: 10px;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public DatabaseType Database { get; set; } = DatabaseType.Teams;
+
+    private string searchString = null;
+
+    private void OnSearch(string text)
+    {
+        switch (Database)
+        {
+            case DatabaseType.Teams:
+                TeamsTables.Table.ReloadServerData();
+                break;
+            case DatabaseType.Servers:
+                ServersTables.Table.ReloadServerData();
+                break;
+            case DatabaseType.Projects:
+                ProjectsTables.Table.ReloadServerData();
+                break;
+            case DatabaseType.Websites:
+                WebsitesTables.Table.ReloadServerData();
+                break;
+            case DatabaseType.Logs:
+                LogsTables.Table.ReloadServerData();
+                break;
+        }
+
+    }
+
+    public TableDatabase<TeamData> TeamsTables = new TableDatabase<TeamData>("teams");
+    public TableDatabase<ServerData> ServersTables = new TableDatabase<ServerData>("servers");
+    public TableDatabase<ProjectData> ProjectsTables = new TableDatabase<ProjectData>("projects");
+    public TableDatabase<WebsiteData> WebsitesTables = new TableDatabase<WebsiteData>("websites");
+    public TableDatabase<LogData> LogsTables = new TableDatabase<LogData>("logs");
+    public enum DatabaseType
+    {
+        Teams, Servers, Projects, Logs, Websites
+    }
+
+    public class TableDatabase<T>
+    {
+        public TableDatabase(string collectionName)
+        {
+            CollectionName = collectionName;
+        }
+
+        public MudTable<T> Table;
+        private string CollectionName;
+
+        public async Task<TableData<T>> ServerReload(TableState state, CancellationToken token)
+        {
+            var Items = await _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<T>(CollectionName).Find(x => true).Skip((state.Page) * state.PageSize).Limit(state.PageSize).ToListAsync();
+            return new TableData<T>() { Items = Items };
+        }
+    }
+}

@@ -1,0 +1,136 @@
+﻿@using System.Net.WebSockets
+@using DevSpaceShared.WebSocket
+@using Docker.DotNet.Models
+
+<div class="dash-box">
+    <MudTable @ref="@table" ServerData="ServerReload" Dense="true" Hover="true" Elevation="0" MultiSelection="true" Breakpoint="Breakpoint.Sm">
+        <ToolBarContent>
+            <div class="dash-box-icon"><span class="iconify" data-icon="ri:box-3-fill"></span></div>
+            <MudText Typo="Typo.h6">Containers</MudText>
+            <MudSpacer />
+            <MudTextField T="string" Margin="Margin.Dense" @bind-Value="@searchString" DebounceInterval="500" OnDebounceIntervalElapsed="@(s=>OnSearch(s))" Placeholder="Search Name" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Variant="Variant.Outlined"></MudTextField>
+            <br />
+
+        </ToolBarContent>
+
+        <ColGroup>
+            <col style="width: 40px;" />
+            <col style="width: 200px;" />
+            <col style="width: 100px;" />
+            <col />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortLabel="name_filed" InitialDirection="SortDirection.Ascending" T="ContainerListResponse">Name</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortLabel="status_field" T="ContainerListResponse">Status</MudTableSortLabel></MudTh>
+            <MudTh>
+                <MudButtonGroup Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined" OverrideStyles="false">
+                    <MudButton Color="Color.Success" Variant="Variant.Outlined">Start</MudButton>
+                    <MudButton Color="Color.Error" Variant="Variant.Outlined">Stop</MudButton>
+                    <MudButton Color="Color.Warning" Variant="Variant.Outlined">Restart</MudButton>
+                    <MudButton Color="Color.Error" Variant="Variant.Outlined">Kill</MudButton>
+                    <MudButton Color="Color.Default" Variant="Variant.Outlined">Pause</MudButton>
+                    <MudButton Color="Color.Default" Variant="Variant.Outlined">Resume</MudButton>
+                </MudButtonGroup>
+            </MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name" Style="width2: 200px;">@context.Names.First().Substring(1)</MudTd>
+            <MudTd DataLabel="Status" Style="width2: 80px;">
+                @switch (context.State)
+                {
+                    case "running":
+                        @if (context.Status.EndsWith("(healthy)"))
+                        {
+                            <MudChip T="string" Color="Color.Success" Variant="Variant.Text" Size="Size.Small">Healthy</MudChip>
+                        }
+                        else if (context.Status.EndsWith("(unhealthy)"))
+                        {
+                            <MudChip T="string" Color="Color.Warning" Variant="Variant.Text" Size="Size.Small">Unhealthy</MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Success" Variant="Variant.Text" Size="Size.Small">Running</MudChip>
+                        }
+                        break;
+                    case "created":
+                        <MudChip T="string" Color="Color.Dark" Variant="Variant.Text" Size="Size.Small">Created</MudChip>
+                        break;
+                    case "restarting":
+                        <MudChip T="string" Color="Color.Warning" Variant="Variant.Text" Size="Size.Small">Restarting</MudChip>
+                        break;
+                    case "removing":
+                        <MudChip T="string" Color="Color.Dark" Variant="Variant.Text" Size="Size.Small">Removing</MudChip>
+                        break;
+                    case "paused":
+                        <MudChip T="string" Color="Color.Info" Variant="Variant.Text" Size="Size.Small">Paused</MudChip>
+                        break;
+                    case "exited":
+                        <MudChip T="string" Color="Color.Error" Variant="Variant.Text" Size="Size.Small">Exited</MudChip>
+                        break;
+                    case "dead":
+                        <MudChip T="string" Color="Color.Error" Variant="Variant.Text" Size="Size.Small">Down</MudChip>
+                        break;
+                }
+            </MudTd>
+            <MudTd DataLabel="" Style="width2: 100px;">
+                <MudMenu Label="Manage" Variant="Variant.Filled" Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" Color="Color.Info" Size="Size.Small">
+                    <MudMenuItem>Info</MudMenuItem>
+                    <MudMenuItem>Config</MudMenuItem>
+                    <MudMenuItem>Logs</MudMenuItem>
+                    <MudMenuItem>Stats</MudMenuItem>
+                    <MudMenuItem>Execute</MudMenuItem>
+                    <MudMenuItem>Permissions</MudMenuItem>
+                </MudMenu>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No matching records found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager RowsPerPageString="Items per page:" LastIcon="" FirstIcon="" />
+        </PagerContent>
+    </MudTable>
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    ContainerListResponse[]? containers = null;
+    private string searchString = null;
+    private MudTable<ContainerListResponse> table;
+
+    private void OnSearch(string text)
+    {
+        table.ReloadServerData();
+    }
+
+    public async Task<TableData<ContainerListResponse>> ServerReload(TableState state, CancellationToken token)
+    {
+        if (containers == null)
+        {
+            try
+            {
+                containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<ContainerListResponse[]>(new IWebSocketTaskEvent(EventType.ListContainers));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+
+        var search = string.IsNullOrEmpty(searchString) ? containers.OrderByDirection(state.SortDirection, o => o.Names.First().Substring(1))
+        : containers.Where(x => x.Names.First().Substring(1).Contains(searchString, StringComparison.OrdinalIgnoreCase));
+
+        var totalItems = search.Count();
+        // Get the paged data
+        var pagedData = search.Skip(state.Page * state.PageSize).Take(state.PageSize).ToList();
+        // Return the data
+
+        return new TableData<ContainerListResponse>() { TotalItems = totalItems, Items = pagedData };
+    }
+}

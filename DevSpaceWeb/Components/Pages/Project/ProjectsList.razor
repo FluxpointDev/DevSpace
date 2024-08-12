@@ -1,0 +1,111 @@
+﻿<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
+        <MudText Typo="Typo.h6">Projects</MudText>
+    </div>
+
+    <br />
+    @foreach (var i in _DB.Projects.Cache.Values)
+    {
+        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/p/" + i.GetVanityUrl())">
+            <div class="server-item d-flex flex-grow-1 gap-2">
+                <div class="server-item-icon flex-none d-flex">
+                    <span class="iconify" data-icon="mdi:server"></span>
+                </div>
+
+                <div class="server-item-info flex-auto d-flex py-1">
+                    <h3>@i.Name</h3>
+                    <MudChip T="string" Color="Color.Success" Variant="Variant.Text">Online</MudChip>
+
+                </div>
+
+                <div class="server-item-buttons flex-none">
+                    <MudButton Variant="Variant.Text"><p>Settings</p> <span class="iconify" data-icon="mdi:gear-outline"></span></MudButton>
+                    <MudButton Variant="Variant.Text"><p>Permissions</p><span class="iconify" data-icon="mdi:key-outline"></span></MudButton>
+                </div>
+            </div>
+        </a>
+    }
+
+</div>
+
+<style>
+    .server-item {
+        background-color: #21262d !important;
+        border-radius: 12px;
+        border: 1px solid rgba(0,135,201,0.3) !important;
+        padding-left: 10px;
+        cursor: pointer;
+    }
+
+        .server-item:hover {
+            border-color: rgba(0,135,201,0.5) !important;
+        }
+
+    .server-item-icon {
+        vertical-align: center;
+    }
+
+        .server-item-icon .iconify {
+            width: 40px;
+            height: 40px;
+            margin-top: 16px;
+            color: rgba(0,135,201,0.7) !important;
+        }
+
+    .server-item:hover .server-item-icon .iconify {
+        color: rgba(0,135,201,0.9) !important;
+    }
+
+    .server-item-info {
+        padding-left: 10px;
+    }
+
+    .server-item-buttons .mud-button {
+        min-width: 34px !important;
+        display: block !important;
+        text-align: right;
+        height: 42px;
+        max-height: 42px !important;
+    }
+
+    .server-item .server-item-buttons .mud-button:hover {
+        background-color: rgba(0,135,201,0.3) !important;
+    }
+
+    .server-item-buttons .mud-button:first-child {
+        border-radius: 0px 12px 0px 0px;
+    }
+
+    .server-item-buttons .mud-button:last-child {
+        border-radius: 0px 0px 12px 0px;
+    }
+
+    .server-item-buttons p {
+        display: inline-block !important;
+        text-transform: capitalize;
+        display: none !important;
+    }
+
+    .server-item-buttons .iconify {
+        width: 20px;
+        height: 20px;
+        margin-left: 8px;
+        margin-bottom: -4px;
+        margin-right: 6px;
+    }
+
+    .server-item-buttons:hover .mud-button, .server-item-buttons:hover {
+        min-width: 130px !important;
+    }
+
+        .server-item-buttons:hover p {
+            display: inline-block !important;
+        }
+</style>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+}

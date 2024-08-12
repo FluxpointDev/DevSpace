@@ -1,0 +1,65 @@
+﻿@page "/teams"
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
+        <MudText Typo="Typo.h6">Teams</MudText>
+    </div>
+    <br />
+    <div>
+        @foreach (var i in _DB.Teams.Cache.Values.Where(x => x.HasAccess(Session)))
+        {
+            <a href="teams/@i.GetVanityUrl()" style="color: cornflowerblue">
+                <MudPaper Class="team-item">
+                    <h4>@i.Name</h4>
+                    <img src="https://fluxpoint.dev/img/icons/fluxpoint.png">
+                </MudPaper>
+            </a>
+            <a href="teams/@i.GetVanityUrl()" style="color: cornflowerblue">
+                <MudPaper Class="team-item">
+                    <h4>@i.Name</h4>
+                    <img src="https://fluxpoint.dev/img/icons/fluxpoint.png">
+                </MudPaper>
+            </a>
+        }
+    </div>
+</div>
+
+<style>
+    .dash-box .mud-paper {
+        background-color: #161617 !important;
+    }
+
+    .team-item {
+        display: inline-block !important;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        margin-top: 4px;
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #2f2f31 !important;
+        width: 180px;
+        height: 180px;
+        text-align: center;
+    }
+
+        .team-item:hover {
+            background-color: #1b1b1c !important;
+            border: 1px solid #3b3b3e !important;
+        }
+
+    .mud-paper h4 {
+        height: 40px;
+        max-height: 40px;
+    }
+
+    .team-item img {
+        width: 100px;
+        height: 100px;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+}

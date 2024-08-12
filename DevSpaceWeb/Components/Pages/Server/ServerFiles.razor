@@ -1,0 +1,243 @@
+﻿
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:folder"></span></div>
+        <MudText Typo="Typo.h6">File Manager</MudText>
+    </div>
+    <br />
+
+    <MudOverlay OnClick="@BackgroundClose" @bind-Visible="visible" DarkBackground="false" AutoClose="true" />
+    <MudTabs Outlined="true" Color="Color.Dark" KeepPanelsAlive="true" Position="Position.Left" AlwaysShowScrollButtons="false" Rounded="true" Border="false"
+             ApplyEffectsToContainer="true" PanelClass="pa-3">
+        <MudTabPanel Icon="@Icons.Material.Filled.Folder" Text="Files">
+            <MudDropContainer T="FileItem" Items="GetFiles().OrderByDescending(x => x.Name)" ItemsSelector="@((item, dropzone) => item.Path == dropzone)" ItemDropped="ItemUpdated" Class="d-flex flex-column flex-grow-1">
+                <ChildContent>
+                    <MudGrid>
+                        <MudItem xs="6">
+                            <MudBreadcrumbs Items="NavFolder1()" MaxItems="4">
+                                <ItemTemplate Context="item">
+                                    @if (!item.Disabled)
+                                    {
+                                        <MudText Color="Color.Info" Style="cursor:pointer;" onclick="@(() => ChangeNav1(item))">@item.Text</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Color="Color.Default">@item.Text</MudText>
+                                    }
+                                </ItemTemplate>
+                            </MudBreadcrumbs>
+
+                            <MudDropZone T="FileItem" @onmouseover="@(() => DropMouseOver(1))" ItemDraggingClass="mud-info-text" Identifier="@CurrentPath1" Class="d-flex flex-wrap flex-grow-1 pa-2 rounded" />
+
+                        </MudItem>
+                        <MudItem xs="6">
+                            <MudBreadcrumbs Items="NavFolder2()" MaxItems="4">
+                                <ItemTemplate Context="item">
+                                    @if (!item.Disabled)
+                                    {
+                                        <MudText Color="Color.Info" Style="cursor:pointer;" onclick="@(() => ChangeNav2(item))">@item.Text</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudText Color="Color.Default">@item.Text</MudText>
+                                    }
+
+                                </ItemTemplate>
+                            </MudBreadcrumbs>
+
+                            <MudDropZone T="FileItem" @onmouseover="@(() => DropMouseOver(2))" ItemDraggingClass="mud-info-text" Identifier="@CurrentPath2" Class="d-flex flex-wrap flex-grow-1 pa-2 rounded" />
+
+
+                        </MudItem>
+                    </MudGrid>
+                </ChildContent>
+                <ItemRenderer>
+                    @if (context.IsFolder)
+                    {
+                        <MudMenu @ref="@AddMenus" OpenChanged="@MenuOpened" ActivationEvent="@MouseEvent.RightClick" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.BottomLeft" Dense="true">
+                            <ActivatorContent>
+                                <MudDropZone T="FileItem" Identifier="@context.Name" OnlyZone="true">
+                                    <div Class="rounded mud-paper-outlined d-flex align-center pa-3 ma-2" onclick="@(() => FolderClick(context))">
+                                        <MudIcon Icon="@(context.IsFolder ? Icons.Custom.Uncategorized.Folder : Icons.Custom.FileFormats.FileDocument)" Color="Color.Inherit" Class="mr-2" />
+                                        @context.Name
+                                    </div>
+                                </MudDropZone>
+                            </ActivatorContent>
+                            <ChildContent>
+                                <MudMenuItem>Delete</MudMenuItem>
+                            </ChildContent>
+                        </MudMenu>
+
+                    }
+                    else
+                    {
+                        <MudMenu @ref="@AddMenus" OpenChanged="@MenuOpened" ActivationEvent="@MouseEvent.RightClick" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.BottomLeft" Dense="true">
+                            <ActivatorContent>
+                                <div Class="rounded mud-paper-outlined d-flex align-center pa-3 ma-2">
+                                    <MudIcon Icon="@(context.IsFolder ? Icons.Custom.Uncategorized.Folder : Icons.Custom.FileFormats.FileDocument)" Color="Color.Inherit" Class="mr-2" />
+                                    @context.Name
+                                </div>
+                            </ActivatorContent>
+                            <ChildContent>
+                                <MudMenuItem>Delete</MudMenuItem>
+                            </ChildContent>
+                        </MudMenu>
+                    }
+
+                </ItemRenderer>
+            </MudDropContainer>
+
+        </MudTabPanel>
+        <MudTabPanel Icon="@Icons.Material.Filled.Edit" Text="Edit">
+
+        </MudTabPanel>
+        <MudTabPanel Icon="@Icons.Material.Filled.Unarchive" Text="Zip">
+
+        </MudTabPanel>
+    </MudTabs>
+
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    private List<BreadcrumbItem> NavFolder1()
+    {
+        string[] Split = CurrentPath1.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        List<BreadcrumbItem> items = new List<BreadcrumbItem>();
+        if (Split.Length == 0)
+            items.Add(new BreadcrumbItem("/", "", disabled: true));
+        else
+        {
+            string LastPath = "";
+            items.Add(new BreadcrumbItem("/", "/", disabled: false));
+
+            int Count = 1;
+
+            foreach (var s in Split)
+            {
+                LastPath += "/" + s;
+                items.Add(new BreadcrumbItem(s, LastPath, disabled: Count == Split.Length));
+                Count += 1;
+            }
+        }
+        return items.TakeLast(3).ToList();
+    }
+
+    private List<BreadcrumbItem> NavFolder2()
+    {
+        string[] Split = CurrentPath2.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        List<BreadcrumbItem> items = new List<BreadcrumbItem>();
+        if (Split.Length == 0)
+            items.Add(new BreadcrumbItem("/", "", disabled: true));
+        else
+        {
+            string LastPath = "";
+            items.Add(new BreadcrumbItem("/", "/", disabled: false));
+
+            int Count = 1;
+
+            foreach (var s in Split)
+            {
+                LastPath += "/" + s;
+                items.Add(new BreadcrumbItem(s, LastPath, disabled: Count == Split.Length));
+                Count += 1;
+            }
+        }
+        return items.TakeLast(3).ToList();
+    }
+
+    public void DropMouseOver(int navType)
+    {
+        NavType = navType;
+    }
+
+    int NavType = 1;
+
+    public void FolderClick(FileItem item)
+    {
+        if (NavType == 1)
+            CurrentPath1 = item.Path + "/" + item.Name;
+        else
+            CurrentPath2 = item.Path + "/" + item.Name;
+
+        Console.WriteLine(CurrentPath1);
+        StateHasChanged();
+    }
+
+    public Dictionary<string, FileItem> FileStructure = new Dictionary<string, FileItem>
+    {
+        { "/user", new  FileItem { IsFolder = true, Name = "user", Path = "/" } },
+        { "/user/bob", new  FileItem { IsFolder = true, Name = "bob", Path = "/user" } },
+        { "/user/alice", new  FileItem { IsFolder = true, Name = "alice", Path = "/user" } },
+        { "/user/bob/This is Bob.txt", new  FileItem { Name = "This is Bob.txt", Path = "/user/bob" } },
+        { "/user/bob/test", new  FileItem { IsFolder = true, Name = "test", Path = "/user/bob" } },
+        { "/user/alice/This is Alice.txt", new  FileItem { Name = "This is Alice.txt", Path = "/user/alice" } },
+    };
+
+    public string CurrentPath1 = "/user/bob";
+    public string CurrentPath2 = "/user/alice";
+
+
+
+    public void ChangeNav1(BreadcrumbItem item)
+    {
+        CurrentPath1 = item.Href;
+        Console.WriteLine(CurrentPath1);
+        Menus.Clear();
+        StateHasChanged();
+    }
+    public void ChangeNav2(BreadcrumbItem item)
+    {
+        CurrentPath2 = item.Href;
+        Menus.Clear();
+        StateHasChanged();
+    }
+
+    public IEnumerable<FileItem> GetFiles()
+    {
+
+        var Files = FileStructure.Values.Where(x => (x.Path == CurrentPath1 || x.Path == CurrentPath2));
+        Console.WriteLine("Get Files: " + Files.Count());
+        return Files;
+    }
+
+    private void ItemUpdated(MudItemDropInfo<FileItem> dropItem)
+    {
+        Console.WriteLine("Drag: " + dropItem.Item.Name);
+        //dropItem.Item.Identifier = dropItem.DropzoneIdentifier;
+    }
+
+    public class FileItem
+    {
+        public bool IsFolder;
+        public string Name;
+        public string Path = "";
+    }
+
+    public List<MudMenu> Menus = new List<MudMenu>();
+
+    public MudMenu AddMenus { set { Menus.Add(value); Console.WriteLine("Menu Count: " + Menus.Count()); } }
+
+    public MudMenu CurrentMenu { get; set; }
+    public MudMenu CurrentMenu2 { get; set; }
+
+    public void BackgroundClose()
+    {
+        Console.WriteLine("Close Background");
+        Menus.ForEach(x =>
+        {
+            if (x.Open)
+                x.CloseMenuAsync();
+        });
+    }
+
+    public void MenuOpened(bool trigger)
+    {
+        Console.WriteLine("Menu Opened: " + trigger);
+        visible = trigger;
+    }
+
+    private bool visible;
+}

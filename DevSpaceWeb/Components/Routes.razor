@@ -1,0 +1,46 @@
+﻿@using DevSpaceWeb.Components.Layout
+@using Microsoft.AspNetCore.Components.Authorization
+
+<SessionProvider>
+    <CascadingAuthenticationState>
+        <Router AppAssembly="typeof(Program).Assembly">
+            <Found Context="routeData">
+                <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                    <NotAuthorized>
+                        @if (context.User.Identity.IsAuthenticated)
+                        {
+                            <PageTitle>Unauthorized | Dashboard</PageTitle>
+                            <div class="dash-box dash-main">
+                                <h1><span class="iconify" data-icon="mdi:cancel" style="color: #b55143;"></span> Unauthorized</h1>
+                                <p>This page has been restricted and you are not allowed access.</p>
+                                <br />
+                                <a href="/"><MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Info">Website Home</MudButton></a>
+                            </div>
+                        }
+                        else
+                        {
+                            <PageTitle>Login Required | Dashboard</PageTitle>
+                            <div class="dash-box dash-main">
+                                <h1><span class="iconify" data-icon="mdi:account-lock" style="color: #b55143;"></span> Login Required</h1>
+                                <p>You need to login with your Fluxpoint Auth account to access this page.</p>
+                                <br />
+                                <a href="/login"><MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Success">Login Now</MudButton></a>
+                            </div>
+                        }
+                    </NotAuthorized>
+                </AuthorizeRouteView>
+            </Found>
+            <NotFound>
+                <PageTitle>Not found</PageTitle>
+                <LayoutView Layout="@typeof(MainLayout)">
+                    <PageTitle>Unknown Page | Dashboard</PageTitle>
+                    <div class="dash-box dash-main">
+                        <h1><span class="iconify" data-icon="mdi:help-box" style="color: #b55143;"></span> Unknown Page</h1>
+                        <p>This page does not exist.</p>
+                        <a href="/"><MudButton Variant="Variant.Filled" Color="MudBlazor.Color.Info">Website Home</MudButton></a>
+                    </div>
+                </LayoutView>
+            </NotFound>
+        </Router>
+    </CascadingAuthenticationState>
+</SessionProvider>

@@ -1,0 +1,162 @@
+﻿@using DevSpaceWeb.Services
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Caching.Distributed
+@inject UserManager<AuthUser> UserManager
+@inject IDialogService DialogService
+@inject IDistributedCache Cache
+@inject EmailService Email
+@inject NavigationManager NavigationManager
+@inject AuthenticatorTokenProvider<AuthUser> Authenticator
+
+<MudDialog>
+    <DialogContent>
+        <MudAlert Severity="Severity.Info">Two-factor authentication is required!</MudAlert>
+        <br />
+        @if (AuthType == 0)
+        {
+            <div class="twofactor-item twofactor-item-disabled" @onclick="(() => AuthType = 1)">
+                <span class="iconify" data-icon="mdi:cloud-key"></span>
+                <h4>Email Code</h4>
+                <p>Disabled with more secure options</p>
+            </div>
+            <div class="twofactor-item" @onclick="(() => AuthType = 2)">
+                <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
+                <h4>Authenticator</h4>
+            </div>
+            <div class="twofactor-item" @onclick="VerifyPasskey">
+                <span class="iconify" data-icon="mdi:key-chain"></span>
+                <h4>Passkey, Webauth or Yubikey</h4>
+            </div>
+            <div class="twofactor-item" @onclick="@(() => AuthType = 3)">
+                <span class="iconify" data-icon="mdi:file-key"></span>
+                <h4>Recovery Code</h4>
+            </div>
+        }
+        else if (AuthType == 1)
+        {
+            <MudTextField @bind-Value="CodeInput" ShrinkLabel="true" Label="Email Code" Variant="Variant.Filled" Underline="false"></MudTextField>
+            <MudButton OnClick="VerifyEmail" Color="Color.Success">Verify</MudButton>
+        }
+        else if (AuthType == 2)
+        {
+            <MudTextField @bind-Value="CodeInput" ShrinkLabel="true" Label="Auth Code" Variant="Variant.Filled" Underline="false"></MudTextField>
+            <MudButton OnClick="VerifyAuthenticator" Color="Color.Success">Verify</MudButton>
+        }
+        else if (AuthType == 3)
+        {
+            <MudTextField @bind-Value="CodeInput" ShrinkLabel="true" Label="Recovery Code" Variant="Variant.Filled" Underline="false"></MudTextField>
+            <MudButton OnClick="VerifyRecoveryCode" Color="Color.Success">Verify</MudButton>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => { AuthType = 0; CodeInput = string.Empty; })">Back</MudButton>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    [Parameter]
+    public bool LogUsage { get; set; }
+
+    [Parameter] public bool ShowRecoveryCodesOption { get; set; }
+
+    public string CodeInput { get; set; }
+    public int AuthType = 0;
+
+    public async Task ShowEmail()
+    {
+        if (!Email.CanSendEmail())
+        {
+            await DialogService.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            return;
+        }
+        var AuthUser = await Session.GetCurrentUserAsync();
+        string VerifyCache = Cache.GetString("2fa-verify-" + AuthUser.Id.ToString());
+        if (string.IsNullOrEmpty(VerifyCache))
+        {
+            string Code = Utils.CreateTwoFactorRecoveryCode();
+            Cache.SetString("2fa-verify-" + AuthUser.Id.ToString(), Utils.CreateTwoFactorRecoveryCode(), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
+            await Email.Send(SendMailType.AccessCode, AuthUser, NavigationManager.BaseUri, Code);
+            if (LogUsage)
+            {
+                AuthUser = await Session.GetCurrentUserAsync();
+                AuthUser.Auth.EmailCodeLastSentAt = DateTimeOffset.UtcNow;
+                await UserManager.UpdateAsync(AuthUser);
+            }
+        }
+        AuthType = 1;
+    }
+
+    public async Task VerifyEmail()
+    {
+        var AuthUser = await Session.GetCurrentUserAsync();
+        string VerifyCache = Cache.GetString("2fa-verify-" + AuthUser.Id.ToString());
+        if (string.IsNullOrEmpty(VerifyCache) || !VerifyCache.Equals(CodeInput))
+            await DialogService.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
+        else
+        {
+            if (LogUsage)
+            {
+                AuthUser = await Session.GetCurrentUserAsync();
+                AuthUser.Auth.EmailCodeLastUsedAt = DateTimeOffset.UtcNow;
+                await UserManager.UpdateAsync(AuthUser);
+            }
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+
+    }
+
+
+    public async Task VerifyAuthenticator()
+    {
+        var AuthUser = await Session.GetCurrentUserAsync();
+        var Test = await Authenticator.ValidateAsync("", CodeInput, UserManager, AuthUser);
+        if (Test)
+        {
+            if (LogUsage)
+            {
+                AuthUser.Auth.AuthenticatorLastUsedAt = DateTimeOffset.UtcNow;
+                await UserManager.UpdateAsync(AuthUser);
+            }
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+            await DialogService.ShowInfoAsync("Authenticator Failed", $"Failed to verify authenticator code.");
+    }
+
+    public async Task VerifyPasskey()
+    {
+        var Result = await Session.TestPasskey(LogUsage);
+        if (Result)
+            MudDialog.Close(DialogResult.Ok(true));
+        else
+            await DialogService.ShowInfoAsync("Passkey Failed", $"Failed to verify your passkey.");
+    }
+
+    public async Task VerifyRecoveryCode()
+    {
+        var AuthUser = await Session.GetCurrentUserAsync();
+        var Hasher = new PasswordHasher<AuthUser>();
+        var Result = Hasher.VerifyHashedPassword(AuthUser, AuthUser.Auth.RecoveryCode, CodeInput);
+        if (Result.HasFlag(PasswordVerificationResult.Success))
+        {
+            if (LogUsage)
+            {
+                AuthUser.Auth.RecoveryCodeLastUsedAt = DateTimeOffset.UtcNow;
+                await UserManager.UpdateAsync(AuthUser);
+            }
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+            await DialogService.ShowInfoAsync("Recovery Code Failed", $"Failed to verify your recovery code.");
+    }
+
+
+    void Cancel() => MudDialog.Cancel();
+}

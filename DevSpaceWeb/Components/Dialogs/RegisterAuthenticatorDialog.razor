@@ -1,0 +1,89 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject AuthenticatorTokenProvider<AuthUser> Authenticator
+@inject UserManager<AuthUser> UserManager
+@inject IJSRuntime JS
+
+<MudDialog>
+    <DialogContent>
+        <MudText>Scan this QR code or copy the setup key into any Authenticator app.</MudText>
+        <br />
+        <div id="qrcode" style="max-height: 228px !important; max-width: 228px !important;">
+        </div>
+        <br />
+        <div id="setupkey">
+            @SetupKey
+        </div>
+        <br />
+        <MudTextField @bind-Value="CodeInput" Required="true" ShrinkLabel="true" Label="Code" Variant="Variant.Filled" Underline="false"></MudTextField>
+        <div hidden id="setupurl" style="display: none">
+            @SetupUrl
+        </div>
+        <br />
+        <MudTextField @bind-Value="DeviceNameInput" Required="true" ShrinkLabel="true" Label="Device Name" Variant="Variant.Filled" Underline="false"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="Submit" Disabled="@((string.IsNullOrEmpty(CodeInput) || string.IsNullOrEmpty(DeviceNameInput)))">Verify</MudButton>
+    </DialogActions>
+</MudDialog>
+
+<style>
+    #qrcode {
+        background-color: white;
+        padding: 6px;
+        width: 142px;
+    }
+
+        #qrcode img {
+            max-width: 128px;
+            max-height: 128px;
+        }
+</style>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            JS.InvokeVoidAsync("LoadQR");
+
+    }
+
+    [Parameter]
+    public string SetupKey { get; set; }
+
+    [Parameter]
+    public string SetupUrl { get; set; }
+
+    public string CodeInput { get; set; }
+    public string DeviceNameInput { get; set; }
+
+    async Task Submit()
+    {
+        if (string.IsNullOrEmpty(CodeInput) || string.IsNullOrEmpty(DeviceNameInput))
+            return;
+
+        AuthUser? user = await Session.GetCurrentUserAsync();
+        if (user == null)
+            return;
+
+        var Test = await Authenticator.ValidateAsync("", CodeInput, UserManager, user);
+        if (Test)
+        {
+            user.Auth.AuthenticatorLastRegisteredAt = DateTimeOffset.UtcNow;
+            user.Auth.AuthenticatorDevices.TryAdd(DeviceNameInput, true);
+
+            user.Auth.IsTwoFactorEnabled = true;
+            await UserManager.UpdateAsync(user);
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+
+
+    }
+    void Cancel() => MudDialog.Cancel();
+}

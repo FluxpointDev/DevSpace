@@ -1,0 +1,551 @@
+﻿@page "/user/settings"
+@using System.Net.Http
+@using DevSpaceWeb.Components.Dialogs
+@using DevSpaceWeb.Fido2
+@using DevSpaceWeb.Services
+@using Fido2Identity
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.Extensions.Caching.Distributed
+@using System.Text.Json
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject IDistributedCache Cache
+@inject UserManager<AuthUser> UserManager
+@inject EmailService Email
+@inject NavigationManager NavigationManager
+@inject Fido2Service Fido2Service
+@inject IDialogService DialogService
+@inject IDistributedCache Cache
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <MudText Typo="Typo.h6">Settings</MudText>
+    </div>
+    <MudTabs Outlined="false" KeepPanelsAlive="true" SliderColor="Color.Info" Position="Position.Left" Rounded="true" Border="false" Elevation="0"
+             ApplyEffectsToContainer="true" Class="mt-8" PanelClass="pa-2">
+        <MudTabPanel Text="Profile">
+            <div class="settings-box">
+                <h3>My Account</h3>
+                <br />
+                @if (AuthUser == null)
+                {
+                    <MudSkeleton />
+                    <MudSkeleton />
+                    <MudSkeleton Width="120px" Height="50px" />
+                }
+                else
+                {
+                    <MudTextField Value="@AuthUser.UserName" Label="Username" Variant="Variant.Text" Underline="false" ReadOnly></MudTextField>
+                    <MudTextField Value="@AuthUser.Email" Label="Email" Variant="Variant.Text" Underline="false" ReadOnly></MudTextField>
+                    @if (!AuthUser.EmailConfirmed)
+                    {
+                        if (EmailVerifySent)
+                        {
+                            <MudAlert Severity="Severity.Info" Variant="Variant.Filled" Class="ml-4 mr-4">
+                                <p class="mb-2">Check your email address to confirm your account.</p>
+                                <MudButton Variant="Variant.Filled" Color="Color.Dark" Disabled="true" Size="Size.Small">Verify Email</MudButton>
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="ml-4 mr-4">
+                                <p class="mb-2">You need to confirm your email address.</p>
+                                <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="SendEmailVerify" Size="Size.Small">Verify Email</MudButton>
+                            </MudAlert>
+                        }
+                    }
+                    <br />
+                    <h4 class="mb-2">Change</h4>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="ChangeUsername">Username</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="ChangeEmail">Email</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="ChangePassword">Password</MudButton>
+                    <br />
+                    <br />
+                    <br />
+                    <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteAccount">Delete Account</MudButton>
+                }
+            </div>
+        </MudTabPanel>
+        <MudTabPanel Text="Two-factor (2FA)">
+            @if (AuthUser != null)
+            {
+                if (!AuthUser.EmailConfirmed)
+                {
+                    <div class="settings-box">
+                        <h3>Account not Verified</h3>
+                        <br />
+                        <p>You need to confirm your email address to enable Two-factor authentication.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="settings-box">
+                        <h3>Email Codes</h3>
+                        <br />
+                        <p>Last Sent: @(GetLocalDate(AuthUser.Auth.EmailCodeLastSentAt, false))</p>
+                        <p>Last Used: @(GetLocalDate(AuthUser.Auth.EmailCodeLastUsedAt, false))</p>
+                    </div>
+                    <div class="settings-box">
+                        <h3>Authenticator App</h3>
+                        <br />
+                        <p>Last Registered: @(GetLocalDate(AuthUser.Auth.AuthenticatorLastRegisteredAt, false))</p>
+                        <p>Last Used: @(GetLocalDate(AuthUser.Auth.AuthenticatorLastUsedAt, false))</p>
+                        <br />
+                        <h3 class="mb-2">Devices</h3>
+                        @foreach (var i in AuthUser.Auth.AuthenticatorDevices)
+                        {
+                            <div class="passkey-item" style="height: 40px;">
+                                <p style="margin-right: 6px;">
+                                    @i.Key
+                                </p>
+                                @if (i.Value)
+                                {
+                                    <MudChip T="string" Style="margin-top: -26px;" Variant="Variant.Text" Color="Color.Success">Registered</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Style="margin-top: -26px;" Variant="Variant.Text" Color="Color.Warning">Unregistered</MudChip>
+                                }
+                            </div>
+
+                        }
+                        <br />
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="RegisterAuthenticator">Register</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="@(() => Session.TriggerTwoFactorAuthentication(true))">Test</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(() => Session.TriggerTwoFactorAuthentication(true))">Remove All</MudButton>
+                    </div>
+                    <div class="settings-box">
+                        <h3>Passkeys (Webauth)</h3>
+                        <br />
+                        <p>Last Registered: @(GetLocalDate(AuthUser.Auth.PasskeyLastRegisteredAt, false))</p>
+                        <p>Last Used: @(GetLocalDate(AuthUser.Auth.PasskeyLastUsedAt, false))</p>
+                        <p class="mb-2">Last Device: @AuthUser.Auth.PasskeyLastUsedDevice</p>
+                        <div>
+
+                            @foreach (var i in AuthUser.Auth.Passkeys)
+                            {
+                                <div class="passkey-item">
+                                    <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLCAwLCAwLCAxLCAyNy4wMDkwMDEsIC0zOS4yMzg5OTgpIj4KICAgIDxwYXRoIGZpbGw9IiM0Mjg1RjQiIGQ9Ik0gLTMuMjY0IDUxLjUwOSBDIC0zLjI2NCA1MC43MTkgLTMuMzM0IDQ5Ljk2OSAtMy40NTQgNDkuMjM5IEwgLTE0Ljc1NCA0OS4yMzkgTCAtMTQuNzU0IDUzLjc0OSBMIC04LjI4NCA1My43NDkgQyAtOC41NzQgNTUuMjI5IC05LjQyNCA1Ni40NzkgLTEwLjY4NCA1Ny4zMjkgTCAtMTAuNjg0IDYwLjMyOSBMIC02LjgyNCA2MC4zMjkgQyAtNC41NjQgNTguMjM5IC0zLjI2NCA1NS4xNTkgLTMuMjY0IDUxLjUwOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNIC0xNC43NTQgNjMuMjM5IEMgLTExLjUxNCA2My4yMzkgLTguODA0IDYyLjE1OSAtNi44MjQgNjAuMzI5IEwgLTEwLjY4NCA1Ny4zMjkgQyAtMTEuNzY0IDU4LjA0OSAtMTMuMTM0IDU4LjQ4OSAtMTQuNzU0IDU4LjQ4OSBDIC0xNy44ODQgNTguNDg5IC0yMC41MzQgNTYuMzc5IC0yMS40ODQgNTMuNTI5IEwgLTI1LjQ2NCA1My41MjkgTCAtMjUuNDY0IDU2LjYxOSBDIC0yMy40OTQgNjAuNTM5IC0xOS40NDQgNjMuMjM5IC0xNC43NTQgNjMuMjM5IFoiLz4KICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik0gLTIxLjQ4NCA1My41MjkgQyAtMjEuNzM0IDUyLjgwOSAtMjEuODY0IDUyLjAzOSAtMjEuODY0IDUxLjIzOSBDIC0yMS44NjQgNTAuNDM5IC0yMS43MjQgNDkuNjY5IC0yMS40ODQgNDguOTQ5IEwgLTIxLjQ4NCA0NS44NTkgTCAtMjUuNDY0IDQ1Ljg1OSBDIC0yNi4yODQgNDcuNDc5IC0yNi43NTQgNDkuMjk5IC0yNi43NTQgNTEuMjM5IEMgLTI2Ljc1NCA1My4xNzkgLTI2LjI4NCA1NC45OTkgLTI1LjQ2NCA1Ni42MTkgTCAtMjEuNDg0IDUzLjUyOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNIC0xNC43NTQgNDMuOTg5IEMgLTEyLjk4NCA0My45ODkgLTExLjQwNCA0NC41OTkgLTEwLjE1NCA0NS43ODkgTCAtNi43MzQgNDIuMzY5IEMgLTguODA0IDQwLjQyOSAtMTEuNTE0IDM5LjIzOSAtMTQuNzU0IDM5LjIzOSBDIC0xOS40NDQgMzkuMjM5IC0yMy40OTQgNDEuOTM5IC0yNS40NjQgNDUuODU5IEwgLTIxLjQ4NCA0OC45NDkgQyAtMjAuNTM0IDQ2LjA5OSAtMTcuODg0IDQzLjk4OSAtMTQuNzU0IDQzLjk4OSBaIi8+CiAgPC9nPgo8L3N2Zz4=" />
+                                    <h4>@i.Name</h4>
+                                    <p>Created At: @(GetLocalDate(i.CreatedAt, false))</p>
+                                    <p>Last Used: @(GetLocalDate(i.LastUsedAt, false))</p>
+                                    <div @onclick="@(() => RemovePasskey(i))" style="cursor: pointer;">
+                                        <span class="iconify" data-icon="mdi:delete"></span>
+                                    </div>
+                                </div>
+                            }
+
+                        </div>
+                        <br />
+                        <MudTextField @bind-Value="PasskeyName" ShrinkLabel="true" Label="Passkey Name" Variant="Variant.Filled" Underline="false"></MudTextField>
+                        <br />
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="RegisterPasskey">Register</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="(() => Session.TestPasskey(false))">Test</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="RemoveAllPasskeys">Remove All</MudButton>
+                    </div>
+                    <div class="settings-box">
+                        <h3>Backup Codes</h3>
+                        <br />
+                        <MudAlert Class="mb-2" Severity="Severity.Info">Backup codes were generated at @(GetLocalDate(AuthUser.Auth.RecoveryCodeCreatedAt, false))</MudAlert>
+                        <p>Last Used: @(GetLocalDate(AuthUser.Auth.RecoveryCodeLastUsedAt, false))</p>
+                        <br />
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="GenerateBackupCodes">Reset</MudButton>
+                    </div>
+                }
+            }
+        </MudTabPanel>
+    </MudTabs>
+
+</div>
+
+<style>
+    .mud-tab {
+        text-transform: none !important;
+        font-size: 15px;
+    }
+
+    .mud-tabs-tabbar {
+        background-color: #28262f !important;
+    }
+
+    .mud-tab-active {
+        color: var(--mud-palette-info) !important;
+    }
+
+
+    .settings-box {
+        background-color: #2B2B36;
+        width: 100% !important;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .mud-tabs-panels.mud-tabs-vertical {
+        display: block !important;
+    }
+</style>
+
+<style>
+    .passkey-item {
+        padding: 10px;
+        padding-left: 20px;
+        padding-right: 20px;
+        border-radius: 8px;
+        background-color: #34343f !important;
+    }
+
+        .passkey-item img {
+            float: left;
+            margin-right: 20px;
+            width: 24px;
+            height: 24px;
+            margin-top: 18px;
+        }
+
+        .passkey-item div {
+            position: relative;
+            float: right;
+            margin-top: -44px;
+        }
+
+        .passkey-item .iconify {
+            width: 24px;
+            height: 24px;
+            color: #f64e62 !important;
+        }
+</style>
+
+<style>
+    .twofactor-item .iconify {
+        color: #0bba83 !important;
+        width: 32px;
+        height: 32px;
+        float: left;
+        margin-right: 10px;
+    }
+
+    .twofactor-item {
+        display: block !important;
+        height: 52px;
+        margin-bottom: 6px;
+        background-color: #272731 !important;
+        border-radius: 16px;
+        padding: 6px;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 8px;
+        cursor: pointer;
+    }
+
+    .twofactor-item-disabled {
+        opacity: 0.5;
+        background-color: rgba(39,40,49,0.4) !important;
+        color: rgb(130,129,129) !important;
+        cursor: default !important;
+    }
+
+    .mud-dialog {
+        max-width: 970px !important;
+        margin-top: -20px;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public AuthUser AuthUser { get; set; }
+
+    public string PasskeyName { get; set; }
+
+    public bool EmailVerifySent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        //var Meta = await Fido2Service._metadata.GetEntryAsync(AuthUser.PasskeyTokens.First().AaGuid);
+        //Console.WriteLine("Meta: " + Meta.MetadataStatement.Description);
+    }
+
+    public async Task ChangeUsername()
+    {
+        await DialogService.ShowAsync<ChangeAccountUsernameDialog>("Change Account Username");
+    }
+
+    public async Task ChangeEmail()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.EmailConfirmed)
+        {
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+        }
+
+        var Dialog = await DialogService.ShowAsync<ChangeAccountEmailDialog>("Change Account Email");
+        if (Dialog != null)
+        {
+            var Result = await Dialog.Result;
+            if (Result != null && !Result.Canceled)
+            {
+                AuthUser = await Session.GetCurrentUserAsync();
+                _ = DialogService.ShowInfoAsync("Check your Emails", $"We have sent a confirmation link to {Result.Data} so you can change your account email address.");
+            }
+        }
+    }
+
+    public async Task ChangePassword()
+    {
+        await DialogService.ShowAsync<ChangeAccountPasswordDialog>("Change Account Password");
+    }
+
+    public async Task DeleteAccount()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.IsInstanceAdmin)
+        {
+            await DialogService.ShowInfoAsync("Account Info", "You can't delete your instance admin account.");
+            return;
+        }
+        if (_DB.Teams.Cache.Values.Any(x => x.OwnerId == AuthUser.Id))
+        {
+            await DialogService.ShowInfoAsync("Account Info", "You can't delete your account with owned teams.");
+            return;
+        }
+
+        var Result = await DialogService.ShowConfirmAsync("Delete Account", "Are you sure you want to delete your account?", "Confirm Delete", Color.Warning);
+        if (Result != null && !Result.Canceled)
+        {
+            AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser.EmailConfirmed)
+            {
+                var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(false);
+                if (!TwoFactorValid)
+                {
+                    await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                    return;
+                }
+            }
+            AuthUser = await Session.GetCurrentUserAsync();
+            await UserManager.DeleteAsync(AuthUser);
+            NavigationManager.NavigateTo("/logout", true);
+        }
+    }
+
+    public async Task SendEmailVerify()
+    {
+        EmailVerifySent = true;
+        var Code = await UserManager.GenerateEmailConfirmationTokenAsync(AuthUser);
+        Code = Uri.EscapeDataString(Code);
+        await Email.Send(SendMailType.AccountConfirm, AuthUser, (NavigationManager.BaseUri + "api/account/confirm?token=" + Code));
+    }
+
+
+    public async Task RegisterPasskey()
+    {
+        if (string.IsNullOrEmpty(PasskeyName))
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (!AuthUser.Auth.IsTwoFactorEnabled)
+        {
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+        }
+
+        Console.WriteLine("Run passkey");
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.Auth.PasskeyId == null)
+        {
+            AuthUser.Auth.PasskeyId = MongoDB.Bson.ObjectId.GenerateNewId();
+            UserManager.UpdateAsync(AuthUser);
+        }
+        bool IsSuccess = false;
+        string? PasskeyRequestId = Guid.NewGuid().ToString();
+        Cache.SetString("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new Fido2Request(AuthUser.Id, false)), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+
+        try
+        {
+            IsSuccess = await JS.InvokeAsync<bool>("passkeyStartRegister", PasskeyName, PasskeyRequestId);
+        }
+        catch { }
+        string Data = Cache.GetString("passkey-" + PasskeyRequestId);
+        if (!string.IsNullOrEmpty(Data))
+        {
+            Fido2Request? RequestData = JsonSerializer.Deserialize<Fido2Request?>(Data);
+            if (RequestData != null && RequestData.UserId == AuthUser.Id)
+                IsSuccess = RequestData.IsSuccess;
+        }
+    }
+
+    public async Task TestPasskey()
+    {
+        var Result = await Session.TestPasskey(false);
+        if (Result)
+            await DialogService.ShowInfoAsync("Passkey Test", "Your passkey was successful");
+        else
+            await DialogService.ShowInfoAsync("Passkey Test", "Your passkey failed to validate");
+    }
+
+    public async Task RemovePasskey(FidoStoredCredential cred)
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.Auth.IsTwoFactorEnabled)
+        {
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+        }
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.Auth.Passkeys.Remove(cred))
+            await UserManager.UpdateAsync(AuthUser);
+
+    }
+
+    public async Task RegisterAuthenticator()
+    {
+        var User = await Session.GetCurrentUserAsync();
+        if (AuthUser.Auth.IsTwoFactorEnabled)
+        {
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+        }
+        User = await Session.GetCurrentUserAsync();
+
+        var Key = await UserManager.GetAuthenticatorKeyAsync(User);
+        if (string.IsNullOrEmpty(Key))
+        {
+            var Result = await UserManager.ResetAuthenticatorKeyAsync(User);
+            Key = await UserManager.GetAuthenticatorKeyAsync(User);
+        }
+
+        var parameters = new DialogParameters<RegisterAuthenticatorDialog>
+        {
+            { x => x.SetupKey, Key },
+            { x => x.SetupUrl, $"otpauth://totp/{Uri.EscapeDataString(_Data.Config.Instance.Name)}:{Uri.EscapeDataString(User.Email)}?secret={Key}" }
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small, BackdropClick = false, CloseOnEscapeKey = false };
+
+        var Dialog = await DialogService.ShowAsync<RegisterAuthenticatorDialog>("Register Authenticator", parameters, options);
+        if (Dialog != null)
+        {
+            var Result = await Dialog.Result;
+            if (Result != null && !Result.Canceled)
+            {
+                await DialogService.ShowInfoAsync("Authenticator Verified", "The authenticator app has now been verified.");
+            }
+        }
+    }
+
+    public async Task RemoveAllPasskeys()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (!AuthUser.Auth.Passkeys.Any())
+        {
+            await DialogService.ShowInfoAsync("Passkey Info", "You do not have any passkeys registered");
+            return;
+        }
+        var Confirm = await DialogService.ShowConfirmAsync("Remove All Passkeys", "Are you sure you want to remove all passkeys?", "Confirm", Color.Warning);
+        if (!Confirm.Canceled)
+        {
+            AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser.Auth.IsTwoFactorEnabled)
+            {
+                var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+                if (!TwoFactorValid)
+                {
+                    await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                    return;
+                }
+            }
+            AuthUser = await Session.GetCurrentUserAsync();
+            AuthUser.Auth.Passkeys.Clear();
+            await UserManager.UpdateAsync(AuthUser);
+        }
+    }
+
+    public string GetLocalDate(DateTimeOffset? date, bool isMini)
+    {
+        Console.WriteLine($"Year: {date.GetValueOrDefault().Year}");
+        if (!date.HasValue || date.Value.Year == 1)
+            return "";
+        DateTimeOffset MessageOffset;
+        try
+        {
+            MessageOffset = date.Value.AddMinutes(Session.UserDateOffset);
+        }
+        catch
+        {
+            return "Unknown";
+        }
+        DateTimeOffset UserDate = DateTimeOffset.UtcNow.AddMinutes(Session.UserDateOffset);
+        if (MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month && MessageOffset.Day == UserDate.Day)
+        {
+            return $"Today at {MessageOffset.Hour.ToString().PadLeft(2, '0')}:{MessageOffset.Minute.ToString().PadLeft(2, '0')}";
+        }
+        DateTimeOffset Lastday = UserDate.AddDays((int)-1);
+        if (MessageOffset.Year == Lastday.Year && MessageOffset.Month == Lastday.Month && MessageOffset.Day == Lastday.Day)
+            return $"Yesterday at {MessageOffset.Hour.ToString().PadLeft(2, '0')}:{MessageOffset.Minute.ToString().PadLeft(2, '0')}";
+        return $"{MessageOffset.Day.ToString().PadLeft(2, '0')}/{MessageOffset.Month.ToString().PadLeft(2, '0')}/{MessageOffset.Year.ToString().PadLeft(2, '0')}";
+    }
+
+    public async Task GenerateBackupCodes()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.Auth.IsTwoFactorEnabled)
+        {
+            Console.WriteLine("WTF: Trigger Auth");
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+            Console.WriteLine("WTF: Response: " + TwoFactorValid);
+        }
+        else
+        {
+            Console.WriteLine("WTF: No Two-factor");
+        }
+
+        var Hasher = new PasswordHasher<AuthUser>();
+
+        var Code = Utils.CreateTwoFactorRecoveryCode();
+
+        string Key = Utils.CreateTwoFactorRecoveryCode();
+
+        Cache.SetString(Key, JsonSerializer.Serialize(Code), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
+
+        AuthUser.Auth.RecoveryCode = Hasher.HashPassword(AuthUser, Code);
+        AuthUser.Auth.RecoveryCodeCreatedAt = DateTimeOffset.UtcNow;
+        await UserManager.UpdateAsync(AuthUser);
+
+        var parameters = new DialogParameters<ShowRecoveryCodesDialog>
+        {
+            { x => x.Code, Code },
+            { x => x.DownloadToken, Key }
+        };
+
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small, BackdropClick = false, CloseOnEscapeKey = false };
+
+        var Dialog = await DialogService.ShowAsync<ShowRecoveryCodesDialog>("Recovery Codes", parameters, options);
+    }
+}

@@ -1,0 +1,51 @@
+﻿@using DevSpaceWeb.Services
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AuthUser> UserManager
+@inject EmailService EmailService
+@inject NavigationManager NavigationManager
+
+<MudDialog>
+    <DialogContent>
+        <MudText>Changing your email address will require verification with the current email address.</MudText>
+        <br />
+        <MudTextField @bind-Value="Email" ShrinkLabel="true" Label="Email" Variant="Variant.Filled" Underline="false"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="Submit">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public string Email { get; set; }
+
+    async Task Submit()
+    {
+        AuthUser? user = await Session.GetCurrentUserAsync();
+        if (user == null)
+            return;
+
+        if (user.Email.Equals(Email, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        AuthUser? FindUser = await UserManager.FindByEmailAsync(Email);
+        if (FindUser != null)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+            return;
+        }
+        var Code = await UserManager.GenerateChangeEmailTokenAsync(user, Email);
+        Code = Uri.EscapeDataString(Code);
+
+        string EmailEscape = Uri.EscapeDataString(Email);
+        await EmailService.Send(SendMailType.AccountConfirm, user, (NavigationManager.BaseUri + "api/account/changeEmail?email=" + EmailEscape + "&token=" + Code));
+
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+    void Cancel() => MudDialog.Cancel();
+}

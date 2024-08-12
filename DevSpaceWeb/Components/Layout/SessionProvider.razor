@@ -1,0 +1,198 @@
+﻿@using DevSpaceWeb.Components.Dialogs
+@using DevSpaceWeb.Database
+@using DevSpaceWeb.Fido2
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Identity;
+@using System.Text.Json
+@using Microsoft.Extensions.Caching.Distributed
+@inject NavigationManager NavigationManager
+@inject UserManager<AuthUser> UserManager
+@inject IJSRuntime JS
+@inject IDistributedCache Cache
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject HttpContextAccessor Http
+@inject IDialogService DialogService
+@inject IDistributedCache Cache
+
+@if (Ready)
+{
+    @switch (SessionError)
+    {
+        case SessionErrorType.HttpsRequired:
+            {
+                <MudThemeProvider IsDarkMode="true" />
+                <MudPopoverProvider />
+                <div class="dash-box dash-box-content" style="padding: 10px;">
+                    <div class="dash-box-header">
+                        <MudText Typo="Typo.h6">Http Error</MudText>
+                    </div>
+                    <br />
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">A secure https connection is required to use this.</MudAlert>
+                </div>
+            }
+            break;
+        case SessionErrorType.AuthenticationError:
+            {
+                <MudThemeProvider IsDarkMode="true" />
+                <MudPopoverProvider />
+                <div class="dash-box dash-box-content" style="padding: 10px;">
+                    <div class="dash-box-header">
+                        <MudText Typo="Typo.h6">Authentication Error</MudText>
+                    </div>
+                    <br />
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">Authentication error has occured.</MudAlert>
+                </div>
+            }
+            break;
+        default:
+            {
+
+                @if (_Data.Config.isFullySetup)
+                {
+                    @if (!_DB.IsConnected)
+                    {
+                        <MudThemeProvider IsDarkMode="true" />
+                        <MudPopoverProvider />
+                        <div class="dash-box dash-box-content" style="padding: 10px;">
+                            <div class="dash-box-header">
+                                <MudText Typo="Typo.h6">Database Error</MudText>
+                            </div>
+                            <br />
+                            <MudAlert Severity="Severity.Error" Variant="Variant.Filled">Can't connect to database.</MudAlert>
+                        </div>
+                    }
+                    else
+                    {
+                        <CascadingValue Value="@this">
+                            @ChildContent
+                        </CascadingValue>
+                    }
+                }
+                else
+                {
+                    <CascadingValue Value="@this">
+                        @ChildContent
+                    </CascadingValue>
+                }
+
+            }
+            break;
+    }
+}
+
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public AuthenticationState State { get; set; }
+
+    public SelectedSessionData Selected = new SelectedSessionData();
+
+    public bool Ready = false;
+
+    public int UserDateOffset { get; set; }
+
+    public SessionErrorType SessionError { get; set; }
+
+    public async Task<AuthUser?> GetCurrentUserAsync()
+    {
+        return await UserManager.GetUserAsync(State.User)!;
+
+    }
+
+    public async Task<bool> TriggerTwoFactorAuthentication(bool logUsed)
+    {
+        var Dialog = await DialogService.ShowAsync<TwoFactorVerifyDialog>("2FA Verification", new DialogOptions
+            {
+                MaxWidth = MaxWidth.Medium
+            });
+
+        if (Dialog != null)
+        {
+            var Result = await Dialog.Result;
+            if (Result != null && !Result.Canceled)
+                return true;
+        }
+
+        return false;
+    }
+
+    public async Task<bool> TestPasskey(bool logUsage)
+    {
+        AuthUser? user = await GetCurrentUserAsync();
+        if (user == null)
+            return false;
+
+        bool IsSuccess = false;
+        string PasskeyRequestId = Guid.NewGuid().ToString();
+        Cache.SetString("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new Fido2Request(user.Id, logUsage)), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+        try
+        {
+            IsSuccess = await JS.InvokeAsync<bool>("passkeyStartAuth", PasskeyRequestId);
+        }
+        catch { }
+        string? Data = Cache.GetString("passkey-" + PasskeyRequestId);
+        if (!string.IsNullOrEmpty(Data))
+        {
+            Fido2Request? RequestData = JsonSerializer.Deserialize<Fido2Request?>(Data);
+            if (RequestData != null && RequestData.UserId == user.Id)
+                IsSuccess = RequestData.IsSuccess;
+        }
+
+        return IsSuccess;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Http.HttpContext.Request.IsHttps)
+        {
+            SessionError = SessionErrorType.HttpsRequired;
+            return;
+        }
+        State = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        UserDateOffset = await JS.InvokeAsync<int>("GetUserTimezoneOffset");
+        string Path = NavigationManager.Uri.Substring(NavigationManager.BaseUri.Length);
+
+        if (!_Data.Config.isFullySetup && Path != "admin/setup")
+        {
+            NavigationManager.NavigateTo("admin/setup", true);
+            return;
+        }
+
+        if (Path.StartsWith("admin"))
+        {
+            Ready = true;
+            return;
+        }
+
+        if (State == null)
+        {
+            Console.WriteLine("Auth Error");
+            SessionError = SessionErrorType.AuthenticationError;
+        }
+        else if (!State.User.Identity.IsAuthenticated)
+        {
+            Console.WriteLine("Auth Required");
+            SessionError = SessionErrorType.AuthenticationRequired;
+        }
+        else
+        {
+            Console.WriteLine("Trigger Ready");
+
+        }
+        Ready = true;
+    }
+
+
+    public void TriggerChange()
+    {
+        this.StateHasChanged();
+    }
+
+    public enum SessionErrorType
+    {
+        None, HttpsRequired, AuthenticationError, AuthenticationRequired
+    }
+
+}

@@ -1,0 +1,29 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<AuthUser> UserManager
+
+<MudDialog>
+    <DialogContent>
+        <MudAlert Severity="Severity.Info" Variant="Variant.Filled">Copy or download this code and keep it safe!</MudAlert>
+        <br />
+        <p>@Code</p>
+        <br />
+        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" Href="@("/api/account/recoveryCode?token=" + DownloadToken)" Target="_blank">Download</MudButton>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    [Parameter] public string Code { get; set; }
+
+    [Parameter] public string DownloadToken { get; set; }
+
+    void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    void Cancel() => MudDialog.Cancel();
+}

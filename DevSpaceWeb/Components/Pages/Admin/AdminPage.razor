@@ -1,0 +1,85 @@
+﻿@page "/admin/{page?}"
+
+@if (!IsAdmin)
+{
+    <div class="dash-box dash-box-content">
+        <h3>Dev Space Setup</h3>
+        <p>You need to configure this app to work correctly!</p>
+        <br />
+        <p>Enter your Admin Key here, you can find this in /Data/Config.json</p>
+        <MudTextField @bind-Value="AdminKeyInput" Label="Admin Key" ShrinkLabel="true" Variant="Variant.Filled" Underline="false" Error="!string.IsNullOrEmpty(ErrorText)" ErrorText="@ErrorText"></MudTextField>
+        <br />
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@CheckAdminKey">Check</MudButton>
+    </div>
+}
+else if (!_Data.Config.isFullySetup)
+{
+    <AdminSetup></AdminSetup>
+}
+else
+{
+    @switch (page)
+    {
+        case "":
+        case null:
+            {
+                <div class="dash-box dash-box-content">
+                    <div class="dash-box-header">
+                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
+                        <MudText Typo="Typo.h6">@_Data.Config.Instance.Name Admin</MudText>
+                    </div>
+                    <br />
+                    <h3>Stats</h3>
+                    <p>Teams: @_DB.Teams.Cache.Keys.Count()</p>
+                    <p>Servers: @_DB.Servers.Cache.Keys.Count()</p>
+                    <p>Websites: @_DB.Websites.Cache.Keys.Count()</p>
+                    <p>Projects: @_DB.Projects.Cache.Keys.Count()</p>
+                    <p>Logs: @_DB.Logs.Cache.Keys.Count()</p>
+                    <br />
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" Href="/admin/database">Database</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" Href="/admin/settings">Settings</MudButton>
+                </div>
+            }
+            break;
+        case "database":
+            <AdminDatabase></AdminDatabase>
+            break;
+        case "settings":
+            <AdminSettings></AdminSettings>
+            break;
+        case "dev_services":
+            <AdminDevServices></AdminDevServices>
+            break;
+    }
+}
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    [Parameter]
+    public string page { get; set; }
+
+    public bool IsAdmin { get; set; }
+    public string AdminKeyInput { get; set; }
+
+    public string ErrorText { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User != null)
+            IsAdmin = User.IsInstanceAdmin;
+
+
+    }
+
+    public void CheckAdminKey()
+    {
+        if (!string.IsNullOrEmpty(AdminKeyInput) && AdminKeyInput == _Data.Config.AdminKey)
+            IsAdmin = true;
+        else
+            ErrorText = "Invalid admin key";
+    }
+}

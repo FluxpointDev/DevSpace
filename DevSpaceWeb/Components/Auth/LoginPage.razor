@@ -1,0 +1,267 @@
+﻿@page "/login"
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.AspNetCore.Components.Forms;
+@using System.ComponentModel.DataAnnotations;
+@using System.Text.RegularExpressions
+@using DevSpaceWeb.Controllers
+@using DevSpaceWeb.Database
+@using DevSpaceWeb.Services
+@using JWTDemo.Shared.Models
+@using Microsoft.AspNetCore.Identity
+@using MongoDB.Driver
+@inject SignInManager<AuthUser> UserManager;
+@inject NavigationManager NavigationManager
+@inject HttpContextAccessor HttpContext
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<MudGrid>
+    @if (UseInternalLogin)
+    {
+        @if (UseInternalRegister)
+        {
+            <MudItem xs="11" sm="7" Style="margin: 30px;">
+
+                <MudPaper Class="pa-4">
+                    <h3>@_Data.Config.Instance.Name Register</h3>
+                    <br />
+
+
+                    <MudForm @ref="form" @bind-IsValid="@FormValid" @bind-Errors="@errors" Disabled="@FormDisabled">
+                        <MudTextField T="string" Label="Name" Required="true" @ref="NameField" RequiredError="Name is required!"
+                                      Variant="Variant.Filled" Underline="false" ShrinkLabel="true" />
+
+                        <br style="margin-bottom: 20px;" />
+
+                        <MudTextField T="string" Label="Email" Required="true" @ref="EmailField" RequiredError="Email is required!"
+                                      Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
+                                      Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
+
+                        <br style="margin-bottom: 20px;" />
+
+                        <MudTextField T="string" Label="Password" HelperText="Choose a strong password" @ref="pwField1"
+                                      InputType="InputType.Password" Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
+                                      Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))" Required="true"
+                                      RequiredError="Password is required!" />
+
+                        <br style="margin-bottom: 20px;" />
+
+                        <MudTextField T="string"
+                                      Label="Password" HelperText="Repeat the password" Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
+                                      InputType="InputType.Password"
+                                      Validation="@(new Func<string, string>(PasswordMatch))" />
+
+
+                        <div class="d-flex align-center justify-space-between" style="margin-top: 30px;">
+                            <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(!FormValid)" OnClick="RegisterAccount">Register</MudButton>
+                            <MudButton Variant="Variant.Text" Class="ml-auto" OnClick="@(() => { UseInternalRegister = false; errors = new string[0]; })">Login Instead</MudButton>
+                        </div>
+                    </MudForm>
+                </MudPaper>
+            </MudItem>
+            <MudItem xs="12" sm="5" Style="margin: 30px;">
+                <MudPaper Class="pa-4 mud-height-full">
+                    <MudText Typo="Typo.subtitle2">@($"Errors ({errors.Length})")</MudText>
+                    @foreach (var error in errors)
+                    {
+                        <MudText Color="@Color.Error">@error</MudText>
+                    }
+                </MudPaper>
+
+
+
+            </MudItem>
+        }
+        else
+        {
+            <MudItem xs="11" sm="7" Style="margin: 30px;">
+
+                <MudPaper Class="pa-4">
+                    <h3>@_Data.Config.Instance.Name Login</h3>
+                    <br />
+                    @if (IsAccountCreated)
+                    {
+                        <MudAlert Severity="Severity.Info">Your account has been created, you can now login.</MudAlert>
+                        <br />
+                    }
+
+                    <form data-enhance id="login-form" action="/auth" method="post">
+                        @* <input type="hidden" id="RequestVerificationToken" name="RequestVerificationToken" value="@Xsrf.GetAndStoreTokens(this.HttpContext.HttpContext).RequestToken">
+                *@
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="form-floating">
+                            <input name="Email" asp-for="Input.Email" class="form-control" aria-required="true" />
+                            <label asp-for="Input.Email" class="form-label"></label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                        <br />
+                        <div class="form-floating">
+                            <input name="Password" asp-for="Input.Password" class="form-control" aria-required="true" />
+                            <label asp-for="Input.Password" class="form-label"></label>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+                        <div>
+                            <div class="checkbox">
+                                <label asp-for="Input.RememberMe" class="form-label">
+                                    <input name="RememberMe" class="form-check-input" type="checkbox" asp-for="Input.RememberMe" />
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <MudButton id="login-submit" Variant="Variant.Filled" Color="Color.Success" ButtonType="ButtonType.Submit">Login</MudButton>
+                        </div>
+                    </form>
+
+                    @* <EditForm Enhance="true" id="login-form" Model="@model" FormName="Test" OnSubmit="@OnInvalidSubmit" action="@NavigationManager.Uri.Replace("/login", "/auth")" method="post">
+            <DataAnnotationsValidator />
+
+            <MudTextField hidden Style="display: none;" Label="RequestVerificationToken" Value="Xsrf.GetAndStoreTokens(HttpContext.HttpContext).RequestToken"
+            Variant="Variant.Filled" Underline="false" ShrinkLabel="true" />
+
+            <MudTextField Label="Email" @bind-Value="model.Email" For="(() => model.Email)"
+            Variant="Variant.Filled" Underline="false" ShrinkLabel="true" />
+
+            <br style="margin-bottom: 20px;" />
+
+            <MudTextField Label="Password" @bind-Value="model.Password" For="(() => model.Password)"
+            InputType="InputType.Password"
+            Required="true" Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
+            RequiredError="Password is required!" />
+
+            <div class="d-flex align-center justify-space-between" style="margin-top: 30px;">
+            <MudButton Variant="Variant.Filled" Color="Color.Success" form="login-form" ButtonType="ButtonType.Submit">Login</MudButton>
+            @if (!_Data.Config.Auth.AllowRegister)
+            {
+            <MudButton Variant="Variant.Text" Class="ml-auto" OnClick="@(() => { UseInternalRegister = true; errors = new string[0]; })">Register Account</MudButton>
+            }
+            </div>
+            </EditForm> *@
+                </MudPaper>
+            </MudItem>
+        }
+
+    }
+    else
+    {
+        <MudItem xs="12" Style="margin: 30px;">
+            <MudPaper Class="pa-4">
+                <h3>@_Data.Config.Instance.Name Login</h3>
+                <br />
+                @if (_Data.Config.Auth.AllowInternalLogin)
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="@(() => UseInternalLogin = true)">Internal Auth</MudButton>
+                }
+                <br />
+                <br />
+                <form data-enhance id="login-external-form" action="/auth/external" method="post" class="form-horizontal">
+                    <div>
+                        <p>
+                            <MudButton Variant="Variant.Filled" Color="Color.Info" ButtonType="ButtonType.Submit" value="google" name="provider">
+                                <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Info" ButtonType="ButtonType.Submit" value="discord" name="provider">
+                                <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
+                            </MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Info" ButtonType="ButtonType.Submit" value="github" name="provider">
+                                <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
+                            </MudButton>
+                        </p>
+                    </div>
+                </form>
+            </MudPaper>
+        </MudItem>
+    }
+</MudGrid>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public bool UseInternalLogin = false;
+    public bool UseInternalRegister = false;
+    public bool FormValid { get; set; }
+    public bool FormDisabled { get; set; } = false;
+    string[] errors = { };
+    MudForm form;
+
+    LoginForm model = new LoginForm();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // var uriBuilder = new UriBuilder(NavigationManager.Uri);
+        // var q = System.Web.HttpUtility.ParseQueryString(uriBuilder.Query);
+        // string Email = q["email"];
+        // string Username = q["username"];
+        // UseInternalLogin = true;
+        // UseInternalRegister = true;
+    }
+
+    private void OnInvalidSubmit(EditContext context)
+    {
+        Console.WriteLine(string.Join(", ", context.GetValidationMessages()));
+    }
+
+    MudTextField<string> NameField;
+    MudTextField<string> EmailField;
+    MudTextField<string> pwField1;
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return "Password is required!";
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return "Password must be more than 8 characters";
+        if (pw.Length > 50)
+            yield return "Password must be less than 50 character";
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return "Password must contain at least one capital letter";
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return "Password must contain at least one lowercase letter";
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return "Password must contain at least one digit";
+    }
+
+    public bool IsAccountCreated { get; set; }
+
+    public async Task RegisterAccount()
+    {
+        FormDisabled = true;
+
+        var result = await UserManager.UserManager.CreateAsync(new AuthUser
+            {
+                UserName = NameField.Value,
+                Email = EmailField.Value
+            }, pwField1.Value);
+
+        if (result.Errors.Any())
+        {
+            if (result.Errors.Count() == 1 && result.Errors.First().Code == "DuplicateEmail")
+            {
+                IsAccountCreated = true;
+                UseInternalRegister = true;
+            }
+            else
+            {
+                errors = result.Errors.Select(x => x.Description).ToArray();
+            }
+        }
+        else
+        {
+            IsAccountCreated = true;
+            UseInternalRegister = true;
+        }
+
+        FormDisabled = false;
+    }
+
+    private string PasswordMatch(string arg)
+    {
+        if (pwField1.Value != arg)
+            return "Passwords don't match";
+        return null;
+    }
+}

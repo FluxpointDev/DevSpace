@@ -1,0 +1,96 @@
+﻿@using DevSpaceShared.Responses
+@using DevSpaceShared.WebSocket
+
+<div class="dash-box">
+    <MudTable @ref="table" Height="350px" RowClass="cursor-pointer" SelectOnRowClick="true" ServerData="@ServerReload"
+              Virtualize="true" Dense="true" Hover="true" Elevation="0"
+              MultiSelection="true" Breakpoint="Breakpoint.Sm" T="FirewallRuleResponse"
+              OnRowClick="@OnTblRowClicked">
+        <ToolBarContent>
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:wall"></span></div>
+            <MudText Typo="Typo.h6">Firewall</MudText>
+            <MudSpacer />
+            <MudTextField T="string" Margin="Margin.Dense" @bind-Value="@searchString" DebounceInterval="500" OnDebounceIntervalElapsed="@(s=>OnSearch(s))" Placeholder="Search Name" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Variant="Variant.Outlined"></MudTextField>
+
+        </ToolBarContent>
+        <ColGroup>
+            <col style="width: 40px;" />
+            <col style="width: 140px;" />
+            <col style="width: 120px;" />
+            <col style="width: 120px;" />
+            <col />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh>Type</MudTh>
+            <MudTh>From</MudTh>
+            <MudTh>To</MudTh>
+            <MudTh>Comment</MudTh>
+        </HeaderContent>
+
+        <RowTemplate>
+            <MudTd DataLabel="Type">@context.Action</MudTd>
+            <MudTd DataLabel="From">
+                @context.From
+            </MudTd>
+            <MudTd DataLabel="To">
+                @context.To
+            </MudTd>
+            <MudTd DataLabel="Comment">
+                @context.Comment
+            </MudTd>
+        </RowTemplate>
+
+        <NoRecordsContent>
+            <MudText>No matching records found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+
+    </MudTable>
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    FirewallResponse? FirewallInfo = null;
+    private string searchString = null;
+    private MudTable<FirewallRuleResponse> table;
+
+    private void OnSearch(string text)
+    {
+        table.ReloadServerData();
+    }
+
+    public async Task<TableData<FirewallRuleResponse>> ServerReload(TableState state, CancellationToken token)
+    {
+        if (FirewallInfo == null)
+        {
+            try
+            {
+                FirewallInfo = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<FirewallResponse>(new IWebSocketTaskEvent(EventType.FirewallInfo));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        }
+        SelectedIndex.Clear();
+
+        var search = FirewallInfo.Rules.OrderByDirection(state.SortDirection, o => o.From);
+
+
+        return new TableData<FirewallRuleResponse>() { Items = search };
+    }
+
+    private Dictionary<int, char> SelectedIndex = new Dictionary<int, char>();
+
+    public void OnTblRowClicked(TableRowClickEventArgs<FirewallRuleResponse> o)
+    {
+        Console.WriteLine("On click: " + o.Row.Checked);
+        o.Row.Class = o.Row.Checked ? "mud-table-row cursor-pointer table-row-selected" : "mud-table-row cursor-pointer";
+
+    }
+}

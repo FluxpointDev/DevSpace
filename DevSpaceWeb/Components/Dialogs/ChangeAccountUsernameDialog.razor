@@ -1,0 +1,42 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<AuthUser> UserManager
+
+<MudDialog>
+    <DialogContent>
+        <MudText>Your username must be unique and is visible to everyone in your team.</MudText>
+        <br />
+        <MudTextField @bind-Value="Username" ShrinkLabel="true" Label="Username" Variant="Variant.Filled" Underline="false"></MudTextField>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel </MudButton>
+        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="Submit">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public string Username { get; set; }
+
+    async Task Submit()
+    {
+        if (string.IsNullOrEmpty(Username))
+            return;
+
+        AuthUser? user = await Session.GetCurrentUserAsync();
+        if (user == null || user.UserName.Equals(Username, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var Result = await UserManager.SetUserNameAsync(user, Username);
+        if (Result.Succeeded)
+        {
+            MudDialog.Close(DialogResult.Ok(true));
+            Session.TriggerChange();
+        }
+
+    }
+    void Cancel() => MudDialog.Cancel();
+}

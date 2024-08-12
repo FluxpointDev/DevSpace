@@ -1,0 +1,303 @@
+﻿@using DevSpaceWeb.Services
+@using MailKit.Net.Smtp
+@using MimeKit
+@using Swashbuckle.AspNetCore.Swagger
+@inject ISnackbar Snackbar
+@inject EmailService EmailService
+@inject ISwaggerProvider Swagger
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <MudText Typo="Typo.h6">Admin Settings</MudText>
+    </div>
+    <MudTabs Outlined="false" SliderColor="Color.Info" Position="Position.Left" Rounded="true" Border="false" Elevation="0"
+             ApplyEffectsToContainer="true" Class="mt-8" PanelClass="pa-4">
+        <MudTabPanel Text="Instance">
+            <div class="settings-box">
+                <h3>Basic</h3>
+                <br />
+                <MudTextField @bind-Value="InstanceName" Label="Name" Variant="Variant.Filled" Underline="false"></MudTextField>
+                <MudTextField @bind-Value="InstanceDescription" Label="Description" Variant="Variant.Filled" Underline="false"></MudTextField>
+                <MudTextField @bind-Value="InstanceIcon" Label="Icon" Variant="Variant.Filled" Underline="false"></MudTextField>
+                <br />
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SetupEmailAsync">Update</MudButton>
+            </div>
+            <br />
+            <div class="settings-box">
+                <h3>Email</h3>
+                <br />
+                <MudSelect T="ConfigEmailType" Label="Type" @bind-Value="EmailType" Variant="Variant.Filled" Underline="false">
+                    <MudSelectItem T="ConfigEmailType" Value="@ConfigEmailType.FluxpointManaged">Fluxpoint Email Service</MudSelectItem>
+                    <MudSelectItem T="ConfigEmailType" Value="@ConfigEmailType.Custom"> Custom SMTP Server</MudSelectItem>
+                </MudSelect>
+                @if (EmailType == ConfigEmailType.FluxpointManaged)
+                {
+                    <MudTextField @bind-Value="ManagedEmailToken" Label="Email Token" Variant="Variant.Filled" Underline="false"></MudTextField>
+                }
+                else
+                {
+                    <MudTextField @bind-Value="SmtpHost" Label="Host" Variant="Variant.Filled" Underline="false"></MudTextField>
+                    <MudTextField @bind-Value="SmtpPort" Label="Port" Variant="Variant.Filled" Underline="false"></MudTextField>
+                    <MudTextField @bind-Value="SmtpUser" Label="User" Variant="Variant.Filled" Underline="false"></MudTextField>
+                    <MudTextField @bind-Value="SmtpPassword" Label="Password" Variant="Variant.Filled" Underline="false"></MudTextField>
+                }
+                <br />
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SetupEmailAsync">Update</MudButton>
+                <br />
+                <br />
+                <MudTextField @bind-Value="TestEmail" Label="Test Email" Variant="Variant.Filled" Underline="false"></MudTextField>
+                <br />
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SendTestEmail">Send</MudButton>
+            </div>
+        </MudTabPanel>
+        <MudTabPanel Text="API">
+            <div class="settings-box">
+                <h3>Swagger</h3>
+                <br />
+                <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
+            </div>
+            <div class="settings-box">
+                <h3>Limits</h3>
+                <br />
+                <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
+            </div>
+        </MudTabPanel>
+        <MudTabPanel Text="Features">
+            <div class="settings-box">
+                <h3>Swagger API</h3>
+                <br />
+                <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
+            </div>
+            <div class="settings-box">
+                <h3>Limits</h3>
+                <br />
+                <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
+            </div>
+        </MudTabPanel>
+    </MudTabs>
+</div>
+
+
+
+
+<style>
+    .mud-tab {
+        text-transform: none !important;
+        font-size: 15px;
+    }
+
+    .mud-tabs-tabbar {
+        background-color: #28262f !important;
+    }
+
+    .mud-tab-active {
+        color: var(--mud-palette-info) !important;
+    }
+
+
+    .settings-box {
+        display: block !important;
+        background-color: #2B2B36;
+        width: 100% !important;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+    .mud-tabs-panels.mud-tabs-vertical {
+        display: block !important;
+    }
+</style>
+
+@* <div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <MudText Typo="Typo.h6">Settings</MudText>
+    </div>
+    <br />
+    <p>Configure the instance, features, websocket and other settings.</p>
+</div> *@
+
+
+<style>
+    .mud-snackbar {
+        position: fixed;
+        z-index: var(--mud-zindex-snackbar);
+        bottom: 14px !important;
+        left: 0 !important;
+        margin-left: 14px !important;
+        padding-right: 20px;
+    }
+
+    @@media(min-width: 960px) {
+        .mud-snackbar {
+            margin-left: calc(var(--mud-drawer-width-left) + 14px) !important;
+        }
+    }
+</style>
+
+@code {
+    public ConfigEmailType EmailType { get; set; }
+    public string SmtpHost { get; set; }
+    public int SmtpPort { get; set; }
+    public string SmtpUser { get; set; }
+    public string SmtpPassword { get; set; }
+    public string ManagedEmailToken { get; set; }
+
+    public string InstanceName { get; set; }
+    public string InstanceDescription { get; set; }
+    public string InstanceIcon { get; set; }
+
+    public int MaxImagesUpload { get; set; }
+
+    public string Value { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        EmailType = _Data.Config.Email.Type;
+        SmtpHost = _Data.Config.Email.SmtpHost;
+        SmtpPort = _Data.Config.Email.SmtpPort;
+        SmtpUser = _Data.Config.Email.SmtpUser;
+        SmtpPassword = _Data.Config.Email.SmtpPassword;
+        ManagedEmailToken = _Data.Config.Email.ManagedEmailToken;
+
+        InstanceName = _Data.Config.Instance.Name;
+        InstanceDescription = _Data.Config.Instance.Description;
+        InstanceIcon = _Data.Config.Instance.Icon;
+
+        MaxImagesUpload = _Data.Config.Instance.Limits.MaxImagesUpload;
+    }
+
+    public void UpdateInstance()
+    {
+        if (string.IsNullOrEmpty(InstanceName))
+            return;
+
+        _Data.Config.Instance.Name = InstanceName;
+        _Data.Config.Instance.Description = InstanceDescription;
+        _Data.Config.Instance.Icon = InstanceIcon;
+        _Data.Config.Save();
+    }
+
+    public async Task SetupEmailAsync()
+    {
+        if (EmailType == ConfigEmailType.FluxpointManaged)
+        {
+            if (string.IsNullOrEmpty(ManagedEmailToken))
+                return;
+
+            var Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/test");
+            Message.Headers.Add("Authorization", ManagedEmailToken);
+
+
+            Console.WriteLine("Save Token");
+
+            var Res = await Program.Http.SendAsync(Message);
+            if (Res.IsSuccessStatusCode)
+            {
+                _Data.Config.Email.Type = ConfigEmailType.FluxpointManaged;
+                _Data.Config.Email.ManagedEmailToken = ManagedEmailToken;
+                _Data.Config.Save();
+            }
+            Console.WriteLine("Save Token: " + Res.IsSuccessStatusCode);
+        }
+        else
+        {
+            try
+            {
+                using (var Client = new SmtpClient())
+                {
+                    await Client.ConnectAsync(SmtpHost, SmtpPort);
+                    await Client.AuthenticateAsync(SmtpUser, SmtpPassword);
+
+                    await Client.DisconnectAsync(true);
+                }
+
+                _Data.Config.Email.Type = ConfigEmailType.Custom;
+                _Data.Config.Email.SmtpHost = SmtpHost;
+                _Data.Config.Email.SmtpPort = SmtpPort;
+                _Data.Config.Email.SmtpUser = SmtpUser;
+                _Data.Config.Email.SmtpPassword = SmtpPassword;
+                _Data.Config.Save();
+            }
+            catch { }
+        }
+    }
+
+    public string TestEmail { get; set; }
+
+    public async Task SendTestEmail()
+    {
+        if (EmailType == ConfigEmailType.FluxpointManaged)
+        {
+            if (string.IsNullOrEmpty(ManagedEmailToken))
+                return;
+
+            Console.WriteLine("Send Email");
+
+            var Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/send");
+            Message.Headers.Add("Authorization", ManagedEmailToken);
+            Message.Content = JsonContent.Create(new EmailService.SendMailJson
+                {
+                    instance = _Data.Config.Instance.Name,
+                    email = TestEmail,
+                    name = "Test User",
+                    type = SendMailType.Test,
+                    url = string.IsNullOrEmpty(_Data.Config.Instance.PublicUrl) ? "http://localhost" : _Data.Config.Instance.PublicUrl
+                });
+            var Res = await Program.Http.SendAsync(Message);
+            Console.WriteLine("Send Email: " + Res.IsSuccessStatusCode);
+        }
+        else
+        {
+            try
+            {
+                using (var Client = new SmtpClient())
+                {
+                    await Client.ConnectAsync(SmtpHost, SmtpPort);
+                    await Client.AuthenticateAsync(SmtpUser, SmtpPassword);
+
+                    MimeMessage message = new MimeMessage();
+                    message.From.Add(new MailboxAddress("Dev Space", SmtpUser));
+                    message.To.Add(new MailboxAddress("Test User", TestEmail));
+                    message.Subject = $"Test Email | {_Data.Config.Instance.Name}";
+                    message.Body = new TextPart("plain") { Text = $"This is a test message." };
+
+                    await Client.SendAsync(message);
+                    await Client.DisconnectAsync(true);
+                }
+            }
+            catch { }
+        }
+    }
+
+    // public void SettingChanges()
+    // {
+    //     Console.WriteLine("Load Snackbar");
+
+    //     var config = (SnackbarOptions options) =>
+    //     {
+    // options.Icon = @Icons.Material.Filled.Warning;
+    // options.IconColor = Color.Warning;
+    // options.DuplicatesBehavior = SnackbarDuplicatesBehavior.Prevent;
+    // options.ShowCloseIcon = false;
+    // options.RequireInteraction = true;
+    // options.SnackbarVariant = Variant.Text;
+    //     };
+    //     Snackbar.Configuration.PositionClass = Defaults.Classes.Position.BottomCenter;
+    //     Snackbar.Add(
+    // @<div>
+    //     <div style="display: inline-block; margin-right: 20px;">
+    //         <h3>Unsaved Settings</h3>
+    //         <p>Save or Reset the current settings.</p>
+    //     </div>
+
+    //     <ul style="display: inline-block">
+    //         <MudButton Variant="Variant.Filled" Style="margin-right: 6px;" Color="Color.Success">Save</MudButton>
+    //         <MudButton Variant="Variant.Filled" Color="Color.Error">Reset</MudButton>
+    //     </ul>
+    // </div>, configure: config, key: "settings");
+    //     Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopRight;
+    // }
+}
+

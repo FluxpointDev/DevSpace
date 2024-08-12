@@ -1,0 +1,196 @@
+﻿<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
+        <MudText Typo="Typo.h6">Services</MudText>
+    </div>
+    <br />
+    <div>
+        @foreach (var i in ServiceList)
+        {
+            <MudPaper>
+                <h4>@i.Key</h4>
+                @foreach (var s in i.Value.List)
+                {
+                    <p>
+                    <p>@s.Value.ServiceType.Name.Split('`').First()</p>
+                        @if (s.Key.Contains("<"))
+                        {
+                        <p class="service-param service-arrow">@("<")</p>
+                            foreach (var t in FetchParam(s.Value))
+                            {
+                                if ((ParamIndex + 1) == ParamCount)
+                                {
+                                <p class="service-param">@FetchParamName()</p>
+                                }
+                                else
+                                {
+                                <p class="service-param">@FetchParamName()<p class="service-param service-arrow">, </p></p>
+                                }
+
+                            }
+                        <p class="service-param service-arrow">@(">")</p>
+                        }
+                    <p class="service-type"> (@s.Value.Lifetime.ToString())</p>
+                    </p>
+
+
+
+                }
+            </MudPaper>
+        }
+    </div>
+</div>
+
+<style>
+    .mud-main-content .mud-paper {
+        padding: 6px;
+        margin-bottom: 10px;
+    }
+
+        .mud-main-content .mud-paper h4 {
+            margin-bottom: 10px;
+        }
+
+        .mud-main-content .mud-paper > p {
+            display: inline-block;
+            background-color: #2b2b36 !important;
+            margin-left: 8px;
+            margin-bottom: 8px;
+            padding: 4px;
+            padding-left: 8px;
+            padding-right: 8px;
+            border-radius: 12px;
+        }
+
+        .mud-main-content .mud-paper p {
+            display: inline-block;
+            color: rgb(97,175,230);
+        }
+
+    .service-param {
+        margin-left: 2px;
+        color: rgb(47,185,47) !important;
+    }
+
+    .service-type {
+        margin-left: 10px;
+        color: rgb(200,37,200) !important;
+    }
+
+    .service-arrow {
+        color: grey !important;
+    }
+</style>
+
+@code {
+    public Dictionary<string, ServiceCollection> ServiceList = new Dictionary<string, ServiceCollection>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        foreach (var i in Program.Services)
+        {
+            switch (i.ServiceType.Namespace)
+            {
+                case "Microsoft.Extensions.Hosting":
+                    Add("Hosting", i);
+                    break;
+                case "Microsoft.Extensions.Configuration":
+                    Add("Configuration", i);
+                    break;
+                case "Microsoft.Extensions.Options":
+                    Add("Options", i);
+                    break;
+                case "System.Diagnostics.Metrics":
+                case "System.Diagnostics":
+                case "Microsoft.Extensions.Diagnostics":
+                case "Microsoft.Extensions.Diagnostics.Metrics.Configuration":
+                case "Microsoft.Extensions.Diagnostics.Metrics":
+                    Add("Diagnostics", i);
+                    break;
+                case "Microsoft.Extensions.Logging.Configuration":
+                case "Microsoft.Extensions.Logging.Console":
+                case "Microsoft.Extensions.Logging.EventSource":
+                case "Microsoft.Extensions.Logging":
+                    Add("Logging", i);
+                    break;
+                case "MudBlazor":
+                case "MudBlazor.Services":
+                    Add("MudBlazor", i);
+                    break;
+                default:
+                    if (i.ServiceType.Namespace.StartsWith("Microsoft.AspNetCore"))
+                        Add("AspNet", i);
+                    else if (i.ServiceType.Namespace.StartsWith("DevSpaceWeb."))
+                        Add("Dev Space", i);
+                    else
+                        Add("Other", i);
+                    break;
+
+            }
+            Console.WriteLine(i.ServiceType.Namespace);
+        }
+    }
+
+    public void Add(string key, ServiceDescriptor service)
+    {
+        var NameTuple = FormatService(service);
+        string Name = NameTuple.Item1;
+        if (NameTuple.Item2.Any())
+            Name += "<" + string.Join(", ", NameTuple.Item2) + ">";
+
+        if (ServiceList.TryGetValue(key, out var collection))
+        {
+            if (!collection.List.ContainsKey(Name))
+                collection.List.Add(Name, service);
+        }
+        else
+            ServiceList.Add(key, new ServiceCollection
+                {
+                    List = new Dictionary<string, ServiceDescriptor>
+                    {
+                        { Name, service }
+                    }
+                });
+
+    }
+
+    public class ServiceCollection
+    {
+        public Dictionary<string, ServiceDescriptor> List = new Dictionary<string, ServiceDescriptor>();
+    }
+
+    public Tuple<string, List<string>> FormatService(ServiceDescriptor service)
+    {
+        string Name = service.ServiceType.Name.Split('`').First();
+        List<string> Params = new List<string>();
+
+        foreach (var t in service.ServiceType.GetGenericArguments())
+        {
+            Params.Add(t.Name);
+        }
+
+        if (Params.Any())
+            Name = Name + "<" + string.Join(", ", Params) + ">";
+
+        return new Tuple<string, List<string>>(Name, Params);
+    }
+
+    public int ParamCount = 0;
+    public int ParamIndex = 0;
+    public List<string> ParamList;
+    public List<string> FetchParam(ServiceDescriptor service)
+    {
+        ParamIndex = 0;
+        ParamCount = service.ServiceType.GetGenericArguments().Count();
+        ParamList = service.ServiceType.GetGenericArguments().Select(x => x.Name).ToList();
+        Console.WriteLine($"Param: {ParamCount} - {ParamIndex}");
+        return ParamList;
+    }
+
+    public string FetchParamName()
+    {
+        ParamIndex += 1;
+        Console.WriteLine($"Fetch - {ParamCount} - {ParamIndex}");
+        return ParamList[ParamIndex - 1];
+    }
+}

@@ -1,0 +1,270 @@
+﻿@page "/teams/{team_id?}/{resource?}/{resource_id?}/{resource_type?}"
+@using DevSpaceWeb.Components.Pages.ErrorLogs
+@using DevSpaceWeb.Components.Pages.Project
+@using DevSpaceWeb.Components.Pages.Server
+@using DevSpaceWeb.Components.Pages.Website
+
+@if (Session.Selected.Team == null)
+{
+
+}
+else
+{
+    switch (resource)
+    {
+        case "home":
+        case null:
+        case "":
+            {
+                <TeamHome></TeamHome>
+            }
+            break;
+        case "servers":
+            {
+                <ServerList></ServerList>
+            }
+            break;
+        case "s":
+            {
+                switch (resource_type)
+                {
+                    case "home":
+                    case null:
+                    case "":
+                        <ServerHome></ServerHome>
+                        break;
+                    case "databases":
+                        <ServerDatabase></ServerDatabase>
+                        break;
+                    case "stacks":
+                        <ServerDockerStacks></ServerDockerStacks>
+                        break;
+                    case "containers":
+                        <ServerDockerContainers></ServerDockerContainers>
+                        break;
+                    case "registries":
+                        <ServerDockerRegistry></ServerDockerRegistry>
+                        break;
+                    case "firewall":
+                        <ServerFirewall></ServerFirewall>
+                        break;
+                    case "files":
+                        <ServerFiles></ServerFiles>
+                        break;
+                    case "ssh":
+                        <ServerSSH></ServerSSH>
+                        break;
+                    case "status":
+                        <ServerStatus></ServerStatus>
+                        break;
+                    case "webhooks":
+                        <ServerWebhooks></ServerWebhooks>
+                        break;
+                    case "info":
+                        <ServerSystemInfo></ServerSystemInfo>
+                        break;
+                }
+            }
+            break;
+        case "projects":
+            {
+                <ProjectsList></ProjectsList>
+            }
+            break;
+        case "p":
+            {
+                switch (resource_type)
+                {
+                    case "home":
+                    case null:
+                    case "":
+                        <ProjectsHome></ProjectsHome>
+                        break;
+                }
+            }
+            break;
+        case "logs":
+            {
+                <LogsList></LogsList>
+            }
+            break;
+        case "l":
+            {
+                switch (resource_type)
+                {
+                    case "home":
+                    case null:
+                    case "":
+                        <LogsHome></LogsHome>
+                        break;
+                }
+            }
+            break;
+        case "websites":
+            {
+                <WebsitesList></WebsitesList>
+            }
+            break;
+        case "w":
+            {
+                switch (resource_type)
+                {
+                    case "home":
+                    case null:
+                    case "":
+                        <WebsiteHome></WebsiteHome>
+                        break;
+                }
+            }
+            break;
+    }
+}
+
+@code {
+    [Parameter]
+    public string team_id { get; set; } = "";
+
+    [Parameter]
+    public string resource { get; set; } = "";
+
+    [Parameter]
+    public string resource_id { get; set; } = "";
+
+    [Parameter]
+    public string resource_type { get; set; } = "";
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(team_id))
+        {
+
+            bool UpdateNav = false;
+
+            TeamData? Team = null;
+            if (!_DB.Teams.Cache.TryGetValue(team_id, out Team))
+            {
+                if (_DB.TeamsVanityCache.TryGetValue(team_id, out var tmid))
+                    Team = tmid;
+            }
+
+            if (Team != null && (Session.Selected.Team == null || Session.Selected.Team.Data.Id != Team.Id))
+            {
+                Console.WriteLine($"Load Team {resource} - {resource_id}");
+                Session.Selected.Team = new SelectedTeamData(Team);
+                UpdateNav = true;
+
+
+            }
+
+            if (Session.Selected.Team != null)
+            {
+                Console.WriteLine($"Got Resource: {resource} - {resource_id}");
+                switch (resource)
+                {
+                    case "s":
+                        {
+                            if (!string.IsNullOrEmpty(resource_id))
+                            {
+                                Console.WriteLine("Got Server");
+                                ServerData? Server = null;
+                                if (!_DB.Servers.Cache.TryGetValue(resource_id, out Server))
+                                {
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.ServerVanityUrls.TryGetValue(resource_id, out var serverId))
+                                    {
+                                        _DB.Servers.Cache.TryGetValue(serverId.ToString(), out Server);
+                                    }
+                                }
+
+                                if (Server != null && (Session.Selected.Server == null || Session.Selected.Server.Data.Id != Server.Id))
+                                {
+                                    Console.WriteLine("Load Server");
+                                    Session.Selected.Team.Server = new SelectedServerData(Session.Selected.Team, Server);
+                                    UpdateNav = true;
+                                }
+                            }
+                        }
+                        break;
+                    case "p":
+                        {
+                            if (!string.IsNullOrEmpty(resource_id))
+                            {
+                                ProjectData? Project = null;
+                                if (!_DB.Projects.Cache.TryGetValue(resource_id, out Project))
+                                {
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.ProjectVanityUrls.TryGetValue(resource_id, out var projectId))
+                                    {
+                                        _DB.Projects.Cache.TryGetValue(projectId.ToString(), out Project);
+                                    }
+                                }
+
+
+                                if (Project != null && (Session.Selected.Project == null || Session.Selected.Project.Data.Id != Project.Id))
+                                {
+                                    Console.WriteLine("Load Project");
+                                    Session.Selected.Team.Project = new SelectedProjectData(Session.Selected.Team, Project);
+                                    UpdateNav = true;
+                                }
+                            }
+                        }
+                        break;
+                    case "l":
+                        {
+                            if (!string.IsNullOrEmpty(resource_id))
+                            {
+                                LogData? Log = null;
+                                if (!_DB.Logs.Cache.TryGetValue(resource_id, out Log))
+                                {
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.LogsVanityUrls.TryGetValue(resource_id, out var logId))
+                                    {
+                                        _DB.Logs.Cache.TryGetValue(logId.ToString(), out Log);
+                                    }
+                                }
+
+                                if (Log != null && (Session.Selected.Log == null || Session.Selected.Log.Data.Id != Log.Id))
+                                {
+                                    Console.WriteLine("Load Log");
+                                    Session.Selected.Team.Log = new SelectedLogData(Session.Selected.Team, Log);
+                                    UpdateNav = true;
+                                }
+                            }
+                        }
+                        break;
+                    case "w":
+                        {
+                            if (!string.IsNullOrEmpty(resource_id))
+                            {
+                                WebsiteData? Website = null;
+                                if (!_DB.Websites.Cache.TryGetValue(resource_id, out Website))
+                                {
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.WebsiteVanityUrls.TryGetValue(resource_id, out var websiteId))
+                                    {
+                                        _DB.Websites.Cache.TryGetValue(websiteId.ToString(), out Website);
+                                    }
+                                }
+
+                                if (Website != null && (Session.Selected.Website == null || Session.Selected.Website.Data.Id != Website.Id))
+                                {
+                                    Console.WriteLine("Load Website");
+                                    Session.Selected.Team.Website = new SelectedWebsiteData(Session.Selected.Team, Website);
+                                    UpdateNav = true;
+                                }
+                            }
+                        }
+                        break;
+                }
+
+
+            }
+
+            if (UpdateNav)
+            {
+                Console.WriteLine("Update Nav");
+                Session.TriggerChange();
+            }
+        }
+
+    }
+}

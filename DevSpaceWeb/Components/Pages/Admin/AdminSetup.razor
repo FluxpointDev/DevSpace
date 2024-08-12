@@ -1,0 +1,356 @@
+﻿@using CliWrap
+@using CliWrap.Buffered
+@using DevSpaceWeb.Database
+@using Microsoft.AspNetCore.Identity
+@using MongoDB.Bson
+@using MongoDB.Driver
+@inject UserManager<AuthUser> UserManager
+
+<div class="dash-box dash-box-content">
+    <h3>Dev Space Setup</h3>
+    <p>You need to configure this app to work correctly!</p>
+    <br />
+
+    <MudTimeline TimelinePosition="TimelinePosition.Start" Modifiers="true">
+        <MudTimelineItem Size="Size.Small" Color="@GetStepColor(SetupStepType.Database)" Elevation="4">
+            <MudCard Outlined="false" Elevation="4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Database</MudText>
+                    <br />
+                    <MudTextField Value="@DatabaseName" Label="Database Name" HelperText="You can leave this as default" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)"></MudTextField>
+                    <MudSelect @bind-Value="@DatabaseType" T="string" Label="Database Setup" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)">
+                        <MudSelectItem Value="@("Automatic")" />
+                        <MudSelectItem Value="@("Manual")" />
+                    </MudSelect>
+                    @if (MongoDBDetected)
+                    {
+                        <MudAlert Severity="Severity.Warning">MongoDB is already installed on this server, manual setup is required!</MudAlert>
+                    }
+                    @if (DatabaseType == "Manual")
+                    {
+                        <MudTextField @bind-Value="@DatabaseIP" Label="Database IP" ShrinkLabel="true" Placeholder="1.1.1.1" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)"></MudTextField>
+                        <MudTextField @bind-Value="@DatabasePort" Label="Database Port" ShrinkLabel="true" Placeholder="0000" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)"></MudTextField>
+                        <MudTextField @bind-Value="@DatabaseUsername" Label="Database Username" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)"></MudTextField>
+                        <MudTextField @bind-Value="@DatabasePassword" Label="Database Password" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)"></MudTextField>
+                    }
+                    <br />
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(SetupStep != SetupStepType.Database)" OnClick="@CheckDatabase">Next</MudButton>
+                </MudCardContent>
+            </MudCard>
+        </MudTimelineItem>
+        <MudTimelineItem Size="Size.Small" Color="@GetStepColor(SetupStepType.Instance)" Elevation="4">
+            <MudCard Outlined="false" Elevation="4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Instance</MudText>
+                    <br />
+                    <MudAlert Severity="Severity.Info">This will be publicly shown on the url</MudAlert>
+                    <MudTextField @bind-Value="@InstanceName" Label="Instance Name" Placeholder="My Team Dev Space" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Instance)"></MudTextField>
+                    <MudTextField @bind-Value="@InstanceDesc" Label="Instance Description" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Instance)"></MudTextField>
+                    <br />
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(SetupStep != SetupStepType.Instance)" OnClick="@CheckInstance">Next</MudButton>
+                </MudCardContent>
+            </MudCard>
+        </MudTimelineItem>
+        <MudTimelineItem Size="Size.Small" Color="@GetStepColor(SetupStepType.Team)" Elevation="4">
+            <MudCard Outlined="false" Elevation="4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Team/Company</MudText>
+                    <br />
+                    <MudTextField Immediate="true" @bind-Value="@TeamNameInput" Label="Team Name" Placeholder="My Team" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Team)"></MudTextField>
+                    <MudTextField @bind-Value="@TeamVanityUrl" Label="Vanity Url" HelperText="This will be used in the url instead of ids" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Team)"></MudTextField>
+                    <br />
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(SetupStep != SetupStepType.Team)" OnClick="@CheckTeam">Next</MudButton>
+                </MudCardContent>
+            </MudCard>
+        </MudTimelineItem>
+        <MudTimelineItem Size="Size.Small" Color="@GetStepColor(SetupStepType.Confirm)" Elevation="4">
+            <MudCard Outlined="false" Elevation="4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">@(SetupStep == SetupStepType.Confirm ? "Setup Done!" : "Waiting for Setup")</MudText>
+                    <br />
+                    @if (SetupStep == SetupStepType.Confirm)
+                    {
+                        <MudAlert Severity="Severity.Success">You can now start using this Instance, use the sidebar to view your created team.</MudAlert>
+                        @if (DatabaseType == "Automatic")
+                        {
+                            <br />
+                            <MudAlert Severity="Severity.Warning">Your database root password has been saved to /Data</MudAlert>
+                        }
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudTimelineItem>
+    </MudTimeline>
+</div>
+
+
+@code {
+    public bool MongoDBDetected { get; set; }
+
+    public string InstanceName { get; set; }
+    public string InstanceDesc { get; set; }
+
+    public string DatabaseType { get; set; } = "Automatic";
+    public string DatabaseName { get; set; }
+    public string DatabaseIP { get; set; }
+    public int DatabasePort { get; set; }
+    public string DatabaseUsername { get; set; }
+    public string DatabasePassword { get; set; }
+
+    public string TeamName { get; set; }
+    public string TeamVanityUrl { get; set; }
+
+    public SetupStepType SetupStep = SetupStepType.Database;
+
+    public string TeamNameInput { get { return TeamName; } set { TeamName = value; TeamVanityUrl = TeamName.Replace(" ", "-").ToLower(); } }
+
+    protected override async Task OnInitializedAsync()
+    {
+        InstanceName = _Data.Config.Instance.Name;
+        InstanceDesc = _Data.Config.Instance.Description;
+        DatabaseName = _Data.Config.Database.Name;
+        DatabaseIP = _Data.Config.Database.IP;
+        DatabasePort = _Data.Config.Database.Port;
+        if (_Data.Config.Database.IsSetup)
+            SetupStep = SetupStepType.Instance;
+
+        if (File.Exists("/etc/mongod.conf"))
+        {
+            DatabaseType = "Manual";
+            MongoDBDetected = true;
+        }
+    }
+
+
+    public async Task CheckDatabase()
+    {
+        SetupStep = SetupStepType.Disabled;
+        if (DatabaseType == "Automatic")
+        {
+            string RootUsername = _Data.Config.Database.RootUsername;
+            string RootPass = _Data.Config.Database.RootPassword;
+            string AutoPassword = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
+
+            if (string.IsNullOrEmpty(RootPass))
+            {
+                RootPass = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
+
+                string CreateRoot2 = "--eval \"db.getSiblingDB('admin').createUser({ user: '" + RootUsername + "', pwd: '" + RootPass + "', roles: [ 'root' ] });\"";
+                var cmd2 = Cli.Wrap("mongosh").WithArguments(CreateRoot2);
+
+                var res2 = await cmd2.ExecuteBufferedAsync();
+                if (!res2.IsSuccess)
+                {
+                    Console.WriteLine("--- Database Setup Error ---");
+                    Console.WriteLine(res2.StandardError);
+                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    return;
+                }
+                _Data.Config.Database.RootPassword = RootPass;
+                _Data.Config.Save();
+            }
+
+            string MongodConfig = File.ReadAllText("/etc/mongod.conf");
+
+            if (MongodConfig.Contains("#security:"))
+            {
+                var CreateUser = $"-u '{RootUsername}' -p '{RootPass}' " + "--eval \"db.getSiblingDB('admin').createUser({ user: '" + _Data.Config.Database.Username + "', pwd: '" + AutoPassword + "', roles: [ { role: 'dbAdmin', db: 'devspace' }, { role: 'readWrite', db: 'devspace' } ] });\"";
+                var cmd = Cli.Wrap("mongosh").WithArguments(CreateUser);
+
+                var res = await cmd.ExecuteBufferedAsync();
+                if (!res.IsSuccess)
+                {
+                    Console.WriteLine("--- Database Setup Error ---");
+                    Console.WriteLine(res.StandardError);
+                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    return;
+                }
+
+                MongodConfig = MongodConfig.Replace("#security:", "security:\n  authorization: enabled\n  javascriptEnabled: false");
+                File.WriteAllText("/etc/mongod.conf", MongodConfig);
+
+                cmd = Cli.Wrap("sudo").WithArguments("systemctl restart mongod");
+
+                res = await cmd.ExecuteBufferedAsync();
+                if (!res.IsSuccess)
+                {
+                    Console.WriteLine("--- Database Setup Error ---");
+                    Console.WriteLine(res.StandardError);
+                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    return;
+                }
+            }
+
+
+
+            string Connect = $"mongodb://{DatabaseUsername}:{DatabasePassword}@{DatabaseIP}:{DatabasePort}";
+
+            var client = new MongoClient(Connect);
+
+            try
+            {
+                var result = client.GetDatabase(DatabaseName).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+                Console.WriteLine("Pinged your deployment. You successfully connected to MongoDB!");
+            }
+            catch (Exception ex) { Console.WriteLine(ex); return; }
+
+            var db = client.GetDatabase("devspace");
+
+            try
+            {
+                await db.GetCollection<TestWrite>("TestWrite").InsertOneAsync(new()
+                    {
+                        Name = "Fluxpoint Development",
+                    });
+                await db.DropCollectionAsync("TestWrite");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("--- Database Setup Error ---");
+                Console.WriteLine(ex);
+                Console.WriteLine("--- --- --- ---- --- --- ---");
+                return;
+            }
+
+            _DB.Client = client;
+            _DB.IsConnected = true;
+
+            _Data.Config.Database = new ConfigDatabase
+                {
+                    IsSetup = true,
+                    IP = "127.0.0.1",
+                    Name = "devspace",
+                    Port = 27017,
+                    Password = AutoPassword
+                };
+            _Data.Config.Save();
+        }
+        else
+        {
+            string Connect = $"mongodb://{DatabaseUsername}:{DatabasePassword}@{DatabaseIP}:{DatabasePort}";
+            var client = new MongoClient(Connect);
+
+            try
+            {
+                var result = client.GetDatabase(DatabaseName).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+                Console.WriteLine("Pinged your deployment. You successfully connected to MongoDB!");
+            }
+            catch (Exception ex) { Console.WriteLine(ex); return; }
+
+            var db = client.GetDatabase(DatabaseName);
+
+            try
+            {
+                await db.GetCollection<TestWrite>("TestWrite").InsertOneAsync(new()
+                    {
+                        Name = "Fluxpoint Development",
+                    });
+                db.DropCollection("TestWrite");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("--- Database Setup Error ---");
+                Console.WriteLine(ex);
+                Console.WriteLine("--- --- --- ---- --- --- ---");
+                return;
+            }
+
+            _DB.Client = client;
+            _DB.IsConnected = true;
+
+            _Data.Config.Database = new ConfigDatabase
+                {
+                    IsSetup = true,
+                    IP = DatabaseIP,
+                    Name = DatabaseName,
+                    Port = DatabasePort,
+                    Password = DatabasePassword,
+                    Username = DatabaseUsername
+                };
+            _Data.Config.Save();
+        }
+
+        SetupStep = SetupStepType.Instance;
+    }
+
+    public class TestWrite
+    {
+        public string Name;
+    }
+
+    public async Task CheckInstance()
+    {
+        if (string.IsNullOrEmpty(InstanceName))
+            return;
+        SetupStep = SetupStepType.Disabled;
+        _Data.Config.Instance.Name = InstanceName;
+        _Data.Config.Instance.Description = InstanceDesc;
+        _Data.Config.Save();
+        SetupStep = SetupStepType.Team;
+    }
+
+    public async Task CheckTeam()
+    {
+        if (string.IsNullOrEmpty(TeamName))
+            return;
+        if (!string.IsNullOrEmpty(TeamVanityUrl))
+            TeamVanityUrl = TeamVanityUrl.Replace(" ", "-").ToLower();
+
+        SetupStep = SetupStepType.Disabled;
+        TeamData Team = new TeamData
+            {
+                Name = TeamName,
+                VanityUrl = TeamVanityUrl
+            };
+        await _DB.Teams.CreateAsync(Team);
+        _DB.Teams.Cache.TryAdd(Team.Id.ToString(), Team);
+
+        _Data.Config.isFullySetup = true;
+        _Data.Config.Save();
+        SetupStep = SetupStepType.Confirm;
+
+    }
+
+    public Color GetStepColor(SetupStepType compare)
+    {
+        if (SetupStep == SetupStepType.Disabled)
+            return Color.Dark;
+        switch (compare)
+        {
+            case SetupStepType.Database:
+                {
+                    if (SetupStep == SetupStepType.Database)
+                        return Color.Info;
+                    else
+                        return Color.Success;
+                }
+                break;
+            case SetupStepType.Instance:
+                {
+                    if (SetupStep == SetupStepType.Instance)
+                        return Color.Info;
+                    else if (SetupStep > SetupStepType.Instance)
+                        return Color.Success;
+                }
+                break;
+            case SetupStepType.Team:
+                if (SetupStep == SetupStepType.Team)
+                    return Color.Info;
+                else if (SetupStep > SetupStepType.Team)
+                    return Color.Success;
+                break;
+            case SetupStepType.Confirm:
+                {
+                    if (SetupStep == SetupStepType.Confirm)
+                        return Color.Success;
+                }
+                break;
+        }
+        return Color.Dark;
+    }
+
+    public enum SetupStepType
+    {
+        Disabled, Database, Instance, Team, Confirm
+    }
+}
