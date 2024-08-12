@@ -5,6 +5,8 @@ Most developer tools can be clunky to use, needs a lot of ram or lacks basic fea
 
 Dev Space is a self-hostable and easy to use dashboard that allows you to manage your VPS servers, websites, projects and other services and is 100% free and open source!
 
+I will also be adding other tools such as service status monitoring, error logging, image generation/transformation and other integrated developer tools.
+
 This is written in C# using asp.net blazor and various other frameworks, libs and tools which will be much better in terms of ram usage too.
 
 > [!WARNING]  
