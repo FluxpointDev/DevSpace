@@ -9,3 +9,12 @@ This is written in C# using asp.net blazor and various other frameworks, libs an
 
 > [!WARNING]  
 > This project is currently WIP and should not be used until a release is confirmed.
+
+---
+
+### How to Contribute?
+The project is currently WIP so any kind of code contributions wont really be accepted but you can use the Discussion page to suggest features, alternative services that we could merge features from or general questions about the project.
+
+There is also a project board here https://github.com/orgs/FluxpointDev/projects/7 with todo or in progress features for the project.
+
+You can also join the [Fluxpoint Discord Server](https://discord.gg/fluxpoint.dev)
