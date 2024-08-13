@@ -27,7 +27,7 @@
 
 
                     <MudForm @ref="form" @bind-IsValid="@FormValid" @bind-Errors="@errors" Disabled="@FormDisabled">
-                        <MudTextField T="string" Label="Name" Required="true" @ref="NameField" RequiredError="Name is required!"
+                        <MudTextField T="string" Label="Username" Required="true" @ref="UsernameField" RequiredError="Name is required!"
                                       Variant="Variant.Filled" Underline="false" ShrinkLabel="true" />
 
                         <br style="margin-bottom: 20px;" />
@@ -205,7 +205,7 @@
         Console.WriteLine(string.Join(", ", context.GetValidationMessages()));
     }
 
-    MudTextField<string> NameField;
+    MudTextField<string> UsernameField;
     MudTextField<string> EmailField;
     MudTextField<string> pwField1;
 
@@ -236,7 +236,7 @@
         Console.WriteLine("Register Account");
         var result = await UserManager.UserManager.CreateAsync(new AuthUser
             {
-                UserName = NameField.Value,
+                UserName = UsernameField.Value,
                 Email = EmailField.Value
             }, pwField1.Value);
 
@@ -255,7 +255,7 @@
         else
         {
             IsAccountCreated = true;
-            UseInternalRegister = true;
+            UseInternalRegister = false;
         }
 
         FormDisabled = false;
