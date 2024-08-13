@@ -1,5 +1,5 @@
 ﻿using AspNetCore.Identity.MongoDbCore.Models;
-using Fido2Identity;
+using DevSpaceWeb.Fido2;
 using Fido2NetLib;
 using MongoDB.Bson;
 using MongoDbGenericRepository.Attributes;

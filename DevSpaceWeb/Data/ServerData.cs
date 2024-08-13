@@ -1,4 +1,5 @@
 ﻿using DevSpaceWeb.Database;
+using DevSpaceWeb.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using NetCoreServer;
@@ -37,7 +38,7 @@ public class ServerData
 }
 public class ServerWebSocket
 {
-    public ChatClient Client;
+    public WebSocketClient Client;
     public void Run()
     {
         ValidateCert ValidateCert = new ValidateCert();
@@ -57,7 +58,7 @@ public class ServerWebSocket
 
         });
         context.ClientCertificateRequired = false;
-        Client = new ChatClient(context,
+        Client = new WebSocketClient(context,
             "127.0.0.1",
             5555)
         { ValidateCert = ValidateCert };

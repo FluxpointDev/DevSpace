@@ -1,5 +1,5 @@
 ﻿using Fido2NetLib.Objects;
-using System.ComponentModel.DataAnnotations.Schema;
+using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json;
 
 namespace DevSpaceWeb.Fido2;
@@ -37,7 +37,7 @@ public class FidoStoredCredential
     /// </remarks>
     public Guid AaGuid { get; set; }
 
-    [NotMapped]
+    [BsonIgnore]
     public PublicKeyCredentialDescriptor? Descriptor
     {
         get { return string.IsNullOrWhiteSpace(DescriptorJson) ? null : JsonSerializer.Deserialize<PublicKeyCredentialDescriptor>(DescriptorJson); }

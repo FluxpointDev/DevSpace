@@ -1,5 +1,4 @@
 ﻿using Fido2NetLib;
-using MudBlazor;
 using System.Text;
 
 namespace DevSpaceWeb.Fido2;
@@ -29,12 +28,5 @@ public class Fido2Service
         }
 
         throw new ArgumentNullException(nameof(passykeyId));
-    }
-}
-public static class Fido2Extenstions
-{
-    public static IEnumerable<T> NotNull<T>(this IEnumerable<T?> enumerable) where T : class
-    {
-        return enumerable.Where(e => e != null).Select(e => e!);
     }
 }

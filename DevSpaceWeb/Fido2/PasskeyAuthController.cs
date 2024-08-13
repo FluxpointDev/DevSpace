@@ -54,7 +54,7 @@ public class PasskeyAuthController : AuthControllerContext
                 Name = identityUser.Email,
                 Id = Fido2Service.GetPasskeyIdInBytes(identityUser.Auth.PasskeyId.Value.ToString()) // byte representation of userID is required
             };
-            List<PublicKeyCredentialDescriptor> existingCredentials = identityUser.Auth.Passkeys.Select(c => c.Descriptor).NotNull().ToList();
+            List<PublicKeyCredentialDescriptor> existingCredentials = identityUser.Auth.Passkeys.Where(x => x.Descriptor != null).Select(c => c.Descriptor).ToList();
 
 
             var authenticatorSelection = new AuthenticatorSelection

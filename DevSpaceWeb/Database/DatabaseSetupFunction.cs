@@ -1,7 +1,7 @@
 ﻿using CliWrap;
 using CliWrap.Buffered;
 
-namespace DevSpaceWeb
+namespace DevSpaceWeb.Database
 {
     public static class DatabaseSetupFunction
     {

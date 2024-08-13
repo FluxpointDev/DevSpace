@@ -6,24 +6,24 @@ using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Text;
 
-namespace DevSpaceWeb;
+namespace DevSpaceWeb.WebSocket;
 
 public class ValidateCert
 {
     public string Cert;
 }
-public class DevSpaceClient
+public class WebSocketBase
 {
     public bool FirstCertVaid;
     public bool IsCertValid;
-    public ChatClient Client;
+    public WebSocketClient Client;
     public ConcurrentDictionary<string, TaskCompletionSource<JToken>> TaskCollection = new ConcurrentDictionary<string, TaskCompletionSource<JToken>>();
 }
-public class ChatClient : WssClient
+public class WebSocketClient : WssClient
 {
-    public ChatClient(SslContext context, string address, int port) : base(context, address, port) { }
+    public WebSocketClient(SslContext context, string address, int port) : base(context, address, port) { }
 
-    public DevSpaceClient WebSocket = new DevSpaceClient();
+    public WebSocketBase WebSocket = new WebSocketBase();
     public ValidateCert ValidateCert;
     public void DisconnectAndStop()
     {
@@ -49,7 +49,7 @@ public class ChatClient : WssClient
 
     public override void OnWsConnected(NetCoreServer.HttpResponse response)
     {
-        WebSocket = new DevSpaceClient { Client = this };
+        WebSocket = new WebSocketBase { Client = this };
         Console.WriteLine($"Chat WebSocket client connected a new session with Id {Id}");
     }
 
@@ -84,7 +84,7 @@ public class ChatClient : WssClient
 
     private bool _stop;
 
-    private async Task WebSocketMessage(DevSpaceClient WebSocket, string json)
+    private async Task WebSocketMessage(WebSocketBase WebSocket, string json)
     {
         JToken payload = JsonConvert.DeserializeObject<JToken>(json);
 

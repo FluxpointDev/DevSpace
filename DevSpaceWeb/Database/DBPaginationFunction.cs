@@ -1,6 +1,6 @@
 ﻿using MongoDB.Driver;
 
-namespace DevSpaceWeb;
+namespace DevSpaceWeb.Database;
 
 public static class DBPaginationFunction
 {
