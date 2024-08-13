@@ -27,7 +27,7 @@ public class PasskeyAuthController : AuthControllerContext
         return string.Format("{0}{1}", e.Message, e.InnerException != null ? " (" + e.InnerException.Message + ")" : "");
     }
 
-    [HttpPost("/api/passkey/auth/assertionOptions")]
+    [HttpPost("/auth/passkey/confirm/assertionOptions")]
     public async Task<ActionResult> AssertionOptionsPost()
     {
         string RequestId = Request.Headers["RequestVerificationToken"];
@@ -90,7 +90,7 @@ public class PasskeyAuthController : AuthControllerContext
         }
     }
 
-    [HttpPost("/api/passkey/auth/makeAssertion")]
+    [HttpPost("/auth/passkey/confirm/makeAssertion")]
     public async Task<JsonResult> MakeAssertion([FromBody] AuthenticatorAssertionRawResponse clientResponse)
     {
         string RequestId = Request.Headers["RequestVerificationToken"];

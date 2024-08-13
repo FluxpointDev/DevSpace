@@ -94,7 +94,7 @@ async function passkeyStartRegister(name, passkeyRequestId) {
 async function fetchMakeCredentialOptions(passkeyRequestId) {
 
     console.log('Check Request: ' + passkeyRequestId);
-    let response = await fetch('/api/passkey/register/makeCredentialOptions', {
+    let response = await fetch('/auth/passkey/register/makeCredentialOptions', {
         method: 'POST', // or 'PUT'
         headers: {
             'Accept': 'application/json',
@@ -165,7 +165,7 @@ async function registerNewCredential(name, newCredential, passkeyRequestId) {
 }
 
 async function registerCredentialWithServer(formData, passkeyRequestId) {
-    let response = await fetch('/api/passkey/register/makeCredential', {
+    let response = await fetch('/auth/passkey/register/makeCredential', {
         method: 'POST', // or 'PUT'
         body: JSON.stringify(formData), // data can be `string` or {object}!
         headers: {

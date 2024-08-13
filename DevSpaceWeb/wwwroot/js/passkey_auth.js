@@ -4,7 +4,7 @@ async function passkeyStartAuth(passkeyRequestId) {
     // send to server for registering
     let makeAssertionOptions;
     try {
-        var res = await fetch('/api/passkey/auth/assertionOptions', {
+        var res = await fetch('/auth/passkey/confirm/assertionOptions', {
             method: 'POST', // or 'PUT'
             headers: {
                 'Accept': 'application/json',
@@ -98,7 +98,7 @@ async function verifyAssertionWithServer(assertedCredential, passkeyRequestId) {
 
     let response;
     try {
-        let res = await fetch("/api/passkey/auth/makeAssertion", {
+        let res = await fetch("/auth/passkey/confirm/makeAssertion", {
             method: 'POST', // or 'PUT'
             body: JSON.stringify(data), // data can be `string` or {object}!
             headers: {

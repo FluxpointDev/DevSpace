@@ -3,7 +3,7 @@
 namespace DevSpaceWeb.Controllers;
 public class TestController : Controller
 {
-    [HttpGet("/api/headers")]
+    [HttpGet("/api/test/headers")]
     public async Task<IActionResult> Headers()
     {
         Console.WriteLine("---");

@@ -20,7 +20,7 @@ public class AuthAccountController : AuthControllerContext
     public IDistributedCache Cache { get; private set; }
 
     // Download Recovery Code
-    [HttpGet("/api/account/recoveryCode")]
+    [HttpGet("/auth/account/downloadRecoveryCode")]
     public async Task<IActionResult> RecoveryCode([FromQuery] string token = "")
     {
         if (!User.Identity.IsAuthenticated)
@@ -49,8 +49,8 @@ public class AuthAccountController : AuthControllerContext
         return File(content, contentType, fileName);
     }
 
-    [HttpGet("/api/account/confirm")]
-    public async Task<IActionResult> ConfirmAccount([FromQuery] string token = "")
+    [HttpGet("/auth/account/confirmEmail")]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] string token = "")
     {
         if (string.IsNullOrEmpty(token))
             return BadRequest("Invalid token");
@@ -77,7 +77,7 @@ public class AuthAccountController : AuthControllerContext
         return Ok("Account verified, you can now close this page :)");
     }
 
-    [HttpGet("/api/account/changeEmail")]
+    [HttpGet("/auth/account/changeEmail")]
     public async Task<IActionResult> ChangeEmail([FromQuery] string email = "", [FromQuery] string token = "")
     {
         if (string.IsNullOrEmpty(email))

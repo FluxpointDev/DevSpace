@@ -32,7 +32,7 @@ public class PasskeyRegisterController : AuthControllerContext
         return string.Format("{0}{1}", e.Message, e.InnerException != null ? " (" + e.InnerException.Message + ")" : "");
     }
 
-    [HttpPost("/api/passkey/register/makeCredentialOptions")]
+    [HttpPost("/auth/passkey/register/makeCredentialOptions")]
     public async Task<JsonResult> MakeCredentialOptions()
     {
         string RequestId = Request.Headers["RequestVerificationToken"];
@@ -99,7 +99,7 @@ public class PasskeyRegisterController : AuthControllerContext
         }
     }
 
-    [HttpPost("/api/passkey/register/makeCredential")]
+    [HttpPost("/auth/passkey/register/makeCredential")]
     public async Task<JsonResult> MakeCredential([FromBody] CustomAuthenticatorAttestationRawResponse attestationResponse)
     {
         string RequestId = Request.Headers["RequestVerificationToken"];
