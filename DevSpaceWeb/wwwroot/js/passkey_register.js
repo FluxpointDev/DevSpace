@@ -16,7 +16,7 @@ async function passkeyStartRegister(name, passkeyRequestId) {
             console.log(e);
         }
         console.log("Something went wrong with making credentials");
-        return;
+        return false;
     }
 
     if (Debug) {
@@ -28,7 +28,7 @@ async function passkeyStartRegister(name, passkeyRequestId) {
     if (makeCredentialOptions.status !== "ok") {
         console.log("Error creating credential options");
         console.log(makeCredentialOptions.errorMessage);
-        return;
+        return false;
     }
 
     // Turn the challenge back into the accepted format of padded base64
@@ -74,7 +74,7 @@ async function passkeyStartRegister(name, passkeyRequestId) {
         if (Debug) {
             console.log(e);
         }
-        return;
+        return false;
     }
 
     if (Debug) {
@@ -88,7 +88,11 @@ async function passkeyStartRegister(name, passkeyRequestId) {
 
     } catch (e) {
         console.log(e.message ? e.message : e);
+
+        return false;
     }
+
+    return true;
 }
 
 async function fetchMakeCredentialOptions(passkeyRequestId) {

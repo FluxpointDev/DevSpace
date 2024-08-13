@@ -113,9 +113,15 @@
         return await UserManager.GetUserAsync(State.User)!;
     }
 
-    public async Task<bool> TriggerTwoFactorAuthentication(bool logUsed)
+    public async Task<bool> TriggerTwoFactorAuthentication(AuthUser user, bool logUsage)
     {
-        var Dialog = await DialogService.ShowAsync<TwoFactorVerifyDialog>("2FA Verification", new DialogOptions
+        var parameters = new DialogParameters<TwoFactorVerifyDialog>
+        {
+            { x => x.LogUsage, logUsage },
+            { x => x.User, user }
+        };
+
+        var Dialog = await DialogService.ShowAsync<TwoFactorVerifyDialog>("2FA Verification", parameters, new DialogOptions
             {
                 MaxWidth = MaxWidth.Medium
             });
@@ -132,25 +138,36 @@
 
     public async Task<bool> TestPasskey(bool logUsage)
     {
+        Console.WriteLine("Test Passkey");
         AuthUser? user = await GetCurrentUserAsync();
         if (user == null)
             return false;
 
         bool IsSuccess = false;
         string PasskeyRequestId = Guid.NewGuid().ToString();
+        Console.WriteLine("Req: " + PasskeyRequestId);
         Cache.SetString("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new Fido2Request(user.Id, logUsage)), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
         try
         {
             IsSuccess = await JS.InvokeAsync<bool>("passkeyStartAuth", PasskeyRequestId);
         }
-        catch { }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
         string? Data = Cache.GetString("passkey-" + PasskeyRequestId);
         if (!string.IsNullOrEmpty(Data))
         {
+            Console.WriteLine("Parse Passkey");
             Fido2Request? RequestData = JsonSerializer.Deserialize<Fido2Request?>(Data);
             if (RequestData != null && RequestData.UserId == user.Id)
+            {
+                Console.WriteLine("Got: " + RequestData.IsSuccess);
                 IsSuccess = RequestData.IsSuccess;
+            }
         }
+
+        Console.WriteLine("Success: " + IsSuccess);
 
         return IsSuccess;
     }
@@ -182,12 +199,10 @@
 
         if (State == null)
         {
-            Console.WriteLine("Auth Error");
             SessionError = SessionErrorType.AuthenticationError;
         }
         else if (!State.User.Identity.IsAuthenticated)
         {
-            Console.WriteLine("Auth Required");
             SessionError = SessionErrorType.AuthenticationRequired;
         }
         else
@@ -195,7 +210,6 @@
             _DB.SessionUpdated += SessionChangedEvent;
             var User = await GetCurrentUserAsync();
             CurrentUserId = User.Id;
-            Console.WriteLine("Trigger Ready");
 
         }
         Ready = true;

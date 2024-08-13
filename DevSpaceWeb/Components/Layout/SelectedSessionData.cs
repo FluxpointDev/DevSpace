@@ -25,8 +25,6 @@ public class SelectedTeamData
             VanityUrl = team.VanityUrl;
         else
             VanityUrl = Id;
-
-        Console.WriteLine("Fetch vanity");
     }
 
     public string Id { get; private set; }

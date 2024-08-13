@@ -71,9 +71,6 @@ public class AuthAccountController : AuthControllerContext
         if (!Result.Succeeded)
             return BadRequest("Failed to verify account");
 
-        AuthUser.Auth.IsTwoFactorEnabled = true;
-        await _userManager.UpdateAsync(AuthUser);
-
         _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
 
         return Ok("Account verified, you can now close this page :)");

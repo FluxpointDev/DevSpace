@@ -137,7 +137,6 @@ public class PasskeyRegisterController : AuthControllerContext
             var success = await _fido2Service._lib.MakeNewCredentialAsync(attestationResponse.data, options, callback);
             if (success.Result != null)
             {
-                Console.WriteLine("GUID: " + success.Result.AaGuid.ToString());
 
                 if (_fido2Service._metadata != null)
                 {

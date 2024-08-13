@@ -152,7 +152,6 @@ else
 
             if (Team != null && (Session.Selected.Team == null || Session.Selected.Team.Data.Id != Team.Id))
             {
-                Console.WriteLine($"Load Team {resource} - {resource_id}");
                 Session.Selected.Team = new SelectedTeamData(Team);
                 UpdateNav = true;
 
@@ -161,14 +160,12 @@ else
 
             if (Session.Selected.Team != null)
             {
-                Console.WriteLine($"Got Resource: {resource} - {resource_id}");
                 switch (resource)
                 {
                     case "s":
                         {
                             if (!string.IsNullOrEmpty(resource_id))
                             {
-                                Console.WriteLine("Got Server");
                                 ServerData? Server = null;
                                 if (!_DB.Servers.Cache.TryGetValue(resource_id, out Server))
                                 {
@@ -180,7 +177,6 @@ else
 
                                 if (Server != null && (Session.Selected.Server == null || Session.Selected.Server.Data.Id != Server.Id))
                                 {
-                                    Console.WriteLine("Load Server");
                                     Session.Selected.Team.Server = new SelectedServerData(Session.Selected.Team, Server);
                                     UpdateNav = true;
                                 }
@@ -203,7 +199,6 @@ else
 
                                 if (Project != null && (Session.Selected.Project == null || Session.Selected.Project.Data.Id != Project.Id))
                                 {
-                                    Console.WriteLine("Load Project");
                                     Session.Selected.Team.Project = new SelectedProjectData(Session.Selected.Team, Project);
                                     UpdateNav = true;
                                 }
@@ -225,7 +220,6 @@ else
 
                                 if (Log != null && (Session.Selected.Log == null || Session.Selected.Log.Data.Id != Log.Id))
                                 {
-                                    Console.WriteLine("Load Log");
                                     Session.Selected.Team.Log = new SelectedLogData(Session.Selected.Team, Log);
                                     UpdateNav = true;
                                 }
@@ -247,7 +241,6 @@ else
 
                                 if (Website != null && (Session.Selected.Website == null || Session.Selected.Website.Data.Id != Website.Id))
                                 {
-                                    Console.WriteLine("Load Website");
                                     Session.Selected.Team.Website = new SelectedWebsiteData(Session.Selected.Team, Website);
                                     UpdateNav = true;
                                 }
@@ -261,7 +254,6 @@ else
 
             if (UpdateNav)
             {
-                Console.WriteLine("Update Nav");
                 Session.TriggerChange();
             }
         }

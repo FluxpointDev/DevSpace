@@ -79,7 +79,7 @@
 
             user.Auth.IsTwoFactorEnabled = true;
             await UserManager.UpdateAsync(user);
-
+            _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
             MudDialog.Close(DialogResult.Ok(true));
         }
 

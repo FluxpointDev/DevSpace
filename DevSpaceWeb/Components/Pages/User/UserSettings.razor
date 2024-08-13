@@ -8,6 +8,7 @@
 @using Microsoft.Extensions.Caching.Distributed
 @using System.Text.Json
 @using MongoDB.Bson
+@using System.Globalization
 @implements IDisposable
 @inject HttpClient Http
 @inject IJSRuntime JS
@@ -116,8 +117,8 @@
                         }
                         <br />
                         <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="RegisterAuthenticator">Register</MudButton>
-                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="@(() => Session.TriggerTwoFactorAuthentication(true))">Test</MudButton>
-                        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(() => Session.TriggerTwoFactorAuthentication(true))">Remove All</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="@(() => Session.TriggerTwoFactorAuthentication(AuthUser, true))">Test</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(() => Session.TriggerTwoFactorAuthentication(AuthUser, true))">Remove All</MudButton>
                     </div>
                     <div class="settings-box">
                         <h3>Passkeys (Webauth)</h3>
@@ -132,7 +133,7 @@
                                 <div class="passkey-item">
                                     <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLCAwLCAwLCAxLCAyNy4wMDkwMDEsIC0zOS4yMzg5OTgpIj4KICAgIDxwYXRoIGZpbGw9IiM0Mjg1RjQiIGQ9Ik0gLTMuMjY0IDUxLjUwOSBDIC0zLjI2NCA1MC43MTkgLTMuMzM0IDQ5Ljk2OSAtMy40NTQgNDkuMjM5IEwgLTE0Ljc1NCA0OS4yMzkgTCAtMTQuNzU0IDUzLjc0OSBMIC04LjI4NCA1My43NDkgQyAtOC41NzQgNTUuMjI5IC05LjQyNCA1Ni40NzkgLTEwLjY4NCA1Ny4zMjkgTCAtMTAuNjg0IDYwLjMyOSBMIC02LjgyNCA2MC4zMjkgQyAtNC41NjQgNTguMjM5IC0zLjI2NCA1NS4xNTkgLTMuMjY0IDUxLjUwOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNIC0xNC43NTQgNjMuMjM5IEMgLTExLjUxNCA2My4yMzkgLTguODA0IDYyLjE1OSAtNi44MjQgNjAuMzI5IEwgLTEwLjY4NCA1Ny4zMjkgQyAtMTEuNzY0IDU4LjA0OSAtMTMuMTM0IDU4LjQ4OSAtMTQuNzU0IDU4LjQ4OSBDIC0xNy44ODQgNTguNDg5IC0yMC41MzQgNTYuMzc5IC0yMS40ODQgNTMuNTI5IEwgLTI1LjQ2NCA1My41MjkgTCAtMjUuNDY0IDU2LjYxOSBDIC0yMy40OTQgNjAuNTM5IC0xOS40NDQgNjMuMjM5IC0xNC43NTQgNjMuMjM5IFoiLz4KICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik0gLTIxLjQ4NCA1My41MjkgQyAtMjEuNzM0IDUyLjgwOSAtMjEuODY0IDUyLjAzOSAtMjEuODY0IDUxLjIzOSBDIC0yMS44NjQgNTAuNDM5IC0yMS43MjQgNDkuNjY5IC0yMS40ODQgNDguOTQ5IEwgLTIxLjQ4NCA0NS44NTkgTCAtMjUuNDY0IDQ1Ljg1OSBDIC0yNi4yODQgNDcuNDc5IC0yNi43NTQgNDkuMjk5IC0yNi43NTQgNTEuMjM5IEMgLTI2Ljc1NCA1My4xNzkgLTI2LjI4NCA1NC45OTkgLTI1LjQ2NCA1Ni42MTkgTCAtMjEuNDg0IDUzLjUyOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNIC0xNC43NTQgNDMuOTg5IEMgLTEyLjk4NCA0My45ODkgLTExLjQwNCA0NC41OTkgLTEwLjE1NCA0NS43ODkgTCAtNi43MzQgNDIuMzY5IEMgLTguODA0IDQwLjQyOSAtMTEuNTE0IDM5LjIzOSAtMTQuNzU0IDM5LjIzOSBDIC0xOS40NDQgMzkuMjM5IC0yMy40OTQgNDEuOTM5IC0yNS40NjQgNDUuODU5IEwgLTIxLjQ4NCA0OC45NDkgQyAtMjAuNTM0IDQ2LjA5OSAtMTcuODg0IDQzLjk4OSAtMTQuNzU0IDQzLjk4OSBaIi8+CiAgPC9nPgo8L3N2Zz4=" />
                                     <h4>@i.Name</h4>
-                                    <p>Created At: @(GetLocalDate(i.CreatedAt, false))</p>
+                                    <p>Created: @(GetLocalDate(i.CreatedAt, false))</p>
                                     <p>Last Used: @(GetLocalDate(i.LastUsedAt, false))</p>
                                     <div @onclick="@(() => RemovePasskey(i))" style="cursor: pointer;">
                                         <span class="iconify" data-icon="mdi:delete"></span>
@@ -145,16 +146,35 @@
                         <MudTextField @bind-Value="PasskeyName" ShrinkLabel="true" Label="Passkey Name" Variant="Variant.Filled" Underline="false"></MudTextField>
                         <br />
                         <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="RegisterPasskey">Register</MudButton>
-                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="(() => Session.TestPasskey(false))">Test</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="(() => TestPasskey())">Test</MudButton>
                         <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="RemoveAllPasskeys">Remove All</MudButton>
                     </div>
                     <div class="settings-box">
-                        <h3>Backup Codes</h3>
+                        <h3 class="mb-2">Backup Code</h3>
+                        <p>Use this code to get back into your account if you lose access.</p>
                         <br />
-                        <MudAlert Class="mb-2" Severity="Severity.Info">Backup codes were generated at @(GetLocalDate(AuthUser.Auth.RecoveryCodeCreatedAt, false))</MudAlert>
-                        <p>Last Used: @(GetLocalDate(AuthUser.Auth.RecoveryCodeLastUsedAt, false))</p>
-                        <br />
-                        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="GenerateBackupCodes">Reset</MudButton>
+                        @if (AuthUser.Auth.IsTwoFactorEnabled)
+                        {
+                            @if (string.IsNullOrEmpty(AuthUser.Auth.RecoveryCode))
+                            {
+                                <MudAlert Severity="Severity.Warning">You have not created a recovery code!</MudAlert>
+                                <br />
+                                <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="GenerateBackupCodes">Generate</MudButton>
+                            }
+                            else
+                            {
+                                <MudAlert Class="mb-2" Severity="Severity.Info">Backup codes were generated @(GetLocalDate(AuthUser.Auth.RecoveryCodeCreatedAt, false))</MudAlert>
+                                <p>Last Used: @(GetLocalDate(AuthUser.Auth.RecoveryCodeLastUsedAt, false))</p>
+                                <br />
+                                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="GenerateBackupCodes">Reset</MudButton>
+                            }
+                        }
+                        else
+                        {
+                            <MudAlert Severity="Severity.Normal">You need to setup 2FA Authenticator or Passkey to generate a backup code.</MudAlert>
+                            <br />
+                            <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" Disabled="true">Generate</MudButton>
+                        }
                     </div>
                 }
             }
@@ -294,7 +314,7 @@
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser.EmailConfirmed)
         {
-            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
             if (!TwoFactorValid)
             {
                 await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
@@ -339,7 +359,7 @@
             AuthUser = await Session.GetCurrentUserAsync();
             if (AuthUser.EmailConfirmed)
             {
-                var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(false);
+                var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
                 if (!TwoFactorValid)
                 {
                     await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
@@ -367,22 +387,25 @@
             return;
 
         AuthUser = await Session.GetCurrentUserAsync();
-        if (!AuthUser.Auth.IsTwoFactorEnabled)
+        if (AuthUser == null)
+            return;
+
+        if (AuthUser.Auth.IsTwoFactorEnabled)
         {
-            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
             if (!TwoFactorValid)
             {
+
                 await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
 
-        Console.WriteLine("Run passkey");
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser.Auth.PasskeyId == null)
         {
             AuthUser.Auth.PasskeyId = MongoDB.Bson.ObjectId.GenerateNewId();
-            UserManager.UpdateAsync(AuthUser);
+            await UserManager.UpdateAsync(AuthUser);
         }
         bool IsSuccess = false;
         string? PasskeyRequestId = Guid.NewGuid().ToString();
@@ -397,14 +420,23 @@
         if (!string.IsNullOrEmpty(Data))
         {
             Fido2Request? RequestData = JsonSerializer.Deserialize<Fido2Request?>(Data);
-            if (RequestData != null && RequestData.UserId == AuthUser.Id)
-                IsSuccess = RequestData.IsSuccess;
+            if (RequestData != null && RequestData.UserId == AuthUser.Id && RequestData.IsSuccess)
+            {
+                _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+            }
+
         }
     }
 
     public async Task TestPasskey()
     {
+        foreach (var i in AuthUser.Auth.Passkeys)
+        {
+            Console.WriteLine(JsonSerializer.Serialize(i, new JsonSerializerOptions { WriteIndented = true }));
+        }
+
         var Result = await Session.TestPasskey(false);
+        Console.WriteLine("Result: " + Result);
         if (Result)
             await DialogService.ShowInfoAsync("Passkey Test", "Your passkey was successful");
         else
@@ -416,7 +448,7 @@
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser.Auth.IsTwoFactorEnabled)
         {
-            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
             if (!TwoFactorValid)
             {
                 await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
@@ -425,7 +457,11 @@
         }
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser.Auth.Passkeys.Remove(cred))
+        {
             await UserManager.UpdateAsync(AuthUser);
+            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        }
+
 
     }
 
@@ -434,7 +470,7 @@
         var User = await Session.GetCurrentUserAsync();
         if (AuthUser.Auth.IsTwoFactorEnabled)
         {
-            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
             if (!TwoFactorValid)
             {
                 await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
@@ -481,18 +517,19 @@
         if (!Confirm.Canceled)
         {
             AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser.Auth.IsTwoFactorEnabled)
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
+            if (!TwoFactorValid)
             {
-                var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
-                if (!TwoFactorValid)
-                {
-                    await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
-                    return;
-                }
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
             }
+
             AuthUser = await Session.GetCurrentUserAsync();
+
             AuthUser.Auth.Passkeys.Clear();
             await UserManager.UpdateAsync(AuthUser);
+            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+
         }
     }
 
@@ -510,13 +547,18 @@
             return "Unknown";
         }
         DateTimeOffset UserDate = DateTimeOffset.UtcNow.AddMinutes(Session.UserDateOffset);
-        if (MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month && MessageOffset.Day == UserDate.Day)
+
+
+        if (MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month)
         {
-            return $"Today at {MessageOffset.Hour.ToString().PadLeft(2, '0')}:{MessageOffset.Minute.ToString().PadLeft(2, '0')}";
+            if (MessageOffset.Day == UserDate.Day)
+                return $"Today at {MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)}";
+
+            DateTimeOffset Lastday = UserDate.AddDays((int)-1);
+            if (MessageOffset.Day == Lastday.Day)
+                return $"Yesterday at {MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)}";
         }
-        DateTimeOffset Lastday = UserDate.AddDays((int)-1);
-        if (MessageOffset.Year == Lastday.Year && MessageOffset.Month == Lastday.Month && MessageOffset.Day == Lastday.Day)
-            return $"Yesterday at {MessageOffset.Hour.ToString().PadLeft(2, '0')}:{MessageOffset.Minute.ToString().PadLeft(2, '0')}";
+
         return $"{MessageOffset.Day.ToString().PadLeft(2, '0')}/{MessageOffset.Month.ToString().PadLeft(2, '0')}/{MessageOffset.Year.ToString().PadLeft(2, '0')}";
     }
 
@@ -525,18 +567,12 @@
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser.Auth.IsTwoFactorEnabled)
         {
-            Console.WriteLine("WTF: Trigger Auth");
-            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(true);
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
             if (!TwoFactorValid)
             {
                 await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
-            Console.WriteLine("WTF: Response: " + TwoFactorValid);
-        }
-        else
-        {
-            Console.WriteLine("WTF: No Two-factor");
         }
 
         var Hasher = new PasswordHasher<AuthUser>();
@@ -560,6 +596,7 @@
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small, BackdropClick = false, CloseOnEscapeKey = false };
 
         var Dialog = await DialogService.ShowAsync<ShowRecoveryCodesDialog>("Recovery Codes", parameters, options);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
     }
 
     public void Dispose()

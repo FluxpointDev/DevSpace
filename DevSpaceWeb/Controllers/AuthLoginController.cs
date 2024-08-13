@@ -43,14 +43,12 @@ public class AuthLoginController : AuthControllerContext
         if (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password))
             return BadRequest("Could not login");
 
-        Console.WriteLine($"Got: {Email}:{Password}");
 
         var AuthUser = await _userManager.FindByEmailAsync(Email);
         if (AuthUser == null)
             return BadRequest("Failed to login");
 
         var Result = await _signInManager.PasswordSignInAsync(AuthUser, Password, RememberMe, false);
-        Console.WriteLine($"Res: {Result.RequiresTwoFactor} {Result.IsLockedOut} {Result.IsNotAllowed}");
         if (!Result.Succeeded)
         {
             return BadRequest("Failed to login");

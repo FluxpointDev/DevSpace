@@ -18,6 +18,7 @@ async function passkeyStartAuth(passkeyRequestId) {
         if (Debug) {
             console.log(e);
         }
+        return false;
     }
 
     if (Debug) {
@@ -29,7 +30,7 @@ async function passkeyStartAuth(passkeyRequestId) {
     if (makeAssertionOptions.status !== "ok") {
         console.log("Error creating assertion options");
         console.log(makeAssertionOptions.errorMessage);
-        return;
+        return false;
     }
 
     // todo: switch this to coercebase64
@@ -63,6 +64,8 @@ async function passkeyStartAuth(passkeyRequestId) {
         credential = await navigator.credentials.get({ publicKey: makeAssertionOptions })
     } catch (err) {
         console.log(err.message ? err.message : err);
+
+        return false;
     }
 
     try {
@@ -72,7 +75,11 @@ async function passkeyStartAuth(passkeyRequestId) {
         if (Debug) {
             console.log(e);
         }
+
+        return false;
     }
+
+    return true;
 }
 
 async function verifyAssertionWithServer(assertedCredential, passkeyRequestId) {
@@ -125,6 +132,6 @@ async function verifyAssertionWithServer(assertedCredential, passkeyRequestId) {
         return;
     }
 
-    return custom_data;
+    return response;
 
 }
