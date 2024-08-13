@@ -119,6 +119,13 @@ public class AuthLoginController : AuthControllerContext
     [HttpGet("/logout")]
     public async Task Logout()
     {
+        if (!User.Identity.IsAuthenticated)
+            return;
+
+        AuthUser? AuthUser = await _userManager.GetUserAsync(User);
+
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.Logout);
+
         await HttpContext.SignOutAsync("Cookies", new AuthenticationProperties
         {
             RedirectUri = "/"

@@ -74,7 +74,7 @@ public class AuthAccountController : AuthControllerContext
         AuthUser.Auth.IsTwoFactorEnabled = true;
         await _userManager.UpdateAsync(AuthUser);
 
-        _DB.TriggerSessionEvent(AuthUser.Id);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
 
         return Ok("Account verified, you can now close this page :)");
     }
@@ -104,6 +104,8 @@ public class AuthAccountController : AuthControllerContext
 
         AuthUser.Auth.EmailChangedAt = DateTimeOffset.UtcNow;
         await _userManager.UpdateAsync(AuthUser);
+
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
 
         return Ok("Account email changed, you can now close this page :)");
     }

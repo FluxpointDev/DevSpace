@@ -270,17 +270,15 @@
     {
         _DB.SessionUpdated += SessionChangedEvent;
         AuthUser = await Session.GetCurrentUserAsync();
-        AuthUser.EmailConfirmed = false;
         //var Meta = await Fido2Service._metadata.GetEntryAsync(AuthUser.PasskeyTokens.First().AaGuid);
         //Console.WriteLine("Meta: " + Meta.MetadataStatement.Description);
     }
 
-    public async void SessionChangedEvent(object sender, ObjectId user)
+    public async void SessionChangedEvent(object sender, ObjectId user, SessionEventType type)
     {
-        if (AuthUser.Id != user)
+        if (AuthUser.Id != user || type != SessionEventType.AccountUpdate)
             return;
 
-        Console.WriteLine("Update User");
         AuthUser = await Session.GetCurrentUserAsync();
         _ = InvokeAsync(StateHasChanged);
 
@@ -566,7 +564,6 @@
 
     public void Dispose()
     {
-        Console.WriteLine("Disposed");
         _DB.SessionUpdated -= SessionChangedEvent;
     }
 }

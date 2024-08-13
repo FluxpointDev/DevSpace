@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Identity;
 @using System.Text.Json
 @using Microsoft.Extensions.Caching.Distributed
+@using MongoDB.Bson
 @inject NavigationManager NavigationManager
 @inject UserManager<AuthUser> UserManager
 @inject IJSRuntime JS
@@ -13,6 +14,7 @@
 @inject HttpContextAccessor Http
 @inject IDialogService DialogService
 @inject IDistributedCache Cache
+@implements IDisposable
 
 @if (Ready)
 {
@@ -42,6 +44,11 @@
                     <br />
                     <MudAlert Severity="Severity.Error" Variant="Variant.Filled">Authentication error has occured.</MudAlert>
                 </div>
+            }
+            break;
+        case SessionErrorType.AuthenticationRequired:
+            {
+                <DevSpaceWeb.Components.Auth.LoginPage></DevSpaceWeb.Components.Auth.LoginPage>
             }
             break;
         default:
@@ -80,6 +87,12 @@
     }
 }
 
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
 
 @code {
     [Parameter]
@@ -98,7 +111,6 @@
     public async Task<AuthUser?> GetCurrentUserAsync()
     {
         return await UserManager.GetUserAsync(State.User)!;
-
     }
 
     public async Task<bool> TriggerTwoFactorAuthentication(bool logUsed)
@@ -143,6 +155,8 @@
         return IsSuccess;
     }
 
+    public ObjectId? CurrentUserId { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if (!Http.HttpContext.Request.IsHttps)
@@ -178,10 +192,27 @@
         }
         else
         {
+            _DB.SessionUpdated += SessionChangedEvent;
+            var User = await GetCurrentUserAsync();
+            CurrentUserId = User.Id;
             Console.WriteLine("Trigger Ready");
 
         }
         Ready = true;
+    }
+
+    public void SessionChangedEvent(object sender, ObjectId user, SessionEventType type)
+    {
+        if (CurrentUserId == null || CurrentUserId != user || type != SessionEventType.Logout)
+            return;
+
+        _ = InvokeAsync(StateHasChanged);
+
+    }
+
+    public void Dispose()
+    {
+        _DB.SessionUpdated -= SessionChangedEvent;
     }
 
 

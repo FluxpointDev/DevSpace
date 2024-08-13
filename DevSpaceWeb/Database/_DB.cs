@@ -12,11 +12,11 @@ public static class _DB
     public static bool IsConnected;
     private static bool IsCacheDone;
 
-    public static event EventHandler<ObjectId> SessionUpdated;
+    public static event SessionEventHandler SessionUpdated;
 
-    public static void TriggerSessionEvent(ObjectId user)
+    public static void TriggerSessionEvent(ObjectId user, SessionEventType type)
     {
-        SessionUpdated?.Invoke(null, user);
+        SessionUpdated?.Invoke(null, user, type);
     }
 
     public static async Task<bool> StartAsync()
