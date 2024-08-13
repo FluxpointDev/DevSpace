@@ -36,6 +36,7 @@ public static class ServiceBuilder
         {
             options.IdleTimeout = TimeSpan.FromMinutes(2);
             options.Cookie.HttpOnly = true;
+            options.Cookie.Name = "DevSpace.Session";
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
@@ -53,7 +54,7 @@ public static class ServiceBuilder
         services.ConfigureApplicationCookie(options =>
         {
             // Cookie settings
-            options.Cookie.Name = "Cookies";
+            options.Cookie.Name = "DevSpace.Auth";
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             options.Cookie.SameSite = SameSiteMode.Lax;

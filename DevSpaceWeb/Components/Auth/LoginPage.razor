@@ -135,6 +135,10 @@
             }
             </div>
             </EditForm> *@
+                    @if (!_Data.Config.Auth.AllowRegister)
+                    {
+                        <MudButton Variant="Variant.Text" Class="ml-auto" OnClick="@(() => { UseInternalRegister = true; errors = new string[0]; })">Register Account</MudButton>
+                    }
                 </MudPaper>
             </MudItem>
         }
@@ -229,7 +233,7 @@
     public async Task RegisterAccount()
     {
         FormDisabled = true;
-
+        Console.WriteLine("Register Account");
         var result = await UserManager.UserManager.CreateAsync(new AuthUser
             {
                 UserName = NameField.Value,
