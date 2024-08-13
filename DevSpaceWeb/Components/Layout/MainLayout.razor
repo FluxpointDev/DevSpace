@@ -6,57 +6,95 @@
 <MudDialogProvider />
 
 <MudLayout>
-    <MudAppBar Fixed="true" Dense="true" Elevation="1">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
-        <h3 class="top-title">Dev Space</h3>
-        <MudDivider Vertical="true" FlexItem="true" DividerType="DividerType.Middle" />
-        @if (Session.State.User.Identity.IsAuthenticated)
-        {
-            <MudMenu Label="Info" Variant="Variant.Text" TransformOrigin="Origin.TopLeft" AnchorOrigin="Origin.BottomLeft" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" IconColor="Color.Default" Dense>
-                <MudMenuItem Href="/info/http">Http Codes</MudMenuItem>
-            </MudMenu>
-            <MudMenu Label="Tools" Variant="Variant.Text" TransformOrigin="Origin.TopLeft" AnchorOrigin="Origin.BottomLeft" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" IconColor="Color.Default" Dense>
-                <MudMenuItem Class="mud-menu-sub">
-                    <MudMenu ActivationEvent="MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft" Variant="Variant.Text" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowRight" Dense>
-                        <ActivatorContent>
-                            <MudMenuItem>Images</MudMenuItem>
-                        </ActivatorContent>
+    @if (Session.SessionError == SessionProvider.SessionErrorType.SessionSecurityNewIp)
+    {
+        <DevSpaceWeb.Components.Auth.NewIpPage Session="Session"></DevSpaceWeb.Components.Auth.NewIpPage>
+    }
+    else
+    {
+        <MudAppBar Fixed="true" Dense="true" Elevation="1">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            <h3 class="top-title">Dev Space</h3>
+            <MudDivider Vertical="true" FlexItem="true" DividerType="DividerType.Middle" />
+            @if (Session.State.User.Identity.IsAuthenticated)
+            {
+                <MudMenu Label="Info" Variant="Variant.Text" TransformOrigin="Origin.TopLeft" AnchorOrigin="Origin.BottomLeft" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" IconColor="Color.Default" Dense>
+                    <MudMenuItem Href="/info/http">Http Codes</MudMenuItem>
+                </MudMenu>
+                <MudMenu Label="Tools" Variant="Variant.Text" TransformOrigin="Origin.TopLeft" AnchorOrigin="Origin.BottomLeft" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" IconColor="Color.Default" Dense>
+                    <MudMenuItem Class="mud-menu-sub">
+                        <MudMenu ActivationEvent="MouseEvent.MouseOver" AnchorOrigin="Origin.TopRight" TransformOrigin="Origin.TopLeft" Variant="Variant.Text" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowRight" Dense>
+                            <ActivatorContent>
+                                <MudMenuItem>Images</MudMenuItem>
+                            </ActivatorContent>
 
-                        <ChildContent>
-                            <MudMenuItem Href="/tools/image/convert">Convert Image Format</MudMenuItem>
-                        </ChildContent>
-                    </MudMenu>
-                </MudMenuItem>
-                <MudMenuItem Href="/tools/editor">Text Editor</MudMenuItem>
-            </MudMenu>
-            <MudSpacer></MudSpacer>
+                            <ChildContent>
+                                <MudMenuItem Href="/tools/image/convert">Convert Image Format</MudMenuItem>
+                            </ChildContent>
+                        </MudMenu>
+                    </MudMenuItem>
+                    <MudMenuItem Href="/tools/editor">Text Editor</MudMenuItem>
+                </MudMenu>
+                <MudSpacer></MudSpacer>
 
-            <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
-                <ActivatorContent>
-                    <MudButton Variant="Variant.Text" Color="Color.Info">@Session.State.User.Identity.Name</MudButton>
-                </ActivatorContent>
-                <ChildContent>
-                    <MudMenuItem Href="/user/settings">Settings</MudMenuItem>
-                    <MudMenuItem Href="/admin">Admin</MudMenuItem>
-                    <MudMenuItem Href="/logout">Logout</MudMenuItem>
-                </ChildContent>
-            </MudMenu>
-        }
-    </MudAppBar>
-    <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Responsive">
-        @if (Session.State.User.Identity.IsAuthenticated)
-        {
-            <NavMenu />
-        }
-    </MudDrawer>
-    <MudMainContent>
-        @Body
-    </MudMainContent>
+                <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Text" Color="Color.Info">@Session.State.User.Identity.Name</MudButton>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudMenuItem Href="/user/settings">Settings</MudMenuItem>
+                        <MudMenuItem Href="/admin">Admin</MudMenuItem>
+                        <MudMenuItem Href="/logout">Logout</MudMenuItem>
+                    </ChildContent>
+                </MudMenu>
+            }
+        </MudAppBar>
+        <MudDrawer @bind-Open="@_drawerOpen" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Responsive">
+            @if (Session.State.User.Identity.IsAuthenticated)
+            {
+                <NavMenu />
+            }
+        </MudDrawer>
+        <MudMainContent>
+            @Body
+        </MudMainContent>
+    }
 </MudLayout>
 
 
 <style>
+    .twofactor-item .iconify {
+        color: #0bba83 !important;
+        width: 32px;
+        height: 32px;
+        float: left;
+        margin-right: 10px;
+    }
 
+    .twofactor-item {
+        display: block !important;
+        height: 52px;
+        margin-bottom: 6px;
+        background-color: #272731 !important;
+        border-radius: 16px;
+        padding: 6px;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 8px;
+        cursor: pointer;
+    }
+
+    .twofactor-item-disabled {
+        opacity: 0.5;
+        background-color: rgba(39,40,49,0.4) !important;
+        color: rgb(130,129,129) !important;
+        cursor: default !important;
+    }
+
+    .mud-dialog {
+        max-width: 970px !important;
+        margin-top: -20px;
+    }
 </style>
 
 @code {

@@ -108,6 +108,7 @@ public class Program
             app.MapSwagger();
         }
         //new InfoTest().Run();
+
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
         app.MapControllers();

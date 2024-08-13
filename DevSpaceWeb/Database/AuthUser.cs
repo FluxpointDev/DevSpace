@@ -35,8 +35,14 @@ public class AuthUser : MongoIdentityUser<ObjectId>
     }
 }
 
+public class AuthUserSession
+{
+
+}
+
 public class AuthUserMfa
 {
+    public Dictionary<string, AuthUserSession> Sessions = new Dictionary<string, AuthUserSession>();
     public bool IsTwoFactorEnabled { get; set; } = false;
     public DateTimeOffset? LoginAt { get; set; }
     public DateTimeOffset? LastSeenAt { get; set; }

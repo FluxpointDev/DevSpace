@@ -33,6 +33,19 @@
                 </div>
             }
             break;
+        case SessionErrorType.SessionSecurityError:
+            {
+                <MudThemeProvider IsDarkMode="true" />
+                <MudPopoverProvider />
+                <div class="dash-box dash-box-content" style="padding: 10px;">
+                    <div class="dash-box-header">
+                        <MudText Typo="Typo.h6">Session Security Error</MudText>
+                    </div>
+                    <br />
+                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">This instance has been incorrectly configured or is using local host ip for connection.</MudAlert>
+                </div>
+            }
+            break;
         case SessionErrorType.AuthenticationError:
             {
                 <MudThemeProvider IsDarkMode="true" />
@@ -48,6 +61,8 @@
             break;
         case SessionErrorType.AuthenticationRequired:
             {
+                <MudThemeProvider IsDarkMode="true" />
+                <MudPopoverProvider />
                 <DevSpaceWeb.Components.Auth.LoginPage></DevSpaceWeb.Components.Auth.LoginPage>
             }
             break;
@@ -174,6 +189,27 @@
 
     public ObjectId? CurrentUserId { get; set; }
 
+    [CascadingParameter] public HttpContext? HttpContext { get; set; }
+
+    string GetUserIpAddress(HttpContext context)
+    {
+        // Test ip in development
+        if (Program.IsDevMode)
+            return "1.2.3.4";
+
+        // Check CF-Connecting-IP header
+        if (!string.IsNullOrEmpty(context.Request.Headers["CF-CONNECTING-IP"]))
+            return context.Request.Headers["CF-CONNECTING-IP"];
+
+        // Check X-Forwarded-For header
+        if (!string.IsNullOrEmpty(context.Request.Headers["X-Forwarded-For"]))
+            return context.Request.Headers["X-Forwarded-For"];
+
+        return "";
+    }
+
+    public string Ip;
+
     protected override async Task OnInitializedAsync()
     {
         if (!Http.HttpContext.Request.IsHttps)
@@ -181,6 +217,7 @@
             SessionError = SessionErrorType.HttpsRequired;
             return;
         }
+        Ip = GetUserIpAddress(Http.HttpContext);
         State = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         UserDateOffset = await JS.InvokeAsync<int>("GetUserTimezoneOffset");
         string Path = NavigationManager.Uri.Substring(NavigationManager.BaseUri.Length);
@@ -197,6 +234,11 @@
             return;
         }
 
+        if (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1")
+        {
+            SessionError = SessionErrorType.SessionSecurityError;
+        }
+
         if (State == null)
         {
             SessionError = SessionErrorType.AuthenticationError;
@@ -210,10 +252,13 @@
             _DB.SessionUpdated += SessionChangedEvent;
             var User = await GetCurrentUserAsync();
             CurrentUserId = User.Id;
-
+            if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
+                SessionError = SessionErrorType.SessionSecurityNewIp;
         }
         Ready = true;
     }
+
+
 
     public void SessionChangedEvent(object sender, ObjectId user, SessionEventType type)
     {
@@ -237,7 +282,7 @@
 
     public enum SessionErrorType
     {
-        None, HttpsRequired, AuthenticationError, AuthenticationRequired
+        None, HttpsRequired, SessionSecurityError, SessionSecurityNewIp, AuthenticationError, AuthenticationRequired
     }
 
 }

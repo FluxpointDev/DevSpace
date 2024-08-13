@@ -1,0 +1,33 @@
+﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Identity
+@inject IDialogService DialogService
+@inject UserManager<AuthUser> UserManager
+@inject NavigationManager NavigationManager
+
+<div class="dash-box dash-box-content" style="padding: 10px;">
+    <div class="dash-box-header">
+        <MudText Typo="Typo.h6">Session Security</MudText>
+    </div>
+    <br />
+    <MudAlert Severity="Severity.Warning" Variant="Variant.Filled">A new IP Address has been detected for this account, confirm 2FA to get access.</MudAlert>
+    <br />
+    <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="Check2FA">Verify</MudButton>
+</div>
+
+@code {
+    [Parameter] public SessionProvider Session { get; set; }
+
+
+    public async Task Check2FA()
+    {
+        var User = await Session.GetCurrentUserAsync();
+        var Result = await Session.TriggerTwoFactorAuthentication(User, true);
+        if (Result)
+        {
+            User = await Session.GetCurrentUserAsync();
+            User.Auth.Sessions.TryAdd(Utils.GetStringSha256Hash(Session.Ip), new AuthUserSession { });
+            await UserManager.UpdateAsync(User);
+            NavigationManager.Refresh(true);
+        }
+    }
+}
