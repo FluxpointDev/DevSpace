@@ -7,6 +7,8 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.Extensions.Caching.Distributed
 @using System.Text.Json
+@using MongoDB.Bson
+@implements IDisposable
 @inject HttpClient Http
 @inject IJSRuntime JS
 @inject IDistributedCache Cache
@@ -266,9 +268,22 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _DB.SessionUpdated += SessionChangedEvent;
         AuthUser = await Session.GetCurrentUserAsync();
+        AuthUser.EmailConfirmed = false;
         //var Meta = await Fido2Service._metadata.GetEntryAsync(AuthUser.PasskeyTokens.First().AaGuid);
         //Console.WriteLine("Meta: " + Meta.MetadataStatement.Description);
+    }
+
+    public async void SessionChangedEvent(object sender, ObjectId user)
+    {
+        if (AuthUser.Id != user)
+            return;
+
+        Console.WriteLine("Update User");
+        AuthUser = await Session.GetCurrentUserAsync();
+        _ = InvokeAsync(StateHasChanged);
+
     }
 
     public async Task ChangeUsername()
@@ -547,5 +562,11 @@
         var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.Small, BackdropClick = false, CloseOnEscapeKey = false };
 
         var Dialog = await DialogService.ShowAsync<ShowRecoveryCodesDialog>("Recovery Codes", parameters, options);
+    }
+
+    public void Dispose()
+    {
+        Console.WriteLine("Disposed");
+        _DB.SessionUpdated -= SessionChangedEvent;
     }
 }

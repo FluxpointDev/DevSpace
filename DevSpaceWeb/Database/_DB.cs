@@ -12,6 +12,13 @@ public static class _DB
     public static bool IsConnected;
     private static bool IsCacheDone;
 
+    public static event EventHandler<ObjectId> SessionUpdated;
+
+    public static void TriggerSessionEvent(ObjectId user)
+    {
+        SessionUpdated?.Invoke(null, user);
+    }
+
     public static async Task<bool> StartAsync()
     {
         IsConnected = false;

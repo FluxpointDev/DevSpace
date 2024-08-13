@@ -74,6 +74,8 @@ public class AuthAccountController : AuthControllerContext
         AuthUser.Auth.IsTwoFactorEnabled = true;
         await _userManager.UpdateAsync(AuthUser);
 
+        _DB.TriggerSessionEvent(AuthUser.Id);
+
         return Ok("Account verified, you can now close this page :)");
     }
 
