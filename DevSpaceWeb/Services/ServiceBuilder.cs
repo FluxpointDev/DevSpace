@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.OpenApi.Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDbGenericRepository;
 using System.Reflection;
@@ -186,7 +187,7 @@ public static class ServiceBuilder
             .AddTokenProvider(TokenOptions.DefaultProvider, typeof(DataProtectorTokenProvider<AuthUser>))
             .AddTokenProvider(TokenOptions.DefaultEmailProvider, typeof(EmailTokenProvider<AuthUser>))
             .AddTokenProvider(TokenOptions.DefaultAuthenticatorProvider, typeof(AuthenticatorTokenProvider<AuthUser>))
-        .AddMongoDbStores2<MflixDbContext, AuthUser, ApplicationRole, Guid>(new MflixDbContext(_Data.Config.Database.GetConnectionString(), _Data.Config.Database.Name));
+        .AddMongoDbStores2<MflixDbContext, AuthUser, ApplicationRole, ObjectId>(new MflixDbContext(_Data.Config.Database.GetConnectionString(), _Data.Config.Database.Name));
 
     }
 

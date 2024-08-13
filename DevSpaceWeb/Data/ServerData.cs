@@ -41,6 +41,7 @@ public class ServerWebSocket
     public WebSocketClient Client;
     public void Run()
     {
+        return;
         ValidateCert ValidateCert = new ValidateCert();
         var context = new SslContext(SslProtocols.Tls12, (e, b, l, m) =>
         {

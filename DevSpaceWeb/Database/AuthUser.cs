@@ -7,7 +7,7 @@ using MongoDbGenericRepository.Attributes;
 namespace DevSpaceWeb.Database;
 
 [CollectionName("auth_internal")]
-public class AuthUser : MongoIdentityUser<Guid>
+public class AuthUser : MongoIdentityUser<ObjectId>
 {
     public bool IsInstanceAdmin { get; set; }
 
@@ -61,7 +61,7 @@ public class AuthUserMfa
 }
 
 [CollectionName("auth_roles")]
-public class ApplicationRole : MongoIdentityRole<Guid>
+public class ApplicationRole : MongoIdentityRole<ObjectId>
 {
 
 }

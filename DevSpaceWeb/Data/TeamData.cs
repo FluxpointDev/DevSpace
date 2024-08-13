@@ -10,7 +10,7 @@ public class TeamData
     public ObjectId Id { get; set; }
     public string Name { get; set; }
     public string VanityUrl { get; set; }
-    public Guid OwnerId { get; set; }
+    public ObjectId OwnerId { get; set; }
     public bool HasAccess(SessionProvider session)
     {
         return true;
