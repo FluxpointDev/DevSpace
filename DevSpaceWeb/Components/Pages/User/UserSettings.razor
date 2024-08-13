@@ -37,6 +37,8 @@
                 else
                 {
                     <MudTextField Value="@AuthUser.UserName" Label="Username" Variant="Variant.Text" Underline="false" ReadOnly></MudTextField>
+                    <p>Account Created: @GetLocalDate(AuthUser.CreatedOn, false)</p>
+
                     <MudTextField Value="@AuthUser.Email" Label="Email" Variant="Variant.Text" Underline="false" ReadOnly></MudTextField>
                     @if (!AuthUser.EmailConfirmed)
                     {
@@ -483,7 +485,6 @@
 
     public string GetLocalDate(DateTimeOffset? date, bool isMini)
     {
-        Console.WriteLine($"Year: {date.GetValueOrDefault().Year}");
         if (!date.HasValue || date.Value.Year == 1)
             return "";
         DateTimeOffset MessageOffset;
