@@ -24,14 +24,8 @@ public static class ServiceBuilder
         // Add HTTP access
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();
-        services.AddScoped<HttpClient>();
-        AddFido2(services);
-
-
-        AddMongoDb(services);
-        AddEmailProvider(services);
-
         services.AddDistributedMemoryCache();
+
         services.AddSession(options =>
         {
             options.IdleTimeout = TimeSpan.FromMinutes(2);
@@ -41,7 +35,19 @@ public static class ServiceBuilder
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
 
+        AddFido2(services);
+        AddIdentity(services);
+        AddMongoDb(services);
+        AddEmail(services);
+        AddProviders(services);
 
+        if (_Data.Config.Instance.Features.SwaggerEnabled)
+            AddSwagger(services);
+
+    }
+
+    public static void AddIdentity(IServiceCollection services)
+    {
         services.Configure<IdentityOptions>(options =>
         {
             options.User.RequireUniqueEmail = true;
@@ -49,8 +55,6 @@ public static class ServiceBuilder
             options.Password.RequiredLength = 8;
         });
 
-
-        // Add Identity Auth
         services.ConfigureApplicationCookie(options =>
         {
             // Cookie settings
@@ -65,74 +69,61 @@ public static class ServiceBuilder
             options.SlidingExpiration = true;
         });
         services.AddScoped<IAuthService, AuthService>();
-        //services.AddScoped<AuthenticationStateProvider,
-        //        RevalidatingIdentityAuthenticationStateProvider<AuthUser>>();
-        services.AddDistributedMemoryCache();
+    }
 
-        services.AddScoped(sp =>
-    new HttpClient
+    public static void AddSwagger(IServiceCollection services)
     {
-        BaseAddress = new Uri("http://localhost:5142")
-    });
-
-        AddProviders(services);
-        #region Swagger
-        if (_Data.Config.Instance.Features.SwaggerEnabled)
+        services.AddSwaggerGen(c =>
         {
-            services.AddSwaggerGen(c =>
+            c.DocInclusionPredicate((_, description) =>
             {
-                c.DocInclusionPredicate((_, description) =>
-                {
-                    var actionDescriptor = (ControllerActionDescriptor)description.ActionDescriptor;
+                var actionDescriptor = (ControllerActionDescriptor)description.ActionDescriptor;
 
-                    return actionDescriptor.ControllerTypeInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any()
-                           || actionDescriptor.MethodInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any();
+                return actionDescriptor.ControllerTypeInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any()
+                       || actionDescriptor.MethodInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any();
 
-                    //or any other visibility strategy...
-                });
-                c.SwaggerDoc("v1", new OpenApiInfo
-                {
-                    Title = "Dev Space API",
-                    Version = "v1",
-                    Description = "API server for this Dev Space instance.",
-                    //TermsOfService = new Uri("https://fluxpoint.dev/terms"),
-                    //Contact = new OpenApiContact
-                    //{
-                    //    Email = "support@fluxpoint.dev",
-                    //    Name = "Fluxpoint Support",
-                    //    Url = new Uri("https://discord.gg/fluxpoint")
-                    //}
-                });
-                //c.AddServer(new OpenApiServer
-                //{
-                //    Url = "https://api.fluxpoint.dev"
-                //});
-                //c.ExampleFilters();
-                //c.EnableAnnotations(enableAnnotationsForInheritance: false, enableAnnotationsForPolymorphism: false);
-                c.AddSecurityDefinition("key", new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.ApiKey,
-                    Description = "Create an API Key in your Team page.",
-                    In = ParameterLocation.Header,
-                    Name = "Authorization"
-                });
-                //            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-                //{
-                //    {
-                //        new OpenApiSecurityScheme
-                //        {
-                //            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "key" },
-
-                //        },
-                //        new string[] {  }
-                //                }
-                //            });
-
-                c.OperationFilter<SwaggerCheckAuthFilter>();
+                //or any other visibility strategy...
             });
-        }
-        #endregion
+            c.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "Dev Space API",
+                Version = "v1",
+                Description = "API server for this Dev Space instance.",
+                //TermsOfService = new Uri("https://fluxpoint.dev/terms"),
+                //Contact = new OpenApiContact
+                //{
+                //    Email = "support@fluxpoint.dev",
+                //    Name = "Fluxpoint Support",
+                //    Url = new Uri("https://discord.gg/fluxpoint")
+                //}
+            });
+            //c.AddServer(new OpenApiServer
+            //{
+            //    Url = "https://api.fluxpoint.dev"
+            //});
+            //c.ExampleFilters();
+            //c.EnableAnnotations(enableAnnotationsForInheritance: false, enableAnnotationsForPolymorphism: false);
+            c.AddSecurityDefinition("key", new OpenApiSecurityScheme
+            {
+                Type = SecuritySchemeType.ApiKey,
+                Description = "Create an API Key in your Team page.",
+                In = ParameterLocation.Header,
+                Name = "Authorization"
+            });
+            //            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            //{
+            //    {
+            //        new OpenApiSecurityScheme
+            //        {
+            //            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "key" },
 
+            //        },
+            //        new string[] {  }
+            //                }
+            //            });
+
+            c.OperationFilter<SwaggerCheckAuthFilter>();
+        });
     }
 
     public static void AddProviders(IServiceCollection services)
@@ -164,20 +155,9 @@ public static class ServiceBuilder
             {
                 "https://localhost:5149"
             },
-            TimestampDriftTolerance = 300000
+            TimestampDriftTolerance = 300000,
+            MDSCacheDirPath = Program.CurrentDirectory + "Cache"
         }));
-
-        services.Configure<Fido2Configuration>((opt) =>
-        {
-            opt.ServerDomain = "localhost";
-            opt.Origins = new HashSet<string>
-            {
-                "https://localhost:5149"
-            };
-            opt.ServerName = "Dev Space Test";
-            opt.TimestampDriftTolerance = 300000;
-            opt.MDSCacheDirPath = Program.CurrentDirectory + "Cache";
-        });
     }
 
     public static void AddMongoDb(IServiceCollection services)
@@ -192,7 +172,7 @@ public static class ServiceBuilder
 
     }
 
-    public static void AddEmailProvider(IServiceCollection services)
+    public static void AddEmail(IServiceCollection services)
     {
         services.AddTransient<IEmailSender<AuthUser>, EmailSender>()
             .AddSingleton(new EmailService());
