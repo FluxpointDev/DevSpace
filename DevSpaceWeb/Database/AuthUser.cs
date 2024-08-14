@@ -45,6 +45,7 @@ public class AuthUserMfa
     public Dictionary<string, AuthUserSession> Sessions = new Dictionary<string, AuthUserSession>();
     public bool IsTwoFactorEnabled { get; set; } = false;
     public DateTimeOffset? LoginAt { get; set; }
+    public DateTimeOffset? PasswordChangedAt { get; set; }
     public DateTimeOffset? LastSeenAt { get; set; }
     public DateTimeOffset? EmailChangedAt { get; set; }
 

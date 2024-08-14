@@ -1,5 +1,5 @@
 ﻿let Debug = true;
-async function passkeyStartAuth(passkeyRequestId) {
+async function passkeyStartAuth(requestId) {
 
     // send to server for registering
     let makeAssertionOptions;
@@ -8,7 +8,7 @@ async function passkeyStartAuth(passkeyRequestId) {
             method: 'POST', // or 'PUT'
             headers: {
                 'Accept': 'application/json',
-                'RequestVerificationToken': passkeyRequestId
+                'RequestVerificationToken': requestId
             }
         });
 
@@ -69,7 +69,7 @@ async function passkeyStartAuth(passkeyRequestId) {
     }
 
     try {
-        await verifyAssertionWithServer(credential, passkeyRequestId);
+        await verifyAssertionWithServer(credential, requestId);
     } catch (e) {
         console.log('Could not verify assertion');
         if (Debug) {
@@ -82,7 +82,7 @@ async function passkeyStartAuth(passkeyRequestId) {
     return true;
 }
 
-async function verifyAssertionWithServer(assertedCredential, passkeyRequestId) {
+async function verifyAssertionWithServer(assertedCredential, requestId) {
 
     // Move data into Arrays incase it is super long
     let authData = new Uint8Array(assertedCredential.response.authenticatorData);
@@ -111,7 +111,7 @@ async function verifyAssertionWithServer(assertedCredential, passkeyRequestId) {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
-                'RequestVerificationToken': passkeyRequestId
+                'RequestVerificationToken': requestId
             }
         });
 

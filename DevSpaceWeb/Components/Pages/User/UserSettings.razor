@@ -375,7 +375,7 @@
         }
         bool IsSuccess = false;
         string? PasskeyRequestId = Guid.NewGuid().ToString();
-        Cache.SetString("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new Fido2Request(AuthUser.Id, false)), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+        Cache.SetString("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new AuthRequest(AuthUser.Id, false)), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
 
         try
         {
@@ -385,7 +385,7 @@
         string Data = Cache.GetString("passkey-" + PasskeyRequestId);
         if (!string.IsNullOrEmpty(Data))
         {
-            Fido2Request? RequestData = JsonSerializer.Deserialize<Fido2Request?>(Data);
+            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
             if (RequestData != null && RequestData.UserId == AuthUser.Id && RequestData.IsSuccess)
             {
                 _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);

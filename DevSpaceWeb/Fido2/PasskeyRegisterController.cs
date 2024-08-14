@@ -49,7 +49,7 @@ public class PasskeyRegisterController : AuthControllerContext
             if (string.IsNullOrEmpty(Data))
                 return Json(new Fido2Error("Failed user validation."));
 
-            Fido2Request? RequestData = JsonSerializer.Deserialize<Fido2Request?>(Data);
+            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
             if (RequestData == null && RequestData.UserId != AuthUser.Id)
                 return Json(new Fido2Error("Failed user validation."));
 
@@ -116,7 +116,7 @@ public class PasskeyRegisterController : AuthControllerContext
             if (string.IsNullOrEmpty(Data))
                 return Json(new Fido2Error("Failed user validation."));
 
-            Fido2Request? RequestData = JsonSerializer.Deserialize<Fido2Request?>(Data);
+            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
             if (RequestData == null && RequestData.UserId != user.Id)
                 return Json(new Fido2Error("Failed user validation."));
 

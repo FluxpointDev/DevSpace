@@ -2,14 +2,14 @@
 try { let Debug = true; }
 catch { }
 
-async function passkeyStartRegister(name, passkeyRequestId) {
+async function passkeyStartRegister(name, requestId) {
 
     // possible values: true,false
 
     // send to server for registering
     let makeCredentialOptions;
     try {
-        makeCredentialOptions = await fetchMakeCredentialOptions(passkeyRequestId);
+        makeCredentialOptions = await fetchMakeCredentialOptions(requestId);
 
     } catch (e) {
         if (Debug) {
@@ -84,7 +84,7 @@ async function passkeyStartRegister(name, passkeyRequestId) {
 
 
     try {
-        registerNewCredential(name, newCredential, passkeyRequestId);
+        registerNewCredential(name, newCredential, requestId);
 
     } catch (e) {
         console.log(e.message ? e.message : e);
@@ -95,14 +95,13 @@ async function passkeyStartRegister(name, passkeyRequestId) {
     return true;
 }
 
-async function fetchMakeCredentialOptions(passkeyRequestId) {
+async function fetchMakeCredentialOptions(requestId) {
 
-    console.log('Check Request: ' + passkeyRequestId);
     let response = await fetch('/auth/passkey/register/makeCredentialOptions', {
         method: 'POST', // or 'PUT'
         headers: {
             'Accept': 'application/json',
-            'RequestVerificationToken': passkeyRequestId
+            'RequestVerificationToken': requestId
         }
     });
 
@@ -113,7 +112,7 @@ async function fetchMakeCredentialOptions(passkeyRequestId) {
 
 
 // This should be used to verify the auth data with the server
-async function registerNewCredential(name, newCredential, passkeyRequestId) {
+async function registerNewCredential(name, newCredential, requestId) {
     // Move data into Arrays incase it is super long
     let attestationObject = new Uint8Array(newCredential.response.attestationObject);
     let clientDataJSON = new Uint8Array(newCredential.response.clientDataJSON);
@@ -135,7 +134,7 @@ async function registerNewCredential(name, newCredential, passkeyRequestId) {
 
     let response;
     try {
-        response = await registerCredentialWithServer(data, passkeyRequestId);
+        response = await registerCredentialWithServer(data, requestId);
     } catch (e) {
         console.log("Failed to register credentials");
         if (Debug) {
@@ -168,14 +167,14 @@ async function registerNewCredential(name, newCredential, passkeyRequestId) {
     //window.location.href = "/dashboard/" + state.user.displayName;
 }
 
-async function registerCredentialWithServer(formData, passkeyRequestId) {
+async function registerCredentialWithServer(formData, requestId) {
     let response = await fetch('/auth/passkey/register/makeCredential', {
-        method: 'POST', // or 'PUT'
-        body: JSON.stringify(formData), // data can be `string` or {object}!
+        method: 'POST',
+        body: JSON.stringify(formData),
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'RequestVerificationToken': passkeyRequestId
+            'RequestVerificationToken': requestId
         }
     });
 

@@ -63,7 +63,9 @@
             {
                 <MudThemeProvider IsDarkMode="true" />
                 <MudPopoverProvider />
-                <DevSpaceWeb.Components.Auth.LoginPage></DevSpaceWeb.Components.Auth.LoginPage>
+                <CascadingValue Value="@this">
+                    <DevSpaceWeb.Components.Auth.LoginPage></DevSpaceWeb.Components.Auth.LoginPage>
+                </CascadingValue>
             }
             break;
         default:
@@ -160,8 +162,7 @@
 
         bool IsSuccess = false;
         string PasskeyRequestId = Guid.NewGuid().ToString();
-        Console.WriteLine("Req: " + PasskeyRequestId);
-        Cache.SetString("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new Fido2Request(user.Id, logUsage)), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+        Cache.SetString("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new AuthRequest(user.Id, logUsage)), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
         try
         {
             IsSuccess = await JS.InvokeAsync<bool>("passkeyStartAuth", PasskeyRequestId);
@@ -174,7 +175,7 @@
         if (!string.IsNullOrEmpty(Data))
         {
             Console.WriteLine("Parse Passkey");
-            Fido2Request? RequestData = JsonSerializer.Deserialize<Fido2Request?>(Data);
+            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
             if (RequestData != null && RequestData.UserId == user.Id)
             {
                 Console.WriteLine("Got: " + RequestData.IsSuccess);
@@ -191,22 +192,7 @@
 
     [CascadingParameter] public HttpContext? HttpContext { get; set; }
 
-    string GetUserIpAddress(HttpContext context)
-    {
-        // Test ip in development
-        if (Program.IsDevMode)
-            return "1.2.3.4";
 
-        // Check CF-Connecting-IP header
-        if (!string.IsNullOrEmpty(context.Request.Headers["CF-CONNECTING-IP"]))
-            return context.Request.Headers["CF-CONNECTING-IP"];
-
-        // Check X-Forwarded-For header
-        if (!string.IsNullOrEmpty(context.Request.Headers["X-Forwarded-For"]))
-            return context.Request.Headers["X-Forwarded-For"];
-
-        return "";
-    }
 
     public string Ip;
 
@@ -217,7 +203,7 @@
             SessionError = SessionErrorType.HttpsRequired;
             return;
         }
-        Ip = GetUserIpAddress(Http.HttpContext);
+        Ip = Utils.GetUserIpAddress(Http.HttpContext);
         State = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         UserDateOffset = await JS.InvokeAsync<int>("GetUserTimezoneOffset");
         string Path = NavigationManager.Uri.Substring(NavigationManager.BaseUri.Length);

@@ -2,9 +2,9 @@
 
 namespace DevSpaceWeb.Fido2;
 
-public class Fido2Request
+public class AuthRequest
 {
-    public Fido2Request(ObjectId userId, bool logRequest)
+    public AuthRequest(ObjectId userId, bool logRequest)
     {
         UserId = userId;
         LogRequest = logRequest;

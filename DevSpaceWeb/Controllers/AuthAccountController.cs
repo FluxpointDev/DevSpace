@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Database;
 using DevSpaceWeb.Fido2;
+using DevSpaceWeb.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
@@ -12,12 +13,14 @@ public class AuthAccountController : AuthControllerContext
     public AuthAccountController(
         UserManager<AuthUser> userManager,
         SignInManager<AuthUser> signInManager,
-        Fido2Service fido2Service, IDistributedCache cache) : base(userManager, signInManager, fido2Service)
+        Fido2Service fido2Service, IDistributedCache cache, EmailService email) : base(userManager, signInManager, fido2Service)
     {
         Cache = cache;
+        Email = email;
     }
 
-    public IDistributedCache Cache { get; private set; }
+    private readonly IDistributedCache Cache;
+    private readonly EmailService Email;
 
     // Download Recovery Code
     [HttpGet("/auth/account/downloadRecoveryCode")]
@@ -105,6 +108,51 @@ public class AuthAccountController : AuthControllerContext
         _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
 
         return Ok("Account email changed, you can now close this page :)");
+    }
+
+    [HttpPost("/auth/account/changePassword")]
+    public async Task<IActionResult> ChangePassword([FromHeader] string requestId, [FromForm] string email, [FromForm] string password, [FromForm] string emailToken)
+    {
+        if (string.IsNullOrEmpty(requestId))
+            return BadRequest("Request id is invalid");
+
+        if (string.IsNullOrEmpty(email))
+            return BadRequest("Email is invalid");
+
+        string Data = Cache.GetString("changepass-" + requestId);
+
+        if (string.IsNullOrEmpty(Data) || Data != email)
+            return BadRequest("Request id is invalid");
+
+        if (string.IsNullOrEmpty(password))
+            return BadRequest("Password is invalid");
+
+        if (string.IsNullOrEmpty(emailToken))
+            return BadRequest("Email token is invalid");
+
+        var User = await _signInManager.UserManager.FindByEmailAsync(email);
+        if (User == null)
+            return BadRequest("Failed to change password");
+
+        var Result = await _userManager.ResetPasswordAsync(User, emailToken, password);
+        if (!Result.Succeeded)
+            return BadRequest("Failed to change password");
+
+        await Email.Send(SendMailType.AccountPasswordChanged, User, "https://" + Request.Host.Value);
+
+        var Signin = await _signInManager.PasswordSignInAsync(User, password, false, false);
+        if (!Signin.Succeeded)
+            return BadRequest("Failed to login");
+
+        User.Auth.PasswordChangedAt = DateTimeOffset.UtcNow;
+        string Ip = Utils.GetUserIpAddress(Request.HttpContext);
+        if (!string.IsNullOrEmpty(Ip))
+            User.Auth.Sessions.Add(Utils.GetStringSha256Hash(Ip), new AuthUserSession { });
+
+        await _userManager.UpdateAsync(User);
+
+
+        return Ok();
     }
 
 }

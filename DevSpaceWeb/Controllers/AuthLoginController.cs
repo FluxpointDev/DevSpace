@@ -1,6 +1,5 @@
 ﻿using DevSpaceWeb.Database;
 using DevSpaceWeb.Fido2;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
@@ -38,26 +37,30 @@ public class AuthLoginController : AuthControllerContext
 
     // Login User
     [HttpPost("/auth/login")]
-    public async Task<IActionResult> Login([FromForm] string Email = "", [FromForm] string Password = "", [FromForm] string RequestVerificationToken = "", [FromForm] bool RememberMe = false)
+    public async Task<IActionResult> Login([FromForm] string email = "", [FromForm] string password = "", [FromHeader] string requestId = "", [FromForm] bool rememberMe = false)
     {
-        if (string.IsNullOrEmpty(Email) || string.IsNullOrEmpty(Password))
-            return BadRequest("Could not login");
+        if (string.IsNullOrEmpty(requestId))
+            return BadRequest("Request id is invalid");
 
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+            return BadRequest("Invalid email or password.");
 
-        var AuthUser = await _userManager.FindByEmailAsync(Email);
+        string Data = Cache.GetString("login-" + requestId);
+
+        if (string.IsNullOrEmpty(Data) || Data != email)
+            return BadRequest("Request id is invalid");
+
+        var AuthUser = await _userManager.FindByEmailAsync(email);
         if (AuthUser == null)
-            return BadRequest("Failed to login");
+            return BadRequest("Invalid email or password.");
 
-        var Result = await _signInManager.PasswordSignInAsync(AuthUser, Password, RememberMe, false);
+        var Result = await _signInManager.PasswordSignInAsync(AuthUser, password, rememberMe, false);
         if (!Result.Succeeded)
-        {
-            return BadRequest("Failed to login");
-        }
+            return BadRequest("Invalid email or password.");
 
         AuthUser.Auth.LoginAt = DateTimeOffset.UtcNow;
-        _signInManager.UserManager.UpdateAsync(AuthUser);
-
-        return Redirect("/");
+        await _signInManager.UserManager.UpdateAsync(AuthUser);
+        return Ok();
     }
 
     [Route("/auth/external"), HttpGet, HttpPost]
@@ -115,19 +118,18 @@ public class AuthLoginController : AuthControllerContext
 
 
     [HttpGet("/logout")]
-    public async Task Logout()
+    public async Task<IActionResult> Logout()
     {
         if (!User.Identity.IsAuthenticated)
-            return;
+            return Redirect("/");
 
         AuthUser? AuthUser = await _userManager.GetUserAsync(User);
 
         _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.Logout);
 
-        await HttpContext.SignOutAsync("Cookies", new AuthenticationProperties
-        {
-            RedirectUri = "/"
-        });
+        await _signInManager.SignOutAsync();
+
+        return Redirect("/");
     }
 }
 

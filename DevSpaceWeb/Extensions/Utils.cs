@@ -5,6 +5,23 @@ namespace DevSpaceWeb;
 
 public static class Utils
 {
+    public static string GetUserIpAddress(HttpContext context)
+    {
+        // Test ip in development
+        if (Program.IsDevMode)
+            return "1.2.3.4";
+
+        // Check CF-Connecting-IP header
+        if (!string.IsNullOrEmpty(context.Request.Headers["CF-CONNECTING-IP"]))
+            return context.Request.Headers["CF-CONNECTING-IP"];
+
+        // Check X-Forwarded-For header
+        if (!string.IsNullOrEmpty(context.Request.Headers["X-Forwarded-For"]))
+            return context.Request.Headers["X-Forwarded-For"];
+
+        return "";
+    }
+
     internal static string GetStringSha256Hash(string text)
     {
         if (String.IsNullOrEmpty(text))
