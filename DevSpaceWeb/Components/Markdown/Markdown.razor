@@ -1,0 +1,547 @@
+﻿@using Markdig
+@using Markdig.Extensions.AutoLinks
+@using Markdig.Helpers
+@using Markdig.Parsers
+@using Markdig.Renderers.Html
+@using Markdig.Syntax.Inlines
+
+@if (Content == null)
+{
+    <span></span>
+}
+else
+{
+    @((MarkupString)BuildHtmlFromMarkdown(Content))
+}
+
+<style>
+    .markdown-view {
+        padding: 10px;
+    }
+
+        .markdown-view img {
+            max-width: 100% !important;
+        }
+
+        .markdown-view > blockquote, .markdown-view > p, .markdown-view > table,
+        .markdown-view > img,
+        .markdown-view > pre {
+            margin-left: 10px !important;
+        }
+
+        .markdown-view h1, .markdown-view h2, .markdown-view h3, .markdown-view h4, .markdown-view h5 {
+            margin-top: 6px;
+            margin-bottom: 20px;
+        }
+
+        .markdown-view p {
+            color: #EEE !important;
+            padding: 0;
+        }
+
+        .markdown-view a {
+            color: #4388d3;
+        }
+
+            .markdown-view a:hover {
+                text-decoration: underline;
+            }
+
+            .markdown-view a:visited {
+                color: #61BFC1;
+            }
+
+        .markdown-view li, .markdown-view ol {
+            line-height: 28px;
+        }
+
+            .markdown-view li ul, .markdown-view li ul {
+                margin-left: -16px;
+            }
+
+        .markdown-view p, .markdown-view ul, .markdown-view ol {
+            font-size: 16px;
+            line-height: 24px;
+        }
+
+        .markdown-view pre {
+            color: white;
+            padding: 10px;
+            background-color: #303336;
+            display: inline-block;
+            padding-right: 20px;
+            border-radius: 3px;
+        }
+
+
+        .markdown-view code {
+            line-height: 1.5;
+            background-color: #3c3f42;
+            padding: 6px;
+            padding-top: 3px;
+            padding-bottom: 3px;
+            color: #e8e8e8;
+        }
+
+        .markdown-view blockquote code {
+            background-color: #2b2b36;
+        }
+
+        .markdown-view pre code {
+            background-color: transparent;
+        }
+
+        .markdown-view blockquote {
+            padding: 6px;
+            background-color: #303336;
+            border-left: 4px solid #3c7890;
+            border-radius: 3px;
+            padding-left: 12px;
+        }
+
+            .markdown-view blockquote blockquote {
+                background-color: #3c3f42;
+                margin-left: 10px;
+            }
+
+        .markdown-view hr {
+            width: 90%;
+            text-align: left;
+            background-color: #605f5f;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        .markdown-view th {
+            background-color: #303336;
+            padding: 6px 13px;
+            border: 1px solid #3e4144;
+        }
+
+        .markdown-view td {
+            padding: 6px 13px;
+            border: 1px solid #525558;
+            background-color: #3c3f42;
+        }
+
+        .markdown-view table {
+            margin-bottom: 16px;
+            font-family: -apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji;
+            border-radius: 3px;
+        }
+
+        .markdown-view .format-center {
+            text-align: center;
+        }
+
+        .markdown-view .format-m10 {
+            margin-left: 20px !important;
+        }
+
+        .markdown-view .format-m20 {
+            margin-left: 30px !important;
+        }
+
+        .markdown-view .format-m30 {
+            margin-left: 40px !important;
+        }
+
+        .markdown-view .format-p10 {
+            padding: 10px !important;
+        }
+
+        .markdown-view .max-90 {
+            max-width: 90% !important;
+        }
+
+        .markdown-view .max-80 {
+            max-width: 80% !important;
+        }
+
+        .markdown-view .max-70 {
+            max-width: 70% !important;
+        }
+
+        .markdown-view .max-60 {
+            max-width: 60% !important;
+        }
+
+        .markdown-view .max-50 {
+            max-width: 50% !important;
+        }
+
+        .markdown-view .color-pink {
+            color: #ea5aa2 !important;
+        }
+
+        .markdown-view .back-pink {
+            background-color: #ea5aa2 !important;
+        }
+
+        .markdown-view .color-purple {
+            color: #a22aa2 !important;
+        }
+
+        .markdown-view .back-purple {
+            background-color: #a22aa2 !important;
+        }
+
+        .markdown-view .color-red {
+            color: #e63535 !important;
+        }
+
+        .markdown-view .back-red {
+            background-color: #e63535 !important;
+        }
+
+        .markdown-view .color-blue {
+            color: #575bb5 !important;
+        }
+
+        .markdown-view .back-blue {
+            background-color: #575bb5 !important;
+        }
+
+        .markdown-view .color-lightblue {
+            color: #47a2c0 !important;
+        }
+
+        .markdown-view .back-lightblue {
+            background-color: #47a2c0 !important;
+        }
+
+        .markdown-view .color-green {
+            color: #239f55 !important;
+        }
+
+        .markdown-view .back-green {
+            background-color: #239f55 !important;
+        }
+
+        .markdown-view .color-yellow {
+            color: #d0bb41 !important;
+        }
+
+        .markdown-view .back-yellow {
+            background-color: #d0bb41 !important;
+        }
+
+        .markdown-view .color-orange {
+            color: #dd7d36 !important;
+        }
+
+        .markdown-view .back-orange {
+            background-color: #dd7d36 !important;
+        }
+
+        .markdown-view .color-brown {
+            color: #9c5536 !important;
+        }
+
+        .markdown-view .back-brown {
+            background-color: #9c5536 !important;
+        }
+
+        .markdown-view .warning {
+            background-color: rgba(221,126,55,0.9);
+            padding: 0.75rem 1.25rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+
+        .markdown-view .alert {
+            background-color: #e74c3c;
+            padding: 0.75rem 1.25rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+
+        .markdown-view .success {
+            background-color: rgba(0,200,83,0.6);
+            padding: 0.75rem 1.25rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+
+        .markdown-view .info {
+            background-color: rgba(0,185,212,0.6);
+            padding: 0.75rem 1.25rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+
+        .markdown-view .primary {
+            background-color: #375a7f;
+            padding: 0.75rem 1.25rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+
+        .markdown-view .tip {
+            background-color: #444444;
+            padding: 0.75rem 1.25rem;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+        }
+</style>
+
+@functions {
+
+    [Parameter]
+    public string Content { get; set; } = "";
+
+    public static string BuildHtmlFromMarkdown(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return "";
+        else
+        {
+            MarkdownPipelineBuilder pipeline = new MarkdownPipelineBuilder()
+    .UsePipeTables()
+    .UseGridTables()
+    .UseSoftlineBreakAsHardlineBreak()
+    .UseEmphasisExtras()
+    .UseGenericAttributes()
+    .UseMediaLinks()
+    .UseEmojiAndSmiley()
+    .UseCustomContainers()
+    .ConfigureNewLine(Environment.NewLine)
+    .EnableTrackTrivia()
+    .Use(new Markdig.Extensions.TargetLinkExtensions.TargetLinkExtension());
+            pipeline.InlineParsers.Add(new CustomAutoLinkParser());
+            return Markdig.Markdown.ToHtml(markdown: value, pipeline: pipeline.Build());
+        }
+    }
+
+    /// <summary>
+    /// The inline parser used to for autolinks.
+    /// </summary>
+    /// <seealso cref="InlineParser" />
+    public class CustomAutoLinkParser : InlineParser
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AutoLinkParser"/> class.
+        /// </summary>
+        public CustomAutoLinkParser()
+        {
+            OpeningCharacters = new char[]
+            {
+                'h', // for http:// and https://
+                'm', // for mailto:
+                'w', // for www.
+            };
+
+            _listOfCharCache = new ListOfCharCache();
+        }
+
+        private readonly ListOfCharCache _listOfCharCache;
+
+        public override bool Match(InlineProcessor processor, ref StringSlice slice)
+        {
+            // Previous char must be a whitespace or a punctuation
+            var previousChar = slice.PeekCharExtra(-1);
+            if (!previousChar.IsWhiteSpaceOrZero() && "*_~(".IndexOf(previousChar) == -1)
+            {
+                return false;
+            }
+
+            List<char> pendingEmphasis = _listOfCharCache.Get();
+            try
+            {
+                // Check that an autolink is possible in the current context
+                if (!IsAutoLinkValidInCurrentContext(processor, pendingEmphasis))
+                {
+                    return false;
+                }
+
+                var startPosition = slice.Start;
+                int domainOffset = 0;
+
+                var c = slice.CurrentChar;
+                // Precheck URL
+                switch (c)
+                {
+                    case 'h':
+                        if (slice.MatchLowercase("ttp://", 1))
+                        {
+                            domainOffset = 7; // http://
+                        }
+                        else if (slice.MatchLowercase("ttps://", 1))
+                        {
+                            domainOffset = 8; // https://
+                        }
+                        else return false;
+                        break;
+                    case 'w':
+                        if (!slice.MatchLowercase("ww.", 1)) // We won't match http:/www. or /www.xxx
+                        {
+                            return false;
+                        }
+                        domainOffset = 4; // www.
+                        break;
+                }
+
+                if (!LinkHelper.TryParseUrl(ref slice, out string link, out _))
+                {
+                    return false;
+                }
+
+
+                // If we have any pending emphasis, remove any pending emphasis characters from the end of the link
+                if (pendingEmphasis.Count > 0)
+                {
+                    for (int i = link.Length - 1; i >= 0; i--)
+                    {
+                        if (pendingEmphasis.Contains(link[i]))
+                        {
+                            slice.Start--;
+                        }
+                        else
+                        {
+                            if (i < link.Length - 1)
+                            {
+                                link = link.Substring(0, i + 1);
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                // Post-check URL
+                switch (c)
+                {
+                    case 'h':
+                        if (string.Equals(link, "http://", StringComparison.OrdinalIgnoreCase) ||
+                            string.Equals(link, "https://", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return false;
+                        }
+                        break;
+                }
+
+                // Do not need to check if a telephone number is a valid domain
+                if (!LinkHelper.IsValidDomain(link, domainOffset))
+                {
+                    return false;
+                }
+
+                var inline = new LinkInline()
+                    {
+                        Span =
+                    {
+                        Start = processor.GetSourcePosition(startPosition, out int line, out int column),
+                    },
+                        Line = line,
+                        Column = column,
+                        Url = c == 'w' ? "https://" + link : link,
+                        IsClosed = true,
+                        IsAutoLink = true,
+                    };
+
+                var skipFromBeginning = c == 'm' ? 7 : 0; // For mailto: skip "mailto:" for content
+                skipFromBeginning = c == 't' ? 4 : skipFromBeginning; // See above but for tel:
+
+                inline.Span.End = inline.Span.Start + link.Length - 1;
+                inline.UrlSpan = inline.Span;
+                inline.AppendChild(new LiteralInline()
+                    {
+                        Span = inline.Span,
+                        Line = line,
+                        Column = column,
+                        Content = new StringSlice(slice.Text, startPosition + skipFromBeginning, startPosition + link.Length - 1),
+                        IsClosed = true
+                    });
+                processor.Inline = inline;
+
+                inline.GetAttributes().AddPropertyIfNotExist("target", "_blank");
+
+
+                return true;
+            }
+            finally
+            {
+                _listOfCharCache.Release(pendingEmphasis);
+            }
+        }
+
+        private bool IsAutoLinkValidInCurrentContext(InlineProcessor processor, List<char> pendingEmphasis)
+        {
+            // Case where there is a pending HtmlInline <a>
+            var currentInline = processor.Inline;
+            while (currentInline != null)
+            {
+                if (currentInline is HtmlInline htmlInline)
+                {
+                    // If we have a </a> we don't expect nested <a>
+                    if (htmlInline.Tag.StartsWith("</a", StringComparison.OrdinalIgnoreCase))
+                    {
+
+                        break;
+                    }
+
+                    // If there is a pending <a>, we can't allow a link
+                    if (htmlInline.Tag.StartsWith("<a", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return false;
+                    }
+                }
+
+                // Check previous sibling and parents in the tree
+                currentInline = currentInline.PreviousSibling ?? currentInline.Parent;
+            }
+
+            // Check that we don't have any pending brackets opened (where we could have a possible markdown link)
+            // NOTE: This assume that [ and ] are used for links, otherwise autolink will not work properly
+            currentInline = processor.Inline;
+            int countBrackets = 0;
+            while (currentInline != null)
+            {
+                if (currentInline is LinkDelimiterInline linkDelimiterInline && linkDelimiterInline.IsActive)
+                {
+                    if (linkDelimiterInline.Type == DelimiterType.Open)
+                    {
+                        countBrackets++;
+                    }
+                    else if (linkDelimiterInline.Type == DelimiterType.Close)
+                    {
+                        countBrackets--;
+                    }
+                }
+                else
+                {
+                    // Record all pending characters for emphasis
+                    if (currentInline is EmphasisDelimiterInline emphasisDelimiter)
+                    {
+                        if (!pendingEmphasis.Contains(emphasisDelimiter.DelimiterChar))
+                        {
+                            pendingEmphasis.Add(emphasisDelimiter.DelimiterChar);
+                        }
+                    }
+                }
+                currentInline = currentInline.Parent;
+            }
+
+            return countBrackets <= 0;
+        }
+
+        private sealed class ListOfCharCache : DefaultObjectCache<List<char>>
+        {
+            protected override void Reset(List<char> instance)
+            {
+                instance.Clear();
+            }
+        }
+    }
+}

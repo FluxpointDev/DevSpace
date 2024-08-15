@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using DevSpaceWeb.Data;
+using DevSpaceWeb.Database;
+using MongoDB.Bson;
+using Newtonsoft.Json;
 
 namespace DevSpaceWeb;
 
@@ -29,10 +32,19 @@ public class ConfigInstance
 {
     public string Name = "Dev Space Self-hosted";
     public string Description;
-    public string Icon;
+    public bool HasIcon;
+    public int IconVersion;
     public string PublicUrl;
     public ConfigLimits Limits = new ConfigLimits();
     public ConfigFeatures Features = new ConfigFeatures();
+
+    public string GetIconOrDefault()
+    {
+        if (!HasIcon)
+            return "https://cdn.fluxpoint.dev/devspace/instance_icon.webp";
+
+        return "";
+    }
 }
 public class ConfigFeatures
 {
@@ -79,6 +91,18 @@ public class ConfigEmail
     public string SmtpPassword;
     public ConfigEmailType Type;
     public string ManagedEmailToken;
+
+    public bool UseEmailTemplateHeader = true;
+    public bool UseEmailTemplateFooter = true;
+    public Dictionary<EmailTemplateType, ObjectId> ActiveEmailTemplates = new Dictionary<EmailTemplateType, ObjectId>();
+
+    public EmailTemplateData GetTemplate(EmailTemplateType type)
+    {
+        if (ActiveEmailTemplates.TryGetValue(type, out ObjectId id) && _DB.EmailTemplates.Cache.TryGetValue(id.ToString(), out var template) && !string.IsNullOrEmpty(template.Body) && !template.IsDisabled)
+            return template;
+
+        return new EmailTemplateData { Body = EmailTemplateDefaults.List[type], Type = type };
+    }
 }
 public enum ConfigEmailType
 {

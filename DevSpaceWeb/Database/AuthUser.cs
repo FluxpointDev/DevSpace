@@ -9,7 +9,18 @@ namespace DevSpaceWeb.Database;
 [CollectionName("auth_internal")]
 public class AuthUser : MongoIdentityUser<ObjectId>
 {
-    public bool IsInstanceAdmin { get; set; }
+    public bool HasAvatar;
+    public int AvatarVersion;
+
+    public string GetAvatarOrDefault()
+    {
+        if (!HasAvatar)
+            return "https://cdn.fluxpoint.dev/devspace/user_avatar.webp";
+
+        return "";
+    }
+
+    public bool IsInstanceAdmin;
 
     public AuthUserMfa Auth = new AuthUserMfa();
 

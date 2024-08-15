@@ -1,0 +1,63 @@
+﻿@using DevSpaceWeb.Components.Markdown
+@inherits MarkdownBase
+
+@if (SelectedTemplate == null)
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+            <MudText Typo="Typo.h6">Email Templates</MudText>
+        </div>
+
+    </div>
+}
+else
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+            <MudText Typo="Typo.h6">Admin Settings</MudText>
+        </div>
+        <MudGrid>
+            <MudItem xs="6">
+                <MarkdownEditor OnChange="@BodyTextChanged" Bindvalue="@TemplateBody" />
+            </MudItem>
+            <MudItem xs="6" Class="markdown-view">
+                <Markdown Content="@FinalBody"></Markdown>
+            </MudItem>
+        </MudGrid>
+    </div>
+}
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public EmailTemplateData? SelectedTemplate { get; set; } = new EmailTemplateData();
+
+    public AuthUser User { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        User = await Session.GetCurrentUserAsync();
+        TemplateBody = EmailTemplateDefaults.List[EmailTemplateType.AccessCode];
+    }
+
+    public string TemplateBody { get; set; }
+    public string FinalBody { get; set; }
+
+    protected void BodyTextChanged(ChangeEventArgs e)
+    {
+        if (e.Value != null)
+        {
+            TemplateBody = e.Value.ToString();
+            FinalBody = e.Value.ToString().Replace(@"\n", "<br />").Replace("{user.name}", User.UserName).Replace("{action}", "https://test.com");
+        }
+        else
+        {
+            TemplateBody = "";
+            FinalBody = "";
+        }
+
+
+    }
+}

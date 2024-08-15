@@ -31,6 +31,7 @@ public static class _DB
             Projects = new ICollection<ProjectData>("projects");
             Websites = new ICollection<WebsiteData>("websites");
             Logs = new ICollection<LogData>("logs");
+            EmailTemplates = new ICollection<EmailTemplateData>("email_templates");
             TeamVanityUrls = new ICollection<VanityUrlData>("vanity_urls");
         }
 
@@ -80,6 +81,11 @@ public static class _DB
 
             });
 
+            _ = EmailTemplates.Find(Builders<EmailTemplateData>.Filter.Empty).ForEachAsync(x =>
+            {
+                EmailTemplates.Cache.TryAdd(x.Id.ToString(), x);
+            });
+
             _ = Logs.Find(Builders<LogData>.Filter.Empty).ForEachAsync(x =>
             {
                 Logs.Cache.TryAdd(x.Id.ToString(), x);
@@ -124,4 +130,6 @@ public static class _DB
     public static ICollection<LogData> Logs = null!;
 
     public static ICollection<VanityUrlData> TeamVanityUrls = null!;
+
+    public static ICollection<EmailTemplateData> EmailTemplates = null!;
 }
