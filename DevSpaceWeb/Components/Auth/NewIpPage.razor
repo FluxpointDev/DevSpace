@@ -1,8 +1,11 @@
 ﻿@inherits LayoutComponentBase
+
 @using Microsoft.AspNetCore.Identity
+@using System.Globalization
 @inject IDialogService DialogService
 @inject UserManager<AuthUser> UserManager
 @inject NavigationManager NavigationManager
+@inject EmailService Email
 
 <div class="dash-box dash-box-content" style="padding: 10px;">
     <div class="dash-box-header">
@@ -27,6 +30,7 @@
             User = await Session.GetCurrentUserAsync();
             User.Auth.Sessions.TryAdd(Utils.GetStringSha256Hash(Session.Ip), new AuthUserSession { });
             await UserManager.UpdateAsync(User);
+            await Email.SendNewSessionIP(User, Session.Ip, CultureInfo.CurrentCulture.Name);
             NavigationManager.Refresh(true);
         }
     }

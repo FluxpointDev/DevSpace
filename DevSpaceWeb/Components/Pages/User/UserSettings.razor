@@ -334,6 +334,7 @@
             }
             AuthUser = await Session.GetCurrentUserAsync();
             await UserManager.DeleteAsync(AuthUser);
+            _ = Email.SendAccountDeleted(AuthUser);
             NavigationManager.NavigateTo("/logout", true);
         }
     }
