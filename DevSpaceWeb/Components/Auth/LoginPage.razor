@@ -21,13 +21,17 @@
 
 <MudGrid Justify="Justify.Center">
     <MudItem>
-        @switch (Page)
-        {
-            case LoginPageType.Default:
-                {
-                    <MudPaper Class="pa-4">
-                        <h3>@_Data.Config.Instance.Name Login</h3>
-                        <br />
+        <MudPaper Class="pa-4">
+            <div class="d-flex justify-center" style="text-align: center !important;">
+                <img src="@_Data.Config.Instance.GetIconOrDefault()" style="height: 40px; width: 40px;" />
+                <h3 class="ml-3 mt-2">@_Data.Config.Instance.Name Login</h3>
+            </div>
+            <br />
+            @switch (Page)
+            {
+                case LoginPageType.Default:
+                    {
+
                         @if (_Data.Config.Auth.AllowInternalLogin)
                         {
                             <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="@(() => Page = LoginPageType.Login)">Internal Auth</MudButton>
@@ -49,14 +53,10 @@
                                 </p>
                             </div>
                         </form>
-                    </MudPaper>
-                }
-                break;
-            case LoginPageType.Login:
-                {
-                    <MudPaper Class="pa-4">
-                        <h3>@_Data.Config.Instance.Name Login</h3>
-                        <br />
+                    }
+                    break;
+                case LoginPageType.Login:
+                    {
                         @if (IsAccountCreated)
                         {
                             <MudAlert Severity="Severity.Info">Your account has been created, you can now login.</MudAlert>
@@ -65,19 +65,30 @@
 
                         <MudForm @bind-IsValid="@FormValid" Disabled="@FormDisabled">
                             <MudTextField T="string" Label="Email" Required="true" @bind-Value="EmailField" RequiredError="Email is required!"
-                                          Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
+                                          Variant="Variant.Filled" Underline="false" ShrinkLabel="true" DebounceInterval="500"
                                           Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
 
                             <br style="margin-bottom: 20px;" />
 
-                            <MudTextField T="string" Label="Password" HelperText="Choose a strong password" @bind-Value="PasswordField"
+                            <MudTextField T="string" Label="Password" @bind-Value="PasswordField"
                                           InputType="InputType.Password" Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
                                           Validation="@(new Func<string, IEnumerable<string>>(Validation.PasswordStrength))" Required="true"
-                                          RequiredError="Password is required!" />
+                                          RequiredError="Password is required!" DebounceInterval="500" />
 
                             <br style="margin-bottom: 20px;" />
 
-                            <MudCheckBox @bind-Value="RememberMe" Color="Color.Info" Label="Remember Me"></MudCheckBox>
+                            <div class="d-flex">
+                                <MudCheckBox @bind-Value="RememberMe" Color="Color.Info" Label="Remember Me"></MudCheckBox>
+                                @if (RememberMe)
+                                {
+                                    <MudPaper Elevation="2" Class="ml-3 pa-2">
+                                        <MudText Typo="Typo.body2">This will keep you signed in.</MudText>
+                                        <MudText Typo="Typo.body2" Color="Color.Warning">Do not use this for public computers.</MudText>
+                                    </MudPaper>
+                                }
+                            </div>
+
+
 
                             <div class="d-flex align-center justify-space-between" style="margin-top: 30px;">
                                 <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(!FormValid)" OnClick="@Login">Login</MudButton>
@@ -85,29 +96,25 @@
                                 <MudButton Class="ml-auto" Variant="Variant.Text" Color="Color.Info" OnClick="@(() => { PasswordField = ""; Page = LoginPageType.Register; })">Register Account</MudButton>
                             </div>
                         </MudForm>
-                    </MudPaper>
-                }
-                break;
-            case LoginPageType.Register:
-                {
-                    <MudPaper Class="pa-4">
-                        <h3>@_Data.Config.Instance.Name Register</h3>
-                        <br />
-
+                    }
+                    break;
+                case LoginPageType.Register:
+                    {
                         <MudForm @bind-IsValid="@FormValid" Disabled="@FormDisabled">
                             <MudTextField T="string" Label="Username" Required="true" @bind-Value="UsernameField" RequiredError="Name is required!"
-                                          Variant="Variant.Filled" Underline="false" ShrinkLabel="true" />
+                                          Variant="Variant.Filled" Underline="false" ShrinkLabel="true" DebounceInterval="500" />
 
                             <br style="margin-bottom: 20px;" />
 
                             <MudTextField T="string" Label="Email" Required="true" @bind-Value="EmailField" RequiredError="Email is required!"
-                                          Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
+                                          Variant="Variant.Filled" Underline="false" ShrinkLabel="true" DebounceInterval="500"
                                           Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
 
                             <br style="margin-bottom: 20px;" />
 
                             <MudTextField T="string" Label="Password" HelperText="Choose a strong password" @bind-Value="PasswordField"
                                           InputType="InputType.Password" Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
+                                          DebounceInterval="500"
                                           Validation="@(new Func<string, IEnumerable<string>>(Validation.PasswordStrength))" Required="true"
                                           RequiredError="Password is required!" />
 
@@ -115,7 +122,7 @@
 
                             <MudTextField T="string"
                                           Label="Password" HelperText="Repeat the password" Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
-                                          InputType="InputType.Password"
+                                          InputType="InputType.Password" DebounceInterval="500" Required="true"
                                           Validation="@(new Func<string, string>(PasswordMatch))" />
 
 
@@ -124,14 +131,10 @@
                                 <MudButton Variant="Variant.Text" Color="Color.Info" Class="ml-auto" OnClick="@(() => { PasswordField = ""; Page = LoginPageType.Login; })">Login Instead</MudButton>
                             </div>
                         </MudForm>
-                    </MudPaper>
-                }
-                break;
-            case LoginPageType.ChangePassword:
-                {
-                    <MudPaper Class="pa-4">
-                        <h3>@_Data.Config.Instance.Name Change Password</h3>
-                        <br />
+                    }
+                    break;
+                case LoginPageType.ChangePassword:
+                    {
                         @if (PasswordChangeSent)
                         {
                             <MudAlert Severity="Severity.Info">Password change request has been sent to your email address.</MudAlert>
@@ -140,7 +143,7 @@
 
                         <MudForm @bind-IsValid="@FormValid" Disabled="@FormDisabled">
                             <MudTextField T="string" Label="Email" Required="true" @bind-Value="EmailField" RequiredError="Email is required!"
-                                          Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
+                                          Variant="Variant.Filled" Underline="false" ShrinkLabel="true" DebounceInterval="500"
                                           Validation="@(new EmailAddressAttribute() {ErrorMessage = "The email address is invalid"})" />
 
                             @if (!string.IsNullOrEmpty(Token))
@@ -150,14 +153,14 @@
                                 <MudTextField T="string" Label="Password" HelperText="Choose a strong password" @bind-Value="PasswordField"
                                               InputType="InputType.Password" Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
                                               Validation="@(new Func<string, IEnumerable<string>>(Validation.PasswordStrength))" Required="true"
-                                              RequiredError="Password is required!" />
+                                              RequiredError="Password is required!" DebounceInterval="500" />
 
                                 <br style="margin-bottom: 20px;" />
 
                                 <MudTextField T="string"
                                               Label="Password" HelperText="Repeat the password" Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
                                               InputType="InputType.Password"
-                                              Validation="@(new Func<string, string>(PasswordMatch))" />
+                                              Validation="@(new Func<string, string>(PasswordMatch))" DebounceInterval="500" />
 
                             }
                             <div class="d-flex align-center justify-space-between" style="margin-top: 30px;">
@@ -174,16 +177,16 @@
                                 }
                             </div>
                         </MudForm>
-                    </MudPaper>
-                }
-                break;
-        }
+                    }
+                    break;
+            }
+        </MudPaper>
     </MudItem>
 </MudGrid>
 
 <style>
-    .mud-grid .mud-paper {
-        min-width: 600px !important;
+    .mud-grid-item > .mud-paper {
+        min-width: 500px !important;
         margin-top: 20px;
     }
 </style>
