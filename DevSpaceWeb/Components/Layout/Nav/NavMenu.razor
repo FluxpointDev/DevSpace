@@ -1,0 +1,39 @@
+﻿<MudNavMenu Dense="true" Margin="Margin.Dense">
+    <MudNavLink Href="/teams" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:account-supervisor-circle"></span> My Teams</MudNavLink>
+
+    @if (Session.Selected.Team != null)
+    {
+        <NavTeam></NavTeam>
+
+        @if (Session.Selected.Server != null)
+        {
+            <NavServer></NavServer>
+        }
+
+        @if (Session.Selected.Website != null)
+        {
+            <NavWebsite></NavWebsite>
+        }
+
+        @if (Session.Selected.Project != null)
+        {
+            <NavProject></NavProject>
+        }
+        @if (Session.Selected.Log != null)
+        {
+            <NavLog></NavLog>
+        }
+    }
+
+</MudNavMenu>
+
+
+<style>
+
+
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+}

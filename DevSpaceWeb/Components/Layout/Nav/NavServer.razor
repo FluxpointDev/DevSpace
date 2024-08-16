@@ -1,0 +1,34 @@
+﻿<div class="nav-list nav-list-sub nav-server">
+    <div class="nav-list-header">
+        <span class="iconify" data-icon="mdi:server"></span>
+        <h4>@Session.Selected.Server.Data.Name</h4>
+    </div>
+    <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl)" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:house"></span> Home</MudNavLink>
+
+    <MudNavGroup Title="Docker" @bind-Expanded="@DockerExpanded" HideExpandIcon="true" Icon="@(DockerExpanded ? Icons.Material.Filled.ArrowDropDown : @Icons.Material.Filled.ArrowRight)">
+        <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/stacks")" Match="NavLinkMatch.All"><span class="iconify" data-icon="ri:stack-fill"></span> Stacks</MudNavLink>
+        <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/containers")" Match="NavLinkMatch.All"><span class="iconify" data-icon="ri:box-3-fill"></span> Containers</MudNavLink>
+        <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/registry")" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:table"></span> Registry</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Title="Tools" @bind-Expanded="@ToolsExpanded" HideExpandIcon="true" Icon="@(ToolsExpanded ? Icons.Material.Filled.ArrowDropDown : @Icons.Material.Filled.ArrowRight)">
+        <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/info")" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:information-slab-symbol"></span> System Info</MudNavLink>
+        <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/process")" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:chip"></span> Process Manager</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/ssh")" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:console-line"></span> SSH</MudNavLink>
+    <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/status")" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:cloud-check-variant"></span> Status</MudNavLink>
+    <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/firewall")" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:wall"></span> Firewall</MudNavLink>
+    <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/files")" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:folder"></span> Files</MudNavLink>
+    <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/database")" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:database"></span> Database</MudNavLink>
+
+    <MudNavLink Href="@("/teams/" + Session.Selected.Team.VanityUrl + "/s/" + Session.Selected.Server.VanityUrl + "/webhooks")" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:webhook"></span> Webhooks</MudNavLink>
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public bool DockerExpanded { get; set; }
+    public bool ToolsExpanded { get; set; }
+}
