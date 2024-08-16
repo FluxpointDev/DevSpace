@@ -12,10 +12,10 @@ public class AuthUser : MongoIdentityUser<ObjectId>
     public bool HasAvatar;
     public int AvatarVersion;
 
-    public string GetAvatarOrDefault()
+    public string GetAvatarOrDefault(bool usePng = false)
     {
         if (!HasAvatar)
-            return "https://cdn.fluxpoint.dev/devspace/user_avatar.webp";
+            return "https://cdn.fluxpoint.dev/devspace/user_avatar." + (usePng ? "png" : "webp");
 
         return "";
     }

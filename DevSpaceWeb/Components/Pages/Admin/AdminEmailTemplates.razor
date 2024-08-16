@@ -1,13 +1,77 @@
 ﻿@using DevSpaceWeb.Components.Markdown
+@using DevSpaceWeb.Services
 @inherits MarkdownBase
-
-@if (SelectedTemplate == null)
+@inject EmailService Email
+@if (SelectedTemplate == null || !IsSelectedCustom)
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
             <MudText Typo="Typo.h6">Email Templates</MudText>
         </div>
+        <br />
+        <MudGrid>
+            <MudItem xs="6">
+                <MudTabs Elevation="0" Rounded="false" ApplyEffectsToContainer="true" PanelClass="pa-2">
+                    <MudTabPanel Text="Defaults">
+                        <MudList T="string">
+                            @foreach (EmailTemplateType t in Enum.GetValues(typeof(EmailTemplateType)))
+                            {
+                                <MudListItem Text="@("Default " + EmailTemplateData.GetTypeName(t))" Icon="@EmailTemplateData.GetTypeIcon(t)" Dense="true" OnClick="@(() => ShowDefaultTemplate(t))" />
+                            }
+                        </MudList>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Custom">
+                        <div class="d-flex align-center justify-space-between">
+                            <MudMenu AnchorOrigin="Origin.BottomLeft" Dense>
+                                <ActivatorContent>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Success">Create Custom</MudButton>
+                                </ActivatorContent>
+                                <ChildContent>
+                                    @foreach (EmailTemplateType t in Enum.GetValues(typeof(EmailTemplateType)))
+                                    {
+                                        <MudMenuItem Icon="@EmailTemplateData.GetTypeIcon(t)" IconSize="@Size.Small" OnClick="@(() => CreateCustomTemplate(t))">
+                                            @EmailTemplateData.GetTypeName(t)
+                                        </MudMenuItem>
+                                    }
+                                </ChildContent>
+                            </MudMenu>
+                            <MudButton Class="ml-auto" Variant="Variant.Text" Color="Color.Info" Disabled="SelectedTemplate == null" OnClick="@EditCustomTemplate">Edit Template</MudButton>
+                        </div>
+                        <br />
+                        <MudList T="string">
+                            @foreach (var c in _DB.EmailTemplates.Cache.Values)
+                            {
+                                <MudListItem T="string" Text="@c.Name" SecondaryText="@c.GetTypeName()" Icon="@c.GetTypeIcon()" Dense="true" OnClick="@(() => ShowCustomTemplate(c))" />
+                            }
+                        </MudList>
+                    </MudTabPanel>
+                    <MudTabPanel Text="Settings">
+                        @foreach (EmailTemplateType t in Enum.GetValues(typeof(EmailTemplateType)))
+                        {
+                            <MudSelect Dense="true" T="string" Label="@EmailTemplateData.GetTypeName(t)" Value="@_Data.Config.Email.GetActiveEmailTemplateName(t)" Variant="Variant.Filled">
+                                <MudSelectItem Value="@($"Default {EmailTemplateData.GetTypeName(t)}")" OnClick="@(() => _Data.Config.Email.RemoveActiveEmailTemplate(t))" />
+                                @foreach (var i in _DB.EmailTemplates.Cache.Values.Where(x => x.Type == t))
+                                {
+                                    <MudSelectItem Value="@i.Name" OnClick="@(() => _Data.Config.Email.SetActiveEmailTemplate(t, i))" />
+                                }
+                            </MudSelect>
+                            <br />
+                        }
+
+                    </MudTabPanel>
+                </MudTabs>
+            </MudItem>
+            <MudItem xs="6">
+                <MudButton OnClick="@SendEmail" Variant="Variant.Filled" Color="Color.Info" Disabled="@(SelectedTemplate == null || string.IsNullOrEmpty(FinalBody))">Send Test Email</MudButton>
+
+                <br />
+                <br />
+                <div Class="email-view">
+                    <Markdown Content="@FinalBody"></Markdown>
+                </div>
+            </MudItem>
+        </MudGrid>
 
     </div>
 }
@@ -16,14 +80,25 @@ else
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
-            <MudText Typo="Typo.h6">Admin Settings</MudText>
+            <MudText Typo="Typo.h6">Email Templates</MudText>
         </div>
+        <br />
         <MudGrid>
             <MudItem xs="6">
+                <MudButton Class="mb-3" OnClick="@(() => IsSelectedCustom = false)" Variant="Variant.Filled" Color="Color.Secondary">Back</MudButton>
+                <MudTextField T="string" Label="Name" Required="true" @bind-Value="TemplateName" RequiredError="Name is required!"
+                              Variant="Variant.Filled" Underline="false" ShrinkLabel="true" />
+                <br />
                 <MarkdownEditor OnChange="@BodyTextChanged" Bindvalue="@TemplateBody" />
             </MudItem>
-            <MudItem xs="6" Class="markdown-view">
-                <Markdown Content="@FinalBody"></Markdown>
+            <MudItem xs="6">
+                <MudButton OnClick="@SendEmail" Variant="Variant.Filled" Color="Color.Info">Send Test Email</MudButton>
+                <MudButton Class="ml-1" OnClick="@SaveCustom" Variant="Variant.Filled" Color="Color.Success">Save Template</MudButton>
+                <br />
+                <br />
+                <div Class="email-view">
+                    <Markdown Content="@FinalBody"></Markdown>
+                </div>
             </MudItem>
         </MudGrid>
     </div>
@@ -32,7 +107,8 @@ else
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public EmailTemplateData? SelectedTemplate { get; set; } = new EmailTemplateData();
+    public EmailTemplateData? SelectedTemplate { get; set; }
+    public bool IsSelectedCustom { get; set; }
 
     public AuthUser User { get; set; }
 
@@ -42,6 +118,62 @@ else
         TemplateBody = EmailTemplateDefaults.List[EmailTemplateType.AccessCode];
     }
 
+    public void ShowDefaultTemplate(EmailTemplateType type)
+    {
+        IsSelectedCustom = false;
+        SelectedTemplate = new EmailTemplateData { Body = EmailTemplateDefaults.List[type], Type = type };
+        TemplateBody = SelectedTemplate.Body;
+        FinalBody = SelectedTemplate.ParseMarkdown(User, "https://test.com", "user@test.com", "123", "Markdown Test");
+    }
+
+    public void ShowCustomTemplate(EmailTemplateData data)
+    {
+        SelectedTemplate = data;
+        TemplateBody = data.Body;
+        FinalBody = data.ParseMarkdown(User, "https://test.com", "user@test.com", "123", "Markdown Test");
+    }
+
+    public void EditCustomTemplate()
+    {
+        if (SelectedTemplate == null)
+            return;
+        IsSelectedCustom = true;
+        TemplateName = SelectedTemplate.Name;
+        FinalBody = SelectedTemplate.ParseMarkdown(User, "https://test.com", "user@test.com", "123", "Markdown Test");
+    }
+
+
+
+    public async Task SendEmail()
+    {
+        if (SelectedTemplate == null)
+            return;
+
+        await Email.Send(SendMailType.Test, User, null, body: SelectedTemplate.ParseHtml(User, "https://test.com", "user@test.com", "123", "Markdown Test"));
+
+    }
+
+    public async Task CreateCustomTemplate(EmailTemplateType type)
+    {
+        EmailTemplateData data = new EmailTemplateData
+            {
+                Type = type,
+                Body = EmailTemplateDefaults.List[type]
+            };
+        data.Name = "Custom " + data.GetTypeName();
+        await _DB.EmailTemplates.CreateAsync(data);
+        _DB.EmailTemplates.Cache.TryAdd(data.Id.ToString(), data);
+    }
+
+    public async Task SaveCustom()
+    {
+        if (SelectedTemplate == null || string.IsNullOrEmpty(TemplateName))
+            return;
+
+        await SelectedTemplate.UpdateAsync();
+    }
+
+    public string TemplateName { get; set; }
     public string TemplateBody { get; set; }
     public string FinalBody { get; set; }
 
@@ -50,7 +182,7 @@ else
         if (e.Value != null)
         {
             TemplateBody = e.Value.ToString();
-            FinalBody = e.Value.ToString().Replace(@"\n", "<br />").Replace("{user.name}", User.UserName).Replace("{action}", "https://test.com");
+            FinalBody = new EmailTemplateData() { Body = TemplateBody, Type = EmailTemplateType.AccessCode }.ParseMarkdown(User, "https://test.com");
         }
         else
         {

@@ -115,7 +115,7 @@
         {
             string Code = Utils.CreateTwoFactorRecoveryCode();
             Cache.SetString("2fa-verify-" + AuthUser.Id.ToString(), Utils.CreateTwoFactorRecoveryCode(), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
-            await Email.Send(SendMailType.AccessCode, AuthUser, NavigationManager.BaseUri, Code);
+            await Email.SendAccessCode(AuthUser, "2FA Verification", Code);
             if (LogUsage)
             {
                 AuthUser = await Session.GetCurrentUserAsync();

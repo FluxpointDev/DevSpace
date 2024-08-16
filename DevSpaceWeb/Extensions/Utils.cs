@@ -1,10 +1,26 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 
 namespace DevSpaceWeb;
 
 public static class Utils
 {
+    public static CultureInfo GetCultureFromTwoLetterCountryCode(string twoLetterISOCountryCode)
+    {
+        try
+        {
+            return CultureInfo.GetCultures(CultureTypes.AllCultures
+                                               & ~CultureTypes.NeutralCultures)
+                      .Where(m => m.Name.EndsWith("-" + twoLetterISOCountryCode))
+                      .FirstOrDefault();
+        }
+        catch
+        {
+            return new CultureInfo("GB");
+        }
+    }
+
     public static string GetUserIpAddress(HttpContext context)
     {
         // Test ip in development

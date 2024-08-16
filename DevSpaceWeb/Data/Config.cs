@@ -32,16 +32,17 @@ public class ConfigInstance
 {
     public string Name = "Dev Space Self-hosted";
     public string Description;
+    public string Email;
     public bool HasIcon;
     public int IconVersion;
     public string PublicUrl;
     public ConfigLimits Limits = new ConfigLimits();
     public ConfigFeatures Features = new ConfigFeatures();
 
-    public string GetIconOrDefault()
+    public string GetIconOrDefault(bool usePng = false)
     {
         if (!HasIcon)
-            return "https://cdn.fluxpoint.dev/devspace/instance_icon.webp";
+            return "https://cdn.fluxpoint.dev/devspace/instance_icon." + (usePng ? "png" : "webp");
 
         return "";
     }
@@ -92,11 +93,32 @@ public class ConfigEmail
     public ConfigEmailType Type;
     public string ManagedEmailToken;
 
-    public bool UseEmailTemplateHeader = true;
-    public bool UseEmailTemplateFooter = true;
+    public void RemoveActiveEmailTemplate(EmailTemplateType type)
+    {
+        ActiveEmailTemplates.Remove(type);
+        _Data.Config.Save();
+    }
+
+    public void SetActiveEmailTemplate(EmailTemplateType type, EmailTemplateData data)
+    {
+        if (ActiveEmailTemplates.ContainsKey(type))
+            ActiveEmailTemplates.Remove(type);
+
+        ActiveEmailTemplates.Add(type, data.Id);
+        _Data.Config.Save();
+    }
+
+    public string GetActiveEmailTemplateName(EmailTemplateType type)
+    {
+        if (ActiveEmailTemplates.TryGetValue(type, out var tempId) && _DB.EmailTemplates.Cache.TryGetValue(tempId.ToString(), out var template))
+            return template.Name;
+
+        return "Default " + new EmailTemplateData { Type = type }.GetTypeName();
+    }
+
     public Dictionary<EmailTemplateType, ObjectId> ActiveEmailTemplates = new Dictionary<EmailTemplateType, ObjectId>();
 
-    public EmailTemplateData GetTemplate(EmailTemplateType type)
+    public EmailTemplateData GetActiveTemplateOrDefault(EmailTemplateType type)
     {
         if (ActiveEmailTemplates.TryGetValue(type, out ObjectId id) && _DB.EmailTemplates.Cache.TryGetValue(id.ToString(), out var template) && !string.IsNullOrEmpty(template.Body) && !template.IsDisabled)
             return template;

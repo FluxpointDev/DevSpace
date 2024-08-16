@@ -22,13 +22,50 @@ public class EmailService
         return ManagedEmailSystem != null;
     }
 
-    public Task<bool> Send(SendMailType type, AuthUser user, string url = "", string code = "") => Send(type, user.UserName, user.Email, url, code);
+    public Task<bool> SendAccountConfirm(AuthUser user, string action)
+        => Send(SendMailType.AccountConfirm, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountConfirm), action: action);
 
-    public async Task<bool> Send(SendMailType type, string name, string email, string url = "", string code = "")
+    public Task<bool> SendAccountInvited(AuthUser user, string action)
+        => Send(SendMailType.AccountInvited, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountInvited), action: action);
+
+    public Task<bool> SendAccountDeleted(AuthUser user)
+        => Send(SendMailType.AccountDeleted, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountDeleted));
+
+    public Task<bool> SendPasswordChangeRequest(AuthUser user, string action)
+        => Send(SendMailType.AccountPasswordChangeConfirm, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountPasswordChangeRequest), action: action);
+
+    public Task<bool> SendPasswordChanged(AuthUser user, string action)
+        => Send(SendMailType.AccountPasswordChanged, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountPasswordChanged), action: action);
+
+    public Task<bool> Send2FAEnabled(AuthUser user)
+        => Send(SendMailType.Account2FAEnabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Account2FADisabled));
+
+    public Task<bool> Send2FADisabled(AuthUser user)
+        => Send(SendMailType.Account2FADisabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Account2FADisabled));
+
+    public Task<bool> SendAccountEnabled(AuthUser user, string reason)
+        => Send(SendMailType.AccountEnabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEnabled), reason: reason);
+
+    public Task<bool> SendAccountDisabled(AuthUser user, string reason)
+        => Send(SendMailType.AccountDisabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountDisabled), reason: reason);
+
+    public Task<bool> SendAccessCode(AuthUser user, string reason, string code)
+        => Send(SendMailType.AccessCode, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccessCode), code: code, reason: reason);
+
+    public Task<bool> SendEmailChangeCode(AuthUser user, string other_email, string code)
+        => Send(SendMailType.AccountEmailChangeConfirm, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEmailChangeCode), code: code, other_email: other_email);
+
+    public Task<bool> SendEmailChangeRequest(AuthUser user, string action)
+        => Send(SendMailType.AccountEmailChangeConfirm, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEmailChangeRequest), action: action);
+
+    public Task<bool> SendEmailChanged(AuthUser user, string other_email)
+        => Send(SendMailType.AccountEmailChanged, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEmailChanged), other_email: other_email);
+
+    public Task<bool> SendNewSessionIP(AuthUser user, string ip, string country)
+        => Send(SendMailType.AccountInvited, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.NewSessionIp), ip: ip, country: country);
+
+    public async Task<bool> Send(SendMailType type, AuthUser user, EmailTemplateData? template, string body = "", string other_email = "", string action = "", string code = "", string reason = "", string ip = "", string country = "")
     {
-        if (string.IsNullOrEmpty(url))
-            url = _Data.Config.Instance.PublicUrl;
-
         if (_Data.Config.Email.Type == ConfigEmailType.FluxpointManaged && !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
         {
             if (ManagedEmailSystem == null)
@@ -39,10 +76,10 @@ public class EmailService
                 Content = JsonContent.Create(new SendMailJson
                 {
                     type = type,
-                    name = name,
-                    email = email,
+                    name = user.UserName,
+                    email = user.Email,
                     instance = _Data.Config.Instance.Name,
-                    url = url,
+                    url = action,
                     code = code
                 })
             };
@@ -61,119 +98,42 @@ public class EmailService
             {
                 using (var smtp = await CreateSmtpAsync())
                 {
-                    await smtp.ConnectAsync(_Data.Config.Email.SmtpHost, _Data.Config.Email.SmtpPort);
-                    await smtp.AuthenticateAsync(_Data.Config.Email.SmtpUser, _Data.Config.Email.SmtpPassword);
-                    await SendTemplate(smtp, type, name, email, url, code);
+                    if (template == null)
+                    {
+                        MimeMessage message = new MimeMessage();
+                        message.From.Add(new MailboxAddress(_Data.Config.Instance.Name, _Data.Config.Email.SmtpUser));
+                        message.To.Add(new MailboxAddress(user.UserName, user.Email));
+                        message.Subject = "Test Email";
+                        message.Body = new TextPart("html")
+                        {
+                            Text = body
+                        };
+
+                        await smtp.SendAsync(message);
+                    }
+                    else
+                        await SendTemplate(smtp, user, template, other_email, action, code, reason, ip, country);
                     await smtp.DisconnectAsync(true);
                 }
                 return true;
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 return false;
             }
         }
 
     }
 
-    public async Task SendTemplate(SmtpClient client, SendMailType type, string name, string email, string url = "", string code = "")
+    private async Task SendTemplate(SmtpClient client, AuthUser user, EmailTemplateData template, string other_email, string action = "", string code = "", string reason = "", string ip = "", string country = "")
     {
         MimeMessage message = new MimeMessage();
         message.From.Add(new MailboxAddress(_Data.Config.Instance.Name, _Data.Config.Email.SmtpUser));
-        message.To.Add(new MailboxAddress(name, email));
+        message.To.Add(new MailboxAddress(user.UserName, user.Email));
+        message.Subject = $"{template.GetTypeName()} - {user.UserName} | {_Data.Config.Instance.Name}";
 
-        string Body = "";
-        switch (type)
-        {
-            case SendMailType.Test:
-                message.Subject = $"Test Email - {name} | {_Data.Config.Instance.Name}";
-                Body = $"This is a test message from {_Data.Config.Instance.Name}.";
-                break;
-            case SendMailType.AccountConfirm:
-                message.Subject = $"Confirm Account - {name} | {_Data.Config.Instance.Name}";
-                Body = $"Click here to confirm your account for {email}" +
-                    $"<br />" +
-                    $"<a href=\"{url}\">{url}</a>";
-                break;
-            case SendMailType.AccountInvited:
-                message.Subject = $"Invited | {_Data.Config.Instance.Name}";
-                Body = $"Click here to create an account for {_Data.Config.Instance.Name} using {email}" +
-                    $"<br />" +
-                    $"<a href=\"{url}\">{url}</a>";
-                break;
-            case SendMailType.AccountPasswordChanged:
-                message.Subject = $"Password Changed - {name} | {_Data.Config.Instance.Name}";
-                Body = $"Your password for {email} has been changed." +
-                    $"<br />" +
-                    $"<a href=\"{url}\">{url}</a>";
-                break;
-            case SendMailType.AccountDeleted:
-                message.Subject = $"Password Deleted - {name} | {_Data.Config.Instance.Name}";
-                Body = $"Your account {email} has been deleted." +
-                    $"<br />" +
-                    $"<a href=\"{url}\">{url}</a>";
-                break;
-            case SendMailType.Account2FAEnabled:
-                message.Subject = $"2FA Enabled - {name} | {_Data.Config.Instance.Name}";
-                Body = $"Your account {email} Two-factor authentication has been enabled." +
-                    $"<br />" +
-                    $"<a href=\"{url}\">{url}</a>";
-                break;
-            case SendMailType.Account2FADisabled:
-                message.Subject = $"2FA Disabled - {name} | {_Data.Config.Instance.Name}";
-                Body = $"Your account {email} Two-factor authentication has been disabled." +
-                    $"<br />" +
-                    $"<a href=\"{url}\">{url}</a>";
-                break;
-            case SendMailType.AccountEnabled:
-                message.Subject = $"Account Activated - {name} | {_Data.Config.Instance.Name}";
-                Body = $"Your account {email} has been activated." +
-                    $"<br />" +
-                    $"<a href=\"{url}\">{url}</a>";
-                break;
-            case SendMailType.AccountDisabled:
-                message.Subject = $"Account Deactivated - {name} | {_Data.Config.Instance.Name}";
-                Body = $"Your account {email} has been deactivated." +
-                    $"<br />" +
-                    $"<a href=\"{url}\">{url}</a>";
-                break;
-            case SendMailType.AccountPasswordChangeConfirm:
-                message.Subject = $"Account Password Change Request - {name} | {_Data.Config.Instance.Name}";
-                Body = $"You have requested to change your password for {email} on {_Data.Config.Instance.Name}." +
-                    $"<br />" +
-                    $"Click here to change your password.\n<a href=\"{url}\">{url}</a>";
-                break;
-            case SendMailType.AccountPasswordChangeCode:
-                message.Subject = $"Account Password Change Code - {name} | {_Data.Config.Instance.Name}";
-                Body = $"You have requested to change your password for {email} on {_Data.Config.Instance.Name}." +
-                    $"<br />" +
-                    $"Enter the code {code} here.\n<a href=\"{url}\">{url}</a>";
-                break;
-            //case SendMailType.AccountEmailChanged:
-            //    message.Subject = $"Account Email Changed - {name} | {_Data.Config.Instance.Name}";
-            //    Body = $"Your account {name}'s email on {_Data.Config.Instance.Name} has been changed to {email_other}." +
-            //        $"<br />" +
-            //        $"<a href=\"{url}\">{url}</a>";
-            //    break;
-            //case SendMailType.AccountEmailChangeConfirm:
-            //    message.Subject = $"Account Email Change Request - {name} | {_Data.Config.Instance.Name}";
-            //    Body = $"You have requested to change your account email from {email} to {email_other} with the account {name}." +
-            //        $"<br />" +
-            //        $"Click here to confirm this change." +
-            //        $"<br />" +
-            //        $"<a href=\"{url}\">{url}</a>";
-            //    break;
-            case SendMailType.AccessCode:
-                message.Subject = $"Access Code Request - {name} | {_Data.Config.Instance.Name}";
-                Body = $"You have requested access to a protected page/resource with verification." +
-                    $"<br />" +
-                    $"Use the code {code}";
-                break;
-        }
-        Body += "<br /><br /><br />" +
-                $"Need Support?" +
-                $"<br />" +
-                $"You can email us at support@fluxpoint.dev.";
+        string Body = template.ParseHtml(user, action, other_email, code, reason, ip, country);
 
         message.Body = new TextPart("html")
         {

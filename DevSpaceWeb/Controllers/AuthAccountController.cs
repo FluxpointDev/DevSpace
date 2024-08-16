@@ -138,7 +138,7 @@ public class AuthAccountController : AuthControllerContext
         if (!Result.Succeeded)
             return BadRequest("Failed to change password");
 
-        await Email.Send(SendMailType.AccountPasswordChanged, User, "https://" + Request.Host.Value);
+        await Email.SendPasswordChanged(User, "https://" + Request.Host.Value);
 
         var Signin = await _signInManager.PasswordSignInAsync(User, password, false, false);
         if (!Signin.Succeeded)

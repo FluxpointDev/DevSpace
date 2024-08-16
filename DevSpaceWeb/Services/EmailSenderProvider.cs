@@ -13,13 +13,13 @@ namespace DevSpaceWeb.Services
         private readonly EmailService _emailService;
 
         public Task SendConfirmationLinkAsync(AuthUser user, string email,
-            string confirmationLink) => _emailService.Send(SendMailType.AccountConfirm, user, confirmationLink);
+            string confirmationLink) => _emailService.SendAccountConfirm(user, confirmationLink);
 
         public Task SendPasswordResetLinkAsync(AuthUser user, string email,
-            string resetLink) => _emailService.Send(SendMailType.AccountPasswordChangeConfirm, user, resetLink);
+            string resetLink) => _emailService.SendPasswordChangeRequest(user, resetLink);
 
         public Task SendPasswordResetCodeAsync(AuthUser user, string email,
-            string resetCode) => _emailService.Send(SendMailType.AccountPasswordChangeCode, user, resetCode);
+            string resetCode) => _emailService.SendAccessCode(user, "Password reset verification", resetCode);
 
 
     }

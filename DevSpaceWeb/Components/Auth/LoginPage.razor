@@ -291,7 +291,7 @@
             return;
         }
         var Token = await UserManager.UserManager.GeneratePasswordResetTokenAsync(User);
-        await Email.Send(SendMailType.AccountPasswordChangeConfirm, User, (NavigationManager.BaseUri + $"login?email={Uri.EscapeDataString(EmailField)}&token=" + Uri.EscapeDataString(Token)));
+        await Email.SendPasswordChangeRequest(User, (NavigationManager.BaseUri + $"login?email={Uri.EscapeDataString(EmailField)}&token=" + Uri.EscapeDataString(Token)));
         PasswordChangeSent = true;
     }
 
