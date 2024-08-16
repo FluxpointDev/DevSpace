@@ -61,8 +61,8 @@ public class ServerWebSocket
         });
         context.ClientCertificateRequired = false;
 
-        Console.WriteLine("Connecting to 127.0.0.1:" + server.AgentPort);
-        Client = new WebSocketClient(context, "127.0.0.1", server.AgentPort)
+        Console.WriteLine($"Connecting to {server.AgentIp}:{server.AgentPort}");
+        Client = new WebSocketClient(context, server.AgentIp, server.AgentPort)
         {
             ValidateCert = ValidateCert,
             Key = server.AgentKey
