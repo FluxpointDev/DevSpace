@@ -1,17 +1,18 @@
 ﻿@using DevSpaceShared.Responses
 @using DevSpaceShared.WebSocket
 
-@if (SystemInfo != null)
-{
-    <MudExpansionPanels Dense Outlined="false">
-        <MudGrid Class="dash-box-content">
-            <MudItem xs="4">
-                <MudPaper>
-                    <div class="dash-box-header">
-                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:server"></span></div>
-                        <MudText Typo="Typo.h6">Host</MudText>
-                    </div>
-                    <br />
+
+<MudExpansionPanels Dense Outlined="false">
+    <MudGrid Class="dash-box-content">
+        <MudItem xs="4">
+            <MudPaper>
+                <div class="dash-box-header">
+                    <div class="dash-box-icon"><span class="iconify" data-icon="mdi:server"></span></div>
+                    <MudText Typo="Typo.h6">Host</MudText>
+                </div>
+                <br />
+                @if (SystemInfo != null)
+                {
                     <p><span>Release:</span> @SystemInfo.Host.Release</p>
                     <p><span>System:</span> @SystemInfo.Host.SystemVersion</p>
                     <p><span>Machine Name:</span> @SystemInfo.Host.MachineName</p>
@@ -22,15 +23,24 @@
                     <p><span>Type:</span> @SystemInfo.Host.Cpu.VirtualizationType</p>
                     <p><span>Mode:</span> @SystemInfo.Host.Cpu.VirtualizationMode</p>
                     <p><span>Hypervisor:</span> @SystemInfo.Host.Cpu.VirtualizationHypervisor</p>
-                </MudPaper>
-            </MudItem>
-            <MudItem xs="4">
-                <MudPaper>
-                    <div class="dash-box-header">
-                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:chip"></span></div>
-                        <MudText Typo="Typo.h6">Memory</MudText>
-                    </div>
-                    <br />
+                }
+                else
+                {
+                    <MudSkeleton />
+                    <MudSkeleton />
+                    <MudSkeleton />
+                }
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="4">
+            <MudPaper>
+                <div class="dash-box-header">
+                    <div class="dash-box-icon"><span class="iconify" data-icon="mdi:chip"></span></div>
+                    <MudText Typo="Typo.h6">Memory</MudText>
+                </div>
+                <br />
+                @if (SystemInfo != null)
+                {
                     <h4>Ram</h4>
                     <p><span>Total:</span> @SystemInfo.Host.RamTotal GB</p>
                     <p><span>Used:</span> @SystemInfo.Host.RamUsed Mb</p>
@@ -41,25 +51,43 @@
                     <p><span>Total:</span> @SystemInfo.Host.SwapTotal Mb</p>
                     <p><span>Used:</span> @SystemInfo.Host.SwapUsed Mb</p>
                     <p><span>Free:</span> @SystemInfo.Host.SwapFree Mb</p>
-                </MudPaper>
-            </MudItem>
-            <MudItem xs="4">
-                <MudPaper>
-                    <div class="dash-box-header">
-                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:wide-area-network"></span></div>
-                        <MudText Typo="Typo.h6">Network</MudText>
-                    </div>
-                    <br />
+                }
+                else
+                {
+                    <MudSkeleton />
+                    <MudSkeleton />
+                    <MudSkeleton />
+                }
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="4">
+            <MudPaper>
+                <div class="dash-box-header">
+                    <div class="dash-box-icon"><span class="iconify" data-icon="mdi:wide-area-network"></span></div>
+                    <MudText Typo="Typo.h6">Network</MudText>
+                </div>
+                <br />
+                @if (SystemInfo != null)
+                {
                     <p><span>IP:</span> @Session.Selected.Server.Data.AgentIp</p>
-                </MudPaper>
-            </MudItem>
-            <MudItem xs="4">
-                <MudPaper>
-                    <div class="dash-box-header">
-                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:cpu-64-bit"></span></div>
-                        <MudText Typo="Typo.h6">CPU</MudText>
-                    </div>
-                    <br />
+                }
+                else
+                {
+                    <MudSkeleton />
+                    <MudSkeleton />
+                    <MudSkeleton />
+                }
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="4">
+            <MudPaper>
+                <div class="dash-box-header">
+                    <div class="dash-box-icon"><span class="iconify" data-icon="mdi:cpu-64-bit"></span></div>
+                    <MudText Typo="Typo.h6">CPU</MudText>
+                </div>
+                <br />
+                @if (SystemInfo != null)
+                {
                     <p><span>CPU Count:</span> @SystemInfo.Host.Cpu.CpuCount</p>
                     <p><span>Sockets:</span> @SystemInfo.Host.Cpu.Sockets</p>
 
@@ -77,15 +105,24 @@
                     <h4>Stats</h4>
                     <p><span>Cores per Socket:</span> @SystemInfo.Host.Cpu.CoresPerSocket</p>
                     <p><span>Threads per Socket:</span> @SystemInfo.Host.Cpu.ThreadsPerCore</p>
-                </MudPaper>
-            </MudItem>
-            <MudItem xs="4">
-                <MudPaper>
-                    <div class="dash-box-header">
-                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:bug"></span></div>
-                        <MudText Typo="Typo.h6">CPU Vulnerabilities</MudText>
-                    </div>
-                    <br />
+                }
+                else
+                {
+                    <MudSkeleton />
+                    <MudSkeleton />
+                    <MudSkeleton />
+                }
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="4">
+            <MudPaper>
+                <div class="dash-box-header">
+                    <div class="dash-box-icon"><span class="iconify" data-icon="mdi:bug"></span></div>
+                    <MudText Typo="Typo.h6">CPU Vulnerabilities</MudText>
+                </div>
+                <br />
+                @if (SystemInfo != null)
+                {
                     @foreach (var i in SystemInfo.Host.Cpu.Vulnerabilities)
                     {
                         @if (i.Value.Contains("Mitigation") || i.Value.Contains("Not affected"))
@@ -98,15 +135,24 @@
                         }
                         <br />
                     }
-                </MudPaper>
-            </MudItem>
-            <MudItem xs="4">
-                <MudPaper>
-                    <div class="dash-box-header">
-                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:code"></span></div>
-                        <MudText Typo="Typo.h6">Process</MudText>
-                    </div>
-                    <br />
+                }
+                else
+                {
+                    <MudSkeleton />
+                    <MudSkeleton />
+                    <MudSkeleton />
+                }
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="4">
+            <MudPaper>
+                <div class="dash-box-header">
+                    <div class="dash-box-icon"><span class="iconify" data-icon="mdi:code"></span></div>
+                    <MudText Typo="Typo.h6">Process</MudText>
+                </div>
+                <br />
+                @if (SystemInfo != null)
+                {
                     <p><span>Process Id:</span> @SystemInfo.Process.ProcessId</p>
                     <p><span>.NET Version:</span> @SystemInfo.Process.DotnetVersion</p>
                     <p><span>Process Path:</span> @SystemInfo.Process.ProcessPath</p>
@@ -118,12 +164,19 @@
                         <p>@i.Substring(1, i.Length - 2).Replace(", ", " = ")</p>
                         <br />
                     }
-                </MudPaper>
-            </MudItem>
+                }
+                else
+                {
+                    <MudSkeleton />
+                    <MudSkeleton />
+                    <MudSkeleton />
+                }
+            </MudPaper>
+        </MudItem>
 
-        </MudGrid>
-    </MudExpansionPanels>
-}
+    </MudGrid>
+</MudExpansionPanels>
+
 <style>
     .mud-main-content .mud-paper {
         padding: 10px;

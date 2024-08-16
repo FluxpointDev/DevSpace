@@ -79,10 +79,13 @@
         }
         SelectedIndex.Clear();
 
-        var search = FirewallInfo.Rules.OrderByDirection(state.SortDirection, o => o.From);
+        if (FirewallInfo != null)
+        {
+            var search = FirewallInfo.Rules.OrderByDirection(state.SortDirection, o => o.From);
+            return new TableData<FirewallRuleResponse>() { Items = search };
+        }
 
-
-        return new TableData<FirewallRuleResponse>() { Items = search };
+        return new TableData<FirewallRuleResponse> { };
     }
 
     private Dictionary<int, char> SelectedIndex = new Dictionary<int, char>();

@@ -73,11 +73,11 @@ public class WebSocketClient : WssClient
         Console.WriteLine($"Chat WebSocket client disconnected a session with Id {Id}");
         base.OnDisconnected();
         // Wait for a while...
-        Thread.Sleep(TimeSpan.FromSeconds(15));
+        //Thread.Sleep(TimeSpan.FromSeconds(15));
 
         // Try to connect again
-        if (!_stop)
-            ConnectAsync();
+        //if (!_stop)
+        //    ConnectAsync();
     }
 
     protected override void OnError(SocketError error)
