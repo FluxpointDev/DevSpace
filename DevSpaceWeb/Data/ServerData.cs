@@ -23,7 +23,7 @@ public class ServerData
         if (WebSocket == null)
         {
             WebSocket = new ServerWebSocket();
-            WebSocket.Run();
+            WebSocket.Run(this);
         }
         return WebSocket;
     }
@@ -39,32 +39,37 @@ public class ServerData
 public class ServerWebSocket
 {
     public WebSocketClient Client;
-    public void Run()
+    public void Run(ServerData server)
     {
-        return;
         ValidateCert ValidateCert = new ValidateCert();
         var context = new SslContext(SslProtocols.Tls12, (e, b, l, m) =>
         {
             if (b != null)
             {
                 ValidateCert.Cert = b.GetCertHashString();
-                Console.WriteLine($"Cert: {b.Subject} " + ValidateCert);
                 if (b.Subject == "CN=devspace")
+                {
+                    Console.WriteLine($"Cert: {b.Subject} " + ValidateCert.Cert);
                     return true;
+                }
             }
 
             if (m == System.Net.Security.SslPolicyErrors.None)
-                return true;
+                return false;
             return false;
 
         });
         context.ClientCertificateRequired = false;
-        Client = new WebSocketClient(context,
-            "127.0.0.1",
-            5555)
-        { ValidateCert = ValidateCert };
+
+        Console.WriteLine("Connecting to 127.0.0.1:" + server.AgentPort);
+        Client = new WebSocketClient(context, "127.0.0.1", server.AgentPort)
+        {
+            ValidateCert = ValidateCert,
+            Key = server.AgentKey
+        };
         // Connect the client
-        Console.Write("Client connecting...");
-        Client.ConnectAsync();
+        Console.WriteLine("Client connecting...");
+        bool Connected = Client.ConnectAsync();
+        Console.WriteLine("Is Connected: " + Connected);
     }
 }

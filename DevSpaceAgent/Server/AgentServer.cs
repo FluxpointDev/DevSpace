@@ -1,4 +1,5 @@
 ﻿using DevSpaceAgent.Client;
+using DevSpaceAgent.Data;
 using DevSpaceShared.WebSocket;
 using NetCoreServer;
 using System.Net;
@@ -18,6 +19,34 @@ public class AgentSession : WssSession
         Console.WriteLine($"WebSocket session with Id {Id} connected!");
         AgentWebSocket.SendJsonAsync(new ValidateCertEvent() { CertHash = Program.Certificate.GetCertHashString() }, default, true);
 
+    }
+
+    public override bool OnWsConnecting(HttpRequest request, HttpResponse response)
+    {
+        Console.WriteLine("Connecting...");
+        long HeaderCount = request.Headers;
+        int Count = 0;
+        string ClientKey = "";
+        while (Count != HeaderCount)
+        {
+            var Header = request.Header(Count);
+            if (Header.Item1 == "Authorization")
+                ClientKey = Header.Item2;
+
+            Count += 1;
+        }
+
+        if (ClientKey == _Data.Config.AgentKey)
+        {
+            Console.WriteLine("Key match");
+            return true;
+        }
+
+        this.Disconnect();
+
+        Console.WriteLine("Key not match");
+
+        return false;
     }
 
     public override void OnWsDisconnected()

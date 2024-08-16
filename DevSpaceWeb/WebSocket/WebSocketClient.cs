@@ -25,6 +25,7 @@ public class WebSocketClient : WssClient
 
     public WebSocketBase WebSocket = new WebSocketBase();
     public ValidateCert ValidateCert;
+    public string Key;
     public void DisconnectAndStop()
     {
         _stop = true;
@@ -41,10 +42,12 @@ public class WebSocketClient : WssClient
         request.SetHeader("Upgrade", "websocket");
         request.SetHeader("Connection", "Upgrade");
         request.SetHeader("Sec-WebSocket-Key", Convert.ToBase64String(WsNonce));
-        request.SetHeader("Sec-WebSocket-Protocol", "");
+        request.SetHeader("Sec-WebSocket-Protocol", "chat");
         request.SetHeader("Sec-WebSocket-Version", "13");
+        request.SetHeader("Authorization", Key);
         request.SetBody();
 
+        Console.WriteLine("Connecting websocket");
     }
 
     public override void OnWsConnected(NetCoreServer.HttpResponse response)
@@ -64,13 +67,13 @@ public class WebSocketClient : WssClient
         WebSocketMessage(WebSocket, Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
     }
 
+
     protected override void OnDisconnected()
     {
-        base.OnDisconnected();
         Console.WriteLine($"Chat WebSocket client disconnected a session with Id {Id}");
-
+        base.OnDisconnected();
         // Wait for a while...
-        Thread.Sleep(1000);
+        Thread.Sleep(TimeSpan.FromSeconds(15));
 
         // Try to connect again
         if (!_stop)
