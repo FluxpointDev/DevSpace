@@ -66,6 +66,9 @@ public class AuthLoginController : AuthControllerContext
     [Route("/auth/external"), HttpGet, HttpPost]
     public async Task<IActionResult> LoginExternalAsync([FromForm] string provider = "")
     {
+        if (Program.IsPreviewMode)
+            return BadRequest("Preview mode is enabled.");
+
         string returnUrl = "/";
         var redirectUrl = "/auth/external/callback";
         Console.WriteLine(redirectUrl);
@@ -78,6 +81,9 @@ public class AuthLoginController : AuthControllerContext
     [HttpGet("/auth/external/callback")]
     public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null)
     {
+        if (Program.IsPreviewMode)
+            return BadRequest("Preview mode is enabled.");
+
         var info = await _signInManager.GetExternalLoginInfoAsync();
         if (info == null)
         {

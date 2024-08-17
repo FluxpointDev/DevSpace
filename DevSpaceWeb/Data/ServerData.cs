@@ -23,7 +23,8 @@ public class ServerData
         if (WebSocket == null)
         {
             WebSocket = new ServerWebSocket();
-            WebSocket.Run(this);
+            if (!Program.IsPreviewMode)
+                WebSocket.Run(this);
         }
         return WebSocket;
     }

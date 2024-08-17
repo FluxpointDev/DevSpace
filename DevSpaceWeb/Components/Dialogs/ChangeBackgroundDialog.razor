@@ -1,0 +1,29 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudTextField T="string" Label="Background Url" @bind-Value="BackgroundUrl"
+                      InputType="InputType.Url" Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
+                      Required="true" RequiredError="Url is required!" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="@Submit">Submit</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public string BackgroundUrl { get; set; }
+
+    void Submit()
+    {
+        Session.BackgroundUrl = BackgroundUrl;
+        Session.TriggerChange();
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel() => MudDialog.Cancel();
+}

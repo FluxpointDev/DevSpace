@@ -16,10 +16,13 @@
                         <MudSpacer />
                         <MudSelect T="DatabaseType" Label="Type" @bind-Value="@Database" Dense Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Margin="Margin.Dense" ShrinkLabel>
                             <MudSelectItem Value="@DatabaseType.Teams" />
-                            <MudSelectItem Value="@DatabaseType.Servers" />
-                            <MudSelectItem Value="@DatabaseType.Projects" />
-                            <MudSelectItem Value="@DatabaseType.Websites" />
-                            <MudSelectItem Value="@DatabaseType.Logs" />
+                            @if (!Program.IsPreviewMode)
+                            {
+                                <MudSelectItem Value="@DatabaseType.Servers" />
+                                <MudSelectItem Value="@DatabaseType.Projects" />
+                                <MudSelectItem Value="@DatabaseType.Websites" />
+                                <MudSelectItem Value="@DatabaseType.Logs" />
+                            }
                         </MudSelect>
                         <MudTextField T="string" Margin="Margin.Dense" @bind-Value="@searchString" DebounceInterval="500" OnDebounceIntervalElapsed="@(s=>OnSearch(s))" Placeholder="Search Name" Adornment="Adornment.Start"
                                       AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true" IconSize="Size.Small" Variant="Variant.Outlined"></MudTextField>

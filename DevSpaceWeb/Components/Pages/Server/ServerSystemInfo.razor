@@ -67,7 +67,11 @@
                     <MudText Typo="Typo.h6">Network</MudText>
                 </div>
                 <br />
-                @if (SystemInfo != null)
+                @if (Program.IsPreviewMode)
+                {
+                    <p><span>IP:</span> 1.2.3.4</p>
+                }
+                else if (SystemInfo != null)
                 {
                     <p><span>IP:</span> @Session.Selected.Server.Data.AgentIp</p>
                 }
@@ -214,6 +218,60 @@
             Console.WriteLine("Run System Info");
             try
             {
+                if (Program.IsPreviewMode)
+                {
+                    SystemInfo = new SystemInfoResponse
+                        {
+                            Host = new HostInfo
+                            {
+                                Release = "Ubuntu 24.04 LTS",
+                                SystemVersion = "Unix 6.8.0.36",
+                                MachineName = "vpscloud123",
+                                Uptime = "1 Day",
+                                RamTotal = 4,
+                                RamUsed = 1240,
+                                RamFree = 250,
+                                SwapTotal = 2024,
+                                SwapUsed = 740,
+                                SwapFree = 207,
+                                Cpu = new LinuxCpuInfo
+                                {
+                                    CpuCount = 2,
+                                    Sockets = 2,
+                                    ModelName = "Intel CPU E5 No U xD",
+                                    Model = 40,
+                                    CpuFamily = 2,
+                                    CoresPerSocket = 1,
+                                    ThreadsPerCore = 1,
+                                    Flags = "memes dank",
+                                    VirtualizationType = "VT-x",
+                                    VirtualizationMode = "full",
+                                    VirtualizationHypervisor = "KVM",
+                                    MHz = 2000,
+                                    CacheSize = "1000",
+                                    VendorId = "Intel",
+                                    Vulnerabilities = new Dictionary<string, string>
+                                {
+                                    { "Meltdown", "Mitigation; PTI"}
+                                }
+                                }
+                            },
+                            Process = new ProcessInfo
+                            {
+                                DotnetVersion = "8.0.7",
+                                EnvironmentVariables = new List<string>
+                            {
+                                "SUS = amogus"
+                            },
+                                ProcessId = 123,
+                                ProcessPath = "/user/devspace",
+
+                            }
+                        };
+                    StateHasChanged();
+                    return;
+                }
+
                 SystemInfo = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<SystemInfoResponse>(new IWebSocketTaskEvent(EventType.SystemInfo));
                 Console.WriteLine("Got info");
                 Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(SystemInfo, Newtonsoft.Json.Formatting.Indented));

@@ -66,6 +66,16 @@
 
     public async Task<TableData<FirewallRuleResponse>> ServerReload(TableState state, CancellationToken token)
     {
+        if (Program.IsPreviewMode)
+        {
+            return new TableData<FirewallRuleResponse>()
+                {
+                    Items = new List<FirewallRuleResponse>
+            {
+                new FirewallRuleResponse { Action = "ALLOW IN", From = "1.2.3.4", To = "22", Comment = ":)" }
+            }
+                };
+        }
         if (FirewallInfo == null)
         {
             try

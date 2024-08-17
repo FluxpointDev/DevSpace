@@ -21,7 +21,7 @@
                 <MudTextField @bind-Value="InstanceDescription" Label="Description" Variant="Variant.Filled" Underline="false"></MudTextField>
                 <MudTextField @bind-Value="InstanceIcon" Label="Icon" Variant="Variant.Filled" Underline="false"></MudTextField>
                 <br />
-                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SetupEmailAsync">Update</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@SetupEmailAsync">Update</MudButton>
             </div>
             <br />
             <div class="settings-box">
@@ -43,26 +43,29 @@
                     <MudTextField @bind-Value="SmtpPassword" Label="Password" Variant="Variant.Filled" Underline="false"></MudTextField>
                 }
                 <br />
-                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SetupEmailAsync">Update</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@SetupEmailAsync">Update</MudButton>
                 <br />
                 <br />
                 <MudTextField @bind-Value="TestEmail" Label="Test Email" Variant="Variant.Filled" Underline="false"></MudTextField>
                 <br />
-                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="SendTestEmail">Send</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@SendTestEmail">Send</MudButton>
             </div>
         </MudTabPanel>
-        <MudTabPanel Text="API">
-            <div class="settings-box">
-                <h3>Swagger</h3>
-                <br />
-                <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
-            </div>
-            <div class="settings-box">
-                <h3>Limits</h3>
-                <br />
-                <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
-            </div>
-        </MudTabPanel>
+        @if (false)
+        {
+            <MudTabPanel Text="API">
+                <div class="settings-box">
+                    <h3>Swagger</h3>
+                    <br />
+                    <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
+                </div>
+                <div class="settings-box">
+                    <h3>Limits</h3>
+                    <br />
+                    <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
+                </div>
+            </MudTabPanel>
+        }
         <MudTabPanel Text="Features">
             <div class="settings-box">
                 <h3>Swagger API</h3>
@@ -88,7 +91,7 @@
     }
 
     .mud-tabs-tabbar {
-        background-color: #28262f !important;
+        background-color: rgba(41,38,47,0.8) !important;
     }
 
     .mud-tab-active {
@@ -98,7 +101,7 @@
 
     .settings-box {
         display: block !important;
-        background-color: #2B2B36;
+        background-color: rgba(43,44,54,0.8);
         width: 100% !important;
         padding: 10px;
         border-radius: 8px;
@@ -137,6 +140,9 @@
 </style>
 
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
     public ConfigEmailType EmailType { get; set; }
     public string SmtpHost { get; set; }
     public int SmtpPort { get; set; }
@@ -155,12 +161,14 @@
     protected override async Task OnInitializedAsync()
     {
         EmailType = _Data.Config.Email.Type;
-        SmtpHost = _Data.Config.Email.SmtpHost;
-        SmtpPort = _Data.Config.Email.SmtpPort;
-        SmtpUser = _Data.Config.Email.SmtpUser;
-        SmtpPassword = _Data.Config.Email.SmtpPassword;
-        ManagedEmailToken = _Data.Config.Email.ManagedEmailToken;
-
+        if (!Program.IsPreviewMode)
+        {
+            SmtpHost = _Data.Config.Email.SmtpHost;
+            SmtpPort = _Data.Config.Email.SmtpPort;
+            SmtpUser = _Data.Config.Email.SmtpUser;
+            SmtpPassword = _Data.Config.Email.SmtpPassword;
+            ManagedEmailToken = _Data.Config.Email.ManagedEmailToken;
+        }
         InstanceName = _Data.Config.Instance.Name;
         InstanceDescription = _Data.Config.Instance.Description;
 
@@ -172,6 +180,12 @@
         if (string.IsNullOrEmpty(InstanceName))
             return;
 
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         _Data.Config.Instance.Name = InstanceName;
         _Data.Config.Instance.Description = InstanceDescription;
         _Data.Config.Save();
@@ -179,6 +193,12 @@
 
     public async Task SetupEmailAsync()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         if (EmailType == ConfigEmailType.FluxpointManaged)
         {
             if (string.IsNullOrEmpty(ManagedEmailToken))
@@ -223,6 +243,12 @@
 
     public async Task SendTestEmail()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         if (EmailType == ConfigEmailType.FluxpointManaged)
         {
             if (string.IsNullOrEmpty(ManagedEmailToken))

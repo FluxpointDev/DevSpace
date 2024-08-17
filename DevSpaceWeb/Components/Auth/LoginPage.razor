@@ -38,21 +38,40 @@
                         }
                         <br />
                         <br />
-                        <form data-enhance id="login-external-form" action="/auth/external" method="post" class="form-horizontal">
-                            <div>
-                                <p>
-                                    <MudButton Variant="Variant.Filled" Color="Color.Info" ButtonType="ButtonType.Submit" value="google" name="provider">
-                                        <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
-                                    </MudButton>
-                                    <MudButton Variant="Variant.Filled" Color="Color.Info" ButtonType="ButtonType.Submit" value="discord" name="provider">
-                                        <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
-                                    </MudButton>
-                                    <MudButton Variant="Variant.Filled" Color="Color.Info" ButtonType="ButtonType.Submit" value="github" name="provider">
-                                        <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
-                                    </MudButton>
-                                </p>
-                            </div>
-                        </form>
+
+                        @if (Program.IsPreviewMode)
+                        {
+                            <p>
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="@Session.ShowPreviewModeNotice" value="google" name="provider">
+                                    <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
+                                </MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="@Session.ShowPreviewModeNotice" value="discord" name="provider">
+                                    <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
+                                </MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="@Session.ShowPreviewModeNotice" value="github" name="provider">
+                                    <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
+                                </MudButton>
+                            </p>
+                        }
+                        else
+                        {
+                            <form data-enhance id="login-external-form" action="/auth/external" method="post" class="form-horizontal">
+                                <div>
+                                    <p>
+                                        <MudButton Variant="Variant.Filled" Color="Color.Info" ButtonType="ButtonType.Submit" value="google" name="provider">
+                                            <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
+                                        </MudButton>
+                                        <MudButton Variant="Variant.Filled" Color="Color.Info" ButtonType="ButtonType.Submit" value="discord" name="provider">
+                                            <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
+                                        </MudButton>
+                                        <MudButton Variant="Variant.Filled" Color="Color.Info" ButtonType="ButtonType.Submit" value="github" name="provider">
+                                            <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
+                                        </MudButton>
+                                    </p>
+                                </div>
+                            </form>
+                        }
+
                     }
                     break;
                 case LoginPageType.Login:
@@ -60,6 +79,11 @@
                         @if (IsAccountCreated)
                         {
                             <MudAlert Severity="Severity.Info">Your account has been created, you can now login.</MudAlert>
+                            <br />
+                        }
+                        @if (Program.IsPreviewMode)
+                        {
+                            <MudAlert Severity="Severity.Info">Preview Mode is enabled, login as a test user.</MudAlert>
                             <br />
                         }
 
@@ -91,9 +115,9 @@
 
 
                             <div class="d-flex align-center justify-space-between" style="margin-top: 30px;">
-                                <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(!FormValid)" OnClick="@Login">Login</MudButton>
-                                <MudButton Class="ml-auto" Variant="Variant.Text" OnClick="@(() => { PasswordField = ""; Page = LoginPageType.ChangePassword; })">Forgot Password?</MudButton>
-                                <MudButton Class="ml-auto" Variant="Variant.Text" Color="Color.Info" OnClick="@(() => { PasswordField = ""; Page = LoginPageType.Register; })">Register Account</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(!Program.IsPreviewMode && !FormValid)" OnClick="@Login">Login</MudButton>
+                                <MudButton Class="ml-auto" Variant="Variant.Text" OnClick="@(() => { if (!Program.IsPreviewMode) { PasswordField = ""; } Page = LoginPageType.ChangePassword; })">Forgot Password?</MudButton>
+                                <MudButton Class="ml-auto" Variant="Variant.Text" Color="Color.Info" OnClick="@(() => { if (!Program.IsPreviewMode) { PasswordField = ""; } Page = LoginPageType.Register; })">Register Account</MudButton>
                             </div>
                         </MudForm>
                     }
@@ -128,7 +152,7 @@
 
                             <div class="d-flex align-center justify-space-between" style="margin-top: 30px;">
                                 <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(!FormValid)" OnClick="RegisterAccount">Register</MudButton>
-                                <MudButton Variant="Variant.Text" Color="Color.Info" Class="ml-auto" OnClick="@(() => { PasswordField = ""; Page = LoginPageType.Login; })">Login Instead</MudButton>
+                                <MudButton Variant="Variant.Text" Color="Color.Info" Class="ml-auto" OnClick="@(() => { if (!Program.IsPreviewMode) { PasswordField = ""; } Page = LoginPageType.Login; })">Login Instead</MudButton>
                             </div>
                         </MudForm>
                     }
@@ -167,8 +191,8 @@
 
                                 @if (string.IsNullOrEmpty(Token))
                                 {
-                                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(!FormValid)" OnClick="CheckChangePassword">Request Password Change</MudButton>
-                                    <MudButton Variant="Variant.Text" Color="Color.Info" Class="ml-auto" OnClick="@(() => { PasswordField = ""; Page = LoginPageType.Login; })">Login Instead</MudButton>
+                                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(!FormValid)" OnClick="@CheckChangePassword">Request Password Change</MudButton>
+                                    <MudButton Variant="Variant.Text" Color="Color.Info" Class="ml-auto" OnClick="@(() => { if (!Program.IsPreviewMode) { PasswordField = ""; } Page = LoginPageType.Login; })">Login Instead</MudButton>
                                 }
                                 else
                                 {
@@ -188,6 +212,10 @@
     .mud-grid-item > .mud-paper {
         min-width: 500px !important;
         margin-top: 20px;
+    }
+
+    .mud-grid-spacing-xs-6 {
+        margin-top: 0px !important;
     }
 </style>
 
@@ -228,6 +256,12 @@
             Token = Uri.UnescapeDataString(Token);
             Page = LoginPageType.ChangePassword;
         }
+
+
+        // This is meant to be here for preview purposes :)
+        EmailField = "test@test.com";
+        PasswordField = "@U8FXB5&^2mKWbn";
+        FormValid = true;
     }
 
 
@@ -242,6 +276,11 @@
 
     public async Task RegisterAccount()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
         FormDisabled = true;
         var result = await UserManager.UserManager.CreateAsync(new AuthUser
             {
@@ -260,6 +299,7 @@
         else
         {
             IsAccountCreated = true;
+            FormValid = true;
             Page = LoginPageType.Login;
         }
 
@@ -285,6 +325,12 @@
         if (!FormValid)
             return;
 
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         FormDisabled = true;
 
         var User = await UserManager.UserManager.FindByEmailAsync(EmailField);
@@ -300,7 +346,7 @@
 
     public async Task Login()
     {
-        if (!FormValid)
+        if (!Program.IsPreviewMode && !FormValid)
             return;
 
         string RequestId = Guid.NewGuid().ToString();
@@ -314,6 +360,13 @@
     {
         if (!FormValid)
             return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         string RequestId = Guid.NewGuid().ToString();
         Cache.SetString("changepass-" + RequestId, EmailField, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
         bool Result = await JS.InvokeAsync<bool>("accountChangePassword", EmailField, PasswordField, Token, RequestId);

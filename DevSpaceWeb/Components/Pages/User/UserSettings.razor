@@ -55,19 +55,19 @@
                         {
                             <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="ml-4 mr-4">
                                 <p class="mb-2">You need to confirm your email address.</p>
-                                <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="SendEmailVerify" Size="Size.Small">Verify Email</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Dark" OnClick="@SendEmailVerify" Size="Size.Small">Verify Email</MudButton>
                             </MudAlert>
                         }
                     }
                     <br />
                     <h4 class="mb-2">Change</h4>
-                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="ChangeUsername">Username</MudButton>
-                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="ChangeEmail">Email</MudButton>
-                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="ChangePassword">Password</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="@ChangeUsername">Username</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="@ChangeEmail">Email</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" OnClick="@ChangePassword">Password</MudButton>
                     <br />
                     <br />
                     <br />
-                    <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="DeleteAccount">Delete Account</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="@DeleteAccount">Delete Account</MudButton>
                 }
             </div>
         </MudTabPanel>
@@ -115,7 +115,7 @@
 
                         }
                         <br />
-                        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="RegisterAuthenticator">Register</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="@RegisterAuthenticator">Register</MudButton>
                         <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="@(() => Session.TriggerTwoFactorAuthentication(AuthUser, true))">Test</MudButton>
                         <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@(() => Session.TriggerTwoFactorAuthentication(AuthUser, true))">Remove All</MudButton>
                     </div>
@@ -144,9 +144,9 @@
                         <br />
                         <MudTextField @bind-Value="PasskeyName" ShrinkLabel="true" Label="Passkey Name" Variant="Variant.Filled" Underline="false"></MudTextField>
                         <br />
-                        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="RegisterPasskey">Register</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="@RegisterPasskey">Register</MudButton>
                         <MudButton Variant="Variant.Filled" Color="Color.Info" Size="Size.Small" OnClick="(() => TestPasskey())">Test</MudButton>
-                        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="RemoveAllPasskeys">Remove All</MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@RemoveAllPasskeys">Remove All</MudButton>
                     </div>
                     <div class="settings-box">
                         <h3 class="mb-2">Backup Code</h3>
@@ -158,14 +158,14 @@
                             {
                                 <MudAlert Severity="Severity.Warning">You have not created a recovery code!</MudAlert>
                                 <br />
-                                <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="GenerateBackupCodes">Generate</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" OnClick="@GenerateBackupCodes">Generate</MudButton>
                             }
                             else
                             {
                                 <MudAlert Class="mb-2" Severity="Severity.Info">Backup codes were generated @(GetLocalDate(AuthUser.Auth.RecoveryCodeCreatedAt, false))</MudAlert>
                                 <p>Last Used: @(GetLocalDate(AuthUser.Auth.RecoveryCodeLastUsedAt, false))</p>
                                 <br />
-                                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="GenerateBackupCodes">Reset</MudButton>
+                                <MudButton Variant="Variant.Filled" Color="Color.Error" Size="Size.Small" OnClick="@GenerateBackupCodes">Reset</MudButton>
                             }
                         }
                         else
@@ -189,7 +189,7 @@
     }
 
     .mud-tabs-tabbar {
-        background-color: #28262f !important;
+        background-color: rgba(41,38,47,0.8) !important;
     }
 
     .mud-tab-active {
@@ -198,7 +198,7 @@
 
 
     .settings-box {
-        background-color: #2B2B36;
+        background-color: rgba(43,44,54,0.8);
         width: 100% !important;
         padding: 10px;
         border-radius: 8px;
@@ -216,7 +216,7 @@
         padding-left: 20px;
         padding-right: 20px;
         border-radius: 8px;
-        background-color: #34343f !important;
+        background-color: rgba(52,53,63,0.8) !important;
     }
 
         .passkey-item img {

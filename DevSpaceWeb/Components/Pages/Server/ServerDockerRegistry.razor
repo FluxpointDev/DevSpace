@@ -111,6 +111,8 @@
 
     public async Task<TableData<ContainerListResponse>> ServerReload(TableState state, CancellationToken token)
     {
+        if (Program.IsPreviewMode)
+            return new TableData<ContainerListResponse>() { TotalItems = 0, Items = new List<ContainerListResponse>() };
         if (containers == null)
         {
             try

@@ -29,6 +29,9 @@ public class AuthAccountController : AuthControllerContext
         if (!User.Identity.IsAuthenticated)
             return Redirect("/login");
 
+        if (Program.IsPreviewMode)
+            return BadRequest("Preview mode is enabled.");
+
         if (string.IsNullOrEmpty(token))
             return BadRequest("Invalid token");
 
@@ -55,6 +58,9 @@ public class AuthAccountController : AuthControllerContext
     [HttpGet("/auth/account/confirmEmail")]
     public async Task<IActionResult> ConfirmEmail([FromQuery] string token = "")
     {
+        if (Program.IsPreviewMode)
+            return BadRequest("Preview mode is enabled.");
+
         if (string.IsNullOrEmpty(token))
             return BadRequest("Invalid token");
 
@@ -82,6 +88,9 @@ public class AuthAccountController : AuthControllerContext
     [HttpGet("/auth/account/changeEmail")]
     public async Task<IActionResult> ChangeEmail([FromQuery] string email = "", [FromQuery] string token = "")
     {
+        if (Program.IsPreviewMode)
+            return BadRequest("Preview mode is enabled.");
+
         if (string.IsNullOrEmpty(email))
             return BadRequest("Invalid email");
 
@@ -113,6 +122,9 @@ public class AuthAccountController : AuthControllerContext
     [HttpPost("/auth/account/changePassword")]
     public async Task<IActionResult> ChangePassword([FromHeader] string requestId, [FromForm] string email, [FromForm] string password, [FromForm] string emailToken)
     {
+        if (Program.IsPreviewMode)
+            return BadRequest("Preview mode is enabled.");
+
         if (string.IsNullOrEmpty(requestId))
             return BadRequest("Request id is invalid");
 

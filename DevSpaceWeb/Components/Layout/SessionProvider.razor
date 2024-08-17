@@ -15,6 +15,7 @@
 @inject IDialogService DialogService
 @inject IDistributedCache Cache
 @implements IDisposable
+@inject ISnackbar Snackbar
 
 @if (Ready)
 {
@@ -63,6 +64,8 @@
             {
                 <MudThemeProvider IsDarkMode="true" />
                 <MudPopoverProvider />
+                <MudSnackbarProvider></MudSnackbarProvider>
+                <MudDialogProvider />
                 <CascadingValue Value="@this">
                     <DevSpaceWeb.Components.Auth.LoginPage></DevSpaceWeb.Components.Auth.LoginPage>
                 </CascadingValue>
@@ -110,6 +113,11 @@
     <a class="dismiss">🗙</a>
 </div>
 
+<style>
+    html {
+        background-image: url("@BackgroundUrl") !important;
+    }
+</style>
 
 @code {
     [Parameter]
@@ -121,6 +129,8 @@
 
     public bool Ready = false;
 
+    public string BackgroundUrl { get; set; } = "https://img.fluxpoint.dev/249186656169492480.png";
+
     public int UserDateOffset { get; set; }
 
     public SessionErrorType SessionError { get; set; }
@@ -128,6 +138,15 @@
     public async Task<AuthUser?> GetCurrentUserAsync()
     {
         return await UserManager.GetUserAsync(State.User)!;
+    }
+
+    public void ShowPreviewModeNotice()
+    {
+        Snackbar.Add("This action is disabled in Preview Mode", Severity.Info, opt =>
+        {
+            opt.ShowTransitionDuration = 500;
+            opt.HideTransitionDuration = 500;
+        }, "previewmode");
     }
 
     public async Task<bool> TriggerTwoFactorAuthentication(AuthUser user, bool logUsage)
@@ -217,31 +236,32 @@
         if (Path.StartsWith("admin"))
         {
             Ready = true;
-            return;
-        }
-
-        if (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1")
-        {
-            SessionError = SessionErrorType.SessionSecurityError;
-        }
-
-        if (State == null)
-        {
-            SessionError = SessionErrorType.AuthenticationError;
-        }
-        else if (!State.User.Identity.IsAuthenticated)
-        {
-            SessionError = SessionErrorType.AuthenticationRequired;
         }
         else
         {
-            _DB.SessionUpdated += SessionChangedEvent;
-            var User = await GetCurrentUserAsync();
-            CurrentUserId = User.Id;
-            if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
-                SessionError = SessionErrorType.SessionSecurityNewIp;
+            if (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1")
+            {
+                SessionError = SessionErrorType.SessionSecurityError;
+            }
+
+            if (State == null)
+            {
+                SessionError = SessionErrorType.AuthenticationError;
+            }
+            else if (!State.User.Identity.IsAuthenticated)
+            {
+                SessionError = SessionErrorType.AuthenticationRequired;
+            }
+            else
+            {
+                _DB.SessionUpdated += SessionChangedEvent;
+                var User = await GetCurrentUserAsync();
+                CurrentUserId = User.Id;
+                if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
+                    SessionError = SessionErrorType.SessionSecurityNewIp;
+            }
+            Ready = true;
         }
-        Ready = true;
     }
 
 

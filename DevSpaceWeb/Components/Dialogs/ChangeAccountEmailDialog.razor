@@ -11,8 +11,8 @@
         <MudTextField @bind-Value="Email" ShrinkLabel="true" Label="Email" Variant="Variant.Filled" Underline="false"></MudTextField>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="Submit">Submit</MudButton>
+        <MudButton OnClick="@Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="@Submit">Submit</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -26,6 +26,12 @@
 
     async Task Submit()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         AuthUser? user = await Session.GetCurrentUserAsync();
         if (user == null)
             return;

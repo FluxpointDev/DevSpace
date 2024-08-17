@@ -66,6 +66,9 @@ public class EmailService
 
     public async Task<bool> Send(SendMailType type, AuthUser user, EmailTemplateData? template, string body = "", string other_email = "", string action = "", string code = "", string reason = "", string ip = "", string country = "")
     {
+        if (Program.IsPreviewMode)
+            return true;
+
         if (_Data.Config.Email.Type == ConfigEmailType.FluxpointManaged && !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
         {
             if (ManagedEmailSystem == null)

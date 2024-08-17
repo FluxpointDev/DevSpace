@@ -24,7 +24,7 @@ public static class Utils
     public static string GetUserIpAddress(HttpContext context)
     {
         // Test ip in development
-        if (Program.IsDevMode)
+        if (Program.IsDevMode || Program.IsPreviewMode)
             return "1.2.3.4";
 
         // Check CF-Connecting-IP header

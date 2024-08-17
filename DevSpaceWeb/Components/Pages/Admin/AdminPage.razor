@@ -3,11 +3,11 @@
 @if (!IsAdmin)
 {
     <div class="dash-box dash-box-content">
-        <h3>Dev Space Setup</h3>
-        <p>You need to configure this app to work correctly!</p>
-        <br />
+        <h3>@_Data.Config.Instance.Name Admin</h3>
         <p>Enter your Admin Key here, you can find this in /Data/Config.json</p>
         <MudTextField @bind-Value="AdminKeyInput" Label="Admin Key" ShrinkLabel="true" Variant="Variant.Filled" Underline="false" Error="!string.IsNullOrEmpty(ErrorText)" ErrorText="@ErrorText"></MudTextField>
+        <br />
+        <MudAlert Severity="Severity.Info">Preview Mode: You can press Check or enter anything to view this.</MudAlert>
         <br />
         <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@CheckAdminKey">Check</MudButton>
     </div>
@@ -38,6 +38,7 @@ else
                     <br />
                     <MudButton Variant="Variant.Filled" Color="Color.Info" Href="/admin/database">Database</MudButton>
                     <MudButton Variant="Variant.Filled" Color="Color.Info" Href="/admin/settings">Settings</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Info" Href="/admin/templates">Email Templates</MudButton>
                 </div>
             }
             break;
@@ -80,7 +81,7 @@ else
 
     public void CheckAdminKey()
     {
-        if (!string.IsNullOrEmpty(AdminKeyInput) && AdminKeyInput == _Data.Config.AdminKey)
+        if (Program.IsPreviewMode || (!string.IsNullOrEmpty(AdminKeyInput) && AdminKeyInput == _Data.Config.AdminKey))
             IsAdmin = true;
         else
             ErrorText = "Invalid admin key";

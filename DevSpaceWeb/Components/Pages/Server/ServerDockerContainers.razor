@@ -125,6 +125,19 @@
 
     public async Task<TableData<ContainerListResponse>> ServerReload(TableState state, CancellationToken token)
     {
+        if (Program.IsPreviewMode)
+        {
+            return new TableData<ContainerListResponse>()
+                {
+                    TotalItems = 2,
+                    Items = new List<ContainerListResponse>
+            {
+                new ContainerListResponse { Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)" },
+                new ContainerListResponse { Names = new List<string> { "/discord-bot" }, State = "dead", Status = "" },
+            }
+                };
+        }
+
         if (containers == null)
         {
             try

@@ -65,19 +65,19 @@
         {
             <MudTextField @bind-Value="CodeInput" ShrinkLabel="true" Label="Email Code" Variant="Variant.Filled" Underline="false"></MudTextField>
             <br />
-            <MudButton OnClick="VerifyEmail" Color="Color.Success">Verify</MudButton>
+            <MudButton OnClick="@VerifyEmail" Color="Color.Success">Verify</MudButton>
         }
         else if (AuthType == 2)
         {
             <MudTextField @bind-Value="CodeInput" ShrinkLabel="true" Label="Auth Code" Variant="Variant.Filled" Underline="false"></MudTextField>
             <br />
-            <MudButton OnClick="VerifyAuthenticator" Color="Color.Success">Verify</MudButton>
+            <MudButton OnClick="@VerifyAuthenticator" Color="Color.Success">Verify</MudButton>
         }
         else if (AuthType == 3)
         {
             <MudTextField @bind-Value="CodeInput" ShrinkLabel="true" Label="Recovery Code" Variant="Variant.Filled" Underline="false"></MudTextField>
             <br />
-            <MudButton OnClick="VerifyRecoveryCode" Color="Color.Success">Verify</MudButton>
+            <MudButton OnClick="@VerifyRecoveryCode" Color="Color.Success">Verify</MudButton>
         }
     </DialogContent>
     <DialogActions>
@@ -85,7 +85,7 @@
         {
             <MudButton OnClick="@(() => { AuthType = 0; CodeInput = string.Empty; })">Back</MudButton>
         }
-        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton OnClick="@Cancel">Cancel</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -128,6 +128,12 @@
 
     public async Task VerifyEmail()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         var AuthUser = await Session.GetCurrentUserAsync();
         string VerifyCache = Cache.GetString("2fa-verify-" + AuthUser.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache) || !VerifyCache.Equals(CodeInput))
@@ -151,6 +157,18 @@
         if (!User.Auth.AuthenticatorDevices.Any(x => x.Value == true))
             return;
 
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         var AuthUser = await Session.GetCurrentUserAsync();
         var Test = await Authenticator.ValidateAsync("", CodeInput, UserManager, AuthUser);
         if (Test)
@@ -171,6 +189,12 @@
         if (!User.Auth.Passkeys.Any())
             return;
 
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         var Result = await Session.TestPasskey(LogUsage);
         if (Result)
             MudDialog.Close(DialogResult.Ok(true));
@@ -183,6 +207,12 @@
         var AuthUser = await Session.GetCurrentUserAsync();
         if (string.IsNullOrEmpty(AuthUser.Auth.RecoveryCode))
             return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
 
         var Hasher = new PasswordHasher<AuthUser>();
         var Result = Hasher.VerifyHashedPassword(AuthUser, AuthUser.Auth.RecoveryCode, CodeInput);
