@@ -1,7 +1,7 @@
-using DevSpaceWeb.Components;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Services;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.HttpOverrides;
 using MudBlazor.Services;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -9,6 +9,7 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 namespace DevSpaceWeb;
 public class Program
 {
+    public static InteractiveServerRenderMode RenderMode = new InteractiveServerRenderMode(prerender: false);
     /// <summary>
     /// Current directory of the running program
     /// </summary>
@@ -111,7 +112,7 @@ public class Program
         }
         //new InfoTest().Run();
 
-        app.MapRazorComponents<App>()
+        app.MapRazorComponents<Components.App>()
             .AddInteractiveServerRenderMode();
         app.MapControllers();
 

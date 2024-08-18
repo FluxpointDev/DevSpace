@@ -34,7 +34,6 @@ public static class ServiceBuilder
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
-
         AddFido2(services);
         AddIdentity(services);
         AddMongoDb(services);
