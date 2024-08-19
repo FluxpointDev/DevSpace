@@ -8,6 +8,28 @@
 <MudSnackbarProvider></MudSnackbarProvider>
 <MudDialogProvider />
 
+@* <RadzenLayout>
+    <RadzenHeader>
+        <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="Radzen.AlignItems.Center" Gap="0">
+            <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
+            <RadzenLabel Text="Header" />
+        </RadzenStack>
+    </RadzenHeader>
+    <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+        @if (Session.State.User.Identity.IsAuthenticated)
+        {
+            <RadzenPanelMenu>
+                <RadzenPanelMenuItem Path="@("/teams")">My Teams</RadzenPanelMenuItem>
+            </RadzenPanelMenu>
+            //<NavMenu />
+        }
+    </RadzenSidebar>
+    <RadzenBody>
+        <div class="rz-p-4">
+        </div>
+    </RadzenBody>
+</RadzenLayout> *@
+
 <MudLayout>
     @if (Session.SessionError == SessionProvider.SessionErrorType.SessionSecurityNewIp)
     {
@@ -115,6 +137,7 @@
     private SessionProvider Session { get; set; }
 
     bool _drawerOpen = true;
+    bool sidebar1Expanded = true;
 
     void DrawerToggle()
     {

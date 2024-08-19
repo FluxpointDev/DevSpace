@@ -13,6 +13,7 @@ using Microsoft.OpenApi.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDbGenericRepository;
+using Radzen;
 using System.Reflection;
 
 namespace DevSpaceWeb.Services;
@@ -25,7 +26,7 @@ public static class ServiceBuilder
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();
         services.AddDistributedMemoryCache();
-
+        services.AddRadzenComponents();
         services.AddSession(options =>
         {
             options.IdleTimeout = TimeSpan.FromMinutes(2);
