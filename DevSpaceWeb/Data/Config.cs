@@ -55,6 +55,8 @@ public class ConfigFeatures
 }
 public class ConfigLimits
 {
+    public int MaxImageWidthHeight = 3000;
+    public int MaxImageSizeMegabytes = 10;
     public int MaxImagesUpload = 100;
 }
 public class ConfigAdmin
