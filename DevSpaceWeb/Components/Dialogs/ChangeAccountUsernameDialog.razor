@@ -1,21 +1,20 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
 
-<MudDialog>
-    <DialogContent>
-        <MudText>Your username must be unique and is visible to everyone in your team.</MudText>
-        <br />
-        <MudTextField @bind-Value="Username" ShrinkLabel="true" Label="Username" Variant="Variant.Filled" Underline="false"></MudTextField>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="@Cancel">Cancel </MudButton>
-        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="@Submit">Submit</MudButton>
-    </DialogActions>
-</MudDialog>
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        <p>Your username must be unique and is visible to everyone in your team.</p>
+        <RadzenLabel Text="Username" class="rz-my-0"></RadzenLabel>
+        <RadzenTextBox @bind-Value="Username" Style="width: 100%" aria-label="Username TextBox" autocomplete="off" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+    </RadzenStack>
+</RadzenStack>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
@@ -39,11 +38,10 @@
         var Result = await UserManager.SetUserNameAsync(user, Username);
         if (Result.Succeeded)
         {
-            MudDialog.Close(DialogResult.Ok(true));
             Session.TriggerChange();
             _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+            dialogService.Close(true);
         }
 
     }
-    void Cancel() => MudDialog.Cancel();
 }

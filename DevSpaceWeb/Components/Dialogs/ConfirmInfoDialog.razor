@@ -1,27 +1,27 @@
-﻿<MudDialog>
-    <DialogContent>
-        <MudText>@ContentText</MudText>
-    </DialogContent>
-    <DialogActions>
+﻿@inject Radzen.DialogService dialogService
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <p>@ContentText</p>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         @if (ShowCancel)
         {
-            <MudButton OnClick="@Cancel">Cancel </MudButton>
+            <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
         }
-        <MudButton Color="@Color" Variant="Variant.Text" OnClick="@Submit">@ButtonText</MudButton>
-    </DialogActions>
-</MudDialog>
+        <RadzenButton Click="@Submit" ButtonStyle="@Color" Variant="Variant.Text" Text="@ButtonText" Style="min-width: 90px" />
+    </RadzenStack>
+</RadzenStack>
+
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
     [Parameter] public string ContentText { get; set; }
 
     [Parameter] public string ButtonText { get; set; }
 
-    [Parameter] public Color Color { get; set; }
+    [Parameter] public ButtonStyle Color { get; set; }
 
     [Parameter] public bool ShowCancel { get; set; } = true;
 
-    void Submit() => MudDialog.Close(DialogResult.Ok(true));
-    void Cancel() => MudDialog.Cancel();
+    void Submit() => dialogService.Close(true);
 }

@@ -3,11 +3,11 @@
 @using DevSpaceShared.WebSocket
 @using Docker.DotNet.Models
 
-<div class="dash-box">
+@* <div class="dash-box">
     <MudTable @ref="@table" ServerData="ServerReload" Dense="true" Hover="true" Elevation="0" MultiSelection="true" Breakpoint="Breakpoint.Sm">
         <ToolBarContent>
             <div class="dash-box-icon"><span class="iconify" data-icon="ri:box-3-fill"></span></div>
-            <MudText Typo="Typo.h6">Containers</MudText>
+            <RadzenText class="mt-1" TextStyle="TextStyle.H6">Containers</RadzenText>
             <MudSpacer />
             <MudTextField T="string" Margin="Margin.Dense" @bind-Value="@searchString" DebounceInterval="500" OnDebounceIntervalElapsed="@(s=>OnSearch(s))" Placeholder="Search Name" Adornment="Adornment.Start"
                           AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Variant="Variant.Outlined"></MudTextField>
@@ -108,7 +108,7 @@
             <MudTablePager RowsPerPageString="Items per page:" LastIcon="" FirstIcon="" />
         </PagerContent>
     </MudTable>
-</div>
+</div> *@
 
 @code {
     [CascadingParameter]
@@ -116,53 +116,53 @@
 
     DockerResponse<ContainerListResponse[]>? containers = null;
     private string searchString = null;
-    private MudTable<ContainerListResponse> table;
+    // private MudTable<ContainerListResponse> table;
 
-    private void OnSearch(string text)
-    {
-        table.ReloadServerData();
-    }
+    // private void OnSearch(string text)
+    // {
+    //     table.ReloadServerData();
+    // }
 
-    public async Task<TableData<ContainerListResponse>> ServerReload(TableState state, CancellationToken token)
-    {
-        if (Program.IsPreviewMode)
-        {
-            return new TableData<ContainerListResponse>()
-                {
-                    TotalItems = 2,
-                    Items = new List<ContainerListResponse>
-            {
-                new ContainerListResponse { Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)" },
-                new ContainerListResponse { Names = new List<string> { "/discord-bot" }, State = "dead", Status = "" },
-            }
-                };
-        }
+    // public async Task<TableData<ContainerListResponse>> ServerReload(TableState state, CancellationToken token)
+    // {
+    //     if (Program.IsPreviewMode)
+    //     {
+    //         return new TableData<ContainerListResponse>()
+    //             {
+    //                 TotalItems = 2,
+    //                 Items = new List<ContainerListResponse>
+    //         {
+    //             new ContainerListResponse { Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)" },
+    //             new ContainerListResponse { Names = new List<string> { "/discord-bot" }, State = "dead", Status = "" },
+    //         }
+    //             };
+    //     }
 
-        if (containers == null)
-        {
-            try
-            {
-                containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerListResponse[]>>(new IWebSocketTaskEvent(EventType.ListContainers));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-            }
-            if (containers == null)
-                containers = new DockerResponse<ContainerListResponse[]> { Error = DockerError.Failed };
-        }
+    //     if (containers == null)
+    //     {
+    //         try
+    //         {
+    //             containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerListResponse[]>>(new IWebSocketTaskEvent(EventType.ListContainers));
+    //         }
+    //         catch (Exception ex)
+    //         {
+    //             Console.WriteLine(ex);
+    //         }
+    //         if (containers == null)
+    //             containers = new DockerResponse<ContainerListResponse[]> { Error = DockerError.Failed };
+    //     }
 
-        if (containers.Data == null)
-            return new TableData<ContainerListResponse>() { TotalItems = 0, Items = new ContainerListResponse[0] };
+    //     if (containers.Data == null)
+    //         return new TableData<ContainerListResponse>() { TotalItems = 0, Items = new ContainerListResponse[0] };
 
-        var search = string.IsNullOrEmpty(searchString) ? containers.Data.OrderByDirection(state.SortDirection, o => o.Names.First().Substring(1))
-        : containers.Data.Where(x => x.Names.First().Substring(1).Contains(searchString, StringComparison.OrdinalIgnoreCase));
+    //     var search = string.IsNullOrEmpty(searchString) ? containers.Data.OrderByDirection(state.SortDirection, o => o.Names.First().Substring(1))
+    //     : containers.Data.Where(x => x.Names.First().Substring(1).Contains(searchString, StringComparison.OrdinalIgnoreCase));
 
-        var totalItems = search.Count();
-        // Get the paged data
-        var pagedData = search.Skip(state.Page * state.PageSize).Take(state.PageSize).ToList();
-        // Return the data
+    //     var totalItems = search.Count();
+    //     // Get the paged data
+    //     var pagedData = search.Skip(state.Page * state.PageSize).Take(state.PageSize).ToList();
+    //     // Return the data
 
-        return new TableData<ContainerListResponse>() { TotalItems = totalItems, Items = pagedData };
-    }
+    //     return new TableData<ContainerListResponse>() { TotalItems = totalItems, Items = pagedData };
+    // }
 }

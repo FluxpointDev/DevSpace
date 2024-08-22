@@ -3,7 +3,6 @@ using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
-using MudBlazor;
 
 namespace DevSpaceWeb.Data;
 
@@ -56,52 +55,53 @@ public class EmailTemplateData
                 return "New Session IP";
         }
 
-        return Icons.Material.Filled.QuestionMark;
+        return "Error!";
     }
 
     public string GetTypeIcon() => GetTypeIcon(Type);
 
     public static string GetTypeIcon(EmailTemplateType type)
     {
-        switch (type)
-        {
-            case EmailTemplateType.Header:
-                return Icons.Material.Filled.FeaturedPlayList;
-            case EmailTemplateType.Footer:
-                return Icons.Material.Filled.CallToAction;
-            case EmailTemplateType.AccountConfirm:
-                return Icons.Material.Filled.Check;
-            case EmailTemplateType.AccountInvited:
-                return Icons.Material.Filled.PersonAdd;
-            case EmailTemplateType.AccountDeleted:
-                return Icons.Material.Filled.DeleteForever;
-            case EmailTemplateType.JoinTeamRequest:
-                return Icons.Material.Filled.DomainAdd;
-            case EmailTemplateType.AccountPasswordChangeRequest:
-                return Icons.Material.Filled.MoveToInbox;
-            case EmailTemplateType.AccountPasswordChanged:
-                return Icons.Material.Filled.Password;
-            case EmailTemplateType.Account2FAEnabled:
-                return Icons.Material.Filled.VpnKey;
-            case EmailTemplateType.Account2FADisabled:
-                return Icons.Material.Filled.VpnKeyOff;
-            case EmailTemplateType.AccountEnabled:
-                return Icons.Material.Filled.LockOpen;
-            case EmailTemplateType.AccountDisabled:
-                return Icons.Material.Filled.Lock;
-            case EmailTemplateType.AccessCode:
-                return Icons.Material.Filled.Password;
-            case EmailTemplateType.AccountEmailChangeCode:
-                return Icons.Material.Filled.ForwardToInbox;
-            case EmailTemplateType.AccountEmailChangeRequest:
-                return Icons.Material.Filled.MarkEmailUnread;
-            case EmailTemplateType.AccountEmailChanged:
-                return Icons.Material.Filled.MarkEmailRead;
-            case EmailTemplateType.NewSessionIp:
-                return Icons.Material.Filled.LocationOn;
-        }
+        return "";
+        //switch (type)
+        //{
+        //    case EmailTemplateType.Header:
+        //        return Icons.Material.Filled.FeaturedPlayList;
+        //    case EmailTemplateType.Footer:
+        //        return Icons.Material.Filled.CallToAction;
+        //    case EmailTemplateType.AccountConfirm:
+        //        return Icons.Material.Filled.Check;
+        //    case EmailTemplateType.AccountInvited:
+        //        return Icons.Material.Filled.PersonAdd;
+        //    case EmailTemplateType.AccountDeleted:
+        //        return Icons.Material.Filled.DeleteForever;
+        //    case EmailTemplateType.JoinTeamRequest:
+        //        return Icons.Material.Filled.DomainAdd;
+        //    case EmailTemplateType.AccountPasswordChangeRequest:
+        //        return Icons.Material.Filled.MoveToInbox;
+        //    case EmailTemplateType.AccountPasswordChanged:
+        //        return Icons.Material.Filled.Password;
+        //    case EmailTemplateType.Account2FAEnabled:
+        //        return Icons.Material.Filled.VpnKey;
+        //    case EmailTemplateType.Account2FADisabled:
+        //        return Icons.Material.Filled.VpnKeyOff;
+        //    case EmailTemplateType.AccountEnabled:
+        //        return Icons.Material.Filled.LockOpen;
+        //    case EmailTemplateType.AccountDisabled:
+        //        return Icons.Material.Filled.Lock;
+        //    case EmailTemplateType.AccessCode:
+        //        return Icons.Material.Filled.Password;
+        //    case EmailTemplateType.AccountEmailChangeCode:
+        //        return Icons.Material.Filled.ForwardToInbox;
+        //    case EmailTemplateType.AccountEmailChangeRequest:
+        //        return Icons.Material.Filled.MarkEmailUnread;
+        //    case EmailTemplateType.AccountEmailChanged:
+        //        return Icons.Material.Filled.MarkEmailRead;
+        //    case EmailTemplateType.NewSessionIp:
+        //        return Icons.Material.Filled.LocationOn;
+        //}
 
-        return Icons.Material.Filled.QuestionMark;
+        //return Icons.Material.Filled.QuestionMark;
     }
 
     public string Name { get; set; }

@@ -1,31 +1,28 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
 
-<MudDialog>
-    <DialogContent>
-        <MudAlert Severity="Severity.Info" Variant="Variant.Filled">Copy or download this code and keep it safe!</MudAlert>
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+            Copy or download this code and keep it safe!
+        </RadzenAlert>
         <br />
         <p>@Code</p>
         <br />
-        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small" Href="@("/auth/account/downloadRecoveryCode?token=" + DownloadToken)" Target="_blank">Download</MudButton>
-    </DialogContent>
-    <DialogActions>
-        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="@Submit">Ok</MudButton>
-    </DialogActions>
-</MudDialog>
+        <a href="@("/auth/account/downloadRecoveryCode?token=" + DownloadToken)" target="_blank"><RadzenButton Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Text="Download" /></a>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@(() => dialogService.Close(true))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Ok" Style="width: 90px" />
+    </RadzenStack>
+</RadzenStack>
+
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
     [Parameter] public string Code { get; set; }
 
     [Parameter] public string DownloadToken { get; set; }
-
-    void Submit()
-    {
-        MudDialog.Close(DialogResult.Ok(true));
-    }
 }

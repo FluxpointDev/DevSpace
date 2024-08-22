@@ -5,11 +5,18 @@
     <div class="dash-box dash-box-content">
         <h3>@_Data.Config.Instance.Name Admin</h3>
         <p>Enter your Admin Key here, you can find this in /Data/Config.json</p>
-        <MudTextField @bind-Value="AdminKeyInput" Label="Admin Key" ShrinkLabel="true" Variant="Variant.Filled" Underline="false" Error="!string.IsNullOrEmpty(ErrorText)" ErrorText="@ErrorText"></MudTextField>
         <br />
-        <MudAlert Severity="Severity.Info">Preview Mode: You can press Check or enter anything to view this.</MudAlert>
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Admin Key</RadzenText>
+        <RadzenTextBox @bind-Value="AdminKeyInput" Style="width: 100%" aria-label="Admin key TextBox" />
+        @if (Program.IsPreviewMode)
+        {
+            <br />
+            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                Preview Mode: You can press Check or enter anything to view this.
+            </RadzenAlert>
+        }
         <br />
-        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@CheckAdminKey">Check</MudButton>
+        <RadzenButton Click="@CheckAdminKey" Variant="Variant.Filled" Shade="Shade.Dark" Text="Check" />
     </div>
 }
 else if (!_Data.Config.isFullySetup)
@@ -50,6 +57,9 @@ else
             break;
         case "dev_services":
             <AdminDevServices></AdminDevServices>
+            break;
+        case "dev_design":
+            <AdminDevDesign></AdminDevDesign>
             break;
         case "templates":
             <AdminEmailTemplates></AdminEmailTemplates>

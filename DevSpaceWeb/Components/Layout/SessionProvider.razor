@@ -12,10 +12,9 @@
 @inject IDistributedCache Cache
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpContextAccessor Http
-@inject IDialogService DialogService
+@inject DialogService DialogService
 @inject IDistributedCache Cache
 @implements IDisposable
-@inject ISnackbar Snackbar
 
 @if (Ready)
 {
@@ -23,8 +22,7 @@
     {
         case SessionErrorType.HttpsRequired:
             {
-                <MudThemeProvider IsDarkMode="true" />
-                <MudPopoverProvider />
+                <RadzenComponents />
                 <div class="dash-box dash-box-content" style="padding: 10px;">
                     <div class="dash-box-header">
                         <MudText Typo="Typo.h6">Http Error</MudText>
@@ -36,8 +34,7 @@
             break;
         case SessionErrorType.SessionSecurityError:
             {
-                <MudThemeProvider IsDarkMode="true" />
-                <MudPopoverProvider />
+                <RadzenComponents />
                 <div class="dash-box dash-box-content" style="padding: 10px;">
                     <div class="dash-box-header">
                         <MudText Typo="Typo.h6">Session Security Error</MudText>
@@ -49,8 +46,7 @@
             break;
         case SessionErrorType.AuthenticationError:
             {
-                <MudThemeProvider IsDarkMode="true" />
-                <MudPopoverProvider />
+                <RadzenComponents />
                 <div class="dash-box dash-box-content" style="padding: 10px;">
                     <div class="dash-box-header">
                         <MudText Typo="Typo.h6">Authentication Error</MudText>
@@ -62,10 +58,7 @@
             break;
         case SessionErrorType.AuthenticationRequired:
             {
-                <MudThemeProvider IsDarkMode="true" />
-                <MudPopoverProvider />
-                <MudSnackbarProvider></MudSnackbarProvider>
-                <MudDialogProvider />
+                <RadzenComponents />
                 <CascadingValue Value="@this">
                     <DevSpaceWeb.Components.Auth.LoginPage></DevSpaceWeb.Components.Auth.LoginPage>
                 </CascadingValue>
@@ -78,14 +71,15 @@
                 {
                     @if (!_DB.IsConnected)
                     {
-                        <MudThemeProvider IsDarkMode="true" />
-                        <MudPopoverProvider />
+                        <RadzenComponents />
                         <div class="dash-box dash-box-content" style="padding: 10px;">
                             <div class="dash-box-header">
                                 <MudText Typo="Typo.h6">Database Error</MudText>
                             </div>
                             <br />
-                            <MudAlert Severity="Severity.Error" Variant="Variant.Filled">Can't connect to database.</MudAlert>
+                            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                                Can't connect to database.
+                            </RadzenAlert>
                         </div>
                     }
                     else
@@ -105,24 +99,30 @@
             }
             break;
     }
+
+    <style>
+        .loading {
+            display: none !important;
+        }
+    </style>
 }
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
     <a href="" class="reload">Reload</a>
-    <a class="dismiss">🗙</a>
+    or get support
+    <a href="https://discord.gg/fluxpoint" target="_blank"></a>
 </div>
 
-<style>
-    html {
-        background-image: url("@BackgroundUrl") !important;
-    }
+@if (!string.IsNullOrEmpty(BackgroundUrl))
+{
+    <style>
+        html {
+            background-image: url("@BackgroundUrl") !important;
+        }
+    </style>
+}
 
-    body {
-        background: transparent !important;
-        background-color: rgba(0,0,0,0.55) !important;
-    }
-</style>
 
 @code {
     [Parameter]
@@ -147,34 +147,28 @@
 
     public void ShowPreviewModeNotice()
     {
-        Snackbar.Add("This action is disabled in Preview Mode", Severity.Info, opt =>
+        @* Snackbar.Add("This action is disabled in Preview Mode", Severity.Info, opt =>
         {
             opt.ShowTransitionDuration = 500;
             opt.HideTransitionDuration = 500;
-        }, "previewmode");
+        }, "previewmode"); *@
     }
 
     public async Task<bool> TriggerTwoFactorAuthentication(AuthUser user, bool logUsage)
     {
-        var parameters = new DialogParameters<TwoFactorVerifyDialog>
+        var options = new DialogOptions() { };
+
+        var Dialog = await DialogService.OpenAsync<TwoFactorVerifyDialog>("2FA Verification", new Dictionary<string, object>()
         {
-            { x => x.LogUsage, logUsage },
-            { x => x.User, user }
-        };
+            { "LogUsage", logUsage },
+            { "User", user }
+        }, options);
 
-        var Dialog = await DialogService.ShowAsync<TwoFactorVerifyDialog>("2FA Verification", parameters, new DialogOptions
-            {
-                MaxWidth = MaxWidth.Medium
-            });
 
-        if (Dialog != null)
-        {
-            var Result = await Dialog.Result;
-            if (Result != null && !Result.Canceled)
-                return true;
-        }
+        if (Dialog == null)
+            return false;
 
-        return false;
+        return (bool)Dialog;
     }
 
     public async Task<bool> TestPasskey(bool logUsage)

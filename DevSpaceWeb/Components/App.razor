@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en" style="background-color: #1b1b1b !important;">
+<html lang="en" style="background-color: #272727; box-shadow: inset 0 0 0 100vh rgba(0, 0, 0, 0.55);">
 
 <head>
     <meta charset="utf-8" />
@@ -8,23 +8,38 @@
     <meta name="description" content="@_Data.Config.Instance.Description">
     <base href="/" />
     <script src="js/blazor.min.js"></script>
-    <link href="app.css" rel="stylesheet" />
+    <link href="app.css?v=1" rel="stylesheet" />
     <link rel="preload" href="https://cdn.fluxpoint.dev/devspace/background.webp" as="image" type="image/webp" />
-    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" defer />
-    <link href="css/main.css" rel="stylesheet" />
+    <link href="css/utils.css" rel="stylesheet" />
+    <link href="css/main.css?v=1" rel="stylesheet" />
     <link href="css/roboto.css?v=1" rel="stylesheet" defer />
-    <link href="css/nav.css" rel="stylesheet" defer />
-    <link href="css/fixes.css" rel="stylesheet" defer />
-    <link href="css/tweaks.css" rel="stylesheet" defer />
-    <link href="DevSpaceWeb.styles.css" rel="stylesheet" defer />
-    <RadzenTheme Theme="standard-dark" @rendermode="Program.RenderMode" />
+    <link href="css/nav.css?v=1" rel="stylesheet" defer />
+    <RadzenTheme Theme="standard-dark" @rendermode="new InteractiveServerRenderMode()" />
+    <link href="_content/Radzen.Blazor/css/standard-dark-base.css" defer />
+    <link href="_content/Radzen.Blazor/fonts/MaterialSymbolsOutlined.woff2" defer />
+    <link href="css/tweaks.css?v=1" rel="stylesheet" defer />
+    <link href="DevSpaceWeb.styles.css?v=1" rel="stylesheet" defer />
+
 </head>
 
 <body>
+    <div class="loading dash-box dash-box-content">
+        <div class="loading-content">
+            <div class="flex-center mb-3">
+                <img src="@_Data.Config.Instance.GetIconOrDefault()" style="height: 40px; width: 40px;" />
+                <h3 class="ml-3 mt-2">@_Data.Config.Instance.Name</h3>
+            </div>
+            <div class="rz-progressbar-circular rz-progressbar-indeterminate rz-progressbar-primary rz-progressbar-circular-md" style="margin-top: 10px; margin: auto;">
+                <svg class="rz-progressbar-circular-viewbox" viewBox="-19 -19 38 38">
+                    <circle class="rz-progressbar-circular-value" r="15.91549" fill="none" stroke-dashoffset="0"></circle>
+                </svg>
+            </div>
+            <p class="mt-5" style="color: white;">Created by Fluxpoint Development - <a href="https://discord.gg/fluxpoint" target="_blank">Discord</a></p>
+        </div>
+    </div>
     <Routes @rendermode="Program.RenderMode" />
-    <script src="_content/Radzen.Blazor/Radzen.Blazor.js"></script>
+    <script src="_content/Radzen.Blazor/Radzen.Blazor.js" async></script>
     <script src="js/iconify.min.js" async></script>
-    <script src="_content/MudBlazor/MudBlazor.min.js" async></script>
     <script src="/js/qrcode.min.js" defer></script>
     <script src="/js/utils.js" defer></script>
     <script src="/js/auth.js" defer></script>

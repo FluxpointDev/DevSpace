@@ -2,10 +2,11 @@
 @inject AuthenticatorTokenProvider<AuthUser> Authenticator
 @inject UserManager<AuthUser> UserManager
 @inject IJSRuntime JS
+@inject Radzen.DialogService dialogService
 
-<MudDialog>
-    <DialogContent>
-        <MudText>Scan this QR code or copy the setup key into any Authenticator app.</MudText>
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <p>Scan this QR code or copy the setup key into any Authenticator app.</p>
         <br />
         <div id="qrcode" style="max-height: 228px !important; max-width: 228px !important;">
         </div>
@@ -13,19 +14,21 @@
         <div id="setupkey">
             @SetupKey
         </div>
-        <br />
-        <MudTextField @bind-Value="CodeInput" Required="true" ShrinkLabel="true" Label="Code" Variant="Variant.Filled" Underline="false"></MudTextField>
         <div hidden id="setupurl" style="display: none">
             @SetupUrl
         </div>
         <br />
-        <MudTextField @bind-Value="DeviceNameInput" Required="true" ShrinkLabel="true" Label="Device Name" Variant="Variant.Filled" Underline="false"></MudTextField>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="@Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="@Submit" Disabled="@((string.IsNullOrEmpty(CodeInput) || string.IsNullOrEmpty(DeviceNameInput)))">Verify</MudButton>
-    </DialogActions>
-</MudDialog>
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Code</RadzenText>
+        <RadzenTextBox @bind-Value="CodeInput" Style="width: 100%" aria-label="Code TextBox" />
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Device Name</RadzenText>
+        <RadzenTextBox @bind-Value="DeviceNameInput" Style="width: 100%" aria-label="Device Name TextBox" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+    </RadzenStack>
+</RadzenStack>
 
 <style>
     #qrcode {
@@ -41,8 +44,6 @@
 </style>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
@@ -86,10 +87,9 @@
             user.Auth.IsTwoFactorEnabled = true;
             await UserManager.UpdateAsync(user);
             _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
-            MudDialog.Close(DialogResult.Ok(true));
+            dialogService.Close(true);
         }
 
 
     }
-    void Cancel() => MudDialog.Cancel();
 }

@@ -2,15 +2,17 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.Extensions.Caching.Distributed
 @inject UserManager<AuthUser> UserManager
-@inject IDialogService DialogService
 @inject IDistributedCache Cache
 @inject EmailService Email
 @inject NavigationManager NavigationManager
 @inject AuthenticatorTokenProvider<AuthUser> Authenticator
+@inject Radzen.DialogService dialogService
 
-<MudDialog>
-    <DialogContent>
-        <MudAlert Severity="Severity.Info">Two-factor authentication is required!</MudAlert>
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+            Two-factor authentication is required!
+        </RadzenAlert>
         <br />
         @if (AuthType == 0)
         {
@@ -59,39 +61,42 @@
                     <p>Disabled: Not setup</p>
                 </div>
             }
-
         }
         else if (AuthType == 1)
         {
-            <MudTextField @bind-Value="CodeInput" ShrinkLabel="true" Label="Email Code" Variant="Variant.Filled" Underline="false"></MudTextField>
+            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Email Code</RadzenText>
+            <RadzenTextBox @bind-Value="CodeInput" Style="width: 100%" aria-label="Email Code TextBox" />
             <br />
-            <MudButton OnClick="@VerifyEmail" Color="Color.Success">Verify</MudButton>
+            <RadzenButton Click="@VerifyEmail" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
         }
         else if (AuthType == 2)
         {
-            <MudTextField @bind-Value="CodeInput" ShrinkLabel="true" Label="Auth Code" Variant="Variant.Filled" Underline="false"></MudTextField>
+
+            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Auth Code</RadzenText>
+            <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="CodeInput" Count="6" Gap="6px" aria-label="Auth Code" />
             <br />
-            <MudButton OnClick="@VerifyAuthenticator" Color="Color.Success">Verify</MudButton>
+            <RadzenButton Click="@VerifyAuthenticator" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
         }
         else if (AuthType == 3)
         {
-            <MudTextField @bind-Value="CodeInput" ShrinkLabel="true" Label="Recovery Code" Variant="Variant.Filled" Underline="false"></MudTextField>
+            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Recovery Code</RadzenText>
+            <RadzenTextBox @bind-Value="CodeInput" Style="width: 100%" aria-label="Email Code TextBox" />
             <br />
-            <MudButton OnClick="@VerifyRecoveryCode" Color="Color.Success">Verify</MudButton>
+            <RadzenButton Click="@VerifyRecoveryCode" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
         }
-    </DialogContent>
-    <DialogActions>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         @if (AuthType != 0)
         {
-            <MudButton OnClick="@(() => { AuthType = 0; CodeInput = string.Empty; })">Back</MudButton>
+            <RadzenButton Click="@(() => { AuthType = 0; CodeInput = string.Empty; })" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Back" Style="width: 90px" />
         }
-        <MudButton OnClick="@Cancel">Cancel</MudButton>
-    </DialogActions>
-</MudDialog>
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Warning" Text="Cancel" Style="width: 90px" />
+    </RadzenStack>
+</RadzenStack>
+
+
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
@@ -106,7 +111,7 @@
     {
         if (!Email.CanSendEmail())
         {
-            await DialogService.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            await dialogService.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
             return;
         }
         var AuthUser = await Session.GetCurrentUserAsync();
@@ -137,7 +142,7 @@
         var AuthUser = await Session.GetCurrentUserAsync();
         string VerifyCache = Cache.GetString("2fa-verify-" + AuthUser.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache) || !VerifyCache.Equals(CodeInput))
-            await DialogService.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
+            await dialogService.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
         else
         {
             if (LogUsage)
@@ -146,7 +151,7 @@
                 AuthUser.Auth.EmailCodeLastUsedAt = DateTimeOffset.UtcNow;
                 await UserManager.UpdateAsync(AuthUser);
             }
-            MudDialog.Close(DialogResult.Ok(true));
+            dialogService.Close(true);
         }
 
     }
@@ -178,10 +183,10 @@
                 AuthUser.Auth.AuthenticatorLastUsedAt = DateTimeOffset.UtcNow;
                 await UserManager.UpdateAsync(AuthUser);
             }
-            MudDialog.Close(DialogResult.Ok(true));
+            dialogService.Close(true);
         }
         else
-            await DialogService.ShowInfoAsync("Authenticator Failed", $"Failed to verify authenticator code.");
+            await dialogService.ShowInfoAsync("Authenticator Failed", $"Failed to verify authenticator code.");
     }
 
     public async Task VerifyPasskey()
@@ -197,9 +202,9 @@
 
         var Result = await Session.TestPasskey(LogUsage);
         if (Result)
-            MudDialog.Close(DialogResult.Ok(true));
+            dialogService.Close(true);
         else
-            await DialogService.ShowInfoAsync("Passkey Failed", $"Failed to verify your passkey.");
+            await dialogService.ShowInfoAsync("Passkey Failed", $"Failed to verify your passkey.");
     }
 
     public async Task VerifyRecoveryCode()
@@ -224,12 +229,9 @@
                 await UserManager.UpdateAsync(AuthUser);
             }
 
-            MudDialog.Close(DialogResult.Ok(true));
+            dialogService.Close(true);
         }
         else
-            await DialogService.ShowInfoAsync("Recovery Code Failed", $"Failed to verify your recovery code.");
+            await dialogService.ShowInfoAsync("Recovery Code Failed", $"Failed to verify your recovery code.");
     }
-
-
-    void Cancel() => MudDialog.Cancel();
 }

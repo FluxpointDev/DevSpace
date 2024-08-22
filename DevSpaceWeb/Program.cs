@@ -3,7 +3,6 @@ using DevSpaceWeb.Database;
 using DevSpaceWeb.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.HttpOverrides;
-using MudBlazor.Services;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace DevSpaceWeb;
@@ -60,8 +59,6 @@ public class Program
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
         builder.Services.AddControllers();
-
-        builder.Services.AddMudServices().AddMudPopoverService().AddMudBlazorSnackbar().AddMudBlazorDialog();
 
         Services = builder.Services;
 

@@ -1,18 +1,20 @@
-﻿<MudDialog>
-    <DialogContent>
-        <MudTextField T="string" Label="Background Url" @bind-Value="BackgroundUrl"
-                      InputType="InputType.Url" Variant="Variant.Filled" Underline="false" ShrinkLabel="true"
-                      Required="true" RequiredError="Url is required!" />
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="@Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="@Submit">Submit</MudButton>
-    </DialogActions>
-</MudDialog>
+﻿@inject Radzen.DialogService dialogService
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <p>Changing your email address will require verification with the current email address.</p>
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Background Url</RadzenText>
+        <RadzenTextBox @bind-Value="BackgroundUrl" Style="width: 100%" aria-label="Background Url TextBox" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+    </RadzenStack>
+</RadzenStack>
+
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
@@ -22,8 +24,7 @@
     {
         Session.BackgroundUrl = BackgroundUrl;
         Session.TriggerChange();
-        MudDialog.Close(DialogResult.Ok(true));
+        dialogService.Close(true);
     }
 
-    void Cancel() => MudDialog.Cancel();
 }

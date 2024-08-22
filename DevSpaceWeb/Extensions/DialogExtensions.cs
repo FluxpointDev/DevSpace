@@ -1,48 +1,44 @@
 ﻿using DevSpaceWeb.Components.Dialogs;
-using MudBlazor;
+using Radzen;
 
 namespace DevSpaceWeb;
 
 public static class DialogExtensions
 {
-    public static async Task<DialogResult?> ShowConfirmAsync(this IDialogService service, string title, string text, string buttonText, Color color)
+    public static async Task<bool> ShowConfirmAsync(this DialogService service, string title, string text, string buttonText, ButtonStyle color)
     {
-        var parameters = new DialogParameters<ConfirmInfoDialog>
+        var options = new DialogOptions() { };
+
+        var Dialog = await service.OpenAsync<ConfirmInfoDialog>(title, new Dictionary<string, object>()
         {
-            { x => x.ContentText, text },
-            { x => x.ButtonText, buttonText },
-            { x => x.Color, color }
-        };
+            { "ContentText", text },
+            { "ButtonText", buttonText },
+            { "Color", color }
+        }, options);
 
-        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
-        var Dialog = await service.ShowAsync<ConfirmInfoDialog>(title, parameters, options);
         if (Dialog == null)
-            return null;
+            return false;
 
-        var Result = await Dialog.Result;
-
-        return Result;
+        return (bool)Dialog;
     }
 
-    public static async Task<DialogResult?> ShowInfoAsync(this IDialogService service, string title, string text)
+    public static async Task<bool> ShowInfoAsync(this DialogService service, string title, string text)
     {
-        var parameters = new DialogParameters<ConfirmInfoDialog>
+        var options = new DialogOptions() { };
+
+        var Dialog = await service.OpenAsync<ConfirmInfoDialog>(title, new Dictionary<string, object>()
         {
-            { x => x.ContentText, text },
-            { x => x.ButtonText, "Ok" },
-            { x => x.Color, Color.Success },
-            { x => x.ShowCancel, false }
-        };
+            { "ContentText", text },
+            { "ButtonText", "Ok" },
+            { "Color", Radzen.Colors.Success },
+            { "ShowCancel", false }
+        }, options);
 
-        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
 
-        var Dialog = await service.ShowAsync<ConfirmInfoDialog>(title, parameters, options);
         if (Dialog == null)
-            return null;
+            return false;
 
-        var Result = await Dialog.Result;
-
-        return Result;
+        return (bool)Dialog;
     }
 }

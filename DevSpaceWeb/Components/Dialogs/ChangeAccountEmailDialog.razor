@@ -3,22 +3,22 @@
 @inject UserManager<AuthUser> UserManager
 @inject EmailService EmailService
 @inject NavigationManager NavigationManager
+@inject Radzen.DialogService dialogService
 
-<MudDialog>
-    <DialogContent>
-        <MudText>Changing your email address will require verification with the current email address.</MudText>
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+    <RadzenStack>
+        <p>Changing your email address will require verification with the current email address.</p>
         <br />
-        <MudTextField @bind-Value="Email" ShrinkLabel="true" Label="Email" Variant="Variant.Filled" Underline="false"></MudTextField>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="@Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Success" Variant="Variant.Text" OnClick="@Submit">Submit</MudButton>
-    </DialogActions>
-</MudDialog>
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Email</RadzenText>
+        <RadzenTextBox @bind-Value="Email" Style="width: 100%" aria-label="Email TextBox" autocomplete="off" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+    </RadzenStack>
+</RadzenStack>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
@@ -42,7 +42,7 @@
         AuthUser? FindUser = await UserManager.FindByEmailAsync(Email);
         if (FindUser != null)
         {
-            MudDialog.Close(DialogResult.Ok(true));
+            dialogService.Close(false);
             return;
         }
         var Code = await UserManager.GenerateChangeEmailTokenAsync(user, Email);
@@ -51,7 +51,6 @@
         string EmailEscape = Uri.EscapeDataString(Email);
         await EmailService.SendAccountConfirm(user, (NavigationManager.BaseUri + "auth/account/changeEmail?email=" + EmailEscape + "&token=" + Code));
 
-        MudDialog.Close(DialogResult.Ok(true));
+        dialogService.Close(true);
     }
-    void Cancel() => MudDialog.Cancel();
 }

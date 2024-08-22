@@ -1,36 +1,65 @@
 ﻿@using DevSpaceWeb.Components.Dialogs
 @using DevSpaceWeb.Components.Layout.Nav
+@using Radzen.Blazor
 @inherits LayoutComponentBase
-@inject IDialogService DialogService
+@inject Radzen.DialogService dialogService
 
-<MudThemeProvider IsDarkMode="true" />
-<MudPopoverProvider />
-<MudSnackbarProvider></MudSnackbarProvider>
-<MudDialogProvider />
+<RadzenComponents />
 
-@* <RadzenLayout>
+<RadzenLayout>
     <RadzenHeader>
         <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="Radzen.AlignItems.Center" Gap="0">
-            <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" />
-            <RadzenLabel Text="Header" />
+            <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" Style="border: none !important;" />
+            <RadzenText class="top-title" Style="color: var(--rz-text-color) !important;" TextStyle="TextStyle.H6" TagName="TagName.P">Dev Space</RadzenText>
+            <div class="top-divider"></div>
+            <RadzenMenu ClickToOpen="false">
+                <RadzenMenuItem Text="General">
+                    <RadzenMenuItem Text="Http Codes" Path="/info/http"></RadzenMenuItem>
+                </RadzenMenuItem>
+                <RadzenMenuItem Text="Tools">
+                    <RadzenMenuItem Text="Text Editor"></RadzenMenuItem>
+                    <RadzenMenuItem Text="Images">
+                        <RadzenMenuItem Text="Convert Images"></RadzenMenuItem>
+                    </RadzenMenuItem>
+                </RadzenMenuItem>
+            </RadzenMenu>
+            @if (Session.State.User.Identity.IsAuthenticated)
+            {
+                <div style="flex-grow: 1 !important;"></div>
+                @if (Program.IsPreviewMode)
+                {
+                    <RadzenMenu id="NavPreview" ClickToOpen="false">
+                        <RadzenMenuItem Text="Preview Mode">
+                            <RadzenMenuItem Text="Change Background" Click="@(() => dialogService.Open<ChangeBackgroundDialog>("Change Background"))"></RadzenMenuItem>
+                        </RadzenMenuItem>
+                    </RadzenMenu>
+                }
+                <RadzenMenu ClickToOpen="false">
+                    <RadzenMenuItem id="NavUser" Text="@Session.State.User.Identity.Name">
+                        <RadzenMenuItem Path="/user/settings" Text="Settings"></RadzenMenuItem>
+                        <RadzenMenuItem Path="/admin" Text="Admin"></RadzenMenuItem>
+                        <RadzenMenuItem Path="/logout" Text="Logout"></RadzenMenuItem>
+                    </RadzenMenuItem>
+                </RadzenMenu>
+                <div style="width: 30px;"></div>
+            }
+
         </RadzenStack>
     </RadzenHeader>
     <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
         @if (Session.State.User.Identity.IsAuthenticated)
         {
-            <RadzenPanelMenu>
-                <RadzenPanelMenuItem Path="@("/teams")">My Teams</RadzenPanelMenuItem>
-            </RadzenPanelMenu>
-            //<NavMenu />
+            <NavMenu />
         }
     </RadzenSidebar>
     <RadzenBody>
-        <div class="rz-p-4">
+        <div class="rz-p-1">
+            @Body
         </div>
     </RadzenBody>
-</RadzenLayout> *@
+</RadzenLayout>
 
-<MudLayout>
+@* <MudLayout>
     @if (Session.SessionError == SessionProvider.SessionErrorType.SessionSecurityNewIp)
     {
         <DevSpaceWeb.Components.Auth.NewIpPage Session="Session"></DevSpaceWeb.Components.Auth.NewIpPage>
@@ -94,7 +123,7 @@
             @Body
         </MudMainContent>
     }
-</MudLayout>
+</MudLayout> *@
 
 
 <style>
@@ -126,9 +155,25 @@
         cursor: default !important;
     }
 
-    .mud-dialog {
-        max-width: 970px !important;
-        margin-top: -20px;
+    :root {
+        --rz-sidebar-width: 230px;
+        --rz-input-shadow: none !important;
+    }
+
+    input:focus {
+        box-shadow: none !important;
+    }
+
+
+    .top-divider {
+        align-self: stretch;
+        margin-top: 6px;
+        margin-bottom: 6px;
+        margin-left: 14px;
+        margin-right: 14px;
+        border-style: none solid none none;
+        border-color: var(--rz-base-600);
+        border-width: 1px;
     }
 </style>
 

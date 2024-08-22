@@ -15,8 +15,8 @@ public class FirewallDefaultResponse
 }
 public class FirewallRuleResponse
 {
-    public string To;
-    public string Action;
-    public string From;
-    public string Comment;
+    public string To { get; set; }
+    public string Action { get; set; }
+    public string From { get; set; }
+    public string Comment { get; set; }
 }
