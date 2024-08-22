@@ -23,7 +23,7 @@ public class Program
     /// </summary>
     public static bool IsDevMode { get; private set; }
 
-    public static bool IsPreviewMode { get; set; } = true;
+    public static bool IsPreviewMode { get; set; } = false;
 
     public static void Main(string[] args)
     {
