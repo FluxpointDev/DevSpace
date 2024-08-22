@@ -3,6 +3,68 @@
 @using DevSpaceShared.WebSocket
 @using Docker.DotNet.Models
 
+<div class="dash-box">
+    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="15"
+                    AllowSorting="true" Data="@employees" Count="@count" LoadData="@LoadData"
+                    IsLoading="@isLoading" GridLines="DataGridGridLines.Horizontal"
+                    LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Simple"
+                    SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="@selectedEmployees">
+        <Columns>
+            <RadzenDataGridColumn Title="Name" MinWidth="120px">
+                <Template>
+                    @context.Names.First().Substring(1)
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Status" MinWidth="120px">
+                <Template>
+                    @switch (context.State)
+                    {
+                        case "running":
+                            @if (context.Status.EndsWith("(healthy)"))
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Healthy" IsPill="true" />
+                            }
+                            else if (context.Status.EndsWith("(unhealthy)"))
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Unhealthy" IsPill="true" />
+                            }
+                            else
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Running" IsPill="true" />
+                            }
+                            break;
+                        case "created":
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Created" IsPill="true" />
+                            break;
+                        case "restarting":
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Restarting" IsPill="true" />
+                            break;
+                        case "removing":
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Removing" IsPill="true" />
+                            break;
+                        case "paused":
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Paused" IsPill="true" />
+                            break;
+                        case "exited":
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Exited" IsPill="true" />
+                            break;
+                        case "dead":
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" />
+                            break;
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="" MinWidth="120px">
+                <Template>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</div>
+
+
+
 @* <div class="dash-box">
     <MudTable @ref="@table" ServerData="ServerReload" Dense="true" Hover="true" Elevation="0" MultiSelection="true" Breakpoint="Breakpoint.Sm">
         <ToolBarContent>
@@ -115,7 +177,57 @@
     private SessionProvider Session { get; set; }
 
     DockerResponse<ContainerListResponse[]>? containers = null;
-    private string searchString = null;
+
+    IEnumerable<ContainerListResponse> employees;
+    public int count = 0;
+    IList<ContainerListResponse> selectedEmployees;
+    RadzenDataGrid<ContainerListResponse> grid;
+    public bool isLoading = false;
+
+    public async Task LoadData(LoadDataArgs args)
+    {
+        isLoading = true;
+
+        await Task.Yield();
+        Console.WriteLine("Loading Data");
+        if (Program.IsPreviewMode)
+        {
+            employees = new List<ContainerListResponse>
+             {
+                 new ContainerListResponse { Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)" },
+                 new ContainerListResponse { Names = new List<string> { "/discord-bot" }, State = "dead", Status = "" },
+             };
+            count = 2;
+        }
+        else
+        {
+            if (containers == null)
+            {
+                try
+                {
+                    containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerListResponse[]>>(new IWebSocketTaskEvent(EventType.ListContainers));
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
+                }
+            }
+
+            if (containers != null)
+            {
+                var query = containers.Data;
+                count = query.Count();
+                employees = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+            }
+        }
+
+        isLoading = false;
+    }
+
+
+
+    //private string searchString = null;
     // private MudTable<ContainerListResponse> table;
 
     // private void OnSearch(string text)
