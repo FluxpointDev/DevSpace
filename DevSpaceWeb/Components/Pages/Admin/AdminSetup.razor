@@ -6,83 +6,126 @@
 @using MongoDB.Driver
 @inject UserManager<AuthUser> UserManager
 
-@* <div class="dash-box dash-box-content">
-    <h3>Dev Space Setup</h3>
-    <p>You need to configure this app to work correctly!</p>
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:database"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Database</RadzenText>
+    </div>
     <br />
+    <RadzenTimeline LinePosition="LinePosition.Left">
+        <Items>
+            <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Database)">
+                <ChildContent>
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">Database</RadzenText>
+                        <br />
+                        <RadzenLabel Text="Database Name" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="DatabaseName" Style="width: 100%" aria-label="Database Name" autocomplete="off"
+                                       Disabled="@(SetupStep != SetupStepType.Database)" />
 
-    <MudTimeline TimelinePosition="TimelinePosition.Start" Modifiers="true">
-        <MudTimelineItem Size="Size.Small" Color="@GetStepColor(SetupStepType.Database)" Elevation="4">
-            <MudCard Outlined="false" Elevation="4">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">Database</MudText>
-                    <br />
-                    <MudTextField Value="@DatabaseName" Label="Database Name" HelperText="You can leave this as default" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)"></MudTextField>
-                    <MudSelect @bind-Value="@DatabaseType" T="string" Label="Database Setup" AnchorOrigin="Origin.BottomCenter" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)">
-                        <MudSelectItem Value="@("Automatic")" />
-                        <MudSelectItem Value="@("Manual")" />
-                    </MudSelect>
-                    @if (MongoDBDetected)
-                    {
-                        <MudAlert Severity="Severity.Warning">MongoDB is already installed on this server, manual setup is required!</MudAlert>
-                    }
-                    @if (DatabaseType == "Manual")
-                    {
-                        <MudTextField @bind-Value="@DatabaseIP" Label="Database IP" ShrinkLabel="true" Placeholder="1.1.1.1" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)"></MudTextField>
-                        <MudTextField @bind-Value="@DatabasePort" Label="Database Port" ShrinkLabel="true" Placeholder="0000" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)"></MudTextField>
-                        <MudTextField @bind-Value="@DatabaseUsername" Label="Database Username" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)"></MudTextField>
-                        <MudTextField @bind-Value="@DatabasePassword" Label="Database Password" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Database)"></MudTextField>
-                    }
-                    <br />
-                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(SetupStep != SetupStepType.Database)" OnClick="@CheckDatabase">Next</MudButton>
-                </MudCardContent>
-            </MudCard>
-        </MudTimelineItem>
-        <MudTimelineItem Size="Size.Small" Color="@GetStepColor(SetupStepType.Instance)" Elevation="4">
-            <MudCard Outlined="false" Elevation="4">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">Instance</MudText>
-                    <br />
-                    <MudAlert Severity="Severity.Info">This will be publicly shown on the url</MudAlert>
-                    <MudTextField @bind-Value="@InstanceName" Label="Instance Name" Placeholder="My Team Dev Space" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Instance)"></MudTextField>
-                    <MudTextField @bind-Value="@InstanceDesc" Label="Instance Description" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Instance)"></MudTextField>
-                    <br />
-                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(SetupStep != SetupStepType.Instance)" OnClick="@CheckInstance">Next</MudButton>
-                </MudCardContent>
-            </MudCard>
-        </MudTimelineItem>
-        <MudTimelineItem Size="Size.Small" Color="@GetStepColor(SetupStepType.Team)" Elevation="4">
-            <MudCard Outlined="false" Elevation="4">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">Team/Company</MudText>
-                    <br />
-                    <MudTextField Immediate="true" @bind-Value="@TeamNameInput" Label="Team Name" Placeholder="My Team" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Team)"></MudTextField>
-                    <MudTextField @bind-Value="@TeamVanityUrl" Label="Vanity Url" HelperText="This will be used in the url instead of ids" ShrinkLabel="true" Variant="Variant.Filled" Disabled="@(SetupStep != SetupStepType.Team)"></MudTextField>
-                    <br />
-                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@(SetupStep != SetupStepType.Team)" OnClick="@CheckTeam">Next</MudButton>
-                </MudCardContent>
-            </MudCard>
-        </MudTimelineItem>
-        <MudTimelineItem Size="Size.Small" Color="@GetStepColor(SetupStepType.Confirm)" Elevation="4">
-            <MudCard Outlined="false" Elevation="4">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">@(SetupStep == SetupStepType.Confirm ? "Setup Done!" : "Waiting for Setup")</MudText>
-                    <br />
-                    @if (SetupStep == SetupStepType.Confirm)
-                    {
-                        <MudAlert Severity="Severity.Success">You can now start using this Instance, use the sidebar to view your created team.</MudAlert>
-                        @if (DatabaseType == "Automatic")
+                        <RadzenLabel Text="Database Type" class="rz-my-0"></RadzenLabel>
+                        <RadzenSelectBar TValue="string" @bind-Value="@DatabaseType" Disabled="@(SetupStep != SetupStepType.Database)">
+                            <Items>
+                                <RadzenSelectBarItem Value="@("Automatic")" Text="Automatic" />
+                                <RadzenSelectBarItem Value="@("Manual")" Text="Manual" />
+                            </Items>
+                        </RadzenSelectBar>
+
+                        @if (MongoDBDetected)
                         {
-                            <br />
-                            <MudAlert Severity="Severity.Warning">Your database root password has been saved to /Data</MudAlert>
+                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
+                                MongoDB is already installed on this server, manual setup is required!
+                            </RadzenAlert>
                         }
-                    }
-                </MudCardContent>
-            </MudCard>
-        </MudTimelineItem>
-    </MudTimeline>
+                        @if (DatabaseType == "Manual")
+                        {
+                            <RadzenLabel Text="Database IP" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="DatabaseIP" Style="width: 100%" aria-label="Database IP" autocomplete="off"
+                                           Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="1.1.1.1" />
+
+                            <RadzenLabel Text="Database Port" class="rz-my-0"></RadzenLabel>
+                            <RadzenNumeric @bind-Value="DatabasePort" Style="width: 100%" aria-label="Database Port" autocomplete="off"
+                                           Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="0000" ShowUpDown="false" />
+
+                            <RadzenLabel Text="Database Username" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="DatabaseUsername" Style="width: 100%" aria-label="Database Username" autocomplete="off"
+                                           Disabled="@(SetupStep != SetupStepType.Database)" />
+
+                            <RadzenLabel Text="Database Password" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="DatabasePassword" Style="width: 100%" aria-label="Database Password" autocomplete="off"
+                                           Disabled="@(SetupStep != SetupStepType.Database)" />
+                        }
+                        <br />
+                        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Database)" Click="@CheckDatabase" />
+                    </RadzenCard>
+                </ChildContent>
+            </RadzenTimelineItem>
+            <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Instance)">
+                <ChildContent>
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">Instance</RadzenText>
+                        <br />
+                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                            This will be publicly shown on the url
+                        </RadzenAlert>
+
+                        <RadzenLabel Text="Instance Name" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="InstanceName" Style="width: 100%" aria-label="Instance Name" autocomplete="off"
+                                       Disabled="@(SetupStep != SetupStepType.Instance)" Placeholder="My Team Dev Space" />
+
+                        <RadzenLabel Text="Instance Description" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="InstanceDesc" Style="width: 100%" aria-label="Instance Description" autocomplete="off"
+                                       Disabled="@(SetupStep != SetupStepType.Instance)" />
+
+                        <br />
+                        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Instance)" Click="@CheckInstance" />
+                    </RadzenCard>
+                </ChildContent>
+            </RadzenTimelineItem>
+            <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Team)">
+                <ChildContent>
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">Team/Company</RadzenText>
+                        <br />
+                        <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="TeamNameInput" Style="width: 100%" aria-label="Team Name" autocomplete="off"
+                                       Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="My Team" />
+
+                        <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="TeamVanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="off"
+                                       Disabled="@(SetupStep != SetupStepType.Team)" />
+
+                        <br />
+                        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Team)" Click="@CheckTeam" />
+                    </RadzenCard>
+                </ChildContent>
+            </RadzenTimelineItem>
+            <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Confirm)">
+                <ChildContent>
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">@(SetupStep == SetupStepType.Confirm ? "Setup Done!" : "Waiting for Setup")</RadzenText>
+
+                        <br />
+                        @if (SetupStep == SetupStepType.Confirm)
+                        {
+                            <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose=false>
+                                You can now start using this Instance, use the sidebar to view your created team.
+                            </RadzenAlert>
+                            @if (DatabaseType == "Automatic")
+                            {
+                                <br />
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
+                                    Your database root password has been saved to /Data
+                                </RadzenAlert>
+                            }
+                        }
+                    </RadzenCard>
+                </ChildContent>
+            </RadzenTimelineItem>
+        </Items>
+    </RadzenTimeline>
 </div>
- *@
+
 
 @code {
     public bool MongoDBDetected { get; set; }
@@ -311,43 +354,44 @@
 
     }
 
-    // public Color GetStepColor(SetupStepType compare)
-    // {
-    //     if (SetupStep == SetupStepType.Disabled)
-    //         return Color.Dark;
-    //     switch (compare)
-    //     {
-    //         case SetupStepType.Database:
-    //             {
-    //                 if (SetupStep == SetupStepType.Database)
-    //                     return Color.Info;
-    //                 else
-    //                     return Color.Success;
-    //             }
-    //             break;
-    //         case SetupStepType.Instance:
-    //             {
-    //                 if (SetupStep == SetupStepType.Instance)
-    //                     return Color.Info;
-    //                 else if (SetupStep > SetupStepType.Instance)
-    //                     return Color.Success;
-    //             }
-    //             break;
-    //         case SetupStepType.Team:
-    //             if (SetupStep == SetupStepType.Team)
-    //                 return Color.Info;
-    //             else if (SetupStep > SetupStepType.Team)
-    //                 return Color.Success;
-    //             break;
-    //         case SetupStepType.Confirm:
-    //             {
-    //                 if (SetupStep == SetupStepType.Confirm)
-    //                     return Color.Success;
-    //             }
-    //             break;
-    //     }
-    //     return Color.Dark;
-    // }
+    public PointStyle GetStepColor(SetupStepType compare)
+    {
+        if (SetupStep == SetupStepType.Disabled)
+            return PointStyle.Dark;
+
+        switch (compare)
+        {
+            case SetupStepType.Database:
+                {
+                    if (SetupStep == SetupStepType.Database)
+                        return PointStyle.Info;
+                    else
+                        return PointStyle.Success;
+                }
+                break;
+            case SetupStepType.Instance:
+                {
+                    if (SetupStep == SetupStepType.Instance)
+                        return PointStyle.Info;
+                    else if (SetupStep > SetupStepType.Instance)
+                        return PointStyle.Success;
+                }
+                break;
+            case SetupStepType.Team:
+                if (SetupStep == SetupStepType.Team)
+                    return PointStyle.Info;
+                else if (SetupStep > SetupStepType.Team)
+                    return PointStyle.Success;
+                break;
+            case SetupStepType.Confirm:
+                {
+                    if (SetupStep == SetupStepType.Confirm)
+                        return PointStyle.Success;
+                }
+                break;
+        }
+        return PointStyle.Dark;
+    }
 
     public enum SetupStepType
     {
