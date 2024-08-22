@@ -62,46 +62,45 @@ public class EmailTemplateData
 
     public static string GetTypeIcon(EmailTemplateType type)
     {
-        return "";
-        //switch (type)
-        //{
-        //    case EmailTemplateType.Header:
-        //        return Icons.Material.Filled.FeaturedPlayList;
-        //    case EmailTemplateType.Footer:
-        //        return Icons.Material.Filled.CallToAction;
-        //    case EmailTemplateType.AccountConfirm:
-        //        return Icons.Material.Filled.Check;
-        //    case EmailTemplateType.AccountInvited:
-        //        return Icons.Material.Filled.PersonAdd;
-        //    case EmailTemplateType.AccountDeleted:
-        //        return Icons.Material.Filled.DeleteForever;
-        //    case EmailTemplateType.JoinTeamRequest:
-        //        return Icons.Material.Filled.DomainAdd;
-        //    case EmailTemplateType.AccountPasswordChangeRequest:
-        //        return Icons.Material.Filled.MoveToInbox;
-        //    case EmailTemplateType.AccountPasswordChanged:
-        //        return Icons.Material.Filled.Password;
-        //    case EmailTemplateType.Account2FAEnabled:
-        //        return Icons.Material.Filled.VpnKey;
-        //    case EmailTemplateType.Account2FADisabled:
-        //        return Icons.Material.Filled.VpnKeyOff;
-        //    case EmailTemplateType.AccountEnabled:
-        //        return Icons.Material.Filled.LockOpen;
-        //    case EmailTemplateType.AccountDisabled:
-        //        return Icons.Material.Filled.Lock;
-        //    case EmailTemplateType.AccessCode:
-        //        return Icons.Material.Filled.Password;
-        //    case EmailTemplateType.AccountEmailChangeCode:
-        //        return Icons.Material.Filled.ForwardToInbox;
-        //    case EmailTemplateType.AccountEmailChangeRequest:
-        //        return Icons.Material.Filled.MarkEmailUnread;
-        //    case EmailTemplateType.AccountEmailChanged:
-        //        return Icons.Material.Filled.MarkEmailRead;
-        //    case EmailTemplateType.NewSessionIp:
-        //        return Icons.Material.Filled.LocationOn;
-        //}
+        switch (type)
+        {
+            case EmailTemplateType.Header:
+                return "featured_play_list";
+            case EmailTemplateType.Footer:
+                return "call_to_action";
+            case EmailTemplateType.AccountConfirm:
+                return "check";
+            case EmailTemplateType.AccountInvited:
+                return "person_add";
+            case EmailTemplateType.AccountDeleted:
+                return "delete_forever";
+            case EmailTemplateType.JoinTeamRequest:
+                return "domain_add";
+            case EmailTemplateType.AccountPasswordChangeRequest:
+                return "move_to_inbox";
+            case EmailTemplateType.AccountPasswordChanged:
+                return "password";
+            case EmailTemplateType.Account2FAEnabled:
+                return "vpn_key";
+            case EmailTemplateType.Account2FADisabled:
+                return "vpn_key_off";
+            case EmailTemplateType.AccountEnabled:
+                return "lock_open";
+            case EmailTemplateType.AccountDisabled:
+                return "lock";
+            case EmailTemplateType.AccessCode:
+                return "password";
+            case EmailTemplateType.AccountEmailChangeCode:
+                return "forward_to_inbox";
+            case EmailTemplateType.AccountEmailChangeRequest:
+                return "mark_email_unread";
+            case EmailTemplateType.AccountEmailChanged:
+                return "mark_email_read";
+            case EmailTemplateType.NewSessionIp:
+                return "location_on";
+        }
 
-        //return Icons.Material.Filled.QuestionMark;
+        return "question_mark";
     }
 
     public string Name { get; set; }
