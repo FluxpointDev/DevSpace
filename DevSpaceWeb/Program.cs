@@ -13,7 +13,7 @@ public class Program
     /// <summary>
     /// Current directory of the running program
     /// </summary>
-    public static string CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
+    public static DirectoryStructure Directory;
 
     public static HttpClient Http = new HttpClient();
 
@@ -31,7 +31,7 @@ public class Program
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
 
-        Console.WriteLine("Loaded config in: " + Program.CurrentDirectory);
+        Console.WriteLine("Loaded config in: " + Program.Directory.Path);
 
         FileWatcher.Start();
 
@@ -78,7 +78,7 @@ public class Program
         app.UseStaticFiles(new StaticFileOptions
         {
             FileProvider = new PhysicalFileProvider(
-           Path.Combine(Program.CurrentDirectory, "Public")),
+           Path.Combine(Program.Directory.Public.Path)),
             RequestPath = "/public"
         });
         app.UseAuthentication();

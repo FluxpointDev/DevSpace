@@ -11,16 +11,9 @@ public static class _Data
     {
         bool SaveConfig = false;
 
-        if (!Directory.Exists(Program.CurrentDirectory + "Data"))
-            Directory.CreateDirectory(Program.CurrentDirectory + "Data");
+        Program.Directory = new DirectoryStructure(AppDomain.CurrentDomain.BaseDirectory);
 
-        if (!Directory.Exists(Program.CurrentDirectory + "Public"))
-            Directory.CreateDirectory(Program.CurrentDirectory + "Public");
-
-        if (!Directory.Exists(Program.CurrentDirectory + "Data/Cache"))
-            Directory.CreateDirectory(Program.CurrentDirectory + "Data/Cache");
-
-        if (!File.Exists(Program.CurrentDirectory + "Data/Config.json"))
+        if (!File.Exists(Program.Directory.Data + "Config.json"))
         {
             Config = new Config();
             SaveConfig = true;
@@ -30,7 +23,7 @@ public static class _Data
             Config? config = null;
             try
             {
-                using (StreamReader reader = new StreamReader(Program.CurrentDirectory + "Data/Config.json"))
+                using (StreamReader reader = new StreamReader(Program.Directory.Data + "Config.json"))
                 {
                     JsonSerializer serializer = new JsonSerializer
                     {
