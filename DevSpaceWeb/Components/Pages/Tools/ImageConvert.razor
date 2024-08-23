@@ -1,5 +1,27 @@
 ﻿@page "/tools/image/convert"
 
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Session.Selected.Team.Data.Name</RadzenText>
+    </div>
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Convert to format</RadzenText>
+    <RadzenSelectBar TValue="string" Size="ButtonSize.Small" @bind-Value="@ConvertFormat">
+        <Items>
+            <RadzenSelectBarItem Value="@("webp")" Text="Webp" />
+            <RadzenSelectBarItem Value="@("png")" Text="Png" />
+            <RadzenSelectBarItem Value="@("jpg")" Text="Jpg" />
+        </Items>
+    </RadzenSelectBar>
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Drag and drop files to upload</RadzenText>
+    <RadzenUpload @ref="@Uploader" ChooseText="Drag and drop here or click to choose files" Auto="false" Multiple="true" Url="upload/multiple" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
+                  Style="width: 100%" Accept="image/*" MaxFileCount="_Data.Config.Instance.Limits.MaxImagesUpload" />
+
+    <RadzenButton Text="Upload" Click=@(args => Uploader.Upload()) class="rz-mt-4" />
+</div>
+
 <div class="dash-box">
     <div style="padding: 10px; padding-top: 30px; padding-bottom: 30px; text-align: center;">
         <p>Upload image here!</p>
@@ -29,6 +51,12 @@
 </div>
 
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    RadzenUpload Uploader { get; set; }
+    public string ConvertFormat { get; set; }
+
     private HashSet<FileConvert> selectedItems = new HashSet<FileConvert>();
     private IEnumerable<FileConvert> Elements = new List<FileConvert>();
     private bool _selectOnRowClick = true;
@@ -40,5 +68,18 @@
     {
         public string Name;
         public string Type;
+    }
+
+    public void OnProgress(UploadProgressArgs args, string name)
+    {
+        Console.WriteLine($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
+
+        if (args.Progress == 100)
+        {
+            foreach (var file in args.Files)
+            {
+                Console.WriteLine($"Uploaded: {file.Name} / {file.Size} bytes");
+            }
+        }
     }
 }

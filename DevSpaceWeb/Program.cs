@@ -3,6 +3,7 @@ using DevSpaceWeb.Database;
 using DevSpaceWeb.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.FileProviders;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace DevSpaceWeb;
@@ -29,6 +30,8 @@ public class Program
     {
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
+
+        Console.WriteLine("Loaded config in: " + Program.CurrentDirectory);
 
         FileWatcher.Start();
 
@@ -72,7 +75,12 @@ public class Program
         }
 
         app.UseForwardedHeaders();
-        app.UseStaticFiles();
+        app.UseStaticFiles(new StaticFileOptions
+        {
+            FileProvider = new PhysicalFileProvider(
+           Path.Combine(Program.CurrentDirectory, "Public")),
+            RequestPath = "/public"
+        });
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseSession();

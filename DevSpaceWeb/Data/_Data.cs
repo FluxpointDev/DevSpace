@@ -14,6 +14,9 @@ public static class _Data
         if (!Directory.Exists(Program.CurrentDirectory + "Data"))
             Directory.CreateDirectory(Program.CurrentDirectory + "Data");
 
+        if (!Directory.Exists(Program.CurrentDirectory + "Public"))
+            Directory.CreateDirectory(Program.CurrentDirectory + "Public");
+
         if (!Directory.Exists(Program.CurrentDirectory + "Data/Cache"))
             Directory.CreateDirectory(Program.CurrentDirectory + "Data/Cache");
 
