@@ -92,13 +92,13 @@ namespace DevSpaceWeb.Database
                 try
                 {
                     var Res = await new HttpClient().GetStringAsync("https://www.mongodb.org/static/pgp/server-7.0.asc");
-                    File.WriteAllText(Program.CurrentDirectory + "Data/mongodb.asc", Res);
+                    File.WriteAllText(Program.Directory.Data.Path + "mongodb.asc", Res);
                 }
                 catch (Exception ex)
                 {
                     try
                     {
-                        File.Delete(Program.CurrentDirectory + "Data/mongodb.asc");
+                        File.Delete(Program.Directory.Data.Path + "mongodb.asc");
                     }
                     catch { }
                     Console.WriteLine("--- Database Setup Error ---");
@@ -107,14 +107,14 @@ namespace DevSpaceWeb.Database
                     return DatabaseSetupErrorType.FailedAptInstall;
                 }
 
-                cmd = Cli.Wrap("gpg").WithWorkingDirectory(Program.CurrentDirectory + "Data").WithArguments("--dearmor --yes mongodb.asc");
+                cmd = Cli.Wrap("gpg").WithWorkingDirectory(Program.Directory.Data.Path).WithArguments("--dearmor --yes mongodb.asc");
 
                 res = await cmd.ExecuteBufferedAsync();
                 if (!res.IsSuccess)
                 {
                     try
                     {
-                        File.Delete(Program.CurrentDirectory + "Data/mongodb.asc");
+                        File.Delete(Program.Directory.Data.Path + "mongodb.asc");
                     }
                     catch { }
 
@@ -126,7 +126,7 @@ namespace DevSpaceWeb.Database
 
                 try
                 {
-                    File.Delete(Program.CurrentDirectory + "Data/mongodb.asc");
+                    File.Delete(Program.Directory.Data.Path + "mongodb.asc");
                 }
                 catch { }
 
@@ -134,7 +134,7 @@ namespace DevSpaceWeb.Database
                 {
                     try
                     {
-                        File.Move(Program.CurrentDirectory + "Data/mongodb.asc.gpg", "/usr/share/keyrings/mongodb-server-7.0.gpg");
+                        File.Move(Program.Directory.Data.Path + "mongodb.asc.gpg", "/usr/share/keyrings/mongodb-server-7.0.gpg");
                     }
                     catch (Exception ex)
                     {

@@ -19,7 +19,7 @@ public class Config
 
     public void Save()
     {
-        using (StreamWriter file = File.CreateText(Program.CurrentDirectory + $"Data/Config.json"))
+        using (StreamWriter file = File.CreateText(Program.Directory.Data.Path + $"Config.json"))
         {
             JsonSerializer serializer = new JsonSerializer
             {

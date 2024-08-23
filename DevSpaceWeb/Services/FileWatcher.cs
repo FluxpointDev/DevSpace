@@ -9,10 +9,10 @@ public static class FileWatcher
     public static FileSystemWatcher ConfigWatch;
     public static void Start()
     {
-        Console.WriteLine("Start file watch: " + Program.CurrentDirectory + "Data");
+        Console.WriteLine("Start file watch: " + Program.Directory.Data.Path);
         ConfigWatch = new FileSystemWatcher
         {
-            Path = Program.CurrentDirectory + "Data",
+            Path = Program.Directory.Data.Path,
             EnableRaisingEvents = true,
             NotifyFilter = NotifyFilters.LastWrite,
             Filter = "Config.json"
@@ -28,7 +28,7 @@ public static class FileWatcher
         if (e.ChangeType != WatcherChangeTypes.Changed)
             return;
 
-        DateTime lastWriteTime = File.GetLastWriteTime(Program.CurrentDirectory + "Data/Config.json");
+        DateTime lastWriteTime = File.GetLastWriteTime(Program.Directory.Data.Path + "Data/Config.json");
         if (lastWriteTime == lastRead)
         {
             Console.WriteLine($"Change: {e.Name} {e.ChangeType}");
@@ -36,7 +36,7 @@ public static class FileWatcher
             Config? Config = null;
             try
             {
-                using (StreamReader reader = new StreamReader(Program.CurrentDirectory + "Data/Config.json", new FileStreamOptions { Access = FileAccess.Read, Mode = FileMode.Open, Share = FileShare.Read }))
+                using (StreamReader reader = new StreamReader(Program.Directory.Data.Path + "Config.json", new FileStreamOptions { Access = FileAccess.Read, Mode = FileMode.Open, Share = FileShare.Read }))
                 {
                     JsonSerializer serializer = new JsonSerializer
                     {

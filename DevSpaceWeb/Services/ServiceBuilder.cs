@@ -156,7 +156,7 @@ public static class ServiceBuilder
                 "https://localhost:5149"
             },
             TimestampDriftTolerance = 300000,
-            MDSCacheDirPath = Program.CurrentDirectory + "Cache"
+            MDSCacheDirPath = Program.Directory.Cache.Path
         }));
     }
 

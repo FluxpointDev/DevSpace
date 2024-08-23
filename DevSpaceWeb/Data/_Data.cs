@@ -11,9 +11,18 @@ public static class _Data
     {
         bool SaveConfig = false;
 
-        Program.Directory = new DirectoryStructure(AppDomain.CurrentDomain.BaseDirectory);
+        try
+        {
+            Program.Directory = new DirectoryStructure(AppDomain.CurrentDomain.BaseDirectory);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Failed to write data to the program path: " + Program.Directory.Path);
+            System.Environment.Exit(1);
+        }
 
-        if (!File.Exists(Program.Directory.Data + "Config.json"))
+
+        if (!File.Exists(Program.Directory.Data.Path + "Config.json"))
         {
             Config = new Config();
             SaveConfig = true;
@@ -23,7 +32,7 @@ public static class _Data
             Config? config = null;
             try
             {
-                using (StreamReader reader = new StreamReader(Program.Directory.Data + "Config.json"))
+                using (StreamReader reader = new StreamReader(Program.Directory.Data.Path + "Config.json"))
                 {
                     JsonSerializer serializer = new JsonSerializer
                     {
