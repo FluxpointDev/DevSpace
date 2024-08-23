@@ -1,4 +1,4 @@
-﻿namespace DevSpaceWeb.Data;
+﻿namespace DevSpaceWeb.Data.Teams;
 
 public static class EmailTemplateDefaults
 {

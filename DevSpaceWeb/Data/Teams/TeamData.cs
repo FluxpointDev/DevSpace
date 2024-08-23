@@ -1,18 +1,16 @@
 ﻿using DevSpaceWeb.Components.Layout;
-using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace DevSpaceWeb.Data;
+namespace DevSpaceWeb.Data.Teams;
 
-public class WebsiteData
+public class TeamData
 {
     [BsonId]
     public ObjectId Id { get; set; }
     public string Name { get; set; }
-
-    public string Domain { get; set; }
-    public ObjectId TeamId { get; set; }
+    public string VanityUrl { get; set; }
+    public ObjectId OwnerId { get; set; }
     public bool HasAccess(SessionProvider session)
     {
         return true;
@@ -20,8 +18,8 @@ public class WebsiteData
 
     public string GetVanityUrl()
     {
-        if (_DB.VanityUrlCache.TryGetValue(Id, out string vanityUrl))
-            return vanityUrl;
+        if (!string.IsNullOrEmpty(VanityUrl))
+            return VanityUrl;
 
         return Id.ToString();
     }

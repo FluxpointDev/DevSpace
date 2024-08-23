@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using NetCoreServer;
 using System.Security.Authentication;
 
-namespace DevSpaceWeb.Data;
+namespace DevSpaceWeb.Data.Servers;
 
 public class ServerData
 {
