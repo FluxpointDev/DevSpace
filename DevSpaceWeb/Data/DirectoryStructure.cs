@@ -29,6 +29,15 @@ public class DirectoryStructure
     /// Public folder access from the web.
     /// </summary>
     public DirectoryStructure Public;
+
+    /// <summary>
+    /// Fallback method for object serialize in case of code issues.
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+        return Path;
+    }
 }
 public class DirectoryStructurePublic : DirectoryStructure
 {
