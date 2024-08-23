@@ -23,7 +23,7 @@ public class Program
     /// </summary>
     public static bool IsDevMode { get; private set; }
 
-    public static bool IsPreviewMode { get; set; } = false;
+    public static bool IsPreviewMode { get; set; } = true;
 
     public static void Main(string[] args)
     {
@@ -83,7 +83,6 @@ public class Program
             Console.WriteLine("Swagger Enabled");
             app.UseSwagger(c =>
             {
-
             });
 
             if (_Data.Config.Instance.Features.SwaggerUIEnabled)
