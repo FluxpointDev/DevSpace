@@ -8,12 +8,28 @@ public class DirectoryStructure
         if (!Directory.Exists(path))
             Directory.CreateDirectory(path);
 
+
+    }
+
+    public string Path;
+
+    /// <summary>
+    /// Fallback method for object serialize in case of code issues.
+    /// </summary>
+    /// <returns></returns>
+    public override string ToString()
+    {
+        return Path;
+    }
+}
+public class DirectoryStructureMain : DirectoryStructure
+{
+    public DirectoryStructureMain(string folder) : base(folder)
+    {
         Data = new DirectoryStructure(Path + "Data/");
         Cache = new DirectoryStructure(Path + "Cache/");
         Public = new DirectoryStructurePublic(Path + "Public/");
     }
-
-    public string Path;
 
     /// <summary>
     /// Main application data folder with config.
@@ -28,17 +44,9 @@ public class DirectoryStructure
     /// <summary>
     /// Public folder access from the web.
     /// </summary>
-    public DirectoryStructure Public;
-
-    /// <summary>
-    /// Fallback method for object serialize in case of code issues.
-    /// </summary>
-    /// <returns></returns>
-    public override string ToString()
-    {
-        return Path;
-    }
+    public DirectoryStructurePublic Public;
 }
+
 public class DirectoryStructurePublic : DirectoryStructure
 {
     public DirectoryStructurePublic(string folder) : base(folder)

@@ -13,7 +13,7 @@ public static class _Data
 
         try
         {
-            Program.Directory = new DirectoryStructure(AppDomain.CurrentDomain.BaseDirectory);
+            Program.Directory = new DirectoryStructureMain(AppDomain.CurrentDomain.BaseDirectory);
         }
         catch (Exception ex)
         {

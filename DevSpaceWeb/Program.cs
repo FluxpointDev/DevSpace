@@ -13,7 +13,7 @@ public class Program
     /// <summary>
     /// Current directory of the running program
     /// </summary>
-    public static DirectoryStructure Directory;
+    public static DirectoryStructureMain Directory;
 
     public static HttpClient Http = new HttpClient();
 
