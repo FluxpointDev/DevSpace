@@ -1,4 +1,4 @@
-﻿using DevSpaceWeb.Extensions.Identity;
+﻿using DevSpaceWeb.Services.Identity;
 using Microsoft.AspNetCore.Identity;
 
 namespace DevSpaceWeb.Services;

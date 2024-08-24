@@ -1,5 +1,5 @@
-﻿using DevSpaceWeb.Extensions.Identity;
-using DevSpaceWeb.Fido2;
+﻿using DevSpaceWeb.Fido2;
+using DevSpaceWeb.Services.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 

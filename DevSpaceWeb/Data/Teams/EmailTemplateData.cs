@@ -1,6 +1,6 @@
 ﻿using DevSpaceWeb.Components.Markdown;
 using DevSpaceWeb.Database;
-using DevSpaceWeb.Extensions.Identity;
+using DevSpaceWeb.Services.Identity;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
