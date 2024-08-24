@@ -5,10 +5,9 @@ public class DirectoryStructure
     public DirectoryStructure(string path)
     {
         Path = path;
-        if (!Directory.Exists(path))
-            Directory.CreateDirectory(path);
-
-
+        Console.WriteLine("Create: " + path);
+        //if (!Directory.Exists(path))
+        //    Directory.CreateDirectory(path);
     }
 
     public string Path;
@@ -28,6 +27,7 @@ public class DirectoryStructureMain : DirectoryStructure
     {
         Data = new DirectoryStructure(Path + "Data/");
         Cache = new DirectoryStructure(Path + "Cache/");
+        Console.WriteLine("Main: " + folder);
         Public = new DirectoryStructurePublic(Path + "Public/");
     }
 
