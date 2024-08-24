@@ -94,7 +94,7 @@
 
                         <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
                         <RadzenTextBox @bind-Value="LoginForm.Email" Style="width: 100%" aria-label="Email" autocomplete="off"
-                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" />
+                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" autofocus inputmode="email" />
                         <ValidationMessage For="() => LoginForm.Email" style="color: var(--rz-danger);" />
 
                         <br style="margin-bottom: 20px;" />
@@ -145,14 +145,14 @@
 
                         <RadzenLabel Text="Username" class="rz-my-0"></RadzenLabel>
                         <RadzenTextBox @bind-Value="RegisterForm.Username" Style="width: 100%" aria-label="Username" autocomplete="off"
-                                       Placeholder="user" Disabled="@FormDisabled" />
+                                       Placeholder="user" Disabled="@FormDisabled" autofocus />
                         <ValidationMessage For="() => RegisterForm.Username" style="color: var(--rz-danger);" />
 
                         <br style="margin-bottom: 20px;" />
 
                         <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
                         <RadzenTextBox @bind-Value="RegisterForm.Email" Style="width: 100%" aria-label="Email" autocomplete="off"
-                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" />
+                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" inputmode="email" />
                         <ValidationMessage For="() => RegisterForm.Email" style="color: var(--rz-danger);" />
 
                         <br style="margin-bottom: 20px;" />
@@ -201,13 +201,15 @@
                     <EditForm Model="@ChangePasswordForm" OnValidSubmit="@ChangePassword">
                         <DataAnnotationsValidator />
 
-                        <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
-                        <RadzenTextBox @bind-Value="ChangePasswordForm.Email" Style="width: 100%" aria-label="Email" autocomplete="off"
-                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" />
-                        <ValidationMessage For="() => ChangePasswordForm.Email" style="color: var(--rz-danger);" />
+
 
                         @if (!string.IsNullOrEmpty(Token))
                         {
+                            <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="ChangePasswordForm.Email" Style="width: 100%" aria-label="Email" autocomplete="off"
+                                           Placeholder="user@gmail.com" Disabled="true" />
+                            <ValidationMessage For="() => ChangePasswordForm.Email" style="color: var(--rz-danger);" />
+
                             <br style="margin-bottom: 20px;" />
                             <br />
 
@@ -217,7 +219,7 @@
 
                             <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
                             <RadzenPassword @bind-Value="ChangePasswordForm.Password" Style="width: 100%" aria-label="Password" autocomplete="off"
-                                            Disabled="@FormDisabled" />
+                                            Disabled="@FormDisabled" autofocus />
                             <ValidationMessage For="() => ChangePasswordForm.Password" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
@@ -226,6 +228,13 @@
                             <RadzenPassword @bind-Value="@ChangePasswordForm.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
                                             Disabled="@FormDisabled" />
                             <ValidationMessage For="() => ChangePasswordForm.RepeatPassword" style="color: var(--rz-danger);" />
+                        }
+                        else
+                        {
+                            <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="ChangePasswordForm.Email" Style="width: 100%" aria-label="Email" autocomplete="off"
+                                           Placeholder="user@gmail.com" Disabled="@FormDisabled" autofocus inputmode="email" />
+                            <ValidationMessage For="() => ChangePasswordForm.Email" style="color: var(--rz-danger);" />
                         }
 
                         @if (!string.IsNullOrEmpty(ChangePasswordErrorMessage))
