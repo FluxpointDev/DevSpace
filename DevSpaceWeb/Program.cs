@@ -80,9 +80,19 @@ public class Program
         app.UseStaticFiles();
         app.UseStaticFiles(new StaticFileOptions
         {
-            FileProvider = new PhysicalFileProvider(
-           Path.Combine(Program.Directory.Public.Path)),
-            RequestPath = "/public"
+            FileProvider = new PhysicalFileProvider(Program.Directory.Public.Path),
+            RequestPath = "/public",
+            OnPrepareResponse = async ctx =>
+            {
+                if (!_Data.Config.Instance.Features.AllowUnauthenticatedPublicFolderAccess && (ctx.Context.User.Identity == null || !ctx.Context.User.Identity.IsAuthenticated))
+                {
+                    ctx.Context.Response.Clear();
+                    ctx.Context.Response.StatusCode = 400;
+                    ctx.Context.Response.ContentLength = 0;
+                    ctx.Context.Response.Body = Stream.Null;
+                    await ctx.Context.Response.CompleteAsync();
+                }
+            }
         });
 
         app.UseAuthentication();

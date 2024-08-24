@@ -51,6 +51,7 @@ public class ConfigInstance
 public class ConfigFeatures
 {
     public bool APIEnabled = true;
+    public bool AllowUnauthenticatedPublicFolderAccess { get; set; }
     public bool SwaggerEnabled = true;
     public bool SwaggerUIEnabled = true;
 }
