@@ -4,24 +4,9 @@ using DevSpaceWeb.Services.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
-using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 
 namespace DevSpaceWeb.Controllers;
-
-public class LoginForm
-{
-    [Required]
-    [StringLength(50, MinimumLength = 8, ErrorMessage = "Email length can't be less than 8.")]
-    [EmailAddress]
-    public string Email { get; set; }
-
-    [Required]
-    [StringLength(50, MinimumLength = 8, ErrorMessage = "Email length can't be less than 8.")]
-    public string Password { get; set; }
-
-    public string RequestVerificationToken { get; set; }
-}
 
 public class AuthLoginController : AuthControllerContext
 {

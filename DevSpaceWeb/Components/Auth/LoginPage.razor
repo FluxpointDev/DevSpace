@@ -1,5 +1,6 @@
 ﻿@page "/login"
 @using DevSpaceWeb.Fido2
+@using DevSpaceWeb.Models
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.AspNetCore.Components.Forms;
 @using System.ComponentModel.DataAnnotations;
@@ -88,58 +89,104 @@
                         </RadzenAlert>
                     }
 
-                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Email</RadzenText>
-                    <RadzenTextBox @bind-Value="EmailField" Style="width: 100%" aria-label="Email TextBox" />
+                    <EditForm Model="@LoginForm" OnValidSubmit="@Login">
+                        <DataAnnotationsValidator />
 
-                    <br style="margin-bottom: 20px;" />
+                        <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="LoginForm.Email" Style="width: 100%" aria-label="Email" autocomplete="off"
+                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" />
+                        <ValidationMessage For="() => LoginForm.Email" style="color: var(--rz-danger);" />
 
-                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Password</RadzenText>
-                    <RadzenPassword @bind-Value="PasswordField" Style="width: 100%" aria-label="Password TextBox" />
+                        <br style="margin-bottom: 20px;" />
 
-                    <br style="margin-bottom: 20px;" />
+                        <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
+                        <RadzenPassword @bind-Value="LoginForm.Password" Style="width: 100%" aria-label="Password" autocomplete="off"
+                                        Disabled="@FormDisabled" />
+                        <ValidationMessage For="() => LoginForm.Password" style="color: var(--rz-danger);" />
 
-                    <RadzenCheckBox @bind-Value="@RememberMe" Name="CheckBox1" />
-                    <RadzenLabel Text="Remember Me" Component="CheckBox1" class="rz-ms-2" Style="color: white;" />
+                        <br />
 
-                    @if (RememberMe)
-                    {
-                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false Size="AlertSize.Small">
-                            <div>This will keep you signed in.</div>
-                            <div>Do not use this for public computers.</div>
-                        </RadzenAlert>
-                    }
+                        @if (!string.IsNullOrEmpty(LoginErrorMessage))
+                        {
+                            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
+                                @LoginErrorMessage
+                            </RadzenAlert>
+                        }
+                        else
+                        {
+                            <br style="margin-bottom: 20px;" />
+                        }
 
-                    <div class="flex-around" style="margin-top: 30px;">
-                        <RadzenButton Text="Login" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@Login" />
-                        <RadzenButton Text="Forgot Password?" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { if (!Program.IsPreviewMode) { PasswordField = ""; } Page = LoginPageType.ChangePassword; })" />
-                        <RadzenButton Text="Register Account" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { if (!Program.IsPreviewMode) { PasswordField = ""; } Page = LoginPageType.Register; })" />
-                    </div>
+                        <RadzenCheckBox @bind-Value="@RememberMe" Name="RememberMe" Disabled="@FormDisabled" />
+                        <RadzenLabel Text="Remember Me" Component="RememberMe" class="rz-ms-2" />
+
+                        @if (RememberMe)
+                        {
+                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false Size="AlertSize.Small">
+                                <div>This will keep you signed in.</div>
+                                <div>Do not use this for public computers.</div>
+                            </RadzenAlert>
+                        }
+
+                        <div class="flex-around" style="margin-top: 30px;">
+                            <RadzenButton Text="Login" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
+                            <RadzenButton Text="Forgot Password?" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.ChangePassword; })" />
+                            <RadzenButton Text="Register Account" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { if (!Program.IsPreviewMode) { RegisterForm.Email = LoginForm.Email; } Page = LoginPageType.Register; })" />
+                        </div>
+
+                    </EditForm>
+
                 }
                 break;
             case LoginPageType.Register:
                 {
-                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Username</RadzenText>
-                    <RadzenTextBox @bind-Value="@UsernameField" Style="width: 100%" aria-label="Username TextBox" />
+                    <EditForm Model="@RegisterForm" OnValidSubmit="@RegisterAccount">
+                        <DataAnnotationsValidator />
 
-                    <br style="margin-bottom: 20px;" />
+                        <RadzenLabel Text="Username" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="RegisterForm.Username" Style="width: 100%" aria-label="Username" autocomplete="off"
+                                       Placeholder="user" Disabled="@FormDisabled" />
+                        <ValidationMessage For="() => RegisterForm.Username" style="color: var(--rz-danger);" />
 
-                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Email</RadzenText>
-                    <RadzenTextBox @bind-Value="@EmailField" Style="width: 100%" aria-label="Email TextBox" />
+                        <br style="margin-bottom: 20px;" />
 
-                    <br style="margin-bottom: 20px;" />
+                        <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="RegisterForm.Email" Style="width: 100%" aria-label="Email" autocomplete="off"
+                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" />
+                        <ValidationMessage For="() => RegisterForm.Email" style="color: var(--rz-danger);" />
 
-                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Password</RadzenText>
-                    <RadzenPassword @bind-Value="@PasswordField" Style="width: 100%" aria-label="Password TextBox" />
+                        <br style="margin-bottom: 20px;" />
+                        <br />
 
-                    <br style="margin-bottom: 20px;" />
+                        <RadzenText TextStyle="TextStyle.Body2">Password is 8 characters long and requires 1 uppercase letter, 1 lowercase letter and 1 number</RadzenText>
 
-                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Confirm Password</RadzenText>
-                    <RadzenPassword Style="width: 100%" aria-label="Confirm Password TextBox" />
+                        <br />
 
-                    <div class="flex-around" style="margin-top: 30px;">
-                        <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterAccount" />
-                        <RadzenButton Text="Login Instead" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { if (!Program.IsPreviewMode) { PasswordField = ""; } Page = LoginPageType.Login; })" />
-                    </div>
+                        <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
+                        <RadzenPassword @bind-Value="RegisterForm.Password" Style="width: 100%" aria-label="Password" autocomplete="off"
+                                        Disabled="@FormDisabled" />
+                        <ValidationMessage For="() => RegisterForm.Password" style="color: var(--rz-danger);" />
+
+                        <br style="margin-bottom: 20px;" />
+
+                        <RadzenLabel Text="Confirm Password" class="rz-my-0"></RadzenLabel>
+                        <RadzenPassword @bind-Value="@RegisterForm.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
+                                        Disabled="@FormDisabled" />
+                        <ValidationMessage For="() => RegisterForm.RepeatPassword" style="color: var(--rz-danger);" />
+
+
+                        @if (!string.IsNullOrEmpty(RegisterErrorMessage))
+                        {
+                            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
+                                @RegisterErrorMessage
+                            </RadzenAlert>
+                        }
+
+                        <div class="flex-around" style="margin-top: 30px;">
+                            <RadzenButton Text="Register" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
+                            <RadzenButton Text="Login Instead" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
+                        </div>
+                    </EditForm>
                 }
                 break;
             case LoginPageType.ChangePassword:
@@ -151,35 +198,68 @@
                         </RadzenAlert>
                     }
 
-                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Email</RadzenText>
-                    <RadzenTextBox @bind-Value="EmailField" Style="width: 100%" aria-label="Email TextBox" />
+                    <EditForm Model="@ChangePasswordForm" OnValidSubmit="@ChangePassword">
+                        <DataAnnotationsValidator />
 
-                    @if (!string.IsNullOrEmpty(Token))
-                    {
-                        <br style="margin-bottom: 20px;" />
+                        <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="ChangePasswordForm.Email" Style="width: 100%" aria-label="Email" autocomplete="off"
+                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" />
+                        <ValidationMessage For="() => ChangePasswordForm.Email" style="color: var(--rz-danger);" />
 
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Password</RadzenText>
-                        <RadzenPassword @bind-Value="@PasswordField" Style="width: 100%" aria-label="Password TextBox" />
-
-                        <br style="margin-bottom: 20px;" />
-
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Confirm Password</RadzenText>
-                        <RadzenPassword Style="width: 100%" aria-label="Confirm Password TextBox" />
-                    }
-
-                    <div class="flex-around" style="margin-top: 30px;">
-
-                        @if (string.IsNullOrEmpty(Token))
+                        @if (!string.IsNullOrEmpty(Token))
                         {
-                            <RadzenButton Text="Request Password Change" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@CheckChangePassword" />
-                            <RadzenButton Text="Login Instead" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { if (!Program.IsPreviewMode) { PasswordField = ""; } Page = LoginPageType.Login; })" />
-                        }
-                        else
-                        {
-                            <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@ChangePassword" />
+                            <br style="margin-bottom: 20px;" />
+                            <br />
 
+                            <RadzenText TextStyle="TextStyle.Body2">Password is 8 characters long and requires 1 uppercase letter, 1 lowercase letter and 1 number</RadzenText>
+
+                            <br />
+
+                            <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
+                            <RadzenPassword @bind-Value="ChangePasswordForm.Password" Style="width: 100%" aria-label="Password" autocomplete="off"
+                                            Disabled="@FormDisabled" />
+                            <ValidationMessage For="() => ChangePasswordForm.Password" style="color: var(--rz-danger);" />
+
+                            <br style="margin-bottom: 20px;" />
+
+                            <RadzenLabel Text="Confirm Password" class="rz-my-0"></RadzenLabel>
+                            <RadzenPassword @bind-Value="@ChangePasswordForm.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
+                                            Disabled="@FormDisabled" />
+                            <ValidationMessage For="() => ChangePasswordForm.RepeatPassword" style="color: var(--rz-danger);" />
                         }
-                    </div>
+
+                        @if (!string.IsNullOrEmpty(ChangePasswordErrorMessage))
+                        {
+                            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
+                                @ChangePasswordErrorMessage
+                            </RadzenAlert>
+                        }
+
+                        <div class="flex-around" style="margin-top: 30px;">
+
+                            @if (string.IsNullOrEmpty(Token))
+                            {
+                                <RadzenButton Text="Request Password Change" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@CheckChangePassword" />
+                                <RadzenButton Text="Login Instead" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
+                            }
+                            else
+                            {
+                                <RadzenButton Text="Change Password" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
+
+                            }
+                        </div>
+                    </EditForm>
+
+                }
+                break;
+            case LoginPageType.AlreadyLoggedIn:
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                        You are already logged in
+                    </RadzenAlert>
+
+                    <a href="/user/settings"><RadzenButton Text="User Settings" ButtonStyle="ButtonStyle.Secondary" Shade="Shade.Dark" /></a>
+                    <a href="/logout"><RadzenButton Text="Logout" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" /></a>
                 }
                 break;
         }
@@ -188,6 +268,10 @@
 
 
 <style>
+    body {
+        color: var(--rz-text-color);
+    }
+
     .dash-box {
         min-width: 500px !important;
         margin-top: 20px;
@@ -205,12 +289,9 @@
     private SessionProvider Session { get; set; }
 
     public LoginPageType Page = LoginPageType.Default;
-    public bool FormValid { get; set; }
     public bool FormDisabled { get; set; } = false;
 
     public string Token { get; set; }
-
-    LoginForm model = new LoginForm();
 
     protected override async Task OnInitializedAsync()
     {
@@ -221,37 +302,46 @@
 
         if (!string.IsNullOrEmpty(Email))
         {
-            EmailField = Uri.UnescapeDataString(Email);
+            LoginForm.Email = Uri.UnescapeDataString(Email);
             Page = LoginPageType.Login;
         }
 
 
         if (!string.IsNullOrEmpty(Username))
         {
-            UsernameField = Uri.UnescapeDataString(Username);
+            RegisterForm.Username = Uri.UnescapeDataString(Username);
             Page = LoginPageType.Register;
         }
 
         if (!string.IsNullOrEmpty(Token))
         {
             Token = Uri.UnescapeDataString(Token);
+            ChangePasswordForm.Email = LoginForm.Email;
             Page = LoginPageType.ChangePassword;
         }
 
 
         // This is meant to be here for preview purposes :)
-        EmailField = "test@test.com";
-        PasswordField = "@U8FXB5&^2mKWbn";
-        FormValid = true;
+        if (Program.IsPreviewMode)
+        {
+            LoginForm.Email = "test@test.com";
+            LoginForm.Password = "@U8FXB5&^2mKWbn";
+        }
+
+        if (Session.State.User.Identity != null && Session.State.User.Identity.IsAuthenticated)
+            Page = LoginPageType.AlreadyLoggedIn;
     }
 
+    public AccountRegisterModel RegisterForm = new AccountRegisterModel();
+    public string RegisterErrorMessage { get; set; }
 
-    string UsernameField { get; set; }
-    string EmailField { get; set; }
-    string PasswordField { get; set; }
+    public AccountLoginModel LoginForm = new AccountLoginModel();
+    public string LoginErrorMessage { get; set; }
+
+    public AccountChangePasswordModel ChangePasswordForm = new AccountChangePasswordModel();
+    public string ChangePasswordErrorMessage { get; set; }
+
     bool RememberMe { get; set; }
-
-
 
     public bool IsAccountCreated { get; set; }
 
@@ -265,9 +355,9 @@
         FormDisabled = true;
         var result = await UserManager.UserManager.CreateAsync(new AuthUser
             {
-                UserName = UsernameField.ToLower(),
-                Email = EmailField
-            }, PasswordField);
+                UserName = RegisterForm.Username.ToLower(),
+                Email = RegisterForm.Email
+            }, RegisterForm.Password);
 
         if (result.Errors.Any())
         {
@@ -276,36 +366,29 @@
                 IsAccountCreated = true;
                 Page = LoginPageType.Login;
             }
+            else
+            {
+                RegisterErrorMessage = result.Errors.First().Description;
+            }
         }
         else
         {
             IsAccountCreated = true;
-            FormValid = true;
             Page = LoginPageType.Login;
         }
 
         FormDisabled = false;
     }
 
-    private string PasswordMatch(string arg)
-    {
-        if (PasswordField != arg)
-            return "Passwords don't match";
-        return null;
-    }
-
     public enum LoginPageType
     {
-        Default, Login, Register, ChangePassword
+        Default, Login, Register, ChangePassword, AlreadyLoggedIn
     }
 
     public bool PasswordChangeSent = false;
 
     public async Task CheckChangePassword()
     {
-        if (!FormValid)
-            return;
-
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
@@ -314,44 +397,57 @@
 
         FormDisabled = true;
 
-        var User = await UserManager.UserManager.FindByEmailAsync(EmailField);
+        var User = await UserManager.UserManager.FindByEmailAsync(LoginForm.Email);
         if (User == null)
         {
             PasswordChangeSent = true;
             return;
         }
         var Token = await UserManager.UserManager.GeneratePasswordResetTokenAsync(User);
-        await Email.SendPasswordChangeRequest(User, (NavigationManager.BaseUri + $"login?email={Uri.EscapeDataString(EmailField)}&token=" + Uri.EscapeDataString(Token)));
+        await Email.SendPasswordChangeRequest(User, (NavigationManager.BaseUri + $"login?email={Uri.EscapeDataString(LoginForm.Email)}&token=" + Uri.EscapeDataString(Token)));
         PasswordChangeSent = true;
     }
 
     public async Task Login()
     {
-        if (!Program.IsPreviewMode && !FormValid)
-            return;
+        FormDisabled = true;
 
         string RequestId = Guid.NewGuid().ToString();
-        Cache.SetString("login-" + RequestId, EmailField, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-        bool Result = await JS.InvokeAsync<bool>("accountLogin", EmailField, PasswordField, RememberMe, RequestId);
+        Cache.SetString("login-" + RequestId, LoginForm.Email, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+        bool Result = await JS.InvokeAsync<bool>("accountLogin", LoginForm.Email, LoginForm.Password, RememberMe, RequestId);
         if (Result)
             NavigationManager.NavigateTo("/", true);
+        else
+            LoginErrorMessage = "Failed to login, check your email and password is correct";
+
+        FormDisabled = true;
     }
 
     public async Task ChangePassword()
     {
-        if (!FormValid)
-            return;
-
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
             return;
         }
 
+        FormDisabled = true;
+
         string RequestId = Guid.NewGuid().ToString();
-        Cache.SetString("changepass-" + RequestId, EmailField, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-        bool Result = await JS.InvokeAsync<bool>("accountChangePassword", EmailField, PasswordField, Token, RequestId);
+        Cache.SetString("changepass-" + RequestId, ChangePasswordForm.Email, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+        bool Result = await JS.InvokeAsync<bool>("accountChangePassword", ChangePasswordForm.Email, ChangePasswordForm.Password, Token, RequestId);
         if (Result)
-            NavigationManager.NavigateTo("/", true);
+        {
+            LoginForm.Email = ChangePasswordForm.Email;
+            LoginForm.Password = ChangePasswordForm.Password;
+            Page = LoginPageType.Login;
+            await Login();
+        }
+        else
+        {
+            ChangePasswordErrorMessage = "Failed to change password for this account";
+        }
+
+        FormDisabled = false;
     }
 }
