@@ -17,13 +17,13 @@
                     <RadzenMenuItem Text="Http Codes" Path="/info/http"></RadzenMenuItem>
                 </RadzenMenuItem>
                 <RadzenMenuItem Text="Tools">
-                    <RadzenMenuItem Text="Text Editor"></RadzenMenuItem>
+                    <RadzenMenuItem Path="/tools/editor" Text="Text Editor"></RadzenMenuItem>
                     <RadzenMenuItem Text="Images">
-                        <RadzenMenuItem Text="Convert Images"></RadzenMenuItem>
+                        <RadzenMenuItem Path="/tools/image/convert" Text="Convert Images"></RadzenMenuItem>
                     </RadzenMenuItem>
                 </RadzenMenuItem>
             </RadzenMenu>
-            @if (Session.State.User.Identity.IsAuthenticated)
+            @if (Session.State.User.Identity != null && Session.State.User.Identity.IsAuthenticated)
             {
                 <div style="flex-grow: 1 !important;"></div>
                 @if (Program.IsPreviewMode)
@@ -47,7 +47,7 @@
         </RadzenStack>
     </RadzenHeader>
     <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
-        @if (Session.State.User.Identity.IsAuthenticated)
+        @if (Session.State.User.Identity != null && Session.State.User.Identity.IsAuthenticated)
         {
             <NavMenu />
         }
