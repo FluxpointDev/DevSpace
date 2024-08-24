@@ -24,19 +24,13 @@
 </style>
 
 @code {
-    [Parameter] public SessionProvider Session { get; set; }
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
 
 
     public async Task Check2FA()
     {
         var User = await Session.GetCurrentUserAsync();
-        if (Program.IsPreviewMode)
-        {
-            User = await Session.GetCurrentUserAsync();
-            User.Auth.Sessions.TryAdd(Utils.GetStringSha256Hash(Session.Ip), new AuthUserSession { });
-            await UserManager.UpdateAsync(User);
-            return;
-        }
 
         var Result = await Session.TriggerTwoFactorAuthentication(User, true);
         if (Result)
@@ -45,7 +39,7 @@
             User.Auth.Sessions.TryAdd(Utils.GetStringSha256Hash(Session.Ip), new AuthUserSession { });
             await UserManager.UpdateAsync(User);
             await Email.SendNewSessionIP(User, Session.Ip, CultureInfo.CurrentCulture.Name);
-            NavigationManager.Refresh(true);
+            NavigationManager.NavigateTo("/", true);
         }
     }
 }
