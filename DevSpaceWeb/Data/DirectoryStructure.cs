@@ -5,9 +5,8 @@ public class DirectoryStructure
     public DirectoryStructure(string path)
     {
         Path = path;
-        Console.WriteLine("Create: " + path);
-        //if (!Directory.Exists(path))
-        //    Directory.CreateDirectory(path);
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
     }
 
     public string Path;
@@ -51,7 +50,7 @@ public class DirectoryStructurePublic : DirectoryStructure
 {
     public DirectoryStructurePublic(string folder) : base(folder)
     {
-        Temp = new DirectoryStructurePublic(folder + "temp/");
+        Temp = new DirectoryStructure(folder + "temp/");
     }
 
     /// <summary>
@@ -63,7 +62,7 @@ public class DirectoryStructureTemp : DirectoryStructure
 {
     public DirectoryStructureTemp(string folder) : base(folder)
     {
-        Images = new DirectoryStructurePublic(folder + "images/");
+        Images = new DirectoryStructure(folder + "images/");
     }
 
     /// <summary>
