@@ -1,4 +1,5 @@
 ﻿@page "/tools/image/convert"
+@using SkiaSharp
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -14,12 +15,11 @@
             <RadzenSelectBarItem Value="@("jpg")" Text="Jpg" />
         </Items>
     </RadzenSelectBar>
+    <RadzenButton Text="Start Converting" Click=@(args => Uploader.Upload()) class="rz-mt-4" />
     <br />
     <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Drag and drop files to upload</RadzenText>
     <RadzenUpload @ref="@Uploader" ChooseText="Drag and drop here or click to choose files" Auto="false" Multiple="true" Url="upload/multiple" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
                   Style="width: 100%" Accept="image/*" MaxFileCount="_Data.Config.Instance.Limits.MaxImagesUpload" />
-
-    <RadzenButton Text="Upload" Click=@(args => Uploader.Upload()) class="rz-mt-4" />
 </div>
 
 <div class="dash-box">
@@ -68,6 +68,20 @@
     {
         public string Name;
         public string Type;
+    }
+
+    public async Task GenerateImage()
+    {
+        SKData? data = null;
+        SKSurface SkSurfaceJpg = await new ImageBuilder().Build();
+
+        using (SKImage snapshot = SkSurfaceJpg.Snapshot())
+            data = snapshot.Encode(SKEncodedImageFormat.Jpeg, 100);
+
+        using (Stream stream = data.AsStream(false))
+        {
+            // Save here
+        }
     }
 
     public void OnProgress(UploadProgressArgs args, string name)

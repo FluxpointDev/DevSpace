@@ -3,7 +3,6 @@ using DevSpaceWeb.Database;
 using DevSpaceWeb.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Extensions.FileProviders;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace DevSpaceWeb;
@@ -24,7 +23,7 @@ public class Program
     /// </summary>
     public static bool IsDevMode { get; private set; }
 
-    public static bool IsPreviewMode { get; set; } = true;
+    public static bool IsPreviewMode { get; set; } = false;
 
     public static void Main(string[] args)
     {
@@ -75,12 +74,13 @@ public class Program
         }
 
         app.UseForwardedHeaders();
-        app.UseStaticFiles(new StaticFileOptions
-        {
-            FileProvider = new PhysicalFileProvider(
-           Path.Combine(Program.Directory.Public.Path)),
-            RequestPath = "/public"
-        });
+        app.UseStaticFiles();
+        //app.UseStaticFiles(new StaticFileOptions
+        //{
+        //    FileProvider = new PhysicalFileProvider(
+        //   Path.Combine(Program.Directory.Public.Path)),
+        //    RequestPath = "/public"
+        //});
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseSession();
