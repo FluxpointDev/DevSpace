@@ -1,10 +1,13 @@
 ﻿@using CliWrap
 @using CliWrap.Buffered
 @using DevSpaceWeb.Database
+@using DevSpaceWeb.Models
+@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Identity
 @using MongoDB.Bson
 @using MongoDB.Driver
 @inject UserManager<AuthUser> UserManager
+@inject SignInManager<AuthUser> SignInManager
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -18,13 +21,17 @@
                 <ChildContent>
                     <RadzenCard>
                         <RadzenText TextStyle="TextStyle.Subtitle1">Database</RadzenText>
+
                         <br />
+
                         <RadzenLabel Text="Database Name" class="rz-my-0"></RadzenLabel>
                         <RadzenTextBox @bind-Value="DatabaseName" Style="width: 100%" aria-label="Database Name" autocomplete="off"
                                        Disabled="@(SetupStep != SetupStepType.Database)" />
 
+                        <br style="margin-bottom: 20px;" />
+
                         <RadzenLabel Text="Database Type" class="rz-my-0"></RadzenLabel>
-                        <RadzenSelectBar TValue="string" @bind-Value="@DatabaseType" Disabled="@(SetupStep != SetupStepType.Database)">
+                        <RadzenSelectBar TValue="string" @bind-Value="@DatabaseType" Style="width: 100%" Disabled="@(SetupStep != SetupStepType.Database)">
                             <Items>
                                 <RadzenSelectBarItem Value="@("Automatic")" Text="Automatic" />
                                 <RadzenSelectBarItem Value="@("Manual")" Text="Manual" />
@@ -43,28 +50,37 @@
                             <RadzenTextBox @bind-Value="DatabaseIP" Style="width: 100%" aria-label="Database IP" autocomplete="off"
                                            Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="1.1.1.1" />
 
+                            <br style="margin-bottom: 20px;" />
+
                             <RadzenLabel Text="Database Port" class="rz-my-0"></RadzenLabel>
                             <RadzenNumeric @bind-Value="DatabasePort" Style="width: 100%" aria-label="Database Port" autocomplete="off"
                                            Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="0000" ShowUpDown="false" />
 
+                            <br style="margin-bottom: 20px;" />
+
                             <RadzenLabel Text="Database Username" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="DatabaseUsername" Style="width: 100%" aria-label="Database Username" autocomplete="off"
                                            Disabled="@(SetupStep != SetupStepType.Database)" />
+
+                            <br style="margin-bottom: 20px;" />
 
                             <RadzenLabel Text="Database Password" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="DatabasePassword" Style="width: 100%" aria-label="Database Password" autocomplete="off"
                                            Disabled="@(SetupStep != SetupStepType.Database)" />
                         }
                         <br />
+                        <br />
+
                         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Database)" Click="@CheckDatabase" />
                     </RadzenCard>
                 </ChildContent>
             </RadzenTimelineItem>
+
             <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Instance)">
                 <ChildContent>
                     <RadzenCard>
                         <RadzenText TextStyle="TextStyle.Subtitle1">Instance</RadzenText>
-                        <br />
+
                         <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
                             This will be publicly shown on the url
                         </RadzenAlert>
@@ -73,39 +89,110 @@
                         <RadzenTextBox @bind-Value="InstanceName" Style="width: 100%" aria-label="Instance Name" autocomplete="off"
                                        Disabled="@(SetupStep != SetupStepType.Instance)" Placeholder="My Team Dev Space" />
 
+                        <br style="margin-bottom: 20px;" />
+
                         <RadzenLabel Text="Instance Description" class="rz-my-0"></RadzenLabel>
                         <RadzenTextBox @bind-Value="InstanceDesc" Style="width: 100%" aria-label="Instance Description" autocomplete="off"
                                        Disabled="@(SetupStep != SetupStepType.Instance)" />
 
                         <br />
+                        <br />
+
                         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Instance)" Click="@CheckInstance" />
                     </RadzenCard>
                 </ChildContent>
             </RadzenTimelineItem>
+
             <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Team)">
                 <ChildContent>
                     <RadzenCard>
                         <RadzenText TextStyle="TextStyle.Subtitle1">Team/Company</RadzenText>
+
                         <br />
+
                         <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
                         <RadzenTextBox @bind-Value="TeamNameInput" Style="width: 100%" aria-label="Team Name" autocomplete="off"
                                        Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="My Team" />
 
+                        <br style="margin-bottom: 20px;" />
+
                         <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
                         <RadzenTextBox @bind-Value="TeamVanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="off"
-                                       Disabled="@(SetupStep != SetupStepType.Team)" />
+                                       Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="myteam" />
 
                         <br />
+                        <br />
+
                         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Team)" Click="@CheckTeam" />
                     </RadzenCard>
                 </ChildContent>
             </RadzenTimelineItem>
+
+            <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Admin)">
+                <ChildContent>
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">Admin Account</RadzenText>
+
+                        <br />
+
+                        <EditForm Model="AdminAccount" OnValidSubmit="CheckAdmin">
+                            <DataAnnotationsValidator />
+
+                            <RadzenLabel Text="Admin Username" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="AdminAccount.Username" Style="width: 100%" aria-label="Admin Username" autocomplete="off"
+                                           Disabled="@(SetupStep != SetupStepType.Admin)" Placeholder="user" />
+                            <ValidationMessage For="() => AdminAccount.Username" style="color: var(--rz-danger);" />
+
+                            <br style="margin-bottom: 20px;" />
+
+                            <RadzenLabel Text="Admin Email" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="AdminAccount.Email" Style="width: 100%" aria-label="Admin Email" autocomplete="off"
+                                           Disabled="@(SetupStep != SetupStepType.Admin)" Placeholder="user@gmail.com" />
+                            <ValidationMessage For="() => AdminAccount.Email" style="color: var(--rz-danger);" />
+
+                            <br style="margin-bottom: 20px;" />
+                            <br />
+
+                            <RadzenText TextStyle="TextStyle.Body2">Password require 1 uppercase letter, 1 lowercase letter and 1 number</RadzenText>
+
+                            <br />
+
+                            <RadzenLabel Text="Admin Password" class="rz-my-0"></RadzenLabel>
+                            <RadzenPassword @bind-Value="AdminAccount.Password" Style="width: 100%" aria-label="Admin Password" autocomplete="off"
+                                            Disabled="@(SetupStep != SetupStepType.Admin)" />
+                            <ValidationMessage For="() => AdminAccount.Password" style="color: var(--rz-danger);" />
+
+                            <br style="margin-bottom: 20px;" />
+
+                            <RadzenLabel Text="Confirm Password" class="rz-my-0"></RadzenLabel>
+                            <RadzenPassword @bind-Value="@AdminAccount.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
+                                            Disabled="@(SetupStep != SetupStepType.Admin)" />
+                            <ValidationMessage For="() => AdminAccount.RepeatPassword" style="color: var(--rz-danger);" />
+
+                            <br />
+
+                            @if (!string.IsNullOrEmpty(AdminErrorMessage))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
+                                    @AdminErrorMessage
+                                </RadzenAlert>
+                            }
+                            else
+                            {
+                                <br />
+                            }
+
+                            <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Admin)" />
+                        </EditForm>
+                    </RadzenCard>
+                </ChildContent>
+            </RadzenTimelineItem>
+
             <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Confirm)">
                 <ChildContent>
                     <RadzenCard>
                         <RadzenText TextStyle="TextStyle.Subtitle1">@(SetupStep == SetupStepType.Confirm ? "Setup Done!" : "Waiting for Setup")</RadzenText>
 
-                        <br />
                         @if (SetupStep == SetupStepType.Confirm)
                         {
                             <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose=false>
@@ -128,6 +215,9 @@
 
 
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
     public bool MongoDBDetected { get; set; }
 
     public string InstanceName { get; set; }
@@ -143,6 +233,9 @@
     public string TeamName { get; set; }
     public string TeamVanityUrl { get; set; }
 
+    public AccountRegisterModel AdminAccount = new AccountRegisterModel();
+    public string AdminErrorMessage { get; set; }
+
     public SetupStepType SetupStep = SetupStepType.Database;
 
     public string TeamNameInput { get { return TeamName; } set { TeamName = value; TeamVanityUrl = TeamName.Replace(" ", "-").ToLower(); } }
@@ -155,7 +248,7 @@
         DatabaseIP = _Data.Config.Database.IP;
         DatabasePort = _Data.Config.Database.Port;
         if (_Data.Config.Database.IsSetup)
-            SetupStep = SetupStepType.Instance;
+            SetupStep = SetupStepType.Admin;
 
         if (File.Exists("/etc/mongod.conf"))
         {
@@ -350,8 +443,30 @@
 
         _Data.Config.isFullySetup = true;
         _Data.Config.Save();
-        SetupStep = SetupStepType.Confirm;
+        SetupStep = SetupStepType.Admin;
+    }
 
+    public async Task CheckAdmin(EditContext context)
+    {
+        SetupStep = SetupStepType.Disabled;
+        var User = new AuthUser
+            {
+                UserName = AdminAccount.Username,
+                Email = AdminAccount.Email
+            };
+        User.Auth.Sessions.TryAdd(Utils.GetStringSha256Hash(Session.Ip), new AuthUserSession { });
+        var result = await UserManager.CreateAsync(User, AdminAccount.Password);
+
+        if (result.Errors.Any())
+        {
+            AdminErrorMessage = result.Errors.First().Description;
+            SetupStep = SetupStepType.Admin;
+        }
+        else
+        {
+
+            SetupStep = SetupStepType.Confirm;
+        }
     }
 
     public PointStyle GetStepColor(SetupStepType compare)
@@ -383,6 +498,13 @@
                 else if (SetupStep > SetupStepType.Team)
                     return PointStyle.Success;
                 break;
+            case SetupStepType.Admin:
+                if (SetupStep == SetupStepType.Admin)
+                    return PointStyle.Info;
+                else if (SetupStep > SetupStepType.Admin)
+                    return PointStyle.Success;
+                break;
+
             case SetupStepType.Confirm:
                 {
                     if (SetupStep == SetupStepType.Confirm)
@@ -395,6 +517,6 @@
 
     public enum SetupStepType
     {
-        Disabled, Database, Instance, Team, Confirm
+        Disabled, Database, Instance, Team, Admin, Confirm
     }
 }

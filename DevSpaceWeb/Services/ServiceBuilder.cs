@@ -4,6 +4,7 @@ using AspNetCore.Identity.MongoDbCore.Models;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
+using DevSpaceWeb.Models;
 using DevSpaceWeb.Services.Identity;
 using Fido2NetLib;
 using Microsoft.AspNetCore.Identity;
@@ -51,8 +52,9 @@ public static class ServiceBuilder
         services.Configure<IdentityOptions>(options =>
         {
             options.User.RequireUniqueEmail = true;
-            options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
+            options.User.AllowedUserNameCharacters = AccountRegisterModel.AllowedCharacters;
             options.Password.RequiredLength = 8;
+            options.Password.RequireNonAlphanumeric = false;
         });
 
         services.ConfigureApplicationCookie(options =>
