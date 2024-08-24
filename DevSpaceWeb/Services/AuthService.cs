@@ -1,4 +1,4 @@
-﻿using DevSpaceWeb.Database;
+﻿using DevSpaceWeb.Data.Auth;
 using Microsoft.AspNetCore.Identity;
 
 namespace DevSpaceWeb.Services;

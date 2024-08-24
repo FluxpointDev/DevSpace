@@ -1,4 +1,4 @@
-﻿namespace DevSpaceWeb.Models
+﻿namespace DevSpaceWeb.Extensions.Identity
 {
     //public class MySignInManager : SignInManager<IdentityUser>
     //{

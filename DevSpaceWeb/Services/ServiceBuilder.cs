@@ -2,7 +2,7 @@
 using AspNetCore.Identity.MongoDbCore.Infrastructure;
 using AspNetCore.Identity.MongoDbCore.Models;
 using DevSpaceWeb.Data;
-using DevSpaceWeb.Database;
+using DevSpaceWeb.Data.Auth;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
 using Fido2NetLib;

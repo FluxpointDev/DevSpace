@@ -1,4 +1,5 @@
 ﻿using DevSpaceWeb.Components.Markdown;
+using DevSpaceWeb.Data.Auth;
 using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
