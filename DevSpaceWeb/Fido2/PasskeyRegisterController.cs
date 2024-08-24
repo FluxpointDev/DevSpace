@@ -1,4 +1,4 @@
-﻿using DevSpaceWeb.Data.Auth;
+﻿using DevSpaceWeb.Extensions.Identity;
 using Fido2NetLib;
 using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Identity;

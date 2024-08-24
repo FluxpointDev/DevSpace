@@ -1,5 +1,5 @@
-﻿using DevSpaceWeb.Data.Auth;
-using DevSpaceWeb.Database;
+﻿using DevSpaceWeb.Database;
+using DevSpaceWeb.Extensions.Identity;
 using DevSpaceWeb.Fido2;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

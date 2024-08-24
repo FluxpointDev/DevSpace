@@ -1,5 +1,4 @@
 ﻿using DevSpaceWeb.Data;
-using DevSpaceWeb.Data.Auth;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;

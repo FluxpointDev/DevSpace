@@ -1,6 +1,6 @@
 ﻿using MongoDB.Bson;
 
-namespace DevSpaceWeb.Data.Auth;
+namespace DevSpaceWeb.Database;
 
 public delegate void SessionEventHandler(object sender, ObjectId user, SessionEventType type);
 

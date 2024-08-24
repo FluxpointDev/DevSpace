@@ -4,7 +4,7 @@ using Fido2NetLib;
 using MongoDB.Bson;
 using MongoDbGenericRepository.Attributes;
 
-namespace DevSpaceWeb.Data.Auth;
+namespace DevSpaceWeb.Extensions.Identity;
 
 [CollectionName("auth_internal")]
 public class AuthUser : MongoIdentityUser<ObjectId>
