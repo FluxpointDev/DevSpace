@@ -24,48 +24,48 @@ public class EmailService
     }
 
     public Task<bool> SendAccountConfirm(AuthUser user, string action)
-        => Send(SendMailType.AccountConfirm, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountConfirm), action: action);
+        => Send(EmailTemplateType.AccountConfirm, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountConfirm), action: action);
 
     public Task<bool> SendAccountInvited(AuthUser user, string action)
-        => Send(SendMailType.AccountInvited, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountInvited), action: action);
+        => Send(EmailTemplateType.AccountInvited, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountInvited), action: action);
 
     public Task<bool> SendAccountDeleted(AuthUser user)
-        => Send(SendMailType.AccountDeleted, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountDeleted));
+        => Send(EmailTemplateType.AccountDeleted, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountDeleted));
 
     public Task<bool> SendPasswordChangeRequest(AuthUser user, string action)
-        => Send(SendMailType.AccountPasswordChangeConfirm, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountPasswordChangeRequest), action: action);
+        => Send(EmailTemplateType.AccountPasswordChangeRequest, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountPasswordChangeRequest), action: action);
 
     public Task<bool> SendPasswordChanged(AuthUser user, string action)
-        => Send(SendMailType.AccountPasswordChanged, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountPasswordChanged), action: action);
+        => Send(EmailTemplateType.AccountPasswordChanged, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountPasswordChanged), action: action);
 
     public Task<bool> Send2FAEnabled(AuthUser user)
-        => Send(SendMailType.Account2FAEnabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Account2FADisabled));
+        => Send(EmailTemplateType.Account2FAEnabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Account2FADisabled));
 
     public Task<bool> Send2FADisabled(AuthUser user)
-        => Send(SendMailType.Account2FADisabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Account2FADisabled));
+        => Send(EmailTemplateType.Account2FADisabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Account2FADisabled));
 
     public Task<bool> SendAccountEnabled(AuthUser user, string reason)
-        => Send(SendMailType.AccountEnabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEnabled), reason: reason);
+        => Send(EmailTemplateType.AccountEnabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEnabled), reason: reason);
 
     public Task<bool> SendAccountDisabled(AuthUser user, string reason)
-        => Send(SendMailType.AccountDisabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountDisabled), reason: reason);
+        => Send(EmailTemplateType.AccountDisabled, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountDisabled), reason: reason);
 
     public Task<bool> SendAccessCode(AuthUser user, string reason, string code)
-        => Send(SendMailType.AccessCode, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccessCode), code: code, reason: reason);
+        => Send(EmailTemplateType.AccessCode, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccessCode), code: code, reason: reason);
 
     public Task<bool> SendEmailChangeCode(AuthUser user, string other_email, string code)
-        => Send(SendMailType.AccountEmailChangeConfirm, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEmailChangeCode), code: code, other_email: other_email);
+        => Send(EmailTemplateType.AccountEmailChangeCode, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEmailChangeCode), code: code, other_email: other_email);
 
     public Task<bool> SendEmailChangeRequest(AuthUser user, string action)
-        => Send(SendMailType.AccountEmailChangeConfirm, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEmailChangeRequest), action: action);
+        => Send(EmailTemplateType.AccountEmailChangeRequest, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEmailChangeRequest), action: action);
 
     public Task<bool> SendEmailChanged(AuthUser user, string other_email)
-        => Send(SendMailType.AccountEmailChanged, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEmailChanged), other_email: other_email);
+        => Send(EmailTemplateType.AccountEmailChanged, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEmailChanged), other_email: other_email);
 
     public Task<bool> SendNewSessionIP(AuthUser user, string ip, string country)
-        => Send(SendMailType.AccountInvited, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.NewSessionIp), ip: ip, country: country);
+        => Send(EmailTemplateType.AccountInvited, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.NewSessionIp), ip: ip, country: country);
 
-    public async Task<bool> Send(SendMailType type, AuthUser user, EmailTemplateData? template, string body = "", string other_email = "", string action = "", string code = "", string reason = "", string ip = "", string country = "")
+    public async Task<bool> Send(EmailTemplateType type, AuthUser user, EmailTemplateData? template, string body = "", string other_email = "", string action = "", string code = "", string reason = "", string ip = "", string country = "")
     {
         if (Program.IsPreviewMode)
             return true;
@@ -82,9 +82,13 @@ public class EmailService
                     type = type,
                     name = user.UserName,
                     email = user.Email,
-                    instance = _Data.Config.Instance.Name,
+                    email_other = other_email,
+                    instance_name = _Data.Config.Instance.Name,
+                    instance_icon = _Data.Config.Instance.GetIconOrDefault(),
                     url = action,
-                    code = code
+                    code = code,
+                    ip = ip,
+                    country = country
                 })
             };
             message.Headers.Add("Authorization", _Data.Config.Email.ManagedEmailToken);
@@ -105,7 +109,7 @@ public class EmailService
                     if (template == null)
                     {
                         MimeMessage message = new MimeMessage();
-                        message.From.Add(new MailboxAddress(_Data.Config.Instance.Name, _Data.Config.Email.SmtpUser));
+                        message.From.Add(new MailboxAddress(_Data.Config.Instance.Name, _Data.Config.Email.SmtpEmailAddress));
                         message.To.Add(new MailboxAddress(user.UserName, user.Email));
                         message.Subject = "Test Email";
                         message.Body = new TextPart("html")
@@ -147,20 +151,29 @@ public class EmailService
         await client.SendAsync(message);
     }
 
+    public string RandomCodeGenerator(bool longCode)
+    {
+        string[] page = new string[longCode ? 8 : 6];
+        Random rnd = new Random();
+        for (int i = 0; i < page.Length; ++i)
+            page[i] = rnd.Next(10).ToString();
+
+        return string.Join("", page);
+    }
+
+
     public class SendMailJson
     {
         public string name { get; set; }
         public string email { get; set; }
         public string email_other { get; set; }
         public string code { get; set; }
-        public string instance { get; set; }
+        public string instance_name { get; set; }
+        public string instance_icon { get; set; }
+        public string reason { get; set; }
         public string url { get; set; }
-        public SendMailType type { get; set; }
+        public string ip { get; set; }
+        public string country { get; set; }
+        public EmailTemplateType type { get; set; }
     }
-}
-public enum SendMailType
-{
-    None, Test, AccountConfirm, AccountInvited, AccountDeleted,
-    AccountPasswordChangeConfirm, AccountPasswordChangeCode, AccountPasswordChanged, AccountEmailChangeConfirm, AccountEmailChanged,
-    Account2FAEnabled, Account2FADisabled, AccountEnabled, AccountDisabled, AccessCode
 }

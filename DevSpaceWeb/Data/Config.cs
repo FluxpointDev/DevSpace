@@ -90,6 +90,7 @@ public class ConfigDatabase
 }
 public class ConfigEmail
 {
+    public string SmtpEmailAddress;
     public string SmtpHost;
     public int SmtpPort;
     public string SmtpUser;
@@ -132,7 +133,7 @@ public class ConfigEmail
 }
 public enum ConfigEmailType
 {
-    FluxpointManaged, Custom
+    FluxpointManaged, Gmail, SendGrid, Custom
 }
 public class ConfigProviders
 {

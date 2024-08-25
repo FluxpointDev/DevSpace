@@ -20,6 +20,8 @@ public class EmailTemplateData
     {
         switch (type)
         {
+            case EmailTemplateType.Test:
+                return "Test";
             case EmailTemplateType.Header:
                 return "Header";
             case EmailTemplateType.Footer:
@@ -65,6 +67,8 @@ public class EmailTemplateData
     {
         switch (type)
         {
+            case EmailTemplateType.Test:
+                return "question_mark";
             case EmailTemplateType.Header:
                 return "featured_play_list";
             case EmailTemplateType.Footer:
@@ -170,6 +174,7 @@ public class EmailTemplateData
 }
 public enum EmailTemplateType
 {
+    Test,
     Header,
     Footer,
 

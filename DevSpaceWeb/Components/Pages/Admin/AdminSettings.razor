@@ -232,10 +232,11 @@
             Message.Headers.Add("Authorization", ManagedEmailToken);
             Message.Content = JsonContent.Create(new EmailService.SendMailJson
                 {
-                    instance = _Data.Config.Instance.Name,
+                    instance_name = _Data.Config.Instance.Name,
+                    instance_icon = _Data.Config.Instance.GetIconOrDefault(true),
                     email = TestEmail,
                     name = "Test User",
-                    type = SendMailType.Test,
+                    type = EmailTemplateType.Test,
                     url = string.IsNullOrEmpty(_Data.Config.Instance.PublicUrl) ? "http://localhost" : _Data.Config.Instance.PublicUrl
                 });
             var Res = await Program.Http.SendAsync(Message);
