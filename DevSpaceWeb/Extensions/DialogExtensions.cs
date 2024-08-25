@@ -31,7 +31,7 @@ public static class DialogExtensions
         {
             { "ContentText", text },
             { "ButtonText", "Ok" },
-            { "Color", Radzen.Colors.Success },
+            { "Color", ButtonStyle.Success },
             { "ShowCancel", false }
         }, options);
 
