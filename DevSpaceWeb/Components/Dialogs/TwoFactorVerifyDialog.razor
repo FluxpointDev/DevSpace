@@ -118,8 +118,8 @@
         string VerifyCache = Cache.GetString("2fa-verify-" + AuthUser.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache))
         {
-            string Code = Utils.CreateTwoFactorRecoveryCode();
-            Cache.SetString("2fa-verify-" + AuthUser.Id.ToString(), Utils.CreateTwoFactorRecoveryCode(), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
+            string Code = Email.RandomCodeGenerator(false);
+            Cache.SetString("2fa-verify-" + AuthUser.Id.ToString(), Code, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
             await Email.SendAccessCode(AuthUser, "2FA Verification", Code);
             if (LogUsage)
             {
