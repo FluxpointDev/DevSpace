@@ -65,7 +65,7 @@ public class EmailService
     public Task<bool> SendNewSessionIP(AuthUser user, string ip, string country)
         => Send(EmailTemplateType.AccountInvited, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.NewSessionIp), ip: ip, country: country);
 
-    public async Task<bool> Send(EmailTemplateType type, AuthUser user, EmailTemplateData? template, string body = "", string other_email = "", string action = "", string code = "", string reason = "", string ip = "", string country = "")
+    public async Task<bool> Send(EmailTemplateType type, AuthUser user, EmailTemplateData? template, string body = "", string other_email = "", string action = "", string code = "", string reason = "", string ip = "", string country = "", string team_name = "")
     {
         if (Program.IsPreviewMode)
             return true;
@@ -85,10 +85,12 @@ public class EmailService
                     email_other = other_email,
                     instance_name = _Data.Config.Instance.Name,
                     instance_icon = _Data.Config.Instance.GetIconOrDefault(),
-                    url = action,
+                    url = string.IsNullOrEmpty(action) ? _Data.Config.Instance.PublicUrl : action,
                     code = code,
                     ip = ip,
-                    country = country
+                    country = country,
+                    team_name = team_name,
+                    reason = reason
                 })
             };
             message.Headers.Add("Authorization", _Data.Config.Email.ManagedEmailToken);
@@ -120,7 +122,7 @@ public class EmailService
                         await smtp.SendAsync(message);
                     }
                     else
-                        await SendTemplate(smtp, user, template, other_email, action, code, reason, ip, country);
+                        await SendTemplate(smtp, user, template, other_email, action, code, reason, ip, country, team_name);
                     await smtp.DisconnectAsync(true);
                 }
                 return true;
@@ -134,7 +136,7 @@ public class EmailService
 
     }
 
-    private async Task SendTemplate(SmtpClient client, AuthUser user, EmailTemplateData template, string other_email, string action = "", string code = "", string reason = "", string ip = "", string country = "")
+    private async Task SendTemplate(SmtpClient client, AuthUser user, EmailTemplateData template, string other_email, string action = "", string code = "", string reason = "", string ip = "", string country = "", string team_name = "")
     {
         MimeMessage message = new MimeMessage();
         message.From.Add(new MailboxAddress(_Data.Config.Instance.Name, _Data.Config.Email.SmtpUser));
@@ -170,6 +172,7 @@ public class EmailService
         public string code { get; set; }
         public string instance_name { get; set; }
         public string instance_icon { get; set; }
+        public string team_name { get; set; }
         public string reason { get; set; }
         public string url { get; set; }
         public string ip { get; set; }
