@@ -20,7 +20,10 @@ public class EmailService
 
     public bool CanSendEmail()
     {
-        return ManagedEmailSystem != null;
+        if (_Data.Config.Email.Type == ConfigEmailType.FluxpointManaged)
+            return !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken);
+        else
+            return !string.IsNullOrEmpty(_Data.Config.Email.SmtpHost);
     }
 
     public Task<bool> SendAccountConfirm(AuthUser user, string action)
