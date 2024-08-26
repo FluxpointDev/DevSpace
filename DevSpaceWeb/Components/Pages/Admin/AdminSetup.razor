@@ -26,54 +26,76 @@
 
                         <br />
 
-                        <RadzenLabel Text="Database Name" class="rz-my-0"></RadzenLabel>
-                        <RadzenTextBox @bind-Value="DatabaseName" Style="width: 100%" aria-label="Database Name" autocomplete="off"
-                                       Disabled="@(SetupStep != SetupStepType.Database)" />
-
-                        <br style="margin-bottom: 20px;" />
-
                         <RadzenLabel Text="Database Type" class="rz-my-0"></RadzenLabel>
-                        <RadzenSelectBar TValue="string" @bind-Value="@DatabaseType" Style="width: 100%" Disabled="@(SetupStep != SetupStepType.Database)">
+                        <RadzenSelectBar TValue="bool" @bind-Value="@IsDatabaseAutomatic" Style="width: 100%" Disabled="@(SetupStep != SetupStepType.Database || MongoDBDetected)">
                             <Items>
-                                <RadzenSelectBarItem Value="@("Automatic")" Text="Automatic" />
-                                <RadzenSelectBarItem Value="@("Manual")" Text="Manual" />
+                                <RadzenSelectBarItem Value="true" Text="Automatic" />
+                                <RadzenSelectBarItem Value="false" Text="Manual" />
                             </Items>
                         </RadzenSelectBar>
 
-                        @if (MongoDBDetected)
+                        @if (!string.IsNullOrEmpty(DatabaseErrorMessage))
                         {
                             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
-                                MongoDB is already installed on this server, manual setup is required!
+                                @DatabaseErrorMessage
                             </RadzenAlert>
                         }
-                        @if (DatabaseType == "Manual")
+
+                        @if (IsDatabaseAutomatic)
                         {
-                            <RadzenLabel Text="Database IP" class="rz-my-0"></RadzenLabel>
-                            <RadzenTextBox @bind-Value="DatabaseIP" Style="width: 100%" aria-label="Database IP" autocomplete="off"
-                                           Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="1.1.1.1" />
+                            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                                Click Next to begin the automatic setup, this will install MongoDB on your server and setup the database with authentication.
+                            </RadzenAlert>
 
-                            <br style="margin-bottom: 20px;" />
+                            @if (IsDatabaseSetupRunning)
+                            {
+                                <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                            }
+                            <br />
+                            <br />
 
-                            <RadzenLabel Text="Database Port" class="rz-my-0"></RadzenLabel>
-                            <RadzenNumeric @bind-Value="DatabasePort" Style="width: 100%" aria-label="Database Port" autocomplete="off"
-                                           Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="0000" ShowUpDown="false" />
-
-                            <br style="margin-bottom: 20px;" />
-
-                            <RadzenLabel Text="Database Username" class="rz-my-0"></RadzenLabel>
-                            <RadzenTextBox @bind-Value="DatabaseUsername" Style="width: 100%" aria-label="Database Username" autocomplete="off"
-                                           Disabled="@(SetupStep != SetupStepType.Database)" />
-
-                            <br style="margin-bottom: 20px;" />
-
-                            <RadzenLabel Text="Database Password" class="rz-my-0"></RadzenLabel>
-                            <RadzenTextBox @bind-Value="DatabasePassword" Style="width: 100%" aria-label="Database Password" autocomplete="off"
-                                           Disabled="@(SetupStep != SetupStepType.Database)" />
+                            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Database)" Click="@CheckDatabase" />
                         }
-                        <br />
-                        <br />
+                        else
+                        {
+                            <EditForm Model="@DatabaseForm" OnValidSubmit="@CheckDatabase">
+                                <DataAnnotationsValidator />
 
-                        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Database)" Click="@CheckDatabase" />
+                                <RadzenLabel Text="Database Name" class="rz-my-0"></RadzenLabel>
+                                <RadzenTextBox @bind-Value="DatabaseForm.Name" Style="width: 100%" aria-label="Database Name" autocomplete="off"
+                                               Disabled="@(SetupStep != SetupStepType.Database)" MaxLength="100" />
+
+                                <br style="margin-bottom: 20px;" />
+
+                                <RadzenLabel Text="Database IP" class="rz-my-0"></RadzenLabel>
+                                <RadzenTextBox @bind-Value="DatabaseForm.IP" Style="width: 100%" aria-label="Database IP" autocomplete="off"
+                                               Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="1.1.1.1" MaxLength="100" />
+
+                                <br style="margin-bottom: 20px;" />
+
+                                <RadzenLabel Text="Database Port" class="rz-my-0"></RadzenLabel>
+                                <RadzenNumeric @bind-Value="DatabaseForm.Port" Style="width: 100%" aria-label="Database Port" autocomplete="off"
+                                               Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="0000" ShowUpDown="false" />
+
+                                <br style="margin-bottom: 20px;" />
+
+                                <RadzenLabel Text="Database Username" class="rz-my-0"></RadzenLabel>
+                                <RadzenTextBox @bind-Value="DatabaseForm.Username" Style="width: 100%" aria-label="Database Username" autocomplete="off"
+                                               Disabled="@(SetupStep != SetupStepType.Database)" MaxLength="100" />
+
+                                <br style="margin-bottom: 20px;" />
+
+                                <RadzenLabel Text="Database Password" class="rz-my-0"></RadzenLabel>
+                                <RadzenPassword @bind-Value="DatabaseForm.Password" Style="width: 100%" aria-label="Database Password" autocomplete="off"
+                                                Disabled="@(SetupStep != SetupStepType.Database)" maxlength="100" />
+
+                                <br />
+                                <br />
+
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Database)" ButtonType="ButtonType.Submit" />
+                            </EditForm>
+                        }
+
                     </RadzenCard>
                 </ChildContent>
             </RadzenTimelineItem>
@@ -109,7 +131,7 @@
 
                                     <RadzenLabel Text="Smtp Host" class="rz-my-0"></RadzenLabel>
                                     <RadzenTextBox @bind-Value="SmtpHost" Style="width: 100%" aria-label="Smtp Host" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp.domain.com" />
+                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp.domain.com" MaxLength="100" />
 
                                     <br style="margin-bottom: 20px;" />
 
@@ -121,19 +143,19 @@
 
                                     <RadzenLabel Text="Smtp User" class="rz-my-0"></RadzenLabel>
                                     <RadzenTextBox @bind-Value="SmtpUser" Style="width: 100%" aria-label="Smtp User" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp@domain.com" />
+                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp@domain.com" MaxLength="100" />
 
                                     <br style="margin-bottom: 20px;" />
 
                                     <RadzenLabel Text="Smtp Password" class="rz-my-0"></RadzenLabel>
                                     <RadzenPassword @bind-Value="SmtpPassword" Style="width: 100%" aria-label="Smtp Password" autocomplete="off"
-                                                    Disabled="@(SetupStep != SetupStepType.Smtp)" />
+                                                    Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
 
                                     <br style="margin-bottom: 20px;" />
 
-                                    <RadzenLabel Text="Email Address" class="rz-my-0"></RadzenLabel>
+                                    <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
                                     <RadzenTextBox @bind-Value="SmtpEmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" />
+                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" MaxLength="100" />
                                 }
                                 break;
                             case ConfigEmailType.Gmail:
@@ -148,19 +170,19 @@
 
                                     <RadzenLabel Text="Gmail Account" class="rz-my-0"></RadzenLabel>
                                     <RadzenTextBox @bind-Value="SmtpUser" Style="width: 100%" aria-label="Gmail Account" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="account@gmail.com" />
+                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="account@gmail.com" MaxLength="100" />
 
                                     <br style="margin-bottom: 20px;" />
 
                                     <RadzenLabel Text="Gmail App Password" class="rz-my-0"></RadzenLabel>
                                     <RadzenPassword @bind-Value="SmtpPassword" Style="width: 100%" aria-label="Gmail API Key" autocomplete="off"
-                                                    Disabled="@(SetupStep != SetupStepType.Smtp)" />
+                                                    Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
 
                                     <br style="margin-bottom: 20px;" />
 
-                                    <RadzenLabel Text="Email Address" class="rz-my-0"></RadzenLabel>
+                                    <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
                                     <RadzenTextBox @bind-Value="SmtpEmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" />
+                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" MaxLength="100" />
                                 }
                                 break;
                             case ConfigEmailType.SendGrid:
@@ -175,11 +197,11 @@
 
                                     <RadzenLabel Text="SendGrid API Key" class="rz-my-0"></RadzenLabel>
                                     <RadzenPassword @bind-Value="SmtpPassword" Style="width: 100%" aria-label="SendGrid API Key" autocomplete="off"
-                                                    Disabled="@(SetupStep != SetupStepType.Smtp)" />
+                                                    Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
 
                                     <br style="margin-bottom: 20px;" />
 
-                                    <RadzenLabel Text="Email Address" class="rz-my-0"></RadzenLabel>
+                                    <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
                                     <RadzenTextBox @bind-Value="SmtpEmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
                                                    Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" />
                                 }
@@ -188,7 +210,7 @@
                                 {
                                     <RadzenLabel Text="Email API Key" class="rz-my-0"></RadzenLabel>
                                     <RadzenTextBox @bind-Value="ManagedEmailToken" Style="width: 100%" aria-label="Email API Key" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" />
+                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" MaxLength="100" />
                                 }
                                 break;
                         }
@@ -219,20 +241,26 @@
                             This will be publicly shown on the url
                         </RadzenAlert>
 
-                        <RadzenLabel Text="Instance Name" class="rz-my-0"></RadzenLabel>
-                        <RadzenTextBox @bind-Value="InstanceName" Style="width: 100%" aria-label="Instance Name" autocomplete="off"
-                                       Disabled="@(SetupStep != SetupStepType.Instance)" Placeholder="My Team Dev Space" />
+                        <EditForm Model="@InstanceForm" OnValidSubmit="@CheckInstance">
+                            <DataAnnotationsValidator />
 
-                        <br style="margin-bottom: 20px;" />
+                            <RadzenLabel Text="Instance Name" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="@InstanceForm.Name" Style="width: 100%" aria-label="Instance Name" autocomplete="off"
+                                           Disabled="@(SetupStep != SetupStepType.Instance)" Placeholder="My Dev Space" MaxLength="32" />
+                            <ValidationMessage For="() => InstanceForm.Name" style="color: var(--rz-danger);" />
 
-                        <RadzenLabel Text="Instance Description" class="rz-my-0"></RadzenLabel>
-                        <RadzenTextBox @bind-Value="InstanceDesc" Style="width: 100%" aria-label="Instance Description" autocomplete="off"
-                                       Disabled="@(SetupStep != SetupStepType.Instance)" />
+                            <br style="margin-bottom: 20px;" />
 
-                        <br />
-                        <br />
+                            <RadzenLabel Text="Instance Description" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="@InstanceForm.Description" Style="width: 100%" aria-label="Instance Description" autocomplete="off"
+                                           Disabled="@(SetupStep != SetupStepType.Instance)" MaxLength="300" />
+                            <ValidationMessage For="() => InstanceForm.Description" style="color: var(--rz-danger);" />
 
-                        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Instance)" Click="@CheckInstance" />
+                            <br />
+                            <br />
+
+                            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Instance)" ButtonType="ButtonType.Submit" />
+                        </EditForm>
                     </RadzenCard>
                 </ChildContent>
             </RadzenTimelineItem>
@@ -244,20 +272,23 @@
 
                         <br />
 
-                        <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
-                        <RadzenTextBox @bind-Value="TeamNameInput" Style="width: 100%" aria-label="Team Name" autocomplete="off"
-                                       Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="My Team" />
+                        <EditForm Model="@TeamForm" OnValidSubmit="@CheckTeam">
+                            <DataAnnotationsValidator />
+                            <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="TeamNameInput" Style="width: 100%" aria-label="Team Name" autocomplete="off"
+                                           Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="My Team" MaxLength="32" />
 
-                        <br style="margin-bottom: 20px;" />
+                            <br style="margin-bottom: 20px;" />
 
-                        <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
-                        <RadzenTextBox @bind-Value="TeamVanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="off"
-                                       Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="myteam" />
+                            <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox @bind-Value="TeamForm.VanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="off"
+                                           Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="myteam" MaxLength="100" />
 
-                        <br />
-                        <br />
+                            <br />
+                            <br />
 
-                        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Team)" Click="@CheckTeam" />
+                            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Team)" ButtonType="ButtonType.Submit" />
+                        </EditForm>
                     </RadzenCard>
                 </ChildContent>
             </RadzenTimelineItem>
@@ -274,14 +305,14 @@
 
                             <RadzenLabel Text="Admin Username" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="AdminAccount.Username" Style="width: 100%" aria-label="Admin Username" autocomplete="off"
-                                           Disabled="@(SetupStep != SetupStepType.Admin)" Placeholder="user" />
+                                           Disabled="@(SetupStep != SetupStepType.Admin)" Placeholder="user" MaxLength="32" />
                             <ValidationMessage For="() => AdminAccount.Username" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
 
                             <RadzenLabel Text="Admin Email" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="AdminAccount.Email" Style="width: 100%" aria-label="Admin Email" autocomplete="off"
-                                           Disabled="@(SetupStep != SetupStepType.Admin)" Placeholder="user@gmail.com" />
+                                           Disabled="@(SetupStep != SetupStepType.Admin)" Placeholder="user@gmail.com" MaxLength="100" />
                             <ValidationMessage For="() => AdminAccount.Email" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
@@ -293,14 +324,14 @@
 
                             <RadzenLabel Text="Admin Password" class="rz-my-0"></RadzenLabel>
                             <RadzenPassword @bind-Value="AdminAccount.Password" Style="width: 100%" aria-label="Admin Password" autocomplete="off"
-                                            Disabled="@(SetupStep != SetupStepType.Admin)" />
+                                            Disabled="@(SetupStep != SetupStepType.Admin)" maxlength="100" />
                             <ValidationMessage For="() => AdminAccount.Password" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
 
                             <RadzenLabel Text="Confirm Password" class="rz-my-0"></RadzenLabel>
                             <RadzenPassword @bind-Value="@AdminAccount.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
-                                            Disabled="@(SetupStep != SetupStepType.Admin)" />
+                                            Disabled="@(SetupStep != SetupStepType.Admin)" maxlength="100" />
                             <ValidationMessage For="() => AdminAccount.RepeatPassword" style="color: var(--rz-danger);" />
 
                             @if (!string.IsNullOrEmpty(SentEmailCode))
@@ -311,7 +342,7 @@
                                 </RadzenAlert>
 
                                 <RadzenLabel Text="Email Code" class="rz-my-0" Style="display: block;"></RadzenLabel>
-                                <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="InputEmailCode" Count="8" aria-label="Email Code" autofocus />
+                                <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="InputEmailCode" Count="6" aria-label="Email Code" autofocus />
                             }
 
                             @if (!string.IsNullOrEmpty(AdminErrorMessage))
@@ -341,7 +372,7 @@
                             <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose=false>
                                 You can now start using this Instance, use the sidebar to view your created team.
                             </RadzenAlert>
-                            @if (DatabaseType == "Automatic")
+                            @if (IsDatabaseAutomatic)
                             {
                                 <br />
                                 <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
@@ -363,15 +394,11 @@
 
     public bool MongoDBDetected { get; set; }
 
-    public string InstanceName { get; set; }
-    public string InstanceDesc { get; set; }
-
-    public string DatabaseType { get; set; } = "Automatic";
-    public string DatabaseName { get; set; }
-    public string DatabaseIP { get; set; }
-    public int DatabasePort { get; set; }
-    public string DatabaseUsername { get; set; }
-    public string DatabasePassword { get; set; }
+    public InstanceBasicModel InstanceForm { get; set; }
+    public DatabaseSetupModel DatabaseForm { get; set; }
+    public bool IsDatabaseAutomatic { get; set; }
+    public bool IsDatabaseSetupRunning { get; set; }
+    public string DatabaseErrorMessage { get; set; }
 
     public ConfigEmailType EmailType { get; set; }
     public string SmtpHost { get; set; }
@@ -381,23 +408,28 @@
     public string SmtpPassword { get; set; }
     public string ManagedEmailToken { get; set; }
 
-    public string TeamName { get; set; }
-    public string TeamVanityUrl { get; set; }
+    public TeamBasicModel TeamForm { get; set; }
 
     public AccountRegisterModel AdminAccount = new AccountRegisterModel();
     public string AdminErrorMessage { get; set; }
 
     public SetupStepType SetupStep = SetupStepType.Database;
 
-    public string TeamNameInput { get { return TeamName; } set { TeamName = value; TeamVanityUrl = TeamName.Replace(" ", "-").ToLower(); } }
+    public string TeamNameInput { get { return TeamForm.Name; } set { TeamForm.Name = value; TeamForm.VanityUrl = TeamForm.Name.Replace(" ", "-").ToLower(); } }
 
     protected override async Task OnInitializedAsync()
     {
-        InstanceName = _Data.Config.Instance.Name;
-        InstanceDesc = _Data.Config.Instance.Description;
-        DatabaseName = _Data.Config.Database.Name;
-        DatabaseIP = _Data.Config.Database.IP;
-        DatabasePort = _Data.Config.Database.Port;
+        InstanceForm.Name = _Data.Config.Instance.Name;
+        InstanceForm.Description = _Data.Config.Instance.Description;
+
+        DatabaseForm = new DatabaseSetupModel
+            {
+                Name = _Data.Config.Database.Name,
+                IP = _Data.Config.Database.IP,
+                Port = _Data.Config.Database.Port,
+                Username = _Data.Config.Database.Username,
+                Password = _Data.Config.Database.Password
+            };
 
         if (_Data.Config.Database.IsSetup)
             SetupStep = SetupStepType.Admin;
@@ -405,10 +437,16 @@
         if (_Data.Config.Email.SmtpPort != 0 || !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
             SetupStep = SetupStepType.Instance;
 
+        // Check if mongodb has already been setup with auth
         if (File.Exists("/etc/mongod.conf"))
         {
-            DatabaseType = "Manual";
-            MongoDBDetected = true;
+            string MongodConfig = File.ReadAllText("/etc/mongod.conf");
+            if (!MongodConfig.Contains("#security:"))
+            {
+                DatabaseErrorMessage = "MongoDB is already installed on this server, manual setup is required!";
+                IsDatabaseAutomatic = false;
+                MongoDBDetected = true;
+            }
         }
     }
 
@@ -416,76 +454,108 @@
     public async Task CheckDatabase()
     {
         SetupStep = SetupStepType.Disabled;
-        if (DatabaseType == "Automatic")
+        if (IsDatabaseAutomatic)
         {
-            string RootUsername = _Data.Config.Database.RootUsername;
-            string RootPass = _Data.Config.Database.RootPassword;
-            string AutoPassword = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
+            string MongodConfig = File.ReadAllText("/etc/mongod.conf");
+            if (!MongodConfig.Contains("#security:"))
+            {
+                DatabaseErrorMessage = "MongoDB is already installed on this server, manual setup is required!";
+                SetupStep = SetupStepType.Database;
+                return;
+            }
 
-            if (string.IsNullOrEmpty(RootPass))
+            IsDatabaseSetupRunning = true;
+            if (!File.Exists("/etc/mongod.conf"))
+            {
+                var InstallDB = await DatabaseSetupFunction.Run();
+                if (InstallDB != DatabaseSetupErrorType.Success)
+                {
+                    DatabaseErrorMessage = "Database install error, " + InstallDB.ToString();
+                    IsDatabaseSetupRunning = false;
+                    SetupStep = SetupStepType.Database;
+                    return;
+                }
+            }
+
+            string RootPass = "";
+
+            // Create root user and password if dosen't exist
+            if (!File.Exists(Program.Directory.Data.Path + "root.txt"))
             {
                 RootPass = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
 
-                string CreateRoot2 = "--eval \"db.getSiblingDB('admin').createUser({ user: '" + RootUsername + "', pwd: '" + RootPass + "', roles: [ 'root' ] });\"";
+                string CreateRoot2 = "--eval \"db.getSiblingDB('admin').createUser({ user: 'root', pwd: '" + RootPass + "', roles: [ 'root' ] });\"";
                 var cmd2 = Cli.Wrap("mongosh").WithArguments(CreateRoot2);
 
                 var res2 = await cmd2.ExecuteBufferedAsync();
                 if (!res2.IsSuccess)
                 {
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res2.StandardError);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    DatabaseErrorMessage = "Setup root error, " + res2.StandardError;
+                    IsDatabaseSetupRunning = false;
+                    SetupStep = SetupStepType.Database;
                     return;
                 }
-                _Data.Config.Database.RootPassword = RootPass;
+
+                File.WriteAllText(Program.Directory.Data.Path + "root.txt", RootPass);
+            }
+            else
+                RootPass = File.ReadAllText(Program.Directory.Data.Path + "root.txt");
+
+
+
+            // Create devspace user and pass if dosen't exists
+            if (string.IsNullOrEmpty(_Data.Config.Database.Password))
+            {
+                string DevSpacePass = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
+
+                var CreateUser = $"-u 'root' -p '{RootPass}' " + "--eval \"db.getSiblingDB('admin').createUser({ user: '" + _Data.Config.Database.Username + "', pwd: '" + DevSpacePass + "', roles: [ { role: 'dbAdmin', db: '" + _Data.Config.Database.Name + "' }, { role: 'readWrite', db: '" + _Data.Config.Database.Name + "' } ] });\"";
+                var UserCmd = Cli.Wrap("mongosh").WithArguments(CreateUser);
+
+                var UserRes = await UserCmd.ExecuteBufferedAsync();
+                if (!UserRes.IsSuccess)
+                {
+                    DatabaseErrorMessage = "Setup user error, " + UserRes.StandardError;
+                    IsDatabaseSetupRunning = false;
+                    SetupStep = SetupStepType.Database;
+                    return;
+                }
+                _Data.Config.Database.Password = DevSpacePass;
                 _Data.Config.Save();
             }
 
-            string MongodConfig = File.ReadAllText("/etc/mongod.conf");
 
-            if (MongodConfig.Contains("#security:"))
+            MongodConfig = MongodConfig.Replace("#security:", "security:\n  authorization: enabled\n  javascriptEnabled: false");
+            File.WriteAllText("/etc/mongod.conf", MongodConfig);
+
+            var cmd = Cli.Wrap("sudo").WithArguments("systemctl restart mongod");
+
+            var res = await cmd.ExecuteBufferedAsync();
+            if (!res.IsSuccess)
             {
-                var CreateUser = $"-u '{RootUsername}' -p '{RootPass}' " + "--eval \"db.getSiblingDB('admin').createUser({ user: '" + _Data.Config.Database.Username + "', pwd: '" + AutoPassword + "', roles: [ { role: 'dbAdmin', db: 'devspace' }, { role: 'readWrite', db: 'devspace' } ] });\"";
-                var cmd = Cli.Wrap("mongosh").WithArguments(CreateUser);
-
-                var res = await cmd.ExecuteBufferedAsync();
-                if (!res.IsSuccess)
-                {
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
-                    return;
-                }
-
-                MongodConfig = MongodConfig.Replace("#security:", "security:\n  authorization: enabled\n  javascriptEnabled: false");
-                File.WriteAllText("/etc/mongod.conf", MongodConfig);
-
-                cmd = Cli.Wrap("sudo").WithArguments("systemctl restart mongod");
-
-                res = await cmd.ExecuteBufferedAsync();
-                if (!res.IsSuccess)
-                {
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
-                    return;
-                }
+                DatabaseErrorMessage = "Setup config error, " + res.StandardError;
+                IsDatabaseSetupRunning = false;
+                SetupStep = SetupStepType.Database;
+                return;
             }
 
-
-
-            string Connect = $"mongodb://{DatabaseUsername}:{DatabasePassword}@{DatabaseIP}:{DatabasePort}";
+            string Connect = $"mongodb://{_Data.Config.Database.Username}:{_Data.Config.Database.Password}@{_Data.Config.Database.IP}:{_Data.Config.Database.Port}";
 
             var client = new MongoClient(Connect);
 
             try
             {
-                var result = client.GetDatabase(DatabaseName).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+                var result = client.GetDatabase(_Data.Config.Database.Name).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
                 Console.WriteLine("Pinged your deployment. You successfully connected to MongoDB!");
             }
-            catch (Exception ex) { Console.WriteLine(ex); return; }
+            catch (Exception ex)
+            {
+                DatabaseErrorMessage = "Connection error, " + ex.Message;
+                IsDatabaseSetupRunning = false;
+                SetupStep = SetupStepType.Database;
+                return;
+            }
 
-            var db = client.GetDatabase("devspace");
+            var db = client.GetDatabase(_Data.Config.Database.Name);
 
             try
             {
@@ -497,38 +567,36 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine("--- Database Setup Error ---");
-                Console.WriteLine(ex);
-                Console.WriteLine("--- --- --- ---- --- --- ---");
+                DatabaseErrorMessage = "Database write error, " + ex.Message;
+                IsDatabaseSetupRunning = false;
+                SetupStep = SetupStepType.Database;
                 return;
             }
 
             _DB.Client = client;
             _DB.IsConnected = true;
 
-            _Data.Config.Database = new ConfigDatabase
-                {
-                    IsSetup = true,
-                    IP = "127.0.0.1",
-                    Name = "devspace",
-                    Port = 27017,
-                    Password = AutoPassword
-                };
+            _Data.Config.Database.IsSetup = true;
             _Data.Config.Save();
         }
         else
         {
-            string Connect = $"mongodb://{DatabaseUsername}:{DatabasePassword}@{DatabaseIP}:{DatabasePort}";
+            string Connect = $"mongodb://{DatabaseForm.Username}:{DatabaseForm.Password}@{DatabaseForm.IP}:{DatabaseForm.Port}";
             var client = new MongoClient(Connect);
 
             try
             {
-                var result = client.GetDatabase(DatabaseName).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+                var result = client.GetDatabase(DatabaseForm.Name).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
                 Console.WriteLine("Pinged your deployment. You successfully connected to MongoDB!");
             }
-            catch (Exception ex) { Console.WriteLine(ex); return; }
+            catch (Exception ex)
+            {
+                DatabaseErrorMessage = "Database connection error, " + ex.Message;
+                SetupStep = SetupStepType.Database;
+                return;
+            }
 
-            var db = client.GetDatabase(DatabaseName);
+            var db = client.GetDatabase(DatabaseForm.Name);
 
             try
             {
@@ -540,9 +608,8 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine("--- Database Setup Error ---");
-                Console.WriteLine(ex);
-                Console.WriteLine("--- --- --- ---- --- --- ---");
+                DatabaseErrorMessage = "Database write error, " + ex.Message;
+                SetupStep = SetupStepType.Database;
                 return;
             }
 
@@ -552,11 +619,11 @@
             _Data.Config.Database = new ConfigDatabase
                 {
                     IsSetup = true,
-                    IP = DatabaseIP,
-                    Name = DatabaseName,
-                    Port = DatabasePort,
-                    Password = DatabasePassword,
-                    Username = DatabaseUsername
+                    IP = DatabaseForm.IP,
+                    Name = DatabaseForm.Name,
+                    Port = DatabaseForm.Port,
+                    Password = DatabaseForm.Password,
+                    Username = DatabaseForm.Username
                 };
             _Data.Config.Save();
         }
@@ -710,27 +777,24 @@
 
     public async Task CheckInstance()
     {
-        if (string.IsNullOrEmpty(InstanceName))
-            return;
-        SetupStep = SetupStepType.Disabled;
-        _Data.Config.Instance.Name = InstanceName;
-        _Data.Config.Instance.Description = InstanceDesc;
+        _Data.Config.Instance.Name = InstanceForm.Name;
+        _Data.Config.Instance.Description = InstanceForm.Description;
         _Data.Config.Save();
         SetupStep = SetupStepType.Team;
     }
 
     public async Task CheckTeam()
     {
-        if (string.IsNullOrEmpty(TeamName))
-            return;
-        if (!string.IsNullOrEmpty(TeamVanityUrl))
-            TeamVanityUrl = TeamVanityUrl.Replace(" ", "-").ToLower();
+        if (!string.IsNullOrEmpty(TeamForm.VanityUrl))
+        {
+            TeamForm.VanityUrl = TeamForm.VanityUrl.Replace(" ", "-").ToLower();
+        }
 
         SetupStep = SetupStepType.Disabled;
         TeamData Team = new TeamData
             {
-                Name = TeamName,
-                VanityUrl = TeamVanityUrl
+                Name = TeamForm.Name,
+                VanityUrl = TeamForm.VanityUrl
             };
         await _DB.Teams.CreateAsync(Team);
         _DB.Teams.Cache.TryAdd(Team.Id.ToString(), Team);

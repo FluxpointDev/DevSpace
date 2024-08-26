@@ -78,10 +78,8 @@ public class ConfigDatabase
     public string Name = "devspace";
     public string IP = "127.0.0.1";
     public int Port = 27017;
-    public string Username;
+    public string Username = "devspace";
     public string Password;
-    public string RootUsername = "devspace_root";
-    public string RootPassword;
 
     public string GetConnectionString()
     {
