@@ -64,30 +64,35 @@
                                 <RadzenLabel Text="Database Name" class="rz-my-0"></RadzenLabel>
                                 <RadzenTextBox @bind-Value="DatabaseForm.Name" Style="width: 100%" aria-label="Database Name" autocomplete="off"
                                                Disabled="@(SetupStep != SetupStepType.Database)" MaxLength="100" />
+                                <ValidationMessage For="() => DatabaseForm.Name" style="color: var(--rz-danger);" />
 
                                 <br style="margin-bottom: 20px;" />
 
                                 <RadzenLabel Text="Database IP" class="rz-my-0"></RadzenLabel>
                                 <RadzenTextBox @bind-Value="DatabaseForm.IP" Style="width: 100%" aria-label="Database IP" autocomplete="off"
                                                Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="1.1.1.1" MaxLength="100" />
+                                <ValidationMessage For="() => DatabaseForm.IP" style="color: var(--rz-danger);" />
 
                                 <br style="margin-bottom: 20px;" />
 
                                 <RadzenLabel Text="Database Port" class="rz-my-0"></RadzenLabel>
                                 <RadzenNumeric @bind-Value="DatabaseForm.Port" Style="width: 100%" aria-label="Database Port" autocomplete="off"
                                                Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="0000" ShowUpDown="false" />
+                                <ValidationMessage For="() => DatabaseForm.Port" style="color: var(--rz-danger);" />
 
                                 <br style="margin-bottom: 20px;" />
 
                                 <RadzenLabel Text="Database Username" class="rz-my-0"></RadzenLabel>
                                 <RadzenTextBox @bind-Value="DatabaseForm.Username" Style="width: 100%" aria-label="Database Username" autocomplete="off"
                                                Disabled="@(SetupStep != SetupStepType.Database)" MaxLength="100" />
+                                <ValidationMessage For="() => DatabaseForm.Username" style="color: var(--rz-danger);" />
 
                                 <br style="margin-bottom: 20px;" />
 
                                 <RadzenLabel Text="Database Password" class="rz-my-0"></RadzenLabel>
                                 <RadzenPassword @bind-Value="DatabaseForm.Password" Style="width: 100%" aria-label="Database Password" autocomplete="off"
                                                 Disabled="@(SetupStep != SetupStepType.Database)" maxlength="100" />
+                                <ValidationMessage For="() => DatabaseForm.Password" style="color: var(--rz-danger);" />
 
                                 <br />
                                 <br />
@@ -121,113 +126,134 @@
 
                         <br style="margin-bottom: 20px;" />
 
-                        @switch (EmailType)
-                        {
-                            case ConfigEmailType.Custom:
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
-                                        You will not be able to use custom email templates with this option to prevent abuse.
-                                    </RadzenAlert>
+                        <EditForm Model="@SmtpForm" OnValidSubmit="@CheckSmtp">
+                            <DataAnnotationsValidator />
 
-                                    <RadzenLabel Text="Smtp Host" class="rz-my-0"></RadzenLabel>
-                                    <RadzenTextBox @bind-Value="SmtpHost" Style="width: 100%" aria-label="Smtp Host" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp.domain.com" MaxLength="100" />
+                            @switch (EmailType)
+                            {
+                                case ConfigEmailType.Custom:
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
+                                            You will not be able to use custom email templates with this option to prevent abuse.
+                                        </RadzenAlert>
 
-                                    <br style="margin-bottom: 20px;" />
+                                        <RadzenLabel Text="Smtp Host" class="rz-my-0"></RadzenLabel>
+                                        <RadzenTextBox @bind-Value="SmtpForm.Host" Style="width: 100%" aria-label="Smtp Host" autocomplete="off"
+                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp.domain.com" MaxLength="100" />
+                                        <ValidationMessage For="() => SmtpForm.Host" style="color: var(--rz-danger);" />
 
-                                    <RadzenLabel Text="Smtp Port" class="rz-my-0"></RadzenLabel>
-                                    <RadzenNumeric @bind-Value="SmtpPort" Style="width: 100%" aria-label="Smtp Port" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="123" ShowUpDown="false" />
+                                        <br style="margin-bottom: 20px;" />
 
-                                    <br style="margin-bottom: 20px;" />
+                                        <RadzenLabel Text="Smtp Port" class="rz-my-0"></RadzenLabel>
+                                        <RadzenNumeric @bind-Value="SmtpForm.Port" Style="width: 100%" aria-label="Smtp Port" autocomplete="off"
+                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="123" ShowUpDown="false" />
+                                        <ValidationMessage For="() => SmtpForm.Port" style="color: var(--rz-danger);" />
 
-                                    <RadzenLabel Text="Smtp User" class="rz-my-0"></RadzenLabel>
-                                    <RadzenTextBox @bind-Value="SmtpUser" Style="width: 100%" aria-label="Smtp User" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp@domain.com" MaxLength="100" />
+                                        <br style="margin-bottom: 20px;" />
 
-                                    <br style="margin-bottom: 20px;" />
+                                        <RadzenLabel Text="Smtp User" class="rz-my-0"></RadzenLabel>
+                                        <RadzenTextBox @bind-Value="SmtpForm.User" Style="width: 100%" aria-label="Smtp User" autocomplete="off"
+                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp@domain.com" MaxLength="100" />
+                                        <ValidationMessage For="() => SmtpForm.User" style="color: var(--rz-danger);" />
 
-                                    <RadzenLabel Text="Smtp Password" class="rz-my-0"></RadzenLabel>
-                                    <RadzenPassword @bind-Value="SmtpPassword" Style="width: 100%" aria-label="Smtp Password" autocomplete="off"
-                                                    Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
+                                        <br style="margin-bottom: 20px;" />
 
-                                    <br style="margin-bottom: 20px;" />
+                                        <RadzenLabel Text="Smtp Password" class="rz-my-0"></RadzenLabel>
+                                        <RadzenPassword @bind-Value="SmtpForm.Password" Style="width: 100%" aria-label="Smtp Password" autocomplete="off"
+                                                        Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
+                                        <ValidationMessage For="() => SmtpForm.Password" style="color: var(--rz-danger);" />
 
-                                    <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
-                                    <RadzenTextBox @bind-Value="SmtpEmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" MaxLength="100" />
-                                }
-                                break;
-                            case ConfigEmailType.Gmail:
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
-                                        Your google account will need two-factor authentication setup to use this.
-                                    </RadzenAlert>
+                                        <br style="margin-bottom: 20px;" />
 
-                                    <a href="https://www.gmass.co/blog/gmail-smtp/">How to Setup</a>
+                                        <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
+                                        <RadzenTextBox @bind-Value="SmtpForm.EmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
+                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" MaxLength="100" />
+                                        <ValidationMessage For="() => SmtpForm.EmailAddress" style="color: var(--rz-danger);" />
+                                    }
+                                    break;
+                                case ConfigEmailType.Gmail:
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                                            Your google account will need two-factor authentication setup to use this.
+                                        </RadzenAlert>
 
-                                    <br style="margin-bottom: 20px;" />
+                                        <a href="https://www.gmass.co/blog/gmail-smtp/">How to Setup</a>
 
-                                    <RadzenLabel Text="Gmail Account" class="rz-my-0"></RadzenLabel>
-                                    <RadzenTextBox @bind-Value="SmtpUser" Style="width: 100%" aria-label="Gmail Account" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="account@gmail.com" MaxLength="100" />
+                                        <br style="margin-bottom: 20px;" />
 
-                                    <br style="margin-bottom: 20px;" />
+                                        <RadzenLabel Text="Gmail Account" class="rz-my-0"></RadzenLabel>
+                                        <RadzenTextBox @bind-Value="SmtpForm.User" Style="width: 100%" aria-label="Gmail Account" autocomplete="off"
+                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="account@gmail.com" MaxLength="100" />
+                                        <ValidationMessage For="() => SmtpForm.User" style="color: var(--rz-danger);" />
 
-                                    <RadzenLabel Text="Gmail App Password" class="rz-my-0"></RadzenLabel>
-                                    <RadzenPassword @bind-Value="SmtpPassword" Style="width: 100%" aria-label="Gmail API Key" autocomplete="off"
-                                                    Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
+                                        <br style="margin-bottom: 20px;" />
 
-                                    <br style="margin-bottom: 20px;" />
+                                        <RadzenLabel Text="Gmail App Password" class="rz-my-0"></RadzenLabel>
+                                        <RadzenPassword @bind-Value="SmtpForm.Password" Style="width: 100%" aria-label="Gmail API Key" autocomplete="off"
+                                                        Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
+                                        <ValidationMessage For="() => SmtpForm.Password" style="color: var(--rz-danger);" />
 
-                                    <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
-                                    <RadzenTextBox @bind-Value="SmtpEmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" MaxLength="100" />
-                                }
-                                break;
-                            case ConfigEmailType.SendGrid:
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
-                                        You will need phone number verification to create a SendGrid account.
-                                    </RadzenAlert>
+                                        <br style="margin-bottom: 20px;" />
 
-                                    <p>Create an API Key and create a Sender Authentication/Identity to use this.</p>
+                                        <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
+                                        <RadzenTextBox @bind-Value="SmtpForm.EmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
+                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" MaxLength="100" />
+                                        <ValidationMessage For="() => SmtpForm.EmailAddress" style="color: var(--rz-danger);" />
+                                    }
+                                    break;
+                                case ConfigEmailType.SendGrid:
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                                            You will need phone number verification to create a SendGrid account.
+                                        </RadzenAlert>
 
-                                    <br style="margin-bottom: 20px;" />
+                                        <p>Create an API Key and create a Sender Authentication/Identity to use this.</p>
 
-                                    <RadzenLabel Text="SendGrid API Key" class="rz-my-0"></RadzenLabel>
-                                    <RadzenPassword @bind-Value="SmtpPassword" Style="width: 100%" aria-label="SendGrid API Key" autocomplete="off"
-                                                    Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
+                                        <br style="margin-bottom: 20px;" />
 
-                                    <br style="margin-bottom: 20px;" />
+                                        <RadzenLabel Text="SendGrid API Key" class="rz-my-0"></RadzenLabel>
+                                        <RadzenPassword @bind-Value="SmtpForm.Password" Style="width: 100%" aria-label="SendGrid API Key" autocomplete="off"
+                                                        Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
+                                        <ValidationMessage For="() => SmtpForm.Password" style="color: var(--rz-danger);" />
 
-                                    <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
-                                    <RadzenTextBox @bind-Value="SmtpEmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" />
-                                }
-                                break;
-                            case ConfigEmailType.FluxpointManaged:
-                                {
-                                    <RadzenLabel Text="Email API Key" class="rz-my-0"></RadzenLabel>
-                                    <RadzenTextBox @bind-Value="ManagedEmailToken" Style="width: 100%" aria-label="Email API Key" autocomplete="off"
-                                                   Disabled="@(SetupStep != SetupStepType.Smtp)" MaxLength="100" />
-                                }
-                                break;
-                        }
+                                        <br style="margin-bottom: 20px;" />
 
-                        @if (!string.IsNullOrEmpty(SmtpErrorMessage))
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
-                                @SmtpErrorMessage
-                            </RadzenAlert>
-                        }
-                        else
-                        {
-                            <br />
-                            <br />
-                        }
+                                        <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
+                                        <RadzenTextBox @bind-Value="SmtpForm.EmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
+                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" />
+                                        <ValidationMessage For="() => SmtpForm.EmailAddress" style="color: var(--rz-danger);" />
+                                    }
+                                    break;
+                                case ConfigEmailType.FluxpointManaged:
+                                    {
+                                        <RadzenLabel Text="Email API Key" class="rz-my-0"></RadzenLabel>
+                                        <RadzenTextBox @bind-Value="ManagedEmailToken" Style="width: 100%" aria-label="Email API Key" autocomplete="off"
+                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" MaxLength="100" />
+                                    }
+                                    break;
+                            }
 
-                        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Smtp)" Click="@CheckSmtp" />
+                            @if (!string.IsNullOrEmpty(SmtpErrorMessage))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
+                                    @SmtpErrorMessage
+                                </RadzenAlert>
+                            }
+                            else
+                            {
+                                <br />
+                                <br />
+                            }
+
+                            @if (EmailType == ConfigEmailType.FluxpointManaged)
+                            {
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Smtp)" Click="@CheckSmtp" />
+                            }
+                            else
+                            {
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Smtp)" ButtonType="ButtonType.Submit" />
+                            }
+                        </EditForm>
                     </RadzenCard>
                 </ChildContent>
             </RadzenTimelineItem>
@@ -274,16 +300,18 @@
 
                         <EditForm Model="@TeamForm" OnValidSubmit="@CheckTeam">
                             <DataAnnotationsValidator />
+
                             <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="TeamNameInput" Style="width: 100%" aria-label="Team Name" autocomplete="off"
                                            Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="My Team" MaxLength="32" />
+                            <ValidationMessage For="() => TeamForm.Name" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
 
                             <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="TeamForm.VanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="off"
                                            Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="myteam" MaxLength="100" />
-
+                            <ValidationMessage For="() => TeamForm.VanityUrl" style="color: var(--rz-danger);" />
                             <br />
                             <br />
 
@@ -347,7 +375,7 @@
 
                             @if (!string.IsNullOrEmpty(AdminErrorMessage))
                             {
-                                <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
                                     @AdminErrorMessage
                                 </RadzenAlert>
                             }
@@ -400,22 +428,38 @@
     public bool IsDatabaseSetupRunning { get; set; }
     public string DatabaseErrorMessage { get; set; }
 
-    public ConfigEmailType EmailType { get; set; }
-    public string SmtpHost { get; set; }
-    public int SmtpPort { get; set; }
-    public string SmtpEmailAddress { get; set; }
-    public string SmtpUser { get; set; }
-    public string SmtpPassword { get; set; }
+    private ConfigEmailType _emailType { get; set; }
+    public ConfigEmailType EmailType
+    {
+        get { return _emailType; }
+        set
+        {
+            _emailType = value;
+            switch (value)
+            {
+                case ConfigEmailType.Gmail:
+                    SmtpForm.Host = "smtp.gmail.com";
+                    SmtpForm.Port = 587;
+                    break;
+                case ConfigEmailType.SendGrid:
+                    SmtpForm.Host = "smtp.sendgrid.net";
+                    SmtpForm.Port = 587;
+                    SmtpForm.User = "apikey";
+                    break;
+            }
+        }
+    }
+
+    public SmtpModel SmtpForm { get; set; }
     public string ManagedEmailToken { get; set; }
 
+    public string TeamNameInput { get { return TeamForm.Name; } set { TeamForm.Name = value; TeamForm.VanityUrl = TeamForm.Name.Replace(" ", "-").ToLower(); } }
     public TeamBasicModel TeamForm { get; set; }
 
     public AccountRegisterModel AdminAccount = new AccountRegisterModel();
     public string AdminErrorMessage { get; set; }
 
     public SetupStepType SetupStep = SetupStepType.Database;
-
-    public string TeamNameInput { get { return TeamForm.Name; } set { TeamForm.Name = value; TeamForm.VanityUrl = TeamForm.Name.Replace(" ", "-").ToLower(); } }
 
     protected override async Task OnInitializedAsync()
     {
@@ -432,7 +476,7 @@
             };
 
         if (_Data.Config.Database.IsSetup)
-            SetupStep = SetupStepType.Admin;
+            SetupStep = SetupStepType.Smtp;
 
         if (_Data.Config.Email.SmtpPort != 0 || !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
             SetupStep = SetupStepType.Instance;
@@ -664,53 +708,15 @@
                 SetupStep = SetupStepType.Smtp;
                 return;
             }
+
+            _Data.Config.Email.Type = EmailType;
+            _Data.Config.Email.ManagedEmailToken = ManagedEmailToken;
         }
         else
         {
-            switch (EmailType)
-            {
-                case ConfigEmailType.Gmail:
-                    SmtpHost = "smtp.gmail.com";
-                    SmtpPort = 587;
-                    break;
-                case ConfigEmailType.SendGrid:
-                    SmtpHost = "smtp.sendgrid.net";
-                    SmtpPort = 587;
-                    SmtpUser = "apikey";
-                    break;
-            }
-
-            if (string.IsNullOrEmpty(SmtpHost))
-            {
-                SmtpErrorMessage = "Smtp host is required";
-                SetupStep = SetupStepType.Smtp;
-                return;
-            }
-
-            if (SmtpPort == 0)
+            if (SmtpForm.Port == 0)
             {
                 SmtpErrorMessage = "Smtp port is required";
-                SetupStep = SetupStepType.Smtp;
-                return;
-            }
-
-            if (string.IsNullOrEmpty(SmtpUser))
-            {
-                SmtpErrorMessage = "Smtp user is required";
-                SetupStep = SetupStepType.Smtp;
-                return;
-            }
-
-            if (string.IsNullOrEmpty(SmtpPassword))
-            {
-                SmtpErrorMessage = "Smtp password is required";
-                SetupStep = SetupStepType.Smtp;
-                return;
-            }
-
-            if (string.IsNullOrEmpty(SmtpEmailAddress))
-            {
-                SmtpErrorMessage = "Email address is required";
                 SetupStep = SetupStepType.Smtp;
                 return;
             }
@@ -719,7 +725,7 @@
             {
                 try
                 {
-                    await Client.ConnectAsync(SmtpHost, SmtpPort);
+                    await Client.ConnectAsync(SmtpForm.Host, SmtpForm.Port);
                 }
                 catch (Exception ex)
                 {
@@ -735,7 +741,7 @@
 
                 try
                 {
-                    await Client.AuthenticateAsync(SmtpUser, SmtpPassword);
+                    await Client.AuthenticateAsync(SmtpForm.User, SmtpForm.Password);
                 }
                 catch (Exception ex)
                 {
@@ -756,15 +762,13 @@
                 catch { }
             }
 
-        }
+            _Data.Config.Email.SmtpHost = SmtpForm.Host;
+            _Data.Config.Email.SmtpPort = SmtpForm.Port;
+            _Data.Config.Email.SmtpUser = SmtpForm.User;
+            _Data.Config.Email.SmtpPassword = SmtpForm.Password;
+            _Data.Config.Email.SmtpEmailAddress = SmtpForm.EmailAddress;
 
-        _Data.Config.Email.Type = EmailType;
-        _Data.Config.Email.ManagedEmailToken = ManagedEmailToken;
-        _Data.Config.Email.SmtpHost = SmtpHost;
-        _Data.Config.Email.SmtpPort = SmtpPort;
-        _Data.Config.Email.SmtpUser = SmtpUser;
-        _Data.Config.Email.SmtpPassword = SmtpPassword;
-        _Data.Config.Email.SmtpEmailAddress = SmtpEmailAddress;
+        }
         _Data.Config.Save();
 
         SetupStep = SetupStepType.Instance;
