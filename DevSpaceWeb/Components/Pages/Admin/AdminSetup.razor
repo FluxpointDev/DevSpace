@@ -454,7 +454,7 @@
     public string ManagedEmailToken { get; set; }
 
     public string TeamNameInput { get { return TeamForm.Name; } set { TeamForm.Name = value; TeamForm.VanityUrl = TeamForm.Name.Replace(" ", "-").ToLower(); } }
-    public TeamBasicModel TeamForm { get; set; }
+    public TeamBasicModel TeamForm { get; set; } = new TeamBasicModel();
 
     public AccountRegisterModel AdminAccount = new AccountRegisterModel();
     public string AdminErrorMessage { get; set; }
@@ -463,8 +463,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        InstanceForm.Name = _Data.Config.Instance.Name;
-        InstanceForm.Description = _Data.Config.Instance.Description;
+        InstanceForm = new InstanceBasicModel
+            {
+                Name = _Data.Config.Instance.Name,
+                Description = _Data.Config.Instance.Description
+            };
 
         DatabaseForm = new DatabaseSetupModel
             {
@@ -473,6 +476,15 @@
                 Port = _Data.Config.Database.Port,
                 Username = _Data.Config.Database.Username,
                 Password = _Data.Config.Database.Password
+            };
+
+        SmtpForm = new SmtpModel
+            {
+                Host = _Data.Config.Email.SmtpHost,
+                Port = _Data.Config.Email.SmtpPort,
+                User = _Data.Config.Email.SmtpUser,
+                Password = _Data.Config.Email.SmtpPassword,
+                EmailAddress = _Data.Config.Email.SenderEmailAddress
             };
 
         if (_Data.Config.Database.IsSetup)
@@ -766,7 +778,7 @@
             _Data.Config.Email.SmtpPort = SmtpForm.Port;
             _Data.Config.Email.SmtpUser = SmtpForm.User;
             _Data.Config.Email.SmtpPassword = SmtpForm.Password;
-            _Data.Config.Email.SmtpEmailAddress = SmtpForm.EmailAddress;
+            _Data.Config.Email.SenderEmailAddress = SmtpForm.EmailAddress;
 
         }
         _Data.Config.Save();

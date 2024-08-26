@@ -88,7 +88,7 @@ public class ConfigDatabase
 }
 public class ConfigEmail
 {
-    public string SmtpEmailAddress;
+    public string SenderEmailAddress;
     public string SmtpHost;
     public int SmtpPort;
     public string SmtpUser;

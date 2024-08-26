@@ -114,7 +114,7 @@ public class EmailService
                     if (template == null)
                     {
                         MimeMessage message = new MimeMessage();
-                        message.From.Add(new MailboxAddress(_Data.Config.Instance.Name, _Data.Config.Email.SmtpEmailAddress));
+                        message.From.Add(new MailboxAddress(_Data.Config.Instance.Name, _Data.Config.Email.SenderEmailAddress));
                         message.To.Add(new MailboxAddress(user.UserName, user.Email));
                         message.Subject = "Test Email";
                         message.Body = new TextPart("html")
