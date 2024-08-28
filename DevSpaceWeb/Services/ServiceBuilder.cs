@@ -131,7 +131,7 @@ public static class ServiceBuilder
     public static void AddProviders(IServiceCollection services)
     {
         var Auth = services.AddAuthentication();
-        if (!string.IsNullOrEmpty(_Data.Config.Providers.Google.ClientId))
+        if (!string.IsNullOrEmpty(_Data.Config.Providers.Google.ClientId) && !string.IsNullOrEmpty(_Data.Config.Providers.Google.ClientSecret))
         {
             Auth.AddGoogle("google", opt =>
                 {
@@ -140,23 +140,35 @@ public static class ServiceBuilder
                     opt.SignInScheme = IdentityConstants.ExternalScheme;
                 });
         }
-        Auth.AddDiscord("discord", opt =>
+        if (!string.IsNullOrEmpty(_Data.Config.Providers.Discord.ClientId) && !string.IsNullOrEmpty(_Data.Config.Providers.Discord.ClientSecret))
         {
-            opt.ClientId = _Data.Config.Providers.Discord.ClientId;
-            opt.ClientSecret = _Data.Config.Providers.Discord.ClientSecret;
-        });
+            Auth.AddDiscord("discord", opt =>
+            {
+                opt.ClientId = _Data.Config.Providers.Discord.ClientId;
+                opt.ClientSecret = _Data.Config.Providers.Discord.ClientSecret;
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+            });
+        }
     }
 
     public static void AddFido2(IServiceCollection services)
     {
+        HashSet<string> Origins = new HashSet<string>();
+        if (Program.IsDevMode)
+        {
+            Origins.Add("https://localhost:5149");
+        }
+        else
+        {
+            if (!string.IsNullOrEmpty(_Data.Config.Instance.PublicDomain))
+                Origins.Add("https://" + _Data.Config.Instance.PublicDomain);
+        }
+
         services.AddSingleton(new Fido2Service(new Fido2Configuration
         {
-            ServerDomain = "localhost",
+            ServerDomain = "devspace",
             ServerName = _Data.Config.Instance.Name,
-            Origins = new HashSet<string>
-            {
-                "https://localhost:5149"
-            },
+            Origins = Origins,
             TimestampDriftTolerance = 300000,
             MDSCacheDirPath = Program.Directory.Cache.Path
         }));

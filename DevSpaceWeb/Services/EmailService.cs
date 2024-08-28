@@ -88,7 +88,7 @@ public class EmailService
                     email_other = other_email,
                     instance_name = _Data.Config.Instance.Name,
                     instance_icon = _Data.Config.Instance.GetIconOrDefault(),
-                    url = string.IsNullOrEmpty(action) ? _Data.Config.Instance.PublicUrl : action,
+                    url = string.IsNullOrEmpty(action) ? _Data.Config.Instance.GetPublicUrl() : action,
                     code = code,
                     ip = ip,
                     country = country,

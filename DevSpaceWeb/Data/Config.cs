@@ -36,7 +36,18 @@ public class ConfigInstance
     public string Email;
     public bool HasIcon;
     public int IconVersion;
-    public string PublicUrl;
+    public string PublicDomain;
+    public string GetPublicUrl()
+    {
+        if (Program.IsDevMode)
+            return "https://localhost:5149";
+
+        if (string.IsNullOrEmpty(PublicDomain))
+            return "https://localhost";
+
+        return "https://" + PublicDomain;
+    }
+
     public ConfigLimits Limits = new ConfigLimits();
     public ConfigFeatures Features = new ConfigFeatures();
 

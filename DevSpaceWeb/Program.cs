@@ -24,7 +24,7 @@ public class Program
     /// </summary>
     public static bool IsDevMode { get; private set; }
 
-    public static bool IsPreviewMode { get; set; } = true;
+    public static bool IsPreviewMode { get; set; } = false;
 
     public static void Main(string[] args)
     {
@@ -39,18 +39,18 @@ public class Program
         IsDevMode = builder.Environment.IsDevelopment();
 
         _DB.Client = new MongoDB.Driver.MongoClient(_Data.Config.Database.GetConnectionString());
-        _ = Task.Run(async () =>
+        if (_Data.Config.Database.IsSetup)
         {
-            await _DB.StartAsync();
-
-            while (!_DB.IsConnected)
+            _ = Task.Run(async () =>
             {
+                await _DB.StartAsync();
 
-            }
+                while (!_DB.IsConnected)
+                {
 
-
-        });
-
+                }
+            });
+        }
         // Add services to the container.
         ServiceBuilder.Build(builder, builder.Services);
 

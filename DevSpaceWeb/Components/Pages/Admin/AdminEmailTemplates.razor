@@ -1,6 +1,6 @@
 ﻿@using DevSpaceWeb.Components.Markdown
 @using DevSpaceWeb.Services;
-    using DevSpaceWeb.Services.Identity
+@using DevSpaceWeb.Services.Identity
 @inherits MarkdownBase
 @inject EmailService Email
 
@@ -154,10 +154,8 @@ else
 
         IsSelectedCustom = true;
         TemplateName = SelectedTemplate.Name;
-        FinalBody = SelectedTemplate.ParseMarkdown(User, "https://test.com", "user@test.com", "123", "Markdown Test");
+        FinalBody = SelectedTemplate.ParseMarkdown(User, _Data.Config.Instance.GetPublicUrl(), "user@test.com", "123", "Markdown Test");
     }
-
-
 
     public async Task SendEmail()
     {
@@ -170,7 +168,7 @@ else
             return;
         }
 
-        await Email.Send(EmailTemplateType.Test, User, null, body: SelectedTemplate.ParseHtml(User, "https://test.com", "user@test.com", "123", "Markdown Test"));
+        await Email.Send(EmailTemplateType.Test, User, null, body: SelectedTemplate.ParseHtml(User, _Data.Config.Instance.GetPublicUrl(), "user@test.com", "123", "Markdown Test"));
 
     }
 
