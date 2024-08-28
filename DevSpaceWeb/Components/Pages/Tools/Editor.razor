@@ -4,34 +4,25 @@
 @using BlazorMonaco.Languages
 @inject IJSRuntime jsRuntime
 
-@* <div class="dash-box">
-		<MudToolBar Dense="true">
-			<MudIconButton Icon="@Icons.Material.Outlined.Menu" Color="Color.Inherit" Class="mr-5" />
-		<MudSelect Value="@("plaintext")" Margin="Margin.Dense" T="string" Label="Language" Variant="Variant.Outlined" ValueChanged="ChangeEditor">
-			<MudSelectItem Value="@("plaintext")" />
-			<MudSelectItem Value="@("javascript")" />
-			<MudSelectItem Value="@("json")" />
-			<MudSelectItem Value="@("csharp")" />
-		</MudSelect>
-			<MudSpacer />
-			<MudIconButton Icon="@Icons.Material.Filled.VerticalSplit" Color="@(EnableDiffEditor ? Color.Success : Color.Default)" OnClick="@(() => EnableDiffEditor = !EnableDiffEditor)" />
-			<MudIconButton Icon="@Icons.Material.Outlined.PushPin" />
-			<MudIconButton Icon="@Icons.Material.Outlined.PeopleAlt" />
-			<MudIconButton Icon="@Icons.Material.Outlined.MoreVert" Color="Color.Inherit" />
-		</MudToolBar>
-	@if (false)
-	{
-		<StandaloneDiffEditor @ref="_diffEditor" Id="my-editor-instance-id" ConstructionOptions="DiffEditorConstructionOptions" OnDidInit="EditorOnDidInit" />
-	}
-	else
-	{
-		<StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
-	}
+<div class="dash-box">
+    <div class="dash-box-content">
+        <RadzenDropDown TValue="string" Data=@Languages Value="@("plaintext")" ValueChanged="@ChangeEditorLang" />
+        <RadzenCheckBox @bind-Value=@EnableDiffEditor Name="CheckboxDiff" />
+        <RadzenLabel Text="Toggle Diff" Component="CheckboxDiff" class="rz-ms-2" />
+    </div>
+    @if (EnableDiffEditor)
+    {
+        <StandaloneDiffEditor @ref="_diffEditor" Id="my-editor-instance-id2" ConstructionOptions="DiffEditorConstructionOptions" OnDidInit="EditorOnDidInit" />
+    }
+    else
+    {
+        <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
+    }
 
-</div> *@
+</div>
 
 <style>
-    .monaco-editor {
+    .monaco-editor, .monaco-diff-editor {
         min-height: calc(100vh - 140px) !important;
         max-height: calc(100vh - 140px) !important;
         padding-top: 10px;
@@ -40,16 +31,50 @@
 
 @code {
     public bool EnableDiffEditor { get; set; } = false;
-    public string Language = "text";
+    public string[] Languages = new string[]
+    {
+        "plaintext",
+        "bat",
+        "c",
+        "cpp",
+        "csharp",
+        "css",
+        "dockerfile",
+        "go",
+        "graphql",
+        "html",
+        "java",
+        "javascript",
+        "json",
+        "kotlin",
+        "less",
+        "lua",
+        "markdown",
+        "mysql",
+        "pgsql",
+        "php",
+        "powershell",
+        "python",
+        "razor",
+        "redis",
+        "ruby",
+        "rust",
+        "scala",
+        "shell",
+        "swift",
+        "typescript",
+        "xml",
+        "yaml"
+    };
 
     private StandaloneCodeEditor _editor = null;
     private StandaloneDiffEditor _diffEditor = null!;
     private string _valueToSetOriginal = "";
     private string _valueToSetModified = "";
 
-    public async Task ChangeEditor(string language)
+    public async Task ChangeEditorLang(string language)
     {
-        BlazorMonaco.Editor.Global.SetModelLanguage(await _editor.GetModel(), language);
+        BlazorMonaco.Editor.Global.SetModelLanguage(jsRuntime, await _editor.GetModel(), language);
     }
 
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
@@ -61,8 +86,9 @@
         return new StandaloneEditorConstructionOptions
             {
                 AutomaticLayout = true,
-                Language = Language,
-                Theme = "vs-dark"
+                Language = "plaintext",
+                Theme = "vs-dark",
+                ScrollBeyondLastLine = false,
             };
     }
 
@@ -83,7 +109,7 @@
         if (original_model == null)
         {
             var original_value = _valueToSetOriginal;
-            original_model = await BlazorMonaco.Editor.Global.CreateModel(jsRuntime, original_value, Language, "sample-diff-editor-originalModel");
+            original_model = await BlazorMonaco.Editor.Global.CreateModel(jsRuntime, original_value, "plaintext", "sample-diff-editor-originalModel");
         }
 
         // Get or create the modified model
@@ -91,7 +117,8 @@
         if (modified_model == null)
         {
             var modified_value = _valueToSetModified;
-            modified_model = await BlazorMonaco.Editor.Global.CreateModel(jsRuntime, modified_value, Language, "sample-diff-editor-modifiedModel");
+            modified_model = await BlazorMonaco.Editor.Global.CreateModel(jsRuntime, modified_value, "plaintext", "sample-diff-editor-modifiedModel");
+
         }
 
         // Set the editor model
