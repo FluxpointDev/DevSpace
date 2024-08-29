@@ -36,13 +36,6 @@
                             </Items>
                         </RadzenSelectBar>
 
-                        @if (!string.IsNullOrEmpty(DatabaseErrorMessage))
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
-                                @DatabaseErrorMessage
-                            </RadzenAlert>
-                        }
-
                         @if (IsDatabaseAutomatic)
                         {
                             <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
@@ -56,11 +49,27 @@
                                 <br />
                             }
 
+                            @if (!string.IsNullOrEmpty(DatabaseErrorMessage))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
+                                    @DatabaseErrorMessage
+                                </RadzenAlert>
+                            }
+
                             <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Database)" Click="@CheckDatabase" />
                         }
                         else
                         {
-                            <br style="margin-bottom: 20px;" />
+                            @if (!string.IsNullOrEmpty(DatabaseErrorMessage))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
+                                    @DatabaseErrorMessage
+                                </RadzenAlert>
+                            }
+                            else
+                            {
+                                <br style="margin-bottom: 20px;" />
+                            }
 
                             <EditForm Model="@DatabaseForm" OnValidSubmit="@CheckDatabase">
                                 <DataAnnotationsValidator />
@@ -811,6 +820,7 @@
     {
         _Data.Config.Instance.Name = InstanceForm.Name;
         _Data.Config.Instance.Description = InstanceForm.Description;
+        _Data.Config.Instance.PublicDomain = InstanceForm.PublicDomain.Replace("https://", "", StringComparison.OrdinalIgnoreCase);
         _Data.Config.Save();
         SetupStep = SetupStepType.Team;
     }
@@ -831,7 +841,7 @@
         await _DB.Teams.CreateAsync(Team);
         _DB.Teams.Cache.TryAdd(Team.Id.ToString(), Team);
 
-        _Data.Config.isFullySetup = true;
+        _Data.Config.IsFullySetup = true;
         _Data.Config.Save();
         SetupStep = SetupStepType.Admin;
     }

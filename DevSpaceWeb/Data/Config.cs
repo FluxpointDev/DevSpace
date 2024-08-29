@@ -8,7 +8,7 @@ namespace DevSpaceWeb;
 
 public class Config
 {
-    public bool isFullySetup = false;
+    public bool IsFullySetup = false;
     public string AdminKey;
     public ConfigDatabase Database = new ConfigDatabase();
     public ConfigAdmin Admin = new ConfigAdmin();

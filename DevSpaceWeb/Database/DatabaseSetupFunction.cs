@@ -16,38 +16,45 @@ namespace DevSpaceWeb.Database
                     return DatabaseSetupErrorType.InvalidOS;
 
                 bool IsSupported = false;
-                bool UbuntuJammy22 = true;
+                //bool UbuntuJammy22 = true;
                 string[] lines = res.StandardOutput.Split(
                     new string[] { "\r\n", "\r", "\n" },
                     StringSplitOptions.None
                 );
 
-                string Dist = lines[0].Split('=').Last();
-                string Release = lines[1].Split('=').Last();
+                string Dist = lines[0].Split('=').Last().ToLower();
+                string Codename = lines[2].Split('=').Last().ToLower();
+                //string Release = lines[1].Split('=').Last();
 
                 switch (Dist)
                 {
-                    case "Ubuntu":
+                    case "ubuntu":
                         {
-                            switch (Release.Split('.').First())
+                            switch (Codename)
                             {
-                                case "20":
-                                case "22":
-                                case "24":
+                                case "bionic":
+                                case "focal":
+                                case "jammy":
+                                case "noble":
+                                case "precise":
+                                case "trusty":
+                                case "xenial":
                                     IsSupported = true;
-                                    if (Release.Split('.').First() == "20")
-                                        UbuntuJammy22 = false;
                                     break;
                             }
                         }
                         break;
-                    case "Debian":
+                    case "debian":
                         {
-                            switch (Release)
+                            switch (Codename)
                             {
-                                case "11":
-                                case "12":
-                                    //IsSupported = true;
+                                case "bookworm":
+                                case "bullseye":
+                                case "buster":
+                                case "jessie":
+                                case "stretch":
+                                case "wheezy":
+                                    IsSupported = true;
                                     break;
                             }
                         }
@@ -145,10 +152,7 @@ namespace DevSpaceWeb.Database
                     }
                 }
 
-                if (UbuntuJammy22)
-                    cmd = Cli.Wrap("echo").WithArguments("\"deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/7.0 multiverse\" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list");
-                else
-                    cmd = Cli.Wrap("echo").WithArguments("\"deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/7.0 multiverse\" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list");
+                cmd = Cli.Wrap("echo").WithArguments("\"deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/" + Dist + " " + Codename + "/mongodb-org/7.0 multiverse\" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list");
 
                 res = await cmd.ExecuteBufferedAsync();
                 if (!res.IsSuccess)
