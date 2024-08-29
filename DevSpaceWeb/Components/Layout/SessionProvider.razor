@@ -85,6 +85,19 @@
                                 </div>
                             }
                             break;
+                        case SessionErrorType.RestartRequired:
+                            {
+                                <div class="dash-box dash-box-content dash-center">
+                                    <div class="dash-box-header">
+                                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
+                                        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Restart Required</RadzenText>
+                                    </div>
+                                    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false ShowIcon="false">
+                                        You need to restart this service/program due to a configuration change.
+                                    </RadzenAlert>
+                                </div>
+                            }
+                            break;
                         case SessionErrorType.AuthenticationRequired:
                             {
                                 <LoginPage></LoginPage>
@@ -209,6 +222,11 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (_DB.IsRestartRequired)
+        {
+            SessionError = SessionErrorType.RestartRequired;
+            return;
+        }
         if (!Http.HttpContext.Request.IsHttps)
         {
             SessionError = SessionErrorType.HttpsRequired;
@@ -246,6 +264,11 @@
                 SessionError = SessionErrorType.AuthenticationError;
                 return;
             }
+            else if (_Data.Config.Database.IsSetup && !_DB.IsConnected)
+            {
+                SessionError = SessionErrorType.DatabaseError;
+                return;
+            }
             else if (!State.User.Identity.IsAuthenticated)
             {
                 SessionError = SessionErrorType.AuthenticationRequired;
@@ -256,11 +279,7 @@
                 _DB.SessionUpdated += SessionChangedEvent;
                 if (_Data.Config.Database.IsSetup)
                 {
-                    if (!_DB.IsConnected)
-                    {
-                        SessionError = SessionErrorType.DatabaseError;
-                        return;
-                    }
+
 
                     var User = await GetCurrentUserAsync();
                     CurrentUserId = User.Id;
@@ -301,7 +320,7 @@
 
     public enum SessionErrorType
     {
-        Loading, SessionSecurityError, HttpsRequired, SessionSecurityNewIp, AuthenticationError, AuthenticationRequired, DatabaseError, Success
+        Loading, SessionSecurityError, HttpsRequired, SessionSecurityNewIp, AuthenticationError, AuthenticationRequired, DatabaseError, RestartRequired, Success
     }
 
 }

@@ -15,6 +15,7 @@ public static class _DB
     public static MongoClient Client = null!;
 
     public static bool IsConnected;
+    public static bool IsRestartRequired = false;
     private static bool IsCacheDone;
 
     public static event SessionEventHandler SessionUpdated;
