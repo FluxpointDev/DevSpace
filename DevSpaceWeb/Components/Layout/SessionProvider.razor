@@ -17,97 +17,88 @@
 @inject IDistributedCache Cache
 @implements IDisposable
 
-@if (Ready)
+@if (SessionError != SessionErrorType.Loading)
 {
-    @switch (SessionError)
+    @if (SessionError == SessionErrorType.Success)
     {
-        case SessionErrorType.HttpsRequired:
-            {
-                <RadzenComponents />
-                <div class="dash-box dash-box-content" style="padding: 10px;">
-                    <div class="dash-box-header">
-                        <MudText Typo="Typo.h6">Http Error</MudText>
-                    </div>
-                    <br />
-                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">A secure https connection is required to use this.</MudAlert>
-                </div>
-            }
-            break;
-        case SessionErrorType.SessionSecurityError:
-            {
-                <RadzenComponents />
-                <div class="dash-box dash-box-content" style="padding: 10px;">
-                    <div class="dash-box-header">
-                        <MudText Typo="Typo.h6">Session Security Error</MudText>
-                    </div>
-                    <br />
-                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">This instance has been incorrectly configured or is using local host ip for connection.</MudAlert>
-                </div>
-            }
-            break;
-        case SessionErrorType.AuthenticationError:
-            {
-                <RadzenComponents />
-                <div class="dash-box dash-box-content" style="padding: 10px;">
-                    <div class="dash-box-header">
-                        <MudText Typo="Typo.h6">Authentication Error</MudText>
-                    </div>
-                    <br />
-                    <MudAlert Severity="Severity.Error" Variant="Variant.Filled">Authentication error has occured.</MudAlert>
-                </div>
-            }
-            break;
-        case SessionErrorType.AuthenticationRequired:
-            {
-                <RadzenComponents />
-                <CascadingValue Value="@this">
-                    <LoginPage></LoginPage>
-                </CascadingValue>
-            }
-            break;
-        case SessionErrorType.SessionSecurityNewIp:
-            {
-                <RadzenComponents />
-                <CascadingValue Value="@this">
-                    <NewIpPage></NewIpPage>
-                </CascadingValue>
-
-            }
-            break;
-        default:
-            {
-
-                @if (_Data.Config.isFullySetup)
-                {
-                    @if (!_DB.IsConnected)
+        <CascadingValue Value="@this">
+            @ChildContent
+        </CascadingValue>
+    }
+    else
+    {
+        <CascadingValue Value="@this">
+            <RadzenComponents />
+            <RadzenLayout>
+                <RadzenBody>
+                    @switch (SessionError)
                     {
-                        <RadzenComponents />
-                        <div class="dash-box dash-box-content" style="padding: 10px;">
-                            <div class="dash-box-header">
-                                <MudText Typo="Typo.h6">Database Error</MudText>
-                            </div>
-                            <br />
-                            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
-                                Can't connect to database.
-                            </RadzenAlert>
-                        </div>
+                        case SessionErrorType.HttpsRequired:
+                            {
+                                <div class="dash-box dash-box-content dash-center">
+                                    <div class="dash-box-header">
+                                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
+                                        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Http Error</RadzenText>
+                                    </div>
+                                    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false ShowIcon="false">
+                                        A secure https connection is required to use this.
+                                    </RadzenAlert>
+                                </div>
+                            }
+                            break;
+                        case SessionErrorType.SessionSecurityError:
+                            {
+                                <div class="dash-box dash-box-content dash-center">
+                                    <div class="dash-box-header">
+                                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
+                                        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Session Security Error</RadzenText>
+                                    </div>
+                                    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false ShowIcon="false">
+                                        This instance has been incorrectly configured or is using local host ip for connection.
+                                    </RadzenAlert>
+                                </div>
+                            }
+                            break;
+                        case SessionErrorType.AuthenticationError:
+                            {
+                                <div class="dash-box dash-box-content dash-center">
+                                    <div class="dash-box-header">
+                                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
+                                        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Authentication Error</RadzenText>
+                                    </div>
+                                    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false ShowIcon="false">
+                                        Authentication error has occured.
+                                    </RadzenAlert>
+                                </div>
+                            }
+                            break;
+                        case SessionErrorType.DatabaseError:
+                            {
+                                <div class="dash-box dash-box-content dash-center">
+                                    <div class="dash-box-header">
+                                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
+                                        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Database Error</RadzenText>
+                                    </div>
+                                    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false ShowIcon="false">
+                                        Failed to connect to the database.
+                                    </RadzenAlert>
+                                </div>
+                            }
+                            break;
+                        case SessionErrorType.AuthenticationRequired:
+                            {
+                                <LoginPage></LoginPage>
+                            }
+                            break;
+                        case SessionErrorType.SessionSecurityNewIp:
+                            {
+                                <NewIpPage></NewIpPage>
+                            }
+                            break;
                     }
-                    else
-                    {
-                        <CascadingValue Value="@this">
-                            @ChildContent
-                        </CascadingValue>
-                    }
-                }
-                else
-                {
-                    <CascadingValue Value="@this">
-                        @ChildContent
-                    </CascadingValue>
-                }
-
-            }
-            break;
+                </RadzenBody>
+            </RadzenLayout>
+        </CascadingValue>
     }
 
     <style>
@@ -142,8 +133,6 @@
 
     public SelectedSessionData Selected = new SelectedSessionData();
 
-    public bool Ready = false;
-
     public string BackgroundUrl { get; set; } = "https://cdn.fluxpoint.dev/devspace/background.webp";
 
     public int UserDateOffset { get; set; }
@@ -157,11 +146,7 @@
 
     public void ShowPreviewModeNotice()
     {
-        @* Snackbar.Add("This action is disabled in Preview Mode", Severity.Info, opt =>
-        {
-            opt.ShowTransitionDuration = 500;
-            opt.HideTransitionDuration = 500;
-        }, "previewmode"); *@
+        DialogService.ShowInfoAsync("Preview Mode", "This feature is not available in preview mode.");
     }
 
     public async Task<bool> TriggerTwoFactorAuthentication(AuthUser user, bool logUsage)
@@ -220,8 +205,6 @@
 
     [CascadingParameter] public HttpContext? HttpContext { get; set; }
 
-
-
     public string Ip;
 
     protected override async Task OnInitializedAsync()
@@ -232,6 +215,12 @@
             return;
         }
         Ip = Utils.GetUserIpAddress(Http.HttpContext);
+        if (!_Data.Config.Instance.Features.AllowLocalhost && (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1"))
+        {
+            SessionError = SessionErrorType.SessionSecurityError;
+            return;
+        }
+
         State = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         UserDateOffset = await JS.InvokeAsync<int>("GetUserTimezoneOffset");
         string Path = NavigationManager.Uri.Substring(NavigationManager.BaseUri.Length);
@@ -242,35 +231,46 @@
             return;
         }
 
-        if (Path.StartsWith("admin"))
+        if (Path.StartsWith("admin", StringComparison.OrdinalIgnoreCase))
         {
-            Ready = true;
+
         }
         else
         {
-            if (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1")
-            {
-                SessionError = SessionErrorType.SessionSecurityError;
-            }
-
             if (State == null)
             {
                 SessionError = SessionErrorType.AuthenticationError;
+                return;
             }
             else if (!State.User.Identity.IsAuthenticated)
             {
                 SessionError = SessionErrorType.AuthenticationRequired;
+                return;
             }
             else
             {
                 _DB.SessionUpdated += SessionChangedEvent;
-                var User = await GetCurrentUserAsync();
-                CurrentUserId = User.Id;
-                if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
-                    SessionError = SessionErrorType.SessionSecurityNewIp;
+                if (_Data.Config.Database.IsSetup)
+                {
+                    if (!_DB.IsConnected)
+                    {
+                        SessionError = SessionErrorType.DatabaseError;
+                        return;
+                    }
+
+                    var User = await GetCurrentUserAsync();
+                    CurrentUserId = User.Id;
+                    if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
+                    {
+                        SessionError = SessionErrorType.SessionSecurityNewIp;
+                        return;
+                    }
+                }
             }
-            Ready = true;
         }
+
+        SessionError = SessionErrorType.Success;
+
     }
 
 
@@ -297,7 +297,7 @@
 
     public enum SessionErrorType
     {
-        None, HttpsRequired, SessionSecurityError, SessionSecurityNewIp, AuthenticationError, AuthenticationRequired
+        Loading, SessionSecurityError, HttpsRequired, SessionSecurityNewIp, AuthenticationError, AuthenticationRequired, DatabaseError, Success
     }
 
 }

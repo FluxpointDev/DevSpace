@@ -15,7 +15,11 @@
                 Preview Mode: You can press Check or enter anything to view this.
             </RadzenAlert>
         }
-        <br />
+        else
+        {
+            <br />
+            <br />
+        }
         <RadzenButton Click="@CheckAdminKey" Variant="Variant.Filled" Shade="Shade.Dark" Text="Check" />
     </div>
 }
@@ -82,10 +86,12 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        AuthUser? User = await Session.GetCurrentUserAsync();
-        if (User != null)
-            IsAdmin = User.IsInstanceAdmin;
-
+        if (_Data.Config.Database.IsSetup)
+        {
+            AuthUser? User = await Session.GetCurrentUserAsync();
+            if (User != null)
+                IsAdmin = User.IsInstanceAdmin;
+        }
 
     }
 

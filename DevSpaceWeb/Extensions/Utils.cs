@@ -27,6 +27,7 @@ public static class Utils
         if (Program.IsDevMode || Program.IsPreviewMode)
             return "1.2.3.4";
 
+
         // Check CF-Connecting-IP header
         if (!string.IsNullOrEmpty(context.Request.Headers["CF-CONNECTING-IP"]))
             return context.Request.Headers["CF-CONNECTING-IP"];

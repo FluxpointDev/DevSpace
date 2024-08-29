@@ -36,21 +36,18 @@ public class Program
         FileWatcher.Start();
 
         var builder = WebApplication.CreateBuilder(args);
-        IsDevMode = builder.Environment.IsDevelopment();
-
+        IsDevMode = System.Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         _DB.Client = new MongoDB.Driver.MongoClient(_Data.Config.Database.GetConnectionString());
-        if (_Data.Config.Database.IsSetup)
+        _ = Task.Run(async () =>
         {
-            _ = Task.Run(async () =>
+            await _DB.StartAsync();
+
+            while (!_DB.IsConnected)
             {
-                await _DB.StartAsync();
 
-                while (!_DB.IsConnected)
-                {
+            }
+        });
 
-                }
-            });
-        }
         // Add services to the container.
         ServiceBuilder.Build(builder, builder.Services);
 

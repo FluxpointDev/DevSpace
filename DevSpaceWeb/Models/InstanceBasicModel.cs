@@ -11,4 +11,8 @@ public class InstanceBasicModel
 
     [MaxLength(300, ErrorMessage = "Instance description has a maximum of 300 characters")]
     public string Description { get; set; }
+
+    [Required]
+    [MaxLength(300, ErrorMessage = "Public domain has a maximum of 300 characters")]
+    public string PublicDomain { get; set; }
 }

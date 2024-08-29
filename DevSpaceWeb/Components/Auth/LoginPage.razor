@@ -20,140 +20,195 @@
 @inject IDistributedCache Cache
 @inject EmailService Email
 
-<RadzenRow JustifyContent="JustifyContent.Center" AlignItems="AlignItems.Normal" Gap="1rem">
-    <div class="dash-box dash-box-content">
-        <div class="flex-center" style="text-align: center !important;">
-            <img src="@_Data.Config.Instance.GetIconOrDefault()" style="height: 40px; width: 40px;" />
-            <h3 class="ml-3 mt-2">@_Data.Config.Instance.Name Login</h3>
-        </div>
-        <br />
-        @switch (Page)
-        {
-            case LoginPageType.Default:
+
+<div class="dash-box dash-box-content dash-center">
+    <div class="flex-center" style="text-align: center !important;">
+        <img src="@_Data.Config.Instance.GetIconOrDefault()" style="height: 40px; width: 40px;" />
+        <h3 class="ml-3 mt-2">@_Data.Config.Instance.Name Login</h3>
+    </div>
+    <br />
+    @switch (Page)
+    {
+        case LoginPageType.Default:
+            {
+
+                @if (_Data.Config.Auth.AllowInternalLogin)
                 {
+                    <RadzenButton Click="@(() => Page = LoginPageType.Login)" ButtonStyle="ButtonStyle.Secondary" Text="Internal Auth" />
+                }
+                <br />
+                <br />
 
-                    @if (_Data.Config.Auth.AllowInternalLogin)
-                    {
-                        <RadzenButton Click="@(() => Page = LoginPageType.Login)" ButtonStyle="ButtonStyle.Secondary" Text="Internal Auth" />
-                    }
-                    <br />
+                @if (Program.IsPreviewMode)
+                {
+                    <p>
+                        <RadzenButton Click="@Session.ShowPreviewModeNotice" value="google" name="provider" ButtonStyle="ButtonStyle.Secondary">
+                            <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
+                        </RadzenButton>
+                        <RadzenButton Click="@Session.ShowPreviewModeNotice" value="discord" name="provider" ButtonStyle="ButtonStyle.Secondary">
+                            <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
+                        </RadzenButton>
+                        <RadzenButton Click="@Session.ShowPreviewModeNotice" value="github" name="provider" ButtonStyle="ButtonStyle.Secondary">
+                            <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
+                        </RadzenButton>
+                    </p>
+                }
+                else
+                {
+                    <form data-enhance id="login-external-form" action="/auth/external" method="post" class="form-horizontal">
+                        <div>
+                            <p>
+                                <RadzenButton ButtonType="ButtonType.Submit" value="google" name="provider" ButtonStyle="ButtonStyle.Secondary">
+                                    <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
+                                </RadzenButton>
+                                <RadzenButton ButtonType="ButtonType.Submit" value="discord" name="provider" ButtonStyle="ButtonStyle.Secondary">
+                                    <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
+                                </RadzenButton>
+                                <RadzenButton ButtonType="ButtonType.Submit" value="github" name="provider" ButtonStyle="ButtonStyle.Secondary">
+                                    <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
+                                </RadzenButton>
+                            </p>
+                        </div>
+                    </form>
+                }
+
+            }
+            break;
+        case LoginPageType.Login:
+            {
+                @if (IsAccountCreated)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                        Your account has been created, you can now login.
+                    </RadzenAlert>
+                }
+                @if (Program.IsPreviewMode)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                        Preview Mode is enabled, login as a test user.
+                    </RadzenAlert>
+                }
+
+                <EditForm Model="@LoginForm" OnValidSubmit="@Login">
+                    <DataAnnotationsValidator />
+
+                    <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+                    <RadzenTextBox @bind-Value="LoginForm.Email" Style="width: 100%" aria-label="Email" autocomplete="email" MaxLength="100"
+                                   Placeholder="user@gmail.com" Disabled="@FormDisabled" autofocus inputmode="email" autocapitalize="none" />
+                    <ValidationMessage For="() => LoginForm.Email" style="color: var(--rz-danger);" />
+
+                    <br style="margin-bottom: 20px;" />
+
+                    <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
+                    <RadzenPassword @bind-Value="LoginForm.Password" Style="width: 100%" aria-label="Password" autocomplete="current-password"
+                                    Disabled="@FormDisabled" maxlength="100" />
+                    <ValidationMessage For="() => LoginForm.Password" style="color: var(--rz-danger);" />
+
                     <br />
 
-                    @if (Program.IsPreviewMode)
+                    @if (!string.IsNullOrEmpty(LoginErrorMessage))
                     {
-                        <p>
-                            <RadzenButton Click="@Session.ShowPreviewModeNotice" value="google" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                                <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
-                            </RadzenButton>
-                            <RadzenButton Click="@Session.ShowPreviewModeNotice" value="discord" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                                <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
-                            </RadzenButton>
-                            <RadzenButton Click="@Session.ShowPreviewModeNotice" value="github" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                                <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
-                            </RadzenButton>
-                        </p>
+                        <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
+                            @LoginErrorMessage
+                        </RadzenAlert>
                     }
                     else
                     {
-                        <form data-enhance id="login-external-form" action="/auth/external" method="post" class="form-horizontal">
-                            <div>
-                                <p>
-                                    <RadzenButton ButtonType="ButtonType.Submit" value="google" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                                        <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
-                                    </RadzenButton>
-                                    <RadzenButton ButtonType="ButtonType.Submit" value="discord" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                                        <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
-                                    </RadzenButton>
-                                    <RadzenButton ButtonType="ButtonType.Submit" value="github" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                                        <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
-                                    </RadzenButton>
-                                </p>
-                            </div>
-                        </form>
+                        <br style="margin-bottom: 20px;" />
                     }
 
-                }
-                break;
-            case LoginPageType.Login:
-                {
-                    @if (IsAccountCreated)
+                    <RadzenCheckBox @bind-Value="@RememberMe" Name="RememberMe" Disabled="@FormDisabled" />
+                    <RadzenLabel Text="Remember Me" Component="RememberMe" class="rz-ms-2" />
+
+                    @if (RememberMe)
                     {
-                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
-                            Your account has been created, you can now login.
-                        </RadzenAlert>
-                    }
-                    @if (Program.IsPreviewMode)
-                    {
-                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
-                            Preview Mode is enabled, login as a test user.
+                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false Size="AlertSize.Small">
+                            <div>This will keep you signed in.</div>
+                            <div>Do not use this for public computers.</div>
                         </RadzenAlert>
                     }
 
-                    <EditForm Model="@LoginForm" OnValidSubmit="@Login">
-                        <DataAnnotationsValidator />
+                    <div class="flex-around" style="margin-top: 30px;">
+                        <RadzenButton Text="Login" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
+                        <RadzenButton Text="Forgot Password?" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.ChangePassword; })" />
+                        <RadzenButton Text="Register Account" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { if (!Program.IsPreviewMode) { RegisterForm.Email = LoginForm.Email; } Page = LoginPageType.Register; })" />
+                    </div>
 
-                        <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
-                        <RadzenTextBox @bind-Value="LoginForm.Email" Style="width: 100%" aria-label="Email" autocomplete="email" MaxLength="100"
-                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" autofocus inputmode="email" autocapitalize="none" />
-                        <ValidationMessage For="() => LoginForm.Email" style="color: var(--rz-danger);" />
+                </EditForm>
 
-                        <br style="margin-bottom: 20px;" />
+            }
+            break;
+        case LoginPageType.Register:
+            {
+                <EditForm Model="@RegisterForm" OnValidSubmit="@RegisterAccount">
+                    <DataAnnotationsValidator />
 
-                        <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
-                        <RadzenPassword @bind-Value="LoginForm.Password" Style="width: 100%" aria-label="Password" autocomplete="current-password"
-                                        Disabled="@FormDisabled" maxlength="100" />
-                        <ValidationMessage For="() => LoginForm.Password" style="color: var(--rz-danger);" />
+                    <RadzenLabel Text="Username" class="rz-my-0"></RadzenLabel>
+                    <RadzenTextBox @bind-Value="RegisterForm.Username" Style="width: 100%" aria-label="Username" autocomplete="off"
+                                   Placeholder="user" Disabled="@FormDisabled" autocapitalize="none" MaxLength="32" />
+                    <ValidationMessage For="() => RegisterForm.Username" style="color: var(--rz-danger);" />
 
-                        <br />
+                    <br style="margin-bottom: 20px;" />
 
-                        @if (!string.IsNullOrEmpty(LoginErrorMessage))
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
-                                @LoginErrorMessage
-                            </RadzenAlert>
-                        }
-                        else
-                        {
-                            <br style="margin-bottom: 20px;" />
-                        }
+                    <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+                    <RadzenTextBox @bind-Value="RegisterForm.Email" Style="width: 100%" aria-label="Email" autocomplete="email" MaxLength="100"
+                                   Placeholder="user@gmail.com" Disabled="@FormDisabled" inputmode="email" autocapitalize="none" />
+                    <ValidationMessage For="() => RegisterForm.Email" style="color: var(--rz-danger);" />
 
-                        <RadzenCheckBox @bind-Value="@RememberMe" Name="RememberMe" Disabled="@FormDisabled" />
-                        <RadzenLabel Text="Remember Me" Component="RememberMe" class="rz-ms-2" />
+                    <br style="margin-bottom: 20px;" />
+                    <br />
 
-                        @if (RememberMe)
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false Size="AlertSize.Small">
-                                <div>This will keep you signed in.</div>
-                                <div>Do not use this for public computers.</div>
-                            </RadzenAlert>
-                        }
+                    <RadzenText TextStyle="TextStyle.Body2">Password is 8 characters long and requires 1 uppercase letter, 1 lowercase letter and 1 number</RadzenText>
 
-                        <div class="flex-around" style="margin-top: 30px;">
-                            <RadzenButton Text="Login" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
-                            <RadzenButton Text="Forgot Password?" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.ChangePassword; })" />
-                            <RadzenButton Text="Register Account" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { if (!Program.IsPreviewMode) { RegisterForm.Email = LoginForm.Email; } Page = LoginPageType.Register; })" />
-                        </div>
+                    <br />
 
-                    </EditForm>
+                    <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
+                    <RadzenPassword @bind-Value="RegisterForm.Password" Style="width: 100%" aria-label="Password" autocomplete="off"
+                                    Disabled="@FormDisabled" maxlength="100" />
+                    <ValidationMessage For="() => RegisterForm.Password" style="color: var(--rz-danger);" />
 
-                }
-                break;
-            case LoginPageType.Register:
+                    <br style="margin-bottom: 20px;" />
+
+                    <RadzenLabel Text="Confirm Password" class="rz-my-0"></RadzenLabel>
+                    <RadzenPassword @bind-Value="@RegisterForm.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
+                                    Disabled="@FormDisabled" maxlength="100" />
+                    <ValidationMessage For="() => RegisterForm.RepeatPassword" style="color: var(--rz-danger);" />
+
+
+                    @if (!string.IsNullOrEmpty(RegisterErrorMessage))
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
+                            @RegisterErrorMessage
+                        </RadzenAlert>
+                    }
+
+                    <div class="flex-around" style="margin-top: 30px;">
+                        <RadzenButton Text="Register" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
+                        <RadzenButton Text="Login Instead" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
+                    </div>
+                </EditForm>
+            }
+            break;
+        case LoginPageType.ChangePassword:
+            {
+                @if (PasswordChangeSent)
                 {
-                    <EditForm Model="@RegisterForm" OnValidSubmit="@RegisterAccount">
-                        <DataAnnotationsValidator />
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                        Password change request has been sent to your email address.
+                    </RadzenAlert>
+                }
 
-                        <RadzenLabel Text="Username" class="rz-my-0"></RadzenLabel>
-                        <RadzenTextBox @bind-Value="RegisterForm.Username" Style="width: 100%" aria-label="Username" autocomplete="off"
-                                       Placeholder="user" Disabled="@FormDisabled" autocapitalize="none" MaxLength="32" />
-                        <ValidationMessage For="() => RegisterForm.Username" style="color: var(--rz-danger);" />
+                <EditForm Model="@ChangePasswordForm" OnValidSubmit="@ChangePassword">
+                    <DataAnnotationsValidator />
 
-                        <br style="margin-bottom: 20px;" />
 
+
+                    @if (!string.IsNullOrEmpty(Token))
+                    {
                         <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
-                        <RadzenTextBox @bind-Value="RegisterForm.Email" Style="width: 100%" aria-label="Email" autocomplete="email" MaxLength="100"
-                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" inputmode="email" autocapitalize="none" />
-                        <ValidationMessage For="() => RegisterForm.Email" style="color: var(--rz-danger);" />
+                        <RadzenTextBox @bind-Value="ChangePasswordForm.Email" Style="width: 100%" aria-label="Email" autocomplete="none"
+                                       Placeholder="user@gmail.com" Disabled="true" />
+                        <ValidationMessage For="() => ChangePasswordForm.Email" style="color: var(--rz-danger);" />
 
                         <br style="margin-bottom: 20px;" />
                         <br />
@@ -163,129 +218,63 @@
                         <br />
 
                         <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
-                        <RadzenPassword @bind-Value="RegisterForm.Password" Style="width: 100%" aria-label="Password" autocomplete="off"
-                                        Disabled="@FormDisabled" maxlength="100" />
-                        <ValidationMessage For="() => RegisterForm.Password" style="color: var(--rz-danger);" />
+                        <RadzenPassword @bind-Value="ChangePasswordForm.Password" Style="width: 100%" aria-label="Password" autocomplete="off"
+                                        Disabled="@FormDisabled" autofocus maxlength="100" />
+                        <ValidationMessage For="() => ChangePasswordForm.Password" style="color: var(--rz-danger);" />
 
                         <br style="margin-bottom: 20px;" />
 
                         <RadzenLabel Text="Confirm Password" class="rz-my-0"></RadzenLabel>
-                        <RadzenPassword @bind-Value="@RegisterForm.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
+                        <RadzenPassword @bind-Value="@ChangePasswordForm.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
                                         Disabled="@FormDisabled" maxlength="100" />
-                        <ValidationMessage For="() => RegisterForm.RepeatPassword" style="color: var(--rz-danger);" />
-
-
-                        @if (!string.IsNullOrEmpty(RegisterErrorMessage))
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
-                                @RegisterErrorMessage
-                            </RadzenAlert>
-                        }
-
-                        <div class="flex-around" style="margin-top: 30px;">
-                            <RadzenButton Text="Register" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
-                            <RadzenButton Text="Login Instead" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
-                        </div>
-                    </EditForm>
-                }
-                break;
-            case LoginPageType.ChangePassword:
-                {
-                    @if (PasswordChangeSent)
+                        <ValidationMessage For="() => ChangePasswordForm.RepeatPassword" style="color: var(--rz-danger);" />
+                    }
+                    else
                     {
-                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
-                            Password change request has been sent to your email address.
+                        <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="ChangePasswordForm.Email" Style="width: 100%" aria-label="Email" autocapitalize="none"
+                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" autofocus inputmode="email" MaxLength="100" />
+                        <ValidationMessage For="() => ChangePasswordForm.Email" style="color: var(--rz-danger);" />
+                    }
+
+                    @if (!string.IsNullOrEmpty(ChangePasswordErrorMessage))
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
+                            @ChangePasswordErrorMessage
                         </RadzenAlert>
                     }
 
-                    <EditForm Model="@ChangePasswordForm" OnValidSubmit="@ChangePassword">
-                        <DataAnnotationsValidator />
+                    <div class="flex-around" style="margin-top: 30px;">
 
-
-
-                        @if (!string.IsNullOrEmpty(Token))
+                        @if (string.IsNullOrEmpty(Token))
                         {
-                            <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
-                            <RadzenTextBox @bind-Value="ChangePasswordForm.Email" Style="width: 100%" aria-label="Email" autocomplete="none"
-                                           Placeholder="user@gmail.com" Disabled="true" />
-                            <ValidationMessage For="() => ChangePasswordForm.Email" style="color: var(--rz-danger);" />
-
-                            <br style="margin-bottom: 20px;" />
-                            <br />
-
-                            <RadzenText TextStyle="TextStyle.Body2">Password is 8 characters long and requires 1 uppercase letter, 1 lowercase letter and 1 number</RadzenText>
-
-                            <br />
-
-                            <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
-                            <RadzenPassword @bind-Value="ChangePasswordForm.Password" Style="width: 100%" aria-label="Password" autocomplete="off"
-                                            Disabled="@FormDisabled" autofocus maxlength="100" />
-                            <ValidationMessage For="() => ChangePasswordForm.Password" style="color: var(--rz-danger);" />
-
-                            <br style="margin-bottom: 20px;" />
-
-                            <RadzenLabel Text="Confirm Password" class="rz-my-0"></RadzenLabel>
-                            <RadzenPassword @bind-Value="@ChangePasswordForm.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
-                                            Disabled="@FormDisabled" maxlength="100" />
-                            <ValidationMessage For="() => ChangePasswordForm.RepeatPassword" style="color: var(--rz-danger);" />
+                            <RadzenButton Text="Request Password Change" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@CheckChangePassword" />
+                            <RadzenButton Text="Login Instead" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
                         }
                         else
                         {
-                            <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
-                            <RadzenTextBox @bind-Value="ChangePasswordForm.Email" Style="width: 100%" aria-label="Email" autocapitalize="none"
-                                           Placeholder="user@gmail.com" Disabled="@FormDisabled" autofocus inputmode="email" MaxLength="100" />
-                            <ValidationMessage For="() => ChangePasswordForm.Email" style="color: var(--rz-danger);" />
+                            <RadzenButton Text="Change Password" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
+
                         }
+                    </div>
+                </EditForm>
 
-                        @if (!string.IsNullOrEmpty(ChangePasswordErrorMessage))
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose=false>
-                                @ChangePasswordErrorMessage
-                            </RadzenAlert>
-                        }
+            }
+            break;
+        case LoginPageType.AlreadyLoggedIn:
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                    You are already logged in
+                </RadzenAlert>
 
-                        <div class="flex-around" style="margin-top: 30px;">
-
-                            @if (string.IsNullOrEmpty(Token))
-                            {
-                                <RadzenButton Text="Request Password Change" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@CheckChangePassword" />
-                                <RadzenButton Text="Login Instead" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
-                            }
-                            else
-                            {
-                                <RadzenButton Text="Change Password" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
-
-                            }
-                        </div>
-                    </EditForm>
-
-                }
-                break;
-            case LoginPageType.AlreadyLoggedIn:
-                {
-                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
-                        You are already logged in
-                    </RadzenAlert>
-
-                    <a href="/user/settings"><RadzenButton Text="User Settings" ButtonStyle="ButtonStyle.Secondary" Shade="Shade.Dark" /></a>
-                    <a href="/logout"><RadzenButton Text="Logout" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" /></a>
-                }
-                break;
-        }
-    </div>
-</RadzenRow>
-
+                <a href="/user/settings"><RadzenButton Text="User Settings" ButtonStyle="ButtonStyle.Secondary" Shade="Shade.Dark" /></a>
+                <a href="/logout"><RadzenButton Text="Logout" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" /></a>
+            }
+            break;
+    }
+</div>
 
 <style>
-    body {
-        color: var(--rz-text-color);
-    }
-
-    .dash-box {
-        min-width: 500px !important;
-        margin-top: 20px;
-    }
-
     .rz-button img {
         width: 20px;
         height: 20px;

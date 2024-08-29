@@ -2,6 +2,7 @@
 using AspNetCore.Identity.MongoDbCore.Infrastructure;
 using AspNetCore.Identity.MongoDbCore.Models;
 using DevSpaceWeb.Data;
+using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
 using DevSpaceWeb.Models;
@@ -182,7 +183,7 @@ public static class ServiceBuilder
             .AddTokenProvider(TokenOptions.DefaultProvider, typeof(DataProtectorTokenProvider<AuthUser>))
             .AddTokenProvider(TokenOptions.DefaultEmailProvider, typeof(EmailTokenProvider<AuthUser>))
             .AddTokenProvider(TokenOptions.DefaultAuthenticatorProvider, typeof(AuthenticatorTokenProvider<AuthUser>))
-        .AddMongoDbStores2<MflixDbContext, AuthUser, ApplicationRole, ObjectId>(new MflixDbContext(_Data.Config.Database.GetConnectionString(), _Data.Config.Database.Name));
+        .AddMongoDbStores2<MflixDbContext, AuthUser, ApplicationRole, ObjectId>(new MflixDbContext(_DB.Client, _Data.Config.Database.Name));
 
     }
 

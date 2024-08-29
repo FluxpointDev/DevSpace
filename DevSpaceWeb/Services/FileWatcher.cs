@@ -1,5 +1,4 @@
 ﻿using DevSpaceWeb.Data;
-using DevSpaceWeb.Database;
 using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Services;
@@ -51,18 +50,9 @@ public static class FileWatcher
                 }
                 else
                 {
-                    bool ReloadDatabase = false;
-
-                    if (Config.Database.Password != _Data.Config.Database.Password || Config.Database.Port != _Data.Config.Database.Port || Config.Database.IP != _Data.Config.Database.IP)
-                        ReloadDatabase = true;
-
                     if (_Data.LoadConfig())
                     {
-                        if (ReloadDatabase)
-                        {
-                            Console.WriteLine("Database settings changed, reloading connection.");
-                            _DB.StartAsync();
-                        }
+
                     }
                 }
             }

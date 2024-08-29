@@ -61,8 +61,9 @@ public class ConfigInstance
 }
 public class ConfigFeatures
 {
+    public bool AllowLocalhost;
     public bool APIEnabled = true;
-    public bool AllowUnauthenticatedPublicFolderAccess { get; set; }
+    public bool AllowUnauthenticatedPublicFolderAccess;
     public bool SwaggerEnabled = true;
     public bool SwaggerUIEnabled = true;
 }
