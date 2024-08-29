@@ -222,7 +222,11 @@
         }
 
         State = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        UserDateOffset = await JS.InvokeAsync<int>("GetUserTimezoneOffset");
+        try
+        {
+            UserDateOffset = await JS.InvokeAsync<int>("GetUserTimezoneOffset");
+        }
+        catch { }
         string Path = NavigationManager.Uri.Substring(NavigationManager.BaseUri.Length);
 
         if (!_Data.Config.IsFullySetup && Path != "admin/setup")

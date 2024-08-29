@@ -33,20 +33,23 @@ public class Program
 
         Console.WriteLine("Loaded config in: " + Program.Directory.Path);
 
-        FileWatcher.Start();
-
         var builder = WebApplication.CreateBuilder(args);
         IsDevMode = System.Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         _DB.Client = new MongoDB.Driver.MongoClient(_Data.Config.Database.GetConnectionString());
-        _ = Task.Run(async () =>
+        _DB.Init();
+
+        if (_Data.Config.Database.IsSetup)
         {
-            await _DB.StartAsync();
-
-            while (!_DB.IsConnected)
+            _ = Task.Run(async () =>
             {
+                await _DB.StartAsync();
 
-            }
-        });
+                while (!_DB.IsConnected)
+                {
+
+                }
+            });
+        }
 
         // Add services to the container.
         ServiceBuilder.Build(builder, builder.Services);

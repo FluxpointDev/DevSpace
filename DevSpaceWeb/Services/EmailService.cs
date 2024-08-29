@@ -161,7 +161,11 @@ public class EmailService
         string[] page = new string[longCode ? 8 : 6];
         Random rnd = new Random();
         for (int i = 0; i < page.Length; ++i)
-            page[i] = rnd.Next(10).ToString();
+        {
+            int Number = rnd.Next(10);
+            page[i] = Number.ToString();
+            Task.Delay(TimeSpan.FromMilliseconds(Number));
+        }
 
         return string.Join("", page);
     }

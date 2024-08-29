@@ -11,16 +11,19 @@ public static class _Data
     {
         bool SaveConfig = false;
 
-        try
+        if (Program.Directory == null)
         {
-            Program.Directory = new DirectoryStructureMain(AppDomain.CurrentDomain.BaseDirectory);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Failed to write data to the program path: " + Program.Directory.Path);
-            System.Environment.Exit(1);
-        }
+            try
+            {
+                Program.Directory = new DirectoryStructureMain(AppDomain.CurrentDomain.BaseDirectory);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed to write data to the program path: " + Program.Directory.Path);
+                System.Environment.Exit(1);
+            }
 
+        }
 
         if (!File.Exists(Program.Directory.Data.Path + "Config.json"))
         {

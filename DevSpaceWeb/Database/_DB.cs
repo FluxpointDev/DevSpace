@@ -24,9 +24,8 @@ public static class _DB
         SessionUpdated?.Invoke(null, user, type);
     }
 
-    public static async Task<bool> StartAsync()
+    public static void Init()
     {
-        IsConnected = false;
         if (Run == null)
         {
             Run = Client.GetDatabase(_Data.Config.Database.Name);
@@ -39,10 +38,12 @@ public static class _DB
             EmailTemplates = new ICollection<EmailTemplateData>("email_templates");
             TeamVanityUrls = new ICollection<VanityUrlData>("vanity_urls");
         }
+    }
 
+    public static async Task<bool> StartAsync()
+    {
         try
         {
-
             var result = await Run.RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1));
             IsConnected = true;
             Console.WriteLine("Pinged your deployment. You successfully connected to MongoDB!");

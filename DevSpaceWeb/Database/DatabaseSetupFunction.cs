@@ -26,6 +26,8 @@ namespace DevSpaceWeb.Database
                 string Codename = lines[2].Split('=').Last().ToLower();
                 //string Release = lines[1].Split('=').Last();
 
+                string MongoVersion = "7.0";
+
                 switch (Dist)
                 {
                     case "ubuntu":
@@ -33,13 +35,18 @@ namespace DevSpaceWeb.Database
                             switch (Codename)
                             {
                                 case "bionic":
-                                case "focal":
-                                case "jammy":
-                                case "noble":
-                                case "precise":
-                                case "trusty":
                                 case "xenial":
                                     IsSupported = true;
+                                    break;
+                                case "focal":
+                                case "jammy":
+                                    IsSupported = true;
+                                    ////MongoVersion = "8.0";
+                                    break;
+                                case "noble":
+                                    Codename = "jammy";
+                                    IsSupported = true;
+                                    ////MongoVersion = "8.0";
                                     break;
                             }
                         }
@@ -49,11 +56,13 @@ namespace DevSpaceWeb.Database
                             switch (Codename)
                             {
                                 case "bookworm":
+                                    IsSupported = true;
+                                    //MongoVersion = "8.0";
+                                    break;
                                 case "bullseye":
                                 case "buster":
                                 case "jessie":
                                 case "stretch":
-                                case "wheezy":
                                     IsSupported = true;
                                     break;
                             }
@@ -98,30 +107,30 @@ namespace DevSpaceWeb.Database
 
                 try
                 {
-                    var Res = await new HttpClient().GetStringAsync("https://www.mongodb.org/static/pgp/server-7.0.asc");
-                    File.WriteAllText(Program.Directory.Data.Path + "mongodb.asc", Res);
+                    var Res = await new HttpClient().GetStringAsync("https://www.mongodb.org/static/pgp/server-" + MongoVersion + ".asc");
+                    File.WriteAllText(Program.Directory.Cache.Path + "mongodb.asc", Res);
                 }
                 catch (Exception ex)
                 {
                     try
                     {
-                        File.Delete(Program.Directory.Data.Path + "mongodb.asc");
+                        File.Delete(Program.Directory.Cache.Path + "mongodb.asc");
                     }
                     catch { }
                     Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
+                    Console.WriteLine(ex);
                     Console.WriteLine("--- --- --- ---- --- --- ---");
                     return DatabaseSetupErrorType.FailedAptInstall;
                 }
 
-                cmd = Cli.Wrap("gpg").WithWorkingDirectory(Program.Directory.Data.Path).WithArguments("--dearmor --yes mongodb.asc");
+                cmd = Cli.Wrap("sudo").WithWorkingDirectory(Program.Directory.Cache.Path).WithArguments("gpg -o /usr/share/keyrings/mongodb-server-" + MongoVersion + ".gpg --dearmor --yes mongodb.asc");
 
                 res = await cmd.ExecuteBufferedAsync();
                 if (!res.IsSuccess)
                 {
                     try
                     {
-                        File.Delete(Program.Directory.Data.Path + "mongodb.asc");
+                        File.Delete(Program.Directory.Cache.Path + "mongodb.asc");
                     }
                     catch { }
 
@@ -133,36 +142,22 @@ namespace DevSpaceWeb.Database
 
                 try
                 {
-                    File.Delete(Program.Directory.Data.Path + "mongodb.asc");
+                    File.Delete(Program.Directory.Cache.Path + "mongodb.asc");
                 }
                 catch { }
 
-                if (!File.Exists("/usr/share/keyrings/mongodb-server-7.0.gpg"))
+                try
                 {
-                    try
-                    {
-                        File.Move(Program.Directory.Data.Path + "mongodb.asc.gpg", "/usr/share/keyrings/mongodb-server-7.0.gpg");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("--- Database Setup Error ---");
-                        Console.WriteLine(ex);
-                        Console.WriteLine("--- --- --- ---- --- --- ---");
-                        return DatabaseSetupErrorType.FailedAptInstall;
-                    }
+                    File.WriteAllText("/etc/apt/sources.list.d/mongodb-org-" + MongoVersion + ".list", "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-" + MongoVersion + ".gpg ] https://repo.mongodb.org/apt/" + Dist + " " + Codename + "/mongodb-org/" + MongoVersion + " multiverse");
+
                 }
-
-                cmd = Cli.Wrap("echo").WithArguments("\"deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-7.0.gpg ] https://repo.mongodb.org/apt/" + Dist + " " + Codename + "/mongodb-org/7.0 multiverse\" | sudo tee /etc/apt/sources.list.d/mongodb-org-7.0.list");
-
-                res = await cmd.ExecuteBufferedAsync();
-                if (!res.IsSuccess)
+                catch (Exception ex)
                 {
                     Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
+                    Console.WriteLine(ex);
                     Console.WriteLine("--- --- --- ---- --- --- ---");
                     return DatabaseSetupErrorType.FailedAptInstall;
                 }
-
 
                 cmd = Cli.Wrap("sudo").WithArguments("apt update");
 
@@ -247,25 +242,9 @@ namespace DevSpaceWeb.Database
                                     Console.WriteLine("--- --- --- ---- --- --- ---");
                                     return DatabaseSetupErrorType.FailedSystemProcess;
                                 }
-
-
-                                cmd = Cli.Wrap("sudo").WithArguments("systemctl enable mongod");
-
-                                res = await cmd.ExecuteBufferedAsync();
-                                if (!res.IsSuccess)
-                                {
-                                    Console.WriteLine("--- Database Setup Error ---");
-                                    Console.WriteLine(res.StandardError);
-                                    Console.WriteLine("--- --- --- ---- --- --- ---");
-                                    return DatabaseSetupErrorType.FailedSystemProcess;
-                                }
-
                             }
-                        }
-                        break;
-                    case "init":
-                        {
-                            cmd = Cli.Wrap("sudo").WithArguments("service mongod start");
+
+                            cmd = Cli.Wrap("sudo").WithArguments("systemctl enable mongod");
 
                             res = await cmd.ExecuteBufferedAsync();
                             if (!res.IsSuccess)
@@ -275,7 +254,6 @@ namespace DevSpaceWeb.Database
                                 Console.WriteLine("--- --- --- ---- --- --- ---");
                                 return DatabaseSetupErrorType.FailedSystemProcess;
                             }
-
                         }
                         break;
                     default:

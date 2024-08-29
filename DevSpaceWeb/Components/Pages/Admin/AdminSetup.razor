@@ -38,16 +38,32 @@
 
                         @if (IsDatabaseAutomatic)
                         {
-                            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
-                                Click Next to begin the automatic setup, this will install MongoDB on your server and setup the database with authentication.
-                            </RadzenAlert>
-
                             @if (IsDatabaseSetupRunning)
                             {
+                                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                                    Database setup is in progress...
+                                </RadzenAlert>
                                 <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
                                 <br />
                                 <br />
                             }
+                            else
+                            {
+                                @if (IsDatabaseSetupDone)
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose=false>
+                                        Database setup is complete!
+                                    </RadzenAlert>
+                                }
+                                else
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                                        Click Next to begin the automatic setup, this will install MongoDB on your server and setup the database with authentication.
+                                    </RadzenAlert>
+                                }
+                            }
+
+
 
                             @if (!string.IsNullOrEmpty(DatabaseErrorMessage))
                             {
@@ -55,6 +71,8 @@
                                     @DatabaseErrorMessage
                                 </RadzenAlert>
                             }
+
+
 
                             <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Database)" Click="@CheckDatabase" />
                         }
@@ -402,6 +420,7 @@
                             else
                             {
                                 <br />
+                                <br />
                             }
 
                             <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Admin)" />
@@ -418,13 +437,13 @@
                         @if (SetupStep == SetupStepType.Confirm)
                         {
                             <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose=false>
-                                You can now start using this Instance, use the sidebar to view your created team.
+                                Dev Space setup complete, you will need to restart this service/program.
                             </RadzenAlert>
+
                             @if (IsDatabaseAutomatic)
                             {
-                                <br />
                                 <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
-                                    Your database root password has been saved to /Data
+                                    The database root password has been saved to a seperate file in <strong>/Data</strong> which you can move.
                                 </RadzenAlert>
                             }
                         }
@@ -446,6 +465,7 @@
     public DatabaseSetupModel DatabaseForm { get; set; }
     public bool IsDatabaseAutomatic { get; set; } = true;
     public bool IsDatabaseSetupRunning { get; set; }
+    public bool IsDatabaseSetupDone { get; set; }
     public string DatabaseErrorMessage { get; set; }
 
     private ConfigEmailType _emailType { get; set; }
@@ -509,13 +529,17 @@
             };
 
         if (_Data.Config.Database.IsSetup)
+        {
+            IsDatabaseSetupDone = true;
             SetupStep = SetupStepType.Smtp;
+        }
+
 
         if (_Data.Config.Email.SmtpPort != 0 || !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
             SetupStep = SetupStepType.Instance;
 
         // Check if mongodb has already been setup with auth
-        if (File.Exists("/etc/mongod.conf"))
+        if (File.Exists("/etc/mongod.conf") && !IsDatabaseSetupDone)
         {
             string MongodConfig = File.ReadAllText("/etc/mongod.conf");
             if (!MongodConfig.Contains("#security:"))
@@ -531,6 +555,7 @@
     public async Task CheckDatabase()
     {
         SetupStep = SetupStepType.Disabled;
+        DatabaseErrorMessage = string.Empty;
         if (IsDatabaseAutomatic)
         {
             IsDatabaseSetupRunning = true;
@@ -544,6 +569,8 @@
                     SetupStep = SetupStepType.Database;
                     return;
                 }
+
+                await Task.Delay(TimeSpan.FromSeconds(3));
             }
             else
             {
@@ -566,18 +593,29 @@
                 RootPass = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
 
                 string CreateRoot2 = "--eval \"db.getSiblingDB('admin').createUser({ user: 'root', pwd: '" + RootPass + "', roles: [ 'root' ] });\"";
-                var cmd2 = Cli.Wrap("mongosh").WithArguments(CreateRoot2);
 
-                var res2 = await cmd2.ExecuteBufferedAsync();
-                if (!res2.IsSuccess)
+                try
                 {
-                    DatabaseErrorMessage = "Setup root error, " + res2.StandardError;
+                    var cmd2 = Cli.Wrap("mongosh").WithArguments(CreateRoot2);
+
+                    var res2 = await cmd2.ExecuteBufferedAsync();
+                    if (!res2.IsSuccess)
+                    {
+                        DatabaseErrorMessage = "Setup root error, " + res2.StandardError;
+                        IsDatabaseSetupRunning = false;
+                        SetupStep = SetupStepType.Database;
+                        return;
+                    }
+
+                    File.WriteAllText(Program.Directory.Data.Path + "root.txt", RootPass);
+                }
+                catch (Exception ex)
+                {
+                    DatabaseErrorMessage = "Setup connection error, " + ex.Message;
                     IsDatabaseSetupRunning = false;
                     SetupStep = SetupStepType.Database;
                     return;
                 }
-
-                File.WriteAllText(Program.Directory.Data.Path + "root.txt", RootPass);
             }
             else
                 RootPass = File.ReadAllText(Program.Directory.Data.Path + "root.txt");
@@ -592,16 +630,26 @@
                 var CreateUser = $"-u 'root' -p '{RootPass}' " + "--eval \"db.getSiblingDB('admin').createUser({ user: '" + _Data.Config.Database.Username + "', pwd: '" + DevSpacePass + "', roles: [ { role: 'dbAdmin', db: '" + _Data.Config.Database.Name + "' }, { role: 'readWrite', db: '" + _Data.Config.Database.Name + "' } ] });\"";
                 var UserCmd = Cli.Wrap("mongosh").WithArguments(CreateUser);
 
-                var UserRes = await UserCmd.ExecuteBufferedAsync();
-                if (!UserRes.IsSuccess)
+                try
                 {
-                    DatabaseErrorMessage = "Setup user error, " + UserRes.StandardError;
+                    var UserRes = await UserCmd.ExecuteBufferedAsync();
+                    if (!UserRes.IsSuccess)
+                    {
+                        DatabaseErrorMessage = "Setup user error, " + UserRes.StandardError;
+                        IsDatabaseSetupRunning = false;
+                        SetupStep = SetupStepType.Database;
+                        return;
+                    }
+                    _Data.Config.Database.Password = DevSpacePass;
+                    _Data.Config.Save();
+                }
+                catch (Exception ex)
+                {
+                    DatabaseErrorMessage = "Setup user error, " + ex.Message;
                     IsDatabaseSetupRunning = false;
                     SetupStep = SetupStepType.Database;
                     return;
                 }
-                _Data.Config.Database.Password = DevSpacePass;
-                _Data.Config.Save();
             }
 
             string MongodConfig = File.ReadAllText("/etc/mongod.conf");
@@ -656,7 +704,7 @@
 
             _DB.Client = client;
             _DB.IsConnected = true;
-
+            IsDatabaseSetupRunning = false;
             _Data.Config.Database.IsSetup = true;
             _Data.Config.Save();
         }
@@ -709,7 +757,9 @@
             _Data.Config.Save();
         }
 
-        SetupStep = SetupStepType.Instance;
+        IsDatabaseSetupDone = true;
+
+        SetupStep = SetupStepType.Smtp;
     }
 
     public string SmtpErrorMessage { get; set; }
@@ -820,7 +870,7 @@
     {
         _Data.Config.Instance.Name = InstanceForm.Name;
         _Data.Config.Instance.Description = InstanceForm.Description;
-        _Data.Config.Instance.PublicDomain = InstanceForm.PublicDomain.Replace("https://", "", StringComparison.OrdinalIgnoreCase);
+        _Data.Config.Instance.PublicDomain = InstanceForm.PublicDomain.Replace("https://", "", StringComparison.OrdinalIgnoreCase).Split('/').First();
         _Data.Config.Save();
         SetupStep = SetupStepType.Team;
     }
