@@ -52,9 +52,9 @@
                             @if (IsDatabaseSetupRunning)
                             {
                                 <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                                <br />
+                                <br />
                             }
-                            <br />
-                            <br />
 
                             <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Database)" Click="@CheckDatabase" />
                         }
@@ -435,7 +435,7 @@
 
     public InstanceBasicModel InstanceForm { get; set; }
     public DatabaseSetupModel DatabaseForm { get; set; }
-    public bool IsDatabaseAutomatic { get; set; }
+    public bool IsDatabaseAutomatic { get; set; } = true;
     public bool IsDatabaseSetupRunning { get; set; }
     public string DatabaseErrorMessage { get; set; }
 
@@ -524,14 +524,6 @@
         SetupStep = SetupStepType.Disabled;
         if (IsDatabaseAutomatic)
         {
-            string MongodConfig = File.ReadAllText("/etc/mongod.conf");
-            if (!MongodConfig.Contains("#security:"))
-            {
-                DatabaseErrorMessage = "MongoDB is already installed on this server, manual setup is required!";
-                SetupStep = SetupStepType.Database;
-                return;
-            }
-
             IsDatabaseSetupRunning = true;
             if (!File.Exists("/etc/mongod.conf"))
             {
@@ -540,6 +532,18 @@
                 {
                     DatabaseErrorMessage = "Database install error, " + InstallDB.ToString();
                     IsDatabaseSetupRunning = false;
+                    SetupStep = SetupStepType.Database;
+                    return;
+                }
+            }
+            else
+            {
+                string MongodConfigCheck = File.ReadAllText("/etc/mongod.conf");
+                if (!MongodConfigCheck.Contains("#security:"))
+                {
+                    DatabaseErrorMessage = "MongoDB is already installed on this server, manual setup is required!";
+                    IsDatabaseAutomatic = true;
+                    MongoDBDetected = true;
                     SetupStep = SetupStepType.Database;
                     return;
                 }
@@ -591,7 +595,7 @@
                 _Data.Config.Save();
             }
 
-
+            string MongodConfig = File.ReadAllText("/etc/mongod.conf");
             MongodConfig = MongodConfig.Replace("#security:", "security:\n  authorization: enabled\n  javascriptEnabled: false");
             File.WriteAllText("/etc/mongod.conf", MongodConfig);
 
