@@ -6,7 +6,7 @@
                     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="30"
                     AllowSorting="true" Data="@employees" Count="@count" LoadData="@LoadData"
                     IsLoading="@isLoading" GridLines="DataGridGridLines.Horizontal"
-                    LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Simple"
+                    LogicalFilterOperator"LogicalFilterOperator.And" FilterMode="FilterMode.Advanced"
                     SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="@selectedEmployees">
         <Columns>
             <RadzenDataGridColumn Property="@nameof(FirewallRuleResponse.Action)" Title="Type" MinWidth="120px" />
@@ -37,6 +37,7 @@
         Console.WriteLine("Loading Data");
         if (Program.IsPreviewMode)
         {
+            isLoading = false;
             employees = new List<FirewallRuleResponse>
             {
                 new FirewallRuleResponse { Action = "ALLOW IN", From = "1.2.3.4", To = "22", Comment = ":)" }
