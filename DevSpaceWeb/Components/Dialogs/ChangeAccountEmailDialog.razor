@@ -1,28 +1,35 @@
-﻿@using DevSpaceWeb.Services
+﻿@using DevSpaceWeb.Models.Defaults
+@using DevSpaceWeb.Services
+@using Microsoft.AspNetCore.Components.Forms
 @inject UserManager<AuthUser> UserManager
 @inject EmailService EmailService
 @inject NavigationManager NavigationManager
 @inject Radzen.DialogService dialogService
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
-    <RadzenStack>
-        <p>Changing your email address will require verification with the current email address.</p>
-        <br />
-        <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
-        <RadzenTextBox @bind-Value="Email" Style="width: 100%" aria-label="Email TextBox" autocomplete="off" autofocus inputmode="email"
-                       autocapitalize="none" MaxLength="100" />
-    </RadzenStack>
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
-        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
-    </RadzenStack>
+    <EditForm Model="@EmailForm" OnValidSubmit="@Submit">
+        <DataAnnotationsValidator />
+
+        <RadzenStack>
+            <p>Changing your email address will require verification with the current email address.</p>
+            <br />
+            <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+            <RadzenTextBox @bind-Value="@EmailForm.Email" Style="width: 100%" aria-label="Email TextBox" autocomplete="off" autofocus inputmode="email"
+                           autocapitalize="none" MaxLength="100" />
+            <ValidationMessage For="() => EmailForm.Email" style="color: var(--rz-danger);" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+            <RadzenButton ButtonType="ButtonType.Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+        </RadzenStack>
+    </EditForm>
 </RadzenStack>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public string Email { get; set; }
+    public EmailModel EmailForm = new EmailModel();
 
     async Task Submit()
     {
@@ -36,20 +43,20 @@
         if (user == null)
             return;
 
-        if (user.Email.Equals(Email, StringComparison.OrdinalIgnoreCase))
+        if (user.Email.Equals(EmailForm.Email, StringComparison.OrdinalIgnoreCase))
             return;
 
-        AuthUser? FindUser = await UserManager.FindByEmailAsync(Email);
+        AuthUser? FindUser = await UserManager.FindByEmailAsync(EmailForm.Email);
         if (FindUser != null)
         {
-            dialogService.Close(false);
+            
             return;
         }
-        var Code = await UserManager.GenerateChangeEmailTokenAsync(user, Email);
+        var Code = await UserManager.GenerateChangeEmailTokenAsync(user, EmailForm.Email);
         Code = Uri.EscapeDataString(Code);
 
-        string EmailEscape = Uri.EscapeDataString(Email);
-        await EmailService.SendAccountConfirm(user, (NavigationManager.BaseUri + "auth/account/changeEmail?email=" + EmailEscape + "&token=" + Code));
+        string EmailEscape = Uri.EscapeDataString(EmailForm.Email);
+        await EmailService.SendEmailChangeRequest(user, (NavigationManager.BaseUri + "auth/account/changeEmail?email=" + EmailEscape + "&token=" + Code));
 
         dialogService.Close(true);
     }

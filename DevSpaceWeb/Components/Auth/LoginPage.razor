@@ -1,6 +1,7 @@
 ﻿@page "/login"
 @using DevSpaceWeb.Fido2
 @using DevSpaceWeb.Models
+@using DevSpaceWeb.Models.Account
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.AspNetCore.Components.Forms;
 @using System.ComponentModel.DataAnnotations;
@@ -43,13 +44,13 @@
                 {
                     <p>
                         <RadzenButton Click="@Session.ShowPreviewModeNotice" value="google" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                            <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
+                        <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
                         </RadzenButton>
                         <RadzenButton Click="@Session.ShowPreviewModeNotice" value="discord" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                            <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
+                        <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
                         </RadzenButton>
                         <RadzenButton Click="@Session.ShowPreviewModeNotice" value="github" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                            <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
+                        <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
                         </RadzenButton>
                     </p>
                 }
@@ -59,16 +60,16 @@
                         <div>
                             <p>
                                 <RadzenButton ButtonType="ButtonType.Submit" value="google" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                                    <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
+                                <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Google
                                 </RadzenButton>
                                 <RadzenButton ButtonType="ButtonType.Submit" value="discord" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                                    <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
+                                <img src="https://cdn.fluxpoint.dev/icons/google.webp"> Discord
                                 </RadzenButton>
                                 <RadzenButton ButtonType="ButtonType.Submit" value="github" name="provider" ButtonStyle="ButtonStyle.Secondary">
-                                    <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
+                                <img src="https://cdn.fluxpoint.dev/icons/google.webp"> GitHub
                                 </RadzenButton>
-                            </p>
-                        </div>
+                                </p>
+                            </div>
                     </form>
                 }
 
@@ -94,15 +95,15 @@
 
                     <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
                     <RadzenTextBox @bind-Value="LoginForm.Email" Style="width: 100%" aria-label="Email" autocomplete="email" MaxLength="100"
-                                   Placeholder="user@gmail.com" Disabled="@FormDisabled" autofocus inputmode="email" autocapitalize="none" />
+                        Placeholder="user@gmail.com" Disabled="@FormDisabled" autofocus inputmode="email" autocapitalize="none" />
                     <ValidationMessage For="() => LoginForm.Email" style="color: var(--rz-danger);" />
 
                     <br style="margin-bottom: 20px;" />
 
                     <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
-                    <RadzenPassword @bind-Value="LoginForm.Password" Style="width: 100%" aria-label="Password" autocomplete="current-password"
-                                    Disabled="@FormDisabled" maxlength="100" />
-                    <ValidationMessage For="() => LoginForm.Password" style="color: var(--rz-danger);" />
+                    <RadzenPassword @bind-Value="LoginForm.CurrentPassword" Style="width: 100%" aria-label="Password" autocomplete="current-password"
+                        Disabled="@FormDisabled" maxlength="100" />
+                    <ValidationMessage For="() => LoginForm.CurrentPassword" style="color: var(--rz-danger);" />
 
                     <br />
 
@@ -145,18 +146,17 @@
 
                     <RadzenLabel Text="Username" class="rz-my-0"></RadzenLabel>
                     <RadzenTextBox @bind-Value="RegisterForm.Username" Style="width: 100%" aria-label="Username" autocomplete="off"
-                                   Placeholder="user" Disabled="@FormDisabled" autocapitalize="none" MaxLength="32" />
+                        Placeholder="user" Disabled="@FormDisabled" autocapitalize="none" MaxLength="32" />
                     <ValidationMessage For="() => RegisterForm.Username" style="color: var(--rz-danger);" />
 
                     <br style="margin-bottom: 20px;" />
 
                     <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
                     <RadzenTextBox @bind-Value="RegisterForm.Email" Style="width: 100%" aria-label="Email" autocomplete="email" MaxLength="100"
-                                   Placeholder="user@gmail.com" Disabled="@FormDisabled" inputmode="email" autocapitalize="none" />
+                        Placeholder="user@gmail.com" Disabled="@FormDisabled" inputmode="email" autocapitalize="none" />
                     <ValidationMessage For="() => RegisterForm.Email" style="color: var(--rz-danger);" />
 
                     <br style="margin-bottom: 20px;" />
-                    <br />
 
                     <RadzenText TextStyle="TextStyle.Body2">Password is 8 characters long and requires 1 uppercase letter, 1 lowercase letter and 1 number</RadzenText>
 
@@ -164,14 +164,14 @@
 
                     <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
                     <RadzenPassword @bind-Value="RegisterForm.Password" Style="width: 100%" aria-label="Password" autocomplete="off"
-                                    Disabled="@FormDisabled" maxlength="100" />
+                        Disabled="@FormDisabled" maxlength="100" />
                     <ValidationMessage For="() => RegisterForm.Password" style="color: var(--rz-danger);" />
 
                     <br style="margin-bottom: 20px;" />
 
                     <RadzenLabel Text="Confirm Password" class="rz-my-0"></RadzenLabel>
                     <RadzenPassword @bind-Value="@RegisterForm.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
-                                    Disabled="@FormDisabled" maxlength="100" />
+                        Disabled="@FormDisabled" maxlength="100" />
                     <ValidationMessage For="() => RegisterForm.RepeatPassword" style="color: var(--rz-danger);" />
 
 
@@ -207,7 +207,7 @@
                     {
                         <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
                         <RadzenTextBox @bind-Value="ChangePasswordForm.Email" Style="width: 100%" aria-label="Email" autocomplete="none"
-                                       Placeholder="user@gmail.com" Disabled="true" />
+                            Placeholder="user@gmail.com" Disabled="true" />
                         <ValidationMessage For="() => ChangePasswordForm.Email" style="color: var(--rz-danger);" />
 
                         <br style="margin-bottom: 20px;" />
@@ -218,22 +218,22 @@
                         <br />
 
                         <RadzenLabel Text="Password" class="rz-my-0"></RadzenLabel>
-                        <RadzenPassword @bind-Value="ChangePasswordForm.Password" Style="width: 100%" aria-label="Password" autocomplete="off"
-                                        Disabled="@FormDisabled" autofocus maxlength="100" />
-                        <ValidationMessage For="() => ChangePasswordForm.Password" style="color: var(--rz-danger);" />
+                        <RadzenPassword @bind-Value="ChangePasswordForm.NewPassword" Style="width: 100%" aria-label="Password" autocomplete="off"
+                            Disabled="@FormDisabled" autofocus maxlength="100" />
+                        <ValidationMessage For="() => ChangePasswordForm.NewPassword" style="color: var(--rz-danger);" />
 
                         <br style="margin-bottom: 20px;" />
 
                         <RadzenLabel Text="Confirm Password" class="rz-my-0"></RadzenLabel>
                         <RadzenPassword @bind-Value="@ChangePasswordForm.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="off"
-                                        Disabled="@FormDisabled" maxlength="100" />
+                            Disabled="@FormDisabled" maxlength="100" />
                         <ValidationMessage For="() => ChangePasswordForm.RepeatPassword" style="color: var(--rz-danger);" />
                     }
                     else
                     {
                         <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
                         <RadzenTextBox @bind-Value="ChangePasswordForm.Email" Style="width: 100%" aria-label="Email" autocapitalize="none"
-                                       Placeholder="user@gmail.com" Disabled="@FormDisabled" autofocus inputmode="email" MaxLength="100" />
+                            Placeholder="user@gmail.com" Disabled="@FormDisabled" autofocus inputmode="email" MaxLength="100" />
                         <ValidationMessage For="() => ChangePasswordForm.Email" style="color: var(--rz-danger);" />
                     }
 
@@ -246,16 +246,15 @@
 
                     <div class="flex-around" style="margin-top: 30px;">
 
-                        @if (string.IsNullOrEmpty(Token))
-                        {
-                            <RadzenButton Text="Request Password Change" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@CheckChangePassword" />
-                            <RadzenButton Text="Login Instead" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
-                        }
-                        else
-                        {
-                            <RadzenButton Text="Change Password" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
-
-                        }
+                    @if (string.IsNullOrEmpty(Token))
+                    {
+                        <RadzenButton Text="Request Password Change" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@CheckChangePassword" />
+                        <RadzenButton Text="Login Instead" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
+                    }
+                    else
+                    {
+                        <RadzenButton Text="Change Password" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
+                    }
                     </div>
                 </EditForm>
 
@@ -268,7 +267,7 @@
                 </RadzenAlert>
 
                 <a href="/user/settings"><RadzenButton Text="User Settings" ButtonStyle="ButtonStyle.Secondary" Shade="Shade.Dark" /></a>
-                <a href="/logout"><RadzenButton Text="Logout" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" /></a>
+                            <a href="/logout"><RadzenButton Text="Logout" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" /></a>
             }
             break;
     }
@@ -323,7 +322,7 @@
         if (Program.IsPreviewMode)
         {
             LoginForm.Email = "test@test.com";
-            LoginForm.Password = "@U8FXB5&^2mKWbn";
+            LoginForm.CurrentPassword = "@U8FXB5&^2mKWbn";
         }
 
         if (Session.State.User.Identity != null && Session.State.User.Identity.IsAuthenticated)
@@ -415,7 +414,7 @@
 
         string RequestId = Guid.NewGuid().ToString();
         Cache.SetString("login-" + RequestId, LoginForm.Email, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-        bool Result = await JS.InvokeAsync<bool>("accountLogin", LoginForm.Email, LoginForm.Password, RememberMe, RequestId);
+        bool Result = await JS.InvokeAsync<bool>("accountLogin", LoginForm.Email, LoginForm.CurrentPassword, RememberMe, RequestId);
         if (Result)
             NavigationManager.NavigateTo("/", true);
         else
@@ -436,11 +435,11 @@
 
         string RequestId = Guid.NewGuid().ToString();
         Cache.SetString("changepass-" + RequestId, ChangePasswordForm.Email, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-        bool Result = await JS.InvokeAsync<bool>("accountChangePassword", ChangePasswordForm.Email, ChangePasswordForm.Password, Token, RequestId);
+        bool Result = await JS.InvokeAsync<bool>("accountChangePassword", ChangePasswordForm.Email, ChangePasswordForm.NewPassword, Token, RequestId);
         if (Result)
         {
             LoginForm.Email = ChangePasswordForm.Email;
-            LoginForm.Password = ChangePasswordForm.Password;
+            LoginForm.CurrentPassword = ChangePasswordForm.NewPassword;
             Page = LoginPageType.Login;
             await Login();
         }

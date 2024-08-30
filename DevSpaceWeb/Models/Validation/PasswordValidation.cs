@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DevSpaceWeb.Models;
+namespace DevSpaceWeb.Models.Validation;
 
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public class PasswordValidationAttribute : ValidationAttribute
@@ -15,11 +15,11 @@ public class PasswordValidationAttribute : ValidationAttribute
         foreach (var c in actualValue)
         {
             if (!HasCapital)
-                HasCapital = Char.IsLower(c);
+                HasCapital = char.IsLower(c);
             else if (!HasLower)
-                HasLower = Char.IsUpper(c);
+                HasLower = char.IsUpper(c);
             else if (!HasDigit)
-                HasDigit = Char.IsDigit(c);
+                HasDigit = char.IsDigit(c);
         }
         return HasCapital && HasLower && HasDigit;
     }

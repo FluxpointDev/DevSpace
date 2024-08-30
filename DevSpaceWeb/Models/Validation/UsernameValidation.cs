@@ -1,11 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DevSpaceWeb.Models.Defaults;
+using System.ComponentModel.DataAnnotations;
 
-namespace DevSpaceWeb.Models;
+namespace DevSpaceWeb.Models.Validation;
 
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public class UsernameValidationAttribute : ValidationAttribute
 {
-    public char[] AllowableValues { get; set; } = AccountRegisterModel.AllowedCharacters.ToCharArray();
+    public char[] AllowableValues { get; set; } = UsernameModel.AllowedCharacters.ToCharArray();
 
     public override bool IsValid(object value)
     {

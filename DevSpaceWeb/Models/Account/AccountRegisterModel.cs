@@ -1,17 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DevSpaceWeb.Models.Defaults;
+using DevSpaceWeb.Models.Validation;
+using System.ComponentModel.DataAnnotations;
 
-namespace DevSpaceWeb.Models;
+namespace DevSpaceWeb.Models.Account;
 
-public sealed class AccountRegisterModel
+public sealed class AccountRegisterModel : UsernameModel
 {
-    public static string AllowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._";
-
-    [Required(ErrorMessage = "Username is required")]
-    [MinLength(3, ErrorMessage = "Username requires minimum of 3 characters")]
-    [MaxLength(32, ErrorMessage = "Username has a maximum of 32 characters")]
-    [UsernameValidation(ErrorMessage = "Username invalid, use characters from A-Z, 0-9 and - . _")]
-    public string Username { get; set; }
-
     [Required(ErrorMessage = "Email is required")]
     [EmailAddress(ErrorMessage = "Email is invalid")]
     [MaxLength(100, ErrorMessage = "Email has a maximum of 100 characters")]

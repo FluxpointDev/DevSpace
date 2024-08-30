@@ -5,7 +5,7 @@ using DevSpaceWeb.Data;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
-using DevSpaceWeb.Models;
+using DevSpaceWeb.Models.Account;
 using DevSpaceWeb.Services.Identity;
 using Fido2NetLib;
 using Microsoft.AspNetCore.Identity;

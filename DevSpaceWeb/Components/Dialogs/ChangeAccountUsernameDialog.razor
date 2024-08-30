@@ -1,31 +1,38 @@
-﻿@using Microsoft.AspNetCore.Identity
+﻿@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
-    <RadzenStack JustifyContent="JustifyContent.Start">
-        <p>Your username must be unique and is visible to everyone in your team.</p>
-        <RadzenLabel Text="Username" class="rz-my-0"></RadzenLabel>
-        <RadzenTextBox @bind-Value="Username" Style="width: 100%" aria-label="Username TextBox" autocomplete="off" autofocus
-                       autocapitalize="none" MaxLength="32" />
-    </RadzenStack>
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
-        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
-    </RadzenStack>
+    <EditForm Model="@UsernameForm" OnValidSubmit="@Submit">
+        <DataAnnotationsValidator />
+
+        <RadzenStack JustifyContent="JustifyContent.Start">
+            <p>Your username must be unique and is visible to everyone in your teams.</p>
+
+            <br />
+
+            <RadzenLabel Text="Username" class="rz-my-0"></RadzenLabel>
+            <RadzenTextBox @bind-Value="@UsernameForm.Username" Style="width: 100%" aria-label="Username TextBox" autocomplete="off" autofocus
+                autocapitalize="none" MaxLength="32" />
+            <ValidationMessage For="() => UsernameForm.Username" style="color: var(--rz-danger);" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+            <RadzenButton ButtonType="ButtonType.Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+        </RadzenStack>
+    </EditForm>
 </RadzenStack>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public string Username { get; set; }
+    public UsernameModel UsernameForm = new UsernameModel();
 
     async Task Submit()
     {
-        if (string.IsNullOrEmpty(Username))
-            return;
-
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
@@ -33,10 +40,10 @@
         }
 
         AuthUser? user = await Session.GetCurrentUserAsync();
-        if (user == null || user.UserName.Equals(Username, StringComparison.OrdinalIgnoreCase))
+        if (user == null || user.UserName.Equals(UsernameForm.Username, StringComparison.OrdinalIgnoreCase))
             return;
 
-        var Result = await UserManager.SetUserNameAsync(user, Username);
+        var Result = await UserManager.SetUserNameAsync(user, UsernameForm.Username);
         if (Result.Succeeded)
         {
             Session.TriggerChange();

@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Reflection;
 
-namespace DevSpaceWeb.Models;
+namespace DevSpaceWeb.Models.Validation;
 
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public class RequiredIfValidationAttribute : ValidationAttribute
