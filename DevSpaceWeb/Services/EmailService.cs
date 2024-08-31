@@ -156,9 +156,9 @@ public class EmailService
         await client.SendAsync(message);
     }
 
-    public string RandomCodeGenerator(bool longCode)
+    public string RandomCodeGenerator()
     {
-        string[] page = new string[longCode ? 8 : 6];
+        string[] page = new string[8];
         Random rnd = new Random();
         for (int i = 0; i < page.Length; ++i)
         {

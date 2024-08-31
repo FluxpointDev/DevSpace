@@ -65,7 +65,9 @@
         else if (AuthType == 1)
         {
             <RadzenLabel Text="Email Code" class="rz-my-0"></RadzenLabel>
-            <RadzenTextBox @bind-Value="CodeInput" Style="width: 100%" aria-label="Email Code TextBox" autofocus autocomplete="none" MaxLength="30" />
+            <div>
+                <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" Count="8" Gap="6px" aria-label="Email Code" autofocus />
+            </div>
             <br />
             <RadzenButton Click="@VerifyEmail" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
         }
@@ -74,7 +76,7 @@
 
             <RadzenLabel Text="Auth Code" class="rz-my-0"></RadzenLabel>
             <div>
-                <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="CodeInput" Count="6" Gap="6px" aria-label="Auth Code" autofocus />
+                <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" Count="6" Gap="6px" aria-label="Auth Code" autofocus />
             </div>
             <br />
             <RadzenButton Click="@VerifyAuthenticator" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
@@ -120,7 +122,7 @@
         string VerifyCache = Cache.GetString("2fa-verify-" + AuthUser.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache))
         {
-            string Code = Email.RandomCodeGenerator(false);
+            string Code = Email.RandomCodeGenerator();
             Cache.SetString("2fa-verify-" + AuthUser.Id.ToString(), Code, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
             await Email.SendAccessCode(AuthUser, "2FA Verification", Code);
             if (LogUsage)

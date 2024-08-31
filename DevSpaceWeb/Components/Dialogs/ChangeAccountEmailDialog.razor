@@ -11,12 +11,28 @@
         <DataAnnotationsValidator />
 
         <RadzenStack>
-            <p>Changing your email address will require verification with the current email address.</p>
-            <br />
-            <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
-            <RadzenTextBox @bind-Value="@EmailForm.Email" Style="width: 100%" aria-label="Email TextBox" autocomplete="off" autofocus inputmode="email"
-                           autocapitalize="none" MaxLength="100" />
-            <ValidationMessage For="() => EmailForm.Email" style="color: var(--rz-danger);" />
+            @if (IsEmailSent)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                    An email has been sent to @EmailAddress
+                </RadzenAlert>
+            }
+            else
+            {
+                <p>Changing your email address will require verification with the current email address.</p>
+                <br />
+                <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+                <RadzenTextBox @bind-Value="@EmailForm.Email" Style="width: 100%" aria-label="Email TextBox" autocomplete="off" autofocus inputmode="email"
+                    autocapitalize="none" MaxLength="100" />
+                <ValidationMessage For="() => EmailForm.Email" style="color: var(--rz-danger);" />
+
+                @if (IsEmailTaken)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
+                        This email address is already registered.
+                    </RadzenAlert>
+                }
+            }
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
             <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
@@ -31,6 +47,10 @@
 
     public EmailModel EmailForm = new EmailModel();
 
+    public bool IsEmailSent { get; set; }
+    public bool IsEmailTaken { get; set; }
+    public string EmailAddress { get; set; }
+
     async Task Submit()
     {
         if (Program.IsPreviewMode)
@@ -44,20 +64,23 @@
             return;
 
         if (user.Email.Equals(EmailForm.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            IsEmailTaken = true;
             return;
+        }
 
         AuthUser? FindUser = await UserManager.FindByEmailAsync(EmailForm.Email);
         if (FindUser != null)
         {
-            
+            IsEmailTaken = true;
             return;
         }
         var Code = await UserManager.GenerateChangeEmailTokenAsync(user, EmailForm.Email);
         Code = Uri.EscapeDataString(Code);
 
         string EmailEscape = Uri.EscapeDataString(EmailForm.Email);
-        await EmailService.SendEmailChangeRequest(user, (NavigationManager.BaseUri + "auth/account/changeEmail?email=" + EmailEscape + "&token=" + Code));
-
-        dialogService.Close(true);
+        EmailAddress = user.Email;
+        await EmailService.SendEmailChangeRequest(user, (NavigationManager.BaseUri + "/user/change_email?email=" + EmailEscape + "&token=" + Code));
+        IsEmailSent = true;
     }
 }

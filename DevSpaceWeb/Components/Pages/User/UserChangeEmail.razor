@@ -1,0 +1,212 @@
+﻿@page "/user/change_email"
+@using DevSpaceWeb.Models.Account
+@using Microsoft.AspNetCore.Components.Forms
+@inject UserManager<AuthUser> UserManager
+@inject NavigationManager NavigationManager
+@inject IdentityOptions IdentityOptions
+@inject EmailService Email
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:email-edit"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Change Account Email</RadzenText>
+    </div>
+    <br />
+    <EditForm Model="@ChangeEmailForm" OnValidSubmit="@Submit">
+        <DataAnnotationsValidator />
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
+                @ErrorMessage
+            </RadzenAlert>
+        }
+
+        <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+        <RadzenTextBox @bind-Value="@ChangeEmailForm.Email" Style="width: 100%" aria-label="Email TextBox" autocomplete="off" autofocus inputmode="email"
+                       autocapitalize="none" MaxLength="100" Disabled="!string.IsNullOrEmpty(CodeGenerated)" />
+        <ValidationMessage For="() => ChangeEmailForm.Email" style="color: var(--rz-danger);" />
+
+        @if (!ConfirmChange)
+        {
+            @if (!string.IsNullOrEmpty(CodeGenerated))
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                    An email code has been sent to @ChangeEmailForm.Email you will need to enter this below.
+                </RadzenAlert>
+
+                <RadzenLabel Text="Code" class="rz-my-0"></RadzenLabel>
+                <div>
+                    <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@ChangeEmailForm.Code" Count="8" aria-label="Email Code" autofocus />
+                </div>
+                <br />
+            }
+            else
+            {
+                <br />
+                <br />
+            }
+        }
+        else
+        {
+            @if (!EmailHasChanged)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose=false>
+                    Your account email address has been changed!
+                </RadzenAlert>
+            }
+            else
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
+                    Are you sure you want to change email address?
+                    <br />
+                    This will also reset your 2FA (Two-factor authentication) methods and recovery code!
+                </RadzenAlert>
+            }
+            
+        }
+        <RadzenButton ButtonType="ButtonType.Submit" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Submit" Disabled="@IsLoading" />
+    </EditForm>
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var query = NavigationManager.ParseQuery();
+        Token = query["token"];
+        string Email = query["email"];
+
+        if (!string.IsNullOrEmpty(Token))
+        {
+            Token = Uri.UnescapeDataString(Token);
+        }
+
+        if (!string.IsNullOrEmpty(Email))
+        {
+            ChangeEmailForm.Email = Uri.UnescapeDataString(Email);
+        }
+
+    }
+
+    public AccountChangeEmailModel ChangeEmailForm = new AccountChangeEmailModel();
+    public bool IsLoading { get; set; }
+    public string Token { get; set; }
+    public string ErrorMessage { get; set; }
+    public string CodeGenerated { get; set; }
+    public bool ConfirmChange { get; set; }
+    public bool EmailHasChanged { get; set; }
+
+
+    public async Task Submit()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        ErrorMessage = string.Empty;
+
+        if (string.IsNullOrEmpty(Token))
+        {
+            ErrorMessage = "Invalid change email token.";
+            return;
+        }
+
+        IsLoading = true;
+
+        AuthUser? user = await Session.GetCurrentUserAsync();
+        if (user == null)
+        {
+            IsLoading = false;
+            ErrorMessage = "Failed to get user account.";
+            return;
+        }
+
+        var TokenValidate = await UserManager.VerifyUserTokenAsync(user, IdentityOptions.Tokens.ChangeEmailTokenProvider, UserManager<AuthUser>.GetChangeEmailTokenPurpose(ChangeEmailForm.Email), Token);
+        if (!TokenValidate)
+        {
+            IsLoading = false;
+            ErrorMessage = "Invalid change email token.";
+            return;
+        }
+
+        if (user.Email.Equals(ChangeEmailForm.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            IsLoading = false;
+            ErrorMessage = "This is your current email address already.";
+            return;
+        }
+
+        AuthUser? FindUser = await UserManager.FindByEmailAsync(ChangeEmailForm.Email);
+        if (FindUser != null)
+        {
+            IsLoading = false;
+            ErrorMessage = "This email address is already registered.";
+            return;
+        }
+
+        if (string.IsNullOrEmpty(CodeGenerated))
+        {
+            var Code = Email.RandomCodeGenerator();
+            var EmailSent = await Email.SendEmailChangeCode(user, ChangeEmailForm.Email, Code);
+            IsLoading = false;
+            if (!EmailSent)
+            {
+                ErrorMessage = "Failed to send email to " + ChangeEmailForm.Email;
+                return;
+            }
+            CodeGenerated = Code;
+            return;
+        }
+
+        if (string.IsNullOrEmpty(ChangeEmailForm.Code) || ChangeEmailForm.Code != CodeGenerated)
+        {
+            IsLoading = false;
+            ErrorMessage = "Invalid email confirmation code.";
+            return;
+        }
+
+        if (!ConfirmChange)
+        {
+            IsLoading = false;
+            ConfirmChange = true;
+            return;
+        }
+
+        var ChangeValidate = await UserManager.ChangeEmailAsync(user, ChangeEmailForm.Email, Token);
+        if (!ChangeValidate.Succeeded)
+        {
+            IsLoading = false;
+            ErrorMessage = ChangeValidate.Errors.First().Description;
+            return;
+        }
+
+        user.Auth.AuthenticatorDevices.Clear();
+
+        user.Auth.AuthenticatorLastRegisteredAt = null;
+        user.Auth.AuthenticatorLastUsedAt = null;
+
+        user.Auth.EmailChangedAt = DateTime.UtcNow;
+        user.Auth.EmailCodeLastSentAt = DateTime.UtcNow;
+        user.Auth.EmailCodeLastUsedAt = DateTime.UtcNow;
+
+        user.Auth.IsTwoFactorEnabled = false;
+
+        user.Auth.PasskeyId = null;
+        user.Auth.PasskeyLastRegisteredAt = null;
+        user.Auth.PasskeyLastUsedAt = null;
+        user.Auth.PasskeyLastUsedDevice = null;
+        user.Auth.Passkeys.Clear();
+
+        user.Auth.RecoveryCodeLastUsedAt = null;
+        user.Auth.RecoveryCode = null;
+        user.Auth.RecoveryCodeCreatedAt = null;
+        await UserManager.UpdateAsync(user);
+
+        EmailHasChanged = true;
+    }
+}

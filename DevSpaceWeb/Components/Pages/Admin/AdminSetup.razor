@@ -409,7 +409,10 @@
                                 </RadzenAlert>
 
                                 <RadzenLabel Text="Email Code" class="rz-my-0" Style="display: block;"></RadzenLabel>
-                                <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@InputEmailCode" Count="6" aria-label="Email Code" autofocus />
+                                <div>
+                                    <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@InputEmailCode" Count="8" aria-label="Email Code" autofocus />
+                                </div>
+                                
                             }
 
                             @if (!string.IsNullOrEmpty(AdminErrorMessage))
@@ -914,7 +917,7 @@
         if (AdminAccount.Email != SentEmailAddress)
         {
             SentEmailAddress = AdminAccount.Email;
-            SentEmailCode = Email.RandomCodeGenerator(longCode: false);
+            SentEmailCode = Email.RandomCodeGenerator();
             var EmailSuccess = await Email.SendAccessCode(User, "Admin setup confirmation", SentEmailCode);
             if (!EmailSuccess)
             {
