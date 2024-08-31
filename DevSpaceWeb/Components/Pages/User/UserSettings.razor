@@ -149,9 +149,6 @@
 
                             </div>
                             <br />
-                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Passkey Name</RadzenText>
-                            <RadzenTextBox @bind-Value="PasskeyName" Style="width: 100%" aria-label="Passkey TextBox" AutoComplete="false" />
-                            <br />
                             <br />
                             <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterPasskey" />
                             <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@(() => TestPasskey())" />
@@ -246,7 +243,6 @@
 
     public AuthUser AuthUser { get; set; }
 
-    public string PasskeyName { get; set; }
 
     public bool EmailVerifySent { get; set; }
 
@@ -354,9 +350,6 @@
 
     public async Task RegisterPasskey()
     {
-        if (string.IsNullOrEmpty(PasskeyName))
-            return;
-
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser == null)
             return;
@@ -372,31 +365,10 @@
             }
         }
 
-        AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser.Auth.PasskeyId == null)
-        {
-            AuthUser.Auth.PasskeyId = MongoDB.Bson.ObjectId.GenerateNewId();
-            await UserManager.UpdateAsync(AuthUser);
-        }
-        bool IsSuccess = false;
-        string? PasskeyRequestId = Guid.NewGuid().ToString();
-        Cache.SetString("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new AuthRequest(AuthUser.Id, false)), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+        var options = new DialogOptions() { };
 
-        try
-        {
-            IsSuccess = await JS.InvokeAsync<bool>("passkeyStartRegister", PasskeyName, PasskeyRequestId);
-        }
-        catch { }
-        string Data = Cache.GetString("passkey-" + PasskeyRequestId);
-        if (!string.IsNullOrEmpty(Data))
-        {
-            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
-            if (RequestData != null && RequestData.UserId == AuthUser.Id && RequestData.IsSuccess)
-            {
-                _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
-            }
+        var Dialog = await DialogService.OpenAsync<RegisterPasskeyDialog>("Register Passkey", new Dictionary<string, object>(), options);
 
-        }
     }
 
     public async Task TestPasskey()
