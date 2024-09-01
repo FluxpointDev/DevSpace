@@ -347,9 +347,20 @@
         await Email.SendAccountConfirm(AuthUser, (NavigationManager.BaseUri + "auth/account/confirmEmail?token=" + Code));
     }
 
-
     public async Task RegisterPasskey()
     {
+        var DetectPasskeyAllow = false;
+        try
+        {
+            DetectPasskeyAllow = await JS.InvokeAsync<bool>("passkeyIsSupported");
+        }
+        catch {}
+        if (!DetectPasskeyAllow)
+        {
+            await DialogService.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
+            return;
+        }
+
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser == null)
             return;
@@ -373,8 +384,19 @@
 
     public async Task TestPasskey()
     {
+        var DetectPasskeyAllow = false;
+        try
+        {
+            DetectPasskeyAllow = await JS.InvokeAsync<bool>("passkeyIsSupported");
+        }
+        catch {}
+        if (!DetectPasskeyAllow)
+        {
+            await DialogService.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
+            return;
+        }
+
         var Result = await Session.TestPasskey(false);
-        Console.WriteLine("Result: " + Result);
         if (Result)
             await DialogService.ShowInfoAsync("Passkey Test", "Your passkey was successful");
         else

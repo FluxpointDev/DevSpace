@@ -64,7 +64,7 @@ coerceToBase64Url = function (thing) {
 };
 
 // HELPERS
-function detectFIDOSupport() {
+function passkeyIsSupported() {
     if (window.PublicKeyCredential === undefined ||
         typeof window.PublicKeyCredential !== "function") {
         return false;
