@@ -86,40 +86,6 @@ public class AuthAccountController : AuthControllerContext
         return Ok("Account verified, you can now close this page :)");
     }
 
-    [HttpGet("/auth/account/changeEmail")]
-    public async Task<IActionResult> ChangeEmail([FromQuery] string email = "", [FromQuery] string token = "")
-    {
-        if (Program.IsPreviewMode)
-            return BadRequest("Preview mode is enabled.");
-
-        if (string.IsNullOrEmpty(email))
-            return BadRequest("Invalid email");
-
-        if (string.IsNullOrEmpty(token))
-            return BadRequest("Invalid token");
-
-        if (!User.Identity.IsAuthenticated)
-            return Redirect("/login");
-
-        AuthUser? AuthUser = await _userManager.GetUserAsync(User);
-
-        if (AuthUser == null)
-            return BadRequest("Invalid user account");
-
-        token = Uri.UnescapeDataString(token);
-
-        var Result = await _userManager.ChangeEmailAsync(AuthUser, email, token);
-        if (!Result.Succeeded)
-            return BadRequest("Failed to verify account");
-
-        AuthUser.Auth.EmailChangedAt = DateTimeOffset.UtcNow;
-        await _userManager.UpdateAsync(AuthUser);
-
-        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
-
-        return Ok("Account email changed, you can now close this page :)");
-    }
-
     [HttpPost("/auth/account/changePassword")]
     public async Task<IActionResult> ChangePassword([FromHeader] string requestId, [FromForm] string email, [FromForm] string password, [FromForm] string emailToken)
     {

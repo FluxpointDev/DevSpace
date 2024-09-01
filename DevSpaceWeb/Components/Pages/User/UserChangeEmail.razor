@@ -207,6 +207,8 @@
         user.Auth.RecoveryCodeCreatedAt = null;
         await UserManager.UpdateAsync(user);
 
+        _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+
         EmailHasChanged = true;
     }
 }
