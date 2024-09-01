@@ -181,14 +181,12 @@
 
     public async Task<bool> TestPasskey(bool logUsage)
     {
-        Console.WriteLine("Test Passkey");
         AuthUser? user = await GetCurrentUserAsync();
         if (user == null)
             return false;
 
         bool IsSuccess = false;
         string PasskeyRequestId = Guid.NewGuid().ToString();
-        Cache.SetString("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new AuthRequest(user.Id, logUsage)), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
         try
         {
             IsSuccess = await JS.InvokeAsync<bool>("passkeyStartAuth", PasskeyRequestId);
@@ -200,17 +198,12 @@
         string? Data = Cache.GetString("passkey-" + PasskeyRequestId);
         if (!string.IsNullOrEmpty(Data))
         {
-            Console.WriteLine("Parse Passkey");
             AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
             if (RequestData != null && RequestData.UserId == user.Id)
             {
-                Console.WriteLine("Got: " + RequestData.IsSuccess);
                 IsSuccess = RequestData.IsSuccess;
             }
         }
-
-        Console.WriteLine("Success: " + IsSuccess);
-
         return IsSuccess;
     }
 

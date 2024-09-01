@@ -123,8 +123,8 @@
                             }
                             <br />
                             <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterAuthenticator" />
-                            <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@(() => Session.TriggerTwoFactorAuthentication(AuthUser, true))" />
-                            <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@(() => Session.TriggerTwoFactorAuthentication(AuthUser, true))" />
+                            <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" />
+                            <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllAuthenticators" />
                         </div>
                         <div class="settings-box">
                             <h3>Passkeys (Webauth)</h3>
@@ -151,7 +151,7 @@
                             <br />
                             <br />
                             <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterPasskey" />
-                            <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@(() => TestPasskey())" />
+                            <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" />
                             <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllPasskeys" />
                         </div>
                         <div class="settings-box">
@@ -373,11 +373,6 @@
 
     public async Task TestPasskey()
     {
-        foreach (var i in AuthUser.Auth.Passkeys)
-        {
-            Console.WriteLine(JsonSerializer.Serialize(i, new JsonSerializerOptions { WriteIndented = true }));
-        }
-
         var Result = await Session.TestPasskey(false);
         Console.WriteLine("Result: " + Result);
         if (Result)
@@ -465,6 +460,34 @@
             AuthUser = await Session.GetCurrentUserAsync();
 
             AuthUser.Auth.Passkeys.Clear();
+            await UserManager.UpdateAsync(AuthUser);
+            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+
+        }
+    }
+
+    public async Task RemoveAllAuthenticators()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (!AuthUser.Auth.AuthenticatorDevices.Any())
+        {
+            await DialogService.ShowInfoAsync("Authenticator Info", "You do not have any authenticators registered");
+            return;
+        }
+        var Confirm = await DialogService.ShowConfirmAsync("Remove All Authenticators", "Are you sure you want to remove all authenticators?", "Confirm", ButtonStyle.Warning);
+        if (Confirm)
+        {
+            AuthUser = await Session.GetCurrentUserAsync();
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+
+            AuthUser = await Session.GetCurrentUserAsync();
+
+            AuthUser.Auth.AuthenticatorDevices.Clear();
             await UserManager.UpdateAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
 

@@ -167,7 +167,7 @@ public static class ServiceBuilder
 
         services.AddSingleton(new Fido2Service(new Fido2Configuration
         {
-            ServerDomain = "devspace",
+            ServerDomain = Program.IsDevMode ? "localhost" : _Data.Config.Instance.PublicDomain,
             ServerName = _Data.Config.Instance.Name,
             Origins = Origins,
             TimestampDriftTolerance = 300000,

@@ -82,7 +82,7 @@ public class PasskeyRegisterController : AuthControllerContext
                 CredProps = true,
                 DevicePubKey = new AuthenticationExtensionsDevicePublicKeyInputs { }
             };
-            var options = _fido2Service._lib.RequestNewCredential(user, existingKeys, authenticatorSelection, AttestationConveyancePreference.Indirect, exts);
+            var options = _fido2Service._lib.RequestNewCredential(user, existingKeys, authenticatorSelection, AttestationConveyancePreference.Direct, exts);
 
 
             // 4. Temporarily store options, session/in-memory cache/redis/db
