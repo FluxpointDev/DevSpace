@@ -21,4 +21,8 @@ public class SmtpModel
     [Required(ErrorMessage = "Smtp password is required")]
     [MaxLength(100, ErrorMessage = "Smtp password has a maximum of 100 characters")]
     public string Password { get; set; }
+
+    [MaxLength(100, ErrorMessage = "Smtp email address has a maximum of 100 characters")]
+    [EmailAddress(ErrorMessage = "Email is invalid")]
+    public string TestEmailAddress { get; set; }
 }

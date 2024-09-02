@@ -1,0 +1,169 @@
+﻿@using DevSpaceWeb.Models
+@using MailKit.Net.Smtp
+@using Microsoft.AspNetCore.Components.Forms
+@using MimeKit
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Smtp Tools</RadzenText>
+    </div>
+    <br />
+    <EditForm Model="@SmtpForm" OnValidSubmit="@SendSmtp">
+        <DataAnnotationsValidator />
+
+        <RadzenLabel Text="Smtp Host" class="rz-my-0"></RadzenLabel>
+        <RadzenTextBox @bind-Value="@SmtpForm.Host" Style="width: 100%" aria-label="Smtp Host" autocomplete="off"
+                       Disabled="true" Placeholder="smtp.domain.com" MaxLength="100" />
+        <ValidationMessage For="() => SmtpForm.Host" style="color: var(--rz-danger);" />
+
+        <br style="margin-bottom: 20px;" />
+
+        <RadzenLabel Text="Smtp Port" class="rz-my-0"></RadzenLabel>
+        <RadzenNumeric @bind-Value="@SmtpForm.Port" Style="width: 100%" aria-label="Smtp Port" autocomplete="off"
+                       Disabled="@IsLoading" Placeholder="123" ShowUpDown="false" />
+        <ValidationMessage For="() => SmtpForm.Port" style="color: var(--rz-danger);" />
+
+        <br style="margin-bottom: 20px;" />
+
+        <RadzenLabel Text="Smtp User" class="rz-my-0"></RadzenLabel>
+        <RadzenTextBox @bind-Value="@SmtpForm.User" Style="width: 100%" aria-label="Smtp User" autocomplete="off"
+                       Disabled="@IsLoading" Placeholder="smtp@domain.com" MaxLength="100" />
+        <ValidationMessage For="() => SmtpForm.User" style="color: var(--rz-danger);" />
+
+        <br style="margin-bottom: 20px;" />
+
+        <RadzenLabel Text="Smtp Password" class="rz-my-0"></RadzenLabel>
+        <RadzenPassword @bind-Value="@SmtpForm.Password" Style="width: 100%" aria-label="Smtp Password" autocomplete="off"
+                        Disabled="@IsLoading" maxlength="100" />
+        <ValidationMessage For="() => SmtpForm.Password" style="color: var(--rz-danger);" />
+
+        <br style="margin-bottom: 20px;" />
+
+        <RadzenLabel Text="Test Type" class="rz-my-0"></RadzenLabel>
+        <RadzenSelectBar @bind-Value=@SendTestEmail TValue="bool">
+            <Items>
+                <RadzenSelectBarItem Text="Authentication" Value="false" />
+                <RadzenSelectBarItem Text="Email" Value="true" />
+            </Items>
+        </RadzenSelectBar>
+
+        @if (SendTestEmail)
+        {
+            <br style="margin-bottom: 20px;" />
+
+            <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
+            <RadzenTextBox @bind-Value="@SmtpForm.EmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
+                           Disabled="@IsLoading" Placeholder="devspace@domain.com" MaxLength="100" />
+            <ValidationMessage For="() => SmtpForm.EmailAddress" style="color: var(--rz-danger);" />
+
+            <br style="margin-bottom: 20px;" />
+
+            <RadzenLabel Text="Send to Email Address" class="rz-my-0"></RadzenLabel>
+            <RadzenTextBox @bind-Value="@SmtpForm.TestEmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="off"
+                           Disabled="@IsLoading" Placeholder="devspace@domain.com" MaxLength="100" />
+            <ValidationMessage For="() => SmtpForm.TestEmailAddress" style="color: var(--rz-danger);" />
+        }
+
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose=false>
+                @ErrorMessage
+            </RadzenAlert>
+        }
+        else
+        {
+            <br />
+            <br />
+        }
+
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Test" Disabled="@IsLoading" ButtonType="ButtonType.Submit" />
+    </EditForm>
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public SmtpModel SmtpForm = new SmtpModel
+        {
+            Host = "127.0.0.1"
+        };
+
+    public bool SendTestEmail { get; set; }
+
+    public bool IsLoading { get; set; }
+    public bool IsSuccess { get; set; }
+
+    public string ErrorMessage { get; set; }
+
+    public async Task SendSmtp()
+    {
+        IsLoading = true;
+        bool IsFail = false;
+        ErrorMessage = string.Empty;
+        using (var Client = new SmtpClient())
+        {
+            try
+            {
+                await Client.ConnectAsync(SmtpForm.Host, SmtpForm.Port);
+            }
+            catch (Exception ex)
+            {
+                IsFail = true;
+                ErrorMessage = "Failed to connect, " + ex.Message;
+            }
+
+            if (!IsFail)
+            {
+                try
+                {
+                    await Client.AuthenticateAsync(SmtpForm.User, SmtpForm.Password);
+                }
+                catch (Exception ex)
+                {
+                    IsFail = true;
+                    ErrorMessage = "Failed to authenticate, " + ex.Message;
+                } 
+            }
+
+            if (SendTestEmail)
+            {
+                if (string.IsNullOrEmpty(SmtpForm.TestEmailAddress))
+                {
+                    ErrorMessage = "Send to email address is missing.";
+                    IsFail = true;
+                }
+            }
+
+            @if (!IsFail && SendTestEmail)
+            {
+                MimeMessage message = new MimeMessage();
+                message.From.Add(new MailboxAddress(SmtpForm.EmailAddress, SmtpForm.EmailAddress));
+                message.To.Add(new MailboxAddress(SmtpForm.TestEmailAddress, SmtpForm.TestEmailAddress));
+                message.Subject = $"Test Message";
+
+                message.Body = new TextPart("plain")
+                {
+                    Text = "This is a test message"
+                };
+                try
+                {
+                    await Client.SendAsync(message);
+                }
+                catch (Exception ex)
+                {
+                    IsFail = true;
+                    ErrorMessage = "Failed to send message, " + ex.Message;
+                }
+            }
+
+            try
+            {
+                await Client.DisconnectAsync(true);
+            }
+            catch { }
+        }
+        IsSuccess = !IsFail;
+        IsLoading = false;
+    }
+}
