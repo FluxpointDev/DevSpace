@@ -895,7 +895,7 @@
         await _DB.Teams.CreateAsync(Team);
         _DB.Teams.Cache.TryAdd(Team.Id.ToString(), Team);
 
-        _Data.Config.IsFullySetup = true;
+        
         _Data.Config.Save();
         SetupStep = SetupStepType.Admin;
     }
@@ -947,6 +947,7 @@
         else
         {
             _DB.IsRestartRequired = true;
+            _Data.Config.IsFullySetup = true;
             SetupStep = SetupStepType.Confirm;
         }
     }

@@ -1,4 +1,5 @@
 ﻿@page "/teams/{team_id?}/{resource?}/{resource_id?}/{resource_type?}"
+@using DevSpaceWeb.Components.Pages.Server.DockerTools
 
 @if (Session.Selected.Team == null)
 {
@@ -13,6 +14,11 @@ else
         case "":
             {
                 <TeamHome></TeamHome>
+            }
+            break;
+            case "settings":
+            {
+                <TeamSettings></TeamSettings>
             }
             break;
         case "servers":
@@ -39,11 +45,7 @@ else
                         <ServerDockerContainers></ServerDockerContainers>
                         break;
                     case "registry":
-                        @if (false)
-                        {
-                            <ServerDockerRegistry></ServerDockerRegistry>
-                        }
-
+                        <ServerDockerRegistry></ServerDockerRegistry>
                         break;
                     case "firewall":
                         <ServerFirewall></ServerFirewall>

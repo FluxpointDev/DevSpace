@@ -1,6 +1,8 @@
 ﻿using DevSpaceWeb.Components.Layout;
+using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Teams;
 
@@ -22,5 +24,12 @@ public class TeamData
             return VanityUrl;
 
         return Id.ToString();
+    }
+
+    public void Update()
+    {
+        var update = Builders<TeamData>.Update.Set(r => r.Id, Id);
+        var filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
+        _DB.Teams.Collection.UpdateOne(filter, update);
     }
 }
