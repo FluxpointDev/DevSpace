@@ -553,6 +553,9 @@
                 MongoDBDetected = true;
             }
         }
+
+        if (_DB.Teams.Cache.Any())
+            SetupStep = SetupStepType.Admin;
     }
 
 
@@ -894,8 +897,6 @@
             };
         await _DB.Teams.CreateAsync(Team);
         _DB.Teams.Cache.TryAdd(Team.Id.ToString(), Team);
-
-        
         _Data.Config.Save();
         SetupStep = SetupStepType.Admin;
     }
@@ -946,6 +947,9 @@
         }
         else
         {
+            _DB.Teams.Cache.First().Value.OwnerId = User.Id;
+            _DB.Teams.Cache.First().Value.Update();
+
             _DB.IsRestartRequired = true;
             _Data.Config.IsFullySetup = true;
             SetupStep = SetupStepType.Confirm;
