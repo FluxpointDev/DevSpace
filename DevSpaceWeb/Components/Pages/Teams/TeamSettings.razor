@@ -1,4 +1,5 @@
 ﻿@using DevSpaceWeb.Models
+@using DevSpaceWeb.Models.Teams
 @using Microsoft.AspNetCore.Components.Forms
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -30,7 +31,8 @@
                         </EditForm>
             </RadzenTabsItem>
             <RadzenTabsItem Text="Members">
-
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Member"/>
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Transfer Ownership" />
             </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
@@ -39,6 +41,16 @@
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        TeamForm = new TeamBasicModel
+        {
+            Name = Session.Selected.Team.Data.Name
+        };
+        Console.WriteLine("Vanity: " + Session.Selected.Team.Data.VanityUrl);
+        TeamForm.VanityUrl = Session.Selected.Team.Data.VanityUrl;
+    }
 
     public TeamBasicModel TeamForm { get; set; } = new TeamBasicModel();
 
@@ -72,5 +84,15 @@
         }
         Session.Selected.Team.Data.Update();
 
+    }
+
+    public async Task AddMember()
+    {
+
+    }
+
+    public async Task TransferOwnership()
+    {
+        
     }
 }

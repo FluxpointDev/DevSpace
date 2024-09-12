@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DevSpaceWeb.Models;
+namespace DevSpaceWeb.Models.Teams;
 
 public class TeamBasicModel
 {
