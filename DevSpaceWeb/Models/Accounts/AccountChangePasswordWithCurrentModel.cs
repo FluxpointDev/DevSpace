@@ -17,6 +17,6 @@ public class AccountChangePasswordWithCurrentModel : CurrentPasswordModel
     [PasswordValidation(ErrorMessage = "Password is not secure enough")]
     public string NewPassword { get; set; }
 
-    [Compare("Password", ErrorMessage = "Passwords do not match")]
+    [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
     public string RepeatPassword { get; set; }
 }
