@@ -4,6 +4,7 @@ using CliWrap.EventStream;
 using DevSpaceAgent.Data;
 using DevSpaceAgent.Server;
 using DevSpaceShared;
+using DevSpaceShared.Events.Docker;
 using DevSpaceShared.Responses;
 using DevSpaceShared.WebSocket;
 using Docker.DotNet.Models;
@@ -62,7 +63,7 @@ public static class ServerEventHandler
                         _ = cmd.ExecuteAsync();
                     }
                     break;
-                case EventType.ListContainers:
+                case EventType.DockerListContainers:
                     {
                         IWebSocketTaskEvent @event = payload.ToObject<IWebSocketTaskEvent>()!;
                         DockerResponse<IList<ContainerListResponse>> response = new DockerResponse<IList<ContainerListResponse>>();
@@ -76,8 +77,196 @@ public static class ServerEventHandler
                             {
                                 response.Data = await Program.DockerClient.Containers.ListContainersAsync(new ContainersListParameters()
                                 {
+                                    Size = true,
                                     All = true
                                 });
+                            }
+                            catch
+                            {
+                                response.Error = DockerError.Failed;
+                            }
+                        }
+                        await ws.RespondAsync(@event.TaskId, response);
+                    }
+                    break;
+                case EventType.DockerGetContainer:
+                    {
+                        ContainerEvent @event = payload.ToObject<ContainerEvent>()!;
+                        DockerResponse<ContainerListResponse?> response = new DockerResponse<ContainerListResponse?>();
+                        if (!Directory.Exists("/var/lib/docker"))
+                        {
+                            response.Error = DockerError.NotInstalled;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                var containers = await Program.DockerClient.Containers.ListContainersAsync(new ContainersListParameters()
+                                {
+                                    Size = true,
+                                    All = true,
+                                    Filters = new Dictionary<string, IDictionary<string, bool>>
+                                    {
+                                        { "id", new Dictionary<string, bool>
+                                        {
+                                            { @event.ContainerId, true }
+                                        }
+                                        }
+                                    }
+                                });
+                                if (containers.Any())
+                                    response.Data = containers.First();
+                            }
+                            catch
+                            {
+                                response.Error = DockerError.Failed;
+                            }
+                        }
+                        await ws.RespondAsync(@event.TaskId, response);
+                    }
+                    break;
+                case EventType.DockerInspectContainer:
+                    {
+                        ContainerEvent @event = payload.ToObject<ContainerEvent>()!;
+                        DockerResponse<ContainerInspectResponse?> response = new DockerResponse<ContainerInspectResponse?>();
+                        if (!Directory.Exists("/var/lib/docker"))
+                        {
+                            response.Error = DockerError.NotInstalled;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                response.Data = await Program.DockerClient.Containers.InspectContainerAsync(@event.ContainerId);
+
+                            }
+                            catch
+                            {
+                                response.Error = DockerError.Failed;
+                            }
+                        }
+                        await ws.RespondAsync(@event.TaskId, response);
+                    }
+                    break;
+                case EventType.DockerCreateContainer:
+                    {
+                        CreateContainerEvent @event = payload.ToObject<CreateContainerEvent>()!;
+                        DockerResponse<CreateContainerResponse?> response = new DockerResponse<CreateContainerResponse?>();
+                        if (!Directory.Exists("/var/lib/docker"))
+                        {
+                            response.Error = DockerError.NotInstalled;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                response.Data = await Program.DockerClient.Containers.CreateContainerAsync(@event.Params);
+
+                            }
+                            catch
+                            {
+                                response.Error = DockerError.Failed;
+                            }
+                        }
+                        await ws.RespondAsync(@event.TaskId, response);
+                    }
+                    break;
+                case EventType.DockerUpdateContainer:
+                    {
+                        UpdateContainerEvent @event = payload.ToObject<UpdateContainerEvent>()!;
+                        DockerResponse<ContainerUpdateResponse?> response = new DockerResponse<ContainerUpdateResponse?>();
+                        if (!Directory.Exists("/var/lib/docker"))
+                        {
+                            response.Error = DockerError.NotInstalled;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                response.Data = await Program.DockerClient.Containers.UpdateContainerAsync(@event.ContainerId, @event.Params);
+
+                            }
+                            catch
+                            {
+                                response.Error = DockerError.Failed;
+                            }
+                        }
+                        await ws.RespondAsync(@event.TaskId, response);
+                    }
+                    break;
+                case EventType.DockerControlContainer:
+                    {
+                        ControlContainerEvent @event = payload.ToObject<ControlContainerEvent>()!;
+                        DockerResponse<CreateContainerResponse?> response = new DockerResponse<CreateContainerResponse?>();
+                        if (!Directory.Exists("/var/lib/docker"))
+                        {
+                            response.Error = DockerError.NotInstalled;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                switch (@event.ControlType)
+                                {
+                                    case ControlContainerType.Kill:
+                                        await Program.DockerClient.Containers.KillContainerAsync(@event.ContainerId, new ContainerKillParameters
+                                        {
+                                        });
+                                        break;
+                                    case ControlContainerType.Start:
+                                        await Program.DockerClient.Containers.StartContainerAsync(@event.ContainerId, new ContainerStartParameters
+                                        {
+                                        });
+                                        break;
+                                    case ControlContainerType.Stop:
+                                        await Program.DockerClient.Containers.StopContainerAsync(@event.ContainerId, new ContainerStopParameters
+                                        {
+                                        });
+                                        break;
+                                    case ControlContainerType.Restart:
+                                        await Program.DockerClient.Containers.RestartContainerAsync(@event.ContainerId, new ContainerRestartParameters
+                                        {
+
+                                        });
+                                        break;
+                                    case ControlContainerType.Remove:
+                                        await Program.DockerClient.Containers.RemoveContainerAsync(@event.ContainerId, new ContainerRemoveParameters
+                                        {
+
+                                        });
+                                        break;
+                                    case ControlContainerType.Pause:
+                                        await Program.DockerClient.Containers.PauseContainerAsync(@event.ContainerId);
+                                        break;
+                                    case ControlContainerType.UnPause:
+                                        await Program.DockerClient.Containers.UnpauseContainerAsync(@event.ContainerId);
+                                        break;
+                                }
+
+
+                            }
+                            catch
+                            {
+                                response.Error = DockerError.Failed;
+                            }
+                        }
+                        await ws.RespondAsync(@event.TaskId, response);
+                    }
+                    break;
+                case EventType.DockerSystemInfo:
+                    {
+                        IWebSocketTaskEvent @event = payload.ToObject<IWebSocketTaskEvent>()!;
+                        DockerResponse<Docker.DotNet.Models.SystemInfoResponse?> response = new DockerResponse<Docker.DotNet.Models.SystemInfoResponse?>();
+                        if (!Directory.Exists("/var/lib/docker"))
+                        {
+                            response.Error = DockerError.NotInstalled;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                response.Data = await Program.DockerClient.System.GetSystemInfoAsync();
+
                             }
                             catch
                             {
