@@ -710,11 +710,16 @@
                 return;
             }
 
-            _DB.Client = client;
-            _DB.IsConnected = true;
-            IsDatabaseSetupRunning = false;
             _Data.Config.Database.IsSetup = true;
             _Data.Config.Save();
+
+            _DB.Client = client;
+            _DB.Run = _DB.Client.GetDatabase(_Data.Config.Database.Name);
+            _DB.Init();
+            await _DB.StartAsync();
+
+            IsDatabaseSetupRunning = false;
+            
         }
         else
         {
@@ -750,9 +755,6 @@
                 return;
             }
 
-            _DB.Client = client;
-            _DB.IsConnected = true;
-
             _Data.Config.Database = new ConfigDatabase
                 {
                     IsSetup = true,
@@ -763,6 +765,11 @@
                     Username = DatabaseForm.Username
                 };
             _Data.Config.Save();
+
+            _DB.Client = client;
+            _DB.Run = _DB.Client.GetDatabase(_Data.Config.Database.Name);
+            _DB.Init();
+            await _DB.StartAsync();
         }
 
         IsDatabaseSetupDone = true;

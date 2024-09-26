@@ -37,6 +37,7 @@ public class Program
         IsDevMode = System.Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         _DB.Client = new MongoDB.Driver.MongoClient(_Data.Config.Database.GetConnectionString());
         _DB.Init();
+        
 
         if (_Data.Config.Database.IsSetup)
         {
