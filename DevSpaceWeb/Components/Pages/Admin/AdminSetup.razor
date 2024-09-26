@@ -559,7 +559,13 @@
             SetupStep = SetupStepType.Admin;
 
         if (_DB.Users.Cache.Any())
+        {
             SetupStep = SetupStepType.Confirm;
+            _DB.IsRestartRequired = true;
+            _Data.Config.IsFullySetup = true;
+            _Data.Config.Save();
+        }
+        
     }
 
 
@@ -722,7 +728,7 @@
             await _DB.StartAsync();
 
             IsDatabaseSetupRunning = false;
-            
+
         }
         else
         {
@@ -963,6 +969,7 @@
 
             _DB.IsRestartRequired = true;
             _Data.Config.IsFullySetup = true;
+            _Data.Config.Save();
             SetupStep = SetupStepType.Confirm;
         }
     }
