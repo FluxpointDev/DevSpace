@@ -1,7 +1,7 @@
-﻿using DevSpaceWeb.Database;
+﻿using DevSpaceWeb.Data;
+using DevSpaceWeb.Database;
 using DevSpaceWeb.Fido2;
 using DevSpaceWeb.Services;
-using DevSpaceWeb.Services.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;

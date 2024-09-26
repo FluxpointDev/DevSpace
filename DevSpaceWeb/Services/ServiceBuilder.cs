@@ -6,7 +6,6 @@ using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
 using DevSpaceWeb.Models.Account;
-using DevSpaceWeb.Services.Identity;
 using Fido2NetLib;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Controllers;

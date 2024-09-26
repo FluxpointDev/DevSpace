@@ -1,6 +1,5 @@
 ﻿using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Teams;
-using DevSpaceWeb.Services.Identity;
 using MailKit.Net.Smtp;
 using MimeKit;
 
