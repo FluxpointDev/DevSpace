@@ -35,6 +35,7 @@ public class Program
 
         var builder = WebApplication.CreateBuilder(args);
         IsDevMode = System.Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
+        IsPreviewMode = System.Environment.GetEnvironmentVariable("PREVIEW") == "true";
         _DB.Client = new MongoDB.Driver.MongoClient(_Data.Config.Database.GetConnectionString());
         _DB.Init();
         
