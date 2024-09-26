@@ -1,4 +1,5 @@
 ﻿using DevSpaceWeb.Components.Layout;
+using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -13,6 +14,9 @@ public class TeamData
     public string Name { get; set; }
     public string VanityUrl { get; set; }
     public ObjectId OwnerId { get; set; }
+
+    public Dictionary<ObjectId, TeamUserData> Users = new Dictionary<ObjectId, TeamUserData>();
+
     public bool HasAccess(SessionProvider session)
     {
         return true;
@@ -32,4 +36,10 @@ public class TeamData
         var filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
         _DB.Teams.Collection.UpdateOne(filter, update);
     }
+}
+public class TeamUserData
+{
+    public ObjectId Id { get; set; }
+    public TeamPermissions Permissions { get; set; } = new TeamPermissions();
+    public string Nickname { get; set; }
 }
