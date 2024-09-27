@@ -558,14 +558,14 @@
         if (_DB.Teams.Cache.Any())
             SetupStep = SetupStepType.Admin;
 
-        if (_DB.Users.Cache.Any())
+        if (_DB.Users.Any())
         {
             SetupStep = SetupStepType.Confirm;
             _DB.IsRestartRequired = true;
             _Data.Config.IsFullySetup = true;
             _Data.Config.Save();
         }
-        
+
     }
 
 
@@ -956,7 +956,7 @@
 
         User.Auth.Sessions.TryAdd(Utils.GetStringSha256Hash(Session.Ip), new AuthUserSession { });
         var result = await UserManager.CreateAsync(User, AdminAccount.Password);
-
+        
         if (result.Errors.Any())
         {
             AdminErrorMessage = result.Errors.First().Description;
@@ -964,6 +964,7 @@
         }
         else
         {
+            _DB.Users.Add(User.Id, new PartialUserData(User));
             _DB.Teams.Cache.First().Value.OwnerId = User.Id;
             _DB.Teams.Cache.First().Value.Update();
 

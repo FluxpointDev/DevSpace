@@ -1,4 +1,5 @@
 ﻿using AspNetCore.Identity.MongoDbCore.Models;
+using DevSpaceWeb.Database;
 using DevSpaceWeb.Fido2;
 using Fido2NetLib;
 using MongoDB.Bson;
@@ -9,15 +10,17 @@ namespace DevSpaceWeb.Data;
 [CollectionName("auth_internal")]
 public class AuthUser : MongoIdentityUser<ObjectId>
 {
-    public bool HasAvatar;
-    public int AvatarVersion;
+    public string? DisplayName { get; set; }
+    public bool HasAvatar() => AvatarId.HasValue;
+    public Guid? ResourceId { get; set; }
+    public Guid? AvatarId { get; set; }
 
     public string GetAvatarOrDefault(bool usePng = false)
     {
-        if (!HasAvatar)
+        if (!HasAvatar())
             return "https://cdn.fluxpoint.dev/devspace/user_avatar." + (usePng ? "png" : "webp");
 
-        return "";
+        return _Data.Config.Instance.GetPublicUrl() + "/public/resources/" + ResourceId.ToString() + "/Avatar_" + AvatarId.ToString() + ".webp";
     }
 
     public bool IsInstanceAdmin;
@@ -43,6 +46,14 @@ public class AuthUser : MongoIdentityUser<ObjectId>
     public Task<List<FidoStoredCredential>> GetPasskeysByUserHandleAsync(byte[] userHandle)
     {
         return Task.FromResult(Auth.Passkeys.Where(c => c.UserHandle != null && c.UserHandle.SequenceEqual(userHandle)).ToList());
+    }
+
+    public void UpdatePartial()
+    {
+        if (_DB.Users.TryGetValue(Id, out PartialUserData ud))
+            ud.Update(this);
+        else
+            _DB.Users.Add(Id, ud);
     }
 }
 

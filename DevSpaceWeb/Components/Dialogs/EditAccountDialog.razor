@@ -1,0 +1,71 @@
+﻿@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <EditForm Model="@AccountForm" OnValidSubmit="@Submit">
+        <DataAnnotationsValidator />
+
+        <RadzenStack JustifyContent="JustifyContent.Start">
+            <p>Username must be unique and is visible to everyone in your teams.</p>
+            <p>Display name can be set to anything and is visible to everyone in your teams.</p>
+
+            <br />
+
+            <RadzenLabel Text="Username" class="rz-my-0"></RadzenLabel>
+            <RadzenTextBox @bind-Value="@AccountForm.Username" Style="width: 100%" aria-label="Username TextBox" autocomplete="false" autofocus
+                autocapitalize="none" MaxLength="32" />
+            <ValidationMessage For="() => AccountForm.Username" style="color: var(--rz-danger);" />
+
+            <RadzenLabel Text="Display Name" class="rz-my-0"></RadzenLabel>
+            <RadzenTextBox @bind-Value="@AccountForm.DisplayName" Style="width: 100%" aria-label="Display Name TextBox" autocomplete="false" autofocus
+                           autocapitalize="none" MaxLength="32" />
+            <ValidationMessage For="() => AccountForm.DisplayName" style="color: var(--rz-danger);" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+            <RadzenButton ButtonType="ButtonType.Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+        </RadzenStack>
+    </EditForm>
+</RadzenStack>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public AccountEditModel AccountForm = new AccountEditModel();
+
+    async Task Submit()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        AuthUser? user = await Session.GetCurrentUserAsync();
+        if (user == null)
+            return;
+
+        if (!user.UserName.Equals(AccountForm.Username, StringComparison.OrdinalIgnoreCase))
+        {
+            var Result = await UserManager.SetUserNameAsync(user, AccountForm.Username);
+            if (Result.Succeeded)
+            {
+                Session.TriggerChange();
+                _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+                dialogService.Close(true);
+            }
+        }
+
+        if (!user.DisplayName.Equals(AccountForm.DisplayName, StringComparison.OrdinalIgnoreCase))
+        {
+            user.DisplayName = AccountForm.DisplayName;
+            await UserManager.UpdateAsync(user);
+        }
+        user.UpdatePartial();
+    }
+}

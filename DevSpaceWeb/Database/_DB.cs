@@ -31,7 +31,6 @@ public static class _DB
         {
             Run = Client.GetDatabase(_Data.Config.Database.Name);
             Teams = new ICollection<TeamData>("teams");
-            Users = new ICollection<UserData>("users");
             Servers = new ICollection<ServerData>("servers");
             Projects = new ICollection<ProjectData>("projects");
             Websites = new ICollection<WebsiteData>("websites");
@@ -62,6 +61,11 @@ public static class _DB
                     TeamsVanityCache.TryAdd(x.VanityUrl, x);
                     VanityUrlCache.TryAdd(x.Id, x.VanityUrl);
                 }
+            });
+
+            await new ICollection<AuthUser>("auth_internal").Find(Builders<AuthUser>.Filter.Empty).ForEachAsync(x =>
+            {
+                Users.Add(x.Id, new PartialUserData(x));
             });
 
             _ = TeamVanityUrls.Find(Builders<VanityUrlData>.Filter.Empty).ForEachAsync(x =>
@@ -128,7 +132,7 @@ public static class _DB
 
     public static ICollection<ServerData> Servers = null!;
 
-    public static ICollection<UserData> Users = null!;
+    public static Dictionary<ObjectId, PartialUserData> Users = new Dictionary<ObjectId, PartialUserData>();
 
     public static ICollection<ProjectData> Projects = null!;
 

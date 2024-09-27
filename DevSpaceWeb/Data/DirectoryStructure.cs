@@ -50,13 +50,16 @@ public class DirectoryStructurePublic : DirectoryStructure
 {
     public DirectoryStructurePublic(string folder) : base(folder)
     {
-        Temp = new DirectoryStructure(folder + "temp/");
+        Temp = new DirectoryStructureTemp(folder + "temp/");
+        Resources = new DirectoryStructure(folder + "resources/");
     }
 
     /// <summary>
     /// Temp files that can accessed publicly.
     /// </summary>
-    public DirectoryStructure Temp;
+    public DirectoryStructureTemp Temp;
+
+    public DirectoryStructure Resources;
 }
 public class DirectoryStructureTemp : DirectoryStructure
 {

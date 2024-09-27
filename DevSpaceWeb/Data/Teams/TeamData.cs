@@ -41,5 +41,7 @@ public class TeamUserData
 {
     public ObjectId Id { get; set; }
     public TeamPermissions Permissions { get; set; } = new TeamPermissions();
-    public string Nickname { get; set; }
+    public string NickName { get; set; }
+
+    public Guid? AvatarId { get; set; }
 }

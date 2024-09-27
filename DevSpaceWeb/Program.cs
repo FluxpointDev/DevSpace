@@ -86,7 +86,8 @@ public class Program
             RequestPath = "/public",
             OnPrepareResponse = async ctx =>
             {
-                if (!_Data.Config.Instance.Features.AllowUnauthenticatedPublicFolderAccess && (ctx.Context.User.Identity == null || !ctx.Context.User.Identity.IsAuthenticated))
+                Console.WriteLine("Got Response");
+                if (!(_Data.Config.Instance.Features.AllowUnauthenticatedPublicFolderAccess || (ctx.Context.User.Identity != null || ctx.Context.User.Identity.IsAuthenticated)))
                 {
                     ctx.Context.Response.Clear();
                     ctx.Context.Response.StatusCode = 400;

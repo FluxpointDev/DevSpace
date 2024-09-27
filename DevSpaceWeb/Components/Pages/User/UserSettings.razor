@@ -40,14 +40,28 @@
                     }
                     else
                     {
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Username</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2">@AuthUser.UserName</RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                            <RadzenImage Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" Click="@EditAvatar" />
+                                <RadzenStack Gap="0">
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Username</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @AuthUser.UserName
+                                </RadzenText>
+
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Display Name</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @AuthUser.DisplayName
+                                </RadzenText>
+
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Email</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">@AuthUser.Email</RadzenText>
+                                </RadzenStack>
+                        </RadzenStack>
+
+                        <div class="mb-4" />
 
                         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Account Created</RadzenText>
                         <RadzenText TextStyle="TextStyle.Body2">@GetLocalDate(AuthUser.CreatedOn, false)</RadzenText>
-
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Email</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2">@AuthUser.Email</RadzenText>
 
                         @if (!AuthUser.EmailConfirmed)
                         {
@@ -67,10 +81,10 @@
                             }
                         }
                         <br />
-                        <h4 class="mb-2">Change</h4>
-                        <RadzenButton Text="Username" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeUsername" />
-                        <RadzenButton Text="Email" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeEmail" />
-                        <RadzenButton Text="Password" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangePassword" />
+                        <h4 class="mb-2">Manage</h4>
+                        <RadzenButton Text="Edit Account" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@EditAccount" />
+                        <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeEmail" />
+                        <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangePassword" />
                         <br />
                         <br />
                         <br />
@@ -264,12 +278,20 @@
 
     }
 
-    public async Task ChangeUsername()
+    public async Task EditAccount()
     {
-        await DialogService.OpenAsync<ChangeAccountUsernameDialog>("Change Account Username", options: new DialogOptions
+        await DialogService.OpenAsync<EditAccountDialog>("Edit Account", options: new DialogOptions
             {
                 AutoFocusFirstElement = true
             });
+    }
+
+    public async Task EditAvatar()
+    {
+        await DialogService.OpenAsync<ChangeAccountAvatarDialog>("Change Avatar", options: new DialogOptions
+        {
+            
+        });
     }
 
     public async Task ChangeEmail()
