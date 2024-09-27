@@ -16,7 +16,7 @@
             </div>
 
         <RadzenUpload id="ddUpload" @ref="uploadDD" ChooseText="Drag and drop here or click to choose a file" Auto="false" Multiple="false" Url="/upload/avatar" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
-                       Style="width: 100%" MaxFileCount="1" />
+                      Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" />
             
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
@@ -64,6 +64,8 @@
             await UserManager.UpdateAsync(user);
 
             user.UpdatePartial();
+
+            dialogService.Close(true);
         }
         else
         {
@@ -71,7 +73,10 @@
             await uploadDD.Upload();
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(uploadDD, Newtonsoft.Json.Formatting.Indented));
         }
+    }
 
-        //dialogService.Close(false);
+    async Task UploadComplete(UploadCompleteEventArgs args)
+    {
+        dialogService.Close(true);
     }
 }

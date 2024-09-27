@@ -288,10 +288,17 @@
 
     public async Task EditAvatar()
     {
-        await DialogService.OpenAsync<ChangeAccountAvatarDialog>("Change Avatar", options: new DialogOptions
+        var Dialog =  await DialogService.OpenAsync<ChangeAccountAvatarDialog>("Change Avatar", options: new DialogOptions
         {
-            
+
         });
+        if (Dialog != null)
+        {
+            if (Dialog == true)
+            {
+                AuthUser = await Session.GetCurrentUserAsync();
+            }
+        }
     }
 
     public async Task ChangeEmail()
