@@ -14,6 +14,11 @@ public class AuthUser : MongoIdentityUser<ObjectId>
     public bool HasAvatar() => AvatarId.HasValue;
     public Guid? ResourceId { get; set; }
     public Guid? AvatarId { get; set; }
+    public ObjectId? ManagedAccountTeamId { get; set; }
+    public bool IsManaged()
+    {
+        return ManagedAccountTeamId != null;
+    }
 
     public string GetAvatarOrDefault(bool usePng = false)
     {

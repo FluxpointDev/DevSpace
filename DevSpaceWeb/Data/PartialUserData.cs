@@ -16,6 +16,7 @@ public class PartialUserData
     public string? Email { get; set; }
     public Guid? AvatarId { get; set; }
     public Guid? ResourceId { get; set; }
+    public ObjectId? ManagedAccountTeamId { get; set; }
 
     public void Update(AuthUser user)
     {
@@ -24,5 +25,6 @@ public class PartialUserData
         Email = user.Email;
         AvatarId = user.AvatarId;
         ResourceId = user.ResourceId;
+        ManagedAccountTeamId = user.ManagedAccountTeamId;
     }
 }
