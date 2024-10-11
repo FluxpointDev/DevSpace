@@ -30,13 +30,15 @@ public static class _DB
         if (Run == null)
         {
             Run = Client.GetDatabase(_Data.Config.Database.Name);
-            Teams = new ICollection<TeamData>("teams");
-            Servers = new ICollection<ServerData>("servers");
-            Projects = new ICollection<ProjectData>("projects");
-            Websites = new ICollection<WebsiteData>("websites");
-            Logs = new ICollection<LogData>("logs");
-            EmailTemplates = new ICollection<EmailTemplateData>("email_templates");
-            TeamVanityUrls = new ICollection<VanityUrlData>("vanity_urls");
+            Teams = new ICacheCollection<TeamData>("teams");
+            Roles = new ICollection<TeamRoleData>("roles");
+            Members = new ICollection<TeamMemberData>("members");
+            Servers = new ICacheCollection<ServerData>("servers");
+            Projects = new ICacheCollection<ProjectData>("projects");
+            Websites = new ICacheCollection<WebsiteData>("websites");
+            Logs = new ICacheCollection<LogData>("logs");
+            EmailTemplates = new ICacheCollection<EmailTemplateData>("email_templates");
+            TeamVanityUrls = new ICacheCollection<VanityUrlData>("vanity_urls");
         }
     }
 
@@ -125,22 +127,26 @@ public static class _DB
 
     public static IMongoDatabase Run = null!;
 
-    public static ICollection<TeamData> Teams = null!;
+    public static ICacheCollection<TeamData> Teams = null!;
 
     public static ConcurrentDictionary<string, TeamData> TeamsVanityCache = new ConcurrentDictionary<string, TeamData>();
     public static ConcurrentDictionary<ObjectId, string> VanityUrlCache = new ConcurrentDictionary<ObjectId, string>();
 
-    public static ICollection<ServerData> Servers = null!;
+    public static ICacheCollection<ServerData> Servers = null!;
 
     public static Dictionary<ObjectId, PartialUserData> Users = new Dictionary<ObjectId, PartialUserData>();
 
-    public static ICollection<ProjectData> Projects = null!;
+    public static ICacheCollection<ProjectData> Projects = null!;
 
-    public static ICollection<WebsiteData> Websites = null!;
+    public static ICacheCollection<WebsiteData> Websites = null!;
 
-    public static ICollection<LogData> Logs = null!;
+    public static ICacheCollection<LogData> Logs = null!;
 
-    public static ICollection<VanityUrlData> TeamVanityUrls = null!;
+    public static ICollection<TeamRoleData> Roles = null!;
 
-    public static ICollection<EmailTemplateData> EmailTemplates = null!;
+    public static ICollection<TeamMemberData> Members = null!;
+
+    public static ICacheCollection<VanityUrlData> TeamVanityUrls = null!;
+
+    public static ICacheCollection<EmailTemplateData> EmailTemplates = null!;
 }

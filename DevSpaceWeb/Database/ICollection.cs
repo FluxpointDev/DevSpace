@@ -12,8 +12,6 @@ public class ICollection<T>
 
     public IMongoCollection<T> Collection;
 
-    public ConcurrentDictionary<string, T> Cache = new ConcurrentDictionary<string, T>();
-
     public async Task CreateAsync(T value)
     {
         await Collection.InsertOneAsync(value);
@@ -23,4 +21,13 @@ public class ICollection<T>
 
     public IFindFluent<T, T> Find(FilterDefinition<T> filter, FindOptions? options = null) => Collection.Find<T>(filter, options);
 
+}
+
+public class ICacheCollection<T> : ICollection<T>
+{
+    public ICacheCollection(string dbname) : base(dbname)
+    {
+    }
+
+    public ConcurrentDictionary<string, T> Cache = new ConcurrentDictionary<string, T>();
 }

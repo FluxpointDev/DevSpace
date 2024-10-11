@@ -1,0 +1,119 @@
+﻿@using DevSpaceWeb.Components.DynamicForm
+@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@using Newtonsoft.Json
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <EditForm @ref="@Form" Enhance="true" Model="@ModelData"
+              OnValidSubmit="@(context => Submit(context))">
+        <DataAnnotationsValidator />
+
+        <RadzenStack JustifyContent="JustifyContent.Start">
+            <FormGenerator DataContext="@context.Model"></FormGenerator>
+
+    @* <EditForm EditContext="@Context" Model="@ModelClone">
+        <DataAnnotationsValidator />
+        
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <p>@Description</p>
+        }
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            
+        }
+
+        @if (FormItems != null)
+        {
+            @foreach (var item in FormItems)
+            {
+                @RenderFormElement(item.Property);
+
+                switch(item.Type)
+                {
+                    case DynamicFormType.Text:
+                        <RadzenLabel Text="@item.FieldName" class="rz-my-0"></RadzenLabel>
+                            <RadzenTextBox ValueChanged="@item.ValueChanged" Name="@item.FieldName" Style="width: 100%" aria-label="@(item.FieldName + " TextBox")" autocomplete="false"
+                                       autocapitalize="none" MaxLength="100" />
+                            @if (!string.IsNullOrEmpty(item.ErrorMessage))
+                            {
+                                <div class="validation-message" style="color: var(--rz-danger);">@item.ErrorMessage</div>
+                            }
+                            break;
+                }
+            }
+
+    }  *@
+
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+            <RadzenButton ButtonType="ButtonType.Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+        </RadzenStack>
+    </EditForm>
+</RadzenStack>
+
+@code {
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    [Parameter]
+    public object ModelData { get; set;}
+
+    public object ModelClone { get; set; }
+
+    public EditForm Form { get; internal set; }
+
+    [Parameter]
+    public Dictionary<string, object> Items { get; set; }
+
+    [Parameter]
+    public string Description { get; set; }
+
+    [Parameter]
+    public Task<string> SubmitTask { get; set; }
+
+    public string ErrorMessage { get; set; }
+
+    public EditContext Context { get; set; }
+
+    public IEnumerable<DynamicFormItem> FormItems { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        FormItems = ModelData.GetType().GetProperties().Select(x => new DynamicFormItem(ModelData, x));
+    }
+
+    public async Task Submit(EditContext context)
+    {
+        Console.WriteLine("Submit");
+        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(context.Model, Formatting.Indented));
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+        
+
+        return;
+        foreach(var i in FormItems)
+        {
+            if (!i.Validate())
+                return;
+        }
+
+        ErrorMessage = await SubmitTask;
+
+        if (string.IsNullOrEmpty(ErrorMessage))
+        {
+            //dialogService.Close(true);
+        }
+    }
+
+}

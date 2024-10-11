@@ -1,13 +1,7 @@
-﻿using Amazon.Runtime.Internal.Util;
-using DevSpaceWeb.Data;
-using DevSpaceWeb.Fido2;
-using DevSpaceWeb.Services;
-using Microsoft.AspNetCore.Authorization;
+﻿using DevSpaceWeb.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
 using SkiaSharp;
-using static QRCoder.PayloadGenerator;
 
 namespace DevSpaceWeb.Controllers;
 

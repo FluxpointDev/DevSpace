@@ -1,6 +1,10 @@
-﻿@using DevSpaceWeb.Models
+﻿@using DevSpaceWeb.Components.Dialogs
+@using DevSpaceWeb.Models
 @using DevSpaceWeb.Models.Teams
 @using Microsoft.AspNetCore.Components.Forms
+@using MongoDB.Bson
+@inject DialogService DialogService
+
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
@@ -31,14 +35,14 @@
                         </EditForm>
             </RadzenTabsItem>
             <RadzenTabsItem Text="Members">
-                <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Member"/>
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" />
                 <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Transfer Ownership" />
                 <br />
                 <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Users">
                     <Template Context="user">
                         <RadzenCard Style="width:300px;">
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                                @if (_DB.Users.TryGetValue(user.Id, out PartialUserData ud))
+                                @if (_DB.Users.TryGetValue(user, out PartialUserData ud))
                                 {
                                     <RadzenImage Path="" Style="width: 80px; height: 80px; border-radius: 50%" />
                                     <RadzenStack Gap="0">
@@ -69,6 +73,44 @@
                     </Template>
                 </RadzenDataList>
             </RadzenTabsItem>
+            <RadzenTabsItem Text="Roles">
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Role" />
+                <br />
+                <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Users">
+                    <Template Context="user">
+                        <RadzenCard Style="width:300px;">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                @if (_DB.Users.TryGetValue(user, out PartialUserData ud))
+                                {
+                                    <RadzenImage Path="" Style="width: 80px; height: 80px; border-radius: 50%" />
+                                    <RadzenStack Gap="0">
+                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">User</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>@ud.UserName</b></RadzenText>
+                                    </RadzenStack>
+                                }
+                                else
+                                {
+                                    <RadzenImage Path="https://cdn.fluxpoint.dev/devspace/user_avatar.webp" Style="width: 80px; height: 80px; border-radius: 50%" />
+                                    <RadzenStack Gap="0">
+                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">User</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body1"><b>Unknown</b></RadzenText>
+                                    </RadzenStack>
+                                }
+
+                            </RadzenStack>
+                            <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
+                            <RadzenRow>
+                                <RadzenColumn Size="8" class="rz-text-truncate">
+                                    @* <b>@(order.ShipName)</b> *@
+                                </RadzenColumn>
+                                <RadzenColumn Size="4" class="rz-text-align-end">
+                                    @* <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text=@($"{String.Format(new System.Globalization.CultureInfo("en-US"), "{0:C}", order.Freight)}") /> *@
+                                </RadzenColumn>
+                            </RadzenRow>
+                        </RadzenCard>
+                    </Template>
+                </RadzenDataList>
+            </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
 </div>
@@ -84,10 +126,10 @@
             Name = Session.Selected.Team.Data.Name
         };
         TeamForm.VanityUrl = Session.Selected.Team.Data.VanityUrl;
-        Users = Session.Selected.Team.Data.Users.Values;
+        Users = Session.Selected.Team.Data.Members.Values;
     }
 
-    public IEnumerable<TeamUserData> Users { get; set; }
+    public IEnumerable<ObjectId> Users { get; set; }
 
     public TeamBasicModel TeamForm { get; set; } = new TeamBasicModel();
 
@@ -125,7 +167,21 @@
 
     public async Task AddMember()
     {
+        var options = new DialogOptions() { AutoFocusFirstElement = true };
 
+        var Dialog = await DialogService.OpenAsync<DynamicFormDialog>("Test", new Dictionary<string, object>()
+        {
+            { "ModelData", new TeamRoleModel() { Name = "Test" } },
+            { "SubmitTask", Task.Run<string>(async () =>
+            {
+                Console.WriteLine("Test Form"); return "Error";
+            }) },
+            { "Items", new Dictionary<string, object>
+            {
+                { "", 1 }
+            }
+            }
+        }, options);
     }
 
     public async Task TransferOwnership()

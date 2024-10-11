@@ -1,12 +1,14 @@
 ﻿using AspNetCore.Identity.MongoDbCore;
 using AspNetCore.Identity.MongoDbCore.Infrastructure;
 using AspNetCore.Identity.MongoDbCore.Models;
+using DevSpaceWeb.Components.DynamicForm;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
 using DevSpaceWeb.Models.Account;
 using Fido2NetLib;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -15,6 +17,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDbGenericRepository;
 using Radzen;
+using Radzen.Blazor;
 using System.Reflection;
 
 namespace DevSpaceWeb.Services;
@@ -23,6 +26,16 @@ public static class ServiceBuilder
 {
     public static void Build(WebApplicationBuilder builder, IServiceCollection services)
     {
+        services.AddSingleton(new FormGeneratorComponentsRepository(
+                 new Dictionary<string, Type>()
+                 {
+                        {nameof(String), typeof(RadzenTextBox) },
+                        {nameof(DateTime), typeof(InputDate<>) },
+                        {nameof(Boolean), typeof(InputCheckbox) },
+                        //{typeof(FoodKind).ToString(), typeof(InputSelect<>) },
+                        {nameof(Decimal), typeof(InputNumber<>) }
+                 }, null));
+
         // Add HTTP access
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();

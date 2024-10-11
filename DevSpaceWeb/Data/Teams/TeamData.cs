@@ -15,7 +15,9 @@ public class TeamData
     public string VanityUrl { get; set; }
     public ObjectId OwnerId { get; set; }
 
-    public Dictionary<ObjectId, TeamUserData> Users = new Dictionary<ObjectId, TeamUserData>();
+    public HashSet<ObjectId> Roles = new HashSet<ObjectId>();
+
+    public Dictionary<ObjectId, ObjectId> Members = new Dictionary<ObjectId, ObjectId>();
 
     public bool HasAccess(SessionProvider session)
     {
@@ -37,11 +39,21 @@ public class TeamData
         _DB.Teams.Collection.UpdateOne(filter, update);
     }
 }
-public class TeamUserData
+public class TeamMemberData
 {
+    [BsonId]
     public ObjectId Id { get; set; }
+    public ObjectId TeamId { get; set; }
     public TeamPermissions Permissions { get; set; } = new TeamPermissions();
     public string NickName { get; set; }
-
     public Guid? AvatarId { get; set; }
+}
+public class TeamRoleData
+{
+    [BsonId]
+    public ObjectId Id { get; set; }
+    public ObjectId TeamId { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public TeamPermissions Permissions { get; set; } = new TeamPermissions();
 }
