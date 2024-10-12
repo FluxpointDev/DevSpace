@@ -167,21 +167,11 @@
 
     public async Task AddMember()
     {
-        var options = new DialogOptions() { AutoFocusFirstElement = true };
-
-        var Dialog = await DialogService.OpenAsync<DynamicFormDialog>("Test", new Dictionary<string, object>()
+        await DialogService.ShowDynamicForm<TeamRoleModel>("Role Data", new TeamRoleModel() { Name = "Test" }, (CloneData) =>
         {
-            { "ModelData", new TeamRoleModel() { Name = "Test" } },
-            { "SubmitTask", Task.Run<string>(async () =>
-            {
-                Console.WriteLine("Test Form"); return "Error";
-            }) },
-            { "Items", new Dictionary<string, object>
-            {
-                { "", 1 }
-            }
-            }
-        }, options);
+            Console.WriteLine("Running Submit Task");
+            return "Test Error";
+        });
     }
 
     public async Task TransferOwnership()

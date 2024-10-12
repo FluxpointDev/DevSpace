@@ -1,58 +1,46 @@
 ﻿@using DevSpaceWeb.Components.DynamicForm
+@using Microsoft.AspNetCore.Components.Forms
+@using Newtonsoft.Json
 @using DevSpaceWeb.Models.Accounts
 @using DevSpaceWeb.Models.Defaults
-@using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Identity
-@using Newtonsoft.Json
+@using System.ComponentModel.DataAnnotations
+@using System.Reflection
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
-    <EditForm @ref="@Form" Enhance="true" Model="@ModelData"
-              OnValidSubmit="@(context => Submit(context))">
+    <EditForm @ref="@Form" Model="@CloneData"
+              OnSubmit="@(context => Submit())">
         <DataAnnotationsValidator />
 
         <RadzenStack JustifyContent="JustifyContent.Start">
-            <FormGenerator DataContext="@context.Model"></FormGenerator>
-
-    @* <EditForm EditContext="@Context" Model="@ModelClone">
-        <DataAnnotationsValidator />
-        
-        @if (!string.IsNullOrEmpty(Description))
-        {
-            <p>@Description</p>
-        }
-        @if (!string.IsNullOrEmpty(ErrorMessage))
-        {
-            
-        }
-
-        @if (FormItems != null)
-        {
-            @foreach (var item in FormItems)
+            @if (!string.IsNullOrEmpty(Description))
             {
-                @RenderFormElement(item.Property);
-
-                switch(item.Type)
-                {
-                    case DynamicFormType.Text:
-                        <RadzenLabel Text="@item.FieldName" class="rz-my-0"></RadzenLabel>
-                            <RadzenTextBox ValueChanged="@item.ValueChanged" Name="@item.FieldName" Style="width: 100%" aria-label="@(item.FieldName + " TextBox")" autocomplete="false"
-                                       autocapitalize="none" MaxLength="100" />
-                            @if (!string.IsNullOrEmpty(item.ErrorMessage))
-                            {
-                                <div class="validation-message" style="color: var(--rz-danger);">@item.ErrorMessage</div>
-                            }
-                            break;
-                }
+                <p>@Description</p>
+            }
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                    @ErrorMessage
+                </RadzenAlert>
             }
 
-    }  *@
+            @foreach (var field in FormItems)
+            {
+                <RadzenLabel Text="@field.Label" class="rz-my-0"></RadzenLabel>
+                @RenderFormElement(CloneData, field, field.Property)
+                @if (!string.IsNullOrEmpty(field.ErrorMessage))
+                {
+                    <div class="validation-message" style="color: var(--rz-danger);">@field.ErrorMessage</div>
+                }
+                <br />
+            }
 
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
             <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
-            <RadzenButton ButtonType="ButtonType.Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+            <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
         </RadzenStack>
     </EditForm>
 </RadzenStack>
@@ -63,56 +51,84 @@
     private SessionProvider Session { get; set; }
 
     [Parameter]
-    public object ModelData { get; set;}
+    public object ModelData { get; set; }
 
-    public object ModelClone { get; set; }
+    public object CloneData { get; set; }
 
     public EditForm Form { get; internal set; }
 
-    [Parameter]
-    public Dictionary<string, object> Items { get; set; }
+    public List<DynamicFormItem> FormItems { get; set; }
 
     [Parameter]
     public string Description { get; set; }
 
     [Parameter]
-    public Task<string> SubmitTask { get; set; }
+    public Func<object, string?> SubmitTask { get; set; }
 
-    public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
 
-    public EditContext Context { get; set; }
+    public bool IsLoaded = false;
 
-    public IEnumerable<DynamicFormItem> FormItems { get; set; }
+    public RenderFragment RenderFormElement(object model, DynamicFormItem item, PropertyInfo propInfoValue) => builder =>
+    {
+        Console.WriteLine("Got Error: " + item.ErrorMessage);
+        builder.OpenComponent(0, typeof(RadzenTextBox));
+        builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+
+        builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<string>(this, (value) =>
+        {
+            propInfoValue.SetValue(model, value);
+        }));
+
+        builder.AddAttribute(3, "style", "width: 100%");
+        builder.AddAttribute(4, "aria-label", $"{item.Label} Text");
+
+        MaxLengthAttribute? MaxLength = propInfoValue.GetCustomAttribute<MaxLengthAttribute>();
+        if (MaxLength != null)
+            builder.AddAttribute(5, "maxlength", (Int64)MaxLength.Length);
+
+        AutoCompleteAttribute? AutoComplete = propInfoValue.GetCustomAttribute<AutoCompleteAttribute>();
+        if (AutoComplete != null)
+            builder.AddAttribute(6, "autocomplete", AutoComplete.Type.GetType().GetMember(AutoComplete.Type.ToString()).First().GetCustomAttribute<DisplayAttribute>().Name);
+        else
+            builder.AddAttribute(6, "autocomplete", "off");
+
+        builder.CloseComponent();
+    };
 
     protected override void OnParametersSet()
     {
-        FormItems = ModelData.GetType().GetProperties().Select(x => new DynamicFormItem(ModelData, x));
+        if (IsLoaded)
+            return;
+        IsLoaded = true;
+        CloneData = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(ModelData), ModelData.GetType());
+        FormItems = CloneData.GetType().GetProperties().Select(x => new DynamicFormItem(CloneData, x)).ToList();
+
     }
 
-    public async Task Submit(EditContext context)
+    public async Task Submit()
     {
-        Console.WriteLine("Submit");
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(context.Model, Formatting.Indented));
 
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
             return;
         }
-        
 
-        return;
-        foreach(var i in FormItems)
+        foreach (var i in FormItems)
         {
-            if (!i.Validate())
+            if (!i.Validate(CloneData))
+            {
                 return;
+            }
+            i.ErrorMessage = string.Empty;
         }
 
-        ErrorMessage = await SubmitTask;
+        ErrorMessage = SubmitTask.Invoke(CloneData);
 
         if (string.IsNullOrEmpty(ErrorMessage))
         {
-            //dialogService.Close(true);
+            dialogService.Close(true);
         }
     }
 

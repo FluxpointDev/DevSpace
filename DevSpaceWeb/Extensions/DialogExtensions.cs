@@ -1,4 +1,6 @@
 ﻿using DevSpaceWeb.Components.Dialogs;
+using DevSpaceWeb.Models.Teams;
+using Microsoft.AspNetCore.Components;
 using Radzen;
 
 namespace DevSpaceWeb;
@@ -21,6 +23,20 @@ public static class DialogExtensions
             return false;
 
         return (bool)Dialog;
+    }
+
+    public static async Task<bool> ShowDynamicForm<Model>(this DialogService service, string title, object model, Func<object, string?> function)
+    {
+        var options = new DialogOptions() { AutoFocusFirstElement = true };
+
+        var dialog = await service.OpenAsync<DynamicFormDialog>("Test", new Dictionary<string, object>()
+        {
+            { "ModelData", model },
+            { "SubmitTask", function
+            }
+
+        }, options);
+        return dialog;
     }
 
     public static async Task<bool> ShowInfoAsync(this DialogService service, string title, string text)

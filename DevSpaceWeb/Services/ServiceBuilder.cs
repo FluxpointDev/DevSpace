@@ -26,16 +26,6 @@ public static class ServiceBuilder
 {
     public static void Build(WebApplicationBuilder builder, IServiceCollection services)
     {
-        services.AddSingleton(new FormGeneratorComponentsRepository(
-                 new Dictionary<string, Type>()
-                 {
-                        {nameof(String), typeof(RadzenTextBox) },
-                        {nameof(DateTime), typeof(InputDate<>) },
-                        {nameof(Boolean), typeof(InputCheckbox) },
-                        //{typeof(FoodKind).ToString(), typeof(InputSelect<>) },
-                        {nameof(Decimal), typeof(InputNumber<>) }
-                 }, null));
-
         // Add HTTP access
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();
