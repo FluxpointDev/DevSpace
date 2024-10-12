@@ -167,8 +167,9 @@
 
     public async Task AddMember()
     {
-        await DialogService.ShowDynamicForm<TeamRoleModel>("Role Data", new TeamRoleModel() { Name = "Test" }, (CloneData) =>
+        await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Role Data", new TeamRoleModel() { Name = "Test" }, (object obj) =>
         {
+            TeamRoleModel data = (TeamRoleModel)obj;
             Console.WriteLine("Running Submit Task");
             return "Test Error";
         });

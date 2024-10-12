@@ -1,5 +1,6 @@
 ﻿@using DevSpaceWeb.Components.Dialogs
 @using DevSpaceWeb.Components.Layout.Nav
+@using DevSpaceWeb.Models.Account
 @using Radzen.Blazor
 @inherits LayoutComponentBase
 @inject Radzen.DialogService dialogService
@@ -31,14 +32,14 @@
                 {
                     <RadzenMenu id="NavPreview" ClickToOpen="false">
                         <RadzenMenuItem Text="Preview Mode">
-                            <RadzenMenuItem Text="Change Background" Click="@(() => dialogService.Open<ChangeBackgroundDialog>("Change Background"))"></RadzenMenuItem>
+                            <RadzenMenuItem Text="Change Background" Click="@ChangeBackgroundDialog"></RadzenMenuItem>
                         </RadzenMenuItem>
                     </RadzenMenu>
                 }
                 <RadzenMenu ClickToOpen="false">
                     <RadzenMenuItem id="NavUser" Text="@Session.State.User.Identity.Name">
                         <RadzenMenuItem Path="/user/settings" Text="Settings"></RadzenMenuItem>
-                        <RadzenMenuItem Text="Change Background" Click="@(() => dialogService.Open<ChangeBackgroundDialog>("Change Background"))"></RadzenMenuItem>
+                        <RadzenMenuItem Text="Change Background" Click="@ChangeBackgroundDialog"></RadzenMenuItem>
                         <RadzenMenuItem Path="/admin" Text="Admin"></RadzenMenuItem>
                         <RadzenMenuItem Path="/logout" Text="Logout"></RadzenMenuItem>
                     </RadzenMenuItem>
@@ -125,11 +126,15 @@
         _drawerOpen = !_drawerOpen;
     }
 
-    public void ChangeBackgroundDialog()
+    public async Task ChangeBackgroundDialog()
     {
-        // dialogService.ShowDynamicForm("")
-        // {
-            
-        // }
+        await dialogService.ShowDynamicFormAsync<AccountBackgroundModel>("Change Background", new AccountBackgroundModel() { BackgroundUrl = Session.BackgroundUrl }, (object obj) =>
+        {
+            AccountBackgroundModel data = (AccountBackgroundModel)obj;
+            Console.WriteLine("Background: " + data.BackgroundUrl);
+            Session.BackgroundUrl = data.BackgroundUrl;
+            Session.TriggerChange();
+            return null;
+        });
     }
 }
