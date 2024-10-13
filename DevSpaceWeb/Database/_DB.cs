@@ -64,11 +64,17 @@ public static class _DB
                     VanityUrlCache.TryAdd(x.Id, x.VanityUrl);
                 }
             });
-
-            await new ICollection<AuthUser>("auth_internal").Find(Builders<AuthUser>.Filter.Empty).ForEachAsync(x =>
+            try
             {
-                Users.Add(x.Id, new PartialUserData(x));
-            });
+                await Run.GetCollection<AuthUser>("auth_internal").Find(Builders<AuthUser>.Filter.Empty).ForEachAsync(x =>
+                {
+                    Users.Add(x.Id, new PartialUserData(x));
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
 
             _ = TeamVanityUrls.Find(Builders<VanityUrlData>.Filter.Empty).ForEachAsync(x =>
             {

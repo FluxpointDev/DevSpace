@@ -34,6 +34,9 @@ public static class DialogExtensions
             { "ModelData", model },
             { "SubmitTask", function }
         }, options);
+
+        if (dialog is not bool)
+            return false;
         return dialog;
     }
 

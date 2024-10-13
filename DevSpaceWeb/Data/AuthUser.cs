@@ -11,14 +11,13 @@ namespace DevSpaceWeb.Data;
 public class AuthUser : MongoIdentityUser<ObjectId>
 {
     public string? DisplayName { get; set; }
-    public bool HasAvatar() => AvatarId.HasValue;
+
+   
     public Guid? ResourceId { get; set; }
     public Guid? AvatarId { get; set; }
+    public bool HasAvatar() => AvatarId != null;
     public ObjectId? ManagedAccountTeamId { get; set; }
-    public bool IsManaged()
-    {
-        return ManagedAccountTeamId != null;
-    }
+    public bool IsManaged() => ManagedAccountTeamId != null;
 
     public string GetAvatarOrDefault(bool usePng = false)
     {

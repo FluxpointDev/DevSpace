@@ -2,7 +2,6 @@
 @using DevSpaceWeb.Models
 @using DevSpaceWeb.Models.Teams
 @using Microsoft.AspNetCore.Components.Forms
-@using MongoDB.Bson
 @inject DialogService DialogService
 
 <div class="dash-box dash-box-content">
@@ -36,7 +35,6 @@
             </RadzenTabsItem>
             <RadzenTabsItem Text="Members">
                 <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" />
-                <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Transfer Ownership" />
                 <br />
                 <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Users">
                     <Template Context="user">
@@ -44,20 +42,28 @@
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                                 @if (_DB.Users.TryGetValue(user, out PartialUserData ud))
                                 {
-                                    <RadzenImage Path="" Style="width: 80px; height: 80px; border-radius: 50%" />
+                                    <RadzenImage Path="@ud.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" />
                                     <RadzenStack Gap="0">
-                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">User</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body1"><b>@ud.UserName</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Username</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            @ud.UserName
+                                        </RadzenText>
                                     </RadzenStack>
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud))" />
+                                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
                                 }
                                 else
                                 {
                                     <RadzenImage Path="https://cdn.fluxpoint.dev/devspace/user_avatar.webp" Style="width: 80px; height: 80px; border-radius: 50%" />
                                     <RadzenStack Gap="0">
-                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">User</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body1"><b>Unknown</b></RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Account Deleted</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            @user.ToString()
+                                        </RadzenText>
                                     </RadzenStack>
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud))" />
                                 }
+
                                 
                             </RadzenStack>
                             <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
@@ -126,7 +132,7 @@
             Name = Session.Selected.Team.Data.Name
         };
         TeamForm.VanityUrl = Session.Selected.Team.Data.VanityUrl;
-        Users = Session.Selected.Team.Data.Members.Values;
+        Users = Session.Selected.Team.Data.Members.Keys;
     }
 
     public IEnumerable<ObjectId> Users { get; set; }
@@ -161,22 +167,82 @@
                 }
             }
         }
-        Session.Selected.Team.Data.Update();
+        Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.VanityUrl, Session.Selected.Team.Data.VanityUrl));
 
     }
 
     public async Task AddMember()
     {
-        await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Role Data", new TeamRoleModel() { Name = "Test" }, (object obj) =>
+        await DialogService.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), (object obj) =>
         {
-            TeamRoleModel data = (TeamRoleModel)obj;
-            Console.WriteLine("Running Submit Task");
-            return "Test Error";
+            TeamAddUserModel data = (TeamAddUserModel)obj;
+            Console.WriteLine("Email: " + data.Email);
+            foreach(var i in _DB.Users.Values)
+            {
+                Console.WriteLine("Got Email: " + i.Email);
+            }
+
+            PartialUserData? user = _DB.Users.Values.FirstOrDefault(x => x.Email.Equals(data.Email, StringComparison.OrdinalIgnoreCase));
+            if (user == null)
+                return "Could not find a user account with that email address.";
+
+            if (user.ManagedAccountTeamId.HasValue)
+                return "This user account is managed by another team.";
+
+            if (Session.Selected.Team.Data.Members.ContainsKey(user.Id))
+                return "This user account has already been added to the team.";
+
+            TeamMemberData member = new TeamMemberData
+            {
+                TeamId = Session.Selected.Team.Data.Id
+            };
+
+            var task = Task.Run<bool>(async () =>
+            {
+                try
+                {
+                    await _DB.Members.CreateAsync(member);
+                }
+                catch
+                {
+                    return false;
+                }
+                return true;
+            });
+            task.Wait();
+            if (!task.Result)
+                return "Failed to create team member due to a database error";
+
+            Session.Selected.Team.Data.Members.Add(user.Id, member.Id);
+            Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
+            return string.Empty;
         });
     }
 
-    public async Task TransferOwnership()
+    public async Task TransferOwnership(PartialUserData user)
     {
-        
+        bool Confirm = await DialogService.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Session.Selected.Team.Data.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        var User = await Session.GetCurrentUserAsync();
+
+        var twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true);
+        if (!twoFactorConfirm)
+            return;
+
+        Session.Selected.Team.Data.OwnerId = user.Id;
+        Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id));
+    }
+
+    public async Task RemoveTeamMember(PartialUserData user)
+    {
+
+    }
+
+    public async Task RemoveTeamMember(ObjectId user)
+    {
+        Session.Selected.Team.Data.Members.Remove(user);
+        Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
     }
 }

@@ -32,9 +32,8 @@ public class TeamData
         return Id.ToString();
     }
 
-    public void Update()
+    public void Update(UpdateDefinition<TeamData> update)
     {
-        var update = Builders<TeamData>.Update.Set(r => r.Id, Id);
         var filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
         _DB.Teams.Collection.UpdateOne(filter, update);
     }

@@ -34,13 +34,13 @@
                 {
                     <div class="validation-message" style="color: var(--rz-danger);">@field.ErrorMessage</div>
                 }
-                <br style="margin-bottom: 20px;" />
+                <br style="margin-bottom: 6px;" />
             }
 
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-            <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
-            <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+            <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@LoadingSubmit" />
+            <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" Disabled="@LoadingSubmit" />
         </RadzenStack>
     </EditForm>
 </RadzenStack>
@@ -68,6 +68,8 @@
     public string? ErrorMessage { get; set; }
 
     public bool IsLoaded = false;
+
+    public bool LoadingSubmit = false;
 
     public RenderFragment RenderFormElement(object model, DynamicFormItem item, PropertyInfo propInfoValue) => builder =>
     {
@@ -114,10 +116,13 @@
             return;
         }
 
+        LoadingSubmit = true;
+
         foreach (var i in FormItems)
         {
             if (!i.Validate(CloneData))
             {
+                LoadingSubmit = false;
                 return;
             }
             i.ErrorMessage = string.Empty;
@@ -129,6 +134,7 @@
         {
             dialogService.Close(true);
         }
+        LoadingSubmit = false;
     }
 
 }

@@ -956,7 +956,7 @@
 
         User.Auth.Sessions.TryAdd(Utils.GetStringSha256Hash(Session.Ip), new AuthUserSession { });
         var result = await UserManager.CreateAsync(User, AdminAccount.Password);
-        
+
         if (result.Errors.Any())
         {
             AdminErrorMessage = result.Errors.First().Description;
@@ -966,7 +966,14 @@
         {
             _DB.Users.Add(User.Id, new PartialUserData(User));
             _DB.Teams.Cache.First().Value.OwnerId = User.Id;
-            _DB.Teams.Cache.First().Value.Update();
+            TeamMemberData member = new TeamMemberData
+                {
+                    TeamId = _DB.Teams.Cache.First().Value.Id
+                };
+            await _DB.Members.CreateAsync(member);
+            _DB.Teams.Cache.First().Value.Update(new UpdateDefinitionBuilder<TeamData>()
+                .Set(x => x.OwnerId, User.Id)
+                .Set(x => x.Members, _DB.Teams.Cache.First().Value.Members));
 
             _DB.IsRestartRequired = true;
             _Data.Config.IsFullySetup = true;
