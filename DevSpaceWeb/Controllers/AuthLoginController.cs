@@ -57,7 +57,7 @@ public class AuthLoginController : AuthControllerContext
 
         string returnUrl = "/";
         var redirectUrl = "/auth/external/callback";
-        Console.WriteLine(redirectUrl);
+        Logger.LogMessage(redirectUrl, LogSeverity.Debug);
         var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
         return Challenge(properties, provider);
 
@@ -78,7 +78,7 @@ public class AuthLoginController : AuthControllerContext
 
         foreach (var i in info.AuthenticationTokens)
         {
-            Console.WriteLine($"Token: {i.Name} - {i.Value}");
+            Logger.LogMessage($"Token: {i.Name} - {i.Value}", LogSeverity.Debug);
         }
 
         var Email = info.Principal.FindFirstValue(ClaimTypes.Email);

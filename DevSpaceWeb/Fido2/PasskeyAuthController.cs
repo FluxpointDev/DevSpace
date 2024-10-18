@@ -157,7 +157,7 @@ public class PasskeyAuthController : AuthControllerContext
                     await _userManager.UpdateAsync(identityUser);
                 }
 
-                Console.WriteLine("Passkey SUCCESS! - " + RequestId);
+                Logger.LogMessage("Passkey SUCCESS! - " + RequestId, LogSeverity.Debug);
 
                 RequestData.IsSuccess = true;
                 Cache.SetString("passkey-" + RequestId, JsonSerializer.Serialize(RequestData));

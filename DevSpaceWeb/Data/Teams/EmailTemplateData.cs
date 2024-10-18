@@ -154,10 +154,10 @@ public class EmailTemplateData
             "</style></head>";
 
         Html = Style + "<body style=\"max-width: 700px; margin-left: auto; margin-right: auto;\">" + Html + "</body>";
-        Console.WriteLine("Got Html");
-        Console.WriteLine("--- --- --- --- ---");
-        Console.WriteLine(Html);
-        Console.WriteLine("--- --- --- --- ---");
+        Logger.LogMessage("Got Html", LogSeverity.Debug);
+        Logger.LogMessage("--- --- --- --- ---", LogSeverity.Debug);
+        Logger.LogMessage(Html, LogSeverity.Debug);
+        Logger.LogMessage("--- --- --- --- ---", LogSeverity.Debug);
         return Html;
     }
 

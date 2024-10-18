@@ -9,12 +9,12 @@ public class TestController : Controller
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
-        Console.WriteLine("---");
+        Logger.LogMessage("---", LogSeverity.Debug);
         foreach (var i in Request.Headers)
         {
-            Console.WriteLine($"Header: {i.Key} - {i.Value.ToString()}");
+            Logger.LogMessage($"Header: {i.Key} - {i.Value.ToString()}", LogSeverity.Debug);
         }
-        Console.WriteLine("---");
+        Logger.LogMessage("---", LogSeverity.Debug);
         return Ok();
     }
 }

@@ -7,7 +7,7 @@
     </div>
     <br />
     <div>
-        @foreach (var i in _DB.Teams.Cache.Values.Where(x => x.HasAccess(Session)))
+        @foreach (var i in _DB.Teams.Cache.Values.Where(x => x.Members.ContainsKey(Session.CurrentUserId.Value)))
         {
             <a href="teams/@i.GetVanityUrl()" style="color: cornflowerblue">
                 <div Class="team-item">

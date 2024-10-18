@@ -19,7 +19,7 @@ public static class _Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Failed to write data to the program path: " + Program.Directory.Path);
+                Logger.LogMessage("Failed to write data to the program path: " + Program.Directory.Path, LogSeverity.Error);
                 System.Environment.Exit(1);
             }
 
@@ -47,12 +47,12 @@ public static class _Data
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Failed to parse Config.json file, " + ex.Message);
+                Logger.LogMessage("Failed to parse Config.json file, " + ex.Message, LogSeverity.Error);
             }
 
             if (config == null)
             {
-                Console.WriteLine("Failed to load Config.json file.");
+                Logger.LogMessage("Failed to load Config.json file.", LogSeverity.Error);
                 return false;
             }
 

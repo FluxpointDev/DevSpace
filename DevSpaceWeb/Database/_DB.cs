@@ -31,8 +31,8 @@ public static class _DB
         {
             Run = Client.GetDatabase(_Data.Config.Database.Name);
             Teams = new ICacheCollection<TeamData>("teams");
-            Roles = new ICollection<TeamRoleData>("roles");
-            Members = new ICollection<TeamMemberData>("members");
+            Roles = new ICacheCollection<TeamRoleData>("roles");
+            Members = new ICacheCollection<TeamMemberData>("members");
             Servers = new ICacheCollection<ServerData>("servers");
             Projects = new ICacheCollection<ProjectData>("projects");
             Websites = new ICacheCollection<WebsiteData>("websites");
@@ -48,22 +48,25 @@ public static class _DB
         {
             var result = await Run.RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1));
             IsConnected = true;
-            Console.WriteLine("Pinged your deployment. You successfully connected to MongoDB!");
+            Logger.LogMessage("Database", "Pinged your deployment. You successfully connected to MongoDB!", LogSeverity.Info);
         }
         catch (Exception ex) { Console.WriteLine(ex); return false; }
 
         if (!IsCacheDone)
         {
+            Logger.LogMessage("Database", "Loading Data", LogSeverity.Info);
             await Teams.Find(Builders<TeamData>.Filter.Empty).ForEachAsync(x =>
             {
                 Teams.Cache.TryAdd(x.Id.ToString(), x);
-
+                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(x, Newtonsoft.Json.Formatting.Indented));
                 if (!string.IsNullOrEmpty(x.VanityUrl))
                 {
                     TeamsVanityCache.TryAdd(x.VanityUrl, x);
                     VanityUrlCache.TryAdd(x.Id, x.VanityUrl);
                 }
             });
+            Logger.LogMessage("Database", "- Teams: " + Teams.Cache.Keys.Count, LogSeverity.Info);
+
             try
             {
                 await Run.GetCollection<AuthUser>("auth_internal").Find(Builders<AuthUser>.Filter.Empty).ForEachAsync(x =>
@@ -74,57 +77,117 @@ public static class _DB
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+                return false;
             }
 
-            _ = TeamVanityUrls.Find(Builders<VanityUrlData>.Filter.Empty).ForEachAsync(x =>
+            Logger.LogMessage("Database", "- Auth: " + Users.Keys.Count, LogSeverity.Info);
+
+            Task RoleTask = Task.Run(async () =>
             {
-                if (TeamVanityUrls.Cache.TryAdd(x.Id.ToString(), x))
+                await Roles.Find(Builders<TeamRoleData>.Filter.Empty).ForEachAsync(x =>
                 {
-                    foreach (var i in x.ServerVanityUrls)
+                    if (Roles.Cache.TryAdd(x.Id.ToString(), x))
                     {
-                        VanityUrlCache.TryAdd(i.Value, i.Key);
+                        if (Teams.Cache.TryGetValue(x.TeamId.ToString(), out TeamData team))
+                            team.CachedRoles.Add(x.Id, x);
                     }
-                    foreach (var i in x.LogsVanityUrls)
+                });
+                Logger.LogMessage("Database", "- Roles: " + Roles.Cache.Keys.Count, LogSeverity.Info);
+            });
+
+            Task MemberTask = Task.Run(async () =>
+            {
+                await Members.Find(Builders<TeamMemberData>.Filter.Empty).ForEachAsync(x =>
+                {
+
+                    if (Members.Cache.TryAdd(x.Id.ToString(), x))
                     {
-                        VanityUrlCache.TryAdd(i.Value, i.Key);
+                        if (Teams.Cache.TryGetValue(x.TeamId.ToString(), out TeamData team))
+                            team.CachedMembers.Add(x.Id, x);
                     }
-                    foreach (var i in x.ProjectVanityUrls)
+                });
+                Logger.LogMessage("Database", "- Members: " + Members.Cache.Keys.Count, LogSeverity.Info);
+            });
+
+            Task TeamVanityTask = Task.Run(async () =>
+            {
+                await TeamVanityUrls.Find(Builders<VanityUrlData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    if (TeamVanityUrls.Cache.TryAdd(x.Id.ToString(), x))
                     {
-                        VanityUrlCache.TryAdd(i.Value, i.Key);
+                        foreach (var i in x.ServerVanityUrls)
+                        {
+                            VanityUrlCache.TryAdd(i.Value, i.Key);
+                        }
+                        foreach (var i in x.LogsVanityUrls)
+                        {
+                            VanityUrlCache.TryAdd(i.Value, i.Key);
+                        }
+                        foreach (var i in x.ProjectVanityUrls)
+                        {
+                            VanityUrlCache.TryAdd(i.Value, i.Key);
+                        }
+                        foreach (var i in x.WebsiteVanityUrls)
+                        {
+                            VanityUrlCache.TryAdd(i.Value, i.Key);
+                        }
                     }
-                    foreach (var i in x.WebsiteVanityUrls)
-                    {
-                        VanityUrlCache.TryAdd(i.Value, i.Key);
-                    }
-                }
-
+                });
+                Logger.LogMessage("Database", "- Vanity URLs: " + TeamVanityUrls.Cache.Keys.Count, LogSeverity.Info);
             });
 
-            _ = EmailTemplates.Find(Builders<EmailTemplateData>.Filter.Empty).ForEachAsync(x =>
+            
+            Task TemplateTask = Task.Run(async () =>
             {
-                EmailTemplates.Cache.TryAdd(x.Id.ToString(), x);
+                await EmailTemplates.Find(Builders<EmailTemplateData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    EmailTemplates.Cache.TryAdd(x.Id.ToString(), x);
+                });
+                Logger.LogMessage("Database", "- Email Templates: " + EmailTemplates.Cache.Keys.Count, LogSeverity.Info);
             });
 
-            _ = Logs.Find(Builders<LogData>.Filter.Empty).ForEachAsync(x =>
+            Task LogTask = Task.Run(async () =>
             {
-                Logs.Cache.TryAdd(x.Id.ToString(), x);
+                await Logs.Find(Builders<LogData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    Logs.Cache.TryAdd(x.Id.ToString(), x);
+                });
+                Logger.LogMessage("Database", "- Logs: " + Logs.Cache.Keys.Count, LogSeverity.Info);
             });
 
-            _ = Servers.Find(Builders<ServerData>.Filter.Empty).ForEachAsync(x =>
+            Task ServerTask = Task.Run(async () =>
             {
-                Servers.Cache.TryAdd(x.Id.ToString(), x);
-                x.GetWebSocket();
+                await Servers.Find(Builders<ServerData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    Servers.Cache.TryAdd(x.Id.ToString(), x);
+                    x.GetWebSocket();
+                });
+                Logger.LogMessage("Database", "- Servers: " + Servers.Cache.Keys.Count, LogSeverity.Info);
             });
 
-            _ = Websites.Find(Builders<WebsiteData>.Filter.Empty).ForEachAsync(x =>
+            Task WebsiteTask = Task.Run(async () =>
             {
-                Websites.Cache.TryAdd(x.Id.ToString(), x);
+                await Websites.Find(Builders<WebsiteData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    Websites.Cache.TryAdd(x.Id.ToString(), x);
+                });
+                Logger.LogMessage("Database", "- Websites: " + Websites.Cache.Keys.Count, LogSeverity.Info);
             });
 
-            _ = Projects.Find(Builders<ProjectData>.Filter.Empty).ForEachAsync(x =>
+            Task ProjectTask = Task.Run(async () =>
             {
-                Projects.Cache.TryAdd(x.Id.ToString(), x);
+                await Projects.Find(Builders<ProjectData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    Projects.Cache.TryAdd(x.Id.ToString(), x);
+                });
+                Logger.LogMessage("Database", "- Projects: " + Projects.Cache.Keys.Count, LogSeverity.Info);
             });
+
+
+            Task.WaitAll(RoleTask, MemberTask, TeamVanityTask, TemplateTask, LogTask,
+                ServerTask, WebsiteTask, ProjectTask);
+
+            Logger.LogMessage("Database", "Data Loaded", LogSeverity.Info);
             IsCacheDone = true;
         }
 
@@ -148,9 +211,9 @@ public static class _DB
 
     public static ICacheCollection<LogData> Logs = null!;
 
-    public static ICollection<TeamRoleData> Roles = null!;
+    public static ICacheCollection<TeamRoleData> Roles = null!;
 
-    public static ICollection<TeamMemberData> Members = null!;
+    public static ICacheCollection<TeamMemberData> Members = null!;
 
     public static ICacheCollection<VanityUrlData> TeamVanityUrls = null!;
 

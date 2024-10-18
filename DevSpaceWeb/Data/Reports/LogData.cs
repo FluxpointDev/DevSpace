@@ -1,6 +1,8 @@
-﻿using DevSpaceWeb.Database;
+﻿using DevSpaceWeb.Data.Projects;
+using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Reports;
 
@@ -19,5 +21,11 @@ public class LogData
             return vanityUrl;
 
         return Id.ToString();
+    }
+
+    public void Update(UpdateDefinition<LogData> update)
+    {
+        var filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
+        _DB.Logs.Collection.UpdateOne(filter, update);
     }
 }

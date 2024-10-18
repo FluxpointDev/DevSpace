@@ -128,10 +128,8 @@
 
     public async Task ChangeBackgroundDialog()
     {
-        await dialogService.ShowDynamicFormAsync<AccountBackgroundModel>("Change Background", new AccountBackgroundModel() { BackgroundUrl = Session.BackgroundUrl }, (object obj) =>
+        await dialogService.ShowDynamicFormAsync<AccountBackgroundModel>("Change Background", new AccountBackgroundModel() { BackgroundUrl = Session.BackgroundUrl }, (AccountBackgroundModel data) =>
         {
-            AccountBackgroundModel data = (AccountBackgroundModel)obj;
-            Console.WriteLine("Background: " + data.BackgroundUrl);
             Session.BackgroundUrl = data.BackgroundUrl;
             Session.TriggerChange();
             return null;

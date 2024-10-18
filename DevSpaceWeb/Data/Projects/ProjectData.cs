@@ -1,6 +1,8 @@
-﻿using DevSpaceWeb.Database;
+﻿using DevSpaceWeb.Data.Teams;
+using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Projects;
 
@@ -20,10 +22,9 @@ public class ProjectData
         return Id.ToString();
     }
 
-    //public async Task UpdateAsync()
-    //{
-    //    var update = Builders<ProjectData>.Update.Set(r => r.TeamId, TeamId);
-    //    var filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
-    //    await _DB.Projects.Collection.UpdateOne(filter, update);
-    //}
+    public void Update(UpdateDefinition<ProjectData> update)
+    {
+        var filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
+        _DB.Projects.Collection.UpdateOne(filter, update);
+    }
 }

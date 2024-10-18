@@ -26,7 +26,6 @@ public class DirectoryStructureMain : DirectoryStructure
     {
         Data = new DirectoryStructure(Path + "Data/");
         Cache = new DirectoryStructure(Path + "Cache/");
-        Console.WriteLine("Main: " + folder);
         Public = new DirectoryStructurePublic(Path + "Public/");
     }
 

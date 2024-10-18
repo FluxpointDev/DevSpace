@@ -94,7 +94,7 @@ public class PasskeyRegisterController : AuthControllerContext
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            Logger.LogMessage(e.ToString(), LogSeverity.Debug);
             return Json(new Fido2Error(FormatException(e)));
         }
     }
@@ -143,7 +143,7 @@ public class PasskeyRegisterController : AuthControllerContext
                     var Metadata = await _fido2Service._metadata.GetEntryAsync(success.Result.AaGuid);
                     if (Metadata != null)
                     {
-                        Console.WriteLine("Metadata: " + Metadata.MetadataStatement.Description);
+                        Logger.LogMessage("Metadata: " + Metadata.MetadataStatement.Description, LogSeverity.Debug);
                     }
                 }
                 // 3. Store the credentials in db
@@ -169,7 +169,7 @@ public class PasskeyRegisterController : AuthControllerContext
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            Logger.LogMessage(e.ToString(), LogSeverity.Debug);
             return Json(new Fido2Error(FormatException(e)));
         }
     }

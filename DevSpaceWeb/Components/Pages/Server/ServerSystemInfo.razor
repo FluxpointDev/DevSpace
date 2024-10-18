@@ -181,7 +181,7 @@
     {
         if (firstRender)
         {
-            Console.WriteLine("Run System Info");
+            Logger.LogMessage("Run System Info", LogSeverity.Debug);
             try
             {
                 if (Program.IsPreviewMode)
@@ -239,8 +239,8 @@
                 }
 
                 SystemInfo = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<SystemInfoResponse>(new IWebSocketTaskEvent(EventType.SystemInfo));
-                Console.WriteLine("Got info");
-                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(SystemInfo, Newtonsoft.Json.Formatting.Indented));
+                Logger.LogMessage("Got info", LogSeverity.Debug);
+                Logger.LogMessage(Newtonsoft.Json.JsonConvert.SerializeObject(SystemInfo, Newtonsoft.Json.Formatting.Indented), LogSeverity.Debug);
                 StateHasChanged();
             }
             catch (Exception ex)

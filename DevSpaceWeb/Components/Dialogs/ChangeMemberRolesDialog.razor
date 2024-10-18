@@ -1,0 +1,67 @@
+﻿@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        <RadzenPickList Source="@Team.CachedRoles.Values" @bind-Target="@SelectedRoles" Style="height:500px; width:100%;"
+                        TextProperty="@nameof(TeamRoleData.Name)" AllowFiltering="true" Multiple="true" ShowHeader="true"
+                        ButtonGap="12px" ButtonJustifyContent="JustifyContent.Center" ButtonSize="ButtonSize.Medium" ButtonShade="Shade.Dark"
+                        ButtonVariant="Variant.Filled">
+            <SourceHeader>
+                All Roles
+            </SourceHeader>
+            <TargetHeader>
+                Selected Roles
+            </TargetHeader>
+            <Template>
+                @context.Name
+            </Template>
+        </RadzenPickList>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    [Parameter]
+    public TeamData Team { get; set; }
+
+    [Parameter]
+    public TeamMemberData Member { get; set; }
+
+    public IEnumerable<TeamRoleData> SelectedRoles { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        List<TeamRoleData> list = new List<TeamRoleData>();
+        foreach(var i in Member.Roles)
+        {
+            if (Team.CachedRoles.TryGetValue(i, out TeamRoleData role))
+                list.Add(role);
+        }
+        SelectedRoles = list;
+    }
+
+    async Task Submit()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        Member.Roles = SelectedRoles.Select(x => x.Id).ToHashSet();
+        Member.Update(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, Member.Roles));
+        dialogService.Close(true);
+        
+    }
+}

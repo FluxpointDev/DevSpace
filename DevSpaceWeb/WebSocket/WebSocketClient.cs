@@ -47,30 +47,30 @@ public class WebSocketClient : WssClient
         request.SetHeader("Authorization", Key);
         request.SetBody();
 
-        Console.WriteLine("Connecting websocket");
+        Logger.LogMessage("WebSocket", "Connecting websocket", LogSeverity.Info);
     }
 
     public override void OnWsConnected(NetCoreServer.HttpResponse response)
     {
         WebSocket = new WebSocketBase { Client = this };
-        Console.WriteLine($"Chat WebSocket client connected a new session with Id {Id}");
+        Logger.LogMessage("WebSocket", $"Chat WebSocket client connected a new session with Id {Id}", LogSeverity.Info);
     }
 
     public override void OnWsDisconnected()
     {
-        Console.WriteLine($"Chat WebSocket client disconnected a session with Id {Id}");
+        Logger.LogMessage("WebSocket", $"Chat WebSocket client disconnected a session with Id {Id}", LogSeverity.Info);
     }
 
     public override void OnWsReceived(byte[] buffer, long offset, long size)
     {
-        Console.WriteLine("Got MESSAGE");
+        Logger.LogMessage("WebSocket", "Got MESSAGE", LogSeverity.Info);
         WebSocketMessage(WebSocket, Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
     }
 
 
     protected override void OnDisconnected()
     {
-        Console.WriteLine($"Chat WebSocket client disconnected a session with Id {Id}");
+        Logger.LogMessage("WebSocket", $"Chat WebSocket client disconnected a session with Id {Id}", LogSeverity.Info);
         base.OnDisconnected();
         // Wait for a while...
         //Thread.Sleep(TimeSpan.FromSeconds(15));
@@ -82,7 +82,7 @@ public class WebSocketClient : WssClient
 
     protected override void OnError(SocketError error)
     {
-        Console.WriteLine($"Chat WebSocket client caught an error with code {error}");
+        Logger.LogMessage("WebSocket", $"Chat WebSocket client caught an error with code {error}", LogSeverity.Warn);
     }
 
     private bool _stop;
@@ -93,7 +93,7 @@ public class WebSocketClient : WssClient
 
         EventType EventType = payload!["type"]!.ToObject<EventType>();
 
-        Console.WriteLine("Event: " + EventType.ToString());
+        Logger.LogMessage("WebSocket", "Event: " + EventType.ToString(), LogSeverity.Info);
 
         try
         {
@@ -118,8 +118,8 @@ public class WebSocketClient : WssClient
                 case EventType.ValidateCert:
                     {
                         ValidateCertEvent @event = payload.ToObject<ValidateCertEvent>()!;
-                        Console.WriteLine("Client Validate Cert: " + @event.CertHash);
-                        Console.WriteLine("With " + WebSocket.Client.ValidateCert.Cert);
+                        Logger.LogMessage("WebSocket", "Client Validate Cert: " + @event.CertHash, LogSeverity.Info);
+                        Logger.LogMessage("WebSocket", "With " + WebSocket.Client.ValidateCert.Cert, LogSeverity.Info);
                         if (WebSocket.Client.ValidateCert.Cert == @event.CertHash)
                         {
                             if (WebSocket.FirstCertVaid)
@@ -141,7 +141,7 @@ public class WebSocketClient : WssClient
                 case EventType.TaskResponse:
                     {
                         IWebSocketResponseEvent<dynamic> @event = payload.ToObject<IWebSocketResponseEvent<dynamic>>()!;
-                        Console.WriteLine("Got Response: " + @event.TaskId);
+                        Logger.LogMessage("WebSocket", "Got Response: " + @event.TaskId, LogSeverity.Info);
                         if (WebSocket.TaskCollection.TryGetValue(@event.TaskId, out var task))
                         {
                             if (@event.IsFail)
@@ -157,8 +157,8 @@ public class WebSocketClient : WssClient
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"WebSocket Event {payload["type"].ToString()} Error ");
-            Console.WriteLine(ex);
+            Logger.LogMessage("WebSocket", $"WebSocket Event {payload["type"].ToString()} Error", LogSeverity.Error);
+            Logger.LogMessage("WebSocket", ex.ToString(), LogSeverity.Error);
         }
     }
 
@@ -166,7 +166,7 @@ public class WebSocketClient : WssClient
     {
         if (!WebSocket.IsCertValid)
         {
-            Console.WriteLine("Invalid Cert: " + json.type.ToString());
+            Logger.LogMessage("WebSocket", "Invalid Cert: " + json.type.ToString(), LogSeverity.Warn);
             return null;
         }
 
@@ -184,7 +184,7 @@ public class WebSocketClient : WssClient
         {
             return null;
         }
-        Console.WriteLine("Task Success: " + tcs.Task.IsCompletedSuccessfully);
+        Logger.LogMessage("WebSocket", "Task Success: " + tcs.Task.IsCompletedSuccessfully, LogSeverity.Info);
 
         var Response = result.ToObject<IWebSocketResponseEvent<T>>();
 

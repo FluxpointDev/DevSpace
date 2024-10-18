@@ -131,7 +131,7 @@ public class EmailService
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Logger.LogMessage(ex.ToString(), LogSeverity.Error);
                 return false;
             }
         }

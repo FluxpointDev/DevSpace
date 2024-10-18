@@ -8,6 +8,7 @@
 @using System.Reflection
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
+@typeparam Model
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <EditForm @ref="@Form" Model="@CloneData"
@@ -51,9 +52,9 @@
     private SessionProvider Session { get; set; }
 
     [Parameter]
-    public object ModelData { get; set; }
+    public Model ModelData { get; set; }
 
-    public object CloneData { get; set; }
+    public Model CloneData { get; set; }
 
     public EditForm Form { get; internal set; }
 
@@ -63,7 +64,7 @@
     public string Description { get; set; }
 
     [Parameter]
-    public Func<object, string?> SubmitTask { get; set; }
+    public Func<Model, string?> SubmitTask { get; set; }
 
     public string? ErrorMessage { get; set; }
 
@@ -102,7 +103,7 @@
         if (IsLoaded)
             return;
         IsLoaded = true;
-        CloneData = JsonConvert.DeserializeObject(JsonConvert.SerializeObject(ModelData), ModelData.GetType());
+        CloneData = JsonConvert.DeserializeObject<Model>(JsonConvert.SerializeObject(ModelData));
         FormItems = CloneData.GetType().GetProperties().Select(x => new DynamicFormItem(CloneData, x)).ToList();
 
     }

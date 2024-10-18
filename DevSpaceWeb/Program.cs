@@ -9,6 +9,7 @@ using Swashbuckle.AspNetCore.SwaggerUI;
 namespace DevSpaceWeb;
 public class Program
 {
+
     public static InteractiveServerRenderMode RenderMode = new InteractiveServerRenderMode(prerender: false);
     /// <summary>
     /// Current directory of the running program
@@ -28,14 +29,15 @@ public class Program
 
     public static void Main(string[] args)
     {
+        Logger.RunLogger("Dev Space", LogSeverity.Error);
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
 
-        Console.WriteLine("Loaded config in: " + Program.Directory.Path);
+        Logger.LogMessage("Loaded config in: " + Program.Directory.Path, LogSeverity.Info);
 
         var builder = WebApplication.CreateBuilder(args);
-        IsDevMode = System.Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
-        IsPreviewMode = System.Environment.GetEnvironmentVariable("PREVIEW") == "true";
+        IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
+        IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
         _DB.Client = new MongoDB.Driver.MongoClient(_Data.Config.Database.GetConnectionString());
         _DB.Init();
         
@@ -86,7 +88,7 @@ public class Program
             RequestPath = "/public",
             OnPrepareResponse = async ctx =>
             {
-                Console.WriteLine("Got Response");
+                Logger.LogMessage("Got Response", LogSeverity.Debug);
                 if (!(_Data.Config.Instance.Features.AllowUnauthenticatedPublicFolderAccess || (ctx.Context.User.Identity != null || ctx.Context.User.Identity.IsAuthenticated)))
                 {
                     ctx.Context.Response.Clear();
@@ -105,14 +107,14 @@ public class Program
 
         if (_Data.Config.Instance.Features.SwaggerEnabled)
         {
-            Console.WriteLine("Swagger Enabled");
+            Logger.LogMessage("Swagger Enabled", LogSeverity.Info);
             app.UseSwagger(c =>
             {
             });
 
             if (_Data.Config.Instance.Features.SwaggerUIEnabled)
             {
-                Console.WriteLine("Swagger UI Enabled");
+                Logger.LogMessage("Swagger UI Enabled", LogSeverity.Info);
                 app.UseSwaggerUI(c =>
                 {
                     c.DocumentTitle = "Dev Space Endpoints";

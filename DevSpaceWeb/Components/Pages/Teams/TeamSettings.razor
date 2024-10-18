@@ -13,27 +13,45 @@
     <RadzenTabs>
         <Tabs>
             <RadzenTabsItem Text="Basic">
-                <EditForm Model="@TeamForm" OnValidSubmit="@CheckTeam">
-                            <DataAnnotationsValidator />
+                @if (!ManageTeam)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                        You do not have permission for Manage Team.
+                    </RadzenAlert>
+                }
+                else
+                {
+                    <EditForm Model="@TeamForm" OnValidSubmit="@CheckTeam">
+                        <DataAnnotationsValidator />
 
-                            <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
-                            <RadzenTextBox @bind-Value="@TeamForm.Name" Style="width: 100%" aria-label="Team Name" autocomplete="false"
-                                           Placeholder="My Team" MaxLength="32" />
-                            <ValidationMessage For="() => TeamForm.Name" style="color: var(--rz-danger);" />
+                    <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
+                    <RadzenTextBox @bind-Value="@TeamForm.Name" Style="width: 100%" aria-label="Team Name" autocomplete="false"
+                                   Placeholder="My Team" MaxLength="32" />
+                    <ValidationMessage For="() => TeamForm.Name" style="color: var(--rz-danger);" />
 
-                            <br style="margin-bottom: 20px;" />
+                    <br style="margin-bottom: 20px;" />
 
-                            <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
-                            <RadzenTextBox @bind-Value="@TeamForm.VanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="false"
-                                           Placeholder="myteam" MaxLength="100" />
-                            <ValidationMessage For="() => TeamForm.VanityUrl" style="color: var(--rz-danger);" />
-                            <br />
-                            <br />
+                    <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
+                    <RadzenTextBox @bind-Value="@TeamForm.VanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="false"
+                                   Placeholder="myteam" MaxLength="100" />
+                    <ValidationMessage For="() => TeamForm.VanityUrl" style="color: var(--rz-danger);" />
+                    <br />
+                    <br />
 
-                            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" ButtonType="ButtonType.Submit" />
-                        </EditForm>
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" ButtonType="ButtonType.Submit" />
+                
+                </EditForm>
+                }
             </RadzenTabsItem>
             <RadzenTabsItem Text="Members">
+                @if (!ManageMembers)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                        You do not have permission for Manage Members.
+                    </RadzenAlert>
+                }
+                else
+                {
                 <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" />
                 <br />
                 <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Users">
@@ -49,8 +67,12 @@
                                             @ud.UserName
                                         </RadzenText>
                                     </RadzenStack>
-                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud))" />
-                                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
+                                    @if (user != Session.Selected.Team.Data.OwnerId)
+                                    {
+                                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" />
+                                        <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
+                                        <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Change Roles" Click="@(() => ChangeMemberRoles(ud))" />
+                                    }
                                 }
                                 else
                                 {
@@ -61,10 +83,10 @@
                                             @user.ToString()
                                         </RadzenText>
                                     </RadzenStack>
-                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud))" />
+                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(user))" />
                                 }
 
-                                
+
                             </RadzenStack>
                             <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
                             <RadzenRow>
@@ -78,30 +100,30 @@
                         </RadzenCard>
                     </Template>
                 </RadzenDataList>
+                }
             </RadzenTabsItem>
             <RadzenTabsItem Text="Roles">
-                <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Role" />
+                @if (!ManageRoles)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                        You do not have permission for Manage Roles.
+                    </RadzenAlert>
+                }
+                else
+                {
+                <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Role" Click="@CreateRole" />
                 <br />
-                <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Users">
-                    <Template Context="user">
+                <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Roles">
+                    <Template Context="role">
                         <RadzenCard Style="width:300px;">
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                                @if (_DB.Users.TryGetValue(user, out PartialUserData ud))
-                                {
-                                    <RadzenImage Path="" Style="width: 80px; height: 80px; border-radius: 50%" />
-                                    <RadzenStack Gap="0">
-                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">User</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body1"><b>@ud.UserName</b></RadzenText>
-                                    </RadzenStack>
-                                }
-                                else
-                                {
-                                    <RadzenImage Path="https://cdn.fluxpoint.dev/devspace/user_avatar.webp" Style="width: 80px; height: 80px; border-radius: 50%" />
-                                    <RadzenStack Gap="0">
-                                        <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">User</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body1"><b>Unknown</b></RadzenText>
-                                    </RadzenStack>
-                                }
+                                <RadzenStack Gap="0">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Name</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        @role.Name
+                                    </RadzenText>
+                                </RadzenStack>
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamRole(role.Id))" />
 
                             </RadzenStack>
                             <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
@@ -116,6 +138,7 @@
                         </RadzenCard>
                     </Template>
                 </RadzenDataList>
+                }
             </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
@@ -128,19 +151,36 @@
     protected override async Task OnInitializedAsync()
     {
         TeamForm = new TeamBasicModel
-        {
-            Name = Session.Selected.Team.Data.Name
-        };
+            {
+                Name = Session.Selected.Team.Data.Name
+            };
         TeamForm.VanityUrl = Session.Selected.Team.Data.VanityUrl;
         Users = Session.Selected.Team.Data.Members.Keys;
+        Roles = Session.Selected.Team.Data.CachedRoles.Values.ToArray();
+        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
+        if (member != null)
+        {
+            ManageTeam = Session.Selected.Team.Data.HasTeamPermission(member, TeamPermission.ManageTeam);
+            ManageMembers = Session.Selected.Team.Data.HasTeamPermission(member, TeamPermission.ManageMembers);
+            ManageRoles = Session.Selected.Team.Data.HasTeamPermission(member, TeamPermission.ManageRoles);
+        }
     }
 
+    public bool ManageTeam { get; set; }
+    public bool ManageMembers { get; set; }
+    public bool ManageRoles { get; set; }
+
     public IEnumerable<ObjectId> Users { get; set; }
+    public TeamRoleData[] Roles { get; set; }
 
     public TeamBasicModel TeamForm { get; set; } = new TeamBasicModel();
 
     public async Task CheckTeam()
     {
+        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
+        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageTeam))
+            return;
+
         if (!string.IsNullOrEmpty(TeamForm.VanityUrl))
         {
             TeamForm.VanityUrl = TeamForm.VanityUrl.Replace(" ", "-").ToLower();
@@ -173,14 +213,15 @@
 
     public async Task AddMember()
     {
-        await DialogService.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), (object obj) =>
+        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
+        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageMembers))
+            return;
+
+        await DialogService.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), (TeamAddUserModel data) =>
         {
-            TeamAddUserModel data = (TeamAddUserModel)obj;
-            Console.WriteLine("Email: " + data.Email);
-            foreach(var i in _DB.Users.Values)
-            {
-                Console.WriteLine("Got Email: " + i.Email);
-            }
+            TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
+            if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageMembers))
+                return "You do not have permission for Manage Members.";
 
             PartialUserData? user = _DB.Users.Values.FirstOrDefault(x => x.Email.Equals(data.Email, StringComparison.OrdinalIgnoreCase));
             if (user == null)
@@ -192,16 +233,17 @@
             if (Session.Selected.Team.Data.Members.ContainsKey(user.Id))
                 return "This user account has already been added to the team.";
 
-            TeamMemberData member = new TeamMemberData
-            {
-                TeamId = Session.Selected.Team.Data.Id
-            };
+            TeamMemberData memberData = new TeamMemberData
+                {
+                    TeamId = Session.Selected.Team.Data.Id,
+                    UserId = user.Id
+                };
 
             var task = Task.Run<bool>(async () =>
             {
                 try
                 {
-                    await _DB.Members.CreateAsync(member);
+                    await _DB.Members.CreateAsync(memberData);
                 }
                 catch
                 {
@@ -211,9 +253,9 @@
             });
             task.Wait();
             if (!task.Result)
-                return "Failed to create team member due to a database error";
-
-            Session.Selected.Team.Data.Members.Add(user.Id, member.Id);
+                return "Failed to create team member due to a database error.";
+            Session.Selected.Team.Data.Members.Add(user.Id, memberData.Id);
+            Session.Selected.Team.Data.CachedMembers.Add(memberData.Id, memberData);
             Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
             return string.Empty;
         });
@@ -221,6 +263,10 @@
 
     public async Task TransferOwnership(PartialUserData user)
     {
+        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
+        if (member == null || member.Team == null || member.Team.OwnerId != Session.CurrentUserId.Value)
+            return;
+
         bool Confirm = await DialogService.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Session.Selected.Team.Data.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
         if (!Confirm)
             return;
@@ -231,18 +277,92 @@
         if (!twoFactorConfirm)
             return;
 
+        member = Session.Selected.Team.Data.GetMember(Session);
+        if (member == null || member.Team == null || member.Team.OwnerId != Session.CurrentUserId.Value)
+            return;
+
         Session.Selected.Team.Data.OwnerId = user.Id;
         Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id));
     }
 
-    public async Task RemoveTeamMember(PartialUserData user)
-    {
-
-    }
-
     public async Task RemoveTeamMember(ObjectId user)
     {
+        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
+        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageMembers))
+            return;
+
         Session.Selected.Team.Data.Members.Remove(user);
         Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
+    }
+
+    public async Task CreateRole()
+    {
+        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
+        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageRoles))
+            return;
+
+        await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), (TeamRoleModel data) =>
+        {
+            TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
+            if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageRoles))
+                return "You do not have permission for Manage Roles.";
+
+            foreach (var r in Session.Selected.Team.Data.CachedRoles.Values)
+            {
+                if (r.Name.Equals(data.Name, StringComparison.OrdinalIgnoreCase))
+                    return "A role with this name already exists.";
+            }
+
+            TeamRoleData role = new TeamRoleData
+                {
+                    TeamId = Session.Selected.Team.Data.Id,
+                    Name = data.Name,
+                    Description = data.Description
+                };
+
+            var task = Task.Run<bool>(async () =>
+        {
+            try
+            {
+                await _DB.Roles.CreateAsync(role);
+            }
+            catch
+            {
+                return false;
+            }
+            return true;
+        });
+            task.Wait();
+            if (!task.Result)
+                return "Failed to create team role due to a database error.";
+            Session.Selected.Team.Data.Roles.Add(role.Id);
+            Session.Selected.Team.Data.CachedRoles.Add(role.Id, role);
+            Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
+            return string.Empty;
+        });
+    }
+
+    public async Task RemoveTeamRole(ObjectId role)
+    {
+        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
+        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageRoles))
+            return;
+
+        Session.Selected.Team.Data.Roles.Remove(role);
+        Session.Selected.Team.Data.CachedRoles.Remove(role);
+        Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
+    }
+
+    public async Task ChangeMemberRoles(PartialUserData user)
+    {
+        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
+        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageMembers))
+            return;
+
+        var Dialog = await DialogService.OpenAsync<ChangeMemberRolesDialog>($"Update Roles for {user.UserName}", new Dictionary<string, object>()
+        {
+            { "Team", Session.Selected.Team.Data },
+            { "Member", Session.Selected.Team.Data.GetMember(user) }
+        });
     }
 }

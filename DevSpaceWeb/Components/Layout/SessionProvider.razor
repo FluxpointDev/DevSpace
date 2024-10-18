@@ -193,7 +193,7 @@
         }
         catch (Exception ex)
         {
-            Console.WriteLine(ex);
+            Logger.LogMessage(ex.ToString(), LogSeverity.Error);
         }
         string? Data = Cache.GetString("passkey-" + PasskeyRequestId);
         if (!string.IsNullOrEmpty(Data))
@@ -248,7 +248,16 @@
 
         if (Path.StartsWith("admin", StringComparison.OrdinalIgnoreCase))
         {
-
+            if (_Data.Config.Database.IsSetup && State != null && State.User.Identity.IsAuthenticated)
+            {
+                var User = await GetCurrentUserAsync();
+                CurrentUserId = User.Id;
+                if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
+                {
+                    SessionError = SessionErrorType.SessionSecurityNewIp;
+                    return;
+                }
+            }
         }
         else
         {
@@ -272,8 +281,6 @@
                 _DB.SessionUpdated += SessionChangedEvent;
                 if (_Data.Config.Database.IsSetup)
                 {
-
-
                     var User = await GetCurrentUserAsync();
                     CurrentUserId = User.Id;
                     if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))

@@ -25,11 +25,11 @@ public static class DialogExtensions
         return (bool)Dialog;
     }
 
-    public static async Task<bool> ShowDynamicFormAsync<Model>(this DialogService service, string title, object model, Func<object, string?> function)
+    public static async Task<bool> ShowDynamicFormAsync<Model>(this DialogService service, string title, Model model, Func<Model, string?> function)
     {
         var options = new DialogOptions() { AutoFocusFirstElement = true };
 
-        var dialog = await service.OpenAsync<DynamicFormDialog>(title, new Dictionary<string, object>()
+        var dialog = await service.OpenAsync<DynamicFormDialog<Model>>(title, new Dictionary<string, object>()
         {
             { "ModelData", model },
             { "SubmitTask", function }

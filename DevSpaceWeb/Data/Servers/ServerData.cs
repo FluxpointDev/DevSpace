@@ -1,7 +1,9 @@
-﻿using DevSpaceWeb.Database;
+﻿using DevSpaceWeb.Data.Projects;
+using DevSpaceWeb.Database;
 using DevSpaceWeb.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
 using NetCoreServer;
 using System.Security.Authentication;
 
@@ -36,6 +38,12 @@ public class ServerData
 
         return Id.ToString();
     }
+
+    public void Update(UpdateDefinition<ServerData> update)
+    {
+        var filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
+        _DB.Servers.Collection.UpdateOne(filter, update);
+    }
 }
 public class ServerWebSocket
 {
@@ -50,7 +58,7 @@ public class ServerWebSocket
                 ValidateCert.Cert = b.GetCertHashString();
                 if (b.Subject == "CN=devspace")
                 {
-                    Console.WriteLine($"Cert: {b.Subject} " + ValidateCert.Cert);
+                    Logger.LogMessage($"Cert: {b.Subject} " + ValidateCert.Cert, LogSeverity.Debug);
                     return true;
                 }
             }
@@ -62,15 +70,15 @@ public class ServerWebSocket
         });
         context.ClientCertificateRequired = false;
 
-        Console.WriteLine($"Connecting to {server.AgentIp}:{server.AgentPort}");
+        Logger.LogMessage($"Connecting to {server.AgentIp}:{server.AgentPort}", LogSeverity.Info);
         Client = new WebSocketClient(context, server.AgentIp, server.AgentPort)
         {
             ValidateCert = ValidateCert,
             Key = server.AgentKey
         };
         // Connect the client
-        Console.WriteLine("Client connecting...");
+        Logger.LogMessage("Client connecting...", LogSeverity.Debug);
         bool Connected = Client.ConnectAsync();
-        Console.WriteLine("Is Connected: " + Connected);
+        Logger.LogMessage("Is Connected: " + Connected, LogSeverity.Debug);
     }
 }

@@ -86,13 +86,13 @@
 
     public void OnProgress(UploadProgressArgs args, string name)
     {
-        Console.WriteLine($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.");
+        Logger.LogMessage($"{args.Progress}% '{name}' / {args.Loaded} of {args.Total} bytes.", LogSeverity.Debug);
 
         if (args.Progress == 100)
         {
             foreach (var file in args.Files)
             {
-                Console.WriteLine($"Uploaded: {file.Name} / {file.Size} bytes");
+                Logger.LogMessage($"Uploaded: {file.Name} / {file.Size} bytes", LogSeverity.Debug);
             }
         }
     }

@@ -78,17 +78,17 @@ namespace DevSpaceWeb.Database
                 res = await cmd.ExecuteBufferedAsync();
                 if (!res.IsSuccess)
                 {
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                    Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                    Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                     return DatabaseSetupErrorType.FailedSudo;
                 }
 
                 if (res.StandardOutput.Contains("may not run sudo"))
                 {
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                    Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                    Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                     return DatabaseSetupErrorType.NoSudoAccess;
                 }
 
@@ -98,9 +98,9 @@ namespace DevSpaceWeb.Database
                 res = await cmd.ExecuteBufferedAsync();
                 if (!res.IsSuccess)
                 {
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                    Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                    Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                     return DatabaseSetupErrorType.FailedSudo;
                 }
 
@@ -117,9 +117,9 @@ namespace DevSpaceWeb.Database
                         File.Delete(Program.Directory.Cache.Path + "mongodb.asc");
                     }
                     catch { }
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(ex);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                    Logger.LogMessage(ex.ToString(), LogSeverity.Debug);
+                    Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                     return DatabaseSetupErrorType.FailedAptInstall;
                 }
 
@@ -134,9 +134,9 @@ namespace DevSpaceWeb.Database
                     }
                     catch { }
 
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                    Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                    Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                     return DatabaseSetupErrorType.FailedAptInstall;
                 }
 
@@ -153,9 +153,9 @@ namespace DevSpaceWeb.Database
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(ex);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                    Logger.LogMessage(ex.ToString(), LogSeverity.Debug);
+                    Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                     return DatabaseSetupErrorType.FailedAptInstall;
                 }
 
@@ -164,9 +164,9 @@ namespace DevSpaceWeb.Database
                 res = await cmd.ExecuteBufferedAsync();
                 if (!res.IsSuccess)
                 {
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                    Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                    Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                     return DatabaseSetupErrorType.FailedAptInstall;
                 }
 
@@ -176,9 +176,9 @@ namespace DevSpaceWeb.Database
                 res = await cmd.ExecuteBufferedAsync();
                 if (!res.IsSuccess)
                 {
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                    Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                    Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                     return DatabaseSetupErrorType.FailedAptInstall;
                 }
 
@@ -188,13 +188,13 @@ namespace DevSpaceWeb.Database
                 res = await cmd.ExecuteBufferedAsync();
                 if (!res.IsSuccess)
                 {
-                    Console.WriteLine("--- Database Setup Error ---");
-                    Console.WriteLine(res.StandardError);
-                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                    Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                    Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                    Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                     return DatabaseSetupErrorType.FailedSystemProcess;
                 }
 
-                Console.WriteLine("Type: " + res.StandardOutput);
+                Logger.LogMessage("Type: " + res.StandardOutput, LogSeverity.Debug);
 
                 switch (res.StandardOutput.Trim())
                 {
@@ -205,9 +205,9 @@ namespace DevSpaceWeb.Database
                             res = await cmd.ExecuteBufferedAsync();
                             if (!res.IsSuccess)
                             {
-                                Console.WriteLine("--- Database Setup Start ---");
-                                Console.WriteLine(res.StandardError);
-                                Console.WriteLine("--- --- --- ---- --- --- ---");
+                                Logger.LogMessage("--- Database Setup Start ---", LogSeverity.Debug);
+                                Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                                Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
 
                                 if (res.StandardError.Contains("Failed to start"))
                                 {
@@ -216,9 +216,9 @@ namespace DevSpaceWeb.Database
                                     res = await cmd.ExecuteBufferedAsync();
                                     if (!res.IsSuccess)
                                     {
-                                        Console.WriteLine("--- Database Setup Error ---");
-                                        Console.WriteLine(res.StandardError);
-                                        Console.WriteLine("--- --- --- ---- --- --- ---");
+                                        Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                                        Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                                        Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                                         return DatabaseSetupErrorType.FailedSystemProcess;
                                     }
 
@@ -228,18 +228,18 @@ namespace DevSpaceWeb.Database
                                     res = await cmd.ExecuteBufferedAsync();
                                     if (!res.IsSuccess)
                                     {
-                                        Console.WriteLine("--- Database Setup Error ---");
-                                        Console.WriteLine(res.StandardError);
-                                        Console.WriteLine("--- --- --- ---- --- --- ---");
+                                        Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                                        Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                                        Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                                         return DatabaseSetupErrorType.FailedSystemProcess;
                                     }
 
                                 }
                                 else
                                 {
-                                    Console.WriteLine("--- Database Setup Error ---");
-                                    Console.WriteLine(res.StandardError);
-                                    Console.WriteLine("--- --- --- ---- --- --- ---");
+                                    Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                                    Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                                    Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                                     return DatabaseSetupErrorType.FailedSystemProcess;
                                 }
                             }
@@ -249,9 +249,9 @@ namespace DevSpaceWeb.Database
                             res = await cmd.ExecuteBufferedAsync();
                             if (!res.IsSuccess)
                             {
-                                Console.WriteLine("--- Database Setup Error ---");
-                                Console.WriteLine(res.StandardError);
-                                Console.WriteLine("--- --- --- ---- --- --- ---");
+                                Logger.LogMessage("--- Database Setup Error ---", LogSeverity.Debug);
+                                Logger.LogMessage(res.StandardError, LogSeverity.Debug);
+                                Logger.LogMessage("--- --- --- ---- --- --- ---", LogSeverity.Debug);
                                 return DatabaseSetupErrorType.FailedSystemProcess;
                             }
                         }

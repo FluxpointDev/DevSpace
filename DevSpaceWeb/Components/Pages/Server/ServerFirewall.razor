@@ -34,7 +34,7 @@
         isLoading = true;
 
         await Task.Yield();
-        Console.WriteLine("Loading Data");
+        Logger.LogMessage("Loading Data", LogSeverity.Info);
         if (Program.IsPreviewMode)
         {
             isLoading = false;
@@ -54,14 +54,14 @@
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
             }
         }
 
         if (FirewallInfo != null)
         {
             count = FirewallInfo.Rules.Count();
-            Console.WriteLine("Got: " + count);
+            Logger.LogMessage("Got: " + count, LogSeverity.Debug);
             employees = FirewallInfo.Rules;
         }
 
