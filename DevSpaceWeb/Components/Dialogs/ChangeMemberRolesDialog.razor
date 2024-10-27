@@ -7,7 +7,7 @@
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
-        <RadzenPickList Source="@Team.CachedRoles.Values" @bind-Target="@SelectedRoles" Style="height:500px; width:100%;"
+        <RadzenPickList @bind-Source="@AllRoles" @bind-Target="@SelectedRoles" Style="height:500px; width:100%;"
                         TextProperty="@nameof(TeamRoleData.Name)" AllowFiltering="true" Multiple="true" ShowHeader="true"
                         ButtonGap="12px" ButtonJustifyContent="JustifyContent.Center" ButtonSize="ButtonSize.Medium" ButtonShade="Shade.Dark"
                         ButtonVariant="Variant.Filled">
@@ -38,6 +38,8 @@
     [Parameter]
     public TeamMemberData Member { get; set; }
 
+    public IEnumerable<TeamRoleData> AllRoles { get; set; }
+
     public IEnumerable<TeamRoleData> SelectedRoles { get; set; }
 
     protected override void OnParametersSet()
@@ -49,6 +51,7 @@
                 list.Add(role);
         }
         SelectedRoles = list;
+        AllRoles = Team.CachedRoles.Values.Except(SelectedRoles);
     }
 
     async Task Submit()
