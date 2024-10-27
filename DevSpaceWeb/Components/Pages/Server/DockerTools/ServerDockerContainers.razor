@@ -4,6 +4,10 @@
 @using Docker.DotNet.Models
 
 <div class="dash-box">
+    <div class="dash-box-header dash-box-content">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Containers</RadzenText>
+    </div>
     <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
                     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="15"
                     AllowSorting="true" Data="@employees" Count="@count" LoadData="@LoadData"
@@ -13,7 +17,7 @@
         <Columns>
             <RadzenDataGridColumn Title="Name" MinWidth="120px">
                 <Template>
-                    @context.Names.First().Substring(1)
+                    <RadzenLink Path="@("/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/containers/" + context.ID)" Text="@context.Names.First().Substring(1)" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" MinWidth="120px">
@@ -55,7 +59,7 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="" MinWidth="120px">
+            <RadzenDataGridColumn Title="Actions" MinWidth="120px">
                 <Template>
                 </Template>
             </RadzenDataGridColumn>
