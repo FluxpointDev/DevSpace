@@ -186,6 +186,11 @@ public static class DockerHandler
 
                 });
                 break;
+            case DockerEventType.ListPlugins:
+                return await Program.DockerClient.Plugin.ListPluginsAsync(new PluginListParameters
+                {
+
+                });
             case DockerEventType.SystemInfo:
                 return await Program.DockerClient.System.GetSystemInfoAsync();
         }

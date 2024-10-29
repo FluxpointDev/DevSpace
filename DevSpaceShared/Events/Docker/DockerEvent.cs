@@ -24,6 +24,7 @@ public enum DockerEventType
 {
     ListContainers, GetContainer, InspectContainer, CreateContainer, UpdateContainer, ControlContainer,
     ListImages, DeleteImage,
+    ListPlugins,
     SystemInfo
 }
 public enum ControlContainerType
