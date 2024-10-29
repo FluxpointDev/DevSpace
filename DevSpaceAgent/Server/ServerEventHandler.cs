@@ -89,6 +89,30 @@ public static class ServerEventHandler
                         await ws.RespondAsync(@event.TaskId, response);
                     }
                     break;
+                case EventType.Docker:
+                    {
+                        DockerEvent @event = payload.ToObject<DockerEvent>()!;
+                        DockerResponse<object?> response = new DockerResponse<object?>();
+                        if (!Directory.Exists("/var/lib/docker"))
+                        {
+                            response.Error = DockerError.NotInstalled;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                response.Data = await DockerHandler.Run(@event);
+                            }
+                            catch
+                            {
+                                response.Error = DockerError.Failed;
+                            }
+
+                        }
+                        await ws.RespondAsync(@event.TaskId, response);
+                    }
+                    
+                    break;
                 case EventType.DockerGetContainer:
                     {
                         ContainerEvent @event = payload.ToObject<ContainerEvent>()!;

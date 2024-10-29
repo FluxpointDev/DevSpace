@@ -2,283 +2,242 @@
 @using DevSpaceShared.Responses
 @using DevSpaceShared.WebSocket
 @using Docker.DotNet.Models
+@using System.Linq.Dynamic.Core
+@inject ContextMenuService ContextMenuService
+@inject TooltipService tooltipService
 
 <div class="dash-box">
     <div class="dash-box-header dash-box-content">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
         <RadzenText class="mt-1" TextStyle="TextStyle.H6">Containers</RadzenText>
+        <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" />
     </div>
-    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="15"
-                    AllowSorting="true" Data="@employees" Count="@count" LoadData="@LoadData"
-                    IsLoading="@isLoading" GridLines="DataGridGridLines.Horizontal"
-                    LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Simple"
-                    SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="@selectedEmployees">
+    <div class="dash-box-content">
+        <RadzenButton Variant="Variant.Outlined" Text="Start" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
+        <RadzenButton Variant="Variant.Outlined" Text="Stop" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Restart" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Kill" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Pause" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Resume" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Flat" Text="Remove" Icon="delete" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+        <RadzenButton Variant="Variant.Filled" Text="Create Container" Icon="add" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" />
+    </div>
+    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
+    PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" ridLines="DataGridGridLines.Horizontal"
+    @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
+    PagingSummaryFormat="@(count + " container" + (count != 1 ? "s" : "") + $" - {countDead} dead" )" Density="Density.Compact"
+    AllowColumnResize="true" AllowSorting="false"
+    AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+    GotoFirstPageOnSort="true"
+    LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
         <Columns>
-            <RadzenDataGridColumn Title="Name" MinWidth="120px">
-                <Template>
-                    <RadzenLink Path="@("/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/containers/" + context.ID)" Text="@context.Names.First().Substring(1)" />
+            <RadzenDataGridColumn Width="26px" Sortable="false" Filterable="false" Frozen="true" Resizable="false">
+                <HeaderTemplate>
+                    <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
+                    Value="@(selectedEmployees == null || selectedEmployees?.Any() != true ? false : !employees.All(i => selectedEmployees.Contains(i)) ? null : employees.Any(i => selectedEmployees.Contains(i)))"
+                    Change="@(args => selectedEmployees = args == true ? employees.ToList() : null)" />
+                </HeaderTemplate>
+                <Template Context="data">
+                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedEmployees != null && selectedEmployees.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                    TValue="bool" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Status" MinWidth="120px">
+            <RadzenDataGridColumn Title="Name" Property="@nameof(ContainerItem.Name)" Width="120px" Frozen="true" Filterable="false">
+                <Template>
+                    <RadzenLink Path="@("/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/containers/" + context.ID)" Text="@context.GetName()" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Status" Property="@nameof(ContainerItem.State)" FilterMode="FilterMode.CheckBoxList" Width="100px">
                 <Template>
                     @switch (context.State)
                     {
                         case "running":
                             @if (context.Status.EndsWith("(healthy)"))
                             {
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Healthy" IsPill="true" />
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Healthy" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             }
                             else if (context.Status.EndsWith("(unhealthy)"))
                             {
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Unhealthy" IsPill="true" />
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Unhealthy" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             }
                             else
                             {
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Running" IsPill="true" />
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Running" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             }
                             break;
                         case "created":
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Created" IsPill="true" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Created" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                         case "restarting":
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Restarting" IsPill="true" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Restarting" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                         case "removing":
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Removing" IsPill="true" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Removing" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                         case "paused":
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Paused" IsPill="true" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Paused" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                         case "exited":
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Exited" IsPill="true" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Exited" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                         case "dead":
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" MinWidth="120px">
+            <RadzenDataGridColumn Title="Actions" Width="60px" Sortable="false" Filterable="false" Pickable="false" Resizable="false">
                 <Template>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                        <RadzenButton Click=@(args => ShowContextMenuWithControlsItems(args)) Icon="power_settings_new" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        <RadzenButton Click=@(args => ShowContextMenuWithManageItems(args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                    </RadzenStack>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Stack" Width="120px">
+                <Template>
+                    <RadzenLink Path="@("/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/stacks/" + context.ID)" Text="Test" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Image" Width="120px" Property="@nameof(ContainerListResponse.Image)">
+                <Template>
+                    <RadzenLink Path="@("https://hub.docker.com/r/" + context.Image.Split(":").First())" Target="_blank" Text="@context.Image.Split(":").First()" MouseEnter="@(args => ShowUptimeTooltip(args, context.GetImageExtra()) )" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Created" Width="80px" Property="@nameof(ContainerListResponse.Created)">
+                <Template>
+                    <RadzenText TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, $"{(int)(DateTime.Now - context.Created).TotalDays} Days ago") )">@context.Created.ToString("dd'/'MM'/'yyyy")</RadzenText>
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
 </div>
 
+<style>
+    .dash-box-content .rz-button:not(.rz-button.rz-info ) {
+        border-radius: 0px !important;
+        margin-right: -4px !important;
+        box-shadow: inset 0 0 0 var(--rz-border-width) #717376 !important;
+    }
 
-
-@* <div class="dash-box">
-    <MudTable @ref="@table" ServerData="ServerReload" Dense="true" Hover="true" Elevation="0" MultiSelection="true" Breakpoint="Breakpoint.Sm">
-        <ToolBarContent>
-            <div class="dash-box-icon"><span class="iconify" data-icon="ri:box-3-fill"></span></div>
-            <RadzenText class="mt-1" TextStyle="TextStyle.H6">Containers</RadzenText>
-            <MudSpacer />
-            <MudTextField T="string" Margin="Margin.Dense" @bind-Value="@searchString" DebounceInterval="500" OnDebounceIntervalElapsed="@(s=>OnSearch(s))" Placeholder="Search Name" Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Small" Variant="Variant.Outlined"></MudTextField>
-
-
-        </ToolBarContent>
-
-        <ColGroup>
-            <col style="width: 40px;" />
-            <col style="width: 200px;" />
-            <col style="width: 100px;" />
-            <col />
-        </ColGroup>
-        <HeaderContent>
-            <MudTh><MudTableSortLabel SortLabel="name_filed" InitialDirection="SortDirection.Ascending" T="ContainerListResponse">Name</MudTableSortLabel></MudTh>
-            <MudTh><MudTableSortLabel SortLabel="status_field" T="ContainerListResponse">Status</MudTableSortLabel></MudTh>
-            <MudTh>
-                <MudButtonGroup Size="Size.Small" Color="Color.Default" Variant="Variant.Outlined" OverrideStyles="false">
-                    <MudButton Color="Color.Success" Variant="Variant.Outlined">Start</MudButton>
-                    <MudButton Color="Color.Error" Variant="Variant.Outlined">Stop</MudButton>
-                    <MudButton Color="Color.Warning" Variant="Variant.Outlined">Restart</MudButton>
-                    <MudButton Color="Color.Error" Variant="Variant.Outlined">Kill</MudButton>
-                    <MudButton Color="Color.Default" Variant="Variant.Outlined">Pause</MudButton>
-                    <MudButton Color="Color.Default" Variant="Variant.Outlined">Resume</MudButton>
-                </MudButtonGroup>
-            </MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd DataLabel="Name" Style="width2: 200px;">@context.Names.First().Substring(1)</MudTd>
-            <MudTd DataLabel="Status" Style="width2: 80px;">
-                @switch (context.State)
-                {
-                    case "running":
-                        @if (context.Status.EndsWith("(healthy)"))
-                        {
-                            <MudChip T="string" Color="Color.Success" Variant="Variant.Text" Size="Size.Small">Healthy</MudChip>
-                        }
-                        else if (context.Status.EndsWith("(unhealthy)"))
-                        {
-                            <MudChip T="string" Color="Color.Warning" Variant="Variant.Text" Size="Size.Small">Unhealthy</MudChip>
-                        }
-                        else
-                        {
-                            <MudChip T="string" Color="Color.Success" Variant="Variant.Text" Size="Size.Small">Running</MudChip>
-                        }
-                        break;
-                    case "created":
-                        <MudChip T="string" Color="Color.Dark" Variant="Variant.Text" Size="Size.Small">Created</MudChip>
-                        break;
-                    case "restarting":
-                        <MudChip T="string" Color="Color.Warning" Variant="Variant.Text" Size="Size.Small">Restarting</MudChip>
-                        break;
-                    case "removing":
-                        <MudChip T="string" Color="Color.Dark" Variant="Variant.Text" Size="Size.Small">Removing</MudChip>
-                        break;
-                    case "paused":
-                        <MudChip T="string" Color="Color.Info" Variant="Variant.Text" Size="Size.Small">Paused</MudChip>
-                        break;
-                    case "exited":
-                        <MudChip T="string" Color="Color.Error" Variant="Variant.Text" Size="Size.Small">Exited</MudChip>
-                        break;
-                    case "dead":
-                        <MudChip T="string" Color="Color.Error" Variant="Variant.Text" Size="Size.Small">Down</MudChip>
-                        break;
-                }
-            </MudTd>
-            <MudTd DataLabel="" Style="width2: 100px;">
-                <MudMenu Label="Manage" Variant="Variant.Filled" Dense="true" AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft" Color="Color.Info" Size="Size.Small">
-                    <MudMenuItem>Info</MudMenuItem>
-                    <MudMenuItem>Config</MudMenuItem>
-                    <MudMenuItem>Logs</MudMenuItem>
-                    <MudMenuItem>Stats</MudMenuItem>
-                    <MudMenuItem>Execute</MudMenuItem>
-                    <MudMenuItem>Permissions</MudMenuItem>
-                </MudMenu>
-            </MudTd>
-        </RowTemplate>
-        <NoRecordsContent>
-            <MudText>
-                @if (containers == null)
-                {
-                    <p>No matching records found</p>
-                }
-                else if (containers.Error == DockerError.NotInstalled)
-                {
-                    <MudAlert Severity="Severity.Warning">Docker is not installed on this server</MudAlert>
-                }
-                else if (containers.Error == DockerError.Failed)
-                {
-                    <MudAlert Severity="Severity.Warning">Failed to load docker on this server</MudAlert>
-                }
-            </MudText>
-        </NoRecordsContent>
-        <LoadingContent>
-            <MudText>Loading...</MudText>
-        </LoadingContent>
-        <PagerContent>
-            <MudTablePager RowsPerPageString="Items per page:" LastIcon="" FirstIcon="" />
-        </PagerContent>
-    </MudTable>
-</div> *@
+    .dash-box-content .rz-button-sm .rzi {
+        font-size: 1.15rem !important;
+        width: 1.15rem !important;
+        height: 1.15rem !important;
+    }
+</style>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    DockerResponse<ContainerListResponse[]>? containers = null;
+    DockerResponse<ContainerItem[]>? containers = null;
 
-    IEnumerable<ContainerListResponse> employees;
+    IQueryable<ContainerItem> employees;
     public int count = 0;
-    IList<ContainerListResponse> selectedEmployees;
-    RadzenDataGrid<ContainerListResponse> grid;
+    public int countDead = 0;
+    IList<ContainerItem> selectedEmployees;
+    public bool AnySelected => selectedEmployees != null ? selectedEmployees.Any() : false;
+    RadzenDataGrid<ContainerItem> grid;
     public bool isLoading = false;
+
+
+    public async Task SetNameFilter(string text)
+    {
+
+        Console.WriteLine("Set Filter: " + text);
+        await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
+    }
 
     public async Task LoadData(LoadDataArgs args)
     {
-        isLoading = true;
-
-        await Task.Yield();
+        //await Task.Yield();
         Logger.LogMessage("Loading Data", LogSeverity.Info);
+
         if (Program.IsPreviewMode)
         {
-            employees = new List<ContainerListResponse>
+            employees = new List<ContainerItem>
              {
-                 new ContainerListResponse { Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)" },
-                 new ContainerListResponse { Names = new List<string> { "/discord-bot" }, State = "dead", Status = "" },
-             };
+                 new ContainerItem { Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)" },
+                 new ContainerItem { Names = new List<string> { "/discord-bot" }, State = "dead", Status = "" },
+             }.AsQueryable();
             count = 2;
+            countDead = 1;
         }
         else
         {
             if (containers == null)
             {
+                isLoading = true;
                 try
                 {
-                    containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerListResponse[]>>(new IWebSocketTaskEvent(EventType.DockerListContainers));
-
+                    containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new IWebSocketTaskEvent(EventType.DockerListContainers));
                 }
                 catch (Exception ex)
                 {
                     Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
                 }
+                isLoading = false;
+
+
             }
 
             if (containers != null)
             {
-                var query = containers.Data;
+                var query = containers.Data.AsQueryable();
+
+                if (!string.IsNullOrEmpty(args.Filter))
+                    query = query.Where(args.Filter);
+
+                if (!string.IsNullOrEmpty(args.OrderBy))
+                    query = query.OrderBy(args.OrderBy);
+
                 count = query.Count();
-                employees = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+                countDead = query.Count(x => x.IsDead());
+                employees = query.Skip(args.Skip.Value).Take(args.Top.Value);
             }
         }
 
-        isLoading = false;
+
     }
 
+    void ShowContextMenuWithControlsItems(MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Start", Value = "start", Icon = "power_settings_new", IconColor = Colors.SuccessDark },
+                new ContextMenuItem(){ Text = "Stop", Value = "stop", Icon = "stop", IconColor = Colors.DangerDark },
+                new ContextMenuItem(){ Text = "Restart", Value = "restart", Icon = "restart_alt", IconColor = Colors.WarningDark },
+                new ContextMenuItem(){ Text = "Kill", Value = "kill", Icon = "bolt", IconColor = Colors.InfoDark },
+                new ContextMenuItem(){ Text = "Pause", Value = "pause", Icon = "pause", IconColor = Colors.InfoDark },
+                new ContextMenuItem(){ Text = "Resume", Value = "resume", Icon = "play_arrow", IconColor = Colors.InfoDark },
+                         }, MenuItemClick);
+    }
 
+    void ShowContextMenuWithManageItems(MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Config", Value = "config", Icon = "settings" },
+                new ContextMenuItem(){ Text = "Permissions", Value = "permissions", Icon = "shield_lock" },
+                new ContextMenuItem(){ Text = "Logs", Value = "logs", Icon = "subject" },
+                new ContextMenuItem(){ Text = "Inspect", Value = "inspect", Icon = "search" },
+                new ContextMenuItem(){ Text = "Stats", Value = "stats", Icon = "monitoring" },
+                new ContextMenuItem(){ Text = "Execute", Value = "execute", Icon = "terminal" },
+                                 }, MenuItemClick);
+    }
 
-    //private string searchString = null;
-    // private MudTable<ContainerListResponse> table;
+    void MenuItemClick(MenuItemEventArgs args)
+    {
+        Console.WriteLine($"Menu item with Value={args.Value} clicked");
+        ContextMenuService.Close();
+    }
 
-    // private void OnSearch(string text)
-    // {
-    //     table.ReloadServerData();
-    // }
+    void ShowUptimeTooltip(ElementReference elementReference, string uptime) => tooltipService.Open(elementReference, uptime, null);
 
-    // public async Task<TableData<ContainerListResponse>> ServerReload(TableState state, CancellationToken token)
-    // {
-    //     if (Program.IsPreviewMode)
-    //     {
-    //         return new TableData<ContainerListResponse>()
-    //             {
-    //                 TotalItems = 2,
-    //                 Items = new List<ContainerListResponse>
-    //         {
-    //             new ContainerListResponse { Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)" },
-    //             new ContainerListResponse { Names = new List<string> { "/discord-bot" }, State = "dead", Status = "" },
-    //         }
-    //             };
-    //     }
-
-    //     if (containers == null)
-    //     {
-    //         try
-    //         {
-    //             containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerListResponse[]>>(new IWebSocketTaskEvent(EventType.ListContainers));
-    //         }
-    //         catch (Exception ex)
-    //         {
-    //             Console.WriteLine(ex);
-    //         }
-    //         if (containers == null)
-    //             containers = new DockerResponse<ContainerListResponse[]> { Error = DockerError.Failed };
-    //     }
-
-    //     if (containers.Data == null)
-    //         return new TableData<ContainerListResponse>() { TotalItems = 0, Items = new ContainerListResponse[0] };
-
-    //     var search = string.IsNullOrEmpty(searchString) ? containers.Data.OrderByDirection(state.SortDirection, o => o.Names.First().Substring(1))
-    //     : containers.Data.Where(x => x.Names.First().Substring(1).Contains(searchString, StringComparison.OrdinalIgnoreCase));
-
-    //     var totalItems = search.Count();
-    //     // Get the paged data
-    //     var pagedData = search.Skip(state.Page * state.PageSize).Take(state.PageSize).ToList();
-    //     // Return the data
-
-    //     return new TableData<ContainerListResponse>() { TotalItems = totalItems, Items = pagedData };
-    // }
+    public class ContainerItem : ContainerListResponse
+    {
+        public string Name => Names.First().Substring(1);
+    }
 }

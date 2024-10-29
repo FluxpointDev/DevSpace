@@ -11,6 +11,7 @@ public enum EventType
     Command,
     CommandWait,
     CommandStream,
+    Docker,
     DockerListContainers,
     DockerGetContainer,
     DockerInspectContainer,
