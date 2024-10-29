@@ -1,4 +1,5 @@
 ﻿@using System.Net.WebSockets
+@using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using DevSpaceShared.WebSocket
 @using Docker.DotNet.Models
@@ -13,13 +14,13 @@
         <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" />
     </div>
     <div class="dash-box-content">
-        <RadzenButton Variant="Variant.Outlined" Text="Start" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
-        <RadzenButton Variant="Variant.Outlined" Text="Stop" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Outlined" Text="Restart" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Outlined" Text="Kill" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Outlined" Text="Pause" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Outlined" Text="Resume" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Flat" Text="Remove" Icon="delete" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+        <RadzenButton Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
+        <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Flat" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
         <RadzenButton Variant="Variant.Filled" Text="Create Container" Icon="add" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" />
     </div>
     <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
@@ -90,8 +91,8 @@
             <RadzenDataGridColumn Title="Actions" Width="60px" Sortable="false" Filterable="false" Pickable="false" Resizable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                        <RadzenButton Click=@(args => ShowContextMenuWithControlsItems(args)) Icon="power_settings_new" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                        <RadzenButton Click=@(args => ShowContextMenuWithManageItems(args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        <RadzenButton Click=@(args => ShowContextMenuWithControlsItems(context, args)) Icon="power_settings_new" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
@@ -116,15 +117,15 @@
 
 <style>
     .dash-box-content .rz-button:not(.rz-button.rz-info ) {
-        border-radius: 0px !important;
-        margin-right: -4px !important;
-        box-shadow: inset 0 0 0 var(--rz-border-width) #717376 !important;
+    border-radius: 0px !important;
+    margin-right: -4px !important;
+    box-shadow: inset 0 0 0 var(--rz-border-width) #717376 !important;
     }
 
     .dash-box-content .rz-button-sm .rzi {
-        font-size: 1.15rem !important;
-        width: 1.15rem !important;
-        height: 1.15rem !important;
+    font-size: 1.15rem !important;
+    width: 1.15rem !important;
+    height: 1.15rem !important;
     }
 </style>
 
@@ -152,7 +153,6 @@
 
     public async Task LoadData(LoadDataArgs args)
     {
-        //await Task.Yield();
         Logger.LogMessage("Loading Data", LogSeverity.Info);
 
         if (Program.IsPreviewMode)
@@ -172,7 +172,7 @@
                 isLoading = true;
                 try
                 {
-                    containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new IWebSocketTaskEvent(EventType.DockerListContainers));
+                    containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
                 }
                 catch (Exception ex)
                 {
@@ -202,7 +202,7 @@
 
     }
 
-    void ShowContextMenuWithControlsItems(MouseEventArgs args)
+    void ShowContextMenuWithControlsItems(ContainerItem item, MouseEventArgs args)
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
@@ -212,10 +212,10 @@
                 new ContextMenuItem(){ Text = "Kill", Value = "kill", Icon = "bolt", IconColor = Colors.InfoDark },
                 new ContextMenuItem(){ Text = "Pause", Value = "pause", Icon = "pause", IconColor = Colors.InfoDark },
                 new ContextMenuItem(){ Text = "Resume", Value = "resume", Icon = "play_arrow", IconColor = Colors.InfoDark },
-                         }, MenuItemClick);
+                         }, x => MenuItemClick(x, item));
     }
 
-    void ShowContextMenuWithManageItems(MouseEventArgs args)
+    void ShowContextMenuWithManageItems(ContainerItem item, MouseEventArgs args)
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
@@ -225,13 +225,46 @@
                 new ContextMenuItem(){ Text = "Inspect", Value = "inspect", Icon = "search" },
                 new ContextMenuItem(){ Text = "Stats", Value = "stats", Icon = "monitoring" },
                 new ContextMenuItem(){ Text = "Execute", Value = "execute", Icon = "terminal" },
-                                 }, MenuItemClick);
+                                     }, x => MenuItemClick(x, item));
     }
 
-    void MenuItemClick(MenuItemEventArgs args)
+    void MenuItemClick(MenuItemEventArgs args, ContainerItem item)
     {
-        Console.WriteLine($"Menu item with Value={args.Value} clicked");
+        _ = Task.Run(async () =>
+        {
+            switch (args.Value.ToString())
+            {
+                case "start":
+                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Start));
+                    break;
+                case "stop":
+                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Stop));
+                    break;
+                case "restart":
+                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Restart));
+                    break;
+                case "kill":
+                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Kill));
+                    break;
+                case "pause":
+                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Pause));
+                    break;
+                case "resume":
+                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.UnPause));
+                    break;
+            }
+        });
+
         ContextMenuService.Close();
+    }
+
+    void RunSelectedContainersAction(ControlContainerType type)
+    {
+        _ = Task.Run(async () =>
+        {
+            await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, null, type) { ResourceList = selectedEmployees.Select(x => x.ID).ToArray() });
+        });
+        selectedEmployees.Clear();
     }
 
     void ShowUptimeTooltip(ElementReference elementReference, string uptime) => tooltipService.Open(elementReference, uptime, null);

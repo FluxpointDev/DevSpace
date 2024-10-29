@@ -1,25 +1,32 @@
 ﻿using DevSpaceShared.WebSocket;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DevSpaceShared.Events.Docker;
 
 public class DockerEvent : IWebSocketTaskEvent
 {
-    public DockerEvent(DockerEventType type, string? resourceId = null) : base(EventType.Docker)
+    public DockerEvent(DockerEventType type, string? resourceId = null, ControlContainerType? controlType = null) : base(EventType.Docker)
     {
         DockerType = type;
         ResourceId = resourceId;
+        ControlType = controlType;
     }
 
     public string? ResourceId { get; set; }
+    public string[]? ResourceList { get; set; }
+
     public DockerEventType DockerType { get; set; }
+
+    public ControlContainerType? ControlType { get; set; }
+
+    public object? Data { get; set; }
 }
 public enum DockerEventType
 {
-
+    ListContainers, GetContainer, InspectContainer, CreateContainer, UpdateContainer, ControlContainer,
+    ListImages, DeleteImage,
+    SystemInfo
+}
+public enum ControlContainerType
+{
+    Kill, Start, Stop, Pause, UnPause, Restart, Remove
 }
