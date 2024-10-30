@@ -41,7 +41,7 @@ public static class DockerHandler
                 return await Program.DockerClient.Containers.UpdateContainerAsync(@event.ResourceId, @event.Data as ContainerUpdateParameters);
             case DockerEventType.ControlContainer:
                 {
-                    switch (@event.ControlType)
+                    switch (@event.ContainerType)
                     {
                         case ControlContainerType.Kill:
                             if (@event.ResourceList != null)
@@ -189,7 +189,7 @@ public static class DockerHandler
             case DockerEventType.ListPlugins:
                 return await Program.DockerClient.Plugin.ListPluginsAsync(new PluginListParameters
                 {
-
+                    
                 });
             case DockerEventType.SystemInfo:
                 return await Program.DockerClient.System.GetSystemInfoAsync();

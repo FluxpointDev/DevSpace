@@ -1,0 +1,108 @@
+﻿@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using Docker.DotNet.Models
+@using System.Linq.Dynamic.Core
+
+<div class="dash-box">
+    <div class="dash-box-content dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:power-plug"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Plugins</RadzenText>
+        <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" />
+    </div>
+
+    <div class="dash-box-content">
+        <RadzenButton Variant="Variant.Outlined" Text="Enable" Click="@(() => RunSelectedContainersAction(ControlPluginType.Enable))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
+        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@(() => RunSelectedContainersAction(ControlPluginType.Disable))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Flat" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlPluginType.Remove))" Icon="delete" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+        <RadzenButton Variant="Variant.Filled" Text="Install" Icon="add" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" />
+    </div>
+</div>
+
+<style>
+    .dash-box-content .rz-button:not(.rz-button.rz-info ) {
+        border-radius: 0px !important;
+        margin-right: -4px !important;
+        box-shadow: inset 0 0 0 var(--rz-border-width) #717376 !important;
+    }
+
+    .dash-box-content .rz-button-sm .rzi {
+        font-size: 1.15rem !important;
+        width: 1.15rem !important;
+        height: 1.15rem !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    DockerResponse<Plugin[]>? containers = null;
+
+    IQueryable<Plugin> employees;
+    public int count = 0;
+    IList<Plugin> selectedEmployees;
+    public bool AnySelected => selectedEmployees != null ? selectedEmployees.Any() : false;
+    RadzenDataGrid<Plugin> grid;
+    public bool isLoading = false;
+
+    public async Task LoadData(LoadDataArgs args)
+    {
+        Logger.LogMessage("Loading Data", LogSeverity.Info);
+
+        if (Program.IsPreviewMode)
+        {
+            employees = new List<Plugin>
+             {
+             }.AsQueryable();
+            count = 0;
+        }
+        else
+        {
+            if (containers == null)
+            {
+                isLoading = true;
+                try
+                {
+                    containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<Plugin[]>>(new DockerEvent(DockerEventType.ListPlugins));
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+                }
+                isLoading = false;
+
+
+            }
+
+            if (containers != null)
+            {
+                var query = containers.Data.AsQueryable();
+
+                if (!string.IsNullOrEmpty(args.Filter))
+                    query = query.Where(args.Filter);
+
+                if (!string.IsNullOrEmpty(args.OrderBy))
+                    query = query.OrderBy(args.OrderBy);
+
+                count = query.Count();
+                employees = query.Skip(args.Skip.Value).Take(args.Top.Value);
+            }
+        }
+    }
+
+    public async Task SetNameFilter(string text)
+    {
+
+        Console.WriteLine("Set Filter: " + text);
+        await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
+    }
+
+    void RunSelectedContainersAction(ControlPluginType type)
+    {
+        _ = Task.Run(async () =>
+        {
+            await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, null, null, type) { ResourceList = selectedEmployees.Select(x => x.ID).ToArray() });
+        });
+        selectedEmployees.Clear();
+    }
+}
