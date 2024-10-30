@@ -9,7 +9,7 @@
 <div class="dash-box">
     <div class="dash-box-content dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:power-plug"></span></div>
-        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Plugins</RadzenText>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Docker Plugins</RadzenText>
         <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" />
     </div>
 
@@ -17,7 +17,8 @@
         <RadzenButton Variant="Variant.Outlined" Text="Enable" Click="@(() => RunSelectedContainersAction(ControlPluginType.Enable))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
         <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@(() => RunSelectedContainersAction(ControlPluginType.Disable))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
         <RadzenButton Variant="Variant.Flat" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlPluginType.Remove))" Icon="delete" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
-        <RadzenButton Variant="Variant.Filled" Text="Install Plugin" Icon="add" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Click="@InstallPlugin" />
+        <RadzenButton Variant="Variant.Filled" Text="Install Plugin" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@InstallPlugin" />
+        <RadzenButton Variant="Variant.Filled" Text="Refresh Plugins" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshPlugins" />
     </div>
 
     <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
@@ -220,5 +221,10 @@
             await DialogService.ShowInfoAsync($"Plugin Install Failed", Response.Data as string);
             return;
         }
+    }
+
+    public async Task RefreshPlugins()
+    {
+
     }
 }

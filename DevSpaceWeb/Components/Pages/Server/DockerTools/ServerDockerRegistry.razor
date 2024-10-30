@@ -1,11 +1,216 @@
 ﻿@using System.Net.WebSockets
 @using DevSpaceShared.WebSocket
 @using Docker.DotNet.Models
+@using System.Linq.Dynamic.Core
+@using Newtonsoft.Json.Linq
+@inject DialogService DialogService
+@inject ContextMenuService ContextMenuService
 
+<div class="dash-box">
+    <div class="dash-box-content dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:table"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Docker Registry</RadzenText>
+        <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" />
+    </div>
 
+    <div class="dash-box-content">
+        <RadzenButton Variant="Variant.Filled" Text="Create Registry" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateRegistry" />
+        <RadzenButton Variant="Variant.Filled" Text="Refresh Registry" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshRegistry" />
+    </div>
+
+    <RadzenDataGrid @ref="@grid" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
+    PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+    @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
+    PagingSummaryFormat="@(count + " " + (count != 1 ? "registries" : "registry") )" Density="Density.Compact"
+    AllowColumnResize="true" AllowSorting="false"
+    AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+    GotoFirstPageOnSort="true"
+    LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
+        <Columns>
+            <RadzenDataGridColumn Title="Name" Width="120px" Frozen="true" Filterable="false">
+                <Template>
+                    @switch (context.Type)
+                    {
+                        case DockerRegistryType.DockerHub:
+                            {
+                                <span class="iconify" data-icon="mdi:docker"></span>
+                            }
+                            break;
+                        case DockerRegistryType.Custom:
+                            {
+                                <span class="iconify" data-icon="mdi:box"></span>
+                            }
+                            break;
+                        case DockerRegistryType.AWS:
+                            {
+                                <span class="iconify" data-icon="mdi:aws"></span>
+                            }
+                            break;
+                        case DockerRegistryType.Azure:
+                            {
+                                <span class="iconify" data-icon="mdi:microsoft-azure"></span>
+                            }
+                            break;
+                        case DockerRegistryType.GitHub:
+                            {
+                                <span class="iconify" data-icon="mdi:github"></span>
+                            }
+                            break;
+                        case DockerRegistryType.GitLab:
+                            {
+                                <span class="iconify" data-icon="mdi:gitlab"></span>
+                            }
+                            break;
+                        case DockerRegistryType.ProGet:
+                            {
+                                <span class="iconify" data-icon="ri:box-3-fill"></span>
+                            }
+                            break;
+                        case DockerRegistryType.Quay:
+                            {
+                                <span class="iconify" data-icon="mdi:cards-diamond"></span>
+                            }
+                            break;
+                    }
+                    @context.Name
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Status" Width="54px">
+                <Template>
+                    @if (context.IsEnabled)
+                    {
+                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
+                    }
+                    else
+                    {
+                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Disabled" />
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Actions" Width="40px" Sortable="false" Filterable="false" Pickable="false" Resizable="false">
+                <Template>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                        <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                    </RadzenStack>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</div>
+
+<style>
+
+    .dash-box-content .rz-button-sm .rzi {
+    font-size: 1.15rem !important;
+    width: 1.15rem !important;
+    height: 1.15rem !important;
+    }
+</style>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    IQueryable<DockerRegistry> employees;
+    public int count = 0;
+    IList<DockerRegistry> selectedEmployees;
+    public bool AnySelected => selectedEmployees != null ? selectedEmployees.Any() : false;
+    RadzenDataGrid<DockerRegistry> grid;
+    public bool isLoading = false;
+
+    public async Task LoadData(LoadDataArgs args)
+    {
+        Logger.LogMessage("Loading Data", LogSeverity.Info);
+
+        if (Program.IsPreviewMode)
+        {
+            employees = new List<DockerRegistry>
+            {
+                new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }                
+            }.AsQueryable();
+            count = 1;
+        }
+        else
+        {
+
+            var query = new DockerRegistry[]
+            {
+                new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }
+            }.AsQueryable();
+
+            if (!string.IsNullOrEmpty(args.Filter))
+                query = query.Where(args.Filter);
+
+            if (!string.IsNullOrEmpty(args.OrderBy))
+                query = query.OrderBy(args.OrderBy);
+
+            count = query.Count();
+            employees = query.Skip(args.Skip.Value).Take(args.Top.Value);
+
+        }
+    }
+
+    public async Task SetNameFilter(string text)
+    {
+
+        Console.WriteLine("Set Filter: " + text);
+        await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
+    }
+
+    void ShowContextMenuWithManageItems(DockerRegistry item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Enable", Value = "enable", Icon = "power_settings_new", Disabled = item.IsEnabled },
+                new ContextMenuItem(){ Text = "Disable", Value = "disable", Icon = "stop", Disabled = !item.IsEnabled },
+                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = item.IsDefault },
+                                             }, x => MenuItemClick(x, item));
+    }
+
+    void MenuItemClick(MenuItemEventArgs args, DockerRegistry item)
+    {
+        _ = Task.Run(async () =>
+        {
+            switch (args.Value.ToString())
+            {
+            }
+        });
+
+        ContextMenuService.Close();
+    }
+
+    public class DockerRegistry
+    {
+        public string Name { get; set; }
+        public string RemoteAddress { get; set; }
+        public DockerRegistryType Type { get; set; }
+        public bool IsEnabled { get; set; }
+        public bool IsDefault { get; set; }
+        // public string RemoteName { get; set; }
+        // public string CredKey { get; set; }
+        // public string CredToken { get; set; }
+        // public string CredRegion { get; set; }
+    }
+    public enum DockerRegistryType
+    {
+        DockerHub, Custom, AWS, Quay, ProGet, Azure, GitHub, GitLab
+    }
+
+    public async Task RefreshRegistry()
+    {
+        var query = new DockerRegistry[]
+            {
+                new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }
+            }.AsQueryable();
+
+
+        count = query.Count();
+        employees = query.Take(15);
+    }
+
+    public async Task CreateRegistry()
+    {
+
+    }
 }
