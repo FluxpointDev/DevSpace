@@ -1,27 +1,100 @@
-﻿<div class="dash-box dash-box-content">
+﻿@using DevSpaceShared.Responses
+@using DevSpaceShared.WebSocket
+@using BlazorMonaco
+@using BlazorMonaco.Editor
+@using BlazorMonaco.Languages
+@inject IJSRuntime jsRuntime
+
+<div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lightning-bolt"></span></div>
-        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Execute</RadzenText>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Docker Execute</RadzenText>
     </div>
     <RadzenRow Gap="0.5rem">
         <RadzenColumn class="rz-p-1">
-            
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
+                <RadzenMenu Click="@(x => HttpType = x.Text)">
+                    <RadzenMenuItem Text="@HttpType">
+                        <RadzenMenuItem Text="GET"></RadzenMenuItem>
+                        <RadzenMenuItem Text="POST"></RadzenMenuItem>
+                        <RadzenMenuItem Text="PATCH"></RadzenMenuItem>
+                        <RadzenMenuItem Text="DELETE"></RadzenMenuItem>
+                    </RadzenMenuItem>
+                </RadzenMenu>
+                <RadzenTextBox @bind-Value="@Endpoint" Style="width: 100%;" Placeholder="/" />
+                <RadzenButton Shade="Shade.Dark" Click="@SendRequest" Text="Send" Icon="play_arrow" ButtonStyle="ButtonStyle.Primary" />
+            </RadzenStack>
+            <StandaloneCodeEditor @ref="InputEditor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
+
         </RadzenColumn>
         <RadzenColumn class="rz-p-1">
-            
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
+
+            </RadzenStack>
+            <StandaloneCodeEditor @ref="OutputEditor" Id="my-editor-instance-id2" ConstructionOptions="EditorConstructionOptions" />
         </RadzenColumn>
     </RadzenRow>
 
 </div>
 
+<style>
+    .rz-body .rz-button {
+    width: 120px;
+    padding-left: 2px;
+    padding-right: 6px;
+    }
+</style>
+
+<style>
+    .monaco-editor, .monaco-diff-editor {
+    min-height: calc(100vh - 140px) !important;
+    max-height: calc(100vh - 140px) !important;
+    padding-top: 10px;
+    }
+</style>
+
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    private IEnumerable<DockerStack> Elements = new List<DockerStack>();
+    public string HttpType = "GET";
 
-    public class DockerStack
+    public string Endpoint { get; set; }
+
+    private StandaloneCodeEditor InputEditor = null;
+
+    private StandaloneCodeEditor OutputEditor = null;
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
-        public string Name;
+        editor.UpdateOptions(new EditorUpdateOptions
+        {
+
+        });
+        return new StandaloneEditorConstructionOptions
+            {
+                AutomaticLayout = true,
+                Language = "json",
+                Theme = "vs-dark",
+                ScrollBeyondLastLine = false
+            };
+    }
+
+    public async Task SendRequest()
+    {
+        string Request = "curl --unix-socket /var/run/docker.sock --request " + HttpType;
+        string InputText = await InputEditor.GetValue();
+        if (!string.IsNullOrEmpty(InputText))
+        {
+            Request += $" --header 'Content-Type: application/json' --data '{InputText}'";
+        }
+
+        Request += " http:/localhost" + Endpoint;
+        CommandResponse data = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<CommandResponse>(new CommandEvent(true)
+        {
+            Command = Request
+        });
+        await OutputEditor.SetValue(data.Output);
+        await OutputEditor.Trigger(data.Output, "editor.action.formatDocument");
     }
 }

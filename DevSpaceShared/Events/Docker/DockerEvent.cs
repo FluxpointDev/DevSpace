@@ -36,5 +36,5 @@ public enum ControlContainerType
 }
 public enum ControlPluginType
 {
-    Enable, Disable, Remove
+    Enable, Disable, Remove, InstallCheck, InstallFull
 }

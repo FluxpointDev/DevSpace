@@ -77,8 +77,9 @@ public static class ServerEventHandler
                             {
                                 response.Data = await DockerHandler.Run(@event);
                             }
-                            catch
+                            catch (Exception ex)
                             {
+                                response.Data = ex.Message;
                                 response.Error = DockerError.Failed;
                             }
 

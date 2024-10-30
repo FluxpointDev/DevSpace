@@ -1,5 +1,6 @@
 ﻿using DevSpaceShared.Events.Docker;
 using Docker.DotNet.Models;
+using System;
 
 namespace DevSpaceAgent.Server;
 public static class DockerHandler
@@ -191,6 +192,39 @@ public static class DockerHandler
                 {
                     
                 });
+            case DockerEventType.ControlPlugin:
+                {
+                    switch (@event.PluginType)
+                    {
+                        case ControlPluginType.InstallCheck:
+                            return await Program.DockerClient.Plugin.GetPluginPrivilegesAsync(new PluginGetPrivilegeParameters
+                            {
+                                Remote = @event.ResourceId
+                            });
+                        case ControlPluginType.InstallFull:
+                            {
+                                var Privs = await Program.DockerClient.Plugin.GetPluginPrivilegesAsync(new PluginGetPrivilegeParameters
+                                {
+                                    Remote = @event.ResourceId
+                                });
+                                string ErrorMessage = "";
+                                var progress = new Progress<JSONMessage>(msg =>
+                                {
+                                    ErrorMessage = msg.ErrorMessage;
+                                });
+                                await Program.DockerClient.Plugin.InstallPluginAsync(new PluginInstallParameters
+                                {
+                                    Remote = @event.ResourceId,
+                                    Privileges = Privs
+                                }, progress);
+
+                                if (!string.IsNullOrEmpty(ErrorMessage))
+                                    throw new Exception(ErrorMessage);
+                            }
+                            break;
+                    }
+                }
+                break;
             case DockerEventType.SystemInfo:
                 return await Program.DockerClient.System.GetSystemInfoAsync();
         }
