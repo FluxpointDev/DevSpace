@@ -178,23 +178,14 @@
         {
             switch (args.Value.ToString())
             {
-                case "start":
-                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Start));
+                case "enable":
+                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, item.ID, null, ControlPluginType.Enable));
                     break;
-                case "stop":
-                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Stop));
+                case "disable":
+                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, item.ID, null, ControlPluginType.Disable));
                     break;
-                case "restart":
-                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Restart));
-                    break;
-                case "kill":
-                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Kill));
-                    break;
-                case "pause":
-                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Pause));
-                    break;
-                case "resume":
-                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.UnPause));
+                case "remove":
+                    await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, item.ID, null, ControlPluginType.Remove));
                     break;
             }
         });
