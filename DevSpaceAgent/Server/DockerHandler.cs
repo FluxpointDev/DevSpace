@@ -231,6 +231,15 @@ public static class DockerHandler
                 {
                     
                 });
+            case DockerEventType.ListNetworks:
+                return await Program.DockerClient.Networks.ListNetworksAsync();
+            case DockerEventType.ListStacks:
+                {
+
+                }
+                break;
+            case DockerEventType.ListVolumes:
+                return await Program.DockerClient.Volumes.ListAsync();
             case DockerEventType.ControlPlugin:
                 {
                     switch (@event.PluginType)

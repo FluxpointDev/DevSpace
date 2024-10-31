@@ -73,7 +73,7 @@
                             }
                             break;
                     }
-                    @context.Name
+                    <RadzenLink Path="@("/teams" + Session.Selected.Team.Data.GetVanityUrl() + "/s/" + Session.Selected.Server.Data.GetVanityUrl() + "/registry/" + context.Id)" Text="@context.Name" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Width="54px">
@@ -182,6 +182,7 @@
 
     public class DockerRegistry
     {
+        public string Id { get; set; }
         public string Name { get; set; }
         public string RemoteAddress { get; set; }
         public DockerRegistryType Type { get; set; }
@@ -201,7 +202,7 @@
     {
         var query = new DockerRegistry[]
             {
-                new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }
+                new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true, Id = "docker_anonymous" }
             }.AsQueryable();
 
 
