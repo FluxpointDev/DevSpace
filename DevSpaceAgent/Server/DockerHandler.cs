@@ -181,12 +181,51 @@ public static class DockerHandler
                 {
                     All = true
                 });
-            case DockerEventType.DeleteImage:
-                await Program.DockerClient.Images.DeleteImageAsync(@event.ResourceId, new ImageDeleteParameters
+            case DockerEventType.ControlImage:
                 {
-
-                });
+                    switch (@event.ImageType)
+                    {
+                        case ControlImageType.Export:
+                            
+                            break;
+                        case ControlImageType.Remove:
+                        case ControlImageType.RemoveForce:
+                            {
+                                if (@event.ResourceList != null)
+                                {
+                                    foreach (var r in @event.ResourceList)
+                                    {
+                                        await Program.DockerClient.Images.DeleteImageAsync(r, new ImageDeleteParameters
+                                        {
+                                            Force = @event.ImageType == ControlImageType.RemoveForce
+                                        });
+                                    }
+                                }
+                                else
+                                {
+                                    await Program.DockerClient.Images.DeleteImageAsync(@event.ResourceId, new ImageDeleteParameters
+                                    {
+                                        Force = @event.ImageType == ControlImageType.RemoveForce
+                                    });
+                                }
+                            }
+                            break;
+                        case ControlImageType.Inspect:
+                            return await Program.DockerClient.Images.InspectImageAsync(@event.ResourceId);
+                    }
+                }
                 break;
+            case DockerEventType.SearchImages:
+                return await Program.DockerClient.Images.SearchImagesAsync(new ImagesSearchParameters
+                {
+                    Term = @event.ResourceId,
+                    Limit = 15
+                });
+            case DockerEventType.PruneImages:
+                return await Program.DockerClient.Images.PruneImagesAsync(new ImagesPruneParameters
+                {
+                    
+                });
             case DockerEventType.ListPlugins:
                 return await Program.DockerClient.Plugin.ListPluginsAsync(new PluginListParameters
                 {

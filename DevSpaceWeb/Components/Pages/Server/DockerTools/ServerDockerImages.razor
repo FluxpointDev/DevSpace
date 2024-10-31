@@ -18,7 +18,9 @@
     <div class="dash-box-content">
         <RadzenButton Variant="Variant.Outlined" Text="Export" Click="@(() => RunSelectedContainersAction(ControlImageType.Export))" Icon="folder_zip" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
         <RadzenButton Variant="Variant.Flat" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+
         <RadzenButton Variant="Variant.Filled" Text="Create Image" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateImage" />
+        <RadzenButton Variant="Variant.Filled" Text="Prune Images" Icon="delete_sweep" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@PruneImages" />
         <RadzenButton Variant="Variant.Filled" Text="Refresh Images" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshImages" />
     </div>
 
@@ -106,7 +108,7 @@
 </div>
 
 <style>
-    .dash-box-content .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success) {
+    .dash-box-content .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
     border-radius: 0px !important;
     margin-right: -4px !important;
     box-shadow: inset 0 0 0 var(--rz-border-width) #717376 !important;
@@ -244,6 +246,11 @@
     async Task CreateImage()
     {
         
+    }
+
+    public async Task PruneImages()
+    {
+        await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.PruneImages));
     }
 
     public async Task RefreshImages()

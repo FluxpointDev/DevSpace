@@ -29,7 +29,7 @@ public class DockerEvent : IWebSocketTaskEvent
 public enum DockerEventType
 {
     ListContainers, GetContainer, InspectContainer, CreateContainer, UpdateContainer, ControlContainer,
-    ListImages, DeleteImage,
+    ListImages, ControlImage, SearchImages, PruneImages,
     ListPlugins, ControlPlugin,
     SystemInfo
 }
@@ -43,5 +43,5 @@ public enum ControlPluginType
 }
 public enum ControlImageType
 {
-    Export, Remove
+    Export, Remove, RemoveForce, Inspect
 }

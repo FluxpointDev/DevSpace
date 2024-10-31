@@ -1,4 +1,4 @@
-﻿@page "/teams/{team_id?}/{resource?}/{resource_id?}/{resource_type?}"
+﻿@page "/teams/{team_id?}/{resource?}/{resource_id?}/{resource_type?}/{resource_data?}"
 @using DevSpaceWeb.Components.Pages.Server.DockerTools
 
 @if (Session.Selected.Team == null)
@@ -48,7 +48,14 @@ else
                         <ServerDockerPlugins></ServerDockerPlugins>
                         break;
                     case "images":
-                        <ServerDockerImages></ServerDockerImages>
+                        @if (string.IsNullOrEmpty(resource_data))
+                        {
+                            <ServerDockerImages></ServerDockerImages>
+                        }
+                        else
+                        {
+                            <ServerDockerImageInfo ImageId="@resource_data"></ServerDockerImageInfo>
+                        }
                         break;
                     case "networks":
                         <ServerDockerNetworks></ServerDockerNetworks>
@@ -149,6 +156,9 @@ else
 
     [Parameter]
     public string resource_type { get; set; } = "";
+
+    [Parameter]
+    public string resource_data { get; set; } = "";
 
     [CascadingParameter]
     private SessionProvider Session { get; set; }
