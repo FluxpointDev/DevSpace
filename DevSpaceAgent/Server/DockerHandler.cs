@@ -179,7 +179,7 @@ public static class DockerHandler
             case DockerEventType.ListImages:
                 return await Program.DockerClient.Images.ListImagesAsync(new ImagesListParameters
                 {
-                    All = true,
+                    All = true
                 });
             case DockerEventType.DeleteImage:
                 await Program.DockerClient.Images.DeleteImageAsync(@event.ResourceId, new ImageDeleteParameters

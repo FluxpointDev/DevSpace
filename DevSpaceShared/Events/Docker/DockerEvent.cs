@@ -4,12 +4,13 @@ namespace DevSpaceShared.Events.Docker;
 
 public class DockerEvent : IWebSocketTaskEvent
 {
-    public DockerEvent(DockerEventType type, string? resourceId = null, ControlContainerType? containerType = null, ControlPluginType? pluginType = null) : base(EventType.Docker)
+    public DockerEvent(DockerEventType type, string? resourceId = null, ControlContainerType? containerType = null, ControlPluginType? pluginType = null, ControlImageType? imageType = null) : base(EventType.Docker)
     {
         DockerType = type;
         ResourceId = resourceId;
         ContainerType = containerType;
         PluginType = pluginType;
+        ImageType = imageType;
     }
 
     public string? ResourceId { get; set; }
@@ -20,6 +21,8 @@ public class DockerEvent : IWebSocketTaskEvent
     public ControlContainerType? ContainerType { get; set; }
 
     public ControlPluginType? PluginType { get; set; }
+
+    public ControlImageType? ImageType { get; set; }
 
     public object? Data { get; set; }
 }
@@ -37,4 +40,8 @@ public enum ControlContainerType
 public enum ControlPluginType
 {
     Enable, Disable, Remove, InstallCheck, InstallFull
+}
+public enum ControlImageType
+{
+    Export, Remove
 }
