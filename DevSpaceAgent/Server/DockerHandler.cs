@@ -1,4 +1,5 @@
-﻿using DevSpaceShared.Events.Docker;
+﻿using DevSpaceShared.Data;
+using DevSpaceShared.Events.Docker;
 using Docker.DotNet.Models;
 using System;
 
@@ -235,7 +236,24 @@ public static class DockerHandler
                 return await Program.DockerClient.Networks.ListNetworksAsync();
             case DockerEventType.ListStacks:
                 {
+                    List<DockerStack> Stacks = new List<DockerStack>();
+                    var containers = await Program.DockerClient.Containers.ListContainersAsync(new ContainersListParameters()
+                    {
+                        Size = true,
+                        All = true
+                    });
 
+                    foreach(var c in containers)
+                    {
+                        if (!c.Labels.TryGetValue("com.docker.compose.project", out string label))
+                            continue;
+
+                        var Stack = Stacks.FirstOrDefault(x => x.Name == label);
+                        if (Stack != null)
+                            Stack.Containers.Add(c.Names.First().Substring(1));
+                    }
+
+                    return Stacks;
                 }
                 break;
             case DockerEventType.ListVolumes:

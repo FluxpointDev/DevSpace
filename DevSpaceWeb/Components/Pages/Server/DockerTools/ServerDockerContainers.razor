@@ -270,5 +270,17 @@
     public class ContainerItem : ContainerListResponse
     {
         public string Name => Names.First().Substring(1);
+
+        public bool IsOnline()
+        {
+            @switch (State)
+            {
+                case "running":
+                case "restarting":
+                    return true;
+            }
+
+            return false;
+        }
     }
 }
