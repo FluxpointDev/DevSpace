@@ -17,6 +17,17 @@ public class TeamData
     public string Name { get; set; }
     public string VanityUrl { get; set; }
     public ObjectId OwnerId { get; set; }
+    public Guid? ResourceId { get; set; }
+    public Guid? IconId { get; set; }
+    public bool HasIcon() => IconId != null;
+
+    public string GetIconOrDefault(bool usePng = false)
+    {
+        if (!HasIcon())
+            return "https://cdn.fluxpoint.dev/devspace/user_avatar." + (usePng ? "png" : "webp");
+
+        return _Data.Config.Instance.GetPublicUrl() + "/public/resources/" + ResourceId.ToString() + "/Icon_" + IconId.ToString() + ".webp";
+    }
 
     public PermissionsSet DefaultPermissions { get; set; } = new PermissionsSet();
 
@@ -138,12 +149,40 @@ public class TeamData
         return false;
     }
 
+    public bool HasDockerPermission(TeamMemberData member, DockerPermission permission)
+    {
+        if (member.Team == null)
+            return false;
+
+        if (OwnerId == member.UserId)
+            return true;
+
+        if (member.Team._DefaultPermissions.Team.GlobalAdministrator || member.Team._DefaultPermissions.Docker.DockerAdministrator)
+            return true;
+
+        if (member.Team._DefaultPermissions.Docker.Has(permission))
+            return true;
+
+        foreach (var r in member.Roles)
+        {
+            if (CachedRoles.TryGetValue(r, out var role) && role.HasDockerPermission(member, permission))
+                return true;
+        }
+
+        return false;
+    }
+
     public HashSet<ObjectId> Roles = new HashSet<ObjectId>();
 
     [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
     public Dictionary<ObjectId, ObjectId> Members = new Dictionary<ObjectId, ObjectId>();
 
     public TeamMemberData GetMember(PartialUserData user)
+    {
+        return CachedMembers[Members[user.Id]];
+    }
+
+    public TeamMemberData GetMember(AuthUser user)
     {
         return CachedMembers[Members[user.Id]];
     }
@@ -243,6 +282,17 @@ public class TeamRoleData
             return true;
 
         return _Permissions.Website.Has(permission);
+    }
+
+    public bool HasDockerPermission(TeamMemberData member, DockerPermission permission)
+    {
+        if (member.Team == null)
+            return false;
+
+        if (_Permissions.Team.GlobalAdministrator || _Permissions.Docker.DockerAdministrator)
+            return true;
+
+        return _Permissions.Docker.Has(permission);
     }
 
     public void Update(UpdateDefinition<TeamRoleData> update)

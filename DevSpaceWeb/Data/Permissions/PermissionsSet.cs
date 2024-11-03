@@ -7,4 +7,5 @@ public class PermissionsSet
     public ProjectPermission ProjectPermissions { get; set; }
     public ServerPermission ServerPermissions { get; set; }
     public WebsitePermission WebsitePermissions { get; set; }
+    public DockerPermission DockerPermissions { get; set; }
 }

@@ -24,23 +24,33 @@
                     <EditForm Model="@TeamForm" OnValidSubmit="@CheckTeam">
                         <DataAnnotationsValidator />
 
-                    <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
-                    <RadzenTextBox @bind-Value="@TeamForm.Name" Style="width: 100%" aria-label="Team Name" autocomplete="false"
-                                   Placeholder="My Team" MaxLength="32" />
-                    <ValidationMessage For="() => TeamForm.Name" style="color: var(--rz-danger);" />
+                        <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="@TeamForm.Name" Style="width: 100%" aria-label="Team Name" autocomplete="false"
+                        Placeholder="My Team" MaxLength="32" />
+                        <ValidationMessage For="() => TeamForm.Name" style="color: var(--rz-danger);" />
 
-                    <br style="margin-bottom: 20px;" />
+                        <br style="margin-bottom: 20px;" />
 
-                    <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
-                    <RadzenTextBox @bind-Value="@TeamForm.VanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="false"
-                                   Placeholder="myteam" MaxLength="100" />
-                    <ValidationMessage For="() => TeamForm.VanityUrl" style="color: var(--rz-danger);" />
+                        <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
+                        <RadzenTextBox @bind-Value="@TeamForm.VanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="false"
+                        Placeholder="myteam" MaxLength="100" />
+                        <ValidationMessage For="() => TeamForm.VanityUrl" style="color: var(--rz-danger);" />
+                        <br />
+                        <br />
+
+                        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" ButtonType="ButtonType.Submit" />
+
+                    </EditForm>
+
                     <br />
                     <br />
-
-                    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" ButtonType="ButtonType.Submit" />
-                
-                </EditForm>
+                    <RadzenLabel Text="Team Icon" class="rz-my-0"></RadzenLabel>
+                    <RadzenUpload id="ddUpload" @ref="IconUploader" ChooseText="Click here or drop to upload files" Auto="false" Multiple="false" Url="@("/upload/icon?teamId=" + Session.Selected.Team.Id)" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
+                                  Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" />
+                    <br />
+                    <br />
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save Icon" Click="@ChangeIcon" ButtonType="ButtonType.Submit" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remve Icon" Click="@RemoveIcon" />
                 }
             </RadzenTabsItem>
             <RadzenTabsItem Text="Members">
@@ -52,54 +62,54 @@
                 }
                 else
                 {
-                <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" />
-                <br />
-                <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Users">
-                    <Template Context="user">
-                        <RadzenCard Style="width:300px;">
-                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                                @if (_DB.Users.TryGetValue(user, out PartialUserData ud))
-                                {
-                                    <RadzenImage Path="@ud.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" />
-                                    <RadzenStack Gap="0">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Username</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body2">
-                                            @ud.UserName
-                                        </RadzenText>
-                                    </RadzenStack>
-                                    @if (user != Session.Selected.Team.Data.OwnerId)
+                    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" />
+                    <br />
+                    <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Users">
+                        <Template Context="user">
+                            <RadzenCard Style="width:300px;">
+                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                                    @if (_DB.Users.TryGetValue(user, out PartialUserData ud))
                                     {
-                                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" />
-                                        <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
-                                        <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Change Roles" Click="@(() => ChangeMemberRoles(ud))" />
+                                        <RadzenImage Path="@ud.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" />
+                                        <RadzenStack Gap="0">
+                                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Username</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                @ud.UserName
+                                            </RadzenText>
+                                        </RadzenStack>
+                                        @if (user != Session.Selected.Team.Data.OwnerId)
+                                        {
+                                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" />
+                                            <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
+                                            <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Change Roles" Click="@(() => ChangeMemberRoles(ud))" />
+                                        }
                                     }
-                                }
-                                else
-                                {
-                                    <RadzenImage Path="https://cdn.fluxpoint.dev/devspace/user_avatar.webp" Style="width: 80px; height: 80px; border-radius: 50%" />
-                                    <RadzenStack Gap="0">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Account Deleted</RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body2">
-                                            @user.ToString()
-                                        </RadzenText>
-                                    </RadzenStack>
-                                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(user))" />
-                                }
+                                    else
+                                    {
+                                        <RadzenImage Path="https://cdn.fluxpoint.dev/devspace/user_avatar.webp" Style="width: 80px; height: 80px; border-radius: 50%" />
+                                        <RadzenStack Gap="0">
+                                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Account Deleted</RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                @user.ToString()
+                                            </RadzenText>
+                                        </RadzenStack>
+                                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(user))" />
+                                    }
 
 
-                            </RadzenStack>
-                            <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
-                            <RadzenRow>
-                                <RadzenColumn Size="8" class="rz-text-truncate">
-                                    @* <b>@(order.ShipName)</b> *@
-                                </RadzenColumn>
-                                <RadzenColumn Size="4" class="rz-text-align-end">
-                                    @* <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text=@($"{String.Format(new System.Globalization.CultureInfo("en-US"), "{0:C}", order.Freight)}") /> *@
-                                </RadzenColumn>
-                            </RadzenRow>
-                        </RadzenCard>
-                    </Template>
-                </RadzenDataList>
+                                </RadzenStack>
+                                <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
+                                <RadzenRow>
+                                    <RadzenColumn Size="8" class="rz-text-truncate">
+                                        @* <b>@(order.ShipName)</b> *@
+                                    </RadzenColumn>
+                                    <RadzenColumn Size="4" class="rz-text-align-end">
+                                        @* <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text=@($"{String.Format(new System.Globalization.CultureInfo("en-US"), "{0:C}", order.Freight)}") /> *@
+                                    </RadzenColumn>
+                                </RadzenRow>
+                            </RadzenCard>
+                        </Template>
+                    </RadzenDataList>
                 }
             </RadzenTabsItem>
             <RadzenTabsItem Text="Roles">
@@ -111,41 +121,41 @@
 
 <style>
     .rz-tabview-panel .pr-2 {
-        max-width: 200px;
+    max-width: 200px;
     }
 
     .role-box {
-        width: 260px;
-        height: 200px;
-        padding: 4px;
-        padding-left: 8px;
-        padding-right: 8px !important;
-        background-color: #242527 !important;
-        margin-right: 4px;
-        
+    width: 260px;
+    height: 200px;
+    padding: 4px;
+    padding-left: 8px;
+    padding-right: 8px !important;
+    background-color: #242527 !important;
+    margin-right: 4px;
+
     }
 
-        .role-box .rz-text-subtitle2 {
-            text-align: center !important;
-            display: inline-block !important;
-            margin-bottom: 14px !important;
-        }
+    .role-box .rz-text-subtitle2 {
+    text-align: center !important;
+    display: inline-block !important;
+    margin-bottom: 14px !important;
+    }
 
     .role-permissions span {
-        margin-top: 4px;
-        margin-left: 32px;
-        display: block;
+    margin-top: 4px;
+    margin-left: 32px;
+    display: block;
     }
 
     .role-permissions {
-        margin-top: 6px;
-        margin-bottom: 16px;
+    margin-top: 6px;
+    margin-bottom: 16px;
     }
 
-        .role-permissions .rz-chkbox-box {
-            margin-top: 4px !important;
-            margin-bottom: -4px !important;
-        }
+    .role-permissions .rz-chkbox-box {
+    margin-top: 4px !important;
+    margin-bottom: -4px !important;
+    }
 </style>
 
 @code {
@@ -176,8 +186,8 @@
 
     public IEnumerable<ObjectId> Users { get; set; }
     public TeamRoleData[] Roles { get; set; }
-    
-    
+
+
 
     public TeamBasicModel TeamForm { get; set; } = new TeamBasicModel();
 
@@ -267,7 +277,7 @@
         });
     }
 
-    
+
 
     public async Task TransferOwnership(PartialUserData user)
     {
@@ -303,7 +313,7 @@
         Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
     }
 
-    
+
 
     public async Task RemoveTeamRole(ObjectId role)
     {
@@ -327,5 +337,42 @@
             { "Team", Session.Selected.Team.Data },
             { "Member", Session.Selected.Team.Data.GetMember(user) }
         });
+    }
+
+    public RadzenUpload IconUploader { get; set; }
+
+    public async Task ChangeIcon()
+    {
+        await IconUploader.Upload();
+        
+    }
+
+    async Task UploadComplete(UploadCompleteEventArgs args)
+    {
+        Session.TriggerChange();
+    }
+
+    public async Task RemoveIcon()
+    {
+        if (!Session.Selected.Team.Data.HasIcon())
+            return;
+
+        var User = await Session.GetCurrentUserAsync();
+
+        if (!Session.Selected.Team.Data.Members.ContainsKey(User.Id))
+            return;
+
+        var Member = Session.Selected.Team.Data.GetMember(User);
+        if (Member == null)
+            return;
+
+        if (!Session.Selected.Team.Data.HasTeamPermission(Member, Data.Permissions.TeamPermission.ManageTeam))
+            return;
+
+        Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null));
+        File.Delete(Program.Directory.Public.Resources.Path + Session.Selected.Team.Data.ResourceId.ToString() + "/Icon_" + Session.Selected.Team.Data.IconId.ToString() + ".webp");
+        File.Delete(Program.Directory.Public.Resources.Path + Session.Selected.Team.Data.ResourceId.ToString() + "/Icon_" + Session.Selected.Team.Data.IconId.ToString() + ".png");
+        Session.Selected.Team.Data.IconId = null;
+        Session.TriggerChange();
     }
 }

@@ -9,6 +9,8 @@ public class DockerPermissions
 
     public ulong Raw { get; internal set; }
 
+    public bool DockerAdministrator => Has(DockerPermission.DockerAdministrator);
+
     public bool Has(DockerPermission permission)
     {
         ulong Flag = (ulong)permission;
