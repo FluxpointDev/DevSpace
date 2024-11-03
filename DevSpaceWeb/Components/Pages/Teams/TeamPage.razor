@@ -245,16 +245,16 @@ else
 
             if (Session.Selected.Team != null)
             {
-                switch (resource)
+                switch (service)
                 {
-                    case "s":
+                    case "servers":
                         {
                             if (!string.IsNullOrEmpty(service_id))
                             {
                                 ServerData? Server = null;
                                 if (!_DB.Servers.Cache.TryGetValue(service_id, out Server))
                                 {
-                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.ServerVanityUrls.TryGetValue(resource_id, out var serverId))
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.ServerVanityUrls.TryGetValue(service_id, out var serverId))
                                     {
                                         _DB.Servers.Cache.TryGetValue(serverId.ToString(), out Server);
                                     }
@@ -268,14 +268,14 @@ else
                             }
                         }
                         break;
-                    case "p":
+                    case "projects":
                         {
                             if (!string.IsNullOrEmpty(service_id))
                             {
                                 ProjectData? Project = null;
                                 if (!_DB.Projects.Cache.TryGetValue(service_id, out Project))
                                 {
-                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.ProjectVanityUrls.TryGetValue(resource_id, out var projectId))
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.ProjectVanityUrls.TryGetValue(service_id, out var projectId))
                                     {
                                         _DB.Projects.Cache.TryGetValue(projectId.ToString(), out Project);
                                     }
@@ -290,14 +290,14 @@ else
                             }
                         }
                         break;
-                    case "l":
+                    case "logs":
                         {
                             if (!string.IsNullOrEmpty(service_id))
                             {
                                 LogData? Log = null;
                                 if (!_DB.Logs.Cache.TryGetValue(service_id, out Log))
                                 {
-                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.LogsVanityUrls.TryGetValue(resource_id, out var logId))
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.LogsVanityUrls.TryGetValue(service_id, out var logId))
                                     {
                                         _DB.Logs.Cache.TryGetValue(logId.ToString(), out Log);
                                     }
@@ -311,14 +311,14 @@ else
                             }
                         }
                         break;
-                    case "w":
+                    case "websites":
                         {
                             if (!string.IsNullOrEmpty(service_id))
                             {
                                 WebsiteData? Website = null;
                                 if (!_DB.Websites.Cache.TryGetValue(service_id, out Website))
                                 {
-                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.WebsiteVanityUrls.TryGetValue(resource_id, out var websiteId))
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.WebsiteVanityUrls.TryGetValue(service_id, out var websiteId))
                                     {
                                         _DB.Websites.Cache.TryGetValue(websiteId.ToString(), out Website);
                                     }
