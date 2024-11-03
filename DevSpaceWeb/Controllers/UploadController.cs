@@ -70,9 +70,19 @@ public class UploadController : Controller
         {
             using (SKBitmap bitmap = SKBitmap.Decode(stream))
             {
-                var surface = SKSurface.Create(new SKImageInfo(bitmap.Width, bitmap.Height));
+                int Height = bitmap.Height;
+                int Width = bitmap.Width;
+                if (bitmap.Width > 320)
+                    Width = 320;
+                if (bitmap.Height > 320)
+                    Height = 320;
+
+                var surface = SKSurface.Create(new SKImageInfo(Width, Height));
                 var myCanvas = surface.Canvas;
-                myCanvas.DrawBitmap(bitmap, 0, 0);
+
+                using (SKBitmap resizeBitmap = bitmap.Resize(new SKImageInfo(Width, Height), SKSamplingOptions.Default))
+                    myCanvas.DrawBitmap(resizeBitmap, 0, 0);
+
                 var Image = surface.Snapshot();
                 using (var Webp = Image.Encode(SKEncodedImageFormat.Webp, 100))
                 using (var Save = Webp.AsStream())
@@ -82,6 +92,7 @@ public class UploadController : Controller
                 {
                     Save.CopyTo(Stream);
                 }
+
                 using (var Png = Image.Encode(SKEncodedImageFormat.Png, 100))
                 using (var Save = Png.AsStream())
                 using (var Stream = System.IO.File.OpenWrite(
@@ -175,9 +186,19 @@ public class UploadController : Controller
         {
             using (SKBitmap bitmap = SKBitmap.Decode(stream))
             {
-                var surface = SKSurface.Create(new SKImageInfo(bitmap.Width, bitmap.Height));
+                int Height = bitmap.Height;
+                int Width = bitmap.Width;
+                if (bitmap.Width > 320)
+                    Width = 320;
+                if (bitmap.Height > 320)
+                    Height = 320;
+
+                var surface = SKSurface.Create(new SKImageInfo(Width, Height));
                 var myCanvas = surface.Canvas;
-                myCanvas.DrawBitmap(bitmap, 0, 0);
+
+                using (SKBitmap resizeBitmap = bitmap.Resize(new SKImageInfo(Width, Height), SKSamplingOptions.Default))
+                    myCanvas.DrawBitmap(resizeBitmap, 0, 0);
+
                 var Image = surface.Snapshot();
                 using (var Webp = Image.Encode(SKEncodedImageFormat.Webp, 100))
                 using (var Save = Webp.AsStream())
