@@ -26,14 +26,14 @@
     <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
     @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
-    PagingSummaryFormat="@(count + " plugins" + (count != 1 ? "s" : "") )" Density="Density.Compact"
+    PagingSummaryFormat="@(count + " network" + (count != 1 ? "s" : "") )" Density="Density.Compact"
     AllowSorting="false"
     AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
     GotoFirstPageOnSort="true"
     LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
         <Columns>
-            <RadzenDataGridColumn Width="26px" Sortable="false" Filterable="false" Frozen="true" Resizable="false">
+            <RadzenDataGridColumn Width="36px" Sortable="false" Filterable="false" Frozen="true">
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                     Value="@(selectedEmployees == null || selectedEmployees?.Any() != true ? false : !employees.All(i => selectedEmployees.Contains(i)) ? null : employees.Any(i => selectedEmployees.Contains(i)))"
@@ -44,7 +44,7 @@
                     TValue="bool" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Name" Width="120px" Frozen="true" Filterable="false">
+            <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Filterable="false">
                 <Template>
                     <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/networks/" + context.ID)" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.Name</RadzenLink>
                     @if (context.IsSystem())
@@ -53,7 +53,7 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Status" Width="60px">
+            <RadzenDataGridColumn Title="Status" Width="140px">
                 <Template>
                     @if (!context.ContainersList.Any())
                     {
@@ -65,19 +65,19 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Driver" Width="60px">
+            <RadzenDataGridColumn Title="Driver" Width="70px">
                 <Template>
                     @context.Driver
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Width="40px" Sortable="false" Filterable="false" Pickable="false" Resizable="false">
+            <RadzenDataGridColumn Title="Actions" Width="70px" Sortable="false" Filterable="false" Pickable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                         <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Created" Width="120px">
+            <RadzenDataGridColumn Title="Created">
                 <Template>
                     <RadzenText TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, $"{(int)(DateTime.Now - context.Created).TotalDays} Days ago") )">@context.Created.ToString("dd'/'MM'/'yyyy")</RadzenText>
                 </Template>

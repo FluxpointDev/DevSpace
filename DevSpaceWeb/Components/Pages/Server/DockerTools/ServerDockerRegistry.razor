@@ -28,7 +28,7 @@
     GotoFirstPageOnSort="true"
     LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
         <Columns>
-            <RadzenDataGridColumn Title="Name" Width="120px" Frozen="true" Filterable="false">
+            <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
                 <Template>
                     @switch (context.Type)
                     {
@@ -76,7 +76,7 @@
                     <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/registry/" + context.Id)" Text="@context.Name" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Status" Width="54px">
+            <RadzenDataGridColumn Title="Status" Width="100px">
                 <Template>
                     @if (context.IsEnabled)
                     {
@@ -88,7 +88,7 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Width="40px" Sortable="false" Filterable="false" Pickable="false" Resizable="false">
+            <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Pickable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                         <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
@@ -163,7 +163,7 @@
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
                 new ContextMenuItem(){ Text = "Enable", Value = "enable", Icon = "power_settings_new", Disabled = item.IsEnabled },
-                new ContextMenuItem(){ Text = "Disable", Value = "disable", Icon = "stop", Disabled = !item.IsEnabled },
+                new ContextMenuItem(){ Text = "Disable", Value = "disable", Icon = "stop", Disabled = item.IsDefault || !item.IsEnabled },
                 new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = item.IsDefault },
                                              }, x => MenuItemClick(x, item));
     }

@@ -33,7 +33,7 @@
     GotoFirstPageOnSort="true"
     LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
         <Columns>
-            <RadzenDataGridColumn Width="26px" Sortable="false" Filterable="false" Frozen="true" Resizable="false">
+            <RadzenDataGridColumn Width="36px" Sortable="false" Filterable="false" Frozen="true">
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                     Value="@(selectedEmployees == null || selectedEmployees?.Any() != true ? false : !employees.All(i => selectedEmployees.Contains(i)) ? null : employees.Any(i => selectedEmployees.Contains(i)))"
@@ -44,7 +44,7 @@
                     TValue="bool" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Name" Property="@nameof(ContainerItem.Name)" Width="120px" Frozen="true" Filterable="false">
+            <RadzenDataGridColumn Title="Name" Property="@nameof(ContainerItem.Name)" Width="160px" Frozen="true" Filterable="false">
                 <Template>
                     <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/containers/" + context.ID)" Text="@context.GetName()" />
                 </Template>
@@ -88,7 +88,7 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Width="60px" Sortable="false" Filterable="false" Pickable="false" Resizable="false">
+            <RadzenDataGridColumn Title="Actions" Width="100px" Sortable="false" Filterable="false" Pickable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                         <RadzenButton Click=@(args => ShowContextMenuWithControlsItems(context, args)) Icon="power_settings_new" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
@@ -96,17 +96,17 @@
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Stack" Width="120px">
+            <RadzenDataGridColumn Title="Stack" Width="160px">
                 <Template>
                     <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/stacks/" + context.ID)" Text="Test" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Image" Width="120px" Property="@nameof(ContainerListResponse.Image)">
+            <RadzenDataGridColumn Title="Image" Width="240px" Property="@nameof(ContainerListResponse.Image)">
                 <Template>
                     <RadzenLink Path="@("https://hub.docker.com/r/" + context.Image.Split(":").First())" Target="_blank" Text="@context.Image.Split(":").First()" MouseEnter="@(args => ShowUptimeTooltip(args, context.GetImageExtra()) )" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Created" Width="80px" Property="@nameof(ContainerListResponse.Created)">
+            <RadzenDataGridColumn Title="Created" Property="@nameof(ContainerListResponse.Created)">
                 <Template>
                     <RadzenText TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, $"{(int)(DateTime.Now - context.Created).TotalDays} Days ago") )">@context.Created.ToString("dd'/'MM'/'yyyy")</RadzenText>
                 </Template>
