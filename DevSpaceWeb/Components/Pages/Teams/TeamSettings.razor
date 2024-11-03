@@ -354,7 +354,7 @@
 
     public async Task RemoveIcon()
     {
-        if (!Session.Selected.Team.Data.HasIcon())
+        if (!Session.Selected.Team.Data.HasIcon)
             return;
 
         var User = await Session.GetCurrentUserAsync();
@@ -370,8 +370,8 @@
             return;
 
         Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null));
-        File.Delete(Program.Directory.Public.Resources.Path + Session.Selected.Team.Data.ResourceId.ToString() + "/Icon_" + Session.Selected.Team.Data.IconId.ToString() + ".webp");
-        File.Delete(Program.Directory.Public.Resources.Path + Session.Selected.Team.Data.ResourceId.ToString() + "/Icon_" + Session.Selected.Team.Data.IconId.ToString() + ".png");
+        File.Delete(Session.Selected.Team.Data.Icon.Path("webp"));
+        File.Delete(Session.Selected.Team.Data.Icon.Path("png"));
         Session.Selected.Team.Data.IconId = null;
         Session.TriggerChange();
     }

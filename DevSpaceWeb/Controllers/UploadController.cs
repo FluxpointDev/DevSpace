@@ -97,8 +97,11 @@ public class UploadController : Controller
         {
             try
             {
-                System.IO.File.Delete(Program.Directory.Public.Resources.Path + AuthUser.ResourceId.ToString() + $"/Avatar_{AuthUser.AvatarId.ToString()}.webp");
-                System.IO.File.Delete(Program.Directory.Public.Resources.Path + AuthUser.ResourceId.ToString() + $"/Avatar_{AuthUser.AvatarId.ToString()}.png");
+                if (System.IO.File.Exists(AuthUser.Avatar.Path("webp")))
+                    System.IO.File.Delete(AuthUser.Avatar.Path("webp"));
+
+                if (System.IO.File.Exists(AuthUser.Avatar.Path("png")))
+                    System.IO.File.Delete(AuthUser.Avatar.Path("webp"));
             }
             catch { }
         }
@@ -201,8 +204,11 @@ public class UploadController : Controller
         {
             try
             {
-                System.IO.File.Delete(Program.Directory.Public.Resources.Path + Team.ResourceId.ToString() + $"/Icon_{Team.IconId.ToString()}.webp");
-                System.IO.File.Delete(Program.Directory.Public.Resources.Path + Team.ResourceId.ToString() + $"/Icon_{Team.IconId.ToString()}.png");
+                if (System.IO.File.Exists(Team.Icon.Path("webp")))
+                    System.IO.File.Delete(Team.Icon.Path("webp"));
+
+                if (System.IO.File.Exists(Team.Icon.Path("png")))
+                    System.IO.File.Delete(Team.Icon.Path("png"));
             }
             catch { }
         }

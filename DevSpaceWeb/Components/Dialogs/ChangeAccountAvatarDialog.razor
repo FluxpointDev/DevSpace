@@ -51,14 +51,14 @@
 
         if (RemoveAvatar)
         {
-            if (!user.HasAvatar())
+            if (!user.HasAvatar)
             {
                 dialogService.Close(false);
                 return;
             }
 
-            File.Delete(Program.Directory.Public.Resources.Path + user.ResourceId.ToString() + "/Avatar_" + user.AvatarId.ToString() + ".webp");
-            File.Delete(Program.Directory.Public.Resources.Path + user.ResourceId.ToString() + "/Avatar_" + user.AvatarId.ToString() + ".png");
+            File.Delete(user.Avatar.Path("webp"));
+            File.Delete(user.Avatar.Path("png"));
             user.AvatarId = null;
 
             await UserManager.UpdateAsync(user);

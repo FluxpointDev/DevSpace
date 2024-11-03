@@ -3,6 +3,7 @@ using DevSpaceWeb.Database;
 using DevSpaceWeb.Fido2;
 using Fido2NetLib;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDbGenericRepository.Attributes;
 
 namespace DevSpaceWeb.Data;
@@ -15,16 +16,21 @@ public class AuthUser : MongoIdentityUser<ObjectId>
    
     public Guid? ResourceId { get; set; }
     public Guid? AvatarId { get; set; }
-    public bool HasAvatar() => AvatarId != null;
+
+    [BsonIgnore]
+    public FileResource Avatar => new FileResource("Avatar", ResourceId, AvatarId);
+
+    [BsonIgnore]
+    public bool HasAvatar => AvatarId != null;
     public ObjectId? ManagedAccountTeamId { get; set; }
     public bool IsManaged() => ManagedAccountTeamId != null;
 
     public string GetAvatarOrDefault(bool usePng = false)
     {
-        if (!HasAvatar())
+        if (!HasAvatar)
             return "https://cdn.fluxpoint.dev/devspace/user_avatar." + (usePng ? "png" : "webp");
 
-        return _Data.Config.Instance.GetPublicUrl() + "/public/resources/" + ResourceId.ToString() + "/Avatar_" + AvatarId.ToString() + ".webp";
+        return Avatar.Url(usePng ? "png" : "webp");
     }
 
     public bool IsInstanceAdmin;

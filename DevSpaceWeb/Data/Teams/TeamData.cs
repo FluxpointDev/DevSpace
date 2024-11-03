@@ -19,14 +19,19 @@ public class TeamData
     public ObjectId OwnerId { get; set; }
     public Guid? ResourceId { get; set; }
     public Guid? IconId { get; set; }
-    public bool HasIcon() => IconId != null;
+
+    [BsonIgnore]
+    public FileResource Icon => new FileResource("Icon", ResourceId, IconId);
+
+    [BsonIgnore]
+    public bool HasIcon => IconId != null;
 
     public string GetIconOrDefault(bool usePng = false)
     {
-        if (!HasIcon())
+        if (!HasIcon)
             return "https://cdn.fluxpoint.dev/devspace/user_avatar." + (usePng ? "png" : "webp");
 
-        return _Data.Config.Instance.GetPublicUrl() + "/public/resources/" + ResourceId.ToString() + "/Icon_" + IconId.ToString() + ".webp";
+        return Icon.Url(usePng ? "png" : "webp");
     }
 
     public PermissionsSet DefaultPermissions { get; set; } = new PermissionsSet();
