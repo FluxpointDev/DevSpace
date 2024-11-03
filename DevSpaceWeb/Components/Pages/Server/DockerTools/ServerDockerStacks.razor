@@ -18,17 +18,17 @@
 
     <div class="dash-box-content">
         <RadzenButton Variant="Variant.Outlined" Text="Export" Click="@(() => RunSelectedContainersAction(ControlImageType.Export))" Icon="folder_zip" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
-        <RadzenButton Variant="Variant.Flat" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+        <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
 
-        <RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateImage" />
-        <RadzenButton Variant="Variant.Filled" Text="Refresh Stacks" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshImages" />
+        <RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateStack" />
+        <RadzenButton Variant="Variant.Filled" Text="Refresh Stacks" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshStacks" />
     </div>
 
     <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
     @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
     PagingSummaryFormat="@(count + " stack" + (count != 1 ? "s" : "") )" Density="Density.Compact"
-    AllowColumnResize="true" AllowSorting="false"
+    AllowSorting="false"
     AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
     GotoFirstPageOnSort="true"
@@ -47,7 +47,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="100px" Frozen="true" Filterable="false">
                 <Template>
-                    <RadzenLink Path="@("/teams" + Session.Selected.Team.Data.GetVanityUrl() + "/stacks/" + Session.Selected.Server.Data.GetVanityUrl() + "/stacks/" + context.Name)" MouseEnter="@(args => ShowUptimeTooltip(args, context.Id))">@context.Name</RadzenLink>
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/stacks/" + Session.Selected.Server.Data.GetVanityUrl() + "/stacks/" + context.Name)" MouseEnter="@(args => ShowUptimeTooltip(args, context.Id))">@context.Name</RadzenLink>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Type" Width="60px" Filterable="false">
@@ -70,6 +70,11 @@
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                         <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
                     </RadzenStack>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Version" Width="40px">
+                <Template>
+                    <RadzenText TextStyle="TextStyle.Body2">@context.Version</RadzenText>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Created" Width="80px">
@@ -253,17 +258,12 @@
 
     void ShowUptimeTooltip(ElementReference elementReference, string uptime) => tooltipService.Open(elementReference, uptime, null);
 
-    async Task CreateImage()
+    async Task CreateStack()
     {
 
     }
 
-    public async Task PruneImages()
-    {
-        await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.PruneImages));
-    }
-
-    public async Task RefreshImages()
+    public async Task RefreshStacks()
     {
 
     }

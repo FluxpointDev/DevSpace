@@ -20,14 +20,14 @@
         <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
         <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
         <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Flat" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+        <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
         <RadzenButton Variant="Variant.Filled" Text="Create Container" Icon="add" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" />
     </div>
     <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
     @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
     PagingSummaryFormat="@(count + " container" + (count != 1 ? "s" : "") + $" - {countDead} dead" )" Density="Density.Compact"
-    AllowColumnResize="true" AllowSorting="false"
+    AllowSorting="false"
     AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
     GotoFirstPageOnSort="true"
@@ -46,7 +46,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Property="@nameof(ContainerItem.Name)" Width="120px" Frozen="true" Filterable="false">
                 <Template>
-                    <RadzenLink Path="@("/teams" + Session.Selected.Team.Data.GetVanityUrl() + "/s/" + Session.Selected.Server.Data.GetVanityUrl() + "/containers/" + context.ID)" Text="@context.GetName()" />
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/containers/" + context.ID)" Text="@context.GetName()" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Property="@nameof(ContainerItem.State)" FilterMode="FilterMode.CheckBoxList" Width="100px">
@@ -98,7 +98,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Stack" Width="120px">
                 <Template>
-                    <RadzenLink Path="@("/teams" + Session.Selected.Team.Data.GetVanityUrl() + "/s/" + Session.Selected.Server.Data.GetVanityUrl() + "/stacks/" + context.ID)" Text="Test" />
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/stacks/" + context.ID)" Text="Test" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Image" Width="120px" Property="@nameof(ContainerListResponse.Image)">

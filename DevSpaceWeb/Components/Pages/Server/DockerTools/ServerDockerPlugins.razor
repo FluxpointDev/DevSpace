@@ -16,7 +16,7 @@
     <div class="dash-box-content">
         <RadzenButton Variant="Variant.Outlined" Text="Enable" Click="@(() => RunSelectedContainersAction(ControlPluginType.Enable))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
         <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@(() => RunSelectedContainersAction(ControlPluginType.Disable))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Flat" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlPluginType.Remove))" Icon="delete" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+        <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlPluginType.Remove))" Icon="delete" Disabled="@(!AnySelected)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
         <RadzenButton Variant="Variant.Filled" Text="Install Plugin" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@InstallPlugin" />
         <RadzenButton Variant="Variant.Filled" Text="Refresh Plugins" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshPlugins" />
     </div>
@@ -25,7 +25,7 @@
     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
     @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
     PagingSummaryFormat="@(count + " plugins" + (count != 1 ? "s" : "") )" Density="Density.Compact"
-    AllowColumnResize="true" AllowSorting="false"
+    AllowSorting="false"
     AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
     GotoFirstPageOnSort="true"
@@ -45,7 +45,7 @@
             <RadzenDataGridColumn Title="Name" Width="120px" Frozen="true" Filterable="false">
                 <Template>
                     @* <RadzenLink Path="@("https://" + context.PluginReference.Replace("docker.io/", "hub.docker.com/r/").Split(":").First())" Target="_blank" Text="" /> *@
-                    <RadzenLink Path="@("/teams" + Session.Selected.Team.Data.GetVanityUrl() + "/s/" + Session.Selected.Server.Data.GetVanityUrl() + "/plugins/" + context.ID)" Text="@context.Name.Replace(":", "")" />
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/plugins/" + context.ID)" Text="@context.Name.Replace(":", "")" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Width="54px">
