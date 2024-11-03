@@ -1,4 +1,4 @@
-﻿@page "/teams/{team_id?}/{resource?}/{resource_id?}/{resource_type?}/{resource_data?}"
+﻿@page "/teams/{team_id?}/{service?}/{service_id?}/{resource_type?}/{resource_data?}"
 @using DevSpaceWeb.Components.Pages.Server.DockerTools
 
 @if (Session.Selected.Team == null)
@@ -7,7 +7,7 @@
 }
 else
 {
-    switch (resource)
+    switch (service)
     {
         case "home":
         case null:
@@ -23,164 +23,180 @@ else
             break;
         case "servers":
             {
-                <ServerList></ServerList>
-            }
-            break;
-        case "s":
-            {
-                switch (resource_type)
+                @if (string.IsNullOrEmpty(service_id))
                 {
-                    case "home":
-                    case null:
-                    case "":
-                        <ServerHome></ServerHome>
-                        break;
-                    case "databases":
-                        <ServerDatabase></ServerDatabase>
-                        break;
-                    case "stacks":
-                        @if (string.IsNullOrEmpty(resource_data))
-                        {
-                            <ServerDockerStacks></ServerDockerStacks>
-                        }
-                        else
-                        {
-                            <ServerDockerStackInfo StackId="@resource_data"></ServerDockerStackInfo>
-                        }
-                        break;
-                    case "containers":
-                        @if (string.IsNullOrEmpty(resource_data))
-                        {
-                            <ServerDockerContainers></ServerDockerContainers>
-                        }
-                        else
-                        {
-                            <ServerDockerContainerInfo ContainerId="@resource_data"></ServerDockerContainerInfo>
-                        }
-                        break;
-                    case "plugins":
-                        @if (string.IsNullOrEmpty(resource_data))
-                        {
-                            <ServerDockerPlugins></ServerDockerPlugins>
-                        }
-                        else
-                        {
-                            <ServerDockerPluginInfo PluginInfo="@resource_data"></ServerDockerPluginInfo>
-                        }
-                        break;
-                    case "images":
-                        @if (string.IsNullOrEmpty(resource_data))
-                        {
-                            <ServerDockerImages></ServerDockerImages>
-                        }
-                        else
-                        {
-                            <ServerDockerImageInfo ImageId="@resource_data"></ServerDockerImageInfo>
-                        }
-                        break;
-                    case "networks":
-                        @if (string.IsNullOrEmpty(resource_data))
-                        {
-                            <ServerDockerNetworks></ServerDockerNetworks>
-                        }
-                        else
-                        {
-                            <ServerDockerNetworkInfo NetworkId="@resource_data"></ServerDockerNetworkInfo>
-                        }
-                        break;
-                    case "volumes":
-                        @if (string.IsNullOrEmpty(resource_data))
-                        {
-                            <ServerDockerVolumes></ServerDockerVolumes>
-                        }
-                        else
-                        {
-                            <ServerDockerVolumeInfo VolumeId="@resource_data"></ServerDockerVolumeInfo>
-                        }
-                        break;
-                    case "execute":
-                        <ServerDockerExecute></ServerDockerExecute>
-                        break;
-                    case "registry":
-                        @if (string.IsNullOrEmpty(resource_data))
-                        {
-                            <ServerDockerRegistry></ServerDockerRegistry>
-                        }
-                        else
-                        {
-                            <ServerDockerRegistryInfo RegistryId="@resource_data"></ServerDockerRegistryInfo>
-                        }
-                        break;
-                    case "firewall":
-                        <ServerFirewall></ServerFirewall>
-                        break;
-                    case "files":
-                        <ServerFiles></ServerFiles>
-                        break;
-                    case "ssh":
-                        <ServerSSH></ServerSSH>
-                        break;
-                    case "status":
-                        <ServerStatus></ServerStatus>
-                        break;
-                    case "webhooks":
-                        <ServerWebhooks></ServerWebhooks>
-                        break;
-                    case "info":
-                        <ServerSystemInfo></ServerSystemInfo>
-                        break;
+                    <ServerList></ServerList>
                 }
+                else
+                {
+                    switch (resource_type)
+                    {
+                        case null:
+                        case "":
+                        case "home":
+                            <ServerHome></ServerHome>
+                            break;
+                        case "databases":
+                            <ServerDatabase></ServerDatabase>
+                            break;
+                        case "stacks":
+                            @if (string.IsNullOrEmpty(resource_data))
+                            {
+                                <ServerDockerStacks></ServerDockerStacks>
+                            }
+                            else
+                            {
+                                <ServerDockerStackInfo StackId="@resource_data"></ServerDockerStackInfo>
+                            }
+                            break;
+                        case "containers":
+                            @if (string.IsNullOrEmpty(resource_data))
+                            {
+                                <ServerDockerContainers></ServerDockerContainers>
+                            }
+                            else
+                            {
+                                <ServerDockerContainerInfo ContainerId="@resource_data"></ServerDockerContainerInfo>
+                            }
+                            break;
+                        case "plugins":
+                            @if (string.IsNullOrEmpty(resource_data))
+                            {
+                                <ServerDockerPlugins></ServerDockerPlugins>
+                            }
+                            else
+                            {
+                                <ServerDockerPluginInfo PluginInfo="@resource_data"></ServerDockerPluginInfo>
+                            }
+                            break;
+                        case "images":
+                            @if (string.IsNullOrEmpty(resource_data))
+                            {
+                                <ServerDockerImages></ServerDockerImages>
+                            }
+                            else
+                            {
+                                <ServerDockerImageInfo ImageId="@resource_data"></ServerDockerImageInfo>
+                            }
+                            break;
+                        case "networks":
+                            @if (string.IsNullOrEmpty(resource_data))
+                            {
+                                <ServerDockerNetworks></ServerDockerNetworks>
+                            }
+                            else
+                            {
+                                <ServerDockerNetworkInfo NetworkId="@resource_data"></ServerDockerNetworkInfo>
+                            }
+                            break;
+                        case "volumes":
+                            @if (string.IsNullOrEmpty(resource_data))
+                            {
+                                <ServerDockerVolumes></ServerDockerVolumes>
+                            }
+                            else
+                            {
+                                <ServerDockerVolumeInfo VolumeId="@resource_data"></ServerDockerVolumeInfo>
+                            }
+                            break;
+                        case "execute":
+                            <ServerDockerExecute></ServerDockerExecute>
+                            break;
+                        case "registry":
+                            @if (string.IsNullOrEmpty(resource_data))
+                            {
+                                <ServerDockerRegistry></ServerDockerRegistry>
+                            }
+                            else
+                            {
+                                <ServerDockerRegistryInfo RegistryId="@resource_data"></ServerDockerRegistryInfo>
+                            }
+                            break;
+                        case "firewall":
+                            <ServerFirewall></ServerFirewall>
+                            break;
+                        case "files":
+                            <ServerFiles></ServerFiles>
+                            break;
+                        case "ssh":
+                            <ServerSSH></ServerSSH>
+                            break;
+                        case "status":
+                            <ServerStatus></ServerStatus>
+                            break;
+                        case "webhooks":
+                            <ServerWebhooks></ServerWebhooks>
+                            break;
+                        case "info":
+                            <ServerSystemInfo></ServerSystemInfo>
+                            break;
+                    }
+                }
+
             }
             break;
         case "projects":
             {
-                <ProjectsList></ProjectsList>
-            }
-            break;
-        case "p":
-            {
-                switch (resource_type)
+                @if (string.IsNullOrEmpty(service_id))
                 {
-                    case "home":
-                    case null:
-                    case "":
-                        <ProjectsHome></ProjectsHome>
-                        break;
+                    <ProjectsList></ProjectsList>
                 }
+                else
+                {
+                    switch (resource_type)
+                    {
+                        case null:
+                        case "":
+                        case "home":
+                            <ProjectsHome></ProjectsHome>
+                            break;
+                    }
+                }
+
             }
             break;
         case "logs":
             {
-                <LogsList></LogsList>
-            }
-            break;
-        case "l":
-            {
-                switch (resource_type)
+                @if (string.IsNullOrEmpty(service_id))
                 {
-                    case "home":
-                    case null:
-                    case "":
-                        <LogsHome></LogsHome>
-                        break;
+                    <LogsList></LogsList>
                 }
-            }
+                else
+                {
+                    switch (resource_type)
+                    {
+                        case null:
+                        case "":
+
+                            break;
+                        case "home":
+
+                            <LogsHome></LogsHome>
+                            break;
+                    }
+                }
+
+}
             break;
         case "websites":
             {
-                <WebsitesList></WebsitesList>
-            }
-            break;
-        case "w":
-            {
-                switch (resource_type)
+                @if (string.IsNullOrEmpty(service_id))
                 {
-                    case "home":
+<WebsitesList></WebsitesList>
+                }
+                else
+                {
+                    switch (resource_type)
+                {
                     case null:
                     case "":
+                    case "home":
                         <WebsiteHome></WebsiteHome>
                         break;
                 }
+                
+                }
+                
             }
             break;
     }
@@ -191,10 +207,10 @@ else
     public string team_id { get; set; } = "";
 
     [Parameter]
-    public string resource { get; set; } = "";
+    public string service { get; set; } = "";
 
     [Parameter]
-    public string resource_id { get; set; } = "";
+    public string service_id { get; set; } = "";
 
     [Parameter]
     public string resource_type { get; set; } = "";
@@ -233,10 +249,10 @@ else
                 {
                     case "s":
                         {
-                            if (!string.IsNullOrEmpty(resource_id))
+                            if (!string.IsNullOrEmpty(service_id))
                             {
                                 ServerData? Server = null;
-                                if (!_DB.Servers.Cache.TryGetValue(resource_id, out Server))
+                                if (!_DB.Servers.Cache.TryGetValue(service_id, out Server))
                                 {
                                     if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.ServerVanityUrls.TryGetValue(resource_id, out var serverId))
                                     {
@@ -254,10 +270,10 @@ else
                         break;
                     case "p":
                         {
-                            if (!string.IsNullOrEmpty(resource_id))
+                            if (!string.IsNullOrEmpty(service_id))
                             {
                                 ProjectData? Project = null;
-                                if (!_DB.Projects.Cache.TryGetValue(resource_id, out Project))
+                                if (!_DB.Projects.Cache.TryGetValue(service_id, out Project))
                                 {
                                     if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.ProjectVanityUrls.TryGetValue(resource_id, out var projectId))
                                     {
@@ -276,10 +292,10 @@ else
                         break;
                     case "l":
                         {
-                            if (!string.IsNullOrEmpty(resource_id))
+                            if (!string.IsNullOrEmpty(service_id))
                             {
                                 LogData? Log = null;
-                                if (!_DB.Logs.Cache.TryGetValue(resource_id, out Log))
+                                if (!_DB.Logs.Cache.TryGetValue(service_id, out Log))
                                 {
                                     if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.LogsVanityUrls.TryGetValue(resource_id, out var logId))
                                     {
@@ -297,10 +313,10 @@ else
                         break;
                     case "w":
                         {
-                            if (!string.IsNullOrEmpty(resource_id))
+                            if (!string.IsNullOrEmpty(service_id))
                             {
                                 WebsiteData? Website = null;
-                                if (!_DB.Websites.Cache.TryGetValue(resource_id, out Website))
+                                if (!_DB.Websites.Cache.TryGetValue(service_id, out Website))
                                 {
                                     if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Id, out var vanity) && vanity.WebsiteVanityUrls.TryGetValue(resource_id, out var websiteId))
                                     {
