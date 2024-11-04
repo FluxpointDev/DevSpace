@@ -35,7 +35,7 @@ public class Program
 
         Logger.LogMessage("Loaded config in: " + Program.Directory.Path, LogSeverity.Info);
 
-        var builder = WebApplication.CreateBuilder(args);
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
         _DB.Client = new MongoDB.Driver.MongoClient(_Data.Config.Database.GetConnectionString());
@@ -69,7 +69,7 @@ public class Program
 
         Services = builder.Services;
 
-        var app = builder.Build();
+        WebApplication app = builder.Build();
 
 
         // Configure the HTTP request pipeline.

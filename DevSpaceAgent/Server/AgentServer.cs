@@ -29,7 +29,7 @@ public class AgentSession : WssSession
         string ClientKey = "";
         while (Count != HeaderCount)
         {
-            var Header = request.Header(Count);
+            (string, string) Header = request.Header(Count);
             if (Header.Item1 == "Authorization")
                 ClientKey = Header.Item2;
 

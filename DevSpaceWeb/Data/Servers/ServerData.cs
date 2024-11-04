@@ -41,7 +41,7 @@ public class ServerData
 
     public void Update(UpdateDefinition<ServerData> update)
     {
-        var filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
+        FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
         _DB.Servers.Collection.UpdateOne(filter, update);
     }
 }
@@ -51,7 +51,7 @@ public class ServerWebSocket
     public void Run(ServerData server)
     {
         ValidateCert ValidateCert = new ValidateCert();
-        var context = new SslContext(SslProtocols.Tls12, (e, b, l, m) =>
+        SslContext context = new SslContext(SslProtocols.Tls12, (e, b, l, m) =>
         {
             if (b != null)
             {

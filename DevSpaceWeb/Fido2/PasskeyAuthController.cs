@@ -36,7 +36,7 @@ public class PasskeyAuthController : AuthControllerContext
 
         try
         {
-            var identityUser = await GetCurrentUserAsync();
+            AuthUser? identityUser = await GetCurrentUserAsync();
             if (identityUser == null)
                 throw new ArgumentException("User not found");
 
@@ -48,7 +48,7 @@ public class PasskeyAuthController : AuthControllerContext
             if (RequestData == null && RequestData.UserId != identityUser.Id)
                 return Json(new Fido2Error("Failed user validation."));
 
-            var user = new Fido2User
+            Fido2User user = new Fido2User
             {
                 DisplayName = identityUser!.UserName,
                 Name = identityUser.Email,
@@ -57,12 +57,12 @@ public class PasskeyAuthController : AuthControllerContext
             List<PublicKeyCredentialDescriptor> existingCredentials = identityUser.Auth.Passkeys.Where(x => x.Descriptor != null).Select(c => c.Descriptor).ToList();
 
 
-            var authenticatorSelection = new AuthenticatorSelection
+            AuthenticatorSelection authenticatorSelection = new AuthenticatorSelection
             {
                 UserVerification = UserVerificationRequirement.Required
             };
 
-            var exts = new AuthenticationExtensionsClientInputs
+            AuthenticationExtensionsClientInputs exts = new AuthenticationExtensionsClientInputs
             {
                 Extensions = true,
                 UserVerificationMethod = true,
@@ -71,7 +71,7 @@ public class PasskeyAuthController : AuthControllerContext
 
             // 3. Create options
 
-            var options = _fido2Service._lib.GetAssertionOptions(
+            AssertionOptions options = _fido2Service._lib.GetAssertionOptions(
                 existingCredentials,
                 authenticatorSelection.UserVerification,
                 exts
@@ -100,11 +100,11 @@ public class PasskeyAuthController : AuthControllerContext
         try
         {
             // 1. Get the assertion options we sent the client
-            var jsonOptions = HttpContext.Session.GetString("fido2.assertionOptions");
-            var options = AssertionOptions.FromJson(jsonOptions);
+            string? jsonOptions = HttpContext.Session.GetString("fido2.assertionOptions");
+            AssertionOptions options = AssertionOptions.FromJson(jsonOptions);
             HttpContext.Session.Remove("fido2.assertionOptions");
 
-            var identityUser = await GetCurrentUserAsync();
+            AuthUser? identityUser = await GetCurrentUserAsync();
             if (identityUser == null)
                 throw new ArgumentException("User not found");
 
@@ -118,7 +118,7 @@ public class PasskeyAuthController : AuthControllerContext
                 return Json(new Fido2Error("Failed user validation."));
 
             // 2. Get registered credential from database
-            var creds = await identityUser.GetPasskeyByIdAsync(clientResponse.Id);
+            FidoStoredCredential? creds = await identityUser.GetPasskeyByIdAsync(clientResponse.Id);
             if (creds == null)
                 throw new Exception("Unknown credentials");
 
@@ -126,7 +126,7 @@ public class PasskeyAuthController : AuthControllerContext
             // 4. Create callback to check if userhandle owns the credentialId
             IsUserHandleOwnerOfCredentialIdAsync callback = async (args, cancellationToken) =>
             {
-                var storedCreds = await identityUser.GetPasskeysByUserHandleAsync(args.UserHandle);
+                List<FidoStoredCredential> storedCreds = await identityUser.GetPasskeysByUserHandleAsync(args.UserHandle);
                 return storedCreds.Any(c => c.Descriptor != null && c.Descriptor.Id.SequenceEqual(args.CredentialId));
             };
 
@@ -136,7 +136,7 @@ public class PasskeyAuthController : AuthControllerContext
             }
 
             // 5. Make the assertion
-            var res = await _fido2Service._lib.MakeAssertionAsync(
+            VerifyAssertionResult res = await _fido2Service._lib.MakeAssertionAsync(
                 clientResponse, options, creds.PublicKey, null, 0, callback);
 
             if (res.Status == "ok")
@@ -145,7 +145,7 @@ public class PasskeyAuthController : AuthControllerContext
                 if (RequestData.LogRequest)
                 {
                     identityUser = await GetCurrentUserAsync();
-                    var passkeyUsed = await identityUser.GetPasskeyByIdAsync(res.CredentialId);
+                    FidoStoredCredential? passkeyUsed = await identityUser.GetPasskeyByIdAsync(res.CredentialId);
                     if (passkeyUsed != null)
                     {
                         passkeyUsed.LastUsedAt = DateTimeOffset.UtcNow;

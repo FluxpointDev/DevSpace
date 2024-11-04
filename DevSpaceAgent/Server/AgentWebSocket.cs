@@ -24,7 +24,7 @@ public class AgentWebSocket
             Console.WriteLine("Invalid Cert: " + json.type.ToString());
             return;
         }
-        var message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
+        string message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
         Console.WriteLine("Send Cert Message");
         bool Check = Session.SendTextAsync(message);
         Console.WriteLine("Send: " + Check);
@@ -39,7 +39,7 @@ public class AgentWebSocket
             return;
         }
         Console.WriteLine("Respond with: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(json, Newtonsoft.Json.Formatting.Indented));
-        var message = Newtonsoft.Json.JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, Data = json });
+        string message = Newtonsoft.Json.JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, Data = json });
         Session.SendTextAsync(message);
     }
 
@@ -52,7 +52,7 @@ public class AgentWebSocket
         }
         Console.WriteLine("Respond with: Fail");
 
-        var message = JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, IsFail = true });
+        string message = JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, IsFail = true });
         Session.SendTextAsync(message);
     }
 }

@@ -29,7 +29,7 @@ public class Fido2Metadata : IMetadataService
 
         if (_entries.TryGetValue(aaguid, out MetadataBLOBPayloadEntry? entry))
         {
-            if (_metadataStatements.TryGetValue(aaguid, out var metadataStatement))
+            if (_metadataStatements.TryGetValue(aaguid, out MetadataStatement? metadataStatement))
             {
                 entry.MetadataStatement = metadataStatement;
             }
@@ -46,7 +46,7 @@ public class Fido2Metadata : IMetadataService
     {
         if (entry.AaGuid.HasValue)
         {
-            var statement = await repository.GetMetadataStatementAsync(blob, entry, cancellationToken);
+            MetadataStatement? statement = await repository.GetMetadataStatementAsync(blob, entry, cancellationToken);
 
             if (statement?.AaGuid is Guid aaGuid)
             {
@@ -57,9 +57,9 @@ public class Fido2Metadata : IMetadataService
 
     protected virtual async Task InitializeRepositoryAsync(IMetadataRepository repository, CancellationToken cancellationToken)
     {
-        var blob = await repository.GetBLOBAsync(cancellationToken);
+        MetadataBLOBPayload blob = await repository.GetBLOBAsync(cancellationToken);
 
-        foreach (var entry in blob.Entries)
+        foreach (MetadataBLOBPayloadEntry? entry in blob.Entries)
         {
             if (entry.AaGuid is Guid aaGuid)
             {
@@ -74,7 +74,7 @@ public class Fido2Metadata : IMetadataService
 
     public virtual async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        foreach (var repository in _repositories)
+        foreach (IMetadataRepository repository in _repositories)
         {
             await InitializeRepositoryAsync(repository, cancellationToken);
         }

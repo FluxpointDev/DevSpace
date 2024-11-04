@@ -53,7 +53,7 @@ public class PasskeyRegisterController : AuthControllerContext
             if (RequestData == null && RequestData.UserId != AuthUser.Id)
                 return Json(new Fido2Error("Failed user validation."));
 
-            var user = new Fido2User
+            Fido2User user = new Fido2User
             {
                 DisplayName = AuthUser.UserName,
                 Name = AuthUser.Email,
@@ -63,26 +63,26 @@ public class PasskeyRegisterController : AuthControllerContext
 
             // 2. Get user existing keys by username
             List<PublicKeyCredentialDescriptor> existingKeys = new List<PublicKeyCredentialDescriptor>();
-            foreach (var credential in AuthUser.Auth.Passkeys)
+            foreach (FidoStoredCredential credential in AuthUser.Auth.Passkeys)
             {
                 if (credential.Descriptor != null)
                     existingKeys.Add(credential.Descriptor);
             }
 
             // 3. Create options
-            var authenticatorSelection = new AuthenticatorSelection
+            AuthenticatorSelection authenticatorSelection = new AuthenticatorSelection
             {
                 UserVerification = UserVerificationRequirement.Required
             };
 
-            var exts = new AuthenticationExtensionsClientInputs
+            AuthenticationExtensionsClientInputs exts = new AuthenticationExtensionsClientInputs
             {
                 Extensions = true,
                 UserVerificationMethod = true,
                 CredProps = true,
                 DevicePubKey = new AuthenticationExtensionsDevicePublicKeyInputs { }
             };
-            var options = _fido2Service._lib.RequestNewCredential(user, existingKeys, authenticatorSelection, AttestationConveyancePreference.Direct, exts);
+            CredentialCreateOptions options = _fido2Service._lib.RequestNewCredential(user, existingKeys, authenticatorSelection, AttestationConveyancePreference.Direct, exts);
 
 
             // 4. Temporarily store options, session/in-memory cache/redis/db
@@ -108,7 +108,7 @@ public class PasskeyRegisterController : AuthControllerContext
 
         try
         {
-            var user = await GetCurrentUserAsync();
+            AuthUser? user = await GetCurrentUserAsync();
             if (user == null)
                 return Json(new Fido2Error("Failed to get user."));
 
@@ -121,12 +121,12 @@ public class PasskeyRegisterController : AuthControllerContext
                 return Json(new Fido2Error("Failed user validation."));
 
             // 1. get the options we sent the client
-            var jsonOptions = HttpContext.Session.GetString("fido2.attestationOptions");
-            var options = CredentialCreateOptions.FromJson(jsonOptions);
+            string? jsonOptions = HttpContext.Session.GetString("fido2.attestationOptions");
+            CredentialCreateOptions options = CredentialCreateOptions.FromJson(jsonOptions);
             // 2. Create callback so that lib can verify credential id is unique to this user
             IsCredentialIdUniqueToUserAsyncDelegate callback = async (args, cancellationToken) =>
             {
-                var cred = await user.GetPasskeyByIdAsync(args.CredentialId);
+                FidoStoredCredential? cred = await user.GetPasskeyByIdAsync(args.CredentialId);
                 if (cred != null)
                     return false;
 
@@ -134,13 +134,13 @@ public class PasskeyRegisterController : AuthControllerContext
             };
 
             // 2. Verify and make the credentials
-            var success = await _fido2Service._lib.MakeNewCredentialAsync(attestationResponse.data, options, callback);
+            MakeNewCredentialResult success = await _fido2Service._lib.MakeNewCredentialAsync(attestationResponse.data, options, callback);
             if (success.Result != null)
             {
 
                 if (_fido2Service._metadata != null)
                 {
-                    var Metadata = await _fido2Service._metadata.GetEntryAsync(success.Result.AaGuid);
+                    MetadataBLOBPayloadEntry? Metadata = await _fido2Service._metadata.GetEntryAsync(success.Result.AaGuid);
                     if (Metadata != null)
                     {
                         Logger.LogMessage("Metadata: " + Metadata.MetadataStatement.Description, LogSeverity.Debug);

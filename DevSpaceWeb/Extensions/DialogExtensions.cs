@@ -9,9 +9,9 @@ public static class DialogExtensions
 {
     public static async Task<bool> ShowConfirmAsync(this DialogService service, string title, string text, string buttonText, ButtonStyle color)
     {
-        var options = new DialogOptions() { };
+        DialogOptions options = new DialogOptions() { };
 
-        var Dialog = await service.OpenAsync<ConfirmInfoDialog>(title, new Dictionary<string, object>()
+        dynamic Dialog = await service.OpenAsync<ConfirmInfoDialog>(title, new Dictionary<string, object>()
         {
             { "ContentText", text },
             { "ButtonText", buttonText },
@@ -27,9 +27,9 @@ public static class DialogExtensions
 
     public static async Task<bool> ShowDynamicFormAsync<Model>(this DialogService service, string title, Model model, Func<Model, string?> function)
     {
-        var options = new DialogOptions() { AutoFocusFirstElement = true };
+        DialogOptions options = new DialogOptions() { AutoFocusFirstElement = true };
 
-        var dialog = await service.OpenAsync<DynamicFormDialog<Model>>(title, new Dictionary<string, object>()
+        dynamic dialog = await service.OpenAsync<DynamicFormDialog<Model>>(title, new Dictionary<string, object>()
         {
             { "ModelData", model },
             { "SubmitTask", function }
@@ -42,9 +42,9 @@ public static class DialogExtensions
 
     public static async Task<bool> ShowInfoAsync(this DialogService service, string title, string text)
     {
-        var options = new DialogOptions() { };
+        DialogOptions options = new DialogOptions() { };
 
-        var Dialog = await service.OpenAsync<ConfirmInfoDialog>(title, new Dictionary<string, object>()
+        dynamic Dialog = await service.OpenAsync<ConfirmInfoDialog>(title, new Dictionary<string, object>()
         {
             { "ContentText", text },
             { "ButtonText", "Ok" },

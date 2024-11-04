@@ -57,8 +57,8 @@ public static class _Data
             Config.CertKey = GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
             try
             {
-                var ecdsa = ECDsa.Create(); // generate asymmetric key pair
-                var req = new CertificateRequest("cn=devspace", ecdsa, HashAlgorithmName.SHA256);
+                ECDsa ecdsa = ECDsa.Create(); // generate asymmetric key pair
+                CertificateRequest req = new CertificateRequest("cn=devspace", ecdsa, HashAlgorithmName.SHA256);
                 Program.Certificate = req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(5));
 
                 // Create PFX (PKCS #12) with private key
@@ -100,13 +100,13 @@ public static class _Data
             throw new ArgumentException("length is too big", "length");
         if (characterSet == null)
             throw new ArgumentNullException("characterSet");
-        var characterArray = characterSet.Distinct().ToArray();
+        char[] characterArray = characterSet.Distinct().ToArray();
         if (characterArray.Length == 0)
             throw new ArgumentException("characterSet must not be empty", "characterSet");
 
-        var bytes = new byte[length * 8];
+        byte[] bytes = new byte[length * 8];
         new RNGCryptoServiceProvider().GetBytes(bytes);
-        var result = new char[length];
+        char[] result = new char[length];
         for (int i = 0; i < length; i++)
         {
             ulong value = BitConverter.ToUInt64(bytes, i * 8);

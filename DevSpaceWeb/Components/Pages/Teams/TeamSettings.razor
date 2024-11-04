@@ -21,7 +21,7 @@
                 }
                 else
                 {
-                    <EditForm Model="@TeamForm" OnValidSubmit="@CheckTeam">
+                    <EditForm Model="@TeamForm" OnValidSubmit="@UpdateTeamSettings">
                         <DataAnnotationsValidator />
 
                         <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
@@ -113,7 +113,7 @@
                 }
             </RadzenTabsItem>
             <RadzenTabsItem Text="Roles">
-                <TeamRoleSettings ManageRoles="@ManageRoles" Roles="@Roles"></TeamRoleSettings>
+                <TeamRoleSettings ManageRoles="@ManageRoles" Roles="@Roles" Member="@Member"></TeamRoleSettings>
             </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
@@ -162,6 +162,9 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    [Parameter]
+    public TeamMemberData Member { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         TeamForm = new TeamBasicModel
@@ -171,12 +174,11 @@
         TeamForm.VanityUrl = Session.Selected.Team.Data.VanityUrl;
         Users = Session.Selected.Team.Data.Members.Keys;
         Roles = Session.Selected.Team.Data.CachedRoles.Values.ToArray();
-        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
-        if (member != null)
+        if (Member != null)
         {
-            ManageTeam = Session.Selected.Team.Data.HasTeamPermission(member, TeamPermission.ManageTeam);
-            ManageMembers = Session.Selected.Team.Data.HasTeamPermission(member, TeamPermission.ManageMembers);
-            ManageRoles = Session.Selected.Team.Data.HasTeamPermission(member, TeamPermission.ManageRoles);
+            ManageTeam = Member.HasTeamPermission(TeamPermission.ManageTeam);
+            ManageMembers = Member.HasTeamPermission(TeamPermission.ManageMembers);
+            ManageRoles = Member.HasTeamPermission(TeamPermission.ManageRoles);
         }
     }
 
@@ -191,10 +193,9 @@
 
     public TeamBasicModel TeamForm { get; set; } = new TeamBasicModel();
 
-    public async Task CheckTeam()
+    public async Task UpdateTeamSettings()
     {
-        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
-        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageTeam))
+        if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
             return;
 
         if (!string.IsNullOrEmpty(TeamForm.VanityUrl))
@@ -229,14 +230,12 @@
 
     public async Task AddMember()
     {
-        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
-        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageMembers))
+        if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
             return;
 
         await DialogService.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), (TeamAddUserModel data) =>
         {
-            TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
-            if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageMembers))
+            if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
                 return "You do not have permission for Manage Members.";
 
             PartialUserData? user = _DB.Users.Values.FirstOrDefault(x => x.Email.Equals(data.Email, StringComparison.OrdinalIgnoreCase));
@@ -281,8 +280,7 @@
 
     public async Task TransferOwnership(PartialUserData user)
     {
-        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
-        if (member == null || member.Team == null || member.Team.OwnerId != Session.CurrentUserId.Value)
+        if (Member.Team.OwnerId != Session.CurrentUserId.Value)
             return;
 
         bool Confirm = await DialogService.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Session.Selected.Team.Data.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
@@ -295,8 +293,7 @@
         if (!twoFactorConfirm)
             return;
 
-        member = Session.Selected.Team.Data.GetMember(Session);
-        if (member == null || member.Team == null || member.Team.OwnerId != Session.CurrentUserId.Value)
+        if (Member.Team.OwnerId != Session.CurrentUserId.Value)
             return;
 
         Session.Selected.Team.Data.OwnerId = user.Id;
@@ -305,8 +302,7 @@
 
     public async Task RemoveTeamMember(ObjectId user)
     {
-        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
-        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageMembers))
+        if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
             return;
 
         Session.Selected.Team.Data.Members.Remove(user);
@@ -317,8 +313,7 @@
 
     public async Task RemoveTeamRole(ObjectId role)
     {
-        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
-        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageRoles))
+        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
             return;
 
         Session.Selected.Team.Data.Roles.Remove(role);
@@ -328,8 +323,7 @@
 
     public async Task ChangeMemberRoles(PartialUserData user)
     {
-        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
-        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageMembers))
+        if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
             return;
 
         var Dialog = await DialogService.OpenAsync<ChangeMemberRolesDialog>($"Update Roles for {user.UserName}", new Dictionary<string, object>()
@@ -343,6 +337,9 @@
 
     public async Task ChangeIcon()
     {
+        if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
+            return;
+
         await IconUploader.Upload();
         
     }
@@ -357,16 +354,7 @@
         if (!Session.Selected.Team.Data.HasIcon)
             return;
 
-        var User = await Session.GetCurrentUserAsync();
-
-        if (!Session.Selected.Team.Data.Members.ContainsKey(User.Id))
-            return;
-
-        var Member = Session.Selected.Team.Data.GetMember(User);
-        if (Member == null)
-            return;
-
-        if (!Session.Selected.Team.Data.HasTeamPermission(Member, Data.Permissions.TeamPermission.ManageTeam))
+        if (!Member.HasTeamPermission(Data.Permissions.TeamPermission.ManageTeam))
             return;
 
         Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null));

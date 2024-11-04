@@ -142,7 +142,7 @@ public class WebSocketClient : WssClient
                     {
                         IWebSocketResponseEvent<dynamic> @event = payload.ToObject<IWebSocketResponseEvent<dynamic>>()!;
                         Logger.LogMessage("WebSocket", "Got Response: " + @event.TaskId, LogSeverity.Info);
-                        if (WebSocket.TaskCollection.TryGetValue(@event.TaskId, out var task))
+                        if (WebSocket.TaskCollection.TryGetValue(@event.TaskId, out TaskCompletionSource<JToken>? task))
                         {
                             if (@event.IsFail)
                                 task.SetCanceled();
@@ -173,20 +173,20 @@ public class WebSocketClient : WssClient
 
 
         json.TaskId = Guid.NewGuid().ToString();
-        var message = JsonConvert.SerializeObject(json);
+        string message = JsonConvert.SerializeObject(json);
 
-        var tcs = new TaskCompletionSource<JToken>();
+        TaskCompletionSource<JToken> tcs = new TaskCompletionSource<JToken>();
         WebSocket.TaskCollection.TryAdd(json.TaskId, tcs);
         SendTextAsync(message);
 
-        var result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 30), token);
+        JToken result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 30), token);
         if (result == null)
         {
             return null;
         }
         Logger.LogMessage("WebSocket", "Task Success: " + tcs.Task.IsCompletedSuccessfully, LogSeverity.Info);
 
-        var Response = result.ToObject<IWebSocketResponseEvent<T>>();
+        IWebSocketResponseEvent<T>? Response = result.ToObject<IWebSocketResponseEvent<T>>();
 
         if (Response.IsFail)
             return null;

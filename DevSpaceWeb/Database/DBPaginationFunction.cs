@@ -11,13 +11,13 @@ public static class DBPaginationFunction
         int page,
         int pageSize)
     {
-        var countFacet = AggregateFacet.Create("count",
+        AggregateFacet<TDocument, AggregateCountResult> countFacet = AggregateFacet.Create("count",
             PipelineDefinition<TDocument, AggregateCountResult>.Create(new[]
             {
                 PipelineStageDefinitionBuilder.Count<TDocument>()
             }));
 
-        var dataFacet = AggregateFacet.Create("data",
+        AggregateFacet<TDocument, TDocument> dataFacet = AggregateFacet.Create("data",
             PipelineDefinition<TDocument, TDocument>.Create(new[]
             {
                 PipelineStageDefinitionBuilder.Sort(sortDefinition),
@@ -26,20 +26,20 @@ public static class DBPaginationFunction
             }));
 
 
-        var aggregation = await collection.Aggregate()
+        List<AggregateFacetResults> aggregation = await collection.Aggregate()
             .Match(filterDefinition)
             .Facet(countFacet, dataFacet)
             .ToListAsync();
 
-        var count = aggregation.First()
+        long? count = aggregation.First()
             .Facets.First(x => x.Name == "count")
             .Output<AggregateCountResult>()
             ?.FirstOrDefault()
             ?.Count;
 
-        var totalPages = (int)Math.Ceiling((double)count / pageSize);
+        int totalPages = (int)Math.Ceiling((double)count / pageSize);
 
-        var data = aggregation.First()
+        IReadOnlyList<TDocument> data = aggregation.First()
             .Facets.First(x => x.Name == "data")
             .Output<TDocument>();
 

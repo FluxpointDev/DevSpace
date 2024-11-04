@@ -220,6 +220,9 @@ else
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    [Parameter]
+    public TeamMemberData Member { get; set; }
+
     public bool CheckBox { get; set; }
 
     public class PermissionItem<T> where T : Enum
@@ -302,14 +305,12 @@ else
 
     public async Task CreateRole()
     {
-        TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
-        if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageRoles))
+        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
             return;
 
         await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), (TeamRoleModel data) =>
         {
-            TeamMemberData? member = Session.Selected.Team.Data.GetMember(Session);
-            if (member == null || member.Team == null || !member.Team.HasTeamPermission(member, TeamPermission.ManageRoles))
+            if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
                 return "You do not have permission for Manage Roles.";
 
             foreach (var r in Session.Selected.Team.Data.CachedRoles.Values)

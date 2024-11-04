@@ -26,7 +26,7 @@ public class DynamicFormItem
     {
         bool IsUppercase = false;
         StringBuilder str = new StringBuilder();
-        foreach (var i in prop.Name)
+        foreach (char i in prop.Name)
         {
             if (Char.IsUpper(i))
             {
@@ -47,7 +47,7 @@ public class DynamicFormItem
             str.Append(i);
         }
         Label = str.ToString();
-        var DisplayName = prop.GetCustomAttribute<DisplayAttribute>();
+        DisplayAttribute? DisplayName = prop.GetCustomAttribute<DisplayAttribute>();
         if (DisplayName != null && !string.IsNullOrEmpty(DisplayName.Name))
             Label = DisplayName.Name;
         return Label;
@@ -62,10 +62,10 @@ public class DynamicFormItem
 
     public bool Validate(object model)
     {
-        var Context = new ValidationContext(Property.GetType());
-        foreach (var i in Property.GetCustomAttributes<ValidationAttribute>())
+        ValidationContext Context = new ValidationContext(Property.GetType());
+        foreach (ValidationAttribute i in Property.GetCustomAttributes<ValidationAttribute>())
         {
-            var Validate = i.GetValidationResult(Property.GetValue(model), Context);
+            ValidationResult? Validate = i.GetValidationResult(Property.GetValue(model), Context);
             if (Validate != null && !string.IsNullOrEmpty(Validate.ErrorMessage))
             {
                 ErrorMessage = Validate.ErrorMessage;

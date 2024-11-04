@@ -25,9 +25,9 @@ public class Program
 
         DockerClient = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
 
-        var context = new SslContext(SslProtocols.None, Certificate);
+        SslContext context = new SslContext(SslProtocols.None, Certificate);
         context.CertificateValidationCallback = (x, s, t, b) => { return true; };
-        var server = new AgentServer(context, IPAddress.Any, 5555);
+        AgentServer server = new AgentServer(context, IPAddress.Any, 5555);
         server.Start();
 
         await Task.Delay(-1);

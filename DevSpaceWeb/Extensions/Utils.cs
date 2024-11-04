@@ -76,7 +76,7 @@ public static class Utils
         if (String.IsNullOrEmpty(text))
             return String.Empty;
 
-        using (var sha = new System.Security.Cryptography.SHA256Managed())
+        using (SHA256Managed sha = new System.Security.Cryptography.SHA256Managed())
         {
             byte[] textData = System.Text.Encoding.UTF8.GetBytes(text);
             byte[] hash = sha.ComputeHash(textData);

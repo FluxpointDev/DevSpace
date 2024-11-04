@@ -66,9 +66,9 @@ public class SwaggerCheckAuthFilter : IOperationFilter
         if (context.MethodInfo.DeclaringType is null)
             return;
 
-        var hasAuthorize = !context.MethodInfo.GetCustomAttributes<SwaggerNoAuthAttribute>(true).Any();
+        bool hasAuthorize = !context.MethodInfo.GetCustomAttributes<SwaggerNoAuthAttribute>(true).Any();
 
-        foreach (var i in operation.Responses)
+        foreach (KeyValuePair<string, OpenApiResponse> i in operation.Responses)
         {
             i.Value.Content.Remove("text/plain");
             i.Value.Content.Remove("text/json");
@@ -154,7 +154,7 @@ public class SwaggerCheckAuthFilter : IOperationFilter
                 }
             }
 
-            var security = new OpenApiSecurityScheme
+            OpenApiSecurityScheme security = new OpenApiSecurityScheme
             {
                 Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "key" }
             };

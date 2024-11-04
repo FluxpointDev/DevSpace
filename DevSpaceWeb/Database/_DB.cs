@@ -46,7 +46,7 @@ public static class _DB
     {
         try
         {
-            var result = await Run.RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1));
+            BsonDocument result = await Run.RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1));
             IsConnected = true;
             Logger.LogMessage("Database", "Pinged your deployment. You successfully connected to MongoDB!", LogSeverity.Info);
         }
@@ -115,19 +115,19 @@ public static class _DB
                 {
                     if (TeamVanityUrls.Cache.TryAdd(x.Id.ToString(), x))
                     {
-                        foreach (var i in x.ServerVanityUrls)
+                        foreach (KeyValuePair<string, ObjectId> i in x.ServerVanityUrls)
                         {
                             VanityUrlCache.TryAdd(i.Value, i.Key);
                         }
-                        foreach (var i in x.LogsVanityUrls)
+                        foreach (KeyValuePair<string, ObjectId> i in x.LogsVanityUrls)
                         {
                             VanityUrlCache.TryAdd(i.Value, i.Key);
                         }
-                        foreach (var i in x.ProjectVanityUrls)
+                        foreach (KeyValuePair<string, ObjectId> i in x.ProjectVanityUrls)
                         {
                             VanityUrlCache.TryAdd(i.Value, i.Key);
                         }
-                        foreach (var i in x.WebsiteVanityUrls)
+                        foreach (KeyValuePair<string, ObjectId> i in x.WebsiteVanityUrls)
                         {
                             VanityUrlCache.TryAdd(i.Value, i.Key);
                         }

@@ -9,7 +9,7 @@ namespace DevSpaceWeb.Database
         {
             try
             {
-                var cmd = Cli.Wrap("cat").WithArguments("/etc/lsb-release");
+                Command cmd = Cli.Wrap("cat").WithArguments("/etc/lsb-release");
 
                 BufferedCommandResult? res = await cmd.ExecuteBufferedAsync();
                 if (!res.IsSuccess)
@@ -107,7 +107,7 @@ namespace DevSpaceWeb.Database
 
                 try
                 {
-                    var Res = await new HttpClient().GetStringAsync("https://www.mongodb.org/static/pgp/server-" + MongoVersion + ".asc");
+                    string Res = await new HttpClient().GetStringAsync("https://www.mongodb.org/static/pgp/server-" + MongoVersion + ".asc");
                     File.WriteAllText(Program.Directory.Cache.Path + "mongodb.asc", Res);
                 }
                 catch (Exception ex)

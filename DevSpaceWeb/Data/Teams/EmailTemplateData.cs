@@ -117,8 +117,8 @@ public class EmailTemplateData
 
     public async Task UpdateAsync()
     {
-        var update = Builders<EmailTemplateData>.Update.Set(r => r, this);
-        var filter = Builders<EmailTemplateData>.Filter.Eq(r => r.Id, Id);
+        UpdateDefinition<EmailTemplateData> update = Builders<EmailTemplateData>.Update.Set(r => r, this);
+        FilterDefinition<EmailTemplateData> filter = Builders<EmailTemplateData>.Filter.Eq(r => r.Id, Id);
         await _DB.EmailTemplates.Collection.UpdateOneAsync(filter, update);
     }
 

@@ -12,7 +12,7 @@ public class UsernameValidationAttribute : ValidationAttribute
     {
         string actualValue = value as string;
 
-        foreach (var c in actualValue)
+        foreach (char c in actualValue)
         {
             if (!AllowableValues.Contains(c))
                 return false;

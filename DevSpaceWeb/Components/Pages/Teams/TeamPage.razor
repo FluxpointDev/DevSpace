@@ -1,9 +1,9 @@
 ﻿@page "/teams/{team_id?}/{service?}/{service_id?}/{resource_type?}/{resource_data?}"
 @using DevSpaceWeb.Components.Pages.Server.DockerTools
 
-@if (Session.Selected.Team == null)
+@if (Session.Selected.Team == null || Member == null)
 {
-
+    <p>This team does not exist</p>
 }
 else
 {
@@ -13,19 +13,19 @@ else
         case null:
         case "":
             {
-                <TeamHome></TeamHome>
+                <TeamHome Member="@Member"></TeamHome>
             }
             break;
         case "settings":
             {
-                <TeamSettings></TeamSettings>
+                <TeamSettings Member="@Member"></TeamSettings>
             }
             break;
         case "servers":
             {
                 @if (string.IsNullOrEmpty(service_id))
                 {
-                    <ServerList></ServerList>
+                    <ServerList Member="@Member"></ServerList>
                 }
                 else
                 {
@@ -34,101 +34,101 @@ else
                         case null:
                         case "":
                         case "home":
-                            <ServerHome></ServerHome>
+                            <ServerHome Member="@Member"></ServerHome>
                             break;
                         case "databases":
-                            <ServerDatabase></ServerDatabase>
+                            <ServerDatabase Member="@Member"></ServerDatabase>
                             break;
                         case "stacks":
                             @if (string.IsNullOrEmpty(resource_data))
                             {
-                                <ServerDockerStacks></ServerDockerStacks>
+                                <ServerDockerStacks Member="@Member"></ServerDockerStacks>
                             }
                             else
                             {
-                                <ServerDockerStackInfo StackId="@resource_data"></ServerDockerStackInfo>
+                                <ServerDockerStackInfo StackId="@resource_data" Member="@Member"></ServerDockerStackInfo>
                             }
                             break;
                         case "containers":
                             @if (string.IsNullOrEmpty(resource_data))
                             {
-                                <ServerDockerContainers></ServerDockerContainers>
+                                <ServerDockerContainers Member="@Member"></ServerDockerContainers>
                             }
                             else
                             {
-                                <ServerDockerContainerInfo ContainerId="@resource_data"></ServerDockerContainerInfo>
+                                <ServerDockerContainerInfo ContainerId="@resource_data" Member="@Member"></ServerDockerContainerInfo>
                             }
                             break;
                         case "plugins":
                             @if (string.IsNullOrEmpty(resource_data))
                             {
-                                <ServerDockerPlugins></ServerDockerPlugins>
+                                <ServerDockerPlugins Member="@Member"></ServerDockerPlugins>
                             }
                             else
                             {
-                                <ServerDockerPluginInfo PluginInfo="@resource_data"></ServerDockerPluginInfo>
+                                <ServerDockerPluginInfo PluginInfo="@resource_data" Member="@Member"></ServerDockerPluginInfo>
                             }
                             break;
                         case "images":
                             @if (string.IsNullOrEmpty(resource_data))
                             {
-                                <ServerDockerImages></ServerDockerImages>
+                                <ServerDockerImages Member="@Member"></ServerDockerImages>
                             }
                             else
                             {
-                                <ServerDockerImageInfo ImageId="@resource_data"></ServerDockerImageInfo>
+                                <ServerDockerImageInfo ImageId="@resource_data" Member="@Member"></ServerDockerImageInfo>
                             }
                             break;
                         case "networks":
                             @if (string.IsNullOrEmpty(resource_data))
                             {
-                                <ServerDockerNetworks></ServerDockerNetworks>
+                                <ServerDockerNetworks Member="@Member"></ServerDockerNetworks>
                             }
                             else
                             {
-                                <ServerDockerNetworkInfo NetworkId="@resource_data"></ServerDockerNetworkInfo>
+                                <ServerDockerNetworkInfo NetworkId="@resource_data" Member="@Member"></ServerDockerNetworkInfo>
                             }
                             break;
                         case "volumes":
                             @if (string.IsNullOrEmpty(resource_data))
                             {
-                                <ServerDockerVolumes></ServerDockerVolumes>
+                                <ServerDockerVolumes Member="@Member"></ServerDockerVolumes>
                             }
                             else
                             {
-                                <ServerDockerVolumeInfo VolumeId="@resource_data"></ServerDockerVolumeInfo>
+                                <ServerDockerVolumeInfo VolumeId="@resource_data" Member="@Member"></ServerDockerVolumeInfo>
                             }
                             break;
                         case "execute":
-                            <ServerDockerExecute></ServerDockerExecute>
+                            <ServerDockerExecute Member="@Member"></ServerDockerExecute>
                             break;
                         case "registry":
                             @if (string.IsNullOrEmpty(resource_data))
                             {
-                                <ServerDockerRegistry></ServerDockerRegistry>
+                                <ServerDockerRegistry Member="@Member"></ServerDockerRegistry>
                             }
                             else
                             {
-                                <ServerDockerRegistryInfo RegistryId="@resource_data"></ServerDockerRegistryInfo>
+                                <ServerDockerRegistryInfo RegistryId="@resource_data" Member="@Member"></ServerDockerRegistryInfo>
                             }
                             break;
                         case "firewall":
-                            <ServerFirewall></ServerFirewall>
+                            <ServerFirewall Member="@Member"></ServerFirewall>
                             break;
                         case "files":
-                            <ServerFiles></ServerFiles>
+                            <ServerFiles Member="@Member"></ServerFiles>
                             break;
                         case "ssh":
-                            <ServerSSH></ServerSSH>
+                            <ServerSSH Member="@Member"></ServerSSH>
                             break;
                         case "status":
-                            <ServerStatus></ServerStatus>
+                            <ServerStatus Member="@Member"></ServerStatus>
                             break;
                         case "webhooks":
-                            <ServerWebhooks></ServerWebhooks>
+                            <ServerWebhooks Member="@Member"></ServerWebhooks>
                             break;
                         case "info":
-                            <ServerSystemInfo></ServerSystemInfo>
+                            <ServerSystemInfo Member="@Member"></ServerSystemInfo>
                             break;
                     }
                 }
@@ -139,7 +139,7 @@ else
             {
                 @if (string.IsNullOrEmpty(service_id))
                 {
-                    <ProjectsList></ProjectsList>
+                    <ProjectsList Member="@Member"></ProjectsList>
                 }
                 else
                 {
@@ -148,7 +148,7 @@ else
                         case null:
                         case "":
                         case "home":
-                            <ProjectsHome></ProjectsHome>
+                            <ProjectsHome Member="@Member"></ProjectsHome>
                             break;
                     }
                 }
@@ -159,7 +159,7 @@ else
             {
                 @if (string.IsNullOrEmpty(service_id))
                 {
-                    <LogsList></LogsList>
+                    <LogsList Member="@Member"></LogsList>
                 }
                 else
                 {
@@ -171,32 +171,32 @@ else
                             break;
                         case "home":
 
-                            <LogsHome></LogsHome>
+                            <LogsHome Member="@Member"></LogsHome>
                             break;
                     }
                 }
 
-}
+            }
             break;
         case "websites":
             {
                 @if (string.IsNullOrEmpty(service_id))
                 {
-<WebsitesList></WebsitesList>
+                    <WebsitesList Member="@Member"></WebsitesList>
                 }
                 else
                 {
                     switch (resource_type)
-                {
-                    case null:
-                    case "":
-                    case "home":
-                        <WebsiteHome></WebsiteHome>
-                        break;
+                    {
+                        case null:
+                        case "":
+                        case "home":
+                            <WebsiteHome Member="@Member"></WebsiteHome>
+                            break;
+                    }
+
                 }
-                
-                }
-                
+
             }
             break;
     }
@@ -218,6 +218,8 @@ else
     [Parameter]
     public string resource_data { get; set; } = "";
 
+    public TeamMemberData Member { get; set; }
+
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
@@ -238,9 +240,8 @@ else
             if (Team != null && (Session.Selected.Team == null || Session.Selected.Team.Data.Id != Team.Id))
             {
                 Session.Selected.Team = new SelectedTeamData(Team);
+                Member = Team.GetMember(Session)!;
                 UpdateNav = true;
-
-
             }
 
             if (Session.Selected.Team != null)

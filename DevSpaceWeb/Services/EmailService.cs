@@ -10,7 +10,7 @@ public class EmailService
     private HttpClient? ManagedEmailSystem;
     public async Task<SmtpClient> CreateSmtpAsync()
     {
-        var Client = new SmtpClient();
+        SmtpClient Client = new SmtpClient();
         await Client.ConnectAsync(_Data.Config.Email.SmtpHost, _Data.Config.Email.SmtpPort);
         await Client.AuthenticateAsync(_Data.Config.Email.SmtpUser, _Data.Config.Email.SmtpPassword);
         return Client;
@@ -77,7 +77,7 @@ public class EmailService
             if (ManagedEmailSystem == null)
                 ManagedEmailSystem = new HttpClient();
 
-            var message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/send")
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/send")
             {
                 Content = JsonContent.Create(new SendMailJson
                 {
@@ -96,7 +96,7 @@ public class EmailService
                 })
             };
             message.Headers.Add("Authorization", _Data.Config.Email.ManagedEmailToken);
-            var Res = await ManagedEmailSystem.SendAsync(message);
+            HttpResponseMessage Res = await ManagedEmailSystem.SendAsync(message);
 
             return Res.IsSuccessStatusCode;
         }
@@ -108,7 +108,7 @@ public class EmailService
 
             try
             {
-                using (var smtp = await CreateSmtpAsync())
+                using (SmtpClient smtp = await CreateSmtpAsync())
                 {
                     if (template == null)
                     {

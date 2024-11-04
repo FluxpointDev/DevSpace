@@ -17,7 +17,7 @@ public class TargetLinkExtension : IMarkdownExtension
     {
         if (renderer is HtmlRenderer htmlRenderer)
         {
-            var linkInlineRenderer = htmlRenderer.ObjectRenderers.FindExact<LinkInlineRenderer>();
+            LinkInlineRenderer? linkInlineRenderer = htmlRenderer.ObjectRenderers.FindExact<LinkInlineRenderer>();
             if (linkInlineRenderer != null)
             {
                 linkInlineRenderer.TryWriters.Add(TryLinkInlineRenderer);

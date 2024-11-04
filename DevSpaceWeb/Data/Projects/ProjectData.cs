@@ -24,7 +24,7 @@ public class ProjectData
 
     public void Update(UpdateDefinition<ProjectData> update)
     {
-        var filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
+        FilterDefinition<ProjectData> filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
         _DB.Projects.Collection.UpdateOne(filter, update);
     }
 }

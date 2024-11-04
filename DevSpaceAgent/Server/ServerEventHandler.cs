@@ -56,7 +56,7 @@ public static class ServerEventHandler
                         if (string.IsNullOrEmpty(Split[0]))
                             return;
 
-                        var cmd = Cli.Wrap(Split[0]);
+                        Command cmd = Cli.Wrap(Split[0]);
                         if (Split.Length > 1)
                             cmd = cmd.WithArguments(string.Join(' ', Split.Skip(1)));
 
@@ -96,7 +96,7 @@ public static class ServerEventHandler
                         if (string.IsNullOrEmpty(Split[0]))
                             return;
 
-                        var cmd = Cli.Wrap(Split[0]).WithWorkingDirectory(Program.CurrentDirectory + "Data");
+                        Command cmd = Cli.Wrap(Split[0]).WithWorkingDirectory(Program.CurrentDirectory + "Data");
                         if (Split.Length > 1)
                         {
                             cmd = cmd.WithArguments(string.Join(' ', Split.Skip(1)));
@@ -120,12 +120,12 @@ public static class ServerEventHandler
                         if (string.IsNullOrEmpty(Split[0]))
                             return;
 
-                        var cmd = Cli.Wrap(Split[0]);
+                        Command cmd = Cli.Wrap(Split[0]);
                         if (Split.Length > 1)
                             cmd = cmd.WithArguments(string.Join(' ', Split.Skip(1)));
 
                         Console.WriteLine("Stream Start");
-                        await foreach (var cmdEvent in cmd.ListenAsync())
+                        await foreach (CliWrap.EventStream.CommandEvent cmdEvent in cmd.ListenAsync())
                         {
                             switch (cmdEvent)
                             {
@@ -164,7 +164,7 @@ public static class ServerEventHandler
                     {
                         IWebSocketTaskEvent @event = payload.ToObject<IWebSocketTaskEvent>()!;
 
-                        var cmd = Cli.Wrap("sudo").WithArguments("ufw status verbose");
+                        Command cmd = Cli.Wrap("sudo").WithArguments("ufw status verbose");
                         BufferedCommandResult? res = await cmd.ExecuteBufferedAsync();
 
                         string[] lines = res.StandardOutput.SplitNewlines();
@@ -181,7 +181,7 @@ public static class ServerEventHandler
                             string NewProfiles = string.Empty;
                             List<string> Rules = new List<string>();
                             bool RulesAfter = false;
-                            foreach (var i in lines)
+                            foreach (string i in lines)
                             {
                                 Console.WriteLine("Line: " + i);
                                 if (i.StartsWith("Logging: "))
@@ -211,7 +211,7 @@ public static class ServerEventHandler
                             response.LoggingMode = Logging;
 
                             string[] Defaults = Default.Split(", ");
-                            foreach (var i in Defaults)
+                            foreach (string i in Defaults)
                             {
                                 if (i.EndsWith("(incoming)"))
                                     response.Default.Incoming = i.Replace(" (incoming)", "");
@@ -221,7 +221,7 @@ public static class ServerEventHandler
                                     response.Default.Routed = i.Replace(" (routed)", "");
                             }
 
-                            foreach (var i in Rules)
+                            foreach (string i in Rules)
                             {
                                 string[] rulesLines = i.Split("  ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                                 Console.WriteLine("Rule: " + string.Join(" | ", rulesLines));
@@ -283,12 +283,12 @@ public static class ServerEventHandler
                                 }
                             };
 
-                            foreach (var i in Environment.GetEnvironmentVariables())
+                            foreach (object? i in Environment.GetEnvironmentVariables())
                             {
                                 info.Process.EnvironmentVariables.Add(i.ToString());
                             }
 
-                            var cmd = Cli.Wrap("free").WithArguments("-m");
+                            Command cmd = Cli.Wrap("free").WithArguments("-m");
                             BufferedCommandResult res = await cmd.ExecuteBufferedAsync();
                             if (res.IsSuccess)
                             {
@@ -325,7 +325,7 @@ public static class ServerEventHandler
                                     int Count = 0;
                                     int ChildCount = 0;
                                     int ExtraChildCount = 0;
-                                    foreach (var i in cpu.lscpu)
+                                    foreach (LinuxJson i in cpu.lscpu)
                                     {
                                         switch (i.field)
                                         {

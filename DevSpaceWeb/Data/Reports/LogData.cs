@@ -25,7 +25,7 @@ public class LogData
 
     public void Update(UpdateDefinition<LogData> update)
     {
-        var filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
+        FilterDefinition<LogData> filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
         _DB.Logs.Collection.UpdateOne(filter, update);
     }
 }

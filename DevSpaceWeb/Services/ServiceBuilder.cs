@@ -82,7 +82,7 @@ public static class ServiceBuilder
         {
             c.DocInclusionPredicate((_, description) =>
             {
-                var actionDescriptor = (ControllerActionDescriptor)description.ActionDescriptor;
+                ControllerActionDescriptor actionDescriptor = (ControllerActionDescriptor)description.ActionDescriptor;
 
                 return actionDescriptor.ControllerTypeInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any()
                        || actionDescriptor.MethodInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any();
@@ -133,7 +133,7 @@ public static class ServiceBuilder
 
     public static void AddProviders(IServiceCollection services)
     {
-        var Auth = services.AddAuthentication();
+        Microsoft.AspNetCore.Authentication.AuthenticationBuilder Auth = services.AddAuthentication();
         if (!string.IsNullOrEmpty(_Data.Config.Providers.Google.ClientId) && !string.IsNullOrEmpty(_Data.Config.Providers.Google.ClientSecret))
         {
             Auth.AddGoogle("google", opt =>

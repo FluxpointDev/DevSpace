@@ -36,11 +36,11 @@ public class AuthLoginController : AuthControllerContext
         if (string.IsNullOrEmpty(Data) || Data != email)
             return BadRequest("Request id is invalid");
 
-        var AuthUser = await _userManager.FindByEmailAsync(email);
+        AuthUser? AuthUser = await _userManager.FindByEmailAsync(email);
         if (AuthUser == null)
             return BadRequest("Invalid email or password.");
 
-        var Result = await _signInManager.PasswordSignInAsync(AuthUser, password, rememberMe, false);
+        Microsoft.AspNetCore.Identity.SignInResult Result = await _signInManager.PasswordSignInAsync(AuthUser, password, rememberMe, false);
         if (!Result.Succeeded)
             return BadRequest("Invalid email or password.");
 
@@ -56,9 +56,9 @@ public class AuthLoginController : AuthControllerContext
             return BadRequest("Preview mode is enabled.");
 
         string returnUrl = "/";
-        var redirectUrl = "/auth/external/callback";
+        string redirectUrl = "/auth/external/callback";
         Logger.LogMessage(redirectUrl, LogSeverity.Debug);
-        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+        Microsoft.AspNetCore.Authentication.AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
         return Challenge(properties, provider);
 
         return Ok();
@@ -70,25 +70,25 @@ public class AuthLoginController : AuthControllerContext
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
-        var info = await _signInManager.GetExternalLoginInfoAsync();
+        ExternalLoginInfo? info = await _signInManager.GetExternalLoginInfoAsync();
         if (info == null)
         {
             return RedirectToAction(nameof(Login));
         }
 
-        foreach (var i in info.AuthenticationTokens)
+        foreach (Microsoft.AspNetCore.Authentication.AuthenticationToken i in info.AuthenticationTokens)
         {
             Logger.LogMessage($"Token: {i.Name} - {i.Value}", LogSeverity.Debug);
         }
 
-        var Email = info.Principal.FindFirstValue(ClaimTypes.Email);
-        var Name = info.Principal.FindFirstValue(ClaimTypes.Name);
-        var NameId = info.Principal.FindFirstValue(ClaimTypes.GivenName);
+        string? Email = info.Principal.FindFirstValue(ClaimTypes.Email);
+        string? Name = info.Principal.FindFirstValue(ClaimTypes.Name);
+        string? NameId = info.Principal.FindFirstValue(ClaimTypes.GivenName);
 
         return Ok();
 
 
-        var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+        Microsoft.AspNetCore.Identity.SignInResult signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
         if (signInResult.Succeeded)
         {
             return Redirect("/");
@@ -101,7 +101,7 @@ public class AuthLoginController : AuthControllerContext
         {
             ViewData["ReturnUrl"] = returnUrl;
             ViewData["Provider"] = info.LoginProvider;
-            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            string email = info.Principal.FindFirstValue(ClaimTypes.Email);
             //return View("ExternalLogin", new ExternalLoginModel { Email = email });
         }
 

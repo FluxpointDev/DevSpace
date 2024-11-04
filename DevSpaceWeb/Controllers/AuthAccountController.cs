@@ -50,9 +50,9 @@ public class AuthAccountController : AuthControllerContext
 
 
         string data = CodeString;
-        var content = new System.IO.MemoryStream(Encoding.ASCII.GetBytes(data));
-        var contentType = "APPLICATION/octet-stream";
-        var fileName = $"{AuthUser.Email.Replace(".", "_")} Codes.txt";
+        MemoryStream content = new System.IO.MemoryStream(Encoding.ASCII.GetBytes(data));
+        string contentType = "APPLICATION/octet-stream";
+        string fileName = $"{AuthUser.Email.Replace(".", "_")} Codes.txt";
         return File(content, contentType, fileName);
     }
 
@@ -77,7 +77,7 @@ public class AuthAccountController : AuthControllerContext
 
         token = Uri.UnescapeDataString(token);
 
-        var Result = await _userManager.ConfirmEmailAsync(AuthUser, token);
+        IdentityResult Result = await _userManager.ConfirmEmailAsync(AuthUser, token);
         if (!Result.Succeeded)
             return BadRequest("Failed to verify account");
 
@@ -109,17 +109,17 @@ public class AuthAccountController : AuthControllerContext
         if (string.IsNullOrEmpty(emailToken))
             return BadRequest("Email token is invalid");
 
-        var User = await _signInManager.UserManager.FindByEmailAsync(email);
+        AuthUser? User = await _signInManager.UserManager.FindByEmailAsync(email);
         if (User == null)
             return BadRequest("Failed to change password");
 
-        var Result = await _userManager.ResetPasswordAsync(User, emailToken, password);
+        IdentityResult Result = await _userManager.ResetPasswordAsync(User, emailToken, password);
         if (!Result.Succeeded)
             return BadRequest("Failed to change password");
 
         await Email.SendPasswordChanged(User, "https://" + Request.Host.Value);
 
-        var Signin = await _signInManager.PasswordSignInAsync(User, password, false, false);
+        Microsoft.AspNetCore.Identity.SignInResult Signin = await _signInManager.PasswordSignInAsync(User, password, false, false);
         if (!Signin.Succeeded)
             return BadRequest("Failed to login");
 

@@ -36,146 +36,7 @@ public class TeamData
 
     public PermissionsSet DefaultPermissions { get; set; } = new PermissionsSet();
 
-    [BsonIgnore]
-    [JsonIgnore]
-    private PermissionsAll _DefaultPermissions => new PermissionsAll(DefaultPermissions);
-
-    public bool HasTeamPermission(TeamMemberData member, TeamPermission permission)
-    {
-        if (member.Team == null)
-            return false;
-        if (OwnerId == member.UserId)
-            return true;
-
-        if (member.Team._DefaultPermissions.Team.GlobalAdministrator || member.Team._DefaultPermissions.Team.TeamAdministrator)
-            return true;
-
-        if (member.Team._DefaultPermissions.Team.Has(permission))
-            return true;
-
-        foreach(var r in member.Roles)
-        {
-            if (CachedRoles.TryGetValue(r, out var role) && role.HasTeamPermission(member, permission))
-                return true;
-        }
-
-        return false;
-    }
-
-    public bool HasLogPermission(TeamMemberData member, LogPermission permission)
-    {
-        if (member.Team == null)
-            return false;
-
-        if (OwnerId == member.UserId)
-            return true;
-
-        if (member.Team._DefaultPermissions.Team.GlobalAdministrator || member.Team._DefaultPermissions.Log.LogAdministrator)
-            return true;
-
-        if (member.Team._DefaultPermissions.Log.Has(permission))
-            return true;
-
-        foreach (var r in member.Roles)
-        {
-            if (CachedRoles.TryGetValue(r, out var role) && role.HasLogPermission(member, permission))
-                return true;
-        }
-
-        return false;
-    }
-
-    public bool HasProjectPermission(TeamMemberData member, ProjectPermission permission)
-    {
-        if (member.Team == null)
-            return false;
-
-        if (OwnerId == member.UserId)
-            return true;
-
-        if (member.Team._DefaultPermissions.Team.GlobalAdministrator || member.Team._DefaultPermissions.Project.ProjectAdministrator)
-            return true;
-
-        if (member.Team._DefaultPermissions.Project.Has(permission))
-            return true;
-
-        foreach (var r in member.Roles)
-        {
-            if (CachedRoles.TryGetValue(r, out var role) && role.HasProjectPermission(member, permission))
-                return true;
-        }
-
-        return false;
-    }
-
-    public bool HasServerPermission(TeamMemberData member, ServerPermission permission)
-    {
-        if (member.Team == null)
-            return false;
-
-        if (OwnerId == member.UserId)
-            return true;
-
-        if (member.Team._DefaultPermissions.Team.GlobalAdministrator || member.Team._DefaultPermissions.Server.ServerAdministrator)
-            return true;
-
-        if (member.Team._DefaultPermissions.Server.Has(permission))
-            return true;
-
-        foreach (var r in member.Roles)
-        {
-            if (CachedRoles.TryGetValue(r, out var role) && role.HasServerPermission(member, permission))
-                return true;
-        }
-
-        return false;
-    }
-
-    public bool HasWebsitePermission(TeamMemberData member, WebsitePermission permission)
-    {
-        if (member.Team == null)
-            return false;
-
-        if (OwnerId == member.UserId)
-            return true;
-
-        if (member.Team._DefaultPermissions.Team.GlobalAdministrator || member.Team._DefaultPermissions.Website.WebsiteAdministrator)
-            return true;
-
-        if (member.Team._DefaultPermissions.Website.Has(permission))
-            return true;
-
-        foreach (var r in member.Roles)
-        {
-            if (CachedRoles.TryGetValue(r, out var role) && role.HasWebsitePermission(member, permission))
-                return true;
-        }
-
-        return false;
-    }
-
-    public bool HasDockerPermission(TeamMemberData member, DockerPermission permission)
-    {
-        if (member.Team == null)
-            return false;
-
-        if (OwnerId == member.UserId)
-            return true;
-
-        if (member.Team._DefaultPermissions.Team.GlobalAdministrator || member.Team._DefaultPermissions.Docker.DockerAdministrator)
-            return true;
-
-        if (member.Team._DefaultPermissions.Docker.Has(permission))
-            return true;
-
-        foreach (var r in member.Roles)
-        {
-            if (CachedRoles.TryGetValue(r, out var role) && role.HasDockerPermission(member, permission))
-                return true;
-        }
-
-        return false;
-    }
+    public PermissionsAll GetPermissions() { return new PermissionsAll(DefaultPermissions); }
 
     public HashSet<ObjectId> Roles = new HashSet<ObjectId>();
 
@@ -217,7 +78,7 @@ public class TeamData
 
     public void Update(UpdateDefinition<TeamData> update)
     {
-        var filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
+        FilterDefinition<TeamData> filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
         _DB.Teams.Collection.UpdateOne(filter, update);
     }
 }
@@ -302,7 +163,7 @@ public class TeamRoleData
 
     public void Update(UpdateDefinition<TeamRoleData> update)
     {
-        var filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, Id);
+        FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, Id);
         _DB.Roles.Collection.UpdateOne(filter, update);
     }
 }

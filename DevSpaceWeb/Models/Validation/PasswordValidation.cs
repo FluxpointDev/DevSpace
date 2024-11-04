@@ -12,7 +12,7 @@ public class PasswordValidationAttribute : ValidationAttribute
         bool HasLower = false;
         bool HasDigit = false;
 
-        foreach (var c in actualValue)
+        foreach (char c in actualValue)
         {
             if (!HasCapital)
                 HasCapital = char.IsLower(c);

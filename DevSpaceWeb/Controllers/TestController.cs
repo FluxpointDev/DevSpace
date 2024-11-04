@@ -10,7 +10,7 @@ public class TestController : Controller
             return BadRequest("Preview mode is enabled.");
 
         Logger.LogMessage("---", LogSeverity.Debug);
-        foreach (var i in Request.Headers)
+        foreach (KeyValuePair<string, Microsoft.Extensions.Primitives.StringValues> i in Request.Headers)
         {
             Logger.LogMessage($"Header: {i.Key} - {i.Value.ToString()}", LogSeverity.Debug);
         }

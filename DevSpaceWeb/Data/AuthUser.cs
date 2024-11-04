@@ -44,9 +44,9 @@ public class AuthUser : MongoIdentityUser<ObjectId>
 
     public async Task<FidoStoredCredential?> GetPasskeyByIdAsync(byte[] id)
     {
-        var credentialIdString = Base64Url.Encode(id);
+        string credentialIdString = Base64Url.Encode(id);
 
-        var cred = Auth.Passkeys
+        FidoStoredCredential? cred = Auth.Passkeys
             .Where(c => c.DescriptorJson != null && c.DescriptorJson.Contains(credentialIdString))
             .FirstOrDefault();
 

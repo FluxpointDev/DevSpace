@@ -11,7 +11,7 @@ public class InfoTest
         //Might be useful for error logs
         //Console.WriteLine($"Stacktrace: {Environment.StackTrace}");
 
-        foreach (var i in AppDomain.CurrentDomain.GetAssemblies())
+        foreach (System.Reflection.Assembly i in AppDomain.CurrentDomain.GetAssemblies())
         {
             //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(i));
             //if (i.FullName.Contains("DevSpace"))

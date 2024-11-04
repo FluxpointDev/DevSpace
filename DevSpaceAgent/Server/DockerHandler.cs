@@ -18,7 +18,7 @@ public static class DockerHandler
                 });
             case DockerEventType.GetContainer:
                 {
-                    var containers = await Program.DockerClient.Containers.ListContainersAsync(new ContainersListParameters()
+                    IList<ContainerListResponse> containers = await Program.DockerClient.Containers.ListContainersAsync(new ContainersListParameters()
                     {
                         Size = true,
                         All = true,
@@ -48,7 +48,7 @@ public static class DockerHandler
                         case ControlContainerType.Kill:
                             if (@event.ResourceList != null)
                             {
-                                foreach(var r in @event.ResourceList)
+                                foreach(string r in @event.ResourceList)
                                 {
                                     await Program.DockerClient.Containers.KillContainerAsync(r, new ContainerKillParameters
                                     {
@@ -67,7 +67,7 @@ public static class DockerHandler
                         case ControlContainerType.Start:
                             if (@event.ResourceList != null)
                             {
-                                foreach (var r in @event.ResourceList)
+                                foreach (string r in @event.ResourceList)
                                 {
                                     await Program.DockerClient.Containers.StartContainerAsync(r, new ContainerStartParameters
                                     {
@@ -86,7 +86,7 @@ public static class DockerHandler
                         case ControlContainerType.Stop:
                             if (@event.ResourceList != null)
                             {
-                                foreach (var r in @event.ResourceList)
+                                foreach (string r in @event.ResourceList)
                                 {
                                     await Program.DockerClient.Containers.StopContainerAsync(r, new ContainerStopParameters
                                     {
@@ -105,7 +105,7 @@ public static class DockerHandler
                         case ControlContainerType.Restart:
                             if (@event.ResourceList != null)
                             {
-                                foreach (var r in @event.ResourceList)
+                                foreach (string r in @event.ResourceList)
                                 {
                                     await Program.DockerClient.Containers.RestartContainerAsync(r, new ContainerRestartParameters
                                     {
@@ -126,7 +126,7 @@ public static class DockerHandler
                         case ControlContainerType.Remove:
                             if (@event.ResourceList != null)
                             {
-                                foreach (var r in @event.ResourceList)
+                                foreach (string r in @event.ResourceList)
                                 {
                                     await Program.DockerClient.Containers.RemoveContainerAsync(r, new ContainerRemoveParameters
                                     {
@@ -147,7 +147,7 @@ public static class DockerHandler
                         case ControlContainerType.Pause:
                             if (@event.ResourceList != null)
                             {
-                                foreach (var r in @event.ResourceList)
+                                foreach (string r in @event.ResourceList)
                                 {
                                     await Program.DockerClient.Containers.PauseContainerAsync(r);
                                 }
@@ -162,7 +162,7 @@ public static class DockerHandler
                         case ControlContainerType.UnPause:
                             if (@event.ResourceList != null)
                             {
-                                foreach (var r in @event.ResourceList)
+                                foreach (string r in @event.ResourceList)
                                 {
                                     await Program.DockerClient.Containers.UnpauseContainerAsync(r);
                                 }
@@ -194,7 +194,7 @@ public static class DockerHandler
                             {
                                 if (@event.ResourceList != null)
                                 {
-                                    foreach (var r in @event.ResourceList)
+                                    foreach (string r in @event.ResourceList)
                                     {
                                         await Program.DockerClient.Images.DeleteImageAsync(r, new ImageDeleteParameters
                                         {
@@ -237,18 +237,18 @@ public static class DockerHandler
             case DockerEventType.ListStacks:
                 {
                     List<DockerStack> Stacks = new List<DockerStack>();
-                    var containers = await Program.DockerClient.Containers.ListContainersAsync(new ContainersListParameters()
+                    IList<ContainerListResponse> containers = await Program.DockerClient.Containers.ListContainersAsync(new ContainersListParameters()
                     {
                         Size = true,
                         All = true
                     });
 
-                    foreach(var c in containers)
+                    foreach(ContainerListResponse? c in containers)
                     {
                         if (!c.Labels.TryGetValue("com.docker.compose.project", out string label))
                             continue;
 
-                        var Stack = Stacks.FirstOrDefault(x => x.Name == label);
+                        DockerStack? Stack = Stacks.FirstOrDefault(x => x.Name == label);
                         if (Stack != null)
                             Stack.Containers.Add(c.Names.First().Substring(1));
                     }
@@ -269,12 +269,12 @@ public static class DockerHandler
                             });
                         case ControlPluginType.InstallFull:
                             {
-                                var Privs = await Program.DockerClient.Plugin.GetPluginPrivilegesAsync(new PluginGetPrivilegeParameters
+                                IList<PluginPrivilege> Privs = await Program.DockerClient.Plugin.GetPluginPrivilegesAsync(new PluginGetPrivilegeParameters
                                 {
                                     Remote = @event.ResourceId
                                 });
                                 string ErrorMessage = "";
-                                var progress = new Progress<JSONMessage>(msg =>
+                                Progress<JSONMessage> progress = new Progress<JSONMessage>(msg =>
                                 {
                                     ErrorMessage = msg.ErrorMessage;
                                 });

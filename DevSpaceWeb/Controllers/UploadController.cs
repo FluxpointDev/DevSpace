@@ -33,7 +33,7 @@ public class UploadController : Controller
         if (Request.Form.Files.Count != 1)
             return BadRequest("Too many files");
 
-        var ImageFile = Request.Form.Files.First();
+        IFormFile ImageFile = Request.Form.Files.First();
 
         switch (ImageFile.ContentType)
         {
@@ -77,25 +77,25 @@ public class UploadController : Controller
                 if (bitmap.Height > 320)
                     Height = 320;
 
-                var surface = SKSurface.Create(new SKImageInfo(Width, Height));
-                var myCanvas = surface.Canvas;
+                SKSurface surface = SKSurface.Create(new SKImageInfo(Width, Height));
+                SKCanvas myCanvas = surface.Canvas;
 
                 using (SKBitmap resizeBitmap = bitmap.Resize(new SKImageInfo(Width, Height), SKSamplingOptions.Default))
                     myCanvas.DrawBitmap(resizeBitmap, 0, 0);
 
-                var Image = surface.Snapshot();
-                using (var Webp = Image.Encode(SKEncodedImageFormat.Webp, 100))
-                using (var Save = Webp.AsStream())
-                using (var Stream = System.IO.File.OpenWrite(
+                SKImage Image = surface.Snapshot();
+                using (SKData Webp = Image.Encode(SKEncodedImageFormat.Webp, 100))
+                using (Stream Save = Webp.AsStream())
+                using (FileStream Stream = System.IO.File.OpenWrite(
                     Program.Directory.Public.Resources.Path + AuthUser.ResourceId.ToString() + $"/Avatar_{ImageId.ToString()}.webp"
                     ))
                 {
                     Save.CopyTo(Stream);
                 }
 
-                using (var Png = Image.Encode(SKEncodedImageFormat.Png, 100))
-                using (var Save = Png.AsStream())
-                using (var Stream = System.IO.File.OpenWrite(
+                using (SKData Png = Image.Encode(SKEncodedImageFormat.Png, 100))
+                using (Stream Save = Png.AsStream())
+                using (FileStream Stream = System.IO.File.OpenWrite(
                     Program.Directory.Public.Resources.Path + AuthUser.ResourceId.ToString() + $"/Avatar_{ImageId.ToString()}.png"
                     ))
                 {
@@ -142,7 +142,7 @@ public class UploadController : Controller
         if (string.IsNullOrEmpty(TeamId))
             return BadRequest("Team id is missing");
 
-        var ImageFile = Request.Form.Files.First();
+        IFormFile ImageFile = Request.Form.Files.First();
 
         switch (ImageFile.ContentType)
         {
@@ -159,23 +159,23 @@ public class UploadController : Controller
         if (AuthUser == null)
             return BadRequest("Invalid user account");
 
-        _DB.Teams.Cache.TryGetValue(TeamId, out var Team);
+        _DB.Teams.Cache.TryGetValue(TeamId, out TeamData? Team);
         if (Team == null)
             return BadRequest("Could not find team by id");
 
         if (!Team.Members.ContainsKey(AuthUser.Id))
             return BadRequest("You do not belong to this team");
 
-        var Member = Team.GetMember(AuthUser);
+        TeamMemberData Member = Team.GetMember(AuthUser);
         if (Member == null)
             return BadRequest("Failed to get member data");
 
-        if (!Team.HasTeamPermission(Member, Data.Permissions.TeamPermission.ManageTeam))
+        if (!Member.HasTeamPermission(Data.Permissions.TeamPermission.ManageTeam))
             return BadRequest("You do not have Manage Team permission");
 
         if (Team.ResourceId == null)
         {
-            var GeneratedId = CheckResourceId();
+            Guid GeneratedId = CheckResourceId();
             Team.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.ResourceId, GeneratedId));
             Team.ResourceId = GeneratedId;
         }
@@ -193,24 +193,24 @@ public class UploadController : Controller
                 if (bitmap.Height > 320)
                     Height = 320;
 
-                var surface = SKSurface.Create(new SKImageInfo(Width, Height));
-                var myCanvas = surface.Canvas;
+                SKSurface surface = SKSurface.Create(new SKImageInfo(Width, Height));
+                SKCanvas myCanvas = surface.Canvas;
 
                 using (SKBitmap resizeBitmap = bitmap.Resize(new SKImageInfo(Width, Height), SKSamplingOptions.Default))
                     myCanvas.DrawBitmap(resizeBitmap, 0, 0);
 
-                var Image = surface.Snapshot();
-                using (var Webp = Image.Encode(SKEncodedImageFormat.Webp, 100))
-                using (var Save = Webp.AsStream())
-                using (var Stream = System.IO.File.OpenWrite(
+                SKImage Image = surface.Snapshot();
+                using (SKData Webp = Image.Encode(SKEncodedImageFormat.Webp, 100))
+                using (Stream Save = Webp.AsStream())
+                using (FileStream Stream = System.IO.File.OpenWrite(
                     Program.Directory.Public.Resources.Path + Team.ResourceId.ToString() + $"/Icon_{ImageId.ToString()}.webp"
                     ))
                 {
                     Save.CopyTo(Stream);
                 }
-                using (var Png = Image.Encode(SKEncodedImageFormat.Png, 100))
-                using (var Save = Png.AsStream())
-                using (var Stream = System.IO.File.OpenWrite(
+                using (SKData Png = Image.Encode(SKEncodedImageFormat.Png, 100))
+                using (Stream Save = Png.AsStream())
+                using (FileStream Stream = System.IO.File.OpenWrite(
                     Program.Directory.Public.Resources.Path + Team.ResourceId.ToString() + $"/Icon_{ImageId.ToString()}.png"
                     ))
                 {

@@ -122,8 +122,8 @@ public static class WebSocketExtensions
             Console.WriteLine("Invalid Cert: " + message);
             return;
         }
-        var bytes = Encoding.UTF8.GetBytes(message);
-        var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
+        byte[] bytes = Encoding.UTF8.GetBytes(message);
+        ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
     }
 
@@ -134,9 +134,9 @@ public static class WebSocketExtensions
             Console.WriteLine("Invalid Cert: " + json.type.ToString());
             return;
         }
-        var message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
-        var bytes = Encoding.UTF8.GetBytes(message);
-        var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
+        string message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
+        byte[] bytes = Encoding.UTF8.GetBytes(message);
+        ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
     }
 
@@ -147,9 +147,9 @@ public static class WebSocketExtensions
         //    Console.WriteLine("Invalid Cert: " + json.type.ToString());
         //    return;
         //}
-        var message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
-        var bytes = Encoding.UTF8.GetBytes(message);
-        var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
+        string message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
+        byte[] bytes = Encoding.UTF8.GetBytes(message);
+        ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
     }
 
@@ -162,9 +162,9 @@ public static class WebSocketExtensions
         }
         Console.WriteLine("Respond with: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(json, Newtonsoft.Json.Formatting.Indented));
 
-        var message = Newtonsoft.Json.JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, Data = json });
-        var bytes = Encoding.UTF8.GetBytes(message);
-        var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
+        string message = Newtonsoft.Json.JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, Data = json });
+        byte[] bytes = Encoding.UTF8.GetBytes(message);
+        ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
     }
 
@@ -177,9 +177,9 @@ public static class WebSocketExtensions
         }
         Console.WriteLine("Respond with: Fail");
 
-        var message = JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, IsFail = true });
-        var bytes = Encoding.UTF8.GetBytes(message);
-        var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
+        string message = JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, IsFail = true });
+        byte[] bytes = Encoding.UTF8.GetBytes(message);
+        ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
     }
 
@@ -190,8 +190,8 @@ public static class WebSocketExtensions
             Console.WriteLine("Invalid Cert: " + message);
             return;
         }
-        var bytes = Encoding.UTF8.GetBytes(message);
-        var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
+        byte[] bytes = Encoding.UTF8.GetBytes(message);
+        ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
     }
 
@@ -202,9 +202,9 @@ public static class WebSocketExtensions
             Console.WriteLine("Invalid Cert: " + json.GetType().Name);
             return;
         }
-        var message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
-        var bytes = Encoding.UTF8.GetBytes(message);
-        var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
+        string message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
+        byte[] bytes = Encoding.UTF8.GetBytes(message);
+        ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
 
     }
