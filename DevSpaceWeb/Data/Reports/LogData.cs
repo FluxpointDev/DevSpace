@@ -23,9 +23,11 @@ public class LogData
         return Id.ToString();
     }
 
-    public void Update(UpdateDefinition<LogData> update)
+    public async Task UpdateAsync(UpdateDefinition<LogData> update)
     {
         FilterDefinition<LogData> filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
-        _DB.Logs.Collection.UpdateOne(filter, update);
+        UpdateResult Result = await _DB.Logs.Collection.UpdateOneAsync(filter, update);
+        if (!Result.IsAcknowledged)
+            throw new InvalidOperationException("Failed to update log data");
     }
 }

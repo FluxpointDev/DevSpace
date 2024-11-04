@@ -50,12 +50,12 @@ else
                                 <Template>
                                     <RadzenLabel Text="@((context as PermissionItem<TeamPermission>).Name)" Style="display: block;" />
                                     <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<TeamPermission>).Description)</span>
-                                    
+
                                 </Template>
                                 <ValueTemplate>
                                     @((context as PermissionItem<TeamPermission>).Name)
                                 </ValueTemplate>
-                                
+
                             </RadzenDropDown>
                         </div>
                     </RadzenStack>
@@ -70,8 +70,8 @@ else
 
                         <div>
                             <RadzenDropDown @ref="ServerGrid.Grid" TValue="PermissionItem<ServerPermission>" Placeholder="Select permission..."
-                                AllowFiltering="true" Chips="true" Data="@ServerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                Multiple="true" AllowSelectAll="false" TextProperty="Name">
+                            AllowFiltering="true" Chips="true" Data="@ServerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Multiple="true" AllowSelectAll="false" TextProperty="Name">
                                 <Template>
                                     <RadzenLabel Text="@((context as PermissionItem<ServerPermission>).Name)" Style="display: block;" />
                                     <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ServerPermission>).Description)</span>
@@ -110,8 +110,8 @@ else
 
                         <div>
                             <RadzenDropDown @ref="DockerGrid.Grid" TValue="PermissionItem<DockerPermission>" Placeholder="Select permission..."
-                                            AllowFiltering="true" Chips="true" Data="@DockerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                            Multiple="true" AllowSelectAll="false" TextProperty="Name">
+                            AllowFiltering="true" Chips="true" Data="@DockerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Multiple="true" AllowSelectAll="false" TextProperty="Name">
                                 <Template>
                                     <RadzenLabel Text="@((context as PermissionItem<DockerPermission>).Name)" Style="display: block;" />
                                     <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<DockerPermission>).Description)</span>
@@ -134,8 +134,8 @@ else
 
                         <div>
                             <RadzenDropDown @ref="WebsiteGrid.Grid" TValue="PermissionItem<WebsitePermission>" Placeholder="Select permission..."
-                                            AllowFiltering="true" Chips="true" Data="@WebsiteGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                            Multiple="true" AllowSelectAll="false" TextProperty="Name">
+                            AllowFiltering="true" Chips="true" Data="@WebsiteGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Multiple="true" AllowSelectAll="false" TextProperty="Name">
                                 <Template>
                                     <RadzenLabel Text="@((context as PermissionItem<WebsitePermission>).Name)" Style="display: block;" />
                                     <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<WebsitePermission>).Description)</span>
@@ -158,8 +158,8 @@ else
 
                         <div>
                             <RadzenDropDown @ref="ProjectGrid.Grid" TValue="PermissionItem<ProjectPermission>" Placeholder="Select permission..."
-                                            AllowFiltering="true" Chips="true" Data="@ProjectGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                            Multiple="true" AllowSelectAll="false" TextProperty="Name">
+                            AllowFiltering="true" Chips="true" Data="@ProjectGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Multiple="true" AllowSelectAll="false" TextProperty="Name">
                                 <Template>
                                     <RadzenLabel Text="@((context as PermissionItem<ProjectPermission>).Name)" Style="display: block;" />
                                     <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ProjectPermission>).Description)</span>
@@ -182,8 +182,8 @@ else
 
                         <div>
                             <RadzenDropDown @ref="LogGrid.Grid" TValue="PermissionItem<LogPermission>" Placeholder="Select permission..."
-                                            AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                            Multiple="true" AllowSelectAll="false" TextProperty="Name">
+                            AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            Multiple="true" AllowSelectAll="false" TextProperty="Name">
                                 <Template>
                                     <RadzenLabel Text="@((context as PermissionItem<LogPermission>).Name)" Style="display: block;" />
                                     <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<LogPermission>).Description)</span>
@@ -204,7 +204,7 @@ else
 
 <style>
     .role-box .rz-dropdown {
-        width: 100% !important;
+    width: 100% !important;
     }
 </style>
 
@@ -301,7 +301,7 @@ else
         public IEnumerable<T> Selected;
     }
 
-    
+
 
     public async Task CreateRole()
     {
@@ -327,23 +327,38 @@ else
                 };
 
             var task = Task.Run<bool>(async () =>
-        {
-            try
             {
-                await _DB.Roles.CreateAsync(role);
-            }
-            catch
-            {
-                return false;
-            }
-            return true;
-        });
+                try
+                {
+                    await _DB.Roles.CreateAsync(role);
+                }
+                catch
+                {
+                    return false;
+                }
+                _DB.Roles.Cache.TryAdd(role.Id.ToString(), role);
+                Session.Selected.Team.Data.Roles.Add(role.Id);
+                Session.Selected.Team.Data.CachedRoles.Add(role.Id, role);
+                try
+                {
+                    await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
+                }
+                catch
+                {
+                    Session.Selected.Team.Data.Roles.Remove(role.Id);
+                    Session.Selected.Team.Data.CachedRoles.Remove(role.Id);
+                    FilterDefinition<TeamRoleData> roleFilter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
+                    _DB.Roles.Collection.DeleteOne(roleFilter);
+                    _DB.Roles.Cache.Remove(role.Id.ToString(), out _);
+                    return false;
+                }
+                return true;
+            });
             task.Wait();
             if (!task.Result)
                 return "Failed to create team role due to a database error.";
-            Session.Selected.Team.Data.Roles.Add(role.Id);
-            Session.Selected.Team.Data.CachedRoles.Add(role.Id, role);
-            Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
+            
+            
             return string.Empty;
         });
     }

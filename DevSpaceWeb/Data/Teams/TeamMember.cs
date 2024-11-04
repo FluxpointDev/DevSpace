@@ -67,7 +67,7 @@ public class TeamMemberData
 
         foreach (ObjectId r in Roles)
         {
-            if (SelectedTeam.CachedRoles.TryGetValue(r, out var role) && role.HasLogPermission(this, permission))
+            if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.HasLogPermission(this, permission))
                 return true;
         }
 
@@ -93,7 +93,7 @@ public class TeamMemberData
 
         foreach (ObjectId r in Roles)
         {
-            if (SelectedTeam.CachedRoles.TryGetValue(r, out var role) && role.HasProjectPermission(this, permission))
+            if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.HasProjectPermission(this, permission))
                 return true;
         }
 
@@ -119,7 +119,7 @@ public class TeamMemberData
 
         foreach (ObjectId r in Roles)
         {
-            if (SelectedTeam.CachedRoles.TryGetValue(r, out var role) && role.HasServerPermission(this, permission))
+            if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.HasServerPermission(this, permission))
                 return true;
         }
 
@@ -145,7 +145,7 @@ public class TeamMemberData
 
         foreach (ObjectId r in Roles)
         {
-            if (SelectedTeam.CachedRoles.TryGetValue(r, out var role) && role.HasWebsitePermission(this, permission))
+            if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.HasWebsitePermission(this, permission))
                 return true;
         }
 
@@ -171,7 +171,7 @@ public class TeamMemberData
 
         foreach (ObjectId r in Roles)
         {
-            if (SelectedTeam.CachedRoles.TryGetValue(r, out var role) && role.HasDockerPermission(this, permission))
+            if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.HasDockerPermission(this, permission))
                 return true;
         }
 
@@ -182,9 +182,11 @@ public class TeamMemberData
     public string NickName { get; set; }
     public Guid? AvatarId { get; set; }
 
-    public void Update(UpdateDefinition<TeamMemberData> update)
+    public async Task UpdateAsync(UpdateDefinition<TeamMemberData> update)
     {
         FilterDefinition<TeamMemberData> filter = Builders<TeamMemberData>.Filter.Eq(r => r.Id, Id);
-        _DB.Members.Collection.UpdateOne(filter, update);
+        UpdateResult Result = await _DB.Members.Collection.UpdateOneAsync(filter, update);
+        if (!Result.IsAcknowledged)
+            throw new InvalidOperationException("Failed to update member data");
     }
 }

@@ -176,7 +176,7 @@ public class UploadController : Controller
         if (Team.ResourceId == null)
         {
             Guid GeneratedId = CheckResourceId();
-            Team.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.ResourceId, GeneratedId));
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.ResourceId, GeneratedId));
             Team.ResourceId = GeneratedId;
         }
 
@@ -219,7 +219,7 @@ public class UploadController : Controller
             }
         }
 
-        Team.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, ImageId));
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, ImageId));
 
         if (Team.IconId != null)
         {

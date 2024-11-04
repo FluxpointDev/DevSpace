@@ -22,9 +22,11 @@ public class ProjectData
         return Id.ToString();
     }
 
-    public void Update(UpdateDefinition<ProjectData> update)
+    public async Task UpdateAsync(UpdateDefinition<ProjectData> update)
     {
         FilterDefinition<ProjectData> filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
-        _DB.Projects.Collection.UpdateOne(filter, update);
+        UpdateResult Result = await _DB.Projects.Collection.UpdateOneAsync(filter, update);
+        if (!Result.IsAcknowledged)
+            throw new InvalidOperationException("Failed to update project data");
     }
 }

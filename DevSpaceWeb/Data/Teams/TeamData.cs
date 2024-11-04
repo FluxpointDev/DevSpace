@@ -76,10 +76,12 @@ public class TeamData
         return Id.ToString();
     }
 
-    public void Update(UpdateDefinition<TeamData> update)
+    public async Task UpdateAsync(UpdateDefinition<TeamData> update)
     {
         FilterDefinition<TeamData> filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
-        _DB.Teams.Collection.UpdateOne(filter, update);
+        UpdateResult Result = await _DB.Teams.Collection.UpdateOneAsync(filter, update);
+        if (!Result.IsAcknowledged)
+            throw new InvalidOperationException("Failed to update team data");
     }
 }
 public class TeamRoleData
@@ -161,9 +163,11 @@ public class TeamRoleData
         return _Permissions.Docker.Has(permission);
     }
 
-    public void Update(UpdateDefinition<TeamRoleData> update)
+    public async Task UpdateAsync(UpdateDefinition<TeamRoleData> update)
     {
         FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, Id);
-        _DB.Roles.Collection.UpdateOne(filter, update);
+        UpdateResult Result = await _DB.Roles.Collection.UpdateOneAsync(filter, update);
+        if (!Result.IsAcknowledged)
+            throw new InvalidOperationException("Failed to update team data");
     }
 }

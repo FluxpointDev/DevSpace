@@ -39,10 +39,12 @@ public class ServerData
         return Id.ToString();
     }
 
-    public void Update(UpdateDefinition<ServerData> update)
+    public async Task UpdateAsync(UpdateDefinition<ServerData> update)
     {
         FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
-        _DB.Servers.Collection.UpdateOne(filter, update);
+        UpdateResult Result = await _DB.Servers.Collection.UpdateOneAsync(filter, update);
+        if (!Result.IsAcknowledged)
+            throw new InvalidOperationException("Failed to update server data");
     }
 }
 public class ServerWebSocket

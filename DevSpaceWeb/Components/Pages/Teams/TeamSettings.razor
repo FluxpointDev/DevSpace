@@ -46,7 +46,7 @@
                     <br />
                     <RadzenLabel Text="Team Icon" class="rz-my-0"></RadzenLabel>
                     <RadzenUpload id="ddUpload" @ref="IconUploader" ChooseText="Click here or drop to upload files" Auto="false" Multiple="false" Url="@("/upload/icon?teamId=" + Session.Selected.Team.Id)" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
-                                  Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" />
+                    Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" />
                     <br />
                     <br />
                     <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save Icon" Click="@ChangeIcon" ButtonType="ButtonType.Submit" />
@@ -204,6 +204,10 @@
         }
 
         Session.Selected.Team.Data.Name = TeamForm.Name;
+
+        await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.VanityUrl, TeamForm.VanityUrl));
+
+
         if (Session.Selected.Team.Data.VanityUrl != TeamForm.VanityUrl)
         {
             if (string.IsNullOrEmpty(TeamForm.VanityUrl))
@@ -224,7 +228,6 @@
                 }
             }
         }
-        Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.VanityUrl, Session.Selected.Team.Data.VanityUrl));
 
     }
 
@@ -264,14 +267,25 @@
                 {
                     return false;
                 }
+                _DB.Members.Cache.TryAdd(memberData.Id.ToString(), memberData);
+                Session.Selected.Team.Data.Members.Add(user.Id, memberData.Id);
+                Session.Selected.Team.Data.CachedMembers.Add(memberData.Id, memberData);
+                try
+                {
+                    await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
+                }
+                catch
+                {
+                    _DB.Members.Cache.Remove(memberData.Id.ToString(), out _);
+                    Session.Selected.Team.Data.Members.Remove(user.Id);
+                    Session.Selected.Team.Data.CachedMembers.Remove(memberData.Id);
+                }
                 return true;
             });
             task.Wait();
             if (!task.Result)
                 return "Failed to create team member due to a database error.";
-            Session.Selected.Team.Data.Members.Add(user.Id, memberData.Id);
-            Session.Selected.Team.Data.CachedMembers.Add(memberData.Id, memberData);
-            Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
+
             return string.Empty;
         });
     }
@@ -296,8 +310,10 @@
         if (Member.Team.OwnerId != Session.CurrentUserId.Value)
             return;
 
+        await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id));
+
         Session.Selected.Team.Data.OwnerId = user.Id;
-        Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id));
+
     }
 
     public async Task RemoveTeamMember(ObjectId user)
@@ -305,8 +321,22 @@
         if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
             return;
 
+        Session.Selected.Team.Data.Members.TryGetValue(user, out var SelectedMember);
+
+        if (SelectedMember == null)
+            return;
+
         Session.Selected.Team.Data.Members.Remove(user);
-        Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
+        try
+        {
+            await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
+            _DB.Members.Cache.Remove(user.ToString(), out _);
+        }
+        catch
+        {
+            Session.Selected.Team.Data.Members.TryAdd(user, SelectedMember);
+        }
+
     }
 
 
@@ -316,9 +346,22 @@
         if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
             return;
 
+        _DB.Roles.Cache.TryGetValue(role.ToString(), out var Role);
+        if (Role == null)
+            return;
+
         Session.Selected.Team.Data.Roles.Remove(role);
         Session.Selected.Team.Data.CachedRoles.Remove(role);
-        Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
+        try
+        {
+            await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
+            _DB.Roles.Cache.Remove(role.ToString(), out _);
+        }
+        catch
+        {
+            Session.Selected.Team.Data.Roles.Add(role);
+            Session.Selected.Team.Data.CachedRoles.Add(role, Role);
+        }
     }
 
     public async Task ChangeMemberRoles(PartialUserData user)
@@ -357,7 +400,7 @@
         if (!Member.HasTeamPermission(Data.Permissions.TeamPermission.ManageTeam))
             return;
 
-        Session.Selected.Team.Data.Update(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null));
+        await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null));
         File.Delete(Session.Selected.Team.Data.Icon.Path("webp"));
         File.Delete(Session.Selected.Team.Data.Icon.Path("png"));
         Session.Selected.Team.Data.IconId = null;
