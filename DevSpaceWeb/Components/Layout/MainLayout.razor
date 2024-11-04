@@ -65,52 +65,52 @@
 
 <style>
     .twofactor-item .iconify {
-        color: #0bba83 !important;
-        width: 32px;
-        height: 32px;
-        float: left;
-        margin-right: 10px;
+    color: #0bba83 !important;
+    width: 32px;
+    height: 32px;
+    float: left;
+    margin-right: 10px;
     }
 
     .twofactor-item {
-        display: block !important;
-        height: 52px;
-        margin-bottom: 6px;
-        background-color: #272731 !important;
-        border-radius: 16px;
-        padding: 6px;
-        padding-left: 10px;
-        padding-right: 10px;
-        padding-top: 8px;
-        cursor: pointer;
+    display: block !important;
+    height: 52px;
+    margin-bottom: 6px;
+    background-color: #272731 !important;
+    border-radius: 16px;
+    padding: 6px;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 8px;
+    cursor: pointer;
     }
 
     .twofactor-item-disabled {
-        opacity: 0.5;
-        background-color: rgba(39,40,49,0.4) !important;
-        color: rgb(130,129,129) !important;
-        cursor: default !important;
+    opacity: 0.5;
+    background-color: rgba(39,40,49,0.4) !important;
+    color: rgb(130,129,129) !important;
+    cursor: default !important;
     }
 
     :root {
-        --rz-sidebar-width: 230px;
-        --rz-input-shadow: none !important;
+    --rz-sidebar-width: 230px;
+    --rz-input-shadow: none !important;
     }
 
     input:focus {
-        box-shadow: none !important;
+    box-shadow: none !important;
     }
 
 
     .top-divider {
-        align-self: stretch;
-        margin-top: 6px;
-        margin-bottom: 6px;
-        margin-left: 14px;
-        margin-right: 14px;
-        border-style: none solid none none;
-        border-color: var(--rz-base-600);
-        border-width: 1px;
+    align-self: stretch;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    margin-left: 14px;
+    margin-right: 14px;
+    border-style: none solid none none;
+    border-color: var(--rz-base-600);
+    border-width: 1px;
     }
 </style>
 
@@ -128,11 +128,18 @@
 
     public async Task ChangeBackgroundDialog()
     {
-        await dialogService.ShowDynamicFormAsync<AccountBackgroundModel>("Change Background", new AccountBackgroundModel() { BackgroundUrl = Session.BackgroundUrl }, (AccountBackgroundModel data) =>
+        if (Program.IsPreviewMode)
         {
-            Session.BackgroundUrl = data.BackgroundUrl;
-            Session.TriggerChange();
-            return null;
-        });
+            await dialogService.ShowDynamicFormAsync<AccountBackgroundModel>("Change Background", new AccountBackgroundModel() { BackgroundUrl = Session.BackgroundUrl }, (AccountBackgroundModel data) =>
+            {
+                Session.BackgroundUrl = data.BackgroundUrl;
+                Session.TriggerChange();
+                return null;
+            });
+        }
+        else
+        {
+            await dialogService.OpenAsync<ChangeAccountBackgroundDialog>("Change Background");
+        }
     }
 }

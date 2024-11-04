@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SkiaSharp;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace DevSpaceWeb.Controllers;
 
@@ -113,7 +114,7 @@ public class UploadController : Controller
                     System.IO.File.Delete(AuthUser.Avatar.Path("webp"));
 
                 if (System.IO.File.Exists(AuthUser.Avatar.Path("png")))
-                    System.IO.File.Delete(AuthUser.Avatar.Path("webp"));
+                    System.IO.File.Delete(AuthUser.Avatar.Path("png"));
             }
             catch { }
         }
@@ -121,6 +122,104 @@ public class UploadController : Controller
         AuthUser.AvatarId = ImageId;
         AuthUser.UpdatePartial();
         await _userManager.UpdateAsync(AuthUser);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        return Ok();
+    }
+
+    [HttpPost("/upload/background")]
+    public async Task<IActionResult> UploadBackground()
+    {
+        if (Program.IsPreviewMode)
+            return BadRequest("Preview mode is enabled.");
+
+        if (!User.Identity.IsAuthenticated)
+            return Unauthorized("No logged in");
+
+        if (!Request.Form.Files.Any())
+            return BadRequest("No file");
+
+        if (Request.Form.Files.Count != 1)
+            return BadRequest("Too many files");
+
+        IFormFile ImageFile = Request.Form.Files.First();
+
+        switch (ImageFile.ContentType)
+        {
+            case "image/png":
+            case "image/webp":
+            case "image/jpg":
+            case "image/jpeg":
+                break;
+            default:
+                return BadRequest("Invalid image type");
+        }
+
+        AuthUser? AuthUser = await _userManager.GetUserAsync(User);
+        if (AuthUser == null)
+            return BadRequest("Invalid user account");
+
+        if (AuthUser.ResourceId == null)
+        {
+            AuthUser.ResourceId = CheckResourceId();
+            try
+            {
+                await _userManager.UpdateAsync(AuthUser);
+            }
+            catch
+            {
+                AuthUser.ResourceId = null;
+                throw;
+            }
+        }
+
+        Guid ImageId = Guid.NewGuid();
+
+        using (Stream stream = ImageFile.OpenReadStream())
+        {
+            using (SKBitmap bitmap = SKBitmap.Decode(stream))
+            {
+                int Height = bitmap.Height;
+                int Width = bitmap.Width;
+                Console.WriteLine($"{Height} - {Width}");
+                if (Width > 1024)
+                {
+                    var ratio = (double)1024 / Height;
+                    Width = (int)(Width * ratio);
+                    Height = (int)(Height * ratio);
+                }
+
+                SKSurface surface = SKSurface.Create(new SKImageInfo(Width, Height));
+                SKCanvas myCanvas = surface.Canvas;
+
+                using (SKBitmap resizeBitmap = bitmap.Resize(new SKImageInfo(Width, Height), SKSamplingOptions.Default))
+                    myCanvas.DrawBitmap(resizeBitmap, 0, 0);
+
+                SKImage Image = surface.Snapshot();
+                using (SKData Webp = Image.Encode(SKEncodedImageFormat.Webp, 80))
+                using (Stream Save = Webp.AsStream())
+                using (FileStream Stream = System.IO.File.OpenWrite(
+                    Program.Directory.Public.Resources.Path + AuthUser.ResourceId.ToString() + $"/Background_{ImageId.ToString()}.webp"
+                    ))
+                {
+                    Save.CopyTo(Stream);
+                }
+            }
+        }
+
+        if (AuthUser.BackgroundId != null)
+        {
+            try
+            {
+                if (System.IO.File.Exists(AuthUser.Background.Path("webp")))
+                    System.IO.File.Delete(AuthUser.Background.Path("webp"));
+            }
+            catch { }
+        }
+
+        AuthUser.BackgroundId = ImageId;
+        await _userManager.UpdateAsync(AuthUser);
+        AuthUser.UpdatePartial();
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
         return Ok();
     }
 

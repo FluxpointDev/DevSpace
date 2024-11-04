@@ -16,9 +16,13 @@ public class AuthUser : MongoIdentityUser<ObjectId>
    
     public Guid? ResourceId { get; set; }
     public Guid? AvatarId { get; set; }
+    public Guid? BackgroundId { get; set; }
 
     [BsonIgnore]
     public FileResource Avatar => new FileResource("Avatar", ResourceId, AvatarId);
+
+    [BsonIgnore]
+    public FileResource Background => new FileResource("Background", ResourceId, BackgroundId);
 
     [BsonIgnore]
     public bool HasAvatar => AvatarId != null;

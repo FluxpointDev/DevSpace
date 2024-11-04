@@ -116,7 +116,7 @@
 
     <style>
         .loading {
-            display: none !important;
+        display: none !important;
         }
     </style>
 }
@@ -132,7 +132,7 @@
 {
     <style>
         html {
-            background-image: url("@BackgroundUrl") !important;
+        background-image: url("@BackgroundUrl") !important;
         }
     </style>
 }
@@ -282,13 +282,24 @@
                 if (_Data.Config.Database.IsSetup)
                 {
                     var User = await GetCurrentUserAsync();
-                    CurrentUserId = User.Id;
-                    if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
+                    if (User != null)
                     {
-                        SessionError = SessionErrorType.SessionSecurityNewIp;
-                        return;
+                        CurrentUserId = User.Id;
+                        if (User.Background.Id.HasValue)
+                            BackgroundUrl = User.Background.Url("webp");
+
+                        if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
+                        {
+                            SessionError = SessionErrorType.SessionSecurityNewIp;
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        SessionError = SessionErrorType.AuthenticationError;
                     }
                 }
+
             }
         }
 
