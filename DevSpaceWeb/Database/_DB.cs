@@ -57,7 +57,7 @@ public static class _DB
             Logger.LogMessage("Database", "Loading Data", LogSeverity.Info);
             await Teams.Find(Builders<TeamData>.Filter.Empty).ForEachAsync(x =>
             {
-                Teams.Cache.TryAdd(x.Id.ToString(), x);
+                Teams.Cache.TryAdd(x.Id, x);
                 Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(x, Newtonsoft.Json.Formatting.Indented));
                 if (!string.IsNullOrEmpty(x.VanityUrl))
                 {
@@ -86,9 +86,9 @@ public static class _DB
             {
                 await Roles.Find(Builders<TeamRoleData>.Filter.Empty).ForEachAsync(x =>
                 {
-                    if (Roles.Cache.TryAdd(x.Id.ToString(), x))
+                    if (Roles.Cache.TryAdd(x.Id, x))
                     {
-                        if (Teams.Cache.TryGetValue(x.TeamId.ToString(), out TeamData team))
+                        if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))
                             team.CachedRoles.Add(x.Id, x);
                     }
                 });
@@ -100,9 +100,9 @@ public static class _DB
                 await Members.Find(Builders<TeamMemberData>.Filter.Empty).ForEachAsync(x =>
                 {
 
-                    if (Members.Cache.TryAdd(x.Id.ToString(), x))
+                    if (Members.Cache.TryAdd(x.Id, x))
                     {
-                        if (Teams.Cache.TryGetValue(x.TeamId.ToString(), out TeamData team))
+                        if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))
                             team.CachedMembers.Add(x.Id, x);
                     }
                 });
@@ -113,7 +113,7 @@ public static class _DB
             {
                 await TeamVanityUrls.Find(Builders<VanityUrlData>.Filter.Empty).ForEachAsync(x =>
                 {
-                    if (TeamVanityUrls.Cache.TryAdd(x.Id.ToString(), x))
+                    if (TeamVanityUrls.Cache.TryAdd(x.Id, x))
                     {
                         foreach (KeyValuePair<string, ObjectId> i in x.ServerVanityUrls)
                         {
@@ -141,7 +141,7 @@ public static class _DB
             {
                 await EmailTemplates.Find(Builders<EmailTemplateData>.Filter.Empty).ForEachAsync(x =>
                 {
-                    EmailTemplates.Cache.TryAdd(x.Id.ToString(), x);
+                    EmailTemplates.Cache.TryAdd(x.Id, x);
                 });
                 Logger.LogMessage("Database", "- Email Templates: " + EmailTemplates.Cache.Keys.Count, LogSeverity.Info);
             });
@@ -150,7 +150,7 @@ public static class _DB
             {
                 await Logs.Find(Builders<LogData>.Filter.Empty).ForEachAsync(x =>
                 {
-                    Logs.Cache.TryAdd(x.Id.ToString(), x);
+                    Logs.Cache.TryAdd(x.Id, x);
                 });
                 Logger.LogMessage("Database", "- Logs: " + Logs.Cache.Keys.Count, LogSeverity.Info);
             });
@@ -159,7 +159,7 @@ public static class _DB
             {
                 await Servers.Find(Builders<ServerData>.Filter.Empty).ForEachAsync(x =>
                 {
-                    Servers.Cache.TryAdd(x.Id.ToString(), x);
+                    Servers.Cache.TryAdd(x.Id, x);
                     x.GetWebSocket();
                 });
                 Logger.LogMessage("Database", "- Servers: " + Servers.Cache.Keys.Count, LogSeverity.Info);
@@ -169,7 +169,7 @@ public static class _DB
             {
                 await Websites.Find(Builders<WebsiteData>.Filter.Empty).ForEachAsync(x =>
                 {
-                    Websites.Cache.TryAdd(x.Id.ToString(), x);
+                    Websites.Cache.TryAdd(x.Id, x);
                 });
                 Logger.LogMessage("Database", "- Websites: " + Websites.Cache.Keys.Count, LogSeverity.Info);
             });
@@ -178,7 +178,7 @@ public static class _DB
             {
                 await Projects.Find(Builders<ProjectData>.Filter.Empty).ForEachAsync(x =>
                 {
-                    Projects.Cache.TryAdd(x.Id.ToString(), x);
+                    Projects.Cache.TryAdd(x.Id, x);
                 });
                 Logger.LogMessage("Database", "- Projects: " + Projects.Cache.Keys.Count, LogSeverity.Info);
             });

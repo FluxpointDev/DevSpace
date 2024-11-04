@@ -913,7 +913,7 @@
                 VanityUrl = TeamForm.VanityUrl
             };
         await _DB.Teams.CreateAsync(Team);
-        _DB.Teams.Cache.TryAdd(Team.Id.ToString(), Team);
+        _DB.Teams.Cache.TryAdd(Team.Id, Team);
         _Data.Config.Save();
         SetupStep = SetupStepType.Admin;
     }
@@ -971,7 +971,7 @@
                     TeamId = _DB.Teams.Cache.First().Value.Id
                 };
             await _DB.Members.CreateAsync(member);
-            _DB.Teams.Cache.First().Value.Update(new UpdateDefinitionBuilder<TeamData>()
+            await _DB.Teams.Cache.First().Value.UpdateAsync(new UpdateDefinitionBuilder<TeamData>()
                 .Set(x => x.OwnerId, User.Id)
                 .Set(x => x.Members, _DB.Teams.Cache.First().Value.Members));
 

@@ -1,4 +1,5 @@
-﻿using MongoDB.Driver;
+﻿using MongoDB.Bson;
+using MongoDB.Driver;
 using System.Collections.Concurrent;
 
 namespace DevSpaceWeb.Database;
@@ -29,5 +30,5 @@ public class ICacheCollection<T> : ICollection<T>
     {
     }
 
-    public ConcurrentDictionary<string, T> Cache = new ConcurrentDictionary<string, T>();
+    public ConcurrentDictionary<ObjectId, T> Cache = new ConcurrentDictionary<ObjectId, T>();
 }

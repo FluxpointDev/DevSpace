@@ -336,7 +336,7 @@ else
                 {
                     return false;
                 }
-                _DB.Roles.Cache.TryAdd(role.Id.ToString(), role);
+                _DB.Roles.Cache.TryAdd(role.Id, role);
                 Session.Selected.Team.Data.Roles.Add(role.Id);
                 Session.Selected.Team.Data.CachedRoles.Add(role.Id, role);
                 try
@@ -349,7 +349,7 @@ else
                     Session.Selected.Team.Data.CachedRoles.Remove(role.Id);
                     FilterDefinition<TeamRoleData> roleFilter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
                     _DB.Roles.Collection.DeleteOne(roleFilter);
-                    _DB.Roles.Cache.Remove(role.Id.ToString(), out _);
+                    _DB.Roles.Cache.Remove(role.Id, out _);
                     return false;
                 }
                 return true;

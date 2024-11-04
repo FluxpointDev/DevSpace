@@ -61,9 +61,9 @@
             Session.ShowPreviewModeNotice();
             return;
         }
-
+        await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, SelectedRoles.Select(x => x.Id).ToHashSet()));
         Member.Roles = SelectedRoles.Select(x => x.Id).ToHashSet();
-        Member.Update(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, Member.Roles));
+        
         dialogService.Close(true);
         
     }

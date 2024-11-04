@@ -3,6 +3,7 @@ using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using SkiaSharp;
 
@@ -159,7 +160,7 @@ public class UploadController : Controller
         if (AuthUser == null)
             return BadRequest("Invalid user account");
 
-        _DB.Teams.Cache.TryGetValue(TeamId, out TeamData? Team);
+        _DB.Teams.Cache.TryGetValue(ObjectId.Parse(TeamId), out TeamData? Team);
         if (Team == null)
             return BadRequest("Could not find team by id");
 

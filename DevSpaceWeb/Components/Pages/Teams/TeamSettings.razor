@@ -267,7 +267,7 @@
                 {
                     return false;
                 }
-                _DB.Members.Cache.TryAdd(memberData.Id.ToString(), memberData);
+                _DB.Members.Cache.TryAdd(memberData.Id, memberData);
                 Session.Selected.Team.Data.Members.Add(user.Id, memberData.Id);
                 Session.Selected.Team.Data.CachedMembers.Add(memberData.Id, memberData);
                 try
@@ -276,7 +276,7 @@
                 }
                 catch
                 {
-                    _DB.Members.Cache.Remove(memberData.Id.ToString(), out _);
+                    _DB.Members.Cache.Remove(memberData.Id, out _);
                     Session.Selected.Team.Data.Members.Remove(user.Id);
                     Session.Selected.Team.Data.CachedMembers.Remove(memberData.Id);
                 }
@@ -330,7 +330,7 @@
         try
         {
             await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
-            _DB.Members.Cache.Remove(user.ToString(), out _);
+            _DB.Members.Cache.Remove(user, out _);
         }
         catch
         {
@@ -346,7 +346,7 @@
         if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
             return;
 
-        _DB.Roles.Cache.TryGetValue(role.ToString(), out var Role);
+        _DB.Roles.Cache.TryGetValue(role, out var Role);
         if (Role == null)
             return;
 
@@ -355,7 +355,7 @@
         try
         {
             await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
-            _DB.Roles.Cache.Remove(role.ToString(), out _);
+            _DB.Roles.Cache.Remove(role, out _);
         }
         catch
         {

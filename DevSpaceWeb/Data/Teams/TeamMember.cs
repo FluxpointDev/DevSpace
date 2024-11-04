@@ -20,7 +20,7 @@ public class TeamMemberData
 
     [JsonIgnore]
     [BsonIgnore]
-    public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId.ToString());
+    public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
     public bool HasTeamPermission(TeamPermission permission)
     {

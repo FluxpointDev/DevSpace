@@ -125,7 +125,7 @@ public class ConfigEmail
 
     public string GetActiveEmailTemplateName(EmailTemplateType type)
     {
-        if (ActiveEmailTemplates.TryGetValue(type, out ObjectId tempId) && _DB.EmailTemplates.Cache.TryGetValue(tempId.ToString(), out EmailTemplateData? template))
+        if (ActiveEmailTemplates.TryGetValue(type, out ObjectId tempId) && _DB.EmailTemplates.Cache.TryGetValue(tempId, out EmailTemplateData? template))
             return template.Name;
 
         return "Default " + new EmailTemplateData { Type = type }.GetTypeName();
@@ -135,7 +135,7 @@ public class ConfigEmail
 
     public EmailTemplateData GetActiveTemplateOrDefault(EmailTemplateType type)
     {
-        if (ActiveEmailTemplates.TryGetValue(type, out ObjectId id) && _DB.EmailTemplates.Cache.TryGetValue(id.ToString(), out EmailTemplateData? template) && !string.IsNullOrEmpty(template.Body) && !template.IsDisabled)
+        if (ActiveEmailTemplates.TryGetValue(type, out ObjectId id) && _DB.EmailTemplates.Cache.TryGetValue(id, out EmailTemplateData? template) && !string.IsNullOrEmpty(template.Body) && !template.IsDisabled)
             return template;
 
         return new EmailTemplateData { Body = EmailTemplateDefaults.List[type], Type = type };
