@@ -12,7 +12,7 @@
 }
 else
 {
-    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Role" Click="@CreateRole" />
+    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" />
     <br />
     <RadzenRow Gap="0.2rem">
         <RadzenColumn Size="3" class=" rz-py-2 pr-2">
@@ -21,28 +21,33 @@ else
             Style="width: 100%; max-width: 400px; height:200px" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select role" }})" />
         </RadzenColumn>
         <RadzenColumn class="rz-py-2">
-            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Start" Wrap="FlexWrap.Wrap" Gap="0.2rem">
-                @foreach (var i in Roles)
-                {
+            @if (SelectedRole != null)
+            {
+                <div class="role-info">
+                    <RadzenText TextStyle="TextStyle.Subtitle1" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">@SelectedRole.Name Role</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        @SelectedRole.Description
+                    </RadzenText>
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Role" Click="@CreateRole" />
+                </div>
+                <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap" Gap="0.2rem">
+
                     <RadzenStack Gap="0" class="role-box">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">@i.Name Role</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2">
-                            @i.Description
-                        </RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:tag"></span> Role Permissions</RadzenText>
 
                         <div class="role-permissions">
                             <RadzenCheckBox Value="@CheckBox" Name="TeamGlobalAdministrator" />
                             <RadzenLabel Text="Global Administrator" Component="TeamGlobalAdministrator" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">Access all resources the team owns.</span>
+                            <span style="color: var(--rz-text-tertiary-color)">Access all permissions and resources for the team.</span>
                         </div>
                     </RadzenStack>
                     <RadzenStack Gap="0" class="role-box">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Team Permissions</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:people-group"></span> Team Permissions</RadzenText>
 
                         <div class="role-permissions">
                             <RadzenCheckBox Value="@CheckBox" Name="TeamAdministrator" />
                             <RadzenLabel Text="Team Administrator" Component="TeamAdministrator" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">Manage all team members, permissions and settings.</span>
+                            <span style="color: var(--rz-text-tertiary-color)">All team permissions.</span>
                         </div>
 
                         <div>
@@ -60,12 +65,12 @@ else
                         </div>
                     </RadzenStack>
                     <RadzenStack Gap="0" class="role-box">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Server Permissions</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:server"></span> Server Permissions</RadzenText>
 
                         <div class="role-permissions">
-                            <RadzenCheckBox Value="@CheckBox" Name="ServerAdmin" />
+                            <RadzenCheckBox @bind-Value="@CheckBoxOther" Name="ServerAdmin" />
                             <RadzenLabel Text="Server Administrator" Component="ServerAdmin" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">Manage all servers the team owns.</span>
+                            <span style="color: var(--rz-text-tertiary-color)">All server permissions.</span>
                         </div>
 
                         <div>
@@ -83,30 +88,24 @@ else
                             </RadzenDropDown>
                         </div>
                     </RadzenStack>
-                    <RadzenStack Gap="0" class="role-box" Style="height: 380px !important;">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Docker Permissions</RadzenText>
+                    <RadzenStack Gap="0" class="role-box">
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:docker"></span> Docker Permissions</RadzenText>
 
-                        <RadzenAlert AllowClose="false" AlertStyle="AlertStyle.Info" ShowIcon="false" Variant="Variant.Flat" Size="AlertSize.Small" Shade="Shade.Lighter">
-                            Require permission View Servers to access this feature.
-                        </RadzenAlert>
+                        <RadzenText TextStyle="TextStyle.Body2" Style="">
+                            Requires permission <strong>View Servers</strong> to use docker features.
+                        </RadzenText>
 
                         <div class="role-permissions">
                             <RadzenCheckBox Value="@CheckBox" Name="ServerDockerAdministrator" />
                             <RadzenLabel Text="Docker Administrator" Component="ServerDockerAdministrator" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">Manage all docker features and access dangerous actions.</span>
+                            <span style="color: var(--rz-text-tertiary-color)">All docker permissions.</span>
                         </div>
 
                         <div class="role-permissions">
                             <RadzenCheckBox Value="@CheckBox" Name="ServerDockerManager" />
                             <RadzenLabel Text="Docker Manager" Component="ServerDockerManager" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">Manage most docker features such as stacks/containers/networks/volumes.</span>
+                            <span style="color: var(--rz-text-tertiary-color)">Manage most docker features except for system access or dangerous actions.</span>
                         </div>
-
-                        @* <div class="role-permissions">
-                            <RadzenCheckBox Value="@CheckBox" Name="ServerDockerController" />
-                            <RadzenLabel Text="Docker Controller" Component="ServerDockerController" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">Controll all docker containers such a start/stop/restart action.</span>
-                        </div> *@
 
                         <div>
                             <RadzenDropDown @ref="DockerGrid.Grid" TValue="PermissionItem<DockerPermission>" Placeholder="Select permission..."
@@ -124,12 +123,12 @@ else
                         </div>
                     </RadzenStack>
                     <RadzenStack Gap="0" class="role-box">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Website Permissions</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:web"></span> Website Permissions</RadzenText>
 
                         <div class="role-permissions">
                             <RadzenCheckBox Value="@CheckBox" Name="WebsiteAdmin" />
                             <RadzenLabel Text="Website Administrator" Component="WebsiteAdmin" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">Manage all websites the team owns.</span>
+                            <span style="color: var(--rz-text-tertiary-color)">All website permissions.</span>
                         </div>
 
                         <div>
@@ -148,12 +147,12 @@ else
                         </div>
                     </RadzenStack>
                     <RadzenStack Gap="0" class="role-box">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Project Permissions</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:lightbulb"></span> Project Permissions</RadzenText>
 
                         <div class="role-permissions">
                             <RadzenCheckBox Value="@CheckBox" Name="ProjectAdmin" />
                             <RadzenLabel Text="Project Administrator" Component="ProjectAdmin" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">Manage all projects the team owns.</span>
+                            <span style="color: var(--rz-text-tertiary-color)">All project permissions.</span>
                         </div>
 
                         <div>
@@ -172,12 +171,12 @@ else
                         </div>
                     </RadzenStack>
                     <RadzenStack Gap="0" class="role-box">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Log Permissions</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:warning"></span> Log Permissions</RadzenText>
 
                         <div class="role-permissions">
                             <RadzenCheckBox Value="@CheckBox" Name="LogAdmin" />
                             <RadzenLabel Text="Log Administrator" Component="LogAdmin" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">Manage all logs the team owns.</span>
+                            <span style="color: var(--rz-text-tertiary-color)">All log permissions.</span>
                         </div>
 
                         <div>
@@ -195,9 +194,8 @@ else
                             </RadzenDropDown>
                         </div>
                     </RadzenStack>
-                }
-
-            </RadzenStack>
+                </RadzenStack>
+            }
         </RadzenColumn>
     </RadzenRow>
 }
@@ -213,7 +211,7 @@ else
     public bool ManageRoles { get; set; }
 
     [Parameter]
-    public TeamRoleData[] Roles { get; set; }
+    public System.Collections.Generic.ICollection<TeamRoleData> Roles { get; set; }
 
     public TeamRoleData SelectedRole { get; set; }
 
@@ -224,6 +222,14 @@ else
     public TeamMemberData Member { get; set; }
 
     public bool CheckBox { get; set; }
+    public bool CheckBoxOther = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Roles = Session.Selected.Team.Data.CachedRoles.Values;
+        if (Roles.Any())
+            SelectedRole = Roles.First();
+    }
 
     public class PermissionItem<T> where T : Enum
     {
@@ -255,6 +261,7 @@ else
         Data = new PermissionItem<ServerPermission>[]
         {
             new PermissionItem<ServerPermission>(ServerPermission.ViewServer, "View Servers", "View all servers the team owns."),
+            new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Server", "Add/delete servers and manage settings."),
             new PermissionItem<ServerPermission>(ServerPermission.ManagePermissions, "Manage Permissions", "Change permissions for all servers the team owns."),
         }
     };
@@ -264,6 +271,7 @@ else
             Data = new PermissionItem<WebsitePermission>[]
             {
             new PermissionItem<WebsitePermission>(WebsitePermission.ViewWebsite, "View Websites", "View all websites the team owns."),
+            new PermissionItem<WebsitePermission>(WebsitePermission.ManageWebsite, "Manage Website", "Add/delete websites and manage settings."),
             new PermissionItem<WebsitePermission>(WebsitePermission.ManagePermissions, "Manage Permissions", "Change permissions for all websites the team owns."),
             }
         };
@@ -273,6 +281,7 @@ else
             Data = new PermissionItem<ProjectPermission>[]
         {
             new PermissionItem<ProjectPermission>(ProjectPermission.ViewProject, "View Projects", "View all projects the team owns."),
+           new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Projects", "Add/delete projects and manage settings."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManagePermissions, "Manage Permissions", "Change permissions for all projects the team owns."),
         }
         };
@@ -282,6 +291,7 @@ else
         Data = new PermissionItem<LogPermission>[]
         {
             new PermissionItem<LogPermission>(LogPermission.ViewLog, "View Logs", "View all logs the team owns."),
+            new PermissionItem<LogPermission>(LogPermission.ManageLog, "Manage Logs", "Add/delete logs and manage settings."),
             new PermissionItem<LogPermission>(LogPermission.ManagePermissions, "Manage Permissions", "Change permissions for all logs the team owns."),
         }
     };
