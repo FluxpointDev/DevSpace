@@ -19,6 +19,9 @@ public class WebsitePermissions
 
     public bool Has(WebsitePermission permission)
     {
+        if (permission != WebsitePermission.WebsiteAdministrator && Has(WebsitePermission.WebsiteAdministrator))
+            return true;
+
         ulong Flag = (ulong)permission;
         return (Raw & Flag) == Flag;
     }

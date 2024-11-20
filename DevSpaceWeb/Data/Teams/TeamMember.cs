@@ -33,7 +33,7 @@ public class TeamMemberData
 
         PermissionsAll Perms = SelectedTeam.GetPermissions();
 
-        if (Perms.Team.GlobalAdministrator || Perms.Team.TeamAdministrator)
+        if (Perms.Team.GlobalAdministrator)
             return true;
 
         if (Perms.Team.Has(permission))

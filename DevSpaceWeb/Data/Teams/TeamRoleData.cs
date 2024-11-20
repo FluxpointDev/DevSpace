@@ -25,7 +25,7 @@ public class TeamRoleData
         if (member.Team == null)
             return false;
 
-        if (_Permissions.Team.GlobalAdministrator || _Permissions.Team.TeamAdministrator)
+        if (_Permissions.Team.GlobalAdministrator)
             return true;
 
         return _Permissions.Team.Has(permission);

@@ -12,13 +12,13 @@ public class LogPermissions
     /// </summary>
     public ulong Raw { get; internal set; }
 
-    public bool ViewLog => Has(LogPermission.ViewLog);
-    public bool ManagePermissions => Has(LogPermission.ManagePermissions);
-
     public bool LogAdministrator => Has(LogPermission.LogAdministrator);
 
     public bool Has(LogPermission permission)
     {
+        if (permission != LogPermission.LogAdministrator && Has(LogPermission.LogAdministrator))
+            return true;
+
         ulong Flag = (ulong)permission;
         return (Raw & Flag) == Flag;
     }

@@ -19,6 +19,9 @@ public class ServerPermissions
 
     public bool Has(ServerPermission permission)
     {
+        if (permission != ServerPermission.ServerAdministrator && Has(ServerPermission.ServerAdministrator))
+            return true;
+
         ulong Flag = (ulong)permission;
         return (Raw & Flag) == Flag;
     }

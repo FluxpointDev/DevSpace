@@ -19,6 +19,9 @@ public class ProjectPermissions
 
     public bool Has(ProjectPermission permission)
     {
+        if (permission != ProjectPermission.ProjectAdministrator && Has(ProjectPermission.ProjectAdministrator))
+            return true;
+
         ulong Flag = (ulong)permission;
         return (Raw & Flag) == Flag;
     }

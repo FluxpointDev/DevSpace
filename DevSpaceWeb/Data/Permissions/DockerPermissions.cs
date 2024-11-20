@@ -13,8 +13,7 @@ public class DockerPermissions
 
     public bool Has(DockerPermission permission)
     {
-        ulong AdminFlag = (ulong)DockerPermission.DockerAdministrator;
-        if ((Raw & AdminFlag) == AdminFlag)
+        if (permission != DockerPermission.DockerAdministrator && Has(DockerPermission.DockerAdministrator))
             return true;
 
         ulong Flag = (ulong)permission;
