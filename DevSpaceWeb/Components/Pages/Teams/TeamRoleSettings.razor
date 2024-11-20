@@ -28,7 +28,7 @@ else
                     <RadzenText TextStyle="TextStyle.Body2">
                         @SelectedRole.Description
                     </RadzenText>
-                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Role" Click="@CreateRole" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Role" Click="@DeleteRole" Disabled="@(SelectedRole.Name == "Default")" />
                 </div>
                 <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap" Gap="0.2rem">
 
@@ -230,7 +230,7 @@ else
 @code {
     public System.Collections.Generic.ICollection<TeamRoleData> Roles { get; set; }
 
-    public TeamRoleData SelectedRole { get; set; }
+    public TeamRoleData? SelectedRole { get; set; }
 
     [CascadingParameter]
     private SessionProvider Session { get; set; }
@@ -521,7 +521,18 @@ else
         public IEnumerable<T> Selected;
     }
 
+    public async Task DeleteRole()
+    {
+        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+            return;
 
+        await _DB.Roles.Collection.DeleteOneAsync(new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, SelectedRole.Id));
+        _DB.Roles.Cache.Remove(SelectedRole.Id, out _);
+        Session.Selected.Team.Data.CachedRoles.Remove(SelectedRole.Id);
+        Session.Selected.Team.Data.Roles = Session.Selected.Team.Data.Roles.Where(x => x != SelectedRole.Id).ToHashSet();
+        await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
+        SelectedRole = null;
+    }
 
     public async Task CreateRole()
     {
@@ -532,6 +543,10 @@ else
         {
             if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
                 return "You do not have permission for Manage Roles.";
+
+            if (data.Name.Equals("Default"))
+                return "You can't name the role default";
+            
 
             foreach (var r in Session.Selected.Team.Data.CachedRoles.Values)
             {
