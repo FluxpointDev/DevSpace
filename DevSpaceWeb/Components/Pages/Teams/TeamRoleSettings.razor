@@ -265,6 +265,36 @@ else
     private bool _logAdministrator;
     public bool LogAdministrator { get { return _logAdministrator; } set { _logAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
 
+    public static PermissionGrid<PermissionItem<TeamPermission>> TeamGrid = new PermissionGrid<PermissionItem<TeamPermission>>
+        {
+            Data = PermissionsData.AllTeamData
+        };
+
+    public static PermissionGrid<PermissionItem<ServerPermission>> ServerGrid = new PermissionGrid<PermissionItem<ServerPermission>>
+        {
+            Data = PermissionsData.AllServerData
+        };
+
+    public static PermissionGrid<PermissionItem<WebsitePermission>> WebsiteGrid = new PermissionGrid<PermissionItem<WebsitePermission>>
+        {
+            Data = PermissionsData.AllWebsiteData
+        };
+
+    public static PermissionGrid<PermissionItem<ProjectPermission>> ProjectGrid = new PermissionGrid<PermissionItem<ProjectPermission>>
+        {
+            Data = PermissionsData.AllProjectData
+        };
+
+    public static PermissionGrid<PermissionItem<LogPermission>> LogGrid = new PermissionGrid<PermissionItem<LogPermission>>
+        {
+            Data = PermissionsData.AllLogData
+        };
+
+    public static PermissionGrid<PermissionItem<DockerPermission>> DockerGrid = new PermissionGrid<PermissionItem<DockerPermission>>
+        {
+            Data = PermissionsData.AllDockerData
+        };
+
     public async Task TriggerUnsavedDialog()
     {
         if (!UnsavedPermissions)
@@ -432,95 +462,7 @@ else
         public string Description { get; set; }
     }
 
-    public PermissionGrid<PermissionItem<TeamPermission>> TeamGrid = new PermissionGrid<PermissionItem<TeamPermission>>
-    {
-        Data = new PermissionItem<TeamPermission>[]
-        {
-            new PermissionItem<TeamPermission>(TeamPermission.ManageMembers, "Manage Members", "Add or remove members to the team except global admins."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageRoles, "Manage Roles", "Give members roles except global admin."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManagePermissions, "Manage Permissions", "Change permissions for roles except global admin."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage Team", "Change team settings."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage Resources", "Add or delete resources for the team such as servers/websites/projects."),
-        }
-    };
-
-    public PermissionGrid<PermissionItem<ServerPermission>> ServerGrid = new PermissionGrid<PermissionItem<ServerPermission>>
-    {
-        Data = new PermissionItem<ServerPermission>[]
-        {
-            new PermissionItem<ServerPermission>(ServerPermission.ViewServer, "View Servers", "View all servers the team owns."),
-            new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Servers", "Change server settings."),
-            new PermissionItem<ServerPermission>(ServerPermission.ManagePermissions, "Manage Permissions", "Change permissions for all servers the team owns."),
-            new PermissionItem<ServerPermission>(ServerPermission.ManageResource, "Manage Resource", "Add or delete servers for the team."),
-        }
-    };
-
-    public PermissionGrid<PermissionItem<WebsitePermission>> WebsiteGrid = new PermissionGrid<PermissionItem<WebsitePermission>>
-        {
-            Data = new PermissionItem<WebsitePermission>[]
-            {
-            new PermissionItem<WebsitePermission>(WebsitePermission.ViewWebsite, "View Websites", "View all websites the team owns."),
-            new PermissionItem<WebsitePermission>(WebsitePermission.ManageWebsite, "Manage Websites", "Change website settings."),
-            new PermissionItem<WebsitePermission>(WebsitePermission.ManagePermissions, "Manage Permissions", "Change permissions for all websites the team owns."),
-            new PermissionItem<WebsitePermission>(WebsitePermission.ManageResource, "Manage Resource", "Add or delete websites for the team."),
-            }
-        };
-
-    public PermissionGrid<PermissionItem<ProjectPermission>> ProjectGrid = new PermissionGrid<PermissionItem<ProjectPermission>>
-        {
-            Data = new PermissionItem<ProjectPermission>[]
-        {
-            new PermissionItem<ProjectPermission>(ProjectPermission.ViewProject, "View Projects", "View all projects the team owns."),
-           new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Projects", "Change project settings."),
-            new PermissionItem<ProjectPermission>(ProjectPermission.ManagePermissions, "Manage Permissions", "Change permissions for all projects the team owns."),
-            new PermissionItem<ProjectPermission>(ProjectPermission.ManageResource, "Manage Resource", "Add or delete projects for the team."),
-        }
-        };
-
-    public PermissionGrid<PermissionItem<LogPermission>> LogGrid = new PermissionGrid<PermissionItem<LogPermission>>
-    {
-        Data = new PermissionItem<LogPermission>[]
-        {
-            new PermissionItem<LogPermission>(LogPermission.ViewLog, "View Logs", "View all logs the team owns."),
-            new PermissionItem<LogPermission>(LogPermission.ManageLog, "Manage Logs", "Change log settings."),
-            new PermissionItem<LogPermission>(LogPermission.ManagePermissions, "Manage Permissions", "Change permissions for all logs the team owns."),
-            new PermissionItem<LogPermission>(LogPermission.ManageResource, "Manage Resource", "Add or delete logs for the team."),
-        }
-    };
-
-    public PermissionGrid<PermissionItem<DockerPermission>> DockerGrid = new PermissionGrid<PermissionItem<DockerPermission>>
-        {
-            Data = new PermissionItem<DockerPermission>[]
-            {
-                new PermissionItem<DockerPermission>(DockerPermission.ViewContainers, "View Containers", "View all docker stacks and containers the team owns."),
-                new PermissionItem<DockerPermission>(DockerPermission.ControlContainers, "Control Containers", "Start, stop, restart, pause and kill containers."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageContainers, "Manage Containers", "Create and modify Stacks and containers."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewImages, "View Images", "View current docker images."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageImages, "Manage Images", "Create and modify docker images."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewVolumes, "View Volumes", "View current docker volumes/storage."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageVolumes, "Manage Volumes", "Create and modify docker volumes."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewNetworks, "View Networks", "View current docker networks."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageNetworks, "Manage Networks", "Create and modify docker networks."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewTemplates, "View Templates", "View a list bunch of premade docker templates."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewCustomTemplates, "View Custom Templates", "View a list of custom docker templates made by other members."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageCustomTemplates, "Manage Custom Templates", "Create and modify custom docker templates."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewPlugins, "View Plugins", "View current docker templates installed."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManagePlugins, "Manage Plugins", "Install docker plugins on the server."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewEvents, "View Events", "View realtime docker events for all stacks, containers, images, networks, volumes and plugins."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewRegistries, "View Registry", "View current docker registries."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageRegistries, "Manage Registry", "Create and modify docker registries."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageSettings, "Manage Settings", "Modify server-wide docker settings and features."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageStackPermissions, "Manage Stack Permissions", "Manage permissions for stacks."),
-            }
-        };
-
-    public class PermissionGrid<T>
-    {
-        public RadzenDropDown<IEnumerable<T>> Grid;
-        public T[] Data;
-
-        public IEnumerable<T> Selected;
-    }
+    
 
     public async Task DeleteRole()
     {
