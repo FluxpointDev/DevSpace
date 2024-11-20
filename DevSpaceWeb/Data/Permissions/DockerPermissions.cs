@@ -15,8 +15,7 @@ public class DockerPermissions
     {
         if (permission != DockerPermission.DockerAdministrator && Has(DockerPermission.DockerAdministrator))
             return true;
-
-        if (permission != DockerPermission.DockerManager && Has(DockerPermission.DockerManager))
+        if (permission != DockerPermission.DockerAdministrator && permission != DockerPermission.DockerManager && Has(DockerPermission.DockerManager))
         {
             // Manager permissions
             switch (permission)

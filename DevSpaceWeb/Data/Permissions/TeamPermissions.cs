@@ -16,9 +16,6 @@ public class TeamPermissions
 
     public bool Has(TeamPermission permission)
     {
-        if (permission != TeamPermission.GlobalAdministrator && Has(TeamPermission.GlobalAdministrator))
-            return true;
-
         if (permission != TeamPermission.TeamAdministrator && Has(TeamPermission.TeamAdministrator))
             return true;
 
