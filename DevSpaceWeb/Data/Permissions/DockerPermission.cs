@@ -27,4 +27,5 @@ public enum DockerPermission : ulong
     ViewRegistries = 1L << 21,
     ManageRegistries = 1L << 22,
     ManageSettings = 1L << 23,
+    ManageStackPermissions = 1L << 24,
 }
