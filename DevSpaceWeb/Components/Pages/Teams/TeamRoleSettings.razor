@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @inject DialogService DialogService
 
-@if (!ManageRoles)
+@if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
 {
     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
         You do not have permission for Manage Roles.
@@ -229,9 +229,6 @@ else
 
 @code {
     [Parameter]
-    public bool ManageRoles { get; set; }
-
-    [Parameter]
     public System.Collections.Generic.ICollection<TeamRoleData> Roles { get; set; }
 
     public TeamRoleData SelectedRole { get; set; }
@@ -326,6 +323,9 @@ else
 
     public async Task SavePermissions()
     {
+        if (!Member.HasTeamPermission(TeamPermission.ManagePermissions))
+            return;
+
         PermissionsSet Set = new PermissionsSet();
         if (GlobalAdministrator)
             Set.TeamPermissions |= TeamPermission.GlobalAdministrator;
@@ -392,13 +392,23 @@ else
             }
         }
 
-        await SelectedRole.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Permissions, Set));
-        SelectedRole.Permissions = Set;
+        if (SelectedRole.Name == "Default")
+        {
+            await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, Set));
+            Session.Selected.Team.Data.DefaultPermissions = Set;
+            SelectedRole.Permissions = Set;
+        }
+        else
+        {
+            await SelectedRole.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Permissions, Set));
+            SelectedRole.Permissions = Set;
+        }
     }
 
     protected override async Task OnParametersSetAsync()
     {
         Roles = Session.Selected.Team.Data.CachedRoles.Values;
+        Roles = Roles.Prepend(new TeamRoleData { Name = "Default", Permissions = Session.Selected.Team.Data.DefaultPermissions }).ToArray();
         if (Roles.Any())
         {
             SelectedRole = Roles.First();

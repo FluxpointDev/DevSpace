@@ -13,7 +13,7 @@
     <RadzenTabs>
         <Tabs>
             <RadzenTabsItem Text="Basic">
-                @if (!ManageTeam)
+                @if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
                 {
                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
                         You do not have permission for Manage Team.
@@ -54,7 +54,7 @@
                 }
             </RadzenTabsItem>
             <RadzenTabsItem Text="Members">
-                @if (!ManageMembers)
+                @if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
                 {
                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
                         You do not have permission for Manage Members.
@@ -113,7 +113,7 @@
                 }
             </RadzenTabsItem>
             <RadzenTabsItem Text="Roles">
-                <TeamRoleSettings ManageRoles="@ManageRoles" Roles="@Roles" Member="@Member"></TeamRoleSettings>
+                <TeamRoleSettings Roles="@Roles" Member="@Member"></TeamRoleSettings>
             </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
@@ -210,17 +210,7 @@
         TeamForm.VanityUrl = Session.Selected.Team.Data.VanityUrl;
         Users = Session.Selected.Team.Data.Members.Keys;
         Roles = Session.Selected.Team.Data.CachedRoles.Values.ToArray();
-        if (Member != null)
-        {
-            ManageTeam = Member.HasTeamPermission(TeamPermission.ManageTeam);
-            ManageMembers = Member.HasTeamPermission(TeamPermission.ManageMembers);
-            ManageRoles = Member.HasTeamPermission(TeamPermission.ManageRoles);
-        }
     }
-
-    public bool ManageTeam { get; set; }
-    public bool ManageMembers { get; set; }
-    public bool ManageRoles { get; set; }
 
     public IEnumerable<ObjectId> Users { get; set; }
     public TeamRoleData[] Roles { get; set; }
@@ -374,8 +364,6 @@
         }
 
     }
-
-
 
     public async Task RemoveTeamRole(ObjectId role)
     {
