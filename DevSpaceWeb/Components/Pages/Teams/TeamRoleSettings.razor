@@ -228,7 +228,6 @@ else
 }
 
 @code {
-    [Parameter]
     public System.Collections.Generic.ICollection<TeamRoleData> Roles { get; set; }
 
     public TeamRoleData SelectedRole { get; set; }
@@ -407,12 +406,15 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        Roles = Session.Selected.Team.Data.CachedRoles.Values;
-        Roles = Roles.Prepend(new TeamRoleData { Name = "Default", Permissions = Session.Selected.Team.Data.DefaultPermissions }).ToArray();
-        if (Roles.Any())
+        if (Roles == null)
         {
-            SelectedRole = Roles.First();
-            LoadPermissions();
+            Roles = Session.Selected.Team.Data.CachedRoles.Values;
+            Roles = Roles.Prepend(new TeamRoleData { Name = "Default", Permissions = Session.Selected.Team.Data.DefaultPermissions }).ToArray();
+            if (Roles.Any())
+            {
+                SelectedRole = Roles.First();
+                LoadPermissions();
+            }
         }
     }
 
@@ -438,6 +440,7 @@ else
             new PermissionItem<TeamPermission>(TeamPermission.ManageRoles, "Manage Roles", "Give members roles except global admin."),
             new PermissionItem<TeamPermission>(TeamPermission.ManagePermissions, "Manage Permissions", "Change permissions for roles except global admin."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage Team", "Change team settings."),
+            new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage Resources", "Add or delete resources for the team such as servers/websites/projects."),
         }
     };
 
@@ -446,8 +449,9 @@ else
         Data = new PermissionItem<ServerPermission>[]
         {
             new PermissionItem<ServerPermission>(ServerPermission.ViewServer, "View Servers", "View all servers the team owns."),
-            new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Server", "Add/delete servers and manage settings."),
+            new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Servers", "Change server settings."),
             new PermissionItem<ServerPermission>(ServerPermission.ManagePermissions, "Manage Permissions", "Change permissions for all servers the team owns."),
+            new PermissionItem<ServerPermission>(ServerPermission.ManageResource, "Manage Resource", "Add or delete servers for the team."),
         }
     };
 
@@ -456,8 +460,9 @@ else
             Data = new PermissionItem<WebsitePermission>[]
             {
             new PermissionItem<WebsitePermission>(WebsitePermission.ViewWebsite, "View Websites", "View all websites the team owns."),
-            new PermissionItem<WebsitePermission>(WebsitePermission.ManageWebsite, "Manage Website", "Add/delete websites and manage settings."),
+            new PermissionItem<WebsitePermission>(WebsitePermission.ManageWebsite, "Manage Websites", "Change website settings."),
             new PermissionItem<WebsitePermission>(WebsitePermission.ManagePermissions, "Manage Permissions", "Change permissions for all websites the team owns."),
+            new PermissionItem<WebsitePermission>(WebsitePermission.ManageResource, "Manage Resource", "Add or delete websites for the team."),
             }
         };
 
@@ -466,8 +471,9 @@ else
             Data = new PermissionItem<ProjectPermission>[]
         {
             new PermissionItem<ProjectPermission>(ProjectPermission.ViewProject, "View Projects", "View all projects the team owns."),
-           new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Projects", "Add/delete projects and manage settings."),
+           new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Projects", "Change project settings."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManagePermissions, "Manage Permissions", "Change permissions for all projects the team owns."),
+            new PermissionItem<ProjectPermission>(ProjectPermission.ManageResource, "Manage Resource", "Add or delete projects for the team."),
         }
         };
 
@@ -476,8 +482,9 @@ else
         Data = new PermissionItem<LogPermission>[]
         {
             new PermissionItem<LogPermission>(LogPermission.ViewLog, "View Logs", "View all logs the team owns."),
-            new PermissionItem<LogPermission>(LogPermission.ManageLog, "Manage Logs", "Add/delete logs and manage settings."),
+            new PermissionItem<LogPermission>(LogPermission.ManageLog, "Manage Logs", "Change log settings."),
             new PermissionItem<LogPermission>(LogPermission.ManagePermissions, "Manage Permissions", "Change permissions for all logs the team owns."),
+            new PermissionItem<LogPermission>(LogPermission.ManageResource, "Manage Resource", "Add or delete logs for the team."),
         }
     };
 
@@ -485,9 +492,9 @@ else
         {
             Data = new PermissionItem<DockerPermission>[]
             {
-                new PermissionItem<DockerPermission>(DockerPermission.ViewContainers, "View Stacks & Containers", "View all docker stacks and containers the team owns."),
-                new PermissionItem<DockerPermission>(DockerPermission.ControlContainers, "Control Stacks & Containers", "Start, stop, restart, pause and kill containers."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageContainers, "Manage Stacks & Containers", "Create and modify Stacks and containers."),
+                new PermissionItem<DockerPermission>(DockerPermission.ViewContainers, "View Containers", "View all docker stacks and containers the team owns."),
+                new PermissionItem<DockerPermission>(DockerPermission.ControlContainers, "Control Containers", "Start, stop, restart, pause and kill containers."),
+                new PermissionItem<DockerPermission>(DockerPermission.ManageContainers, "Manage Containers", "Create and modify Stacks and containers."),
                 new PermissionItem<DockerPermission>(DockerPermission.ViewImages, "View Images", "View current docker images."),
                 new PermissionItem<DockerPermission>(DockerPermission.ManageImages, "Manage Images", "Create and modify docker images."),
                 new PermissionItem<DockerPermission>(DockerPermission.ViewVolumes, "View Volumes", "View current docker volumes/storage."),

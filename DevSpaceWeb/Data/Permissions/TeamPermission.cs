@@ -10,4 +10,5 @@ public enum TeamPermission : ulong
     ManageTeam = 1L << 4,
     TeamAdministrator = 1L << 5,
     GlobalAdministrator = 1L << 6,
+    ManageResources = 1L << 7,
 }

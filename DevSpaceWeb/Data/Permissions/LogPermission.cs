@@ -7,4 +7,5 @@ public enum LogPermission : ulong
     ManagePermissions = 1L << 1,
     ManageLog = 1L << 2,
     LogAdministrator = 1L << 3,
+    ManageResource = 1L << 4,
 }
