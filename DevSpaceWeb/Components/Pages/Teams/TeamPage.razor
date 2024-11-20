@@ -3,7 +3,7 @@
 
 @if (Session.Selected.Team == null || Member == null)
 {
-    <p>This team does not exist</p>
+    <p>This team does not exist.</p>
 }
 else
 {
@@ -26,6 +26,10 @@ else
                 @if (string.IsNullOrEmpty(service_id))
                 {
                     <ServerList Member="@Member"></ServerList>
+                }
+                else if (Session.Selected.Server == null || Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ViewServer))
+                {
+                    <p>This server does not exist.</p>
                 }
                 else
                 {
@@ -151,6 +155,10 @@ else
                 {
                     <ProjectsList Member="@Member"></ProjectsList>
                 }
+                else if (Session.Selected.Project == null || Member.HasProjectPermission(Session.Selected.Project.Data, ProjectPermission.ViewProject))
+                {
+                    <p>This project does not exist.</p>
+                }
                 else
                 {
                     switch (resource_type)
@@ -170,6 +178,10 @@ else
                 @if (string.IsNullOrEmpty(service_id))
                 {
                     <LogsList Member="@Member"></LogsList>
+                }
+                else if (Session.Selected.Log == null || Member.HasLogPermission(Session.Selected.Log.Data, LogPermission.ViewLog))
+                {
+                    <p>This log does not exist.</p>
                 }
                 else
                 {
@@ -193,6 +205,10 @@ else
                 @if (string.IsNullOrEmpty(service_id))
                 {
                     <WebsitesList Member="@Member"></WebsitesList>
+                }
+                else if (Session.Selected.Website == null || Member.HasWebsitePermission(Session.Selected.Website.Data, WebsitePermission.ViewWebsite))
+                {
+                    <p>This website does not exist.</p>
                 }
                 else
                 {
