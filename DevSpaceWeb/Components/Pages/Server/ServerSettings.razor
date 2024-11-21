@@ -1,0 +1,44 @@
+﻿<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Server Settings</RadzenText>
+    </div>
+    <br />
+    <RadzenTabs>
+        <Tabs>
+            <RadzenTabsItem Text="Basic">
+                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ManageServer))
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                        You do not have permission for Manage Server.
+                    </RadzenAlert>
+                }
+                else
+                {
+                    
+                }
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Permissions">
+                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ManagePermissions))
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                        You do not have permission for Manage Permissions.
+                    </RadzenAlert>
+                }
+                else
+                {
+                    <PermissionsOverride Member="@Member"></PermissionsOverride>
+                }
+            </RadzenTabsItem>
+        </Tabs>
+    </RadzenTabs>
+
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    [Parameter]
+    public TeamMemberData Member { get; set; }
+}

@@ -8,20 +8,11 @@ using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Projects;
 
-public class ProjectData
+public class ProjectData : IResource
 {
     [BsonId]
     public ObjectId Id { get; set; }
     public string Name { get; set; }
-
-    public ObjectId TeamId { get; set; }
-
-    [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-    public Dictionary<ObjectId, PermissionsSet> MemberPermissionOverrides = new Dictionary<ObjectId, PermissionsSet>();
-
-    [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-    public Dictionary<ObjectId, PermissionsSet> RolePermissionOverrides = new Dictionary<ObjectId, PermissionsSet>();
-
     public string GetVanityUrl()
     {
         if (_DB.VanityUrlCache.TryGetValue(Id, out string vanityUrl))

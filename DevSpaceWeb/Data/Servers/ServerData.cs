@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
+using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.WebSocket;
 using MongoDB.Bson;
@@ -11,21 +12,14 @@ using System.Security.Authentication;
 
 namespace DevSpaceWeb.Data.Servers;
 
-public class ServerData
+public class ServerData : IResource
 {
     [BsonId]
     public ObjectId Id { get; set; }
     public string Name { get; set; }
-    public ObjectId TeamId { get; set; }
     public string AgentIp { get; set; }
     public string AgentKey { get; set; }
     public short AgentPort { get; internal set; }
-
-    [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-    public Dictionary<ObjectId, PermissionsSet> MemberPermissionOverrides = new Dictionary<ObjectId, PermissionsSet>();
-
-    [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-    public Dictionary<ObjectId, PermissionsSet> RolePermissionOverrides = new Dictionary<ObjectId, PermissionsSet>();
 
     private ServerWebSocket WebSocket;
     public ServerWebSocket GetWebSocket()
