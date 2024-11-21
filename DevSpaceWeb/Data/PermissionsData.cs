@@ -108,3 +108,7 @@ public class PermissionGrid<T>
 
     public IEnumerable<T> Selected;
 }
+public enum PermissionType
+{
+    All, Server, Docker, Website, Project, Log
+}

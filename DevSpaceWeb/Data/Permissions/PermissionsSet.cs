@@ -8,4 +8,9 @@ public class PermissionsSet
     public ServerPermission ServerPermissions;
     public WebsitePermission WebsitePermissions;
     public DockerPermission DockerPermissions;
+
+    public PermissionsSet Clone()
+    {
+        return (PermissionsSet)this.MemberwiseClone();
+    }
 }
