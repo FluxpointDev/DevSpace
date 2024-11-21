@@ -1,7 +1,7 @@
 ﻿
 namespace DevSpaceShared.Data;
 
-public class DockerStack
+public class DockerStackInfo
 {
     public string Id { get; set; }
     public string Name { get; set; }

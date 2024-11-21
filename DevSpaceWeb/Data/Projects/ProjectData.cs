@@ -1,7 +1,9 @@
-﻿using DevSpaceWeb.Data.Teams;
+﻿using DevSpaceWeb.Data.Permissions;
+using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Projects;
@@ -13,6 +15,12 @@ public class ProjectData
     public string Name { get; set; }
 
     public ObjectId TeamId { get; set; }
+
+    [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
+    public Dictionary<ObjectId, PermissionsSet> MemberPermissionOverrides = new Dictionary<ObjectId, PermissionsSet>();
+
+    [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
+    public Dictionary<ObjectId, PermissionsSet> RolePermissionOverrides = new Dictionary<ObjectId, PermissionsSet>();
 
     public string GetVanityUrl()
     {

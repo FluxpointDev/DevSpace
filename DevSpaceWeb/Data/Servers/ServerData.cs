@@ -1,8 +1,10 @@
-﻿using DevSpaceWeb.Data.Projects;
+﻿using DevSpaceWeb.Data.Permissions;
+using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 using NetCoreServer;
 using System.Security.Authentication;
@@ -18,6 +20,12 @@ public class ServerData
     public string AgentIp { get; set; }
     public string AgentKey { get; set; }
     public short AgentPort { get; internal set; }
+
+    [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
+    public Dictionary<ObjectId, PermissionsSet> MemberPermissionOverrides = new Dictionary<ObjectId, PermissionsSet>();
+
+    [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
+    public Dictionary<ObjectId, PermissionsSet> RolePermissionOverrides = new Dictionary<ObjectId, PermissionsSet>();
 
     private ServerWebSocket WebSocket;
     public ServerWebSocket GetWebSocket()

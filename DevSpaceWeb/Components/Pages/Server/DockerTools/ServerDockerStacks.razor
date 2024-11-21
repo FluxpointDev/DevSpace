@@ -115,13 +115,13 @@
     [Parameter]
     public TeamMemberData Member { get; set; }
 
-    DockerResponse<DockerStack[]>? containers = null;
+    DockerResponse<DockerStackInfo[]>? containers = null;
 
-    IQueryable<DockerStack> employees;
+    IQueryable<DockerStackInfo> employees;
     public int count = 0;
-    IList<DockerStack> selectedEmployees;
+    IList<DockerStackInfo> selectedEmployees;
     public bool AnySelected => selectedEmployees != null ? selectedEmployees.Any() : false;
-    RadzenDataGrid<DockerStack> grid;
+    RadzenDataGrid<DockerStackInfo> grid;
     public bool isLoading = false;
 
     public async Task LoadData(LoadDataArgs args)
@@ -130,7 +130,7 @@
 
         if (Program.IsPreviewMode)
         {
-            employees = new List<DockerStack>
+            employees = new List<DockerStackInfo>
             {
             }.AsQueryable();
             count = 0;
@@ -158,7 +158,7 @@
                     //         }
                     //     };
 
-                    List<DockerStack> stacks = new List<DockerStack>();
+                    List<DockerStackInfo> stacks = new List<DockerStackInfo>();
                     var list = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
 
 
@@ -185,10 +185,10 @@
                         }
                         else
                         {
-                            stacks.Add(new DockerStack { Name = label, CreatedAt = DateTime.UtcNow, IsRunning = IsRunning, Containers = new List<string> { i.Name } });
+                            stacks.Add(new DockerStackInfo { Name = label, CreatedAt = DateTime.UtcNow, IsRunning = IsRunning, Containers = new List<string> { i.Name } });
                         }
                     }
-                    containers = new DockerResponse<DockerStack[]> { Data = stacks.ToArray() };
+                    containers = new DockerResponse<DockerStackInfo[]> { Data = stacks.ToArray() };
 
 
                 }
@@ -234,7 +234,7 @@
         selectedEmployees.Clear();
     }
 
-    void ShowContextMenuWithManageItems(DockerStack item, MouseEventArgs args)
+    void ShowContextMenuWithManageItems(DockerStackInfo item, MouseEventArgs args)
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
@@ -243,7 +243,7 @@
                                                      }, x => MenuItemClick(x, item));
     }
 
-    void MenuItemClick(MenuItemEventArgs args, DockerStack item)
+    void MenuItemClick(MenuItemEventArgs args, DockerStackInfo item)
     {
         _ = Task.Run(async () =>
         {

@@ -236,7 +236,7 @@ public static class DockerHandler
                 return await Program.DockerClient.Networks.ListNetworksAsync();
             case DockerEventType.ListStacks:
                 {
-                    List<DockerStack> Stacks = new List<DockerStack>();
+                    List<DockerStackInfo> Stacks = new List<DockerStackInfo>();
                     IList<ContainerListResponse> containers = await Program.DockerClient.Containers.ListContainersAsync(new ContainersListParameters()
                     {
                         Size = true,
@@ -248,7 +248,7 @@ public static class DockerHandler
                         if (!c.Labels.TryGetValue("com.docker.compose.project", out string label))
                             continue;
 
-                        DockerStack? Stack = Stacks.FirstOrDefault(x => x.Name == label);
+                        DockerStackInfo? Stack = Stacks.FirstOrDefault(x => x.Name == label);
                         if (Stack != null)
                             Stack.Containers.Add(c.Names.First().Substring(1));
                     }
