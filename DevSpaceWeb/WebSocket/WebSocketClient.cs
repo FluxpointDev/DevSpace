@@ -25,6 +25,7 @@ public class WebSocketClient : WssClient
 
     public WebSocketBase WebSocket = new WebSocketBase();
     public ValidateCert ValidateCert;
+    public bool IsRunningDockerContainer;
     public string Key;
     public void DisconnectAndStop()
     {
@@ -130,7 +131,7 @@ public class WebSocketClient : WssClient
                             else
                             {
                                 WebSocket.FirstCertVaid = true;
-
+                                IsRunningDockerContainer = @event.IsRunningDockerContainer;
                                 WebSocket.Client.SendTextAsync(json);
                             }
 

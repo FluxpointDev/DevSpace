@@ -7,4 +7,5 @@ public class ValidateCertEvent : IWebSocketEvent
     }
 
     public string CertHash;
+    public bool IsRunningDockerContainer;
 }

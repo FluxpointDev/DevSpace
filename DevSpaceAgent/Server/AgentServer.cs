@@ -17,7 +17,11 @@ public class AgentSession : WssSession
     {
         AgentWebSocket = new AgentWebSocket { Session = this };
         Console.WriteLine($"WebSocket session with Id {Id} connected!");
-        AgentWebSocket.SendJsonAsync(new ValidateCertEvent() { CertHash = Program.Certificate.GetCertHashString() }, default, true);
+        AgentWebSocket.SendJsonAsync(new ValidateCertEvent()
+        {
+            CertHash = Program.Certificate.GetCertHashString(),
+            IsRunningDockerContainer = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true"
+        }, default, true);
 
     }
 

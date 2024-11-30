@@ -33,6 +33,13 @@ public class ServerData : IResource
         return WebSocket;
     }
 
+    public bool IsRunningDockerContainer()
+    {
+        if (WebSocket != null && WebSocket.Client.IsRunningDockerContainer)
+            return true;
+        return false;
+    }
+
     public string GetVanityUrl()
     {
         if (_DB.VanityUrlCache.TryGetValue(Id, out string vanityUrl))

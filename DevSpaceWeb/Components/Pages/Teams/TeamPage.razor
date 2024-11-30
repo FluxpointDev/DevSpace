@@ -33,247 +33,266 @@ else
                 }
                 else
                 {
-                    switch (resource_type)
+                    @if (Session.Selected.Server.Data.GetWebSocket() == null)
                     {
-                        case null:
-                        case "":
-                        case "home":
-                            <ServerHome Member="@Member"></ServerHome>
-                            break;
-                        case "settings":
-                            <ServerSettings Member="@Member"></ServerSettings>
-                            break;
-                        case "databases":
-                            <ServerDatabase Member="@Member"></ServerDatabase>
-                            break;
-                        case "stacks":
-                            @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewContainers))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for View Containers.
-                                </RadzenAlert>
-                            }
-                            else if (string.IsNullOrEmpty(resource_data))
-                            {
-                                <ServerDockerStacks Member="@Member"></ServerDockerStacks>
-                            }
-                            else
-                            {
-                                <ServerDockerStackInfo StackId="@resource_data" Member="@Member"></ServerDockerStackInfo>
-                            }
-                            break;
-                        case "containers":
-                            @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewContainers))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for View Containers.
-                                </RadzenAlert>
-                            }
-                            else if (string.IsNullOrEmpty(resource_data))
-                            {
-                                <ServerDockerContainers Member="@Member"></ServerDockerContainers>
-                            }
-                            else
-                            {
-                                <ServerDockerContainerInfo ContainerId="@resource_data" Member="@Member"></ServerDockerContainerInfo>
-                            }
-                            break;
-                        case "plugins":
-                            @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewPlugins))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for View Plugins.
-                                </RadzenAlert>
-                            }
-                            else if (string.IsNullOrEmpty(resource_data))
-                            {
-                                <ServerDockerPlugins Member="@Member"></ServerDockerPlugins>
-                            }
-                            else
-                            {
-                                <ServerDockerPluginInfo PluginInfo="@resource_data" Member="@Member"></ServerDockerPluginInfo>
-                            }
-                            break;
-                        case "images":
-                            @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewImages))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for View Images.
-                                </RadzenAlert>
-                            }
-                            else if (string.IsNullOrEmpty(resource_data))
-                            {
-                                <ServerDockerImages Member="@Member"></ServerDockerImages>
-                            }
-                            else
-                            {
-                                <ServerDockerImageInfo ImageId="@resource_data" Member="@Member"></ServerDockerImageInfo>
-                            }
-                            break;
-                        case "networks":
-                            @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewNetworks))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for View Networks.
-                                </RadzenAlert>
-                            }
-                            else if (string.IsNullOrEmpty(resource_data))
-                            {
-                                <ServerDockerNetworks Member="@Member"></ServerDockerNetworks>
-                            }
-                            else
-                            {
-                                <ServerDockerNetworkInfo NetworkId="@resource_data" Member="@Member"></ServerDockerNetworkInfo>
-                            }
-                            break;
-                        case "volumes":
-                            @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewVolumes))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for View Volumes.
-                                </RadzenAlert>
-                            }
-                            else if (string.IsNullOrEmpty(resource_data))
-                            {
-                                <ServerDockerVolumes Member="@Member"></ServerDockerVolumes>
-                            }
-                            else
-                            {
-                                <ServerDockerVolumeInfo VolumeId="@resource_data" Member="@Member"></ServerDockerVolumeInfo>
-                            }
-                            break;
-                        case "execute":
-                            @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for Server Administrator.
-                                </RadzenAlert>
-                            }
-                            else
-                            {
-                                <ServerDockerExecute Member="@Member"></ServerDockerExecute>
-                            }
-
-                            break;
-                        case "registry":
-                            @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewRegistries))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for View Registries.
-                                </RadzenAlert>
-                            }
-                            else if (string.IsNullOrEmpty(resource_data))
-                            {
-                                <ServerDockerRegistry Member="@Member"></ServerDockerRegistry>
-                            }
-                            else
-                            {
-                                <ServerDockerRegistryInfo RegistryId="@resource_data" Member="@Member"></ServerDockerRegistryInfo>
-                            }
-                            break;
-                        case "firewall":
-                            @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for Server Administrator.
-                                </RadzenAlert>
-                            }
-                            else
-                            {
-                                <ServerFirewall Member="@Member"></ServerFirewall>
-                            }
-
-                            break;
-                        case "files":
-                            @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for Server Administrator.
-                                </RadzenAlert>
-                            }
-                            else
-                            {
-                                <ServerFiles Member="@Member"></ServerFiles>
-                            }
-
-                            break;
-                        case "ssh":
-                            @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for Server Administrator.
-                                </RadzenAlert>
-                            }
-                            else
-                            {
-                                <ServerSSH Member="@Member"></ServerSSH>
-                            }
-
-                            break;
-                        case "status":
-                            @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for Server Administrator.
-                                </RadzenAlert>
-                            }
-                            else
-                            {
-                                <ServerStatus Member="@Member"></ServerStatus>
-                            }
-
-                            break;
-                        case "webhooks":
-                            @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for Server Administrator.
-                                </RadzenAlert>
-                            }
-                            else
-                            {
-                                <ServerWebhooks Member="@Member"></ServerWebhooks>
-                            }
-
-                            break;
-                        case "info":
-                            @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for Server Administrator.
-                                </RadzenAlert>
-                            }
-                            else
-                            {
-                                <ServerSystemInfo Member="@Member"></ServerSystemInfo>
-                            }
-
-                            break;
-                        case "templates":
-                            @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewTemplates))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    You do not have permission for View Templates.
-                                </RadzenAlert>
-                            }
-                            else if (string.IsNullOrEmpty(resource_data))
-                            {
-                                <ServerDockerAppTemplates Member="@Member"></ServerDockerAppTemplates>
-                            }
-                            else if (resource_data.Equals("custom"))
-                            {
-                                if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewCustomTemplates))
+                        <ServerConnectionError></ServerConnectionError>
+                    }
+                    else
+                    {
+                        switch (resource_type)
+                        {
+                            case null:
+                            case "":
+                            case "home":
+                                <ServerHome Member="@Member"></ServerHome>
+                                break;
+                            case "settings":
+                                <ServerSettings Member="@Member"></ServerSettings>
+                                break;
+                            case "databases":
+                                <ServerDatabase Member="@Member"></ServerDatabase>
+                                break;
+                            case "stacks":
+                                @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewContainers))
                                 {
                                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You do not have permission for View Custom Templates.
+                                        You do not have permission for View Containers.
+                                    </RadzenAlert>
+                                }
+                                else if (string.IsNullOrEmpty(resource_data))
+                                {
+                                    <ServerDockerStacks Member="@Member"></ServerDockerStacks>
+                                }
+                                else
+                                {
+                                    <ServerDockerStackInfo StackId="@resource_data" Member="@Member"></ServerDockerStackInfo>
+                                }
+                                break;
+                            case "containers":
+                                @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewContainers))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for View Containers.
+                                    </RadzenAlert>
+                                }
+                                else if (string.IsNullOrEmpty(resource_data))
+                                {
+                                    <ServerDockerContainers Member="@Member"></ServerDockerContainers>
+                                }
+                                else
+                                {
+                                    <ServerDockerContainerInfo ContainerId="@resource_data" Member="@Member"></ServerDockerContainerInfo>
+                                }
+                                break;
+                            case "plugins":
+                                @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewPlugins))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for View Plugins.
+                                    </RadzenAlert>
+                                }
+                                else if (string.IsNullOrEmpty(resource_data))
+                                {
+                                    <ServerDockerPlugins Member="@Member"></ServerDockerPlugins>
+                                }
+                                else
+                                {
+                                    <ServerDockerPluginInfo PluginInfo="@resource_data" Member="@Member"></ServerDockerPluginInfo>
+                                }
+                                break;
+                            case "images":
+                                @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewImages))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for View Images.
+                                    </RadzenAlert>
+                                }
+                                else if (string.IsNullOrEmpty(resource_data))
+                                {
+                                    <ServerDockerImages Member="@Member"></ServerDockerImages>
+                                }
+                                else
+                                {
+                                    <ServerDockerImageInfo ImageId="@resource_data" Member="@Member"></ServerDockerImageInfo>
+                                }
+                                break;
+                            case "networks":
+                                @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewNetworks))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for View Networks.
+                                    </RadzenAlert>
+                                }
+                                else if (string.IsNullOrEmpty(resource_data))
+                                {
+                                    <ServerDockerNetworks Member="@Member"></ServerDockerNetworks>
+                                }
+                                else
+                                {
+                                    <ServerDockerNetworkInfo NetworkId="@resource_data" Member="@Member"></ServerDockerNetworkInfo>
+                                }
+                                break;
+                            case "volumes":
+                                @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewVolumes))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for View Volumes.
+                                    </RadzenAlert>
+                                }
+                                else if (string.IsNullOrEmpty(resource_data))
+                                {
+                                    <ServerDockerVolumes Member="@Member"></ServerDockerVolumes>
+                                }
+                                else
+                                {
+                                    <ServerDockerVolumeInfo VolumeId="@resource_data" Member="@Member"></ServerDockerVolumeInfo>
+                                }
+                                break;
+                            case "execute":
+                                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for Server Administrator.
                                     </RadzenAlert>
                                 }
                                 else
                                 {
-                                    <ServerDockerCustomTemplates Member="@Member"></ServerDockerCustomTemplates>
+                                    <ServerDockerExecute Member="@Member"></ServerDockerExecute>
                                 }
-                            }
-                            break;
+
+                                break;
+                            case "registry":
+                                @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewRegistries))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for View Registries.
+                                    </RadzenAlert>
+                                }
+                                else if (string.IsNullOrEmpty(resource_data))
+                                {
+                                    <ServerDockerRegistry Member="@Member"></ServerDockerRegistry>
+                                }
+                                else
+                                {
+                                    <ServerDockerRegistryInfo RegistryId="@resource_data" Member="@Member"></ServerDockerRegistryInfo>
+                                }
+                                break;
+                            case "firewall":
+                                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for Server Administrator.
+                                    </RadzenAlert>
+                                }
+                                else if (Session.Selected.Server.Data.GetWebSocket().Client.IsRunningDockerContainer)
+                                {
+                                    <ServerLimitedControlError></ServerLimitedControlError>
+                                }
+                                else
+                                {
+                                    <ServerFirewall Member="@Member"></ServerFirewall>
+                                }
+
+                                break;
+                            case "files":
+                                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for Server Administrator.
+                                    </RadzenAlert>
+                                }
+                                else if (Session.Selected.Server.Data.GetWebSocket().Client.IsRunningDockerContainer)
+                                {
+                                    <ServerLimitedControlError></ServerLimitedControlError>
+                                }
+                                else
+                                {
+                                    <ServerFiles Member="@Member"></ServerFiles>
+                                }
+
+                                break;
+                            case "ssh":
+                                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for Server Administrator.
+                                    </RadzenAlert>
+                                }
+                                else if (Session.Selected.Server.Data.GetWebSocket().Client.IsRunningDockerContainer)
+                                {
+                                    <ServerLimitedControlError></ServerLimitedControlError>
+                                }
+                                else
+                                {
+                                    <ServerSSH Member="@Member"></ServerSSH>
+                                }
+
+                                break;
+                            case "status":
+                                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for Server Administrator.
+                                    </RadzenAlert>
+                                }
+                                else
+                                {
+                                    <ServerStatus Member="@Member"></ServerStatus>
+                                }
+
+                                break;
+                            case "webhooks":
+                                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for Server Administrator.
+                                    </RadzenAlert>
+                                }
+                                else
+                                {
+                                    <ServerWebhooks Member="@Member"></ServerWebhooks>
+                                }
+
+                                break;
+                            case "info":
+                                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ServerAdministrator))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for Server Administrator.
+                                    </RadzenAlert>
+                                }
+                                else
+                                {
+                                    <ServerSystemInfo Member="@Member"></ServerSystemInfo>
+                                }
+
+                                break;
+                            case "templates":
+                                @if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewTemplates))
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        You do not have permission for View Templates.
+                                    </RadzenAlert>
+                                }
+                                else if (string.IsNullOrEmpty(resource_data))
+                                {
+                                    <ServerDockerAppTemplates Member="@Member"></ServerDockerAppTemplates>
+                                }
+                                else if (resource_data.Equals("custom"))
+                                {
+                                    if (!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ViewCustomTemplates))
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                            You do not have permission for View Custom Templates.
+                                        </RadzenAlert>
+                                    }
+                                    else
+                                    {
+                                        <ServerDockerCustomTemplates Member="@Member"></ServerDockerCustomTemplates>
+                                    }
+                                }
+                                break;
+                        }
                     }
                 }
 

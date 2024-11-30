@@ -21,11 +21,12 @@
         <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ControlContainers))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
         <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ControlContainers))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
         <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ManageContainers))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
-        <RadzenButton Variant="Variant.Filled" Text="Create Container" Icon="add" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ManageContainers))" />
+        <RadzenButton Variant="Variant.Filled" Text="Create Container" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ManageContainers))" />
+        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@isLoading" />
     </div>
-    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
+    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@containersList" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-    @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
+    @bind-Value="@selectedContainers" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
     PagingSummaryFormat="@(count + " container" + (count != 1 ? "s" : "") + $" - {countDead} down" )" Density="Density.Compact"
     AllowSorting="false"
     AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
@@ -36,11 +37,11 @@
             <RadzenDataGridColumn Width="36px" Sortable="false" Filterable="false" Frozen="true">
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
-                    Value="@(selectedEmployees == null || selectedEmployees?.Any() != true ? false : !employees.All(i => selectedEmployees.Contains(i)) ? null : employees.Any(i => selectedEmployees.Contains(i)))"
-                    Change="@(args => selectedEmployees = args == true ? employees.ToList() : null)" />
+                    Value="@(selectedContainers == null || selectedContainers?.Any() != true ? false : !containersList.All(i => selectedContainers.Contains(i)) ? null : containersList.Any(i => selectedContainers.Contains(i)))"
+                    Change="@(args => selectedContainers = args == true ? containersList.ToList() : null)" />
                 </HeaderTemplate>
                 <Template Context="data">
-                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedEmployees != null && selectedEmployees.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedContainers != null && selectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
                     TValue="bool" />
                 </Template>
             </RadzenDataGridColumn>
@@ -116,7 +117,7 @@
 </div>
 
 <style>
-    .dash-box-content .rz-button:not(.rz-button.rz-info ) {
+    .dash-box-content .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
     border-radius: 0px !important;
     margin-right: -4px !important;
     box-shadow: inset 0 0 0 var(--rz-border-width) #717376 !important;
@@ -136,13 +137,13 @@
     [Parameter]
     public TeamMemberData Member { get; set; }
 
-    DockerResponse<ContainerItem[]>? containers = null;
+    DockerResponse<ContainerItem[]>? containersResponse = null;
 
-    IQueryable<ContainerItem> employees;
+    IQueryable<ContainerItem> containersList;
     public int count = 0;
     public int countDead = 0;
-    IList<ContainerItem> selectedEmployees;
-    public bool AnySelected => selectedEmployees != null ? selectedEmployees.Any() : false;
+    IList<ContainerItem> selectedContainers;
+    public bool AnySelected => selectedContainers != null ? selectedContainers.Any() : false;
     RadzenDataGrid<ContainerItem> grid;
     public bool isLoading = false;
 
@@ -160,7 +161,7 @@
 
         if (Program.IsPreviewMode)
         {
-            employees = new List<ContainerItem>
+            containersList = new List<ContainerItem>
              {
                  new ContainerItem { Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)" },
                  new ContainerItem { Names = new List<string> { "/discord-bot" }, State = "dead", Status = "" },
@@ -170,12 +171,12 @@
         }
         else
         {
-            if (containers == null)
+            if (containersResponse == null)
             {
                 isLoading = true;
                 try
                 {
-                    containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
+                    containersResponse = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
                 }
                 catch (Exception ex)
                 {
@@ -186,9 +187,9 @@
 
             }
 
-            if (containers != null)
+            if (containersResponse != null)
             {
-                var query = containers.Data.AsQueryable();
+                var query = containersResponse.Data.AsQueryable();
 
                 if (!string.IsNullOrEmpty(args.Filter))
                     query = query.Where(args.Filter);
@@ -198,7 +199,7 @@
 
                 count = query.Count();
                 countDead = query.Count(x => x.IsDead());
-                employees = query.Skip(args.Skip.Value).Take(args.Top.Value);
+                containersList = query.Skip(args.Skip.Value).Take(args.Top.Value);
             }
         }
     }
@@ -263,9 +264,9 @@
     {
         _ = Task.Run(async () =>
         {
-            await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, null, type) { ResourceList = selectedEmployees.Select(x => x.ID).ToArray() });
+            await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, null, type) { ResourceList = selectedContainers.Select(x => x.ID).ToArray() });
         });
-        selectedEmployees.Clear();
+        selectedContainers.Clear();
     }
 
     void ShowUptimeTooltip(ElementReference elementReference, string uptime) => tooltipService.Open(elementReference, uptime, null);
@@ -285,5 +286,10 @@
 
             return false;
         }
+    }
+
+    public async Task RefreshContainers()
+    {
+        await grid.RefreshDataAsync();
     }
 }

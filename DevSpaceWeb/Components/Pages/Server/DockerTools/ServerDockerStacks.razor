@@ -21,12 +21,12 @@
         <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ManageContainers))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
 
         <RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateStack" Disabled="@(!Member.HasDockerPermission(Session.Selected.Server.Data, DockerPermission.ManageContainers))" />
-        <RadzenButton Variant="Variant.Filled" Text="Refresh Stacks" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshStacks" />
+        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshStacks" Disabled="@isLoading" />
     </div>
 
-    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
+    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@stacksList" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-    @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
+                    @bind-Value="@selectedStacks" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
     PagingSummaryFormat="@(count + " stack" + (count != 1 ? "s" : "") )" Density="Density.Compact"
     AllowSorting="false"
     AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
@@ -37,11 +37,11 @@
             <RadzenDataGridColumn Width="36px" Sortable="false" Filterable="false" Frozen="true">
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
-                    Value="@(selectedEmployees == null || selectedEmployees?.Any() != true ? false : !employees.All(i => selectedEmployees.Contains(i)) ? null : employees.Any(i => selectedEmployees.Contains(i)))"
-                    Change="@(args => selectedEmployees = args == true ? employees.ToList() : null)" />
+                                    Value="@(selectedStacks == null || selectedStacks?.Any() != true ? false : !stacksList.All(i => selectedStacks.Contains(i)) ? null : stacksList.Any(i => selectedStacks.Contains(i)))"
+                                    Change="@(args => selectedStacks = args == true ? stacksList.ToList() : null)" />
                 </HeaderTemplate>
                 <Template Context="data">
-                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedEmployees != null && selectedEmployees.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedStacks != null && selectedStacks.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
                     TValue="bool" />
                 </Template>
             </RadzenDataGridColumn>
@@ -115,12 +115,12 @@
     [Parameter]
     public TeamMemberData Member { get; set; }
 
-    DockerResponse<DockerStackInfo[]>? containers = null;
+    DockerResponse<DockerStackInfo[]>? stacksResponse = null;
 
-    IQueryable<DockerStackInfo> employees;
+    IQueryable<DockerStackInfo> stacksList;
     public int count = 0;
-    IList<DockerStackInfo> selectedEmployees;
-    public bool AnySelected => selectedEmployees != null ? selectedEmployees.Any() : false;
+    IList<DockerStackInfo> selectedStacks;
+    public bool AnySelected => selectedStacks != null ? selectedStacks.Any() : false;
     RadzenDataGrid<DockerStackInfo> grid;
     public bool isLoading = false;
 
@@ -130,14 +130,14 @@
 
         if (Program.IsPreviewMode)
         {
-            employees = new List<DockerStackInfo>
+            stacksList = new List<DockerStackInfo>
             {
             }.AsQueryable();
             count = 0;
         }
         else
         {
-            if (containers == null)
+            if (stacksResponse == null)
             {
                 isLoading = true;
                 try
@@ -185,10 +185,16 @@
                         }
                         else
                         {
-                            stacks.Add(new DockerStackInfo { Name = label, CreatedAt = DateTime.UtcNow, IsRunning = IsRunning, Containers = new List<string> { i.Name } });
+                            stacks.Add(new DockerStackInfo
+                                {
+                                    Name = label,
+                                    CreatedAt = DateTime.UtcNow,
+                                    IsRunning = IsRunning,
+                                    Containers = new List<string> { i.Name }
+                                });
                         }
                     }
-                    containers = new DockerResponse<DockerStackInfo[]> { Data = stacks.ToArray() };
+                    stacksResponse = new DockerResponse<DockerStackInfo[]> { Data = stacks.ToArray() };
 
 
                 }
@@ -202,9 +208,9 @@
 
             }
 
-            if (containers != null)
+            if (stacksResponse != null)
             {
-                var query = containers.Data.AsQueryable();
+                var query = stacksResponse.Data.AsQueryable();
 
                 if (!string.IsNullOrEmpty(args.Filter))
                     query = query.Where(args.Filter);
@@ -213,7 +219,7 @@
                     query = query.OrderBy(args.OrderBy);
 
                 count = query.Count();
-                employees = query.Skip(args.Skip.Value).Take(args.Top.Value);
+                stacksList = query.Skip(args.Skip.Value).Take(args.Top.Value);
             }
         }
     }
@@ -229,9 +235,9 @@
     {
         _ = Task.Run(async () =>
         {
-            await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, imageType: type) { ResourceList = selectedEmployees.Select(x => x.Id).ToArray() });
+            await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, imageType: type) { ResourceList = selectedStacks.Select(x => x.Id).ToArray() });
         });
-        selectedEmployees.Clear();
+        selectedStacks.Clear();
     }
 
     void ShowContextMenuWithManageItems(DockerStackInfo item, MouseEventArgs args)
@@ -268,6 +274,6 @@
 
     public async Task RefreshStacks()
     {
-
+        await grid.RefreshDataAsync();
     }
 }

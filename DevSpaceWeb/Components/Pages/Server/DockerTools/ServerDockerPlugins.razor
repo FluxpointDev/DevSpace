@@ -44,8 +44,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Filterable="false">
                 <Template>
-                    @* <RadzenLink Path="@("https://" + context.PluginReference.Replace("docker.io/", "hub.docker.com/r/").Split(":").First())" Target="_blank" Text="" /> *@
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/plugins/" + context.ID)" Text="@context.Name.Replace(":", "")" />
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/plugins/" + context.ID)" Text="@context.Name.Split(":").First()" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Width="100px">
@@ -60,10 +59,18 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Width="70px" Sortable="false" Filterable="false" Pickable="false">
+            <RadzenDataGridColumn Title="Actions" Width="100px" Sortable="false" Filterable="false" Pickable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                         <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        @if (!string.IsNullOrEmpty(context.Config.Documentation))
+                        {
+                            <a href="@context.Config.Documentation" target="_blank"><RadzenButton Icon="book" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" /></a>
+                        }
+                        else
+                        {
+                            <RadzenButton Icon="book" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="true" />
+                        }
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
@@ -78,15 +85,15 @@
 
 <style>
     .dash-box-content .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success) {
-        border-radius: 0px !important;
-        margin-right: -4px !important;
-        box-shadow: inset 0 0 0 var(--rz-border-width) #717376 !important;
+    border-radius: 0px !important;
+    margin-right: -4px !important;
+    box-shadow: inset 0 0 0 var(--rz-border-width) #717376 !important;
     }
 
     .dash-box-content .rz-button-sm .rzi {
-        font-size: 1.15rem !important;
-        width: 1.15rem !important;
-        height: 1.15rem !important;
+    font-size: 1.15rem !important;
+    width: 1.15rem !important;
+    height: 1.15rem !important;
     }
 </style>
 
@@ -109,7 +116,6 @@
     public async Task LoadData(LoadDataArgs args)
     {
         Logger.LogMessage("Loading Data", LogSeverity.Info);
-
         if (Program.IsPreviewMode)
         {
             employees = new List<Plugin>
@@ -209,7 +215,7 @@
         Console.WriteLine($"{Response.Data.GetType().Name}");
         if (Response.Data is JArray list)
         {
-            
+
             List<string> Perms = new List<string>();
             foreach (var i in list.ToObject<IList<PluginPrivilege>>())
             {
@@ -229,6 +235,6 @@
 
     public async Task RefreshPlugins()
     {
-
+        await grid.RefreshDataAsync();
     }
 }
