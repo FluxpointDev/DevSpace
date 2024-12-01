@@ -53,7 +53,7 @@
 
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                             <RadzenImage Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" Click="@EditAvatar" />
-                                <RadzenStack Gap="0">
+                            <RadzenStack Gap="0">
                                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Username</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body2">
                                     @AuthUser.UserName
@@ -65,8 +65,20 @@
                                 </RadzenText>
 
                                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Email</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body2">@AuthUser.Email</RadzenText>
-                                </RadzenStack>
+                                @if (ShowEmailAddress)
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        @(AuthUser.Email) <span class="rz-link ml-1" @onclick="@ToggleShowEmailAddress">Hide</span>
+                                    </RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        @("******@" + AuthUser.Email.Split('@').Last()) <span class="rz-link ml-1" @onclick="@ToggleShowEmailAddress">Show</span>
+                                    </RadzenText>
+                                }
+
+                            </RadzenStack>
                         </RadzenStack>
 
                         <div class="mb-4" />
@@ -222,42 +234,42 @@
 
 
     .settings-box {
-        background-color: rgba(43,44,54,0.8);
-        width: 100% !important;
-        padding: 10px;
-        border-radius: 8px;
-        margin-bottom: 10px;
+    background-color: rgba(43,44,54,0.8);
+    width: 100% !important;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
     }
 </style>
 
 <style>
     .passkey-item {
-        padding: 10px;
-        padding-left: 20px;
-        padding-right: 20px;
-        border-radius: 8px;
-        background-color: rgba(52,53,63,0.8) !important;
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 8px;
+    background-color: rgba(52,53,63,0.8) !important;
     }
 
-        .passkey-item img {
-            float: left;
-            margin-right: 20px;
-            width: 24px;
-            height: 24px;
-            margin-top: 18px;
-        }
+    .passkey-item img {
+    float: left;
+    margin-right: 20px;
+    width: 24px;
+    height: 24px;
+    margin-top: 18px;
+    }
 
-        .passkey-item div {
-            position: relative;
-            float: right;
-            margin-top: -44px;
-        }
+    .passkey-item div {
+    position: relative;
+    float: right;
+    margin-top: -44px;
+    }
 
-        .passkey-item .iconify {
-            width: 24px;
-            height: 24px;
-            color: #f64e62 !important;
-        }
+    .passkey-item .iconify {
+    width: 24px;
+    height: 24px;
+    color: #f64e62 !important;
+    }
 </style>
 
 
@@ -268,6 +280,12 @@
 
     public AuthUser AuthUser { get; set; }
 
+    public bool ShowEmailAddress { get; set; }
+
+    public void ToggleShowEmailAddress()
+    {
+        ShowEmailAddress = !ShowEmailAddress;
+    }
 
     public bool EmailVerifySent { get; set; }
 
