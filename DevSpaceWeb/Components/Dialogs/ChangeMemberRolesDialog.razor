@@ -8,9 +8,9 @@
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
         <RadzenPickList @bind-Source="@AllRoles" @bind-Target="@SelectedRoles" Style="height:500px; width:100%;"
-                        TextProperty="@nameof(TeamRoleData.Name)" AllowFiltering="true" Multiple="true" ShowHeader="true"
-                        ButtonGap="12px" ButtonJustifyContent="JustifyContent.Center" ButtonSize="ButtonSize.Medium" ButtonShade="Shade.Dark"
-                        ButtonVariant="Variant.Filled">
+        TextProperty="@nameof(TeamRoleData.Name)" AllowFiltering="true" Multiple="true" ShowHeader="true"
+        ButtonGap="12px" ButtonJustifyContent="JustifyContent.Center" ButtonSize="ButtonSize.Medium" ButtonShade="Shade.Dark"
+        ButtonVariant="Variant.Filled">
             <SourceHeader>
                 All Roles
             </SourceHeader>
@@ -61,8 +61,17 @@
             Session.ShowPreviewModeNotice();
             return;
         }
-        await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, SelectedRoles.Select(x => x.Id).ToHashSet()));
-        Member.Roles = SelectedRoles.Select(x => x.Id).ToHashSet();
+        if (SelectedRoles == null)
+        {
+            await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, new HashSet<ObjectId>()));
+            Member.Roles = new HashSet<ObjectId>();
+        }
+        else
+        {
+            await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, SelectedRoles.Select(x => x.Id).ToHashSet()));
+            Member.Roles = SelectedRoles.Select(x => x.Id).ToHashSet();
+        }
+        
         
         dialogService.Close(true);
         
