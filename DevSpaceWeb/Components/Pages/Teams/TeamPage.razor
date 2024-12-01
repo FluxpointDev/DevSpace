@@ -395,7 +395,7 @@ else
     private SessionProvider Session { get; set; }
 
     public TeamData Team => Session.Selected.Team?.Data;
-    public TeamMemberData Member => Session.Selected.Team.Member;
+    public TeamMemberData Member => Session.Selected.Member;
     public ServerData Server => Session.Selected.Server;
     public ProjectData Project => Session.Selected.Project;
     public LogData Log => Session.Selected.Log;
@@ -421,10 +421,8 @@ else
                 Console.WriteLine("Trigger Team Change");
                 Session.Selected.Team = new SelectedTeamData(GotTeam)
                 {
-
+                    Member = GotTeam.GetMember(Session)
                 };
-                if (Session.Selected.Team.Member == null)
-                    Session.Selected.Team.Member = GotTeam.GetMember(Session);
 
                 UpdateNav = true;
             }

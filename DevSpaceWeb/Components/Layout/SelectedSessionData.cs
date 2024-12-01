@@ -37,7 +37,6 @@ public class SelectedTeamData
     public TeamData Data { get; private set; }
     
     public string VanityUrl { get; set; }
-
     public TeamMemberData Member { get; set; }
     public SelectedServerData Server { get; set; }
     public SelectedWebsiteData Website { get; set; }
