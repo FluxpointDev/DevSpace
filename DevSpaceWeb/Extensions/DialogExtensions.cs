@@ -1,6 +1,4 @@
 ﻿using DevSpaceWeb.Components.Dialogs;
-using DevSpaceWeb.Models.Teams;
-using Microsoft.AspNetCore.Components;
 using Radzen;
 
 namespace DevSpaceWeb;

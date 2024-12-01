@@ -47,7 +47,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Property="@nameof(ContainerItem.Name)" Width="160px" Frozen="true" Filterable="false">
                 <Template>
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/containers/" + context.ID)" Text="@context.GetName()" />
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.VanityUrl + "/containers/" + context.ID)" Text="@context.GetName()" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Property="@nameof(ContainerItem.State)" FilterMode="FilterMode.CheckBoxList" Width="100px">
@@ -99,7 +99,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Stack" Width="160px">
                 <Template>
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/stacks/" + context.ID)" Text="Test" />
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.VanityUrl + "/stacks/" + context.ID)" Text="Test" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Image" Width="240px" Property="@nameof(ContainerListResponse.Image)">
@@ -134,8 +134,8 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    [Parameter]
-    public TeamMemberData Member { get; set; }
+    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData Team => Session.Selected.Team.Data;
 
     DockerResponse<ContainerItem[]>? containersResponse = null;
 

@@ -46,7 +46,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Filterable="false">
                 <Template>
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/networks/" + context.ID)" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.Name</RadzenLink>
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.VanityUrl + "/networks/" + context.ID)" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.Name</RadzenLink>
                     @if (context.IsSystem())
                     {
                         <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
@@ -103,6 +103,8 @@
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
 
     DockerResponse<IList<NetworkItem>>? containers = null;
 
@@ -205,7 +207,7 @@
             switch (args.Value.ToString())
             {
                 case "inspect":
-                    Nav.NavigateTo("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/networks/" + item.ID);
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.VanityUrl + "/networks/" + item.ID);
                     break;
                 case "remove":
                     await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlNetwork, item.ID, networkType: ControlNetworkType.Remove));

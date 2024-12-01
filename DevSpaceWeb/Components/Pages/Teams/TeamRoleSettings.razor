@@ -31,7 +31,7 @@ else
                     <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Role" Click="@DeleteRole" Disabled="@(SelectedRole.Name == "Default")" />
                 </div>
 
-                <PermissionGrid PermissionType="PermissionType.All" Member="@Member" Permissions="@Permissions" UnsavedPermissionsChanged="@((arg) => UnsavedPermissions = arg)"
+                <PermissionGrid PermissionType="PermissionType.All" Permissions="@Permissions" UnsavedPermissionsChanged="@((arg) => UnsavedPermissions = arg)"
                 OnSave="@SavePermissions" OnLoad="@LoadPermissions"></PermissionGrid>
             }
         </RadzenColumn>
@@ -54,8 +54,9 @@ else
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    [Parameter]
-    public TeamMemberData Member { get; set; }
+    public TeamData Team => Session.Selected.Team.Data;
+
+    public TeamMemberData Member => Session.Selected.Member;
 
     //public bool PermissionsLoaded { get; set; }
     public bool UnsavedPermissions { get; set; }
@@ -74,8 +75,8 @@ else
     {
         if (SelectedRole.Name == "Default")
         {
-            await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, perms));
-            Session.Selected.Team.Data.DefaultPermissions = perms;
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, perms));
+            Team.DefaultPermissions = perms;
             SelectedRole.Permissions = perms;
         }
         else
@@ -89,8 +90,8 @@ else
     {
         if (Roles == null)
         {
-            Roles = Session.Selected.Team.Data.CachedRoles.Values;
-            Roles = Roles.Prepend(new TeamRoleData { Name = "Default", Permissions = Session.Selected.Team.Data.DefaultPermissions }).ToArray();
+            Roles = Team.CachedRoles.Values;
+            Roles = Roles.Prepend(new TeamRoleData { Name = "Default", Permissions = Team.DefaultPermissions }).ToArray();
             if (Roles.Any())
             {
                 SelectedRole = Roles.First();
@@ -122,9 +123,10 @@ else
 
         await _DB.Roles.Collection.DeleteOneAsync(new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, SelectedRole.Id));
         _DB.Roles.Cache.Remove(SelectedRole.Id, out _);
-        Session.Selected.Team.Data.CachedRoles.Remove(SelectedRole.Id);
-        Session.Selected.Team.Data.Roles = Session.Selected.Team.Data.Roles.Where(x => x != SelectedRole.Id).ToHashSet();
-        await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
+        Team.CachedRoles.Remove(SelectedRole.Id);
+        Team.Roles = Team.Roles.Where(x => x != SelectedRole.Id).ToHashSet();
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
+
         SelectedRole = null;
     }
 
@@ -142,7 +144,7 @@ else
                 return "You can't name the role default";
             
 
-            foreach (var r in Session.Selected.Team.Data.CachedRoles.Values)
+            foreach (var r in Team.CachedRoles.Values)
             {
                 if (r.Name.Equals(data.Name, StringComparison.OrdinalIgnoreCase))
                     return "A role with this name already exists.";
@@ -150,7 +152,7 @@ else
 
             TeamRoleData role = new TeamRoleData
                 {
-                    TeamId = Session.Selected.Team.Data.Id,
+                    TeamId = Team.Id,
                     Name = data.Name,
                     Description = data.Description
                 };
@@ -166,16 +168,16 @@ else
                     return false;
                 }
                 _DB.Roles.Cache.TryAdd(role.Id, role);
-                Session.Selected.Team.Data.Roles.Add(role.Id);
-                Session.Selected.Team.Data.CachedRoles.Add(role.Id, role);
+                Team.Roles.Add(role.Id);
+                Team.CachedRoles.Add(role.Id, role);
                 try
                 {
-                    await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
+                    await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
                 }
                 catch
                 {
-                    Session.Selected.Team.Data.Roles.Remove(role.Id);
-                    Session.Selected.Team.Data.CachedRoles.Remove(role.Id);
+                    Team.Roles.Remove(role.Id);
+                    Team.CachedRoles.Remove(role.Id);
                     FilterDefinition<TeamRoleData> roleFilter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
                     _DB.Roles.Collection.DeleteOne(roleFilter);
                     _DB.Roles.Cache.Remove(role.Id, out _);

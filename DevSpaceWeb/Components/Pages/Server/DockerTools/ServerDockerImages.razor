@@ -49,7 +49,7 @@
                 <Template>
                     @if (context.RepoTags.Any())
                     {
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/images/" + context.ID)" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.RepoTags.First()</RadzenLink>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.VanityUrl + "/images/" + context.ID)" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.RepoTags.First()</RadzenLink>
                         @if (context.RepoTags.Count != 1)
                         {
                             <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Lighter" IsPill="@true" Text="@("+" + (context.RepoTags.Count - 1))" class="rz-ms-2" />
@@ -59,7 +59,7 @@
                     {
                         @if (context.RepoDigests.Any())
                         {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/images/" + context.ID)" TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.RepoDigests.First().Split('@').First()</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.Data.GetVanityUrl + "/images/" + context.ID)" TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.RepoDigests.First().Split('@').First()</RadzenLink>
                         }
                         else
                         {
@@ -125,8 +125,7 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    [Parameter]
-    public TeamMemberData Member { get; set; }
+    public TeamData Team => Session.Selected.Team.Data;
 
     DockerResponse<ImageItem[]>? containers = null;
 

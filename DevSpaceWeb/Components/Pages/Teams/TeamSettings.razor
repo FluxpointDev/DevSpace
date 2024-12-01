@@ -7,7 +7,7 @@
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
-        <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Session.Selected.Team.Data.Name Settings</RadzenText>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Team.Name Settings</RadzenText>
     </div>
     <br />
     <RadzenTabs>
@@ -77,7 +77,7 @@
                                                 @ud.UserName
                                             </RadzenText>
                                         </RadzenStack>
-                                        @if (user != Session.Selected.Team.Data.OwnerId)
+                                        @if (user != Team.OwnerId)
                                         {
                                             <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" />
                                             <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
@@ -113,7 +113,7 @@
                 }
             </RadzenTabsItem>
             <RadzenTabsItem Text="Roles">
-                <TeamRoleSettings Member="@Member"></TeamRoleSettings>
+                <TeamRoleSettings></TeamRoleSettings>
             </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
@@ -133,7 +133,7 @@
     background-color: #242527 !important;
     margin-right: 4px;
     margin-bottom: 4px;
-        box-shadow: var(--rz-card-shadow);
+    box-shadow: var(--rz-card-shadow);
     }
 
     .role-box .rz-text-subtitle2 {
@@ -143,7 +143,7 @@
     }
 
     .role-permissions span {
-    
+
     display: block;
     }
 
@@ -158,39 +158,39 @@
     }
 
     .role-info {
-        background-color: var(--rz-info-darker) !important;
-        padding: 6px;
-        padding-left: 10px;
-        padding-right: 10px;
-        border-radius: 4px;
-        margin-bottom: 10px;
-        max-width: 796px;
-        margin-left: auto;
-        margin-right: auto;
+    background-color: var(--rz-info-darker) !important;
+    padding: 6px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    max-width: 796px;
+    margin-left: auto;
+    margin-right: auto;
     }
 
     .role-box .iconify {
-        width: 22px;
-        height: 22px;
-        margin-right: 6px;
-        margin-top: -2px;
+    width: 22px;
+    height: 22px;
+    margin-right: 6px;
+    margin-top: -2px;
     }
 
     .role-box .rz-text-body2 {
-        color: var(--rz-warning);
+    color: var(--rz-warning);
     }
 
     .rz-chkbox-box .rzi {
-        color: var(--rz-series-7) !important;
+    color: var(--rz-series-7) !important;
     }
 
     .rz-chkbox-box.rz-state-active {
-        border-color: var(--rz-success-light);
+    border-color: var(--rz-success-light);
     }
 
     .role-permissions span:not(.rz-chkbox-box span) {
-        margin-top: 4px;
-        margin-left: 32px;
+    margin-top: 4px;
+    margin-left: 32px;
     }
 </style>
 
@@ -198,18 +198,19 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    [Parameter]
-    public TeamMemberData Member { get; set; }
+    public TeamData Team => Session.Selected.Team.Data;
+
+    public TeamMemberData Member => Session.Selected.Member;
 
     protected override async Task OnInitializedAsync()
     {
         TeamForm = new TeamBasicModel
             {
-                Name = Session.Selected.Team.Data.Name
+                Name = Team.Name
             };
-        TeamForm.VanityUrl = Session.Selected.Team.Data.VanityUrl;
-        Users = Session.Selected.Team.Data.Members.Keys;
-        Roles = Session.Selected.Team.Data.CachedRoles.Values.ToArray();
+        TeamForm.VanityUrl = Team.VanityUrl;
+        Users = Team.Members.Keys;
+        Roles = Team.CachedRoles.Values.ToArray();
     }
 
     public IEnumerable<ObjectId> Users { get; set; }
@@ -227,28 +228,28 @@
             TeamForm.VanityUrl = TeamForm.VanityUrl.Replace(" ", "-").ToLower();
         }
 
-        Session.Selected.Team.Data.Name = TeamForm.Name;
+        Team.Name = TeamForm.Name;
 
-        await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.VanityUrl, TeamForm.VanityUrl));
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.VanityUrl, TeamForm.VanityUrl));
 
 
-        if (Session.Selected.Team.Data.VanityUrl != TeamForm.VanityUrl)
+        if (Team.VanityUrl != TeamForm.VanityUrl)
         {
             if (string.IsNullOrEmpty(TeamForm.VanityUrl))
             {
-                if (!string.IsNullOrEmpty(Session.Selected.Team.Data.VanityUrl))
+                if (!string.IsNullOrEmpty(Team.VanityUrl))
                 {
-                    _DB.TeamsVanityCache.TryRemove(Session.Selected.Team.Data.VanityUrl, out _);
-                    Session.Selected.Team.Data.VanityUrl = string.Empty;
+                    _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
+                    Team.VanityUrl = string.Empty;
                 }
             }
             else
             {
-                if (TeamForm.VanityUrl != Session.Selected.Team.Data.VanityUrl)
+                if (TeamForm.VanityUrl != Team.VanityUrl)
                 {
-                    _DB.TeamsVanityCache.TryRemove(Session.Selected.Team.Data.VanityUrl, out _);
-                    _DB.TeamsVanityCache.TryAdd(TeamForm.VanityUrl, Session.Selected.Team.Data);
-                    Session.Selected.Team.Data.VanityUrl = TeamForm.VanityUrl;
+                    _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
+                    _DB.TeamsVanityCache.TryAdd(TeamForm.VanityUrl, Team);
+                    Team.VanityUrl = TeamForm.VanityUrl;
                 }
             }
         }
@@ -272,12 +273,12 @@
             if (user.ManagedAccountTeamId.HasValue)
                 return "This user account is managed by another team.";
 
-            if (Session.Selected.Team.Data.Members.ContainsKey(user.Id))
+            if (Team.Members.ContainsKey(user.Id))
                 return "This user account has already been added to the team.";
 
             TeamMemberData memberData = new TeamMemberData
                 {
-                    TeamId = Session.Selected.Team.Data.Id,
+                    TeamId = Team.Id,
                     UserId = user.Id
                 };
 
@@ -292,17 +293,17 @@
                     return false;
                 }
                 _DB.Members.Cache.TryAdd(memberData.Id, memberData);
-                Session.Selected.Team.Data.Members.Add(user.Id, memberData.Id);
-                Session.Selected.Team.Data.CachedMembers.Add(memberData.Id, memberData);
+                Team.Members.Add(user.Id, memberData.Id);
+                Team.CachedMembers.Add(memberData.Id, memberData);
                 try
                 {
-                    await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
+                    await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members));
                 }
                 catch
                 {
                     _DB.Members.Cache.Remove(memberData.Id, out _);
-                    Session.Selected.Team.Data.Members.Remove(user.Id);
-                    Session.Selected.Team.Data.CachedMembers.Remove(memberData.Id);
+                    Team.Members.Remove(user.Id);
+                    Team.CachedMembers.Remove(memberData.Id);
                 }
                 return true;
             });
@@ -319,7 +320,7 @@
         if (Member.Team.OwnerId != Session.CurrentUserId.Value)
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Session.Selected.Team.Data.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
+        bool Confirm = await DialogService.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Team.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
         if (!Confirm)
             return;
 
@@ -332,9 +333,9 @@
         if (Member.Team.OwnerId != Session.CurrentUserId.Value)
             return;
 
-        await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id));
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id));
 
-        Session.Selected.Team.Data.OwnerId = user.Id;
+        Team.OwnerId = user.Id;
 
     }
 
@@ -343,20 +344,20 @@
         if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
             return;
 
-        Session.Selected.Team.Data.Members.TryGetValue(user, out var SelectedMember);
+        Team.Members.TryGetValue(user, out var SelectedMember);
 
         if (SelectedMember == null)
             return;
 
-        Session.Selected.Team.Data.Members.Remove(user);
+        Team.Members.Remove(user);
         try
         {
-            await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Session.Selected.Team.Data.Members));
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members));
             _DB.Members.Cache.Remove(user, out _);
         }
         catch
         {
-            Session.Selected.Team.Data.Members.TryAdd(user, SelectedMember);
+            Team.Members.TryAdd(user, SelectedMember);
         }
 
     }
@@ -370,17 +371,17 @@
         if (Role == null)
             return;
 
-        Session.Selected.Team.Data.Roles.Remove(role);
-        Session.Selected.Team.Data.CachedRoles.Remove(role);
+        Team.Roles.Remove(role);
+        Team.CachedRoles.Remove(role);
         try
         {
-            await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Session.Selected.Team.Data.Roles));
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
             _DB.Roles.Cache.Remove(role, out _);
         }
         catch
         {
-            Session.Selected.Team.Data.Roles.Add(role);
-            Session.Selected.Team.Data.CachedRoles.Add(role, Role);
+            Team.Roles.Add(role);
+            Team.CachedRoles.Add(role, Role);
         }
     }
 
@@ -391,8 +392,8 @@
 
         var Dialog = await DialogService.OpenAsync<ChangeMemberRolesDialog>($"Update Roles for {user.UserName}", new Dictionary<string, object>()
         {
-            { "Team", Session.Selected.Team.Data },
-            { "Member", Session.Selected.Team.Data.GetMember(user) }
+            { "Team", Team },
+            { "Member", Team.GetMember(user) }
         });
     }
 
@@ -414,16 +415,16 @@
 
     public async Task RemoveIcon()
     {
-        if (!Session.Selected.Team.Data.HasIcon)
+        if (!Team.HasIcon)
             return;
 
         if (!Member.HasTeamPermission(Data.Permissions.TeamPermission.ManageTeam))
             return;
 
-        await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null));
-        File.Delete(Session.Selected.Team.Data.Icon.Path("webp"));
-        File.Delete(Session.Selected.Team.Data.Icon.Path("png"));
-        Session.Selected.Team.Data.IconId = null;
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null));
+        File.Delete(Team.Icon.Path("webp"));
+        File.Delete(Team.Icon.Path("png"));
+        Team.IconId = null;
         Session.TriggerChange();
     }
 }

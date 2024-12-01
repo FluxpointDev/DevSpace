@@ -1,4 +1,6 @@
-﻿<RadzenPanelMenu Match="NavLinkMatch.All">
+﻿@implements IDisposable
+
+<RadzenPanelMenu Match="NavLinkMatch.All">
     <RadzenPanelMenuItem Path="@("/teams")" Match="NavLinkMatch.All">
         <Template>
             <span class="iconify" data-icon="mdi:account-supervisor-circle"></span>
@@ -31,42 +33,23 @@
     }
 </RadzenPanelMenu>
 
-@* <MudNavMenu Dense="true" Margin="Margin.Dense">
-    <MudNavLink Href="/teams" Match="NavLinkMatch.All"><span class="iconify" data-icon="mdi:account-supervisor-circle"></span> My Teams</MudNavLink>
-
-    @if (Session.Selected.Team != null)
-    {
-        <NavTeam></NavTeam>
-
-        @if (Session.Selected.Server != null)
-        {
-            <NavServer></NavServer>
-        }
-
-        @if (Session.Selected.Website != null)
-        {
-            <NavWebsite></NavWebsite>
-        }
-
-        @if (Session.Selected.Project != null)
-        {
-            <NavProject></NavProject>
-        }
-        @if (Session.Selected.Log != null)
-        {
-            <NavLog></NavLog>
-        }
-    }
-
-</MudNavMenu> *@
-
-
-<style>
-
-
-</style>
-
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Session.EventNavMenuChange += Test;
+    }
+
+    void IDisposable.Dispose()
+    {
+        Session.EventNavMenuChange -= Test;
+    }
+
+    public void Test(object sender, EventArgs e)
+    {
+        Console.WriteLine("Change Nav Menu State");
+        StateHasChanged();
+    }
 }

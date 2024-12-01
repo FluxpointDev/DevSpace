@@ -164,27 +164,27 @@
             <RadzenStack Gap="0" class="role-box">
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:warning"></span> Log Permissions</RadzenText>
 
-            <div class="role-permissions">
-                <RadzenCheckBox @bind-Value="@LogAdministrator" Name="LogAdmin" Disabled="@(!PermissionsLoaded)" />
-                <RadzenLabel Text="Log Administrator" Component="LogAdmin" class="rz-ms-2" />
-                <span style="color: var(--rz-text-tertiary-color)">All log permissions.</span>
-            </div>
+                <div class="role-permissions">
+                    <RadzenCheckBox @bind-Value="@LogAdministrator" Name="LogAdmin" Disabled="@(!PermissionsLoaded)" />
+                    <RadzenLabel Text="Log Administrator" Component="LogAdmin" class="rz-ms-2" />
+                    <span style="color: var(--rz-text-tertiary-color)">All log permissions.</span>
+                </div>
 
-            <div>
-                <RadzenDropDown @ref="LogGrid.Grid" @bind-Value="@LogGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || LogAdministrator)">
-                    <Template>
-                        <RadzenLabel Text="@((context as PermissionItem<LogPermission>).Name)" Style="display: block;" />
-                        <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<LogPermission>).Description)</span>
+                <div>
+                    <RadzenDropDown @ref="LogGrid.Grid" @bind-Value="@LogGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                    AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || LogAdministrator)">
+                        <Template>
+                            <RadzenLabel Text="@((context as PermissionItem<LogPermission>).Name)" Style="display: block;" />
+                            <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<LogPermission>).Description)</span>
 
-                    </Template>
-                    <ValueTemplate>
-                        @((context as PermissionItem<LogPermission>).Name)
-                    </ValueTemplate>
-                </RadzenDropDown>
-            </div>
-        </RadzenStack>
+                        </Template>
+                        <ValueTemplate>
+                            @((context as PermissionItem<LogPermission>).Name)
+                        </ValueTemplate>
+                    </RadzenDropDown>
+                </div>
+            </RadzenStack>
         }
     </RadzenStack>
 }
@@ -213,6 +213,11 @@
 }
 
 @code {
+    [CascadingParameter]
+    public SessionProvider Session { get; set; }
+
+    public TeamMemberData Member => Session.Selected.Member;
+
     [Parameter]
     public PermissionsSet? Permissions { get; set; }
 
@@ -267,9 +272,6 @@
 
     [Parameter]
     public PermissionType PermissionType { get; set; }
-
-    [Parameter]
-    public TeamMemberData Member { get; set; }
 
     [Parameter]
     public EventCallback<PermissionsSet> OnSave { get; set; }

@@ -10,7 +10,7 @@
 <Popup @ref="@RolePopup" Lazy="true" class="permission-popup">
     <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
         <RadzenListBox TValue="TeamRoleData" ValueChanged="@((el) => Console.WriteLine("Selected " + el.Name))" AllowVirtualization="true"
-                       AllowFiltering="true" Data="@Session.Selected.Team.Data.CachedRoles.Values" TextProperty="@nameof(TeamRoleData.Name)" Style="width: 100%; height: 100%"
+                       AllowFiltering="true" Data="@Team.CachedRoles.Values" TextProperty="@nameof(TeamRoleData.Name)" Style="width: 100%; height: 100%"
                        InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select role" }})" />
     </RadzenStack>
 </Popup>
@@ -18,7 +18,7 @@
 <Popup @ref="@MemberPopup" Lazy="true" class="permission-popup">
     <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
         @* <RadzenListBox TValue="TeamMemberData" ValueChanged="@((el) => Console.WriteLine("Selected " + el.NickName))" AllowVirtualization="true"
-                       AllowFiltering="true" Data="@Session.Selected.Team.Data.CachedMembers.Values" Style="width: 100%; height: 100%"
+                       AllowFiltering="true" Data="@Team.CachedMembers.Values" Style="width: 100%; height: 100%"
                        InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select member" }})" /> *@
     </RadzenStack>
 </Popup>
@@ -51,7 +51,7 @@
                 <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Permission" Click="@DeleteOverride" />
             </div>
 
-            <PermissionGrid PermissionType="PermissionType.All" Member="@Member" Permissions="@Permissions" UnsavedPermissionsChanged="@((arg) => UnsavedPermissions = arg)"
+            <PermissionGrid PermissionType="PermissionType.All" Permissions="@Permissions" UnsavedPermissionsChanged="@((arg) => UnsavedPermissions = arg)"
             OnSave="@SavePermissions" OnLoad="@LoadPermissions"></PermissionGrid>
         }
     </RadzenColumn>
@@ -92,6 +92,8 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public TeamData Team => Session.Selected.Team.Data;
+
     [Parameter]
     public TeamMemberData Member { get; set; }
 
@@ -110,8 +112,8 @@
     {
         // if (SelectedPermission.Name == "Default")
         // {
-        //     await Session.Selected.Team.Data.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, perms));
-        //     Session.Selected.Team.Data.DefaultPermissions = perms;
+        //     await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, perms));
+        //     Team.DefaultPermissions = perms;
         //     SelectedPermission.Permissions = perms;
         // }
         // else
@@ -125,14 +127,14 @@
     {
         if (RoleOverrides == null)
         {
-            RoleOverrides = Session.Selected.Server.Data.RolePermissionOverrides.Select(x => Session.Selected.Team.Data.CachedRoles.TryGetValue(x.Key, out TeamRoleData role) ? new ResourcePermissionItem
+            RoleOverrides = Session.Selected.Server.Data.RolePermissionOverrides.Select(x => Team.CachedRoles.TryGetValue(x.Key, out TeamRoleData role) ? new ResourcePermissionItem
                 {
                     Name = role.Name,
                     Description = role.Description,
                     Permissions = x.Value
                 } : new ResourcePermissionItem { Name = "Unknown Role", Permissions = null });
 
-            MemberOverrides = Session.Selected.Server.Data.MemberPermissionOverrides.Select(x => Session.Selected.Team.Data.CachedMembers.TryGetValue(x.Key, out TeamMemberData member) ? new ResourcePermissionItem
+            MemberOverrides = Session.Selected.Server.Data.MemberPermissionOverrides.Select(x => Team.CachedMembers.TryGetValue(x.Key, out TeamMemberData member) ? new ResourcePermissionItem
                 {
                     Name = _DB.Users[member.UserId].UserName,
                     Permissions = x.Value

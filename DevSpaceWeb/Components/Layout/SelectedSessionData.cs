@@ -10,6 +10,8 @@ public class SelectedSessionData
 {
     public SelectedTeamData Team { get; set; }
 
+    public TeamMemberData Member { get; set; }
+
     public SelectedServerData? Server { get { return Team != null ? Team.Server : null; } }
 
     public SelectedWebsiteData? Website { get { return Team != null ? Team.Website : null; } }
@@ -33,6 +35,7 @@ public class SelectedTeamData
 
     public string Id { get; private set; }
     public TeamData Data { get; private set; }
+    
     public string VanityUrl { get; set; }
 
     public SelectedServerData Server { get; set; }

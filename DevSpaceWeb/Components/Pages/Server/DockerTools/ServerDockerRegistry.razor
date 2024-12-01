@@ -73,7 +73,7 @@
                             }
                             break;
                     }
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/registry/" + context.Id)" Text="@context.Name" />
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.VanityUrl + "/registry/" + context.Id)" Text="@context.Name" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Width="100px">
@@ -111,9 +111,6 @@
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
-
-    [Parameter]
-    public TeamMemberData Member { get; set; }
 
     IQueryable<DockerRegistry> employees;
     public int count = 0;

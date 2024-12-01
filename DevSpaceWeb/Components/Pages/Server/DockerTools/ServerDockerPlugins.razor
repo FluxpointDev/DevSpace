@@ -44,7 +44,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Filterable="false">
                 <Template>
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.Data.GetVanityUrl() + "/servers/" + Session.Selected.Server.Data.GetVanityUrl() + "/plugins/" + context.ID)" Text="@context.Name.Split(":").First()" />
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.VanityUrl + "/plugins/" + context.ID)" Text="@context.Name.Split(":").First()" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Width="100px">
@@ -100,9 +100,6 @@
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
-
-    [Parameter]
-    public TeamMemberData Member { get; set; }
 
     DockerResponse<Plugin[]>? containers = null;
 
