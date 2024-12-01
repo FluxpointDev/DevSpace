@@ -7,7 +7,7 @@
     <RadzenTabs>
         <Tabs>
             <RadzenTabsItem Text="Basic">
-                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ManageServer))
+                @if (!Member.HasServerPermission(Server, ServerPermission.ManageServer))
                 {
                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
                         You do not have permission for Manage Server.
@@ -19,7 +19,7 @@
                 }
             </RadzenTabsItem>
             <RadzenTabsItem Text="Permissions">
-                @if (!Member.HasServerPermission(Session.Selected.Server.Data, ServerPermission.ManagePermissions))
+                @if (!Member.HasServerPermission(Server, ServerPermission.ManagePermissions))
                 {
                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
                         You do not have permission for Manage Permissions.
@@ -40,4 +40,5 @@
     private SessionProvider Session { get; set; }
 
     public TeamMemberData Member => Session.Selected.Member;
+    public ServerData Server => Session.Selected.Team.Server.Data;
 }

@@ -66,7 +66,7 @@
         }
         else if (SystemInfo != null)
         {
-            <p><span>IP:</span> @Session.Selected.Server.Data.AgentIp</p>
+            <p><span>IP:</span> @Server.AgentIp</p>
         }
         else
         {
@@ -175,6 +175,8 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public ServerData Server => Session.Selected.Team.Server.Data;
+
     public SystemInfoResponse? SystemInfo { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -238,7 +240,7 @@
                     return;
                 }
 
-                SystemInfo = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<SystemInfoResponse>(new IWebSocketTaskEvent(EventType.SystemInfo));
+                SystemInfo = await Server.GetWebSocket().Client.RecieveJsonAsync<SystemInfoResponse>(new IWebSocketTaskEvent(EventType.SystemInfo));
                 Logger.LogMessage("Got info", LogSeverity.Debug);
                 Logger.LogMessage(Newtonsoft.Json.JsonConvert.SerializeObject(SystemInfo, Newtonsoft.Json.Formatting.Indented), LogSeverity.Debug);
                 StateHasChanged();

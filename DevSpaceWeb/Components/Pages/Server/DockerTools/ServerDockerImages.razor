@@ -49,7 +49,7 @@
                 <Template>
                     @if (context.RepoTags.Any())
                     {
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.VanityUrl + "/images/" + context.ID)" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.RepoTags.First()</RadzenLink>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + context.ID)" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.RepoTags.First()</RadzenLink>
                         @if (context.RepoTags.Count != 1)
                         {
                             <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Lighter" IsPill="@true" Text="@("+" + (context.RepoTags.Count - 1))" class="rz-ms-2" />
@@ -59,7 +59,7 @@
                     {
                         @if (context.RepoDigests.Any())
                         {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.Data.GetVanityUrl + "/images/" + context.ID)" TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.RepoDigests.First().Split('@').First()</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Server.GetVanityUrl + "/images/" + context.ID)" TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.RepoDigests.First().Split('@').First()</RadzenLink>
                         }
                         else
                         {
@@ -126,6 +126,7 @@
     private SessionProvider Session { get; set; }
 
     public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Team.Server.Data;
 
     DockerResponse<ImageItem[]>? containers = null;
 
@@ -154,7 +155,7 @@
                 isLoading = true;
                 try
                 {
-                    containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ImageItem[]>>(new DockerEvent(DockerEventType.ListImages));
+                    containers = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ImageItem[]>>(new DockerEvent(DockerEventType.ListImages));
                 }
                 catch (Exception ex)
                 {
@@ -162,7 +163,7 @@
                 }
                 try
                 {
-                    var list = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
+                    var list = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
                     foreach(var i in containers.Data)
                     {
                         i.Containers = list.Data.Count(x => x.ImageID == i.ID);
@@ -208,7 +209,7 @@
     {
         _ = Task.Run(async () =>
         {
-            await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, imageType: type) { ResourceList = selectedEmployees.Select(x => x.ID).ToArray() });
+            await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, imageType: type) { ResourceList = selectedEmployees.Select(x => x.ID).ToArray() });
         });
         selectedEmployees.Clear();
     }
@@ -252,7 +253,7 @@
 
     public async Task PruneImages()
     {
-        await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.PruneImages));
+        await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.PruneImages));
     }
 
     public async Task RefreshImages()

@@ -21,6 +21,8 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public ServerData Server => Session.Selected.Team.Server.Data;
+
     FirewallResponse? FirewallInfo = null;
 
     IEnumerable<FirewallRuleResponse> employees;
@@ -48,7 +50,7 @@
         {
             try
             {
-                FirewallInfo = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<FirewallResponse>(new IWebSocketTaskEvent(EventType.FirewallInfo));
+                FirewallInfo = await Server.GetWebSocket().Client.RecieveJsonAsync<FirewallResponse>(new IWebSocketTaskEvent(EventType.FirewallInfo));
 
 
             }

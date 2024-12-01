@@ -57,6 +57,8 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public ServerData Server => Session.Selected.Team.Server.Data;
+
     public string HttpType = "GET";
 
     public string Endpoint { get; set; }
@@ -90,7 +92,7 @@
         }
 
         Request += " http:/localhost" + Endpoint;
-        CommandResponse data = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<CommandResponse>(new CommandEvent(true)
+        CommandResponse data = await Server.GetWebSocket().Client.RecieveJsonAsync<CommandResponse>(new CommandEvent(true)
         {
             Command = Request
         });

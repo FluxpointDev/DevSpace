@@ -10,15 +10,15 @@ public class SelectedSessionData
 {
     public SelectedTeamData Team { get; set; }
 
-    public TeamMemberData Member { get; set; }
+    public TeamMemberData? Member { get { return Team != null && Team.Member != null ? Team.Member : null; } }
 
-    public SelectedServerData? Server { get { return Team != null ? Team.Server : null; } }
+    public ServerData? Server { get { return Team != null && Team.Server != null ? Team.Server.Data : null; } }
 
-    public SelectedWebsiteData? Website { get { return Team != null ? Team.Website : null; } }
+    public WebsiteData? Website { get { return Team != null && Team.Website != null ? Team.Website.Data : null; } }
 
-    public SelectedProjectData? Project { get { return Team != null ? Team.Project : null; } }
+    public ProjectData? Project { get { return Team != null && Team.Project != null ? Team.Project.Data : null; } }
 
-    public SelectedLogData? Log { get { return Team != null ? Team.Log : null; } }
+    public LogData? Log { get { return Team != null && Team.Log != null ? Team.Log.Data : null; } }
 }
 public class SelectedTeamData
 {
@@ -38,6 +38,7 @@ public class SelectedTeamData
     
     public string VanityUrl { get; set; }
 
+    public TeamMemberData Member { get; set; }
     public SelectedServerData Server { get; set; }
     public SelectedWebsiteData Website { get; set; }
     public SelectedProjectData Project { get; set; }

@@ -46,7 +46,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="520px" Frozen="true" Filterable="false">
                 <Template>
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Server.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Width="140px">
@@ -94,6 +94,7 @@
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
+    public ServerData Server => Session.Selected.Team.Server.Data;
 
     DockerResponse<CustomVolumeResponse>? containers = null;
 
@@ -122,7 +123,7 @@
                 isLoading = true;
                 try
                 {
-                    containers = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<CustomVolumeResponse>>(new DockerEvent(DockerEventType.ListVolumes));
+                    containers = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<CustomVolumeResponse>>(new DockerEvent(DockerEventType.ListVolumes));
                 }
                 catch (Exception ex)
                 {
@@ -130,7 +131,7 @@
                 }
                 try
                 {
-                    var list = await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
+                    var list = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
                     foreach (var i in list.Data)
                     {
                         foreach(var n in containers.Data.Volumes)
@@ -173,7 +174,7 @@
     {
         _ = Task.Run(async () =>
         {
-            await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, imageType: type) { ResourceList = selectedEmployees.Select(x => x.Name).ToArray() });
+            await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, imageType: type) { ResourceList = selectedEmployees.Select(x => x.Name).ToArray() });
         });
         selectedEmployees.Clear();
     }
@@ -224,7 +225,7 @@
 
     public async Task PruneImages()
     {
-        await Session.Selected.Server.Data.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.PruneImages));
+        await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.PruneImages));
     }
 
     public async Task RefreshImages()

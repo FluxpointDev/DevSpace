@@ -10,8 +10,8 @@
 <Popup @ref="@RolePopup" Lazy="true" class="permission-popup">
     <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
         <RadzenListBox TValue="TeamRoleData" ValueChanged="@((el) => Console.WriteLine("Selected " + el.Name))" AllowVirtualization="true"
-                       AllowFiltering="true" Data="@Team.CachedRoles.Values" TextProperty="@nameof(TeamRoleData.Name)" Style="width: 100%; height: 100%"
-                       InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select role" }})" />
+        AllowFiltering="true" Data="@Team.CachedRoles.Values" TextProperty="@nameof(TeamRoleData.Name)" Style="width: 100%; height: 100%"
+        InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select role" }})" />
     </RadzenStack>
 </Popup>
 
@@ -64,15 +64,15 @@
     }
 
     .permission-popup {
-        display: none;
-        position: absolute !important;
-        overflow: hidden !important;
-        height: 360px;
-        width: 200px;
-        border: var(--rz-panel-border);
-        background-color: var(--rz-base-700);
-        box-shadow: var(--rz-panel-shadow);
-        border-radius: var(--rz-border-radius);
+    display: none;
+    position: absolute !important;
+    overflow: hidden !important;
+    height: 360px;
+    width: 200px;
+    border: var(--rz-panel-border);
+    background-color: var(--rz-base-700);
+    box-shadow: var(--rz-panel-shadow);
+    border-radius: var(--rz-border-radius);
     }
 </style>
 
@@ -93,9 +93,7 @@
     private SessionProvider Session { get; set; }
 
     public TeamData Team => Session.Selected.Team.Data;
-
-    [Parameter]
-    public TeamMemberData Member { get; set; }
+    public ServerData Server => Session.Selected.Team.Server.Data;
 
     //public bool PermissionsLoaded { get; set; }
     public bool UnsavedPermissions { get; set; }
@@ -127,14 +125,14 @@
     {
         if (RoleOverrides == null)
         {
-            RoleOverrides = Session.Selected.Server.Data.RolePermissionOverrides.Select(x => Team.CachedRoles.TryGetValue(x.Key, out TeamRoleData role) ? new ResourcePermissionItem
+            RoleOverrides = Server.RolePermissionOverrides.Select(x => Team.CachedRoles.TryGetValue(x.Key, out TeamRoleData role) ? new ResourcePermissionItem
                 {
                     Name = role.Name,
                     Description = role.Description,
                     Permissions = x.Value
                 } : new ResourcePermissionItem { Name = "Unknown Role", Permissions = null });
 
-            MemberOverrides = Session.Selected.Server.Data.MemberPermissionOverrides.Select(x => Team.CachedMembers.TryGetValue(x.Key, out TeamMemberData member) ? new ResourcePermissionItem
+            MemberOverrides = Server.MemberPermissionOverrides.Select(x => Team.CachedMembers.TryGetValue(x.Key, out TeamMemberData member) ? new ResourcePermissionItem
                 {
                     Name = _DB.Users[member.UserId].UserName,
                     Permissions = x.Value
