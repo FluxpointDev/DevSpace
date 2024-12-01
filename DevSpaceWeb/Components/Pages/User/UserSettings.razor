@@ -40,7 +40,7 @@
                     }
                     else
                     {
-                        @if (AuthUser.IsManaged())
+                        @if (AuthUser.IsManaged)
                         {
                             <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
                                 Your account is managed by your Team, some options will be unavailable to you.
@@ -95,12 +95,12 @@
                         <br />
                         <h4 class="mb-2">Manage</h4>
                         <RadzenButton Text="Edit Account" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@EditAccount" />
-                        <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@AuthUser.IsManaged()" />
+                        <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@AuthUser.IsManaged" />
                         <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangePassword" />
                         <br />
                         <br />
                         <br />
-                        <RadzenButton Text="Delete Account" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@DeleteAccount" Disabled="@AuthUser.IsManaged()" />
+                        <RadzenButton Text="Delete Account" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@DeleteAccount" Disabled="@AuthUser.IsManaged" />
                     }
                 </div>
             </RadzenTabsItem>
@@ -348,6 +348,16 @@
 
     public async Task ChangePassword()
     {
+        if (AuthUser.Auth.IsTwoFactorEnabled)
+        {
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+        }
+
         await DialogService.OpenAsync<ChangeAccountPasswordDialog>("Change Account Password", new Dictionary<string, object>(), new DialogOptions { });
 
     }

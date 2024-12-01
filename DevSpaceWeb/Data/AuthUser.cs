@@ -12,8 +12,6 @@ namespace DevSpaceWeb.Data;
 public class AuthUser : MongoIdentityUser<ObjectId>
 {
     public string? DisplayName { get; set; }
-
-   
     public Guid? ResourceId { get; set; }
     public Guid? AvatarId { get; set; }
     public Guid? BackgroundId { get; set; }
@@ -27,7 +25,9 @@ public class AuthUser : MongoIdentityUser<ObjectId>
     [BsonIgnore]
     public bool HasAvatar => AvatarId != null;
     public ObjectId? ManagedAccountTeamId { get; set; }
-    public bool IsManaged() => ManagedAccountTeamId != null;
+
+    [BsonIgnore]
+    public bool IsManaged => ManagedAccountTeamId != null;
 
     public string GetAvatarOrDefault(bool usePng = false)
     {
