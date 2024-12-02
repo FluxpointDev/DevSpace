@@ -23,6 +23,12 @@ public class TeamData
     [BsonIgnore]
     public FileResource Icon => new FileResource("Icon", ResourceId, IconId);
 
+    public event EventHandler<Tuple<TeamRoleData?, bool>> RoleChangeEvent;
+    public void TriggerRoleChange(TeamRoleData? role, bool isAdd)
+    {
+        RoleChangeEvent?.Invoke(this, new Tuple<TeamRoleData?, bool>(role, isAdd));
+    }
+
     [BsonIgnore]
     public bool HasIcon => IconId != null;
 

@@ -1,0 +1,129 @@
+﻿@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+@implements IDisposable
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        <RadzenStack class="rz-picklist-wrapper" Orientation="Orientation.Horizontal" Style="height:500px; width:100%;">
+            <RadzenStack class="rz-picklist-source-wrapper">
+
+                <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating" />
+            </RadzenStack>
+            <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" Gap="12px" class="rz-picklist-buttons">
+                <RadzenButton Icon="keyboard_arrow_up" Click="@MoveRoleUp" Disabled="@(SelectedRole == null || IsUpdating)"
+                ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Medium" Variant="Variant.Filled" Shade="Shade.Default" />
+                <RadzenButton Icon="keyboard_arrow_down" Click="@MoveRoleDown" Disabled="@(SelectedRole == null || IsUpdating)"
+                ButtonStyle="ButtonStyle.Secondary" Size="ButtonSize.Medium" Variant="Variant.Filled" Shade="Shade.Default" />
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    [Parameter]
+    public TeamData Team { get; set; }
+
+    public IList<TeamRoleData> RolesList { get; set; }
+    public TeamRoleData? SelectedRole { get; set; }
+    public bool IsUpdating { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Console.WriteLine(Session.Selected.Member.GetRank());
+        Team.RoleChangeEvent += RoleChanged;
+    }
+
+    public void Dispose()
+    {
+        Team.RoleChangeEvent -= RoleChanged;
+    }
+
+    public void RoleChanged(object sender, Tuple<TeamRoleData?, bool> role)
+    {
+        Console.WriteLine($"Role Change Event Triggered: {role.Item1?.Id.ToString()} - {role.Item2}");
+        if (role.Item1 == null)
+            RolesList = Team.CachedRoles.Values.OrderBy(x => x.Position).ToList();
+        else if (role.Item2)
+            RolesList = RolesList.Append(role.Item1).ToList();
+        else
+        {
+            try
+            {
+                RolesList.RemoveAt(RolesList.IndexOf(role.Item1));
+            }
+            catch {}
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    void LoadData(LoadDataArgs args)
+    {
+        if (RolesList == null)
+            RolesList = Team.CachedRoles.Values.OrderBy(x => x.Position).ToList();
+    }
+
+    public async Task MoveRoleUp()
+    {
+        int Index = RolesList.IndexOf(SelectedRole);
+        if (Index == 0 || IsUpdating)
+            return;
+        RolesList.RemoveAt(Index);
+        RolesList.Insert(Index - 1, SelectedRole);
+    }
+
+    public async Task MoveRoleDown()
+    {
+        int Index = RolesList.IndexOf(SelectedRole);
+        if (Index == (RolesList.Count - 1) || IsUpdating)
+            return;
+        RolesList.RemoveAt(Index);
+        RolesList.Insert(Index + 1, SelectedRole);
+    }
+
+    async Task Submit()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (IsUpdating)
+            return;
+
+        IsUpdating = true;
+
+        List<WriteModel<TeamRoleData>> list = new List<WriteModel<TeamRoleData>>();
+        foreach (var r in RolesList)
+        {
+            FilterDefinition<TeamRoleData> filter = new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, r.Id);
+            UpdateDefinition<TeamRoleData> upd = new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Position, RolesList.IndexOf(r));
+            list.Add(new UpdateOneModel<TeamRoleData>(filter, upd));
+        }
+
+        var result = await _DB.Roles.Collection.BulkWriteAsync(list);
+        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented));
+        if (result.IsAcknowledged)
+        {
+            foreach (var r in RolesList)
+            {
+                r.Position = RolesList.IndexOf(r);
+            }
+            Team.TriggerRoleChange(null, true);
+        }
+
+        dialogService.Close(true);
+        
+    }
+}

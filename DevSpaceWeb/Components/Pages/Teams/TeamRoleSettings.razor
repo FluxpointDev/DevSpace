@@ -114,7 +114,7 @@ else
         public string Description { get; set; }
     }
 
-    
+
 
     public async Task DeleteRole()
     {
@@ -125,6 +125,7 @@ else
         _DB.Roles.Cache.Remove(SelectedRole.Id, out _);
         Team.CachedRoles.Remove(SelectedRole.Id);
         Team.Roles = Team.Roles.Where(x => x != SelectedRole.Id).ToHashSet();
+        Team.TriggerRoleChange(SelectedRole, false);
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
 
         SelectedRole = null;
@@ -154,7 +155,8 @@ else
                 {
                     TeamId = Team.Id,
                     Name = data.Name,
-                    Description = data.Description
+                    Description = data.Description,
+                    Position = Team.CachedRoles.Values.OrderBy(x => x.Position).Last().Position + 1
                 };
 
             var task = Task.Run<bool>(async () =>
@@ -170,6 +172,7 @@ else
                 _DB.Roles.Cache.TryAdd(role.Id, role);
                 Team.Roles.Add(role.Id);
                 Team.CachedRoles.Add(role.Id, role);
+
                 try
                 {
                     await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
@@ -183,6 +186,7 @@ else
                     _DB.Roles.Cache.Remove(role.Id, out _);
                     return false;
                 }
+                Team.TriggerRoleChange(role, true);
                 return true;
             });
             task.Wait();

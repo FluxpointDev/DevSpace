@@ -10,6 +10,7 @@
         <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Team.Name Settings</RadzenText>
     </div>
     <br />
+    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Role Post" Click="@UpdateRolePositions" />
     <RadzenTabs>
         <Tabs>
             <RadzenTabsItem Text="Basic">
@@ -406,7 +407,7 @@
             return;
 
         await IconUploader.Upload();
-        
+
     }
 
     async Task UploadComplete(UploadCompleteEventArgs args)
@@ -427,5 +428,16 @@
         File.Delete(Team.Icon.Path("png"));
         Team.IconId = null;
         Session.TriggerNavMenuChange();
+    }
+
+    public async Task UpdateRolePositions()
+    {
+        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+            return;
+
+        var Dialog = await DialogService.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
+        {
+            { "Team", Team }
+        });
     }
 }

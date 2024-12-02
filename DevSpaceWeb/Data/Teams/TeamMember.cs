@@ -232,6 +232,22 @@ public class TeamMemberData
         return false;
     }
 
+    public int GetRank()
+    {
+        //if (Team.OwnerId == UserId)
+        //    return -1;
+
+        int CurrentRank = int.MaxValue;
+        foreach(var r in Roles)
+        {
+            if (Team.CachedRoles.TryGetValue(r, out var role) && role.Position < CurrentRank)
+            {
+                CurrentRank = role.Position;
+            }
+        }
+        return CurrentRank;
+    }
+
     public HashSet<ObjectId> Roles { get; set; } = new HashSet<ObjectId>();
     public string NickName { get; set; }
     public Guid? AvatarId { get; set; }
