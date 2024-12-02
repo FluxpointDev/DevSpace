@@ -11,7 +11,19 @@
         <RadzenStack class="rz-picklist-wrapper" Orientation="Orientation.Horizontal" Style="height:500px; width:100%;">
             <RadzenStack class="rz-picklist-source-wrapper">
 
-                <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating" />
+                <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
+                    <Template>
+                        @if (CurrentRank < (context as TeamRoleData).Position)
+                        {
+                            @((context as TeamRoleData).Name)
+                        }
+                        else
+                        {
+                            <span class="iconify" data-icon="mdi:lock"></span> @((context as TeamRoleData).Name)
+                        }
+
+                    </Template>
+                </RadzenListBox>
             </RadzenStack>
             <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.Center" Gap="12px" class="rz-picklist-buttons">
                 <RadzenButton Icon="keyboard_arrow_up" Click="@MoveRoleUp" Disabled="@(SelectedRole == null || IsUpdating)"
@@ -34,15 +46,18 @@
     [Parameter]
     public TeamData Team { get; set; }
 
+    public TeamMemberData Member => Session.Selected.Member;
+
     public IList<TeamRoleData> RolesList { get; set; }
     public TeamRoleData? SelectedRole { get; set; }
     public bool IsUpdating { get; set; }
 
     protected override void OnInitialized()
     {
-        Console.WriteLine(Session.Selected.Member.GetRank());
         Team.RoleChangeEvent += RoleChanged;
     }
+
+
 
     public void Dispose()
     {
@@ -64,29 +79,40 @@
             }
             catch {}
         }
+        CurrentRank = Member.GetRank();
         InvokeAsync(StateHasChanged);
     }
+
+    public int CurrentRank;
 
     void LoadData(LoadDataArgs args)
     {
         if (RolesList == null)
+        {
+            CurrentRank = Member.GetRank();
             RolesList = Team.CachedRoles.Values.OrderBy(x => x.Position).ToList();
+        }
     }
 
     public async Task MoveRoleUp()
     {
+        CurrentRank = Member.GetRank();
         int Index = RolesList.IndexOf(SelectedRole);
-        if (Index == 0 || IsUpdating)
+        if (Index == 0 || IsUpdating || CurrentRank >= (Index - 1))
             return;
+
         RolesList.RemoveAt(Index);
         RolesList.Insert(Index - 1, SelectedRole);
     }
 
     public async Task MoveRoleDown()
     {
+        CurrentRank = Member.GetRank();
         int Index = RolesList.IndexOf(SelectedRole);
-        if (Index == (RolesList.Count - 1) || IsUpdating)
+
+        if (Index == (RolesList.Count - 1) || IsUpdating || CurrentRank >= Index)
             return;
+
         RolesList.RemoveAt(Index);
         RolesList.Insert(Index + 1, SelectedRole);
     }
@@ -105,12 +131,22 @@
         IsUpdating = true;
 
         List<WriteModel<TeamRoleData>> list = new List<WriteModel<TeamRoleData>>();
+        bool Stop = false;
         foreach (var r in RolesList)
         {
+            int Index = RolesList.IndexOf(r);
+            if (r.Position != Index && CurrentRank >= Index)
+            {
+                Stop = true;
+                break;
+            }
+
             FilterDefinition<TeamRoleData> filter = new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, r.Id);
             UpdateDefinition<TeamRoleData> upd = new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Position, RolesList.IndexOf(r));
             list.Add(new UpdateOneModel<TeamRoleData>(filter, upd));
         }
+        if (Stop)
+            return;
 
         var result = await _DB.Roles.Collection.BulkWriteAsync(list);
         Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented));

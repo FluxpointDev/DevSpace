@@ -18,7 +18,14 @@
                 Selected Roles
             </TargetHeader>
             <Template>
-                @context.Name
+                @if (CurrentRank < context.Position)
+                {
+                    @context.Name
+                }
+                else
+                {
+                    <span class="iconify" data-icon="mdi:lock"></span> @context.Name
+                }
             </Template>
         </RadzenPickList>
     </RadzenStack>
@@ -35,6 +42,8 @@
     [Parameter]
     public TeamData Team { get; set; }
 
+    public int CurrentRank;
+
     [Parameter]
     public TeamMemberData Member { get; set; }
 
@@ -44,6 +53,7 @@
 
     protected override void OnParametersSet()
     {
+        CurrentRank = Member.GetRank();
         List<TeamRoleData> list = new List<TeamRoleData>();
         foreach(var i in Member.Roles)
         {
@@ -51,7 +61,7 @@
                 list.Add(role);
         }
         SelectedRoles = list;
-        AllRoles = Team.CachedRoles.Values.Except(SelectedRoles);
+        AllRoles = Team.CachedRoles.Values.Except(SelectedRoles).OrderBy(x => x.Position);
     }
 
     async Task Submit()

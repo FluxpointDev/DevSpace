@@ -18,7 +18,18 @@ else
         <RadzenColumn Size="3" class=" rz-py-2 pr-2">
             <RadzenListBox @bind-Value="@SelectedRole" Change="@(() => Permissions = SelectedRole.Permissions.Clone())" Data="@Roles" Disabled="@UnsavedPermissions"
             TextProperty="@nameof(TeamRoleData.Name)" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
-            Style="width: 100%; max-width: 400px; height:200px" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select role" }})" />
+            Style="width: 100%; max-width: 400px; height:200px" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select role" }})">
+                <Template>
+                    @if (CurrentRank < context.Position)
+                    {
+                        @context.Name
+                    }
+                    else
+                    {
+                        <span class="iconify" data-icon="mdi:lock"></span> @context.Name
+                    }
+                </Template>
+            </RadzenListBox>
         </RadzenColumn>
         <RadzenColumn class="rz-py-2">
             @if (SelectedRole != null)
@@ -31,6 +42,11 @@ else
                     <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Role" Click="@DeleteRole" Disabled="@(SelectedRole.Name == "Default")" />
                 </div>
 
+                @if (Member.GetRank() >= SelectedRole.Position)
+                {
+                    <p>You can't change these permissions'</p>
+                }
+                
                 <PermissionGrid PermissionType="PermissionType.All" Permissions="@Permissions" UnsavedPermissionsChanged="@((arg) => UnsavedPermissions = arg)"
                 OnSave="@SavePermissions" OnLoad="@LoadPermissions"></PermissionGrid>
             }
@@ -47,7 +63,7 @@ else
 
 
 @code {
-    public System.Collections.Generic.ICollection<TeamRoleData> Roles { get; set; }
+    public List<TeamRoleData> Roles { get; set; }
 
     public TeamRoleData? SelectedRole { get; set; }
 
@@ -57,6 +73,8 @@ else
     public TeamData Team => Session.Selected.Team.Data;
 
     public TeamMemberData Member => Session.Selected.Member;
+
+    public int CurrentRank;
 
     //public bool PermissionsLoaded { get; set; }
     public bool UnsavedPermissions { get; set; }
@@ -88,10 +106,11 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        CurrentRank = Member.GetRank();
         if (Roles == null)
         {
-            Roles = Team.CachedRoles.Values;
-            Roles = Roles.Prepend(new TeamRoleData { Name = "Default", Permissions = Team.DefaultPermissions }).ToArray();
+            Roles = Team.CachedRoles.Values.OrderBy(x => x.Position).ToList();
+            Roles = Roles.Append(new TeamRoleData { Name = "Default", Permissions = Team.DefaultPermissions, Position = int.MaxValue }).ToList();
             if (Roles.Any())
             {
                 SelectedRole = Roles.First();
