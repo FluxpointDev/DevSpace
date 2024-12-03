@@ -44,11 +44,16 @@ else
 
                 @if (Member.GetRank() >= SelectedRole.Position)
                 {
-                    <p>You can't change these permissions'</p>
+                    <div class="role-info" style="background: none !important;">
+                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                            <div>You can't edit these permissions because of your current access.</div>
+                        </RadzenAlert>
+                    </div>
                 }
                 
+                
                 <PermissionGrid PermissionType="PermissionType.All" Permissions="@Permissions" UnsavedPermissionsChanged="@((arg) => UnsavedPermissions = arg)"
-                OnSave="@SavePermissions" OnLoad="@LoadPermissions"></PermissionGrid>
+                OnSave="@SavePermissions" OnLoad="@LoadPermissions" IsDisabled="@(Member.GetRank() >= SelectedRole.Position)"></PermissionGrid>
             }
         </RadzenColumn>
     </RadzenRow>

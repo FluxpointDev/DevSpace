@@ -12,7 +12,7 @@
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:tag"></span> Role Permissions</RadzenText>
 
                 <div class="role-permissions">
-                    <RadzenCheckBox @bind-Value="@GlobalAdministrator" Name="TeamGlobalAdministrator" Disabled="@(!PermissionsLoaded)" />
+                    <RadzenCheckBox @bind-Value="@GlobalAdministrator" Name="TeamGlobalAdministrator" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Global Administrator" Component="TeamGlobalAdministrator" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">Access all permissions and resources for the team.</span>
                 </div>
@@ -21,13 +21,13 @@
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:people-group"></span> Team Permissions</RadzenText>
 
                 <div class="role-permissions">
-                    <RadzenCheckBox @bind-Value="@TeamAdministrator" Name="TeamAdministrator" Disabled="@(!PermissionsLoaded)" />
+                    <RadzenCheckBox @bind-Value="@TeamAdministrator" Name="TeamAdministrator" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Team Administrator" Component="TeamAdministrator" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All team permissions.</span>
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="TeamGrid.Grid" @bind-Value="@TeamGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Disabled="@(!PermissionsLoaded || TeamAdministrator)" Placeholder="Select permission..." AllowFiltering="true" Chips="true" Data="@TeamGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Multiple="true" AllowSelectAll="false" TextProperty="Name">
+                    <RadzenDropDown @ref="TeamGrid.Grid" @bind-Value="@TeamGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Disabled="@(!PermissionsLoaded || TeamAdministrator || IsDisabled)" Placeholder="Select permission..." AllowFiltering="true" Chips="true" Data="@TeamGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Multiple="true" AllowSelectAll="false" TextProperty="Name">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<TeamPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<TeamPermission>).Description)</span>
@@ -47,7 +47,7 @@
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:server"></span> Server Permissions</RadzenText>
 
                 <div class="role-permissions">
-                    <RadzenCheckBox @bind-Value="@ServerAdministrator" Name="ServerAdmin" Disabled="@(!PermissionsLoaded)" />
+                    <RadzenCheckBox @bind-Value="@ServerAdministrator" Name="ServerAdmin" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Server Administrator" Component="ServerAdmin" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All server permissions.</span>
                 </div>
@@ -55,7 +55,7 @@
                 <div>
                     <RadzenDropDown @ref="ServerGrid.Grid" @bind-Value="@ServerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@ServerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ServerAdministrator)">
+                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ServerAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<ServerPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ServerPermission>).Description)</span>
@@ -78,13 +78,13 @@
                 </RadzenText>
 
                 <div class="role-permissions">
-                    <RadzenCheckBox @bind-Value="@DockerAdministrator" Name="ServerDockerAdministrator" Disabled="@(!PermissionsLoaded)" />
+                    <RadzenCheckBox @bind-Value="@DockerAdministrator" Name="ServerDockerAdministrator" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Docker Administrator" Component="ServerDockerAdministrator" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All docker permissions.</span>
                 </div>
 
                 <div class="role-permissions">
-                    <RadzenCheckBox @bind-Value="@DockerManager" Name="ServerDockerManager" Disabled="@(!PermissionsLoaded)" />
+                    <RadzenCheckBox @bind-Value="@DockerManager" Name="ServerDockerManager" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Docker Manager" Component="ServerDockerManager" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">Manage most docker features except for system access or dangerous actions.</span>
                 </div>
@@ -92,7 +92,7 @@
                 <div>
                     <RadzenDropDown @ref="DockerGrid.Grid" @bind-Value="@DockerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@DockerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || DockerManager || DockerAdministrator)">
+                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || DockerManager || DockerAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<DockerPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<DockerPermission>).Description)</span>
@@ -111,7 +111,7 @@
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:web"></span> Website Permissions</RadzenText>
 
                 <div class="role-permissions">
-                    <RadzenCheckBox @bind-Value="@WebsiteAdministrator" Name="WebsiteAdmin" Disabled="@(!PermissionsLoaded)" />
+                    <RadzenCheckBox @bind-Value="@WebsiteAdministrator" Name="WebsiteAdmin" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Website Administrator" Component="WebsiteAdmin" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All website permissions.</span>
                 </div>
@@ -119,7 +119,7 @@
                 <div>
                     <RadzenDropDown @ref="WebsiteGrid.Grid" @bind-Value="@WebsiteGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@WebsiteGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || WebsiteAdministrator)">
+                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || WebsiteAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<WebsitePermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<WebsitePermission>).Description)</span>
@@ -138,7 +138,7 @@
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:lightbulb"></span> Project Permissions</RadzenText>
 
                 <div class="role-permissions">
-                    <RadzenCheckBox @bind-Value="@ProjectAdministrator" Name="ProjectAdmin" Disabled="@(!PermissionsLoaded)" />
+                    <RadzenCheckBox @bind-Value="@ProjectAdministrator" Name="ProjectAdmin" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Project Administrator" Component="ProjectAdmin" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All project permissions.</span>
                 </div>
@@ -146,7 +146,7 @@
                 <div>
                     <RadzenDropDown @ref="ProjectGrid.Grid" @bind-Value="@ProjectGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@ProjectGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ProjectAdministrator)">
+                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ProjectAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<ProjectPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ProjectPermission>).Description)</span>
@@ -165,7 +165,7 @@
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0"><span class="iconify" data-icon="mdi:warning"></span> Log Permissions</RadzenText>
 
                 <div class="role-permissions">
-                    <RadzenCheckBox @bind-Value="@LogAdministrator" Name="LogAdmin" Disabled="@(!PermissionsLoaded)" />
+                    <RadzenCheckBox @bind-Value="@LogAdministrator" Name="LogAdmin" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Log Administrator" Component="LogAdmin" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All log permissions.</span>
                 </div>
@@ -173,7 +173,7 @@
                 <div>
                     <RadzenDropDown @ref="LogGrid.Grid" @bind-Value="@LogGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || LogAdministrator)">
+                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || LogAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<LogPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<LogPermission>).Description)</span>
@@ -220,6 +220,9 @@
 
     [Parameter]
     public PermissionsSet? Permissions { get; set; }
+
+    [Parameter]
+    public bool IsDisabled { get; set; }
 
     private PermissionsSet _permissions { get; set; }
 
