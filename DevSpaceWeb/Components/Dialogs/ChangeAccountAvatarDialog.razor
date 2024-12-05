@@ -6,23 +6,23 @@
 @inject Radzen.DialogService dialogService
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
-        <RadzenStack JustifyContent="JustifyContent.Start">
-            <p>Upload an image to use as your Avatar!</p>
-            <p>Accepts Png, Jpg or Webp</p>
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        <p>Upload an image to use as your Avatar!</p>
+        <p>Accepts Png, Jpg or Webp</p>
 
-            <div>
+        <div>
             <RadzenCheckBox @bind-Value="@RemoveAvatar" Name="RemoveAvatarCheckbox" />
             <RadzenLabel Text="Remove Avatar" Component="RemoveAvatarCheckbox" class="rz-ms-2" />
-            </div>
+        </div>
 
         <RadzenUpload id="ddUpload" @ref="uploadDD" ChooseText="Click here or drop to upload file" Auto="false" Multiple="false" Url="/upload/avatar" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
-                      Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" />
-            
-        </RadzenStack>
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-            <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
-            <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
-        </RadzenStack>
+        Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" />
+
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+    </RadzenStack>
 </RadzenStack>
 
 @code {
@@ -43,7 +43,10 @@
 
         AuthUser? user = await Session.GetCurrentUserAsync();
         if (user == null)
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
             return;
+        }
 
         uploadDD.Disabled = true;
 

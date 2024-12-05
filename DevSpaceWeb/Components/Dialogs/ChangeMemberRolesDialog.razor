@@ -45,6 +45,8 @@
 
     public int CurrentRank;
 
+
+
     [Parameter]
     public TeamMemberData Member { get; set; }
 
@@ -79,6 +81,13 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+
+        if (!Session.Selected.Member.HasTeamPermission(TeamPermission.ManageMembers))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
+            return;
+        }
+
         if (SelectedRoles == null)
         {
             await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, new HashSet<ObjectId>()));

@@ -129,6 +129,11 @@
             if (LogUsage)
             {
                 AuthUser = await Session.GetCurrentUserAsync();
+                if (AuthUser == null)
+                {
+                    Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
+                    return;
+                }
                 AuthUser.Auth.EmailCodeLastSentAt = DateTimeOffset.UtcNow;
                 await UserManager.UpdateAsync(AuthUser);
             }
@@ -145,6 +150,12 @@
         }
 
         var AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
+            return;
+        }
+
         string VerifyCache = Cache.GetString("2fa-verify-" + AuthUser.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache) || !VerifyCache.Equals(CodeInput))
             await dialogService.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
@@ -153,6 +164,11 @@
             if (LogUsage)
             {
                 AuthUser = await Session.GetCurrentUserAsync();
+                if (AuthUser == null)
+                {
+                    Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
+                    return;
+                }
                 AuthUser.Auth.EmailCodeLastUsedAt = DateTimeOffset.UtcNow;
                 await UserManager.UpdateAsync(AuthUser);
             }
@@ -164,22 +180,25 @@
 
     public async Task VerifyAuthenticator()
     {
+if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
         if (!User.Auth.AuthenticatorDevices.Any(x => x.Value == true))
-            return;
-
-        if (Program.IsPreviewMode)
         {
-            Session.ShowPreviewModeNotice();
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.AuthenticatorNoDevices);
             return;
         }
 
-        if (Program.IsPreviewMode)
-        {
-            Session.ShowPreviewModeNotice();
-            return;
-        }
+        
 
         var AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
+            return;
+        }
         var Test = await Authenticator.ValidateAsync("", CodeInput, UserManager, AuthUser);
         if (Test)
         {
@@ -196,14 +215,25 @@
 
     public async Task VerifyPasskey()
     {
-        if (!User.Auth.Passkeys.Any())
-            return;
-
-        if (Program.IsPreviewMode)
+if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
             return;
         }
+
+        var AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
+            return;
+        }
+        if (!AuthUser.Auth.Passkeys.Any())
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.PasskeysNoDevices);
+            return;
+        }
+
+        
 
         var DetectPasskeyAllow = false;
         try
@@ -226,15 +256,21 @@
 
     public async Task VerifyRecoveryCode()
     {
-        var AuthUser = await Session.GetCurrentUserAsync();
-        if (string.IsNullOrEmpty(AuthUser.Auth.RecoveryCode))
-            return;
-
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
             return;
         }
+        var AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
+            return;
+        }
+        if (string.IsNullOrEmpty(AuthUser.Auth.RecoveryCode))
+            return;
+
+        
 
         var Hasher = new PasswordHasher<AuthUser>();
         var Result = Hasher.VerifyHashedPassword(AuthUser, AuthUser.Auth.RecoveryCode, CodeInput);

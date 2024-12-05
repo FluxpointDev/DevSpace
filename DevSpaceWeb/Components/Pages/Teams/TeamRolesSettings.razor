@@ -33,7 +33,10 @@
     public async Task CreateRole()
     {
         if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
             return;
+        }
 
         await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), (TeamRoleModel data) =>
         {
@@ -100,7 +103,10 @@
     public async Task UpdateRolePositions()
     {
         if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
             return;
+        }
 
         var Dialog = await DialogService.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
         {

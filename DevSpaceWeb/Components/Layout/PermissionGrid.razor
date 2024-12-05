@@ -55,7 +55,7 @@
                 <div>
                     <RadzenDropDown @ref="ServerGrid.Grid" @bind-Value="@ServerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@ServerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ServerAdministrator || IsDisabled)">
+                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ServerAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<ServerPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ServerPermission>).Description)</span>
@@ -92,7 +92,7 @@
                 <div>
                     <RadzenDropDown @ref="DockerGrid.Grid" @bind-Value="@DockerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@DockerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || DockerManager || DockerAdministrator || IsDisabled)">
+                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || DockerManager || DockerAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<DockerPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<DockerPermission>).Description)</span>
@@ -119,7 +119,7 @@
                 <div>
                     <RadzenDropDown @ref="WebsiteGrid.Grid" @bind-Value="@WebsiteGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@WebsiteGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || WebsiteAdministrator || IsDisabled)">
+                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || WebsiteAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<WebsitePermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<WebsitePermission>).Description)</span>
@@ -146,7 +146,7 @@
                 <div>
                     <RadzenDropDown @ref="ProjectGrid.Grid" @bind-Value="@ProjectGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@ProjectGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ProjectAdministrator || IsDisabled)">
+                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ProjectAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<ProjectPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ProjectPermission>).Description)</span>
@@ -173,7 +173,7 @@
                 <div>
                     <RadzenDropDown @ref="LogGrid.Grid" @bind-Value="@LogGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || LogAdministrator || IsDisabled)">
+                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || LogAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<LogPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<LogPermission>).Description)</span>
@@ -425,15 +425,16 @@
                 if (Result is true)
                 {
                     if (!Member.HasTeamPermission(TeamPermission.ManagePermissions))
+                    {
+                        Session.Notifications.ShowPermissionWarning(TeamPermission.ManagePermissions);
                         return;
+                    }
 
-                    Console.WriteLine("Save Permissions");
                     await OnSave.InvokeAsync(GetPermissions());
                     UnsavedPermissions = false;
                 }
                 else if (Result is false)
                 {
-                    Console.WriteLine("Load Permissions");
                     await OnLoad.InvokeAsync();
                     UnsavedPermissions = false;
                 }

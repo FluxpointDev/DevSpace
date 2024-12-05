@@ -6,46 +6,46 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
         <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Team.Name Basic Settings</RadzenText>
     </div>
-@if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
-{
-    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-        You do not have permission for Manage Team.
-    </RadzenAlert>
-}
-else
-{
-    <br />
-    <EditForm Model="@TeamForm" OnValidSubmit="@UpdateTeamSettings">
-        <DataAnnotationsValidator />
+    @if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for Manage Team.
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <EditForm Model="@TeamForm" OnValidSubmit="@UpdateTeamSettings">
+            <DataAnnotationsValidator />
 
-        <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
-        <RadzenTextBox @bind-Value="@TeamForm.Name" Style="width: 100%" aria-label="Team Name" autocomplete="false"
-                       Placeholder="My Team" MaxLength="32" />
-        <ValidationMessage For="() => TeamForm.Name" style="color: var(--rz-danger);" />
+            <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
+            <RadzenTextBox @bind-Value="@TeamForm.Name" Style="width: 100%" aria-label="Team Name" autocomplete="false"
+            Placeholder="My Team" MaxLength="32" />
+            <ValidationMessage For="() => TeamForm.Name" style="color: var(--rz-danger);" />
 
-        <br style="margin-bottom: 20px;" />
+            <br style="margin-bottom: 20px;" />
 
-        <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
-        <RadzenTextBox @bind-Value="@TeamForm.VanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="false"
-                       Placeholder="myteam" MaxLength="100" />
-        <ValidationMessage For="() => TeamForm.VanityUrl" style="color: var(--rz-danger);" />
+            <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
+            <RadzenTextBox @bind-Value="@TeamForm.VanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="false"
+            Placeholder="myteam" MaxLength="100" />
+            <ValidationMessage For="() => TeamForm.VanityUrl" style="color: var(--rz-danger);" />
+            <br />
+            <br />
+
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" ButtonType="ButtonType.Submit" />
+
+        </EditForm>
+
         <br />
         <br />
-
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" ButtonType="ButtonType.Submit" />
-
-    </EditForm>
-
-    <br />
-    <br />
-    <RadzenLabel Text="Team Icon" class="rz-my-0"></RadzenLabel>
-    <RadzenUpload id="ddUpload" @ref="IconUploader" ChooseText="Click here or drop to upload files" Auto="false" Multiple="false" Url="@("/upload/icon?teamId=" + Team.Id)" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
-                  Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" />
-    <br />
-    <br />
-    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save Icon" Click="@ChangeIcon" ButtonType="ButtonType.Submit" />
-    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove Icon" Click="@RemoveIcon" />
-}
+        <RadzenLabel Text="Team Icon" class="rz-my-0"></RadzenLabel>
+        <RadzenUpload id="ddUpload" @ref="IconUploader" ChooseText="Click here or drop to upload files" Auto="false" Multiple="false" Url="@("/upload/icon?teamId=" + Team.Id)" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
+        Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" />
+        <br />
+        <br />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save Icon" Click="@ChangeIcon" ButtonType="ButtonType.Submit" />
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove Icon" Click="@RemoveIcon" />
+    }
 </div>
 
 @code {
@@ -71,7 +71,10 @@ else
     public async Task UpdateTeamSettings()
     {
         if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
             return;
+        }
 
         if (!string.IsNullOrEmpty(TeamForm.VanityUrl))
         {
@@ -112,7 +115,10 @@ else
     public async Task ChangeIcon()
     {
         if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
             return;
+        }
 
         await IconUploader.Upload();
 
@@ -129,7 +135,10 @@ else
             return;
 
         if (!Member.HasTeamPermission(Data.Permissions.TeamPermission.ManageTeam))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
             return;
+        }
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null));
         File.Delete(Team.Icon.Path("webp"));
