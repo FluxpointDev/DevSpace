@@ -1,19 +1,22 @@
 ﻿@using DevSpaceWeb.Components.Dialogs
 @using DevSpaceWeb.Models
-@using DevSpaceWeb.Models.Teams
-@using Microsoft.AspNetCore.Components.Forms
-@inject DialogService DialogService
 
-@if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Team.Name Permissions</RadzenText>
+    </div>
+    @if (!Member.HasTeamPermission(TeamPermission.ManagePermissions))
 {
     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-        You do not have permission for Manage Roles.
+        You do not have permission for Manage Permissions.
     </RadzenAlert>
 }
 else
 {
-    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" />
-    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" />
+    <br />
+
+    
     <br />
     <RadzenRow Gap="0.2rem">
         <RadzenColumn Size="3" class=" rz-py-2 pr-2">
@@ -40,7 +43,7 @@ else
                     <RadzenText TextStyle="TextStyle.Body2">
                         @SelectedRole.Description
                     </RadzenText>
-                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Role" Click="@DeleteRole" Disabled="@(SelectedRole.Name == "Default")" />
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Role" Click="@DeleteRole" Disabled="@(SelectedRole.Name == "Default" || CurrentRank >= SelectedRole.Position || !Member.HasTeamPermission(TeamPermission.ManageRoles))" />
                 </div>
 
                 @if (Member.HasTeamPermission(TeamPermission.ViewPermissions))
@@ -68,13 +71,88 @@ else
             }
         </RadzenColumn>
     </RadzenRow>
-}
+    }
+</div>
 
 <style>
     .role-box .rz-dropdown {
     width: 100% !important;
     }
 
+</style>
+
+<style>
+    .rz-tabview-panel .pr-2 {
+        max-width: 200px;
+    }
+
+    .role-box {
+        width: 260px;
+        padding: 4px;
+        padding-left: 8px;
+        padding-right: 8px !important;
+        padding-bottom: 16px;
+        background-color: #242527 !important;
+        margin-right: 4px;
+        margin-bottom: 4px;
+        box-shadow: var(--rz-card-shadow);
+    }
+
+        .role-box .rz-text-subtitle2 {
+            text-align: center !important;
+            display: inline-block !important;
+            margin-bottom: 14px !important;
+        }
+
+    .role-permissions span {
+        display: block;
+    }
+
+    .role-permissions {
+        margin-top: 6px;
+        margin-bottom: 16px;
+    }
+
+        .role-permissions .rz-chkbox-box {
+            margin-top: 4px !important;
+            margin-bottom: -4px !important;
+        }
+
+    .role-info {
+        background-color: var(--rz-info-darker) !important;
+        padding: 6px;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        max-width: 796px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .role-box .iconify {
+        width: 22px;
+        height: 22px;
+        margin-right: 6px;
+        margin-top: -2px;
+    }
+
+    .role-box .rz-text-body2 {
+        color: var(--rz-warning);
+    }
+
+    .rz-chkbox-box .rzi {
+        color: var(--rz-series-7) !important;
+    }
+
+    .rz-chkbox-box.rz-state-active {
+        border-color: var(--rz-success-light);
+    }
+
+    .role-permissions span:not(.rz-chkbox-box span) {
+        margin-top: 4px;
+        margin-left: 32px;
+    }
 </style>
 
 
@@ -94,8 +172,6 @@ else
 
     public bool UnsavedPermissions { get; set; }
     public PermissionsSet Permissions { get; set; }
-
-
 
     public void LoadPermissions()
     {
@@ -141,22 +217,6 @@ else
         }
     }
 
-    public class PermissionItem<T> where T : Enum
-    {
-        public PermissionItem(T flag, string name, string description)
-        {
-            Flag = flag;
-            Name = name;
-            Description = description;
-        }
-
-        public T Flag { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-    }
-
-
-
     public async Task DeleteRole()
     {
         if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
@@ -176,82 +236,6 @@ else
         SelectedRole = null;
     }
 
-    public async Task CreateRole()
-    {
-        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
-            return;
-
-        await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), (TeamRoleModel data) =>
-        {
-            if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
-                return "You do not have permission for Manage Roles.";
-
-            if (data.Name.Equals("Default"))
-                return "You can't name the role default";
-            
-
-            foreach (var r in Team.CachedRoles.Values)
-            {
-                if (r.Name.Equals(data.Name, StringComparison.OrdinalIgnoreCase))
-                    return "A role with this name already exists.";
-            }
-
-            TeamRoleData role = new TeamRoleData
-                {
-                    TeamId = Team.Id,
-                    Name = data.Name,
-                    Description = data.Description,
-                    Position = Team.CachedRoles.Values.OrderBy(x => x.Position).Last().Position + 1
-                };
-
-            var task = Task.Run<bool>(async () =>
-            {
-                try
-                {
-                    await _DB.Roles.CreateAsync(role);
-                }
-                catch
-                {
-                    return false;
-                }
-                _DB.Roles.Cache.TryAdd(role.Id, role);
-                Team.Roles.Add(role.Id);
-                Team.CachedRoles.Add(role.Id, role);
-
-                try
-                {
-                    await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
-                }
-                catch
-                {
-                    Team.Roles.Remove(role.Id);
-                    Team.CachedRoles.Remove(role.Id);
-                    FilterDefinition<TeamRoleData> roleFilter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
-                    _DB.Roles.Collection.DeleteOne(roleFilter);
-                    _DB.Roles.Cache.Remove(role.Id, out _);
-                    return false;
-                }
-                Team.TriggerRoleChange(role, true);
-                return true;
-            });
-            task.Wait();
-            if (!task.Result)
-                return "Failed to create team role due to a database error.";
-            
-            
-            return string.Empty;
-        });
-    }
-
-    public async Task UpdateRolePositions()
-    {
-        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
-            return;
-
-        var Dialog = await DialogService.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
-        {
-            { "Team", Team }
-        });
-    }
+    
 
 }

@@ -1,0 +1,227 @@
+﻿@using DevSpaceWeb.Components.Dialogs
+@using DevSpaceWeb.Models.Teams
+@inject DialogService DialogService
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Team.Name Members</RadzenText>
+    </div>
+
+
+@if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
+{
+    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+        You do not have permission for Manage Members.
+    </RadzenAlert>
+}
+else
+{
+    <br />
+    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" />
+    <br />
+    <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Users">
+        <Template Context="user">
+            <RadzenCard Style="width:300px;">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                    @if (_DB.Users.TryGetValue(user, out PartialUserData ud))
+                    {
+                        <RadzenImage Path="@ud.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" />
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Username</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                @ud.UserName
+                            </RadzenText>
+                        </RadzenStack>
+                        @if (user != Team.OwnerId)
+                        {
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" />
+                            <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
+                        }
+                        <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Change Roles" Click="@(() => ChangeMemberRoles(ud))" />
+                    }
+                    else
+                    {
+                        <RadzenImage Path="https://cdn.fluxpoint.dev/devspace/user_avatar.webp" Style="width: 80px; height: 80px; border-radius: 50%" />
+                        <RadzenStack Gap="0">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Account Deleted</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                @user.ToString()
+                            </RadzenText>
+                        </RadzenStack>
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(user))" />
+                    }
+
+
+                </RadzenStack>
+                <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
+                <RadzenRow>
+                    <RadzenColumn Size="8" class="rz-text-truncate">
+                        @* <b>@(order.ShipName)</b> *@
+                    </RadzenColumn>
+                    <RadzenColumn Size="4" class="rz-text-align-end">
+                        @* <RadzenBadge BadgeStyle="BadgeStyle.Secondary" Text=@($"{String.Format(new System.Globalization.CultureInfo("en-US"), "{0:C}", order.Freight)}") /> *@
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenCard>
+        </Template>
+    </RadzenDataList>
+}
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+
+    public TeamMemberData Member => Session.Selected.Member;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Users = Team.Members.Keys;
+    }
+
+    public IEnumerable<ObjectId> Users { get; set; }
+
+    public async Task AddMember()
+    {
+        if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
+            return;
+
+        await DialogService.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), (TeamAddUserModel data) =>
+        {
+            if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
+                return "You do not have permission for Manage Members.";
+
+            PartialUserData? user = _DB.Users.Values.FirstOrDefault(x => x.Email.Equals(data.Email, StringComparison.OrdinalIgnoreCase));
+            if (user == null)
+                return "Could not find a user account with that email address.";
+
+            if (user.ManagedAccountTeamId.HasValue)
+                return "This user account is managed by another team.";
+
+            if (Team.Members.ContainsKey(user.Id))
+                return "This user account has already been added to the team.";
+
+            TeamMemberData memberData = new TeamMemberData
+                {
+                    TeamId = Team.Id,
+                    UserId = user.Id
+                };
+
+            var task = Task.Run<bool>(async () =>
+            {
+                try
+                {
+                    await _DB.Members.CreateAsync(memberData);
+                }
+                catch
+                {
+                    return false;
+                }
+                _DB.Members.Cache.TryAdd(memberData.Id, memberData);
+                Team.Members.Add(user.Id, memberData.Id);
+                Team.CachedMembers.Add(memberData.Id, memberData);
+                try
+                {
+                    await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members));
+                }
+                catch
+                {
+                    _DB.Members.Cache.Remove(memberData.Id, out _);
+                    Team.Members.Remove(user.Id);
+                    Team.CachedMembers.Remove(memberData.Id);
+                }
+                return true;
+            });
+            task.Wait();
+            if (!task.Result)
+                return "Failed to create team member due to a database error.";
+
+            return string.Empty;
+        });
+    }
+
+    public async Task TransferOwnership(PartialUserData user)
+    {
+        if (Member.Team.OwnerId != Session.CurrentUserId.Value)
+            return;
+
+        bool Confirm = await DialogService.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Team.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        var User = await Session.GetCurrentUserAsync();
+
+        var twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true);
+        if (!twoFactorConfirm)
+            return;
+
+        if (Member.Team.OwnerId != Session.CurrentUserId.Value)
+            return;
+
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id));
+
+        Team.OwnerId = user.Id;
+
+    }
+
+    public async Task RemoveTeamMember(ObjectId user)
+    {
+        if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
+            return;
+
+        Team.Members.TryGetValue(user, out var SelectedMember);
+
+        if (SelectedMember == null)
+            return;
+
+        Team.Members.Remove(user);
+        try
+        {
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members));
+            _DB.Members.Cache.Remove(user, out _);
+        }
+        catch
+        {
+            Team.Members.TryAdd(user, SelectedMember);
+        }
+
+    }
+
+    public async Task RemoveTeamRole(ObjectId role)
+    {
+        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+            return;
+
+        _DB.Roles.Cache.TryGetValue(role, out var Role);
+        if (Role == null)
+            return;
+
+        Team.Roles.Remove(role);
+        Team.CachedRoles.Remove(role);
+        try
+        {
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
+            _DB.Roles.Cache.Remove(role, out _);
+        }
+        catch
+        {
+            Team.Roles.Add(role);
+            Team.CachedRoles.Add(role, Role);
+        }
+    }
+
+    public async Task ChangeMemberRoles(PartialUserData user)
+    {
+        if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
+            return;
+
+        var Dialog = await DialogService.OpenAsync<ChangeMemberRolesDialog>($"Update Roles for {user.UserName}", new Dictionary<string, object>()
+        {
+            { "Team", Team },
+            { "Member", Team.GetMember(user) }
+        });
+    }
+}

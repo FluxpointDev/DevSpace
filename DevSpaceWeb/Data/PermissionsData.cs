@@ -1,6 +1,6 @@
-﻿using DevSpaceWeb.Data.Permissions;
+﻿using DevSpaceWeb.Components.Pages.Teams;
+using DevSpaceWeb.Data.Permissions;
 using Radzen.Blazor;
-using static DevSpaceWeb.Components.Pages.Teams.TeamRoleSettings;
 
 namespace DevSpaceWeb.Data;
 

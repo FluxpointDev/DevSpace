@@ -1,0 +1,110 @@
+﻿@using DevSpaceWeb.Components.Dialogs
+@using DevSpaceWeb.Models.Teams
+@inject DialogService DialogService
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Team.Name Roles</RadzenText>
+    </div>
+
+    @if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for Manage Roles.
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(!Member.HasTeamPermission(TeamPermission.ManageRoles))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" Disabled="(!Member.HasTeamPermission(TeamPermission.ManageRoles))" />
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public async Task CreateRole()
+    {
+        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+            return;
+
+        await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), (TeamRoleModel data) =>
+        {
+            if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+                return "You do not have permission for Manage Roles.";
+
+            if (data.Name.Equals("Default"))
+                return "You can't name the role default";
+
+
+            foreach (var r in Team.CachedRoles.Values)
+            {
+                if (r.Name.Equals(data.Name, StringComparison.OrdinalIgnoreCase))
+                    return "A role with this name already exists.";
+            }
+
+            TeamRoleData role = new TeamRoleData
+                {
+                    TeamId = Team.Id,
+                    Name = data.Name,
+                    Description = data.Description,
+                    Position = Team.CachedRoles.Values.OrderBy(x => x.Position).Last().Position + 1
+                };
+
+            var task = Task.Run<bool>(async () =>
+            {
+                try
+                {
+                    await _DB.Roles.CreateAsync(role);
+                }
+                catch
+                {
+                    return false;
+                }
+                _DB.Roles.Cache.TryAdd(role.Id, role);
+                Team.Roles.Add(role.Id);
+                Team.CachedRoles.Add(role.Id, role);
+
+                try
+                {
+                    await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
+                }
+                catch
+                {
+                    Team.Roles.Remove(role.Id);
+                    Team.CachedRoles.Remove(role.Id);
+                    FilterDefinition<TeamRoleData> roleFilter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
+                    _DB.Roles.Collection.DeleteOne(roleFilter);
+                    _DB.Roles.Cache.Remove(role.Id, out _);
+                    return false;
+                }
+                Team.TriggerRoleChange(role, true);
+                return true;
+            });
+            task.Wait();
+            if (!task.Result)
+                return "Failed to create team role due to a database error.";
+
+
+            return string.Empty;
+        });
+    }
+
+    public async Task UpdateRolePositions()
+    {
+        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+            return;
+
+        var Dialog = await DialogService.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
+        {
+            { "Team", Team }
+        });
+    }
+}
