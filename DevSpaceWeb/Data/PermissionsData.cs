@@ -23,11 +23,14 @@ public static class PermissionsData
     {
         return new PermissionItem<TeamPermission>[]
         {
+            new PermissionItem<TeamPermission>(TeamPermission.ViewMembers, "View Members", "Allows you to view members in the team"),
             new PermissionItem<TeamPermission>(TeamPermission.ManageMembers, "Manage Members", "Add or remove members to the team except global admins."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageRoles, "Manage Roles", "Give members roles except global admin."),
+            new PermissionItem<TeamPermission>(TeamPermission.AssignRoles, "Assign Roles", "Give members roles."),
+            new PermissionItem<TeamPermission>(TeamPermission.ManageRoles, "Manage Roles", "Create, delete and edit roles."),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewPermissions, "View Permissions", "Allows you to view all the team permissions."),
             new PermissionItem<TeamPermission>(TeamPermission.ManagePermissions, "Manage Permissions", "Change permissions for roles except global admin."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage Team", "Change team settings."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage All Resources", "Add or delete resources for the team such as servers/websites/projects."),
+            new PermissionItem<TeamPermission>(TeamPermission.ManageResources, "Manage All Resources", "Add or delete resources for the team such as servers/websites/projects."),
         };
     }
 
