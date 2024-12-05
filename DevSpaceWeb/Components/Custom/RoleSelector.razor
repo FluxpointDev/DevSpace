@@ -1,0 +1,41 @@
+﻿@inherits RadzenComponent
+@using System.Collections
+@namespace Radzen.Blazor
+@typeparam TItem
+
+@if (Visible)
+{
+    <div @ref="@Element" @attributes="Attributes" class="@GetCssClass()" style="@GetStyle()" id="@GetId()">
+        <RadzenStack class="rz-picklist-wrapper" Orientation="@Orientation">
+            <RadzenStack class="rz-picklist-source-wrapper">
+                @if (ShowHeader && SourceHeader != null)
+                {
+                    @SourceHeader
+                }
+                <RadzenListBox @bind-Value=@selectedSourceItems Data="@source" Multiple="@Multiple" @bind-SearchText=@sourceSearchText
+                               FilterAsYouType=true FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive ItemRender="@ItemRender"
+                               TextProperty="@TextProperty" AllowFiltering=@AllowFiltering AllowSelectAll="false"
+                               Template=@ListBoxTemplate Placeholder="@(SourcePlaceholder ?? Placeholder)"
+                               Disabled=@(Disabled || Source == null || (Source != null && !Source.Any())) />
+            </RadzenStack>
+            <RadzenStack Orientation="@(Orientation == Orientation.Vertical ? Orientation.Horizontal : Orientation.Vertical)" JustifyContent="@ButtonJustifyContent" Gap="@ButtonGap" class="rz-picklist-buttons">
+                <RadzenButton Icon="keyboard_arrow_right" title="@SelectedSourceToTargetTitle" Click="@SelectedSourceToTarget" Disabled=@(Disabled || selectedSourceItems == null || (Multiple && (selectedSourceItems as IEnumerable)?.Cast<object>().Any() != true))
+                              ButtonStyle="@ButtonStyle" Size="@ButtonSize" Variant="@ButtonVariant" Shade="@ButtonShade" />
+                <RadzenButton Icon="keyboard_arrow_left" title="@SelectedTargetToSourceTitle" Click="@SelectedTargetToSource" Disabled=@(Disabled || selectedTargetItems == null || (Multiple && (selectedTargetItems as IEnumerable)?.Cast<object>().Any() != true))
+                              ButtonStyle="@ButtonStyle" Size="@ButtonSize" Variant="@ButtonVariant" Shade="@ButtonShade" />
+                
+            </RadzenStack>
+            <RadzenStack class="rz-picklist-target-wrapper">
+                @if (ShowHeader && TargetHeader != null)
+                {
+                    @TargetHeader
+                }
+                <RadzenListBox @bind-Value=@selectedTargetItems Data="@target" Multiple="@Multiple" @bind-SearchText=@targetSearchText
+                               FilterAsYouType=true FilterCaseSensitivity=FilterCaseSensitivity.CaseInsensitive ItemRender="@ItemRender"
+                               TextProperty="@TextProperty" AllowFiltering=@AllowFiltering AllowSelectAll="false"
+                               Template=@ListBoxTemplate Placeholder="@(TargetPlaceholder ?? Placeholder)"
+                               Disabled=@(Disabled || Target == null|| (Target != null && !Target.Any())) />
+            </RadzenStack>
+        </RadzenStack>
+    </div>
+}

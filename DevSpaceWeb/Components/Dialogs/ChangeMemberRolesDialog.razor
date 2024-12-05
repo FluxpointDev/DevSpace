@@ -7,7 +7,8 @@
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
-        <RadzenPickList @bind-Source="@AllRoles" @bind-Target="@SelectedRoles" Style="height:500px; width:100%;"
+        <RoleSelector @bind-Source="@AllRoles" @bind-Target="@SelectedRoles" Style="height:500px; width:100%;"
+        ItemRender="((arg) => ItemRenderAction(arg))"
         TextProperty="@nameof(TeamRoleData.Name)" AllowFiltering="true" Multiple="true" ShowHeader="true"
         ButtonGap="12px" ButtonJustifyContent="JustifyContent.Center" ButtonSize="ButtonSize.Medium" ButtonShade="Shade.Dark"
         ButtonVariant="Variant.Filled">
@@ -15,7 +16,7 @@
                 All Roles
             </SourceHeader>
             <TargetHeader>
-                Selected Roles
+                Current Roles
             </TargetHeader>
             <Template>
                 @if (CurrentRank < context.Position)
@@ -27,7 +28,7 @@
                     <span class="iconify" data-icon="mdi:lock"></span> @context.Name
                 }
             </Template>
-        </RadzenPickList>
+        </RoleSelector>
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
@@ -62,6 +63,13 @@
         }
         SelectedRoles = list;
         AllRoles = Team.CachedRoles.Values.Except(SelectedRoles).OrderBy(x => x.Position);
+    }
+
+    public ListBoxItemRenderEventArgs<object> ItemRenderAction(ListBoxItemRenderEventArgs<object> data)
+    {
+        TeamRoleData role = data.Item as TeamRoleData;
+        data.Disabled = CurrentRank >= role.Position;
+        return data;
     }
 
     async Task Submit()

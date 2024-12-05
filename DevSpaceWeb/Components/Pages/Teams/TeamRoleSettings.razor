@@ -13,6 +13,7 @@
 else
 {
     <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" />
+    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" />
     <br />
     <RadzenRow Gap="0.2rem">
         <RadzenColumn Size="3" class=" rz-py-2 pr-2">
@@ -222,5 +223,15 @@ else
         });
     }
 
+    public async Task UpdateRolePositions()
+    {
+        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+            return;
+
+        var Dialog = await DialogService.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
+        {
+            { "Team", Team }
+        });
+    }
 
 }

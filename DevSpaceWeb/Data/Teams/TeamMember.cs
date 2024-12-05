@@ -8,7 +8,6 @@ using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Websites;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
-using DevSpaceShared.Data;
 
 namespace DevSpaceWeb.Data.Teams;
 

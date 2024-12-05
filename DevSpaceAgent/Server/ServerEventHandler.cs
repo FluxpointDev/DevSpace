@@ -7,7 +7,6 @@ using DevSpaceShared;
 using DevSpaceShared.Events.Docker;
 using DevSpaceShared.Responses;
 using DevSpaceShared.WebSocket;
-using Docker.DotNet.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;

@@ -1,7 +1,6 @@
 ﻿using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet.Models;
-using System;
 
 namespace DevSpaceAgent.Server;
 public static class DockerHandler

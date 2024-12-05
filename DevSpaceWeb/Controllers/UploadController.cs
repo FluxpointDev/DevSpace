@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using SkiaSharp;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace DevSpaceWeb.Controllers;
 

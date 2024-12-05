@@ -10,7 +10,6 @@
         <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Team.Name Settings</RadzenText>
     </div>
     <br />
-    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Role Post" Click="@UpdateRolePositions" />
     <RadzenTabs>
         <Tabs>
             <RadzenTabsItem Text="Basic">
@@ -430,14 +429,5 @@
         Session.TriggerNavMenuChange();
     }
 
-    public async Task UpdateRolePositions()
-    {
-        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
-            return;
-
-        var Dialog = await DialogService.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
-        {
-            { "Team", Team }
-        });
-    }
+    
 }

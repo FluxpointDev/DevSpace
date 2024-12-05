@@ -1,10 +1,7 @@
-﻿using DevSpaceWeb.Data.Permissions;
-using DevSpaceWeb.Data.Projects;
-using DevSpaceWeb.Data.Teams;
+﻿using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Reports;

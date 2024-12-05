@@ -1,11 +1,8 @@
-﻿using DevSpaceWeb.Data.Permissions;
-using DevSpaceWeb.Data.Projects;
-using DevSpaceWeb.Data.Teams;
+﻿using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.WebSocket;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 using NetCoreServer;
 using System.Security.Authentication;

@@ -1,10 +1,8 @@
 ﻿using DevSpaceWeb.Components.Layout;
-using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson.Serialization.Options;
 
 namespace DevSpaceWeb.Data.Websites;
 

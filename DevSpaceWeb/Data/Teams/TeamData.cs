@@ -1,6 +1,5 @@
 ﻿using DevSpaceWeb.Components.Layout;
 using DevSpaceWeb.Data.Permissions;
-using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;

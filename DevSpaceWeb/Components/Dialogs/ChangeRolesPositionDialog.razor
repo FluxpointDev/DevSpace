@@ -11,7 +11,8 @@
         <RadzenStack class="rz-picklist-wrapper" Orientation="Orientation.Horizontal" Style="height:500px; width:100%;">
             <RadzenStack class="rz-picklist-source-wrapper">
 
-                <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
+                <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" ItemRender="@((x) => RenderItem(x))"
+                LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
                     <Template>
                         @if (CurrentRank < (context as TeamRoleData).Position)
                         {
@@ -57,7 +58,11 @@
         Team.RoleChangeEvent += RoleChanged;
     }
 
-
+    public ListBoxItemRenderEventArgs<TeamRoleData> RenderItem(ListBoxItemRenderEventArgs<TeamRoleData> data)
+    {
+        data.Disabled = CurrentRank >= (data.Item as TeamRoleData).Position;
+        return data;
+    }
 
     public void Dispose()
     {
@@ -149,7 +154,7 @@
             return;
 
         var result = await _DB.Roles.Collection.BulkWriteAsync(list);
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(result, Newtonsoft.Json.Formatting.Indented));
+
         if (result.IsAcknowledged)
         {
             foreach (var r in RolesList)
