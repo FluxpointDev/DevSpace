@@ -31,6 +31,7 @@ public static class PermissionsData
             new PermissionItem<TeamPermission>(TeamPermission.ManagePermissions, "Manage Permissions", "Change permissions for roles except global admin."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage Team", "Change team settings."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageResources, "Manage All Resources", "Add or delete resources for the team such as servers/websites/projects."),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewAuditLogs, "View Audit Logs", "View records for team and resource access and settings changes."),
         };
     }
 

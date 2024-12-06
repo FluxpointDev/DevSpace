@@ -1,0 +1,139 @@
+﻿@using System.Globalization
+<div class="dash-box">
+    <div class="dash-box-header dash-box-content">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Team.Name Audit Logs</RadzenText>
+    </div>
+    @if (!Member.HasTeamPermission(TeamPermission.ViewAuditLogs))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Audit Logs.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@AuditLogs" LoadData="@LoadData" IsLoading="@isLoading"
+        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+        Density="Density.Compact" Count="@Count"
+        AllowSorting="false"
+        AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+        GotoFirstPageOnSort="true"
+        LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
+            <Columns>
+                <RadzenDataGridColumn Title="Date" Property="@nameof(AuditLog.CreatedAt)" Width="160px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@GetLocalDate(context.CreatedAt, false)</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Member" Property="@nameof(AuditLog.CreatedAt)" Width="160px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">Builderb</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Category" Property="@nameof(AuditLog.CategoryType)" Width="120px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.CategoryType</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Event" Property="@nameof(AuditLog.EventType)" Width="300px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.EventType - @Team.CachedRoles[context.TargetId.Value].Name</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Target" Property="@nameof(AuditLog.TargetType)">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.TargetType - @Team.Name</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    }
+</div>
+
+@code {
+    public List<AuditLog> AuditLogs { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+
+    public TeamMemberData Member => Session.Selected.Member;
+
+    RadzenDataGrid<AuditLog> grid;
+    public bool isLoading = false;
+    public bool CountDone;
+    public int Count = 0;
+
+    public string GetLocalDate(DateTimeOffset? date, bool isMini)
+    {
+        if (!date.HasValue || date.Value.Year == 1)
+            return "";
+        DateTimeOffset MessageOffset;
+        try
+        {
+            MessageOffset = date.Value.AddMinutes(Session.UserDateOffset);
+        }
+        catch
+        {
+            return "Unknown";
+        }
+        DateTimeOffset UserDate = DateTimeOffset.UtcNow.AddMinutes(Session.UserDateOffset);
+
+
+        if (MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month)
+        {
+            if (MessageOffset.Day == UserDate.Day)
+                return $"Today at {MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)}";
+
+            DateTimeOffset Lastday = UserDate.AddDays((int)-1);
+            if (MessageOffset.Day == Lastday.Day)
+                return $"Yesterday at {MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)}";
+        }
+
+        return $"{MessageOffset.Day.ToString().PadLeft(2, '0')}/{MessageOffset.Month.ToString().PadLeft(2, '0')}/{MessageOffset.Year.ToString().PadLeft(2, '0')}";
+    }
+
+    public async Task LoadData(LoadDataArgs args)
+    {
+        Logger.LogMessage("Loading Data", LogSeverity.Info);
+
+        if (Program.IsPreviewMode)
+        {
+            // containersList = new List<ContainerItem>
+            //  {
+            //      new ContainerItem { Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)" },
+            //      new ContainerItem { Names = new List<string> { "/discord-bot" }, State = "dead", Status = "" },
+            //  }.AsQueryable();
+            // count = 2;
+            // countDead = 1;
+        }
+        else
+        {
+            var filter = Builders<AuditLog>.Filter.Eq(x => x.TeamId, Team.Id);
+            if (!CountDone)
+            {
+                isLoading = true;
+                try
+                {
+                    Count = (int)await _DB.AuditLogs.Collection.CountDocumentsAsync(filter, new CountOptions
+                    {
+                        Limit = (long)int.MaxValue
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+                }
+                isLoading = false;
+                CountDone = true;
+            }
+
+            if (CountDone)
+            {
+                AuditLogs = await _DB.AuditLogs.Collection.Find(filter).SortByDescending(x => x.CreatedAt).Skip(args.Skip.GetValueOrDefault()).Limit(args.Top.GetValueOrDefault()).ToListAsync();
+            }
+        }
+    }
+}

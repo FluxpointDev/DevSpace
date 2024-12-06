@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data;
+﻿using DevSpaceWeb.Components.Pages.Teams;
+using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
@@ -39,6 +40,7 @@ public static class _DB
             Logs = new ICacheCollection<LogData>("logs");
             EmailTemplates = new ICacheCollection<EmailTemplateData>("email_templates");
             TeamVanityUrls = new ICacheCollection<VanityUrlData>("vanity_urls");
+            AuditLogs = new ICollection<AuditLog>("audit");
         }
     }
 
@@ -218,4 +220,6 @@ public static class _DB
     public static ICacheCollection<VanityUrlData> TeamVanityUrls = null!;
 
     public static ICacheCollection<EmailTemplateData> EmailTemplates = null!;
+
+    public static ICollection<AuditLog> AuditLogs = null!;
 }

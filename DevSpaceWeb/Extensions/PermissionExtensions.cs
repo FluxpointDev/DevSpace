@@ -28,6 +28,8 @@ public static class PermissionExtensions
                 return "View Members";
             case TeamPermission.ViewPermissions:
                 return "View Permissions";
+            case TeamPermission.ViewAuditLogs:
+                return "View Audit Logs";
         }
         return "Error!!";
 
