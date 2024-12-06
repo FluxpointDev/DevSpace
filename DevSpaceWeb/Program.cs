@@ -3,6 +3,7 @@ using DevSpaceWeb.Database;
 using DevSpaceWeb.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
@@ -19,6 +20,8 @@ public class Program
     public static HttpClient Http = new HttpClient();
 
     public static IServiceCollection Services;
+
+    public static MemoryCache Cache = new MemoryCache(new MemoryCacheOptions());
 
     /// <summary>
     /// Program is running in development

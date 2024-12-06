@@ -13,12 +13,19 @@
                 'requestId': requestId
             }
         });
+        if (response.ok)
+            return "ok";
+
+        if (response.status == 429)
+            return "ratelimit";
+
+        return "fail";
     }
     catch {
-        return false;
+        return "exception";
     }
 
-    return true;
+    return "fail";
 }
 
 async function accountChangePassword(email, password, emailToken, requestId) {
@@ -36,10 +43,10 @@ async function accountChangePassword(email, password, emailToken, requestId) {
                 'requestId': requestId
             }
         });
+        return response.ok;
     }
     catch {
-        return false;
     }
 
-    return true;
+    return false;
 }

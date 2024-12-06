@@ -4,6 +4,8 @@ using DevSpaceWeb.Fido2;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using System;
 using System.Security.Claims;
 
 namespace DevSpaceWeb.Controllers;
@@ -34,16 +36,41 @@ public class AuthLoginController : AuthControllerContext
         string Data = Cache.GetString("login-" + requestId);
 
         if (string.IsNullOrEmpty(Data) || Data != email)
-            return BadRequest("Request id is invalid");
+            return BadRequest("Invalid email or password.");
 
         AuthUser? AuthUser = await _userManager.FindByEmailAsync(email);
         if (AuthUser == null)
-            return BadRequest("Invalid email or password.");
+        {
+            if (Program.Cache.TryGetValue(Utils.GetStringSha256Hash(Utils.GetUserIpAddress(Request.HttpContext)), out LoginTryCount? loginTry))
+            {
+                if (loginTry.Count == 9)
+                    return StatusCode(429);
 
-        Console.WriteLine("Remember Me: " + rememberMe);
+                loginTry.Count += 1;
+            }
+            else
+            {
+                Program.Cache.Set(Utils.GetStringSha256Hash(Utils.GetUserIpAddress(Request.HttpContext)), new LoginTryCount(), new MemoryCacheEntryOptions().SetAbsoluteExpiration(new TimeSpan(1, 0, 0)));
+            }
+            return BadRequest("Invalid email or password.");
+        }
+
         Microsoft.AspNetCore.Identity.SignInResult Result = await _signInManager.PasswordSignInAsync(AuthUser, password, rememberMe, false);
         if (!Result.Succeeded)
+        {
+            if (Program.Cache.TryGetValue(Utils.GetStringSha256Hash(Utils.GetUserIpAddress(Request.HttpContext)), out LoginTryCount? loginTry))
+            {
+                if (loginTry.Count == 9)
+                    return StatusCode(429);
+
+                loginTry.Count += 1;
+            }
+            else
+            {
+                Program.Cache.Set(Utils.GetStringSha256Hash(Utils.GetUserIpAddress(Request.HttpContext)), new LoginTryCount(), new MemoryCacheEntryOptions().SetAbsoluteExpiration(new TimeSpan(1, 0, 0)));
+            }
             return BadRequest("Invalid email or password.");
+        }
 
         AuthUser.Auth.LoginAt = DateTime.UtcNow;
         _ = _signInManager.UserManager.UpdateAsync(AuthUser);

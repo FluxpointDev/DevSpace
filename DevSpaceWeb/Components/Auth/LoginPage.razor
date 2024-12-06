@@ -374,7 +374,6 @@
             IsAccountCreated = true;
             Page = LoginPageType.Login;
         }
-
         FormDisabled = false;
     }
 
@@ -418,13 +417,19 @@
 
         string RequestId = Guid.NewGuid().ToString();
         Cache.SetString("login-" + RequestId, LoginForm.Email, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-        bool Result = await JS.InvokeAsync<bool>("accountLogin", LoginForm.Email, LoginForm.CurrentPassword, RememberMe, RequestId);
-        if (Result)
+        string Result = await JS.InvokeAsync<string>("accountLogin", LoginForm.Email, LoginForm.CurrentPassword, RememberMe, RequestId);
+        Console.WriteLine("Login Get: " + Result);
+        if (Result == "ok")
+        {
             NavigationManager.Refresh(true);
+            return;
+        }
+        else if (Result == "ratelimit")
+            LoginErrorMessage = "You have been locked out for 1 hour due to repeated failed login attempts.";
         else
             LoginErrorMessage = "Failed to login, check your email and password is correct.";
 
-        FormDisabled = true;
+        FormDisabled = false;
     }
 
     public async Task ChangePassword()
