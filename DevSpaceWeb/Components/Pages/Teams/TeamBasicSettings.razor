@@ -80,12 +80,11 @@
         {
             TeamForm.VanityUrl = TeamForm.VanityUrl.Replace(" ", "-").ToLower();
         }
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, TeamForm.Name).Set(x => x.VanityUrl, TeamForm.VanityUrl));
+
+
 
         Team.Name = TeamForm.Name;
-
-        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.VanityUrl, TeamForm.VanityUrl));
-
-
         if (Team.VanityUrl != TeamForm.VanityUrl)
         {
             if (string.IsNullOrEmpty(TeamForm.VanityUrl))

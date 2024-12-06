@@ -4,7 +4,7 @@ namespace DevSpaceWeb.Data;
 
 public class AuditLog
 {
-    public AuditLog(ObjectId? team, AuthUser user, AuditLogCategoryType category, AuditLogEventType evnt)
+    public AuditLog(AuthUser user, ObjectId? team, AuditLogCategoryType category, AuditLogEventType evnt)
     {
         CreatedAt = DateTime.UtcNow;
         TeamId = team;
