@@ -125,6 +125,7 @@
                 try
                 {
                     await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members));
+                    _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberAdded).SetTarget(AuditLogTargetType.Team, Team.Id));
                 }
                 catch
                 {
@@ -161,7 +162,7 @@
             return;
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id));
-
+        _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.OwnershipTransfered).SetTarget(AuditLogTargetType.User, user.Id));
         Team.OwnerId = user.Id;
 
     }
@@ -184,38 +185,13 @@
         {
             await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members));
             _DB.Members.Cache.Remove(user, out _);
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberRemoved).SetTarget(AuditLogTargetType.User, user));
         }
         catch
         {
             Team.Members.TryAdd(user, SelectedMember);
         }
 
-    }
-
-    public async Task RemoveTeamRole(ObjectId role)
-    {
-        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
-        {
-            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
-            return;
-        }
-
-        _DB.Roles.Cache.TryGetValue(role, out var Role);
-        if (Role == null)
-            return;
-
-        Team.Roles.Remove(role);
-        Team.CachedRoles.Remove(role);
-        try
-        {
-            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
-            _DB.Roles.Cache.Remove(role, out _);
-        }
-        catch
-        {
-            Team.Roles.Add(role);
-            Team.CachedRoles.Add(role, Role);
-        }
     }
 
     public async Task ChangeMemberRoles(PartialUserData user)

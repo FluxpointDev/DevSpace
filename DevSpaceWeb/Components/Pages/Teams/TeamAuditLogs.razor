@@ -37,22 +37,76 @@
                         <RadzenText TextStyle="TextStyle.Body2">@context.CategoryType</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Event" Property="@nameof(AuditLog.EventType)" Width="120px"
-                                      FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
+                <RadzenDataGridColumn Title="Event" Property="@nameof(AuditLog.EventType)" Width="200px"
+                FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(context.EventType.ToString())</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Data" Property="@nameof(AuditLog.EventType)" Width="200px"
-                                      FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
+                @* <RadzenDataGridColumn Title="Data" Property="@nameof(AuditLog.EventType)" Width="200px"
+                FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Body2">@Team.CachedRoles[context.TargetId.Value].Name</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">
+
+                        </RadzenText>
+                    </Template>
+                </RadzenDataGridColumn> *@
+                <RadzenDataGridColumn Title="Data" Property="@nameof(AuditLog.TargetType)"
+                FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            @switch (context.TargetType)
+                            {
+                                case AuditLogTargetType.Team:
+                                    @("Team")
+                                    break;
+                                case AuditLogTargetType.Server:
+                                    if (_DB.Servers.Cache.TryGetValue(context.TargetId.Value, out var server))
+                                        @(server.Name)
+                                    else
+                                        @(context.TargetName)
+                                    break;
+                                case AuditLogTargetType.Log:
+                                    if (_DB.Logs.Cache.TryGetValue(context.TargetId.Value, out var log))
+                                        @(log.Name)
+                                    else
+                                        @(context.TargetName)
+                                    break;
+                                case AuditLogTargetType.Project:
+                                    if (_DB.Projects.Cache.TryGetValue(context.TargetId.Value, out var project))
+                                        @(project.Name)
+                                    else
+                                        @(context.TargetName)
+                                    break;
+                                case AuditLogTargetType.Role:
+                                    if (_DB.Roles.Cache.TryGetValue(context.TargetId.Value, out var role))
+                                        @(role.Name + " Role")
+                                    else
+                                        @(context.TargetName + " Role")
+                                    break;
+                                case AuditLogTargetType.User:
+                                    @context.TargetName
+                                    break;
+                                case AuditLogTargetType.Website:
+                                    if (_DB.Websites.Cache.TryGetValue(context.TargetId.Value, out var website))
+                                        @(website.Name)
+                                    else
+                                        @(context.TargetName)
+                                    break;
+                            }
+                        </RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Target" Property="@nameof(AuditLog.TargetType)"
-                                      FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
+                <RadzenDataGridColumn Title="Properties" Width="160px">
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Body2">@context.TargetType - @Team.Name</RadzenText>
+                        @if (context.Properties.Any())
+                        {
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Variant="Variant.Flat" Shade="Shade.Dark" Icon="info" class="rz-m-1" Text="Info" />
+                        }
+                        else
+                        {
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Variant="Variant.Flat" Shade="Shade.Dark" Icon="info" class="rz-m-1" Text="Permissions" />
+                        }
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
@@ -75,7 +129,7 @@
     public bool isLoading = false;
     public int Count = 0;
 
-    public string GetLocalDate(DateTimeOffset? date, bool isMini)
+    public string GetLocalDate(DateTime? date, bool isMini)
     {
         if (!date.HasValue || date.Value.Year == 1)
             return "";
@@ -94,14 +148,14 @@
         if (MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month)
         {
             if (MessageOffset.Day == UserDate.Day)
-                return $"Today ({MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)})";
+                return $"Today ({MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)})";
 
             DateTimeOffset Lastday = UserDate.AddDays((int)-1);
             if (MessageOffset.Day == Lastday.Day)
-                return $"Yesterday ({MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)})";
+                return $"Yesterday ({MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)})";
         }
 
-        return $"{MessageOffset.Day.ToString().PadLeft(2, '0')}/{MessageOffset.Month.ToString().PadLeft(2, '0')}/{MessageOffset.Year.ToString().PadLeft(2, '0')} ({MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)})";
+        return $"{MessageOffset.Day.ToString().PadLeft(2, '0')}/{MessageOffset.Month.ToString().PadLeft(2, '0')}/{MessageOffset.Year.ToString().PadLeft(2, '0')} ({MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)})";
     }
 
     public async Task LoadData(LoadDataArgs args)

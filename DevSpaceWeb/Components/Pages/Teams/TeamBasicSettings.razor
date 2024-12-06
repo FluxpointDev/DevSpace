@@ -80,9 +80,20 @@
         {
             TeamForm.VanityUrl = TeamForm.VanityUrl.Replace(" ", "-").ToLower();
         }
+
+        Dictionary<string, string> props = new Dictionary<string, string>();
+        if (Team.Name != TeamForm.Name)
+            props.Add(nameof(TeamData.Name), TeamForm.Name);
+
+        if (Team.VanityUrl != TeamForm.VanityUrl)
+            props.Add(nameof(TeamData.VanityUrl), TeamForm.VanityUrl);
+
+        if (!props.Any())
+            return;
+
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, TeamForm.Name).Set(x => x.VanityUrl, TeamForm.VanityUrl));
 
-
+        _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.SettingsChanged).SetTarget(AuditLogTargetType.Team, Team.Id).SetProperties(props));
 
         Team.Name = TeamForm.Name;
         if (Team.VanityUrl != TeamForm.VanityUrl)
@@ -140,6 +151,7 @@
         }
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null));
+        _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconRemoved).SetTarget(AuditLogTargetType.Team, Team.Id));
         File.Delete(Team.Icon.Path("webp"));
         File.Delete(Team.Icon.Path("png"));
         Team.IconId = null;

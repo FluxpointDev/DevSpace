@@ -78,6 +78,7 @@
                 try
                 {
                     await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
+                    _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Role, AuditLogEventType.RoleCreated).SetTarget(AuditLogTargetType.Team, Team.Id));
                 }
                 catch
                 {

@@ -189,6 +189,7 @@
             await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, perms));
             Team.DefaultPermissions = perms;
             SelectedRole.Permissions = perms;
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Permission, AuditLogEventType.DefaultPermissionsChanged).SetTarget(AuditLogTargetType.Team, Team.Id).SetPermissions(perms));
         }
         else
         {
@@ -198,6 +199,7 @@
 
             await SelectedRole.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Permissions, perms));
             SelectedRole.Permissions = perms;
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Permission, AuditLogEventType.RolePermissionsChanged).SetTarget(AuditLogTargetType.Role, SelectedRole.Id));
         }
     }
 
@@ -234,7 +236,7 @@
         Team.Roles = Team.Roles.Where(x => x != SelectedRole.Id).ToHashSet();
         Team.TriggerRoleChange(SelectedRole, false);
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
-
+        _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Role, AuditLogEventType.RoleDeleted).SetTarget(AuditLogTargetType.Team, Team.Id));
         SelectedRole = null;
     }
 

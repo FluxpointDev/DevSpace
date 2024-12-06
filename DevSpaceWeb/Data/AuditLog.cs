@@ -1,14 +1,15 @@
-﻿using MongoDB.Bson;
+﻿using DevSpaceWeb.Data.Permissions;
+using MongoDB.Bson;
 
 namespace DevSpaceWeb.Data;
 
 public class AuditLog
 {
-    public AuditLog(AuthUser user, ObjectId? team, AuditLogCategoryType category, AuditLogEventType evnt)
+    public AuditLog(ObjectId user, ObjectId? team, AuditLogCategoryType category, AuditLogEventType evnt)
     {
         CreatedAt = DateTime.UtcNow;
         TeamId = team;
-        ActionUserId = user.Id;
+        ActionUserId = user;
         CategoryType = category;
         EventType = evnt;
     }
@@ -26,6 +27,12 @@ public class AuditLog
         return this;
     }
 
+    public AuditLog SetPermissions(PermissionsSet perms)
+    {
+        Permissions = perms;
+        return this;
+    }
+
     public ObjectId Id;
     public DateTime CreatedAt;
     public ObjectId? TeamId;
@@ -35,12 +42,14 @@ public class AuditLog
     public AuditLogCategoryType CategoryType;
     public AuditLogTargetType TargetType;
     public ObjectId? TargetId;
+    public string TargetName;
     public Dictionary<string, string> Properties = new Dictionary<string, string>();
+    public PermissionsSet? Permissions;
     
 }
 public enum AuditLogTargetType
 {
-    Instance, Team, Role, Member, Server, Docker, Website, Project, Log
+    Instance, Team, Role, User, Server, Website, Project, Log
 }
 public enum AuditLogCategoryType
 {
@@ -48,5 +57,5 @@ public enum AuditLogCategoryType
 }
 public enum AuditLogEventType
 {
-    RoleCreated, RoleDeleted
+    RoleCreated, RoleDeleted, SettingsChanged, IconChanged, IconRemoved, MemberAdded, MemberRemoved, MemberRolesChanged, OwnershipTransfered, DefaultPermissionsChanged, RolePermissionsChanged
 }

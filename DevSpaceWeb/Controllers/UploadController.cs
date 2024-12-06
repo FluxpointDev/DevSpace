@@ -320,6 +320,8 @@ public class UploadController : Controller
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, ImageId));
 
+        _DB.AuditLogs.CreateAsync(new AuditLog(AuthUser.Id, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconChanged).SetTarget(AuditLogTargetType.Team, Team.Id));
+
         if (Team.IconId != null)
         {
             try
