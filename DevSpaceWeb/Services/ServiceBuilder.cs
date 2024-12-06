@@ -64,7 +64,7 @@ public static class ServiceBuilder
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             options.Cookie.SameSite = SameSiteMode.Lax;
-            options.ExpireTimeSpan = TimeSpan.FromHours(5);
+            options.ExpireTimeSpan = TimeSpan.FromDays(30);
             options.LoginPath = "/login";
             options.LogoutPath = "/logout";
             options.AccessDeniedPath = "/Identity/Account/AccessDenied";

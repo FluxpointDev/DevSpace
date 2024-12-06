@@ -40,12 +40,13 @@ public class AuthLoginController : AuthControllerContext
         if (AuthUser == null)
             return BadRequest("Invalid email or password.");
 
+        Console.WriteLine("Remember Me: " + rememberMe);
         Microsoft.AspNetCore.Identity.SignInResult Result = await _signInManager.PasswordSignInAsync(AuthUser, password, rememberMe, false);
         if (!Result.Succeeded)
             return BadRequest("Invalid email or password.");
 
         AuthUser.Auth.LoginAt = DateTime.UtcNow;
-        await _signInManager.UserManager.UpdateAsync(AuthUser);
+        _ = _signInManager.UserManager.UpdateAsync(AuthUser);
         return Ok();
     }
 
