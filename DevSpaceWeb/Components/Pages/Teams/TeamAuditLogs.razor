@@ -12,11 +12,11 @@
     }
     else
     {
-        <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@AuditLogs" LoadData="@LoadData" IsLoading="@isLoading"
-        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+        <RadzenDataGrid @ref="@grid" Data="@AuditLogs" LoadData="@LoadData" IsLoading="@isLoading"
+        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15"
+        GridLines="DataGridGridLines.Horizontal"
         Density="Density.Compact" Count="@Count"
-        AllowSorting="false"
-        AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+        AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
         FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
         GotoFirstPageOnSort="true"
         LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
@@ -31,17 +31,26 @@
                         <RadzenText TextStyle="TextStyle.Body2">Builderb</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Category" Property="@nameof(AuditLog.CategoryType)" Width="120px">
+                <RadzenDataGridColumn Title="Category" Property="@nameof(AuditLog.CategoryType)" Width="120px"
+                FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.CategoryType</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Event" Property="@nameof(AuditLog.EventType)" Width="300px">
+                <RadzenDataGridColumn Title="Event" Property="@nameof(AuditLog.EventType)" Width="120px"
+                                      FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Body2">@context.EventType - @Team.CachedRoles[context.TargetId.Value].Name</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(context.EventType.ToString())</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Target" Property="@nameof(AuditLog.TargetType)">
+                <RadzenDataGridColumn Title="Data" Property="@nameof(AuditLog.EventType)" Width="200px"
+                                      FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@Team.CachedRoles[context.TargetId.Value].Name</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Target" Property="@nameof(AuditLog.TargetType)"
+                                      FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.TargetType - @Team.Name</RadzenText>
                     </Template>
@@ -62,8 +71,8 @@
     public TeamMemberData Member => Session.Selected.Member;
 
     RadzenDataGrid<AuditLog> grid;
+
     public bool isLoading = false;
-    public bool CountDone;
     public int Count = 0;
 
     public string GetLocalDate(DateTimeOffset? date, bool isMini)
@@ -85,14 +94,14 @@
         if (MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month)
         {
             if (MessageOffset.Day == UserDate.Day)
-                return $"Today at {MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)}";
+                return $"Today ({MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)})";
 
             DateTimeOffset Lastday = UserDate.AddDays((int)-1);
             if (MessageOffset.Day == Lastday.Day)
-                return $"Yesterday at {MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)}";
+                return $"Yesterday ({MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)})";
         }
 
-        return $"{MessageOffset.Day.ToString().PadLeft(2, '0')}/{MessageOffset.Month.ToString().PadLeft(2, '0')}/{MessageOffset.Year.ToString().PadLeft(2, '0')}";
+        return $"{MessageOffset.Day.ToString().PadLeft(2, '0')}/{MessageOffset.Month.ToString().PadLeft(2, '0')}/{MessageOffset.Year.ToString().PadLeft(2, '0')} ({MessageOffset.ToString("HH:mm tt", CultureInfo.InvariantCulture)})";
     }
 
     public async Task LoadData(LoadDataArgs args)
@@ -111,29 +120,44 @@
         }
         else
         {
-            var filter = Builders<AuditLog>.Filter.Eq(x => x.TeamId, Team.Id);
-            if (!CountDone)
+            isLoading = true;
+            List<FilterDefinition<AuditLog>> filters = new List<FilterDefinition<AuditLog>>
             {
-                isLoading = true;
-                try
+                new FilterDefinitionBuilder<AuditLog>().Eq(x => x.TeamId, Team.Id)
+            };
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(args, Newtonsoft.Json.Formatting.Indented));
+
+
+            foreach (var i in args.Filters)
+            {
+
+                switch (i.Property)
                 {
-                    Count = (int)await _DB.AuditLogs.Collection.CountDocumentsAsync(filter, new CountOptions
-                    {
-                        Limit = (long)int.MaxValue
-                    });
+                    case "CategoryType":
+                        IEnumerable<AuditLogCategoryType> Selected = (IEnumerable<AuditLogCategoryType>)i.FilterValue;
+                        filters.Add(new FilterDefinitionBuilder<AuditLog>()
+                        .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.CategoryType, x))));
+                        break;
                 }
-                catch (Exception ex)
-                {
-                    Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
-                }
-                isLoading = false;
-                CountDone = true;
             }
 
-            if (CountDone)
+            var filter = Builders<AuditLog>.Filter.And(filters);
+
+            try
             {
+                Count = (int)await _DB.AuditLogs.Collection.CountDocumentsAsync(filter, new CountOptions
+                    {
+                        Limit = 450
+                    });
+
                 AuditLogs = await _DB.AuditLogs.Collection.Find(filter).SortByDescending(x => x.CreatedAt).Skip(args.Skip.GetValueOrDefault()).Limit(args.Top.GetValueOrDefault()).ToListAsync();
             }
+            catch (Exception ex)
+            {
+                Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+            }
+
+            isLoading = false;
         }
     }
 }

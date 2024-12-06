@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace DevSpaceWeb;
 
@@ -118,6 +119,25 @@ public static class Utils
             buffer[1] = GetRandomRecoveryCodeChar();
             buffer[0] = GetRandomRecoveryCodeChar();
         });
+    }
+
+    public static string FriendlyName(string text, bool preserveAcronyms = true)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return string.Empty;
+
+        StringBuilder newText = new StringBuilder(text.Length * 2);
+        newText.Append(text[0]);
+        for (int i = 1; i < text.Length; i++)
+        {
+            if (char.IsUpper(text[i]))
+                if ((text[i - 1] != ' ' && !char.IsUpper(text[i - 1])) ||
+                    (preserveAcronyms && char.IsUpper(text[i - 1]) &&
+                     i < text.Length - 1 && !char.IsUpper(text[i + 1])))
+                    newText.Append(' ');
+            newText.Append(text[i]);
+        }
+        return newText.ToString();
     }
 
     private static readonly char[] AllowedChars = "23456789BCDFGHJKMNPQRTVWXY".ToCharArray();

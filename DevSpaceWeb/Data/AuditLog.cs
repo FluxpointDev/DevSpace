@@ -13,10 +13,17 @@ public class AuditLog
         EventType = evnt;
     }
 
-    public void SetTarget(AuditLogTargetType type, ObjectId target)
+    public AuditLog SetProperties(Dictionary<string, string> props)
+    {
+        Properties = props;
+        return this;
+    }
+
+    public AuditLog SetTarget(AuditLogTargetType type, ObjectId? target)
     {
         TargetType = type;
         TargetId = target;
+        return this;
     }
 
     public ObjectId Id;
@@ -28,6 +35,7 @@ public class AuditLog
     public AuditLogCategoryType CategoryType;
     public AuditLogTargetType TargetType;
     public ObjectId? TargetId;
+    public Dictionary<string, string> Properties = new Dictionary<string, string>();
     
 }
 public enum AuditLogTargetType
@@ -36,7 +44,7 @@ public enum AuditLogTargetType
 }
 public enum AuditLogCategoryType
 {
-    Settings, Roles, Permissions
+    Setting, Role, Permission, Member
 }
 public enum AuditLogEventType
 {
