@@ -25,9 +25,9 @@ public class FidoStoredCredential
     /// <summary>
     /// Gets or sets the registration date for this user.
     /// </summary>
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
-    public DateTimeOffset LastUsedAt { get; set; }
+    public DateTime LastUsedAt { get; set; }
 
     /// <summary>
     /// Gets or sets the Authenticator Attestation GUID (AAGUID) for this user.

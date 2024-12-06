@@ -44,7 +44,7 @@ public class AuthLoginController : AuthControllerContext
         if (!Result.Succeeded)
             return BadRequest("Invalid email or password.");
 
-        AuthUser.Auth.LoginAt = DateTimeOffset.UtcNow;
+        AuthUser.Auth.LoginAt = DateTime.UtcNow;
         await _signInManager.UserManager.UpdateAsync(AuthUser);
         return Ok();
     }

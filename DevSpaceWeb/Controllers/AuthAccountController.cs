@@ -123,7 +123,7 @@ public class AuthAccountController : AuthControllerContext
         if (!Signin.Succeeded)
             return BadRequest("Failed to login");
 
-        User.Auth.PasswordChangedAt = DateTimeOffset.UtcNow;
+        User.Auth.PasswordChangedAt = DateTime.UtcNow;
         string Ip = Utils.GetUserIpAddress(Request.HttpContext);
         if (!string.IsNullOrEmpty(Ip))
             User.Auth.Sessions.Add(Utils.GetStringSha256Hash(Ip), new AuthUserSession { });

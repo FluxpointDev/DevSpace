@@ -80,26 +80,26 @@ public class AuthUserMfa
 {
     public Dictionary<string, AuthUserSession> Sessions = new Dictionary<string, AuthUserSession>();
     public bool IsTwoFactorEnabled { get; set; } = false;
-    public DateTimeOffset? LoginAt { get; set; }
-    public DateTimeOffset? PasswordChangedAt { get; set; }
-    public DateTimeOffset? LastSeenAt { get; set; }
-    public DateTimeOffset? EmailChangedAt { get; set; }
+    public DateTime? LoginAt { get; set; }
+    public DateTime? PasswordChangedAt { get; set; }
+    public DateTime? LastSeenAt { get; set; }
+    public DateTime? EmailChangedAt { get; set; }
 
-    public DateTimeOffset? EmailCodeLastSentAt { get; set; }
-    public DateTimeOffset? EmailCodeLastUsedAt { get; set; }
+    public DateTime? EmailCodeLastSentAt { get; set; }
+    public DateTime? EmailCodeLastUsedAt { get; set; }
 
-    public DateTimeOffset? AuthenticatorLastRegisteredAt { get; set; }
-    public DateTimeOffset? AuthenticatorLastUsedAt { get; set; }
+    public DateTime? AuthenticatorLastRegisteredAt { get; set; }
+    public DateTime? AuthenticatorLastUsedAt { get; set; }
     public Dictionary<string, bool> AuthenticatorDevices { get; set; } = new Dictionary<string, bool>();
 
     public ObjectId? PasskeyId { get; set; }
-    public DateTimeOffset? PasskeyLastRegisteredAt { get; set; }
-    public DateTimeOffset? PasskeyLastUsedAt { get; set; }
+    public DateTime? PasskeyLastRegisteredAt { get; set; }
+    public DateTime? PasskeyLastUsedAt { get; set; }
     public string? PasskeyLastUsedDevice { get; set; }
     public List<FidoStoredCredential> Passkeys { get; set; } = new List<FidoStoredCredential>();
 
-    public DateTimeOffset? RecoveryCodeCreatedAt { get; set; }
-    public DateTimeOffset? RecoveryCodeLastUsedAt { get; set; }
+    public DateTime? RecoveryCodeCreatedAt { get; set; }
+    public DateTime? RecoveryCodeLastUsedAt { get; set; }
     public string? RecoveryCode { get; set; }
 }
 

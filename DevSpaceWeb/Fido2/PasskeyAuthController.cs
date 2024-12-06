@@ -148,12 +148,12 @@ public class PasskeyAuthController : AuthControllerContext
                     FidoStoredCredential? passkeyUsed = await identityUser.GetPasskeyByIdAsync(res.CredentialId);
                     if (passkeyUsed != null)
                     {
-                        passkeyUsed.LastUsedAt = DateTimeOffset.UtcNow;
+                        passkeyUsed.LastUsedAt = DateTime.UtcNow;
                         identityUser.Auth.PasskeyLastUsedDevice = passkeyUsed.Name;
                     }
                     else
                         identityUser.Auth.PasskeyLastUsedDevice = "Unknown";
-                    identityUser.Auth.PasskeyLastUsedAt = DateTimeOffset.UtcNow;
+                    identityUser.Auth.PasskeyLastUsedAt = DateTime.UtcNow;
                     await _userManager.UpdateAsync(identityUser);
                 }
 

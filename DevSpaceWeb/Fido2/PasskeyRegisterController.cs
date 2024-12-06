@@ -153,11 +153,11 @@ public class PasskeyRegisterController : AuthControllerContext
                     Descriptor = new PublicKeyCredentialDescriptor(success.Result.Id),
                     PublicKey = success.Result.PublicKey,
                     UserHandle = success.Result.User.Id,
-                    CreatedAt = DateTimeOffset.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
                     AaGuid = success.Result.AaGuid
                 });
 
-                user.Auth.PasskeyLastRegisteredAt = DateTimeOffset.UtcNow;
+                user.Auth.PasskeyLastRegisteredAt = DateTime.UtcNow;
                 user.Auth.IsTwoFactorEnabled = true;
                 await _userManager.UpdateAsync(user);
 
