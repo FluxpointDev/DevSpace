@@ -5,28 +5,95 @@
 @inject EmailService EmailService
 @inject ISwaggerProvider Swagger
 
-<div class="dash-box dash-box-content">
+@* <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
         <RadzenText class="mt-1" TextStyle="TextStyle.H6">Admin Settings</RadzenText>
     </div>
-    <br />
-    <RadzenStack Gap="10px" JustifyContent="JustifyContent.Center" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-        <a href="@("/admin/instance")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
-                <span class="iconify" data-icon="mdi:list-box"></span>
-                <RadzenText TextStyle="TextStyle.H6">Instance</RadzenText>
-            </RadzenCard>
-        </a>
-        <a href="@("/admin/database")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
-                <span class="iconify" data-icon="mdi:database"></span>
-                <RadzenText TextStyle="TextStyle.H6">Database</RadzenText>
-            </RadzenCard>
-        </a>
-    </RadzenStack>
+    <MudTabs Outlined="false" SliderColor="Color.Info" Position="Position.Left" Rounded="true" Border="false" Elevation="0"
+             ApplyEffectsToContainer="true" Class="mt-8" PanelClass="pa-4">
+        <MudTabPanel Text="Instance">
+            <div class="settings-box">
+                <h3>Basic</h3>
+                <br />
+                <MudTextField @bind-Value="InstanceName" Label="Name" Variant="Variant.Filled" Underline="false"></MudTextField>
+                <MudTextField @bind-Value="InstanceDescription" Label="Description" Variant="Variant.Filled" Underline="false"></MudTextField>
+                <MudTextField @bind-Value="InstanceIcon" Label="Icon" Variant="Variant.Filled" Underline="false"></MudTextField>
+                <br />
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@SetupEmailAsync">Update</MudButton>
+            </div>
+            <br />
+            <div class="settings-box">
+                <h3>Email</h3>
+                <br />
+                <MudSelect T="ConfigEmailType" Label="Type" @bind-Value="EmailType" Variant="Variant.Filled" Underline="false">
+                    <MudSelectItem T="ConfigEmailType" Value="@ConfigEmailType.FluxpointManaged">Fluxpoint Email Service</MudSelectItem>
+                    <MudSelectItem T="ConfigEmailType" Value="@ConfigEmailType.Custom"> Custom SMTP Server</MudSelectItem>
+                </MudSelect>
+                @if (EmailType == ConfigEmailType.FluxpointManaged)
+                {
+                    <MudTextField @bind-Value="ManagedEmailToken" Label="Email Token" Variant="Variant.Filled" Underline="false"></MudTextField>
+                }
+                else
+                {
+                    <MudTextField @bind-Value="SmtpHost" Label="Host" Variant="Variant.Filled" Underline="false"></MudTextField>
+                    <MudTextField @bind-Value="SmtpPort" Label="Port" Variant="Variant.Filled" Underline="false"></MudTextField>
+                    <MudTextField @bind-Value="SmtpUser" Label="User" Variant="Variant.Filled" Underline="false"></MudTextField>
+                    <MudTextField @bind-Value="SmtpPassword" Label="Password" Variant="Variant.Filled" Underline="false"></MudTextField>
+                }
+                <br />
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@SetupEmailAsync">Update</MudButton>
+                <br />
+                <br />
+                <MudTextField @bind-Value="TestEmail" Label="Test Email" Variant="Variant.Filled" Underline="false"></MudTextField>
+                <br />
+                <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="@SendTestEmail">Send</MudButton>
+            </div>
+        </MudTabPanel>
+        @if (false)
+        {
+            <MudTabPanel Text="API">
+                <div class="settings-box">
+                    <h3>Swagger</h3>
+                    <br />
+                    <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
+                </div>
+                <div class="settings-box">
+                    <h3>Limits</h3>
+                    <br />
+                    <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
+                </div>
+            </MudTabPanel>
+        }
+        <MudTabPanel Text="Features">
+            <div class="settings-box">
+                <h3>Swagger API</h3>
+                <br />
+                <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
+            </div>
+            <div class="settings-box">
+                <h3>Limits</h3>
+                <br />
+                <MudNumericField HideSpinButtons="true" @bind-Value="MaxImagesUpload" Label="Max Images Upload" HelperText="Amount of images you can upload at once (Default 100)" Variant="Variant.Filled" Min="1" Max="10000" />
+            </div>
+        </MudTabPanel>
+    </MudTabs>
+</div> *@
 
-</div>
+
+
+
+<style>
+    .settings-box {
+        display: block !important;
+        background-color: rgba(43,44,54,0.8);
+        width: 100% !important;
+        padding: 10px;
+        border-radius: 8px;
+    }
+
+</style>
+
 
 <style>
     .settings-item {
