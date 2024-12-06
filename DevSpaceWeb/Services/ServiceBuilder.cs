@@ -68,7 +68,6 @@ public static class ServiceBuilder
             options.LoginPath = "/login";
             options.LogoutPath = "/logout";
             options.AccessDeniedPath = "/Identity/Account/AccessDenied";
-            options.SlidingExpiration = true;
         });
         services.AddScoped<IAuthService, AuthService>();
     }
