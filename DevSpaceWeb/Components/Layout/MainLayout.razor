@@ -21,15 +21,15 @@
                 {
                     <RadzenMenu ClickToOpen="false">
                         <RadzenMenuItem Text="General">
-                        <RadzenMenuItem Text="Http Codes" Path="/info/http"></RadzenMenuItem>
-                    </RadzenMenuItem>
-                    <RadzenMenuItem Text="Tools">
-                        <RadzenMenuItem Path="/tools/editor" Text="Text Editor"></RadzenMenuItem>
-                        <RadzenMenuItem Text="Images">
-                            <RadzenMenuItem Path="/tools/image/convert" Text="Convert Images"></RadzenMenuItem>
+                            <RadzenMenuItem Text="Http Codes" Path="/info/http"></RadzenMenuItem>
                         </RadzenMenuItem>
-                    </RadzenMenuItem>
-                </RadzenMenu>
+                        <RadzenMenuItem Text="Tools">
+                            <RadzenMenuItem Path="/tools/editor" Text="Text Editor"></RadzenMenuItem>
+                            <RadzenMenuItem Text="Images">
+                                <RadzenMenuItem Path="/tools/image/convert" Text="Convert Images"></RadzenMenuItem>
+                            </RadzenMenuItem>
+                        </RadzenMenuItem>
+                    </RadzenMenu>
                 }
                 <div style="flex-grow: 1 !important;"></div>
                 @if (Program.IsPreviewMode)
@@ -44,7 +44,10 @@
                     <RadzenMenuItem id="NavUser" Text="@Session.State.User.Identity.Name">
                         <RadzenMenuItem Path="/user/account" Text="Account"></RadzenMenuItem>
                         <RadzenMenuItem Text="Change Background" Click="@ChangeBackgroundDialog"></RadzenMenuItem>
-                        <RadzenMenuItem Path="/admin" Text="Admin"></RadzenMenuItem>
+                        @if (!Program.IsPreviewMode)
+                        {
+                            <RadzenMenuItem Path="/admin" Text="Admin"></RadzenMenuItem>
+                        }
                         <RadzenMenuItem Path="/logout" Text="Logout"></RadzenMenuItem>
                     </RadzenMenuItem>
                 </RadzenMenu>
