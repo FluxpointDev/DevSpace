@@ -46,8 +46,8 @@ function GetBrowser() {
         return 6;
     } else if (navigator.userAgent.indexOf("Edg") != -1) {
         return 5;
-    } else if (navigator.userAgent.indexOf("Chrome") != -1) {
-        return 3;
+    } else if (navigator.userAgent.indexOf("Vivaldi") != -1) {
+        return 7;
     } else if (navigator.userAgent.indexOf("Safari") != -1) {
         return 4;
     } else if (navigator.userAgent.indexOf("Firefox") != -1) {
@@ -55,6 +55,8 @@ function GetBrowser() {
     } else if ((navigator.userAgent.indexOf("MSIE") != -1) || (!!document.documentMode == true)) //IF IE > 10
     {
         return 1;
+    } else if (navigator.userAgent.indexOf("Chrome") != -1) {
+        return 3;
     } else {
         return 0;
     }

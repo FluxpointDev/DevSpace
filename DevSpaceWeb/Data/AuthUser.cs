@@ -82,7 +82,7 @@ public class AuthUserSession
 }
 public enum SessionBrowserType
 {
-    Unknown, InternetExplorer, Firefox, Chrome, Safari, Edge, Opera
+    Unknown, InternetExplorer, Firefox, Chrome, Safari, Edge, Opera, Vivaldi
 }
 
 public class AuthUserMfa
