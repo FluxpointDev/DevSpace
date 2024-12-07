@@ -221,8 +221,6 @@
 
     [CascadingParameter] public HttpContext? HttpContext { get; set; }
 
-    public string Ip;
-
     protected override async Task OnInitializedAsync()
     {
         if (_DB.IsRestartRequired)
@@ -235,7 +233,9 @@
             SessionError = SessionErrorType.HttpsRequired;
             return;
         }
-        Ip = Utils.GetUserIpAddress(Http.HttpContext);
+
+
+        var Ip = Utils.GetUserIpAddress(Http.HttpContext);
         if (!_Data.Config.Instance.Features.AllowLocalhost && (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1"))
         {
             SessionError = SessionErrorType.SessionSecurityError;
@@ -298,7 +298,14 @@
                         if (User.Background.Id.HasValue)
                             BackgroundUrl = User.Background.Url("webp");
 
-                        if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
+                        string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
+                        if (string.IsNullOrEmpty(SessionId))
+                        {
+                            SessionError = SessionErrorType.AuthenticationRequired;
+                            return;
+                        }
+                        
+                        if (!User.Auth.Sessions.TryGetValue(SessionId, out var session) || !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
                         {
                             SessionError = SessionErrorType.SessionSecurityNewIp;
                             return;

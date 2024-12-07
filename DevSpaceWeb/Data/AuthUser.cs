@@ -73,7 +73,7 @@ public class AuthUser : MongoIdentityUser<ObjectId>
 
 public class AuthUserSession
 {
-
+    public HashSet<string> AuthorizedIps = new HashSet<string>();
 }
 
 public class AuthUserMfa

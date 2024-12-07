@@ -14,6 +14,7 @@
 @inject SignInManager<AuthUser> SignInManager
 @inject EmailService Email
 @inject NavigationManager Nav
+@inject HttpContextAccessor Http
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -96,35 +97,35 @@
 
                                 <RadzenLabel Text="Database Name" class="rz-my-0"></RadzenLabel>
                                 <RadzenTextBox @bind-Value="@DatabaseForm.Name" Style="width: 100%" aria-label="Database Name" autocomplete="false"
-                                               Disabled="@(SetupStep != SetupStepType.Database)" MaxLength="100" />
+                                Disabled="@(SetupStep != SetupStepType.Database)" MaxLength="100" />
                                 <ValidationMessage For="() => DatabaseForm.Name" style="color: var(--rz-danger);" />
 
                                 <br style="margin-bottom: 20px;" />
 
                                 <RadzenLabel Text="Database IP" class="rz-my-0"></RadzenLabel>
                                 <RadzenTextBox @bind-Value="@DatabaseForm.IP" Style="width: 100%" aria-label="Database IP" autocomplete="false"
-                                               Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="1.1.1.1" MaxLength="100" />
+                                Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="1.1.1.1" MaxLength="100" />
                                 <ValidationMessage For="() => DatabaseForm.IP" style="color: var(--rz-danger);" />
 
                                 <br style="margin-bottom: 20px;" />
 
                                 <RadzenLabel Text="Database Port" class="rz-my-0"></RadzenLabel>
                                 <RadzenNumeric @bind-Value="@DatabaseForm.Port" Style="width: 100%" aria-label="Database Port" autocomplete="false"
-                                               Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="0000" ShowUpDown="false" />
+                                Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="0000" ShowUpDown="false" />
                                 <ValidationMessage For="() => DatabaseForm.Port" style="color: var(--rz-danger);" />
 
                                 <br style="margin-bottom: 20px;" />
 
                                 <RadzenLabel Text="Database Username" class="rz-my-0"></RadzenLabel>
                                 <RadzenTextBox @bind-Value="@DatabaseForm.Username" Style="width: 100%" aria-label="Database Username" autocomplete="false"
-                                               Disabled="@(SetupStep != SetupStepType.Database)" MaxLength="100" />
+                                Disabled="@(SetupStep != SetupStepType.Database)" MaxLength="100" />
                                 <ValidationMessage For="() => DatabaseForm.Username" style="color: var(--rz-danger);" />
 
                                 <br style="margin-bottom: 20px;" />
 
                                 <RadzenLabel Text="Database Password" class="rz-my-0"></RadzenLabel>
                                 <RadzenPassword @bind-Value="@DatabaseForm.Password" Style="width: 100%" aria-label="Database Password" autocomplete="false"
-                                                Disabled="@(SetupStep != SetupStepType.Database)" maxlength="100" />
+                                Disabled="@(SetupStep != SetupStepType.Database)" maxlength="100" />
                                 <ValidationMessage For="() => DatabaseForm.Password" style="color: var(--rz-danger);" />
 
                                 <br />
@@ -172,35 +173,35 @@
 
                                         <RadzenLabel Text="Smtp Host" class="rz-my-0"></RadzenLabel>
                                         <RadzenTextBox @bind-Value="@SmtpForm.Host" Style="width: 100%" aria-label="Smtp Host" autocomplete="false"
-                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp.domain.com" MaxLength="100" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp.domain.com" MaxLength="100" />
                                         <ValidationMessage For="() => SmtpForm.Host" style="color: var(--rz-danger);" />
 
                                         <br style="margin-bottom: 20px;" />
 
                                         <RadzenLabel Text="Smtp Port" class="rz-my-0"></RadzenLabel>
                                         <RadzenNumeric @bind-Value="@SmtpForm.Port" Style="width: 100%" aria-label="Smtp Port" autocomplete="false"
-                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="123" ShowUpDown="false" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="123" ShowUpDown="false" />
                                         <ValidationMessage For="() => SmtpForm.Port" style="color: var(--rz-danger);" />
 
                                         <br style="margin-bottom: 20px;" />
 
                                         <RadzenLabel Text="Smtp User" class="rz-my-0"></RadzenLabel>
                                         <RadzenTextBox @bind-Value="@SmtpForm.User" Style="width: 100%" aria-label="Smtp User" autocomplete="false"
-                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp@domain.com" MaxLength="100" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp@domain.com" MaxLength="100" />
                                         <ValidationMessage For="() => SmtpForm.User" style="color: var(--rz-danger);" />
 
                                         <br style="margin-bottom: 20px;" />
 
                                         <RadzenLabel Text="Smtp Password" class="rz-my-0"></RadzenLabel>
                                         <RadzenPassword @bind-Value="@SmtpForm.Password" Style="width: 100%" aria-label="Smtp Password" autocomplete="false"
-                                                        Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
                                         <ValidationMessage For="() => SmtpForm.Password" style="color: var(--rz-danger);" />
 
                                         <br style="margin-bottom: 20px;" />
 
                                         <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
                                         <RadzenTextBox @bind-Value="@SmtpForm.EmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="false"
-                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" MaxLength="100" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" MaxLength="100" />
                                         <ValidationMessage For="() => SmtpForm.EmailAddress" style="color: var(--rz-danger);" />
                                     }
                                     break;
@@ -216,21 +217,21 @@
 
                                         <RadzenLabel Text="Gmail Account" class="rz-my-0"></RadzenLabel>
                                         <RadzenTextBox @bind-Value="@SmtpForm.User" Style="width: 100%" aria-label="Gmail Account" autocomplete="false"
-                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="account@gmail.com" MaxLength="100" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="account@gmail.com" MaxLength="100" />
                                         <ValidationMessage For="() => SmtpForm.User" style="color: var(--rz-danger);" />
 
                                         <br style="margin-bottom: 20px;" />
 
                                         <RadzenLabel Text="Gmail App Password" class="rz-my-0"></RadzenLabel>
                                         <RadzenPassword @bind-Value="@SmtpForm.Password" Style="width: 100%" aria-label="Gmail API Key" autocomplete="false"
-                                                        Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
                                         <ValidationMessage For="() => SmtpForm.Password" style="color: var(--rz-danger);" />
 
                                         <br style="margin-bottom: 20px;" />
 
                                         <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
                                         <RadzenTextBox @bind-Value="@SmtpForm.EmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="false"
-                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" MaxLength="100" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" MaxLength="100" />
                                         <ValidationMessage For="() => SmtpForm.EmailAddress" style="color: var(--rz-danger);" />
                                     }
                                     break;
@@ -246,14 +247,14 @@
 
                                         <RadzenLabel Text="SendGrid API Key" class="rz-my-0"></RadzenLabel>
                                         <RadzenPassword @bind-Value="@SmtpForm.Password" Style="width: 100%" aria-label="SendGrid API Key" autocomplete="false"
-                                                        Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" maxlength="100" />
                                         <ValidationMessage For="() => SmtpForm.Password" style="color: var(--rz-danger);" />
 
                                         <br style="margin-bottom: 20px;" />
 
                                         <RadzenLabel Text="Sender Email Address" class="rz-my-0"></RadzenLabel>
                                         <RadzenTextBox @bind-Value="@SmtpForm.EmailAddress" Style="width: 100%" aria-label="Email Address" autocomplete="false"
-                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="devspace@domain.com" />
                                         <ValidationMessage For="() => SmtpForm.EmailAddress" style="color: var(--rz-danger);" />
                                     }
                                     break;
@@ -261,7 +262,7 @@
                                     {
                                         <RadzenLabel Text="Email API Key" class="rz-my-0"></RadzenLabel>
                                         <RadzenTextBox @bind-Value="@ManagedEmailToken" Style="width: 100%" aria-label="Email API Key" autocomplete="false"
-                                                       Disabled="@(SetupStep != SetupStepType.Smtp)" MaxLength="100" />
+                                        Disabled="@(SetupStep != SetupStepType.Smtp)" MaxLength="100" />
                                     }
                                     break;
                             }
@@ -305,21 +306,21 @@
 
                             <RadzenLabel Text="Instance Name" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="@InstanceForm.Name" Style="width: 100%" aria-label="Instance Name" autocomplete="false"
-                                           Disabled="@(SetupStep != SetupStepType.Instance)" Placeholder="My Dev Space" MaxLength="32" />
+                            Disabled="@(SetupStep != SetupStepType.Instance)" Placeholder="My Dev Space" MaxLength="32" />
                             <ValidationMessage For="() => InstanceForm.Name" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
 
                             <RadzenLabel Text="Instance Description" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="@InstanceForm.Description" Style="width: 100%" aria-label="Instance Description" autocomplete="false"
-                                           Disabled="@(SetupStep != SetupStepType.Instance)" MaxLength="300" />
+                            Disabled="@(SetupStep != SetupStepType.Instance)" MaxLength="300" />
                             <ValidationMessage For="() => InstanceForm.Description" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
 
                             <RadzenLabel Text="Instance Public Domain" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="@InstanceForm.PublicDomain" Style="width: 100%" aria-label="Instance Public Domain" autocomplete="false"
-                                           Disabled="@(SetupStep != SetupStepType.Instance)" Placeholder="system.domain.com" MaxLength="32" />
+                            Disabled="@(SetupStep != SetupStepType.Instance)" Placeholder="system.domain.com" MaxLength="32" />
                             <ValidationMessage For="() => InstanceForm.PublicDomain" style="color: var(--rz-danger);" />
 
                             <br />
@@ -343,14 +344,14 @@
 
                             <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="@TeamNameInput" Style="width: 100%" aria-label="Team Name" autocomplete="false"
-                                           Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="My Team" MaxLength="32" />
+                            Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="My Team" MaxLength="32" />
                             <ValidationMessage For="() => TeamForm.Name" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
 
                             <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="@TeamForm.VanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="false"
-                                           Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="myteam" MaxLength="100" />
+                            Disabled="@(SetupStep != SetupStepType.Team)" Placeholder="myteam" MaxLength="100" />
                             <ValidationMessage For="() => TeamForm.VanityUrl" style="color: var(--rz-danger);" />
                             <br />
                             <br />
@@ -373,14 +374,14 @@
 
                             <RadzenLabel Text="Admin Username" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="@AdminAccount.Username" Style="width: 100%" aria-label="Admin Username" autocomplete="false"
-                                           Disabled="@(SetupStep != SetupStepType.Admin)" Placeholder="user" MaxLength="32" />
+                            Disabled="@(SetupStep != SetupStepType.Admin)" Placeholder="user" MaxLength="32" />
                             <ValidationMessage For="() => AdminAccount.Username" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
 
                             <RadzenLabel Text="Admin Email" class="rz-my-0"></RadzenLabel>
                             <RadzenTextBox @bind-Value="@AdminAccount.Email" Style="width: 100%" aria-label="Admin Email" autocomplete="false"
-                                           Disabled="@(SetupStep != SetupStepType.Admin)" Placeholder="user@gmail.com" MaxLength="100" />
+                            Disabled="@(SetupStep != SetupStepType.Admin)" Placeholder="user@gmail.com" MaxLength="100" />
                             <ValidationMessage For="() => AdminAccount.Email" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
@@ -392,14 +393,14 @@
 
                             <RadzenLabel Text="Admin Password" class="rz-my-0"></RadzenLabel>
                             <RadzenPassword @bind-Value="@AdminAccount.Password" Style="width: 100%" aria-label="Admin Password" autocomplete="false"
-                                            Disabled="@(SetupStep != SetupStepType.Admin)" maxlength="100" />
+                            Disabled="@(SetupStep != SetupStepType.Admin)" maxlength="100" />
                             <ValidationMessage For="() => AdminAccount.Password" style="color: var(--rz-danger);" />
 
                             <br style="margin-bottom: 20px;" />
 
                             <RadzenLabel Text="Confirm Password" class="rz-my-0"></RadzenLabel>
                             <RadzenPassword @bind-Value="@AdminAccount.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="false"
-                                            Disabled="@(SetupStep != SetupStepType.Admin)" maxlength="100" />
+                            Disabled="@(SetupStep != SetupStepType.Admin)" maxlength="100" />
                             <ValidationMessage For="() => AdminAccount.RepeatPassword" style="color: var(--rz-danger);" />
 
                             @if (!string.IsNullOrEmpty(SentEmailCode))
@@ -413,7 +414,7 @@
                                 <div>
                                     <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@InputEmailCode" Count="8" aria-label="Email Code" autofocus />
                                 </div>
-                                
+
                             }
 
                             @if (!string.IsNullOrEmpty(AdminErrorMessage))
@@ -954,7 +955,13 @@
         }
 
 
-        User.Auth.Sessions.TryAdd(Utils.GetStringSha256Hash(Session.Ip), new AuthUserSession { });
+        @* User.Auth.Sessions.TryAdd(Http.HttpContext.Request.Cookies["DevSpace.SessionId"], new AuthUserSession
+        {
+            AuthorizedIps = new HashSet<string>
+            {
+                Utils.GetStringSha256Hash(Utils.GetUserIpAddress(Http.HttpContext))
+            }
+        }); *@
         var result = await UserManager.CreateAsync(User, AdminAccount.Password);
 
         if (result.Errors.Any())

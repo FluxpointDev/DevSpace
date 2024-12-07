@@ -74,6 +74,16 @@ public class AuthLoginController : AuthControllerContext
 
         AuthUser.Auth.LoginAt = DateTime.UtcNow;
         _ = _signInManager.UserManager.UpdateAsync(AuthUser);
+        if (!Request.Cookies.ContainsKey("DevSpace.SessionId"))
+        {
+            Response.Cookies.Append("DevSpace.SessionId", Guid.NewGuid().ToString(), new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Expires = rememberMe ? DateTimeOffset.Now.AddDays(30) : null
+            });
+        }
         return Ok();
     }
 
@@ -148,7 +158,7 @@ public class AuthLoginController : AuthControllerContext
         _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.Logout);
 
         await _signInManager.SignOutAsync();
-
+        Response.Cookies.Delete("DevSpace.SessionId");
         return Redirect("/");
     }
 }

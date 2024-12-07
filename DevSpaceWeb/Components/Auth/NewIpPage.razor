@@ -3,6 +3,7 @@
 @inject UserManager<AuthUser> UserManager
 @inject NavigationManager NavigationManager
 @inject EmailService Email
+@inject HttpContextAccessor Http
 
 <div class="dash-box dash-box-content dash-center">
     <div class="dash-box-header">
@@ -25,14 +26,33 @@
     {
         var User = await Session.GetCurrentUserAsync();
 
-        var Result = await Session.TriggerTwoFactorAuthentication(User, true);
+        var Result = false;
+        if (Program.IsDevMode)
+            Result = true;
+        else
+            Result = await Session.TriggerTwoFactorAuthentication(User, true);
+
         if (Result)
         {
+
             User = await Session.GetCurrentUserAsync();
-            User.Auth.Sessions.TryAdd(Utils.GetStringSha256Hash(Session.Ip), new AuthUserSession { });
+            string Ip = Utils.GetUserIpAddress(Http.HttpContext);
+            string SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
+            if (User.Auth.Sessions.TryGetValue(SessionId, out var session))
+                session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
+            else
+            {
+                User.Auth.Sessions.TryAdd(SessionId, new AuthUserSession
+                {
+                    AuthorizedIps = new HashSet<string>
+                    {
+                        Utils.GetStringSha256Hash(Ip)
+                    }
+                });
+            }
             await UserManager.UpdateAsync(User);
-            await Email.SendNewSessionIP(User, Session.Ip, CultureInfo.CurrentCulture.Name);
-            NavigationManager.NavigateTo("/", true);
+            await Email.SendNewSessionIP(User, Ip, CultureInfo.CurrentCulture.Name);
+            NavigationManager.Refresh(true);
         }
     }
 }
