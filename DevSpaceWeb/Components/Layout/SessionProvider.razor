@@ -298,22 +298,26 @@
                         if (User.Background.Id.HasValue)
                             BackgroundUrl = User.Background.Url("webp");
 
-                        string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
-                        if (string.IsNullOrEmpty(SessionId))
+                        if (!Program.IsPreviewMode)
                         {
-                            SessionError = SessionErrorType.AuthenticationRequired;
-                            return;
-                        }
-                        
-                        if (!User.Auth.Sessions.TryGetValue(SessionId, out var session) || !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
-                        {
-                            SessionError = SessionErrorType.SessionSecurityNewIp;
-                            return;
+                            string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
+                            if (string.IsNullOrEmpty(SessionId))
+                            {
+                                SessionError = SessionErrorType.AuthenticationRequired;
+                                return;
+                            }
+
+                            if (!User.Auth.Sessions.TryGetValue(SessionId, out var session) || !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
+                            {
+                                SessionError = SessionErrorType.SessionSecurityNewIp;
+                                return;
+                            }
                         }
                     }
                     else
                     {
                         SessionError = SessionErrorType.AuthenticationError;
+                        return;
                     }
                 }
 
