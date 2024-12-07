@@ -10,6 +10,12 @@
 
     formData.append('isMobile', isMobile);
     formData.append('browser', GetBrowser());
+    var country = navigator.language;
+    try {
+        country = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    }
+    catch { }
+    formData.append('country', country);
 
     try {
         let response = await fetch('/auth/login', {

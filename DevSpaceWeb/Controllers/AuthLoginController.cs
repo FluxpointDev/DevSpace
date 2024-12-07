@@ -25,7 +25,7 @@ public class AuthLoginController : AuthControllerContext
 
     // Login User
     [HttpPost("/auth/login")]
-    public async Task<IActionResult> Login([FromForm] string email = "", [FromForm] string password = "", [FromHeader] string requestId = "", [FromForm] bool rememberMe = false, [FromForm] bool isMobile = false, [FromForm] int browser = 0)
+    public async Task<IActionResult> Login([FromForm] string email = "", [FromForm] string password = "", [FromHeader] string requestId = "", [FromForm] bool rememberMe = false, [FromForm] bool isMobile = false, [FromForm] int browser = 0, [FromForm] string country = "")
     {
         if (string.IsNullOrEmpty(requestId))
             return BadRequest("Request id is invalid");
@@ -90,6 +90,7 @@ public class AuthLoginController : AuthControllerContext
             {
                 BrowserType = (SessionBrowserType)browser,
                 IsMobile = isMobile,
+                Country = country
             });
         }
         

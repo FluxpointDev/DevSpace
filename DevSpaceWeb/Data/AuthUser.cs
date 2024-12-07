@@ -75,6 +75,7 @@ public class AuthUserSession
 {
     public bool IsMobile;
     public SessionBrowserType BrowserType;
+    public string Country;
     public string Name;
     public HashSet<string> AuthorizedIps = new HashSet<string>();
     public DateTime CreatedAt = DateTime.UtcNow;
