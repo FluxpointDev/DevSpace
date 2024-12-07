@@ -21,24 +21,40 @@
         GotoFirstPageOnSort="true"
         LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
             <Columns>
-                <RadzenDataGridColumn Title="Date" Property="@nameof(AuditLog.CreatedAt)" Width="160px">
+                <RadzenDataGridColumn Title="Date" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@GetLocalDate(context.CreatedAt, false)</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Member" Property="@nameof(AuditLog.CreatedAt)" Width="160px">
+                <RadzenDataGridColumn Title="Member" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">Builderb</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Category" Property="@nameof(AuditLog.CategoryType)" Width="120px"
-                FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
+                FilterValue="@SelectedCategoryTypes">
+                    <FilterTemplate>
+                        <RadzenListBox @bind-Value="@SelectedCategoryTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "filter by Company" }})"
+                        Data="@CategoryTypes" AllowClear="true" Multiple="true" Context="CategoryList">
+                        <Template>
+                                @Utils.FriendlyName(((AuditLogCategoryType)CategoryList).ToString())
+                                        </Template>
+                        </RadzenListBox>
+                    </FilterTemplate>
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.CategoryType</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Event" Property="@nameof(AuditLog.EventType)" Width="200px"
-                FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
+                                      FilterValue="@SelectedEventTypes">
+                    <FilterTemplate>
+                        <RadzenListBox @bind-Value="@SelectedEventTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "filter by Company" }})"
+                                       Data="@EventTypes" AllowClear="true" Multiple="true" Context="EventList">
+                                       <Template>
+                                @Utils.FriendlyName(((AuditLogEventType)EventList).ToString())
+                                        </Template>
+                                       </RadzenListBox>
+                    </FilterTemplate>
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(context.EventType.ToString())</RadzenText>
                     </Template>
@@ -51,15 +67,26 @@
                         </RadzenText>
                     </Template>
                 </RadzenDataGridColumn> *@
+                <RadzenDataGridColumn Title="Target" Property="@nameof(AuditLog.TargetType)" Width="140px"
+                                      FilterValue="@SelectedTargetTypes">
+                    <FilterTemplate>
+                        <RadzenListBox @bind-Value="@SelectedTargetTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "filter by Company" }})"
+                                       Data="@TargetTypes" AllowClear="true" Multiple="true" Context="TargetList">
+                            <Template>
+                                @Utils.FriendlyName(((AuditLogTargetType)TargetList).ToString())
+                            </Template>
+                        </RadzenListBox>
+                    </FilterTemplate>
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(context.TargetType.ToString())</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Data" Property="@nameof(AuditLog.TargetType)"
-                FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)">
+                FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)" Filterable="false">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">
                             @switch (context.TargetType)
                             {
-                                case AuditLogTargetType.Team:
-                                    @("Team")
-                                    break;
                                 case AuditLogTargetType.Server:
                                     if (_DB.Servers.Cache.TryGetValue(context.TargetId.Value, out var server))
                                         @(server.Name)
@@ -97,7 +124,7 @@
                         </RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Properties" Width="160px">
+                <RadzenDataGridColumn Title="Properties" Width="160px" Filterable="false">
                     <Template>
                         @if (context.Properties.Any())
                         {
@@ -123,6 +150,15 @@
     public TeamData Team => Session.Selected.Team.Data;
 
     public TeamMemberData Member => Session.Selected.Member;
+
+    public IEnumerable<AuditLogCategoryType> CategoryTypes = Enum.GetValues<AuditLogCategoryType>();
+    public IEnumerable<AuditLogCategoryType> SelectedCategoryTypes;
+
+    public IEnumerable<AuditLogEventType> EventTypes = Enum.GetValues<AuditLogEventType>();
+    public IEnumerable<AuditLogEventType> SelectedEventTypes;
+
+    public IEnumerable<AuditLogTargetType> TargetTypes = Enum.GetValues<AuditLogTargetType>();
+    public IEnumerable<AuditLogEventType> SelectedTargetTypes;
 
     RadzenDataGrid<AuditLog> grid;
 
@@ -184,13 +220,31 @@
 
             foreach (var i in args.Filters)
             {
-
                 switch (i.Property)
                 {
                     case "CategoryType":
-                        IEnumerable<AuditLogCategoryType> Selected = (IEnumerable<AuditLogCategoryType>)i.FilterValue;
-                        filters.Add(new FilterDefinitionBuilder<AuditLog>()
-                        .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.CategoryType, x))));
+                        {
+                            IEnumerable<AuditLogCategoryType> Selected = (IEnumerable<AuditLogCategoryType>)i.FilterValue;
+                            if (Selected.Any())
+                                filters.Add(new FilterDefinitionBuilder<AuditLog>()
+                                .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.CategoryType, x))));                            
+                        }
+                        break;
+                    case "EventType":
+                        {
+                            IEnumerable<AuditLogEventType> Selected = (IEnumerable<AuditLogEventType>)i.FilterValue;
+                            if (Selected.Any())
+                                filters.Add(new FilterDefinitionBuilder<AuditLog>()
+                                .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.EventType, x))));
+                        }
+                        break;
+                    case "TargetType":
+                        {
+                            IEnumerable<AuditLogTargetType> Selected = (IEnumerable<AuditLogTargetType>)i.FilterValue;
+                            if (Selected.Any())
+                                filters.Add(new FilterDefinitionBuilder<AuditLog>()
+                                .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.TargetType, x))));
+                        }
                         break;
                 }
             }
