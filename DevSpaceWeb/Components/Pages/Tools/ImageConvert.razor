@@ -4,7 +4,7 @@
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
-        <RadzenText class="mt-1" TextStyle="TextStyle.H6">@Team.Name</RadzenText>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Image Convert</RadzenText>
     </div>
     <br />
     <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Convert to format</RadzenText>
@@ -15,11 +15,11 @@
             <RadzenSelectBarItem Value="@("jpg")" Text="Jpg" />
         </Items>
     </RadzenSelectBar>
-    <RadzenButton Text="Start Converting" Click=@(args => Uploader.Upload()) class="rz-mt-4" />
+    <RadzenButton Text="Start Converting" Click=@(args => Uploader.Upload()) class="rz-mt-4" Disabled="@Program.IsPreviewMode" />
     <br />
     <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3">Drag and drop files to upload</RadzenText>
     <RadzenUpload @ref="@Uploader" ChooseText="Click here or drop to upload files" Auto="false" Multiple="true" Url="upload/multiple" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
-                  Style="width: 100%" Accept="image/*" MaxFileCount="_Data.Config.Instance.Limits.MaxImagesUpload" />
+                  Style="width: 100%" Accept="image/*" MaxFileCount="_Data.Config.Instance.Limits.MaxImagesUpload" Disabled="@Program.IsPreviewMode" />
 </div>
 
 <div class="dash-box">
@@ -54,7 +54,7 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public TeamData Team => Session.Selected.Team.Data;
+    //public TeamData Team => Session.Selected.Team.Data;
 
     public RadzenUpload Uploader { get; set; }
     public string ConvertFormat { get; set; }
