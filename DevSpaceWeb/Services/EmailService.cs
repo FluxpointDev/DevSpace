@@ -65,7 +65,7 @@ public class EmailService
         => Send(EmailTemplateType.AccountEmailChanged, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.AccountEmailChanged), other_email: other_email);
 
     public Task<bool> SendNewSessionIP(AuthUser user, string ip, string country)
-        => Send(EmailTemplateType.AccountInvited, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.NewSessionIp), ip: ip, country: country);
+        => Send(EmailTemplateType.NewSessionIp, user, _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.NewSessionIp), ip: ip, country: country);
 
     public async Task<bool> Send(EmailTemplateType type, AuthUser user, EmailTemplateData? template, string body = "", string other_email = "", string action = "", string code = "", string reason = "", string ip = "", string country = "", string team_name = "")
     {
