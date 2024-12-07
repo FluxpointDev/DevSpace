@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Components.Pages.Teams;
 using DevSpaceWeb.Data;
+using DevSpaceWeb.Data.API;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
@@ -41,6 +42,7 @@ public static class _DB
             EmailTemplates = new ICacheCollection<EmailTemplateData>("email_templates");
             TeamVanityUrls = new ICacheCollection<VanityUrlData>("vanity_urls");
             AuditLogs = new ICollection<AuditLog>("audit");
+            API = new ICacheCollection<APIClient>("api");
         }
     }
 
@@ -185,9 +187,18 @@ public static class _DB
                 Logger.LogMessage("Database", "- Projects: " + Projects.Cache.Keys.Count, LogSeverity.Info);
             });
 
+            Task APITask = Task.Run(async () =>
+            {
+                await API.Find(Builders<APIClient>.Filter.Empty).ForEachAsync(x =>
+                {
+                    API.Cache.TryAdd(x.Id, x);
+                });
+                Logger.LogMessage("Database", "- API: " + API.Cache.Keys.Count, LogSeverity.Info);
+            });
+
 
             Task.WaitAll(RoleTask, MemberTask, TeamVanityTask, TemplateTask, LogTask,
-                ServerTask, WebsiteTask, ProjectTask);
+                ServerTask, WebsiteTask, ProjectTask, APITask);
 
             Logger.LogMessage("Database", "Data Loaded", LogSeverity.Info);
             IsCacheDone = true;
@@ -222,4 +233,6 @@ public static class _DB
     public static ICacheCollection<EmailTemplateData> EmailTemplates = null!;
 
     public static ICollection<AuditLog> AuditLogs = null!;
+
+    public static ICacheCollection<APIClient> API = null!;
 }
