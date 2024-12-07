@@ -108,49 +108,59 @@
                 <div class="settings-box">
                     <h3>Sessions</h3>
                     <br />
-                    @foreach(var i in AuthUser.Auth.Sessions.Values)
+                    @if (AuthUser == null)
                     {
-                        <div class="session-item">
-                            @switch (i.BrowserType)
-                            {
-                                case SessionBrowserType.Firefox:
-                                    <span class="iconify" data-icon="logos:firefox"></span>
-                                    break;
-                                case SessionBrowserType.Chrome:
-                                    <span class="iconify" data-icon="logos:chrome"></span>
-                                    break;
-                                case SessionBrowserType.Edge:
-                                    <span class="iconify" data-icon="logos:microsoft-edge"></span>
-                                    break;
-                                case SessionBrowserType.InternetExplorer:
-                                    <span class="iconify" data-icon="logos:internetexplorer"></span>
-                                    break;
-                                case SessionBrowserType.Opera:
-                                    <span class="iconify" data-icon="logos:opera"></span>
-                                    break;
-                                case SessionBrowserType.Safari:
-                                    <span class="iconify" data-icon="logos:safari"></span>
-                                    break;
-                                case SessionBrowserType.Vivaldi:
-                                    <span class="iconify" data-icon="logos:vivaldi-icon"></span>
-                                    break;
-                                case SessionBrowserType.Unknown:
-                                    <span class="iconify" data-icon="mdi:web"></span>
-                                break;
-                            }
-                            @if (i.IsMobile)
-                            {
-                                <span class="iconify" data-icon="mdi:mobile-phone"></span>
-                            }
-                            else
-                            {
-                                <span class="iconify" data-icon="mdi:computer-classic"></span>
-                            }
-                            
-                            <p>Firefox (Current Session)</p>
-                            <p>Created At @(GetLocalDate(i.CreatedAt, false))</p>
-                            <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" />
-                        </div>
+                        <br />
+                        <RadzenSkeleton></RadzenSkeleton>
+                        <RadzenSkeleton></RadzenSkeleton>
+                        <RadzenSkeleton></RadzenSkeleton>
+                    }
+                    else
+                    {
+                        @foreach (var i in AuthUser.Auth.Sessions.Values)
+                        {
+                            <div class="session-item">
+                                @switch (i.BrowserType)
+                                {
+                                    case SessionBrowserType.Firefox:
+                                        <span class="iconify" data-icon="logos:firefox"></span>
+                                        break;
+                                    case SessionBrowserType.Chrome:
+                                        <span class="iconify" data-icon="logos:chrome"></span>
+                                        break;
+                                    case SessionBrowserType.Edge:
+                                        <span class="iconify" data-icon="logos:microsoft-edge"></span>
+                                        break;
+                                    case SessionBrowserType.InternetExplorer:
+                                        <span class="iconify" data-icon="logos:internetexplorer"></span>
+                                        break;
+                                    case SessionBrowserType.Opera:
+                                        <span class="iconify" data-icon="logos:opera"></span>
+                                        break;
+                                    case SessionBrowserType.Safari:
+                                        <span class="iconify" data-icon="logos:safari"></span>
+                                        break;
+                                    case SessionBrowserType.Vivaldi:
+                                        <span class="iconify" data-icon="logos:vivaldi-icon"></span>
+                                        break;
+                                    case SessionBrowserType.Unknown:
+                                        <span class="iconify" data-icon="mdi:web"></span>
+                                        break;
+                                }
+                                @if (i.IsMobile)
+                                {
+                                    <span class="iconify" data-icon="mdi:mobile-phone"></span>
+                                }
+                                else
+                                {
+                                    <span class="iconify" data-icon="mdi:computer-classic"></span>
+                                }
+
+                                <p>Firefox (Current Session)</p>
+                                <p>Created At @(GetLocalDate(i.CreatedAt, false))</p>
+                                <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                            </div>
+                        }
                     }
                 </div>
             </RadzenTabsItem>
