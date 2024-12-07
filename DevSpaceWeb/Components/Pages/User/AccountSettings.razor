@@ -76,7 +76,7 @@
 
                         <div class="mb-4" />
 
-                        
+
 
                         @if (!AuthUser.EmailConfirmed)
                         {
@@ -108,6 +108,16 @@
                 <div class="settings-box">
                     <h3>Sessions</h3>
                     <br />
+                    @foreach(var i in AuthUser.Auth.Sessions.Values)
+                    {
+                        <div class="session-item">
+                            <span class="iconify" data-icon="logos:firefox"></span>
+                            <span class="iconify" data-icon="mdi:computer-classic"></span>
+                            <p>Firefox (Current Session)</p>
+                            <p>Created At @(GetLocalDate(i.CreatedAt, false))</p>
+                            <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        </div>
+                    }
                 </div>
             </RadzenTabsItem>
             <RadzenTabsItem Text="Two-factor (2FA)">
@@ -265,6 +275,32 @@
     height: 24px;
     color: #f64e62 !important;
     }
+
+
+    .session-item {
+        padding: 10px;
+        padding-right: 10px;
+        padding-left: 10px;
+        padding-left: 20px;
+        padding-right: 20px;
+        border-radius: 8px;
+        background-color: rgba(52,53,63,0.8) !important;
+    }
+
+        .session-item .iconify:first-child {
+            width: 44px;
+            height: 44px;
+        }
+
+        .session-item .iconify:nth-child(2) {
+            width: 36px;
+            height: 36px;
+            margin-left: -26px;
+            margin-bottom: -36px;
+            background-color: #17171b;
+            padding: 6px;
+            border-radius: 100px;
+        }
 </style>
 
 

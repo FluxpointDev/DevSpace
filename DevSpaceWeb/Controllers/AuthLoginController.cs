@@ -25,7 +25,7 @@ public class AuthLoginController : AuthControllerContext
 
     // Login User
     [HttpPost("/auth/login")]
-    public async Task<IActionResult> Login([FromForm] string email = "", [FromForm] string password = "", [FromHeader] string requestId = "", [FromForm] bool rememberMe = false)
+    public async Task<IActionResult> Login([FromForm] string email = "", [FromForm] string password = "", [FromHeader] string requestId = "", [FromForm] bool rememberMe = false, [FromForm] bool isMobile = false, [FromForm] int browser = 0)
     {
         if (string.IsNullOrEmpty(requestId))
             return BadRequest("Request id is invalid");
@@ -71,12 +71,11 @@ public class AuthLoginController : AuthControllerContext
             }
             return BadRequest("Invalid email or password.");
         }
-
-        AuthUser.Auth.LoginAt = DateTime.UtcNow;
-        _ = _signInManager.UserManager.UpdateAsync(AuthUser);
-        if (!Request.Cookies.ContainsKey("DevSpace.SessionId"))
+        string SessionId = Request.Cookies["DevSpace.SessionId"];
+        if (string.IsNullOrEmpty(SessionId))
         {
-            Response.Cookies.Append("DevSpace.SessionId", Guid.NewGuid().ToString(), new CookieOptions
+            SessionId = Guid.NewGuid().ToString();
+            Response.Cookies.Append("DevSpace.SessionId", SessionId, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
@@ -84,6 +83,19 @@ public class AuthLoginController : AuthControllerContext
                 Expires = rememberMe ? DateTimeOffset.Now.AddDays(30) : null
             });
         }
+
+        if (!AuthUser.Auth.Sessions.ContainsKey(SessionId))
+        {
+            AuthUser.Auth.Sessions.Add(SessionId, new AuthUserSession
+            {
+                BrowserType = (SessionBrowserType)browser,
+                IsMobile = isMobile,
+            });
+        }
+        
+        AuthUser.Auth.LoginAt = DateTime.UtcNow;
+        await _signInManager.UserManager.UpdateAsync(AuthUser);
+        
         return Ok();
     }
 

@@ -73,7 +73,15 @@ public class AuthUser : MongoIdentityUser<ObjectId>
 
 public class AuthUserSession
 {
+    public bool IsMobile;
+    public SessionBrowserType BrowserType;
+    public string Name;
     public HashSet<string> AuthorizedIps = new HashSet<string>();
+    public DateTime CreatedAt = DateTime.UtcNow;
+}
+public enum SessionBrowserType
+{
+    Unknown, InternetExplorer, Firefox, Chrome, Safari, Edge, Opera
 }
 
 public class AuthUserMfa

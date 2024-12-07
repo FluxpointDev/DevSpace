@@ -4,6 +4,13 @@
     formData.append('password', password);
     formData.append('rememberMe', rememberMe)
 
+    var isMobile = false;
+    if (navigator.userAgent.match(/Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i))
+        isMobile = true;
+
+    formData.append('isMobile', isMobile);
+    formData.append('browser', GetBrowser());
+
     try {
         let response = await fetch('/auth/login', {
             method: 'POST',
@@ -26,6 +33,25 @@
     }
 
     return "fail";
+}
+
+function GetBrowser() {
+    if ((navigator.userAgent.indexOf("Opera") || navigator.userAgent.indexOf('OPR')) != -1) {
+        return 6;
+    } else if (navigator.userAgent.indexOf("Edg") != -1) {
+        return 5;
+    } else if (navigator.userAgent.indexOf("Chrome") != -1) {
+        return 3;
+    } else if (navigator.userAgent.indexOf("Safari") != -1) {
+        return 4;
+    } else if (navigator.userAgent.indexOf("Firefox") != -1) {
+        return 2;
+    } else if ((navigator.userAgent.indexOf("MSIE") != -1) || (!!document.documentMode == true)) //IF IE > 10
+    {
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
 async function accountChangePassword(email, password, emailToken, requestId) {
