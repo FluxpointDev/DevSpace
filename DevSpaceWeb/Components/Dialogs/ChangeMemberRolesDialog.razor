@@ -19,7 +19,7 @@
                 Current Roles
             </TargetHeader>
             <Template>
-                @if (CurrentRank < context.Position)
+                @if (Program.IsPreviewMode || CurrentRank < context.Position)
                 {
                     @context.Name
                 }
@@ -70,7 +70,8 @@
     public ListBoxItemRenderEventArgs<object> ItemRenderAction(ListBoxItemRenderEventArgs<object> data)
     {
         TeamRoleData role = data.Item as TeamRoleData;
-        data.Disabled = CurrentRank >= role.Position;
+        if (!Program.IsPreviewMode)
+            data.Disabled = CurrentRank >= role.Position;
         return data;
     }
 

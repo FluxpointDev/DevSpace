@@ -46,6 +46,7 @@
                         }
                     </RadzenStack>
                     <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
+                    <RadzenStack Gap="6px" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
                     @if (_DB.Users.TryGetValue(user, out PartialUserData ud))
                     {
                         <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Change Roles" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.AssignRoles))" />
@@ -60,6 +61,7 @@
                     {
                         <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(user))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))" />
                     }
+                    </RadzenStack>
                 </RadzenCard>
             </Template>
         </RadzenDataList>
@@ -146,6 +148,12 @@
 
     public async Task TransferOwnership(PartialUserData user)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         if (Member.Team.OwnerId != Session.CurrentUserId.Value)
             return;
 
@@ -170,6 +178,12 @@
 
     public async Task RemoveTeamMember(ObjectId user)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
