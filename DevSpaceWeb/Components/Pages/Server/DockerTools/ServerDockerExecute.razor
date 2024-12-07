@@ -84,6 +84,12 @@
 
     public async Task SendRequest()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         string Request = "curl --unix-socket /var/run/docker.sock --request " + HttpType;
         string InputText = await InputEditor.GetValue();
         if (!string.IsNullOrEmpty(InputText))

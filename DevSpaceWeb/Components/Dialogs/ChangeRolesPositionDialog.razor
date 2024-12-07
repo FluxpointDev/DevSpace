@@ -14,7 +14,7 @@
                 <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" ItemRender="@((x) => RenderItem(x))"
                 LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
                     <Template>
-                        @if (CurrentRank < (context as TeamRoleData).Position)
+                        @if (Program.IsPreviewMode || CurrentRank < (context as TeamRoleData).Position)
                         {
                             @((context as TeamRoleData).Name)
                         }
@@ -60,7 +60,8 @@
 
     public ListBoxItemRenderEventArgs<TeamRoleData> RenderItem(ListBoxItemRenderEventArgs<TeamRoleData> data)
     {
-        data.Disabled = CurrentRank >= (data.Item as TeamRoleData).Position;
+        if (!Program.IsPreviewMode)
+            data.Disabled = CurrentRank >= (data.Item as TeamRoleData).Position;
         return data;
     }
 
@@ -103,9 +104,11 @@
     {
         CurrentRank = Member.GetRank();
         int Index = RolesList.IndexOf(SelectedRole);
+        if (!Program.IsPreviewMode)
+        {
         if (Index == 0 || IsUpdating || CurrentRank >= (Index - 1))
             return;
-
+        }
         RolesList.RemoveAt(Index);
         RolesList.Insert(Index - 1, SelectedRole);
     }
@@ -115,9 +118,11 @@
         CurrentRank = Member.GetRank();
         int Index = RolesList.IndexOf(SelectedRole);
 
+        if (!Program.IsPreviewMode)
+        {
         if (Index == (RolesList.Count - 1) || IsUpdating || CurrentRank >= Index)
             return;
-
+        }
         RolesList.RemoveAt(Index);
         RolesList.Insert(Index + 1, SelectedRole);
     }

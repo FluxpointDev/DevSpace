@@ -38,7 +38,7 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                     Value="@(selectedContainers == null || selectedContainers?.Any() != true ? false : !containersList.All(i => selectedContainers.Contains(i)) ? null : containersList.Any(i => selectedContainers.Contains(i)))"
-                    Change="@(args => selectedContainers = args == true ? containersList.ToList() : null)" />
+                                    Change="@(args => selectedContainers = (args == true && containersList != null) ? containersList.ToList() : null)" />
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedContainers != null && selectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
@@ -138,7 +138,7 @@
     public TeamData Team => Session.Selected.Team.Data;
     public ServerData Server => Session.Selected.Server;
 
-    DockerResponse<ContainerItem[]>? containersResponse = null;
+    DockerResponse<ContainerItem[]>? containersResponse = new DockerResponse<ContainerItem[]>();
 
     IQueryable<ContainerItem> containersList;
     public int count = 0;
@@ -164,8 +164,26 @@
         {
             containersList = new List<ContainerItem>
              {
-                 new ContainerItem { Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)" },
-                 new ContainerItem { Names = new List<string> { "/discord-bot" }, State = "dead", Status = "" },
+                 new ContainerItem 
+                 {
+                     Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)", 
+                     Created = DateTime.UtcNow,
+                     Labels = new Dictionary<string, string>(),
+                     Mounts = new List<MountPoint>(),
+                     NetworkSettings = new SummaryNetworkSettings(),
+                     Ports = new List<Port>(),
+                     Image = "test:latest"
+                 },
+                 new ContainerItem
+                 {
+                     Names = new List<string> { "/discord-bot" }, State = "dead", Status = "test",
+                     Created = DateTime.UtcNow,
+                     Labels = new Dictionary<string, string>(),
+                     Mounts = new List<MountPoint>(),
+                     NetworkSettings = new SummaryNetworkSettings(),
+                     Ports = new List<Port>(),
+                     Image = "test:latest"
+                 },
              }.AsQueryable();
             count = 2;
             countDead = 1;
@@ -233,6 +251,12 @@
 
     void MenuItemClick(MenuItemEventArgs args, ContainerItem item)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             switch (args.Value.ToString())
@@ -263,6 +287,12 @@
 
     void RunSelectedContainersAction(ControlContainerType type)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, null, type) { ResourceList = selectedContainers.Select(x => x.ID).ToArray() });
@@ -291,6 +321,12 @@
 
     public async Task RefreshContainers()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         await grid.RefreshDataAsync();
     }
 }

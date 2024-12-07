@@ -185,6 +185,12 @@
 
     void RunSelectedContainersAction(ControlNetworkType type)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlNetwork, networkType: type) { ResourceList = selectedEmployees.Select(x => x.ID).ToArray() });
@@ -203,6 +209,12 @@
 
     void MenuItemClick(MenuItemEventArgs args, NetworkResponse item)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             switch (args.Value.ToString())
@@ -241,16 +253,28 @@
 
     async Task CreateNetwork()
     {
-
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
     }
 
     public async Task PruneNetworks()
     {
-
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
     }
 
     public async Task RefreshNetworks()
     {
-
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
     }
 }

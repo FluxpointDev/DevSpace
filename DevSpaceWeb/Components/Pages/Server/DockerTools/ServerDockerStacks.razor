@@ -26,7 +26,7 @@
 
     <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@stacksList" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-                    @bind-Value="@selectedStacks" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
+    @bind-Value="@selectedStacks" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
     PagingSummaryFormat="@(count + " stack" + (count != 1 ? "s" : "") )" Density="Density.Compact"
     AllowSorting="false"
     AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
@@ -37,8 +37,8 @@
             <RadzenDataGridColumn Width="36px" Sortable="false" Filterable="false" Frozen="true">
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
-                                    Value="@(selectedStacks == null || selectedStacks?.Any() != true ? false : !stacksList.All(i => selectedStacks.Contains(i)) ? null : stacksList.Any(i => selectedStacks.Contains(i)))"
-                                    Change="@(args => selectedStacks = args == true ? stacksList.ToList() : null)" />
+                    Value="@(selectedStacks == null || selectedStacks?.Any() != true ? false : !stacksList.All(i => selectedStacks.Contains(i)) ? null : stacksList.Any(i => selectedStacks.Contains(i)))"
+                    Change="@(args => selectedStacks = args == true ? stacksList.ToList() : null)" />
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedStacks != null && selectedStacks.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
@@ -132,6 +132,20 @@
         {
             stacksList = new List<DockerStackInfo>
             {
+                new DockerStackInfo
+                {
+                    Containers = new List<string>
+                    {
+                        "test-service"
+                    },
+                    CreatedAt = DateTime.UtcNow.AddDays(-2),
+                    Id = "1",
+                    IsRunning = true,
+                    Name = "test",
+                    Type = DockerStackType.Compose,
+                    UpdatedAt = DateTime.UtcNow,
+                    Version = 1
+                }
             }.AsQueryable();
             count = 0;
         }
@@ -233,6 +247,12 @@
 
     void RunSelectedContainersAction(ControlImageType type)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, imageType: type) { ResourceList = selectedStacks.Select(x => x.Id).ToArray() });
@@ -251,6 +271,12 @@
 
     void MenuItemClick(MenuItemEventArgs args, DockerStackInfo item)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             switch (args.Value.ToString())
@@ -269,11 +295,21 @@
 
     async Task CreateStack()
     {
-
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
     }
 
     public async Task RefreshStacks()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         await grid.RefreshDataAsync();
     }
 }

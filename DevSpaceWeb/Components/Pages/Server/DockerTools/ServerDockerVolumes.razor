@@ -172,6 +172,12 @@
 
     void RunSelectedContainersAction(ControlImageType type)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, imageType: type) { ResourceList = selectedEmployees.Select(x => x.Name).ToArray() });
@@ -190,6 +196,12 @@
 
     void MenuItemClick(MenuItemEventArgs args, VolumeItem item)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             switch (args.Value.ToString())
@@ -220,16 +232,30 @@
 
     async Task CreateImage()
     {
-
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
     }
 
     public async Task PruneImages()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.PruneImages));
     }
 
     public async Task RefreshImages()
     {
-
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
     }
 }

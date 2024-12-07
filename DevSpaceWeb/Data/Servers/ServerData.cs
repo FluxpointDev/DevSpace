@@ -32,7 +32,7 @@ public class ServerData : IResource
 
     public bool IsRunningDockerContainer()
     {
-        if (WebSocket != null && WebSocket.Client.IsRunningDockerContainer)
+        if (WebSocket != null && WebSocket.Client != null && WebSocket.Client.IsRunningDockerContainer)
             return true;
         return false;
     }

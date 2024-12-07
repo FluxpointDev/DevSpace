@@ -164,6 +164,11 @@
 
     void RunSelectedContainersAction(ControlPluginType type)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
         _ = Task.Run(async () =>
         {
             await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, null, null, type) { ResourceList = selectedEmployees.Select(x => x.ID).ToArray() });
@@ -183,6 +188,11 @@
 
     void MenuItemClick(MenuItemEventArgs args, Plugin item)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
         _ = Task.Run(async () =>
         {
             switch (args.Value.ToString())
@@ -204,6 +214,12 @@
 
     async Task InstallPlugin()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         var Response = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, "mickyg/kafka-logdriver", null, ControlPluginType.InstallCheck));
         if (Response.Error != DockerError.None)
         {
@@ -233,6 +249,12 @@
 
     public async Task RefreshPlugins()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         await grid.RefreshDataAsync();
     }
 }

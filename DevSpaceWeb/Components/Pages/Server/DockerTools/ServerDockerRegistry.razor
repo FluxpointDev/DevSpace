@@ -170,6 +170,12 @@
 
     void MenuItemClick(MenuItemEventArgs args, DockerRegistry item)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         _ = Task.Run(async () =>
         {
             switch (args.Value.ToString())
@@ -200,6 +206,12 @@
 
     public async Task RefreshRegistry()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         var query = new DockerRegistry[]
             {
                 new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true, Id = "docker_anonymous" }
@@ -212,6 +224,10 @@
 
     public async Task CreateRegistry()
     {
-
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
     }
 }
