@@ -35,6 +35,6 @@ public class PartialUserData
         Email = user.Email;
         AvatarId = user.AvatarId;
         ResourceId = user.ResourceId;
-        ManagedAccountTeamId = user.ManagedAccountTeamId;
+        ManagedAccountTeamId = user.Account.ManagedAccountTeamId;
     }
 }

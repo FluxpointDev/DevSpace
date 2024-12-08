@@ -118,7 +118,7 @@ public class PasskeyAuthController : AuthControllerContext
                 return Json(new Fido2Error("Failed user validation."));
 
             // 2. Get registered credential from database
-            FidoStoredCredential? creds = await identityUser.GetPasskeyByIdAsync(clientResponse.Id);
+            FidoStoredCredential? creds = await identityUser.Mfa.GetPasskeyByIdAsync(clientResponse.Id);
             if (creds == null)
                 throw new Exception("Unknown credentials");
 
@@ -126,7 +126,7 @@ public class PasskeyAuthController : AuthControllerContext
             // 4. Create callback to check if userhandle owns the credentialId
             IsUserHandleOwnerOfCredentialIdAsync callback = async (args, cancellationToken) =>
             {
-                List<FidoStoredCredential> storedCreds = await identityUser.GetPasskeysByUserHandleAsync(args.UserHandle);
+                List<FidoStoredCredential> storedCreds = await identityUser.Mfa.GetPasskeysByUserHandleAsync(args.UserHandle);
                 return storedCreds.Any(c => c.Descriptor != null && c.Descriptor.Id.SequenceEqual(args.CredentialId));
             };
 
@@ -145,7 +145,7 @@ public class PasskeyAuthController : AuthControllerContext
                 if (RequestData.LogRequest)
                 {
                     identityUser = await GetCurrentUserAsync();
-                    FidoStoredCredential? passkeyUsed = await identityUser.GetPasskeyByIdAsync(res.CredentialId);
+                    FidoStoredCredential? passkeyUsed = await identityUser.Mfa.GetPasskeyByIdAsync(res.CredentialId);
                     if (passkeyUsed != null)
                     {
                         passkeyUsed.LastUsedAt = DateTime.UtcNow;

@@ -24,10 +24,9 @@ public class AuthUser : MongoIdentityUser<ObjectId>
 
     [BsonIgnore]
     public bool HasAvatar => AvatarId != null;
-    public ObjectId? ManagedAccountTeamId { get; set; }
 
     [BsonIgnore]
-    public bool IsManaged => ManagedAccountTeamId != null;
+    public bool IsManaged => Account.ManagedAccountTeamId != null;
 
     public string GetAvatarOrDefault(bool usePng = false)
     {
@@ -37,27 +36,13 @@ public class AuthUser : MongoIdentityUser<ObjectId>
         return Avatar.Url(usePng ? "png" : "webp");
     }
 
-    public bool IsInstanceAdmin;
+    public bool IsInstanceAdmin { get; set; }
 
-    public UserAccount Account = new UserAccount();
-    public UserMfa Mfa = new UserMfa();
+    public UserAccount Account { get; set; } = new UserAccount();
+    public UserMfa Mfa { get; set; } = new UserMfa();
     public UserDisabled? Disabled { get; set; }
 
-    public async Task<FidoStoredCredential?> GetPasskeyByIdAsync(byte[] id)
-    {
-        string credentialIdString = Base64Url.Encode(id);
-
-        FidoStoredCredential? cred = Mfa.Passkeys
-            .Where(c => c.DescriptorJson != null && c.DescriptorJson.Contains(credentialIdString))
-            .FirstOrDefault();
-
-        return cred;
-    }
-
-    public Task<List<FidoStoredCredential>> GetPasskeysByUserHandleAsync(byte[] userHandle)
-    {
-        return Task.FromResult(Mfa.Passkeys.Where(c => c.UserHandle != null && c.UserHandle.SequenceEqual(userHandle)).ToList());
-    }
+    
 
     public void UpdatePartial()
     {

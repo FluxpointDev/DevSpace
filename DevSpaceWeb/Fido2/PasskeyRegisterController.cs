@@ -126,7 +126,7 @@ public class PasskeyRegisterController : AuthControllerContext
             // 2. Create callback so that lib can verify credential id is unique to this user
             IsCredentialIdUniqueToUserAsyncDelegate callback = async (args, cancellationToken) =>
             {
-                FidoStoredCredential? cred = await user.GetPasskeyByIdAsync(args.CredentialId);
+                FidoStoredCredential? cred = await user.Mfa.GetPasskeyByIdAsync(args.CredentialId);
                 if (cred != null)
                     return false;
 

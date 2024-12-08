@@ -1,6 +1,8 @@
 ﻿using DevSpaceWeb.Fido2;
+using Fido2NetLib;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Runtime.Intrinsics.X86;
 using System.Text.Json.Serialization;
 
 namespace DevSpaceWeb.Data.Users;
@@ -28,4 +30,20 @@ public class UserMfa
     public DateTime? RecoveryCodeCreatedAt { get; set; }
     public DateTime? RecoveryCodeLastUsedAt { get; set; }
     public string? RecoveryCode { get; set; }
+
+    public async Task<FidoStoredCredential?> GetPasskeyByIdAsync(byte[] id)
+    {
+        string credentialIdString = Base64Url.Encode(id);
+
+        FidoStoredCredential? cred = Passkeys
+            .Where(c => c.DescriptorJson != null && c.DescriptorJson.Contains(credentialIdString))
+            .FirstOrDefault();
+
+        return cred;
+    }
+
+    public Task<List<FidoStoredCredential>> GetPasskeysByUserHandleAsync(byte[] userHandle)
+    {
+        return Task.FromResult(Passkeys.Where(c => c.UserHandle != null && c.UserHandle.SequenceEqual(userHandle)).ToList());
+    }
 }
