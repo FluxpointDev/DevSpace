@@ -1,0 +1,268 @@
+﻿@implements IDisposable
+@inject DialogService DialogService
+@inject UserManager<AuthUser> UserManager
+@inject NavigationManager NavigationManager
+@inject EmailService Email
+
+<div class="settings-box">
+    <h3>Profile</h3>
+
+    @if (AuthUser == null)
+    {
+        <br />
+        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenSkeleton></RadzenSkeleton>
+    }
+    else
+    {
+        @if (AuthUser.IsManaged)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Your account is managed by your Team, some options will be unavailable to you.
+            </RadzenAlert>
+        }
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+            <RadzenImage Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" Click="@EditAvatar" />
+            <RadzenStack Gap="0">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">Username</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @AuthUser.UserName
+                </RadzenText>
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">Display Name</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @(AuthUser.DisplayName ?? "⠀")
+                </RadzenText>
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">Email</RadzenText>
+                <RadzenTextMask Value="@AuthUser.Email" IsEmail="true"></RadzenTextMask>
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">Account Created</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.CreatedOn, false)</RadzenText>
+            </RadzenStack>
+        </RadzenStack>
+
+        <div class="mb-4" />
+
+
+
+        @if (!AuthUser.EmailConfirmed)
+        {
+            if (EmailVerifySent)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                    Check your email address to confirm your account.
+                    <RadzenButton Disabled="true" Text="Verify" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Base" />
+                </RadzenAlert>
+            }
+            else
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                    You need to confirm your email address.
+                    <RadzenButton Click="@SendEmailVerify" Text="Verify" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" />
+                </RadzenAlert>
+            }
+        }
+        <br />
+        <h4 class="mb-2">Manage</h4>
+        <RadzenButton Text="Edit Account" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@EditAccount" />
+        <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@AuthUser.IsManaged" />
+        <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangePassword" />
+        <br />
+        <br />
+        <RadzenButton Text="Disable Account" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@DisableAccount" Disabled="@AuthUser.IsManaged" />
+        <RadzenButton Text="Delete Account" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@DeleteAccount" Disabled="@AuthUser.IsManaged" />
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    public SessionProvider Session { get; set; }
+
+    public AuthUser AuthUser { get; set; }
+
+    public bool ShowEmailAddress { get; set; }
+
+    public void ToggleShowEmailAddress()
+    {
+        ShowEmailAddress = !ShowEmailAddress;
+    }
+
+    public bool EmailVerifySent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _DB.SessionUpdated += SessionChangedEvent;
+        AuthUser = await Session.GetCurrentUserAsync();
+    }
+
+    public void Dispose()
+    {
+        _DB.SessionUpdated -= SessionChangedEvent;
+    }
+
+    public async void SessionChangedEvent(object sender, ObjectId user, SessionEventType type)
+    {
+        if (AuthUser.Id != user || type != SessionEventType.AccountUpdate)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        _ = InvokeAsync(StateHasChanged);
+
+    }
+
+    
+
+    public async Task EditAccount()
+    {
+        await DialogService.OpenAsync<EditAccountDialog>("Edit Account", options: new DialogOptions
+            {
+                AutoFocusFirstElement = true
+            });
+    }
+
+    public async Task EditAvatar()
+    {
+        var Dialog = await DialogService.OpenAsync<ChangeAccountAvatarDialog>("Change Avatar", options: new DialogOptions
+        {
+
+        });
+        if (Dialog != null)
+        {
+            if (Dialog == true)
+            {
+                AuthUser = await Session.GetCurrentUserAsync();
+            }
+        }
+    }
+
+    public async Task ChangeEmail()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.EmailConfirmed)
+        {
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+        }
+
+        var options = new DialogOptions() { };
+
+        var Dialog = await DialogService.OpenAsync<ChangeAccountEmailDialog>("Change Account Email", new Dictionary<string, object>(), options);
+
+        if (Dialog != null)
+        {
+            if (Dialog == true)
+            {
+                AuthUser = await Session.GetCurrentUserAsync();
+                await DialogService.ShowInfoAsync("Check your Emails", $"We have sent a confirmation link to INSERT EMAIL so you can change your account email address.");
+            }
+        }
+    }
+
+    public async Task ChangePassword()
+    {
+        if (AuthUser.Mfa.IsTwoFactorEnabled)
+        {
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+        }
+
+        await DialogService.OpenAsync<ChangeAccountPasswordDialog>("Change Account Password", new Dictionary<string, object>(), new DialogOptions { });
+
+    }
+
+    public async Task DisableAccount()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.IsInstanceAdmin)
+        {
+            await DialogService.ShowInfoAsync("Account Info", "You can't disable your instance admin account.");
+            return;
+        }
+        if (!AuthUser.EmailConfirmed)
+        {
+            await DialogService.ShowInfoAsync("Account Info", "You can't disable your account because your email is not verified.");
+            return;
+        }
+
+        var Result = await DialogService.ShowConfirmAsync("Disable Account", "Are you sure you want to disable your account?", "Confirm Disable", ButtonStyle.Warning);
+        if (Result)
+        {
+            AuthUser = await Session.GetCurrentUserAsync();
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+
+            AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+            {
+                return;
+            }
+            AuthUser.Disabled = new UserDisabled
+                {
+                    State = UserDisabledState.User,
+                    DisabledAt = DateTime.UtcNow
+                };
+            await UserManager.UpdateAsync(AuthUser);
+            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+            await Email.SendAccountDisabled(AuthUser, "You have disabled your account.");
+            NavigationManager.Refresh(true);
+        }
+    }
+
+    public async Task DeleteAccount()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.IsInstanceAdmin)
+        {
+            await DialogService.ShowInfoAsync("Account Info", "You can't delete your instance admin account.");
+            return;
+        }
+        if (_DB.Teams.Cache.Values.Any(x => x.OwnerId == AuthUser.Id))
+        {
+            await DialogService.ShowInfoAsync("Account Info", "You can't delete your account with owned teams.");
+            return;
+        }
+
+        var Result = await DialogService.ShowConfirmAsync("Delete Account", "Are you sure you want to delete your account?", "Confirm Delete", ButtonStyle.Warning);
+        if (Result)
+        {
+            AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser.EmailConfirmed)
+            {
+                var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
+                if (!TwoFactorValid)
+                {
+                    await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                    return;
+                }
+            }
+            AuthUser = await Session.GetCurrentUserAsync();
+            await UserManager.DeleteAsync(AuthUser);
+            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.Logout);
+            await Email.SendAccountDeleted(AuthUser);
+            NavigationManager.NavigateTo("/logout", true);
+        }
+    }
+
+    public async Task SendEmailVerify()
+    {
+        EmailVerifySent = true;
+        var Code = await UserManager.GenerateEmailConfirmationTokenAsync(AuthUser);
+        Code = Uri.EscapeDataString(Code);
+        await Email.SendAccountConfirm(AuthUser, (NavigationManager.BaseUri + "auth/account/confirmEmail?token=" + Code));
+    }
+}

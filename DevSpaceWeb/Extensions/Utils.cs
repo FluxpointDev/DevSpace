@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data.Users;
+﻿using DevSpaceWeb.Components.Layout;
+using DevSpaceWeb.Data.Users;
 using Radzen;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -215,5 +216,34 @@ public static class Utils
         while (result > range);
 
         return AllowedChars[(int)result];
+    }
+
+    public static string GetLocalDate(SessionProvider session, DateTime? date, bool isMini)
+    {
+        if (!date.HasValue || date.Value.Year == 1)
+            return "";
+        DateTimeOffset MessageOffset;
+        try
+        {
+            MessageOffset = date.Value.AddMinutes(session.UserDateOffset);
+        }
+        catch
+        {
+            return "Unknown";
+        }
+        DateTimeOffset UserDate = DateTimeOffset.UtcNow.AddMinutes(session.UserDateOffset);
+
+
+        if (MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month)
+        {
+            if (MessageOffset.Day == UserDate.Day)
+                return $"Today at {MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)}";
+
+            DateTimeOffset Lastday = UserDate.AddDays((int)-1);
+            if (MessageOffset.Day == Lastday.Day)
+                return $"Yesterday at {MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)}";
+        }
+
+        return $"{MessageOffset.Day.ToString().PadLeft(2, '0')}/{MessageOffset.Month.ToString().PadLeft(2, '0')}/{MessageOffset.Year.ToString().PadLeft(2, '0')}";
     }
 }

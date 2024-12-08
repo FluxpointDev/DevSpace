@@ -23,7 +23,7 @@
             <Columns>
                 <RadzenDataGridColumn Title="Date" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Body2">@GetLocalDate(context.CreatedAt, false)</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, context.CreatedAt, false)</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Member" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
@@ -164,35 +164,6 @@
 
     public bool isLoading = false;
     public int Count = 0;
-
-    public string GetLocalDate(DateTime? date, bool isMini)
-    {
-        if (!date.HasValue || date.Value.Year == 1)
-            return "";
-        DateTimeOffset MessageOffset;
-        try
-        {
-            MessageOffset = date.Value.AddMinutes(Session.UserDateOffset);
-        }
-        catch
-        {
-            return "Unknown";
-        }
-        DateTimeOffset UserDate = DateTimeOffset.UtcNow.AddMinutes(Session.UserDateOffset);
-
-
-        if (MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month)
-        {
-            if (MessageOffset.Day == UserDate.Day)
-                return $"Today ({MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)})";
-
-            DateTimeOffset Lastday = UserDate.AddDays((int)-1);
-            if (MessageOffset.Day == Lastday.Day)
-                return $"Yesterday ({MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)})";
-        }
-
-        return $"{MessageOffset.Day.ToString().PadLeft(2, '0')}/{MessageOffset.Month.ToString().PadLeft(2, '0')}/{MessageOffset.Year.ToString().PadLeft(2, '0')} ({MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)})";
-    }
 
     public async Task LoadData(LoadDataArgs args)
     {
