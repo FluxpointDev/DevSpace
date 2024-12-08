@@ -36,7 +36,7 @@
     return "fail";
 }
 
-async function getCountry() {
+function getCountry() {
     try {
         return Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0];
     }
