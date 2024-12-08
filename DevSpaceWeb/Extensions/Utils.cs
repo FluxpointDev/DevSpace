@@ -1,4 +1,5 @@
-﻿using Radzen;
+﻿using DevSpaceWeb.Data.Users;
+using Radzen;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -8,6 +9,52 @@ namespace DevSpaceWeb;
 
 public static class Utils
 {
+    public static UserPasswordStrength GetPasswordStrength(string password)
+    {
+        int Capitals = 0;
+        int Lower = 0;
+        int Digits = 0;
+        int Special = 0;
+
+        foreach (char c in password)
+        {
+            if (char.IsUpper(c))
+                Capitals += 1;
+            else if (char.IsLower(c))
+                Lower += 1;
+            else if (char.IsDigit(c))
+                Digits += 1;
+            else if (char.IsSymbol(c))
+                Special += 1;
+        }
+
+        if (Capitals == 0 && Digits == 0)
+            return UserPasswordStrength.Low;
+
+        if (Capitals == 0 && Special == 0)
+            return UserPasswordStrength.Low;
+
+        if (Digits == 0 && Special == 0)
+            return UserPasswordStrength.Low;
+        
+        if (password.Contains("123"))
+            return UserPasswordStrength.Low;
+
+        if (Capitals != 0 && Lower != 0)
+        {
+            if (Capitals > 1 && Digits > 2 && password.Length > 16)
+                return UserPasswordStrength.High;
+
+            if (Capitals > 1 && Special > 2 && password.Length > 16)
+                return UserPasswordStrength.High;
+
+            if (Digits > 2 && Special > 2 && password.Length > 16)
+                return UserPasswordStrength.High;
+        }
+
+        return UserPasswordStrength.Normal;
+    }
+
     private static readonly string[] SizeSuffixes =
                    { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
     public static string SizeSuffix(Int64 value, int decimalPlaces = 1)

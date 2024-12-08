@@ -114,6 +114,9 @@ public class AuthAccountController : AuthControllerContext
         if (User == null)
             return BadRequest("Failed to change password");
 
+        User.Account.PasswordChangedAt = DateTime.UtcNow;
+        User.Account.PasswordStrength = Utils.GetPasswordStrength(password);
+
         IdentityResult Result = await _userManager.ResetPasswordAsync(User, emailToken, password);
         if (!Result.Succeeded)
             return BadRequest("Failed to change password");
