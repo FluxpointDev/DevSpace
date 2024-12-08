@@ -120,6 +120,12 @@
             return;
         }
         var AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
+            return;
+        }
+
         string VerifyCache = Cache.GetString("2fa-verify-" + AuthUser.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache))
         {
@@ -129,11 +135,6 @@
             if (LogUsage)
             {
                 AuthUser = await Session.GetCurrentUserAsync();
-                if (AuthUser == null)
-                {
-                    Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
-                    return;
-                }
                 AuthUser.Auth.EmailCodeLastSentAt = DateTime.UtcNow;
                 await UserManager.UpdateAsync(AuthUser);
             }

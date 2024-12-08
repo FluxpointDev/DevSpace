@@ -70,6 +70,10 @@ public class AuthUser : MongoIdentityUser<ObjectId>
             _DB.Users.Add(Id, ud);
     }
 }
+public enum AuthUserDisabledState
+{
+    None, User, TeamManaged, Instance
+}
 
 public class AuthUserSession
 {
@@ -110,6 +114,10 @@ public class AuthUserMfa
     public DateTime? RecoveryCodeCreatedAt { get; set; }
     public DateTime? RecoveryCodeLastUsedAt { get; set; }
     public string? RecoveryCode { get; set; }
+
+    public AuthUserDisabledState DisabledState { get; set; } = AuthUserDisabledState.None;
+    public string DisabledReason { get; set; }
+    public DateTime? DisabledAt { get; set; }
 }
 
 [CollectionName("auth_roles")]

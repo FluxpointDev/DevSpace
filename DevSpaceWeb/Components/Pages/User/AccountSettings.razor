@@ -50,26 +50,26 @@
                         }
                         else
                         {
-                            <br />
+
                         }
 
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                             <RadzenImage Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" Click="@EditAvatar" />
                             <RadzenStack Gap="0">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Username</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">Username</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body2">
                                     @AuthUser.UserName
                                 </RadzenText>
 
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Display Name</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">Display Name</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body2">
                                     @(AuthUser.DisplayName ?? "⠀")
                                 </RadzenText>
 
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Email</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">Email</RadzenText>
                                 <RadzenTextMask Value="@AuthUser.Email" IsEmail="true"></RadzenTextMask>
 
-                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-2 rz-my-0">Account Created</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">Account Created</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body2">@GetLocalDate(AuthUser.CreatedOn, false)</RadzenText>
                             </RadzenStack>
                         </RadzenStack>
@@ -102,69 +102,13 @@
                         <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangePassword" />
                         <br />
                         <br />
+                        <RadzenButton Text="Disable Account" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@DisableAccount" Disabled="@AuthUser.IsManaged" />
                         <RadzenButton Text="Delete Account" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@DeleteAccount" Disabled="@AuthUser.IsManaged" />
                     }
                 </div>
-                <div class="settings-box">
-                    <h3>Sessions</h3>
-                    <br />
-                    @if (AuthUser == null)
-                    {
-                        <br />
-                        <RadzenSkeleton></RadzenSkeleton>
-                        <RadzenSkeleton></RadzenSkeleton>
-                        <RadzenSkeleton></RadzenSkeleton>
-                    }
-                    else
-                    {
-                        @foreach (var i in AuthUser.Auth.Sessions.Values)
-                        {
-                            <div class="session-item">
-                                @switch (i.BrowserType)
-                                {
-                                    case SessionBrowserType.Firefox:
-                                        <span class="iconify" data-icon="logos:firefox"></span>
-                                        break;
-                                    case SessionBrowserType.Chrome:
-                                        <span class="iconify" data-icon="logos:chrome"></span>
-                                        break;
-                                    case SessionBrowserType.Edge:
-                                        <span class="iconify" data-icon="logos:microsoft-edge"></span>
-                                        break;
-                                    case SessionBrowserType.InternetExplorer:
-                                        <span class="iconify" data-icon="logos:internetexplorer"></span>
-                                        break;
-                                    case SessionBrowserType.Opera:
-                                        <span class="iconify" data-icon="logos:opera"></span>
-                                        break;
-                                    case SessionBrowserType.Safari:
-                                        <span class="iconify" data-icon="logos:safari"></span>
-                                        break;
-                                    case SessionBrowserType.Vivaldi:
-                                        <span class="iconify" data-icon="logos:vivaldi-icon"></span>
-                                        break;
-                                    case SessionBrowserType.Unknown:
-                                        <span class="iconify" data-icon="mdi:web"></span>
-                                        break;
-                                }
-                                @if (i.IsMobile)
-                                {
-                                    <span class="iconify" data-icon="mdi:mobile-phone"></span>
-                                }
-                                else
-                                {
-                                    <span class="iconify" data-icon="mdi:computer-classic"></span>
-                                }
 
-                                <p>Firefox (Current Session)</p>
-                                <p>Created At @(GetLocalDate(i.CreatedAt, false))</p>
-                                <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" />
-                            </div>
-                        }
-                    }
-                </div>
             </RadzenTabsItem>
-            <RadzenTabsItem Text="Two-factor (2FA)">
+            <RadzenTabsItem Text="Security">
                 @if (AuthUser != null)
                 {
                     if (!AuthUser.EmailConfirmed)
@@ -271,6 +215,64 @@
                                 </RadzenAlert>
                             }
                         </div>
+                        <div class="settings-box">
+                            <h3>Sessions</h3>
+                            <br />
+                            @if (AuthUser == null)
+                            {
+                                <br />
+                                <RadzenSkeleton></RadzenSkeleton>
+                                <RadzenSkeleton></RadzenSkeleton>
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+                            else
+                            {
+                                @foreach (var i in AuthUser.Auth.Sessions.Values)
+                                {
+                                    <div class="session-item">
+                                        @switch (i.BrowserType)
+                                        {
+                                            case SessionBrowserType.Firefox:
+                                                <span class="iconify" data-icon="logos:firefox"></span>
+                                                break;
+                                            case SessionBrowserType.Chrome:
+                                                <span class="iconify" data-icon="logos:chrome"></span>
+                                                break;
+                                            case SessionBrowserType.Edge:
+                                                <span class="iconify" data-icon="logos:microsoft-edge"></span>
+                                                break;
+                                            case SessionBrowserType.InternetExplorer:
+                                                <span class="iconify" data-icon="logos:internetexplorer"></span>
+                                                break;
+                                            case SessionBrowserType.Opera:
+                                                <span class="iconify" data-icon="logos:opera"></span>
+                                                break;
+                                            case SessionBrowserType.Safari:
+                                                <span class="iconify" data-icon="logos:safari"></span>
+                                                break;
+                                            case SessionBrowserType.Vivaldi:
+                                                <span class="iconify" data-icon="logos:vivaldi-icon"></span>
+                                                break;
+                                            case SessionBrowserType.Unknown:
+                                                <span class="iconify" data-icon="mdi:web"></span>
+                                                break;
+                                        }
+                                        @if (i.IsMobile)
+                                        {
+                                            <span class="iconify" data-icon="mdi:mobile-phone"></span>
+                                        }
+                                        else
+                                        {
+                                            <span class="iconify" data-icon="mdi:computer-classic"></span>
+                                        }
+
+                                        <p>Firefox (Current Session)</p>
+                                        <p>Created At @(GetLocalDate(i.CreatedAt, false))</p>
+                                        <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                                    </div>
+                                }
+                            }
+                        </div>
                     }
                 }
             </RadzenTabsItem>
@@ -321,29 +323,29 @@
 
 
     .session-item {
-        padding: 10px;
-        padding-right: 10px;
-        padding-left: 10px;
-        padding-left: 20px;
-        padding-right: 20px;
-        border-radius: 8px;
-        background-color: rgba(52,53,63,0.8) !important;
+    padding: 10px;
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 8px;
+    background-color: rgba(52,53,63,0.8) !important;
     }
 
-        .session-item .iconify:first-child {
-            width: 44px;
-            height: 44px;
-        }
+    .session-item .iconify:first-child {
+    width: 44px;
+    height: 44px;
+    }
 
-        .session-item .iconify:nth-child(2) {
-            width: 36px;
-            height: 36px;
-            margin-left: -26px;
-            margin-bottom: -36px;
-            background-color: #17171b;
-            padding: 6px;
-            border-radius: 100px;
-        }
+    .session-item .iconify:nth-child(2) {
+    width: 36px;
+    height: 36px;
+    margin-left: -26px;
+    margin-bottom: -36px;
+    background-color: #17171b;
+    padding: 6px;
+    border-radius: 100px;
+    }
 </style>
 
 
@@ -426,7 +428,7 @@
             if (Dialog == true)
             {
                 AuthUser = await Session.GetCurrentUserAsync();
-                _ = DialogService.ShowInfoAsync("Check your Emails", $"We have sent a confirmation link to INSERT EMAIL so you can change your account email address.");
+                await DialogService.ShowInfoAsync("Check your Emails", $"We have sent a confirmation link to INSERT EMAIL so you can change your account email address.");
             }
         }
     }
@@ -445,6 +447,45 @@
 
         await DialogService.OpenAsync<ChangeAccountPasswordDialog>("Change Account Password", new Dictionary<string, object>(), new DialogOptions { });
 
+    }
+
+    public async Task DisableAccount()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.IsInstanceAdmin)
+        {
+            await DialogService.ShowInfoAsync("Account Info", "You can't disable your instance admin account.");
+            return;
+        }
+        if (!AuthUser.EmailConfirmed)
+        {
+            await DialogService.ShowInfoAsync("Account Info", "You can't disable your account because your email is not verified.");
+            return;
+        }
+
+        var Result = await DialogService.ShowConfirmAsync("Disable Account", "Are you sure you want to disable your account?", "Confirm Disable", ButtonStyle.Warning);
+        if (Result)
+        {
+            AuthUser = await Session.GetCurrentUserAsync();
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+
+            AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+            {
+                return;
+            }
+            AuthUser.Auth.DisabledState = AuthUserDisabledState.User;
+            AuthUser.Auth.DisabledAt = DateTime.UtcNow;
+            await UserManager.UpdateAsync(AuthUser);
+            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+            await Email.SendAccountDisabled(AuthUser, "You have disabled your account.");
+            NavigationManager.Refresh(true);
+        }
     }
 
     public async Task DeleteAccount()
@@ -476,7 +517,8 @@
             }
             AuthUser = await Session.GetCurrentUserAsync();
             await UserManager.DeleteAsync(AuthUser);
-            _ = Email.SendAccountDeleted(AuthUser);
+            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.Logout);
+            await Email.SendAccountDeleted(AuthUser);
             NavigationManager.NavigateTo("/logout", true);
         }
     }

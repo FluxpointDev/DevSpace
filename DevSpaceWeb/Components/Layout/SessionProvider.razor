@@ -109,6 +109,11 @@
                                 <NewIpPage></NewIpPage>
                             }
                             break;
+                        case SessionErrorType.AccountDisabled:
+                            {
+                                <AccountDisabled></AccountDisabled>
+                                break;
+                            }
                     }
                 </RadzenBody>
             </RadzenLayout>
@@ -295,6 +300,14 @@
                     if (User != null)
                     {
                         CurrentUserId = User.Id;
+
+                        if (User.Auth.DisabledState != AuthUserDisabledState.None)
+                        {
+                            SessionError = SessionErrorType.AccountDisabled;
+                            return;
+                        }
+
+
                         if (User.Background.Id.HasValue)
                             BackgroundUrl = User.Background.Url("webp");
 
@@ -352,7 +365,7 @@
 
     public enum SessionErrorType
     {
-        Loading, SessionSecurityError, HttpsRequired, SessionSecurityNewIp, AuthenticationError, AuthenticationRequired, DatabaseError, RestartRequired, Success
+        Loading, SessionSecurityError, HttpsRequired, SessionSecurityNewIp, AuthenticationError, AuthenticationRequired, DatabaseError, RestartRequired, Success, AccountDisabled
     }
 
 }

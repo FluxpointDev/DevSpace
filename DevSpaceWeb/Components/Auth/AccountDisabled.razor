@@ -1,0 +1,127 @@
+﻿@using Microsoft.Extensions.Caching.Distributed
+@inject IDistributedCache Cache
+@inject EmailService Email
+@inject DialogService DialogService
+@inject UserManager<AuthUser> UserManager
+@inject NavigationManager NavigationManager
+
+<div class="dash-box dash-box-content dash-center">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Account Disabled</RadzenText>
+    </div>
+    @switch (DisabledState)
+    {
+        case AuthUserDisabledState.User:
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+                    You have disabled your account.
+                </RadzenAlert>
+                <p>You can reactive your account with an email code.</p>
+                <br />
+                <RadzenButton Text="Reactivate Account" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@EnableAccount" />
+                @if (ShowEmailCodeConfirm)
+                {
+                    <br />
+                    <RadzenLabel Text="Email Code" class="rz-my-0"></RadzenLabel>
+                    <div>
+                        <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@EmailCode" Count="8" Gap="6px" aria-label="Email Code" autofocus />
+                    </div>
+                    <br />
+                    <RadzenButton Click="@EnableAccountConfirm" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                }
+            }
+            break;
+        case AuthUserDisabledState.TeamManaged:
+            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+                Your account is managed by a Team and has been disabled.
+            </RadzenAlert>
+            @if (!string.IsNullOrEmpty(Reason))
+            {
+                <p>Reason: @Reason</p>
+                <br />
+            }
+            break;
+        case AuthUserDisabledState.Instance:
+            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+                Your account has been disabled by the Dev Space instance admin.
+            </RadzenAlert>
+            @if (!string.IsNullOrEmpty(Reason))
+            {
+                <p>Reason: @Reason</p>
+                <br />
+            }
+            break;
+    }
+
+</div>
+
+
+@code {
+    [CascadingParameter]
+    public SessionProvider Session { get; set; }
+
+    public bool AccountfailedToLoad = false;
+    public bool ShowEmailCodeConfirm { get; set; }
+    public string EmailCode { get; set; }
+
+    public AuthUserDisabledState DisabledState { get; set; }
+    public string Reason { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var User = await Session.GetCurrentUserAsync();
+        if (User == null)
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
+            AccountfailedToLoad = true;
+            return;
+        }
+        DisabledState = User.Auth.DisabledState;
+    }
+
+    public async Task EnableAccount()
+    {
+        if (!Email.CanSendEmail())
+        {
+            await DialogService.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            return;
+        }
+        ShowEmailCodeConfirm = true;
+        var User = await Session.GetCurrentUserAsync();
+        if (User == null)
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
+            return;
+        }
+        string Code = Email.RandomCodeGenerator();
+        Cache.SetString("2fa-verify-" + User.Id.ToString(), Code, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
+        await Email.SendAccessCode(User, "2FA Verification", Code);
+        User.Auth.EmailCodeLastSentAt = DateTime.UtcNow;
+        await UserManager.UpdateAsync(User);
+    }
+
+    public async Task EnableAccountConfirm()
+    {
+        var User = await Session.GetCurrentUserAsync();
+        if (User == null)
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
+            return;
+        }
+
+        string VerifyCache = Cache.GetString("2fa-verify-" + User.Id.ToString());
+        if (string.IsNullOrEmpty(VerifyCache) || !VerifyCache.Equals(EmailCode))
+            await DialogService.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
+        else
+        {
+
+            User.Auth.EmailCodeLastUsedAt = DateTime.UtcNow;
+            User.Auth.DisabledAt = null;
+            User.Auth.DisabledState = AuthUserDisabledState.None;
+            await UserManager.UpdateAsync(User);
+            NavigationManager.Refresh(true);
+
+        }
+    }
+}
