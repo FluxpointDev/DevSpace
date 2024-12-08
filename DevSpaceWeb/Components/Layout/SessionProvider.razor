@@ -1,5 +1,6 @@
 ﻿@using DevSpaceWeb.Components.Auth
 @using DevSpaceWeb.Components.Dialogs
+@using DevSpaceWeb.Data.Users
 @using DevSpaceWeb.Database
 @using DevSpaceWeb.Fido2
 @using Microsoft.AspNetCore.Components.Authorization
@@ -267,7 +268,7 @@
             {
                 var User = await GetCurrentUserAsync();
                 CurrentUserId = User.Id;
-                if (!User.Auth.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
+                if (!User.Account.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
                 {
                     SessionError = SessionErrorType.SessionSecurityNewIp;
                     return;
@@ -320,7 +321,7 @@
                                 return;
                             }
 
-                            if (!User.Auth.Sessions.TryGetValue(SessionId, out var session) || !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
+                            if (!User.Account.Sessions.TryGetValue(SessionId, out var session) || !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
                             {
                                 SessionError = SessionErrorType.SessionSecurityNewIp;
                                 return;

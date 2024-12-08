@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Teams;
+using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

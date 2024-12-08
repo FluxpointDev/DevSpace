@@ -69,16 +69,16 @@
         }
 
 
-        if (user.Auth.Passkeys.Any(x => x.Name.Equals(RegisterModel.DeviceName)))
+        if (user.Mfa.Passkeys.Any(x => x.Name.Equals(RegisterModel.DeviceName)))
         {
             IsLoading = false;
             ErrorMessage = "This device name is already registered, try another one.";
             return;
         }
 
-        if (user.Auth.PasskeyId == null)
+        if (user.Mfa.PasskeyId == null)
         {
-            user.Auth.PasskeyId = MongoDB.Bson.ObjectId.GenerateNewId();
+            user.Mfa.PasskeyId = MongoDB.Bson.ObjectId.GenerateNewId();
             await UserManager.UpdateAsync(user);
         }
         bool IsSuccess = false;

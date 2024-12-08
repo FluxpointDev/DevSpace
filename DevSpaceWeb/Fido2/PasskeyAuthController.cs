@@ -1,4 +1,4 @@
-﻿using DevSpaceWeb.Data;
+﻿using DevSpaceWeb.Data.Users;
 using Fido2NetLib;
 using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Identity;
@@ -52,9 +52,9 @@ public class PasskeyAuthController : AuthControllerContext
             {
                 DisplayName = identityUser!.UserName,
                 Name = identityUser.Email,
-                Id = Fido2Service.GetPasskeyIdInBytes(identityUser.Auth.PasskeyId.Value.ToString()) // byte representation of userID is required
+                Id = Fido2Service.GetPasskeyIdInBytes(identityUser.Mfa.PasskeyId.Value.ToString()) // byte representation of userID is required
             };
-            List<PublicKeyCredentialDescriptor> existingCredentials = identityUser.Auth.Passkeys.Where(x => x.Descriptor != null).Select(c => c.Descriptor).ToList();
+            List<PublicKeyCredentialDescriptor> existingCredentials = identityUser.Mfa.Passkeys.Where(x => x.Descriptor != null).Select(c => c.Descriptor).ToList();
 
 
             AuthenticatorSelection authenticatorSelection = new AuthenticatorSelection
@@ -149,11 +149,11 @@ public class PasskeyAuthController : AuthControllerContext
                     if (passkeyUsed != null)
                     {
                         passkeyUsed.LastUsedAt = DateTime.UtcNow;
-                        identityUser.Auth.PasskeyLastUsedDevice = passkeyUsed.Name;
+                        identityUser.Mfa.PasskeyLastUsedDevice = passkeyUsed.Name;
                     }
                     else
-                        identityUser.Auth.PasskeyLastUsedDevice = "Unknown";
-                    identityUser.Auth.PasskeyLastUsedAt = DateTime.UtcNow;
+                        identityUser.Mfa.PasskeyLastUsedDevice = "Unknown";
+                    identityUser.Mfa.PasskeyLastUsedAt = DateTime.UtcNow;
                     await _userManager.UpdateAsync(identityUser);
                 }
 

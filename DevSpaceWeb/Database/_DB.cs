@@ -5,6 +5,7 @@ using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Teams;
+using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Data.Websites;
 using MongoDB.Bson;
 using MongoDB.Driver;

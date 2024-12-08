@@ -2,6 +2,7 @@
 using AspNetCore.Identity.MongoDbCore.Infrastructure;
 using AspNetCore.Identity.MongoDbCore.Models;
 using DevSpaceWeb.Data;
+using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
@@ -176,12 +177,12 @@ public static class ServiceBuilder
     public static void AddMongoDb(IServiceCollection services)
     {
         // Add MongoDB Auth
-        services.AddIdentity<AuthUser, ApplicationRole>()
+        services.AddIdentity<AuthUser, UserRole>()
             .AddSignInManager()
             .AddTokenProvider(TokenOptions.DefaultProvider, typeof(DataProtectorTokenProvider<AuthUser>))
             .AddTokenProvider(TokenOptions.DefaultEmailProvider, typeof(EmailTokenProvider<AuthUser>))
             .AddTokenProvider(TokenOptions.DefaultAuthenticatorProvider, typeof(AuthenticatorTokenProvider<AuthUser>))
-        .AddMongoDbStores2<MflixDbContext, AuthUser, ApplicationRole, ObjectId>(new MflixDbContext(_DB.Client, _Data.Config.Database.Name));
+        .AddMongoDbStores2<MflixDbContext, AuthUser, UserRole, ObjectId>(new MflixDbContext(_DB.Client, _Data.Config.Database.Name));
 
     }
 

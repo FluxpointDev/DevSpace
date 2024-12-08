@@ -94,10 +94,10 @@
         var Test = await Authenticator.ValidateAsync("", RegisterModel.Code, UserManager, user);
         if (Test)
         {
-            user.Auth.AuthenticatorLastRegisteredAt = DateTime.UtcNow;
-            if (user.Auth.AuthenticatorDevices.TryAdd(RegisterModel.DeviceName, true))
+            user.Mfa.AuthenticatorLastRegisteredAt = DateTime.UtcNow;
+            if (user.Mfa.AuthenticatorDevices.TryAdd(RegisterModel.DeviceName, true))
             {
-                user.Auth.IsTwoFactorEnabled = true;
+                user.Mfa.IsTwoFactorEnabled = true;
                 await UserManager.UpdateAsync(user);
                 _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
                 dialogService.Close(true);

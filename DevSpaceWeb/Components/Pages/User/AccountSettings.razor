@@ -2,6 +2,7 @@
 @using System.Net.Http
 @using DevSpaceWeb.Components.Custom
 @using DevSpaceWeb.Components.Dialogs
+@using DevSpaceWeb.Data.Users
 @using DevSpaceWeb.Fido2
 @using DevSpaceWeb.Services
 @using Microsoft.AspNetCore.Components.Forms
@@ -124,17 +125,17 @@
                         <div class="settings-box">
                             <h3>Email Codes</h3>
                             <br />
-                            <p>Last Sent: @(GetLocalDate(AuthUser.Auth.EmailCodeLastSentAt, false))</p>
-                            <p>Last Used: @(GetLocalDate(AuthUser.Auth.EmailCodeLastUsedAt, false))</p>
+                            <p>Last Sent: @(GetLocalDate(AuthUser.Mfa.EmailCodeLastSentAt, false))</p>
+                            <p>Last Used: @(GetLocalDate(AuthUser.Mfa.EmailCodeLastUsedAt, false))</p>
                         </div>
                         <div class="settings-box">
                             <h3>Authenticator App</h3>
                             <br />
-                            <p>Last Registered: @(GetLocalDate(AuthUser.Auth.AuthenticatorLastRegisteredAt, false))</p>
-                            <p>Last Used: @(GetLocalDate(AuthUser.Auth.AuthenticatorLastUsedAt, false))</p>
+                            <p>Last Registered: @(GetLocalDate(AuthUser.Mfa.AuthenticatorLastRegisteredAt, false))</p>
+                            <p>Last Used: @(GetLocalDate(AuthUser.Mfa.AuthenticatorLastUsedAt, false))</p>
                             <br />
                             <h3 class="mb-2">Devices</h3>
-                            @foreach (var i in AuthUser.Auth.AuthenticatorDevices)
+                            @foreach (var i in AuthUser.Mfa.AuthenticatorDevices)
                             {
                                 <div class="passkey-item" style="height: 40px;">
                                     <p style="margin-right: 6px;">
@@ -159,12 +160,12 @@
                         <div class="settings-box">
                             <h3>Passkeys (Webauth)</h3>
                             <br />
-                            <p>Last Registered: @(GetLocalDate(AuthUser.Auth.PasskeyLastRegisteredAt, false))</p>
-                            <p>Last Used: @(GetLocalDate(AuthUser.Auth.PasskeyLastUsedAt, false))</p>
-                            <p class="mb-2">Last Device: @AuthUser.Auth.PasskeyLastUsedDevice</p>
+                            <p>Last Registered: @(GetLocalDate(AuthUser.Mfa.PasskeyLastRegisteredAt, false))</p>
+                            <p>Last Used: @(GetLocalDate(AuthUser.Mfa.PasskeyLastUsedAt, false))</p>
+                            <p class="mb-2">Last Device: @AuthUser.Mfa.PasskeyLastUsedDevice</p>
                             <div>
 
-                                @foreach (var i in AuthUser.Auth.Passkeys)
+                                @foreach (var i in AuthUser.Mfa.Passkeys)
                                 {
                                     <div class="passkey-item">
                                         <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLCAwLCAwLCAxLCAyNy4wMDkwMDEsIC0zOS4yMzg5OTgpIj4KICAgIDxwYXRoIGZpbGw9IiM0Mjg1RjQiIGQ9Ik0gLTMuMjY0IDUxLjUwOSBDIC0zLjI2NCA1MC43MTkgLTMuMzM0IDQ5Ljk2OSAtMy40NTQgNDkuMjM5IEwgLTE0Ljc1NCA0OS4yMzkgTCAtMTQuNzU0IDUzLjc0OSBMIC04LjI4NCA1My43NDkgQyAtOC41NzQgNTUuMjI5IC05LjQyNCA1Ni40NzkgLTEwLjY4NCA1Ny4zMjkgTCAtMTAuNjg0IDYwLjMyOSBMIC02LjgyNCA2MC4zMjkgQyAtNC41NjQgNTguMjM5IC0zLjI2NCA1NS4xNTkgLTMuMjY0IDUxLjUwOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNIC0xNC43NTQgNjMuMjM5IEMgLTExLjUxNCA2My4yMzkgLTguODA0IDYyLjE1OSAtNi44MjQgNjAuMzI5IEwgLTEwLjY4NCA1Ny4zMjkgQyAtMTEuNzY0IDU4LjA0OSAtMTMuMTM0IDU4LjQ4OSAtMTQuNzU0IDU4LjQ4OSBDIC0xNy44ODQgNTguNDg5IC0yMC41MzQgNTYuMzc5IC0yMS40ODQgNTMuNTI5IEwgLTI1LjQ2NCA1My41MjkgTCAtMjUuNDY0IDU2LjYxOSBDIC0yMy40OTQgNjAuNTM5IC0xOS40NDQgNjMuMjM5IC0xNC43NTQgNjMuMjM5IFoiLz4KICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik0gLTIxLjQ4NCA1My41MjkgQyAtMjEuNzM0IDUyLjgwOSAtMjEuODY0IDUyLjAzOSAtMjEuODY0IDUxLjIzOSBDIC0yMS44NjQgNTAuNDM5IC0yMS43MjQgNDkuNjY5IC0yMS40ODQgNDguOTQ5IEwgLTIxLjQ4NCA0NS44NTkgTCAtMjUuNDY0IDQ1Ljg1OSBDIC0yNi4yODQgNDcuNDc5IC0yNi43NTQgNDkuMjk5IC0yNi43NTQgNTEuMjM5IEMgLTI2Ljc1NCA1My4xNzkgLTI2LjI4NCA1NC45OTkgLTI1LjQ2NCA1Ni42MTkgTCAtMjEuNDg0IDUzLjUyOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNIC0xNC43NTQgNDMuOTg5IEMgLTEyLjk4NCA0My45ODkgLTExLjQwNCA0NC41OTkgLTEwLjE1NCA0NS43ODkgTCAtNi43MzQgNDIuMzY5IEMgLTguODA0IDQwLjQyOSAtMTEuNTE0IDM5LjIzOSAtMTQuNzU0IDM5LjIzOSBDIC0xOS40NDQgMzkuMjM5IC0yMy40OTQgNDEuOTM5IC0yNS40NjQgNDUuODU5IEwgLTIxLjQ4NCA0OC45NDkgQyAtMjAuNTM0IDQ2LjA5OSAtMTcuODg0IDQzLjk4OSAtMTQuNzU0IDQzLjk4OSBaIi8+CiAgPC9nPgo8L3N2Zz4=" />
@@ -187,9 +188,9 @@
                         <div class="settings-box">
                             <h3 class="mb-2">Backup Code</h3>
                             <p>Use this code to get back into your account if you lose access.</p>
-                            @if (AuthUser.Auth.IsTwoFactorEnabled)
+                            @if (AuthUser.Mfa.IsTwoFactorEnabled)
                             {
-                                @if (string.IsNullOrEmpty(AuthUser.Auth.RecoveryCode))
+                                @if (string.IsNullOrEmpty(AuthUser.Mfa.RecoveryCode))
                                 {
                                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
                                         You have not created a recovery code!
@@ -202,8 +203,8 @@
                                     <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
                                         Backup codes have been generated.
                                     </RadzenAlert>
-                                    <p>Generated: @(GetLocalDate(AuthUser.Auth.RecoveryCodeCreatedAt, false))</p>
-                                    <p>Last Used: @(GetLocalDate(AuthUser.Auth.RecoveryCodeLastUsedAt, false))</p>
+                                    <p>Generated: @(GetLocalDate(AuthUser.Mfa.RecoveryCodeCreatedAt, false))</p>
+                                    <p>Last Used: @(GetLocalDate(AuthUser.Mfa.RecoveryCodeLastUsedAt, false))</p>
                                     <br />
                                     <RadzenButton Text="Reset" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@GenerateBackupCodes" />
                                 }
@@ -227,7 +228,7 @@
                             }
                             else
                             {
-                                @foreach (var i in AuthUser.Auth.Sessions.Values)
+                                @foreach (var i in AuthUser.Account.Sessions.Values)
                                 {
                                     <div class="session-item">
                                         @switch (i.BrowserType)
@@ -435,7 +436,7 @@
 
     public async Task ChangePassword()
     {
-        if (AuthUser.Auth.IsTwoFactorEnabled)
+        if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
             var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
             if (!TwoFactorValid)
@@ -552,7 +553,7 @@
         if (AuthUser == null)
             return;
 
-        if (AuthUser.Auth.IsTwoFactorEnabled)
+        if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
             var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
             if (!TwoFactorValid)
@@ -593,7 +594,7 @@
     public async Task RemovePasskey(FidoStoredCredential cred)
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser.Auth.IsTwoFactorEnabled)
+        if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
             var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
             if (!TwoFactorValid)
@@ -603,7 +604,7 @@
             }
         }
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser.Auth.Passkeys.Remove(cred))
+        if (AuthUser.Mfa.Passkeys.Remove(cred))
         {
             await UserManager.UpdateAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
@@ -615,7 +616,7 @@
     public async Task RegisterAuthenticator()
     {
         var User = await Session.GetCurrentUserAsync();
-        if (AuthUser.Auth.IsTwoFactorEnabled)
+        if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
             var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
             if (!TwoFactorValid)
@@ -650,7 +651,7 @@
     public async Task RemoveAllPasskeys()
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (!AuthUser.Auth.Passkeys.Any())
+        if (!AuthUser.Mfa.Passkeys.Any())
         {
             await DialogService.ShowInfoAsync("Passkey Info", "You do not have any passkeys registered");
             return;
@@ -668,7 +669,7 @@
 
             AuthUser = await Session.GetCurrentUserAsync();
 
-            AuthUser.Auth.Passkeys.Clear();
+            AuthUser.Mfa.Passkeys.Clear();
             await UserManager.UpdateAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
 
@@ -678,7 +679,7 @@
     public async Task RemoveAllAuthenticators()
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (!AuthUser.Auth.AuthenticatorDevices.Any())
+        if (!AuthUser.Mfa.AuthenticatorDevices.Any())
         {
             await DialogService.ShowInfoAsync("Authenticator Info", "You do not have any authenticators registered");
             return;
@@ -696,7 +697,7 @@
 
             AuthUser = await Session.GetCurrentUserAsync();
 
-            AuthUser.Auth.AuthenticatorDevices.Clear();
+            AuthUser.Mfa.AuthenticatorDevices.Clear();
             await UserManager.UpdateAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
 
@@ -735,7 +736,7 @@
     public async Task GenerateBackupCodes()
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser.Auth.IsTwoFactorEnabled)
+        if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
             var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
             if (!TwoFactorValid)
@@ -755,8 +756,8 @@
 
         Cache.SetString(Key, JsonSerializer.Serialize(Code), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
 
-        AuthUser.Auth.RecoveryCode = Hasher.HashPassword(AuthUser, Code);
-        AuthUser.Auth.RecoveryCodeCreatedAt = DateTime.UtcNow;
+        AuthUser.Mfa.RecoveryCode = Hasher.HashPassword(AuthUser, Code);
+        AuthUser.Mfa.RecoveryCodeCreatedAt = DateTime.UtcNow;
         await UserManager.UpdateAsync(AuthUser);
 
 

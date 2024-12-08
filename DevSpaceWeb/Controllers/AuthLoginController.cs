@@ -1,4 +1,5 @@
 ﻿using DevSpaceWeb.Data;
+using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Fido2;
 using Microsoft.AspNetCore.Identity;
@@ -84,9 +85,9 @@ public class AuthLoginController : AuthControllerContext
             });
         }
 
-        if (!AuthUser.Auth.Sessions.ContainsKey(SessionId))
+        if (!AuthUser.Account.Sessions.ContainsKey(SessionId))
         {
-            AuthUser.Auth.Sessions.Add(SessionId, new AuthUserSession
+            AuthUser.Account.Sessions.Add(SessionId, new UserSession
             {
                 BrowserType = (SessionBrowserType)browser,
                 IsMobile = isMobile,
@@ -94,7 +95,7 @@ public class AuthLoginController : AuthControllerContext
             });
         }
         
-        AuthUser.Auth.LoginAt = DateTime.UtcNow;
+        AuthUser.Account.LoginAt = DateTime.UtcNow;
         await _signInManager.UserManager.UpdateAsync(AuthUser);
         
         return Ok();

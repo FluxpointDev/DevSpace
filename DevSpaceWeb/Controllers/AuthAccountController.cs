@@ -1,4 +1,4 @@
-﻿using DevSpaceWeb.Data;
+﻿using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Fido2;
 using DevSpaceWeb.Services;
@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text;
+using static System.Net.WebRequestMethods;
 
 namespace DevSpaceWeb.Controllers;
 
@@ -45,7 +46,7 @@ public class AuthAccountController : AuthControllerContext
         if (AuthUser == null)
             return BadRequest("Invalid user account");
 
-        if (string.IsNullOrEmpty(AuthUser.Auth.RecoveryCode))
+        if (string.IsNullOrEmpty(AuthUser.Mfa.RecoveryCode))
             return BadRequest("You do not have any recovery codes");
 
 
@@ -123,10 +124,21 @@ public class AuthAccountController : AuthControllerContext
         if (!Signin.Succeeded)
             return BadRequest("Failed to login");
 
-        User.Auth.PasswordChangedAt = DateTime.UtcNow;
+        User.Account.PasswordChangedAt = DateTime.UtcNow;
         string Ip = Utils.GetUserIpAddress(Request.HttpContext);
-        if (!string.IsNullOrEmpty(Ip))
-            User.Auth.Sessions.Add(Utils.GetStringSha256Hash(Ip), new AuthUserSession { });
+        string SessionId = Request.Cookies["DevSpace.SessionId"];
+        if (User.Account.Sessions.TryGetValue(SessionId, out var session))
+            session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
+        else
+        {
+            User.Account.Sessions.TryAdd(SessionId, new UserSession
+            {
+                AuthorizedIps = new HashSet<string>
+                    {
+                        Utils.GetStringSha256Hash(Ip)
+                    }
+            });
+        }
 
         await _userManager.UpdateAsync(User);
 

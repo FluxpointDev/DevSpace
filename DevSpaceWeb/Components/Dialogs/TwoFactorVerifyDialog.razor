@@ -17,24 +17,24 @@
         <br />
         @if (AuthType == 0)
         {
-            @if (User.Auth.IsTwoFactorEnabled)
+            @if (User.Mfa.IsTwoFactorEnabled)
             {
                 <div class="twofactor-item twofactor-item-disabled">
                     <span class="iconify" data-icon="mdi:cloud-key"></span>
                     <h4>Email Code</h4>
                     <p>Disabled with more secure options</p>
                 </div>
-                <div class="twofactor-item @(User.Auth.AuthenticatorDevices.Any(x => x.Value == true) ? "" : "twofactor-item-disabled")" @onclick="(() => AuthType = 2)">
+                <div class="twofactor-item @(User.Mfa.AuthenticatorDevices.Any(x => x.Value == true) ? "" : "twofactor-item-disabled")" @onclick="(() => AuthType = 2)">
                     <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
                     <h4>Authenticator</h4>
                 </div>
 
-                <div class="twofactor-item @(User.Auth.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="VerifyPasskey">
+                <div class="twofactor-item @(User.Mfa.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="VerifyPasskey">
                     <span class="iconify" data-icon="mdi:key-chain"></span>
                     <h4>Passkey, Webauth or Yubikey</h4>
                 </div>
 
-                <div class="twofactor-item @(!string.IsNullOrEmpty(User.Auth.RecoveryCode) ? "" : "twofactor-item-disabled")" @onclick="@(() => AuthType = 3)">
+                <div class="twofactor-item @(!string.IsNullOrEmpty(User.Mfa.RecoveryCode) ? "" : "twofactor-item-disabled")" @onclick="@(() => AuthType = 3)">
                     <span class="iconify" data-icon="mdi:file-key"></span>
                     <h4>Recovery Code</h4>
                 </div>
@@ -135,7 +135,7 @@
             if (LogUsage)
             {
                 AuthUser = await Session.GetCurrentUserAsync();
-                AuthUser.Auth.EmailCodeLastSentAt = DateTime.UtcNow;
+                AuthUser.Mfa.EmailCodeLastSentAt = DateTime.UtcNow;
                 await UserManager.UpdateAsync(AuthUser);
             }
         }
@@ -170,7 +170,7 @@
                     Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
                     return;
                 }
-                AuthUser.Auth.EmailCodeLastUsedAt = DateTime.UtcNow;
+                AuthUser.Mfa.EmailCodeLastUsedAt = DateTime.UtcNow;
                 await UserManager.UpdateAsync(AuthUser);
             }
             dialogService.Close(true);
@@ -186,7 +186,7 @@ if (Program.IsPreviewMode)
             Session.ShowPreviewModeNotice();
             return;
         }
-        if (!User.Auth.AuthenticatorDevices.Any(x => x.Value == true))
+        if (!User.Mfa.AuthenticatorDevices.Any(x => x.Value == true))
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AuthenticatorNoDevices);
             return;
@@ -205,7 +205,7 @@ if (Program.IsPreviewMode)
         {
             if (LogUsage)
             {
-                AuthUser.Auth.AuthenticatorLastUsedAt = DateTime.UtcNow;
+                AuthUser.Mfa.AuthenticatorLastUsedAt = DateTime.UtcNow;
                 await UserManager.UpdateAsync(AuthUser);
             }
             dialogService.Close(true);
@@ -228,7 +228,7 @@ if (Program.IsPreviewMode)
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
             return;
         }
-        if (!AuthUser.Auth.Passkeys.Any())
+        if (!AuthUser.Mfa.Passkeys.Any())
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.PasskeysNoDevices);
             return;
@@ -268,18 +268,18 @@ if (Program.IsPreviewMode)
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
             return;
         }
-        if (string.IsNullOrEmpty(AuthUser.Auth.RecoveryCode))
+        if (string.IsNullOrEmpty(AuthUser.Mfa.RecoveryCode))
             return;
 
         
 
         var Hasher = new PasswordHasher<AuthUser>();
-        var Result = Hasher.VerifyHashedPassword(AuthUser, AuthUser.Auth.RecoveryCode, CodeInput);
+        var Result = Hasher.VerifyHashedPassword(AuthUser, AuthUser.Mfa.RecoveryCode, CodeInput);
         if (Result.HasFlag(PasswordVerificationResult.Success))
         {
             if (LogUsage)
             {
-                AuthUser.Auth.RecoveryCodeLastUsedAt = DateTime.UtcNow;
+                AuthUser.Mfa.RecoveryCodeLastUsedAt = DateTime.UtcNow;
                 await UserManager.UpdateAsync(AuthUser);
             }
 

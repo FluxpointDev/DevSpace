@@ -38,11 +38,11 @@
             User = await Session.GetCurrentUserAsync();
             string Ip = Utils.GetUserIpAddress(Http.HttpContext);
             string SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
-            if (User.Auth.Sessions.TryGetValue(SessionId, out var session))
+            if (User.Account.Sessions.TryGetValue(SessionId, out var session))
                 session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
             else
             {
-                User.Auth.Sessions.TryAdd(SessionId, new AuthUserSession
+                User.Account.Sessions.TryAdd(SessionId, new UserSession
                 {
                     AuthorizedIps = new HashSet<string>
                     {

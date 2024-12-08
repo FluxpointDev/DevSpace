@@ -1,4 +1,4 @@
-﻿using DevSpaceWeb.Data;
+﻿using DevSpaceWeb.Data.Users;
 using Fido2NetLib;
 using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Identity;
@@ -57,13 +57,13 @@ public class PasskeyRegisterController : AuthControllerContext
             {
                 DisplayName = AuthUser.UserName,
                 Name = AuthUser.Email,
-                Id = Fido2Service.GetPasskeyIdInBytes(AuthUser.Auth.PasskeyId.Value.ToString()) // byte representation of userID is required
+                Id = Fido2Service.GetPasskeyIdInBytes(AuthUser.Mfa.PasskeyId.Value.ToString()) // byte representation of userID is required
             };
 
 
             // 2. Get user existing keys by username
             List<PublicKeyCredentialDescriptor> existingKeys = new List<PublicKeyCredentialDescriptor>();
-            foreach (FidoStoredCredential credential in AuthUser.Auth.Passkeys)
+            foreach (FidoStoredCredential credential in AuthUser.Mfa.Passkeys)
             {
                 if (credential.Descriptor != null)
                     existingKeys.Add(credential.Descriptor);
@@ -147,7 +147,7 @@ public class PasskeyRegisterController : AuthControllerContext
                     }
                 }
                 // 3. Store the credentials in db
-                user.Auth.Passkeys.Add(new FidoStoredCredential
+                user.Mfa.Passkeys.Add(new FidoStoredCredential
                 {
                     Name = attestationResponse.name,
                     Descriptor = new PublicKeyCredentialDescriptor(success.Result.Id),
@@ -157,8 +157,8 @@ public class PasskeyRegisterController : AuthControllerContext
                     AaGuid = success.Result.AaGuid
                 });
 
-                user.Auth.PasskeyLastRegisteredAt = DateTime.UtcNow;
-                user.Auth.IsTwoFactorEnabled = true;
+                user.Mfa.PasskeyLastRegisteredAt = DateTime.UtcNow;
+                user.Mfa.IsTwoFactorEnabled = true;
                 await _userManager.UpdateAsync(user);
 
                 RequestData.IsSuccess = true;
