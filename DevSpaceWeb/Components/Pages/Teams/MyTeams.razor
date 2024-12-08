@@ -62,7 +62,7 @@
 
     public async Task CreateTeam()
     {
-        await DialogService.ShowDynamicFormAsync<TeamBasicModel>("Create Team", new TeamBasicModel(), async (TeamBasicModel data) =>
+        await DialogService.ShowDynamicFormAsync<TeamBasicModel>("Create Team", new TeamBasicModel(), (TeamBasicModel data) =>
             {
                 string VanityUrl = data.VanityUrl.Replace(" ", "-").ToLower();
                 if (_DB.TeamsVanityCache.ContainsKey(VanityUrl))
@@ -119,7 +119,7 @@
                 _DB.Teams.Cache.TryAdd(Team.Id, Team);
                 
 
-                await InvokeAsync(StateHasChanged);
+                InvokeAsync(StateHasChanged);
                 return null;
             });
     }
