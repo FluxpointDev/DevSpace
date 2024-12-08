@@ -137,11 +137,10 @@ public class Program
             app.MapSwagger();
         }
         //new InfoTest().Run();
-
         app.MapRazorComponents<Components.App>()
             .AddInteractiveServerRenderMode();
         app.MapControllers();
-
+        app.UseStatusCodePagesWithRedirects("/error/{0}");
         app.Run();
     }
 }
