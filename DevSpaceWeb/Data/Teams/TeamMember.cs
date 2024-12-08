@@ -22,6 +22,8 @@ public class TeamMemberData
     [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
+    public UserDisabled? Disabled { get; set; }
+
     public bool HasTeamPermission(TeamPermission permission)
     {
         TeamData? SelectedTeam = Team;

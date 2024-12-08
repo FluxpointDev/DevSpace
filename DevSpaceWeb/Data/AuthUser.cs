@@ -40,7 +40,7 @@ public class AuthUser : MongoIdentityUser<ObjectId>
     public bool IsInstanceAdmin;
 
     public AuthUserMfa Auth = new AuthUserMfa();
-
+    public UserDisabled? Disabled { get; set; }
     public bool HasPasskeys()
     {
         return Auth.Passkeys.Any();
@@ -70,10 +70,6 @@ public class AuthUser : MongoIdentityUser<ObjectId>
             _DB.Users.Add(Id, ud);
     }
 }
-public enum AuthUserDisabledState
-{
-    None, User, TeamManaged, Instance
-}
 
 public class AuthUserSession
 {
@@ -88,6 +84,18 @@ public enum SessionBrowserType
 {
     Unknown, InternetExplorer, Firefox, Chrome, Safari, Edge, Opera, Vivaldi
 }
+
+public class UserDisabled
+{
+    public UserDisabledState State { get; set; }
+    public string Reason { get; set; }
+    public DateTime DisabledAt { get; set; }
+}
+public enum UserDisabledState
+{
+    User, TeamManaged, Instance
+}
+
 
 public class AuthUserMfa
 {
@@ -114,10 +122,6 @@ public class AuthUserMfa
     public DateTime? RecoveryCodeCreatedAt { get; set; }
     public DateTime? RecoveryCodeLastUsedAt { get; set; }
     public string? RecoveryCode { get; set; }
-
-    public AuthUserDisabledState DisabledState { get; set; } = AuthUserDisabledState.None;
-    public string DisabledReason { get; set; }
-    public DateTime? DisabledAt { get; set; }
 }
 
 [CollectionName("auth_roles")]

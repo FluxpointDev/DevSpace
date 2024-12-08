@@ -1,4 +1,5 @@
 ﻿@using DevSpaceWeb.Components.Dialogs
+@using DevSpaceWeb.Models.Defaults
 @using DevSpaceWeb.Models.Teams
 @inject DialogService DialogService
 
@@ -20,11 +21,11 @@
         <br />
         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" />
         <br />
-        <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Users">
+        <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Members">
             <Template Context="user">
                 <RadzenCard Style="width:300px;">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                        @if (_DB.Users.TryGetValue(user, out PartialUserData ud))
+                        @if (_DB.Users.TryGetValue(user.UserId, out PartialUserData ud))
                         {
                             <RadzenImage Path="@ud.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" />
                             <RadzenStack Gap="0">
@@ -47,20 +48,30 @@
                     </RadzenStack>
                     <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
                     <RadzenStack Gap="6px" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-                    @if (_DB.Users.TryGetValue(user, out PartialUserData ud))
-                    {
-                        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Change Roles" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.AssignRoles))" />
-                        @if (user != Team.OwnerId)
+                        @if (_DB.Users.TryGetValue(user.UserId, out PartialUserData ud))
                         {
-                            <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" />
+                            <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Change Roles" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.AssignRoles))" />
+                            @if (user.UserId != Team.OwnerId)
+                            {
+                                @if (user.Disabled == null)
+                                {
+                                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Disable" Click="@(() => DisableMember(ud))"></RadzenButton>
+                                }
+                                else
+                                {
+                                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Disable" Click="@(() => DisableMember(ud))"></RadzenButton>
+
+                                }
+
+                                <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" />
+                            }
+
                         }
-                        
-                    }
-                    else
-                    {
-                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(user))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))" />
-                    }
+                        else
+                        {
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(user.UserId))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))" />
+                        }
                     </RadzenStack>
                 </RadzenCard>
             </Template>
@@ -78,10 +89,54 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Users = Team.Members.Keys;
+        Members = Team.CachedMembers.Values;
     }
 
-    public IEnumerable<ObjectId> Users { get; set; }
+    public IEnumerable<TeamMemberData> Members { get; set; }
+
+    public async Task EnableMember(PartialUserData user)
+    {
+        await DialogService.ShowDynamicFormAsync<ReasonModel>("Enable Member " + user.UserName, new ReasonModel(), (ReasonModel data) =>
+        {
+            if (user.ManagedAccountTeamId.HasValue)
+            {
+                FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
+                UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, null);
+                var Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("auth_internal").UpdateOne(filter, update);
+                if (!Result.IsAcknowledged)
+                    return "Failed to enable user";
+            }
+            _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+            Team.GetMember(user).Disabled = null;
+            Team.GetMember(user).UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, null));
+            return null;
+        });
+    }
+
+    public async Task DisableMember(PartialUserData user)
+    {
+        await DialogService.ShowDynamicFormAsync<ReasonModel>("Disable Member " + user.UserName, new ReasonModel(), (ReasonModel data) =>
+        {
+            UserDisabled Disabled = new UserDisabled
+            {
+                DisabledAt = DateTime.UtcNow,
+                State = UserDisabledState.TeamManaged,
+                Reason = data.Reason
+            };
+            if (user.ManagedAccountTeamId.HasValue)
+            {
+                FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
+                UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, Disabled);
+                var Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("auth_internal").UpdateOne(filter, update);
+                if (!Result.IsAcknowledged)
+                    return "Failed to disable user";
+            }
+            _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+            Team.GetMember(user).Disabled = Disabled;
+            Team.GetMember(user).UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, Disabled));
+            return null;
+        });
+    }
 
     public async Task AddMember()
     {

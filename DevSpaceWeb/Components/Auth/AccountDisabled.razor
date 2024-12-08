@@ -10,9 +10,9 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
         <RadzenText class="mt-1" TextStyle="TextStyle.H6">Account Disabled</RadzenText>
     </div>
-    @switch (DisabledState)
+    @switch (Disabled.State)
     {
-        case AuthUserDisabledState.User:
+        case UserDisabledState.User:
             {
                 <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
                     You have disabled your account.
@@ -32,7 +32,7 @@
                 }
             }
             break;
-        case AuthUserDisabledState.TeamManaged:
+        case UserDisabledState.TeamManaged:
             <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
                 Your account is managed by a Team and has been disabled.
             </RadzenAlert>
@@ -42,7 +42,7 @@
                 <br />
             }
             break;
-        case AuthUserDisabledState.Instance:
+        case UserDisabledState.Instance:
             <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
                 Your account has been disabled by the Dev Space instance admin.
             </RadzenAlert>
@@ -65,7 +65,7 @@
     public bool ShowEmailCodeConfirm { get; set; }
     public string EmailCode { get; set; }
 
-    public AuthUserDisabledState DisabledState { get; set; }
+    public UserDisabled Disabled { get; set; }
     public string Reason { get; set; }
 
     protected override async Task OnInitializedAsync()
@@ -77,7 +77,7 @@
             AccountfailedToLoad = true;
             return;
         }
-        DisabledState = User.Auth.DisabledState;
+        Disabled = User.Disabled!;
     }
 
     public async Task EnableAccount()
@@ -117,8 +117,7 @@
         {
 
             User.Auth.EmailCodeLastUsedAt = DateTime.UtcNow;
-            User.Auth.DisabledAt = null;
-            User.Auth.DisabledState = AuthUserDisabledState.None;
+            User.Disabled = null;
             await UserManager.UpdateAsync(User);
             NavigationManager.Refresh(true);
 

@@ -479,8 +479,11 @@
             {
                 return;
             }
-            AuthUser.Auth.DisabledState = AuthUserDisabledState.User;
-            AuthUser.Auth.DisabledAt = DateTime.UtcNow;
+            AuthUser.Disabled = new UserDisabled
+            {
+                State = UserDisabledState.User,
+                DisabledAt = DateTime.UtcNow
+            };
             await UserManager.UpdateAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
             await Email.SendAccountDisabled(AuthUser, "You have disabled your account.");
