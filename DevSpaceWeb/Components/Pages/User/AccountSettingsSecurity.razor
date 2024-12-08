@@ -87,10 +87,10 @@ else
                 }
                 else
                 {
-                    @foreach (var i in AuthUser.Account.Sessions.Values)
+                    @foreach (var i in AuthUser.Account.Sessions)
                     {
                         <div class="session-item">
-                            @switch (i.BrowserType)
+                            @switch (i.Value.BrowserType)
                             {
                                 case SessionBrowserType.Firefox:
                                     <span class="iconify" data-icon="logos:firefox"></span>
@@ -117,7 +117,7 @@ else
                                     <span class="iconify" data-icon="mdi:web"></span>
                                     break;
                             }
-                            @if (i.IsMobile)
+                            @if (i.Value.IsMobile)
                             {
                                 <span class="iconify" data-icon="mdi:mobile-phone"></span>
                             }
@@ -127,10 +127,12 @@ else
                             }
 
                             <p>Firefox (Current Session)</p>
-                            <p>Created At @(Utils.GetLocalDate(Session, i.CreatedAt, false))</p>
-                            <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                            <p>Created At @(Utils.GetLocalDate(Session, i.Value.CreatedAt, false))</p>
+                            <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => RemoveSession(i.Key))" />
                         </div>
                     }
+                    <br />
+                    <RadzenButton Text="Remove All Sessions" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllSessions" />
                 }
             </div>
             <div class="settings-box">
@@ -258,6 +260,50 @@ else
         _ = InvokeAsync(StateHasChanged);
 
     }
+
+    public async Task RemoveSession(string id)
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.Mfa.IsTwoFactorEnabled)
+        {
+            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
+            if (!TwoFactorValid)
+            {
+                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                return;
+            }
+        }
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        AuthUser.Account.Sessions.Remove(id);
+        await UserManager.UpdateAsync(AuthUser);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+    }
+
+    public async Task RemoveAllSessions()
+    {
+        var Confirm = await DialogService.ShowConfirmAsync("Remove All Sessions", "This will remove all login sessions except the current one.", "Confirm", ButtonStyle.Warning);
+        if (Confirm)
+        {
+            AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser.Mfa.IsTwoFactorEnabled)
+            {
+                var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
+                if (!TwoFactorValid)
+                {
+                    await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                    return;
+                }
+            }
+
+            string CurrentSessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
+            AuthUser = await Session.GetCurrentUserAsync();
+            AuthUser.Account.Sessions = AuthUser.Account.Sessions.Where(x => x.Key != CurrentSessionId).ToDictionary();
+            await UserManager.UpdateAsync(AuthUser);
+            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        }
+    }
+
 
     public async Task RegisterPasskey()
     {
