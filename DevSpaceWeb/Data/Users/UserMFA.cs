@@ -9,7 +9,7 @@ namespace DevSpaceWeb.Data.Users;
 
 public class UserMfa
 {
-    public bool IsTwoFactorEnabled { get; set; } = false;
+    public bool IsTwoFactorEnabled { get; set; }
     public DateTime? EmailCodeLastSentAt { get; set; }
     public DateTime? EmailCodeLastUsedAt { get; set; }
 
@@ -30,6 +30,7 @@ public class UserMfa
     public DateTime? RecoveryCodeCreatedAt { get; set; }
     public DateTime? RecoveryCodeLastUsedAt { get; set; }
     public string? RecoveryCode { get; set; }
+
 
     public async Task<FidoStoredCredential?> GetPasskeyByIdAsync(byte[] id)
     {

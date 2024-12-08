@@ -42,8 +42,6 @@ public class AuthUser : MongoIdentityUser<ObjectId>
     public UserMfa Mfa { get; set; } = new UserMfa();
     public UserDisabled? Disabled { get; set; }
 
-    
-
     public void UpdatePartial()
     {
         if (_DB.Users.TryGetValue(Id, out PartialUserData ud))
