@@ -9,13 +9,8 @@
         isMobile = true;
 
     formData.append('isMobile', isMobile);
-    formData.append('browser', GetBrowser());
-    var country = navigator.language;
-    try {
-        country = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    }
-    catch { }
-    formData.append('country', country);
+    formData.append('browser', getBrowser());
+    formData.append('country', getCountry());
 
     try {
         let response = await fetch('/auth/login', {
@@ -41,7 +36,15 @@
     return "fail";
 }
 
-function GetBrowser() {
+async function getCountry() {
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0];
+    }
+    catch { }
+    return 'Unknown';
+}
+
+function getBrowser() {
     if ((navigator.userAgent.indexOf("Opera") || navigator.userAgent.indexOf('OPR')) != -1) {
         return 6;
     } else if (navigator.userAgent.indexOf("Edg") != -1) {

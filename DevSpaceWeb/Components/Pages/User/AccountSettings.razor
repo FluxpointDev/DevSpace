@@ -20,6 +20,7 @@
 @inject Fido2Service Fido2Service
 @inject IDistributedCache Cache
 @inject DialogService DialogService
+@inject HttpContextAccessor Http
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -48,10 +49,6 @@
                             <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
                                 Your account is managed by your Team, some options will be unavailable to you.
                             </RadzenAlert>
-                        }
-                        else
-                        {
-
                         }
 
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
@@ -110,172 +107,213 @@
 
             </RadzenTabsItem>
             <RadzenTabsItem Text="Security">
-                @if (AuthUser != null)
-                {
-                    if (!AuthUser.EmailConfirmed)
-                    {
-                        <div class="settings-box">
-                            <h3>Account not Verified</h3>
-                            <br />
-                            <p>You need to confirm your email address to enable Two-factor authentication.</p>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="settings-box">
-                            <h3>Email Codes</h3>
-                            <br />
-                            <p>Last Sent: @(GetLocalDate(AuthUser.Mfa.EmailCodeLastSentAt, false))</p>
-                            <p>Last Used: @(GetLocalDate(AuthUser.Mfa.EmailCodeLastUsedAt, false))</p>
-                        </div>
-                        <div class="settings-box">
-                            <h3>Authenticator App</h3>
-                            <br />
-                            <p>Last Registered: @(GetLocalDate(AuthUser.Mfa.AuthenticatorLastRegisteredAt, false))</p>
-                            <p>Last Used: @(GetLocalDate(AuthUser.Mfa.AuthenticatorLastUsedAt, false))</p>
-                            <br />
-                            <h3 class="mb-2">Devices</h3>
-                            @foreach (var i in AuthUser.Mfa.AuthenticatorDevices)
-                            {
-                                <div class="passkey-item" style="height: 40px;">
-                                    <p style="margin-right: 6px;">
-                                        @i.Key
-                                    </p>
-                                    @if (i.Value)
-                                    {
-                                        <RadzenBadge IsPill="true" BadgeStyle="BadgeStyle.Success" Text="Registered" />
-                                    }
-                                    else
-                                    {
-                                        <RadzenBadge IsPill="true" BadgeStyle="BadgeStyle.Warning" Text="Unregistered" />
-                                    }
-                                </div>
-
-                            }
-                            <br />
-                            <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterAuthenticator" />
-                            <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" />
-                            <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllAuthenticators" />
-                        </div>
-                        <div class="settings-box">
-                            <h3>Passkeys (Webauth)</h3>
-                            <br />
-                            <p>Last Registered: @(GetLocalDate(AuthUser.Mfa.PasskeyLastRegisteredAt, false))</p>
-                            <p>Last Used: @(GetLocalDate(AuthUser.Mfa.PasskeyLastUsedAt, false))</p>
-                            <p class="mb-2">Last Device: @AuthUser.Mfa.PasskeyLastUsedDevice</p>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    <div class="settings-box">
+                        <h3>Security</h3>
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                            <span class="iconify settings-icon" style="color: var(--rz-success-light);" data-icon="mdi:check-circle"></span>
                             <div>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">Password Strength</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">@AuthUser?.Account.PasswordStrength.ToString()</RadzenText>
 
-                                @foreach (var i in AuthUser.Mfa.Passkeys)
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">IP</RadzenText>
+                                <RadzenTextMask Value="@Utils.GetUserIpAddress(Http.HttpContext)" IsIp="true"></RadzenTextMask>
+
+                                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-display-flex rz-mt-1 rz-my-0">Region</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">@Country</RadzenText>
+                            </div>
+                        </RadzenStack>
+                        <br />
+                                @if (AuthUser != null)
                                 {
-                                    <div class="passkey-item">
-                                        <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLCAwLCAwLCAxLCAyNy4wMDkwMDEsIC0zOS4yMzg5OTgpIj4KICAgIDxwYXRoIGZpbGw9IiM0Mjg1RjQiIGQ9Ik0gLTMuMjY0IDUxLjUwOSBDIC0zLjI2NCA1MC43MTkgLTMuMzM0IDQ5Ljk2OSAtMy40NTQgNDkuMjM5IEwgLTE0Ljc1NCA0OS4yMzkgTCAtMTQuNzU0IDUzLjc0OSBMIC04LjI4NCA1My43NDkgQyAtOC41NzQgNTUuMjI5IC05LjQyNCA1Ni40NzkgLTEwLjY4NCA1Ny4zMjkgTCAtMTAuNjg0IDYwLjMyOSBMIC02LjgyNCA2MC4zMjkgQyAtNC41NjQgNTguMjM5IC0zLjI2NCA1NS4xNTkgLTMuMjY0IDUxLjUwOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNIC0xNC43NTQgNjMuMjM5IEMgLTExLjUxNCA2My4yMzkgLTguODA0IDYyLjE1OSAtNi44MjQgNjAuMzI5IEwgLTEwLjY4NCA1Ny4zMjkgQyAtMTEuNzY0IDU4LjA0OSAtMTMuMTM0IDU4LjQ4OSAtMTQuNzU0IDU4LjQ4OSBDIC0xNy44ODQgNTguNDg5IC0yMC41MzQgNTYuMzc5IC0yMS40ODQgNTMuNTI5IEwgLTI1LjQ2NCA1My41MjkgTCAtMjUuNDY0IDU2LjYxOSBDIC0yMy40OTQgNjAuNTM5IC0xOS40NDQgNjMuMjM5IC0xNC43NTQgNjMuMjM5IFoiLz4KICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik0gLTIxLjQ4NCA1My41MjkgQyAtMjEuNzM0IDUyLjgwOSAtMjEuODY0IDUyLjAzOSAtMjEuODY0IDUxLjIzOSBDIC0yMS44NjQgNTAuNDM5IC0yMS43MjQgNDkuNjY5IC0yMS40ODQgNDguOTQ5IEwgLTIxLjQ4NCA0NS44NTkgTCAtMjUuNDY0IDQ1Ljg1OSBDIC0yNi4yODQgNDcuNDc5IC0yNi43NTQgNDkuMjk5IC0yNi43NTQgNTEuMjM5IEMgLTI2Ljc1NCA1My4xNzkgLTI2LjI4NCA1NC45OTkgLTI1LjQ2NCA1Ni42MTkgTCAtMjEuNDg0IDUzLjUyOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNIC0xNC43NTQgNDMuOTg5IEMgLTEyLjk4NCA0My45ODkgLTExLjQwNCA0NC41OTkgLTEwLjE1NCA0NS43ODkgTCAtNi43MzQgNDIuMzY5IEMgLTguODA0IDQwLjQyOSAtMTEuNTE0IDM5LjIzOSAtMTQuNzU0IDM5LjIzOSBDIC0xOS40NDQgMzkuMjM5IC0yMy40OTQgNDEuOTM5IC0yNS40NjQgNDUuODU5IEwgLTIxLjQ4NCA0OC45NDkgQyAtMjAuNTM0IDQ2LjA5OSAtMTcuODg0IDQzLjk4OSAtMTQuNzU0IDQzLjk4OSBaIi8+CiAgPC9nPgo8L3N2Zz4=" />
-                                        <h4>@i.Name</h4>
-                                        <p>Created: @(GetLocalDate(i.CreatedAt, false))</p>
-                                        <p>Last Used: @(GetLocalDate(i.LastUsedAt, false))</p>
-                                        <div @onclick="@(() => RemovePasskey(i))" style="cursor: pointer;">
-                                            <span class="iconify" data-icon="mdi:delete"></span>
-                                        </div>
+                                    <div class="session-item">
+                                        <h4>Email Codes</h4>
+                                        <br />
+                                        <p>Sent: @(GetLocalDate(AuthUser.Mfa.EmailCodeLastSentAt, false))</p>
+                                        <p>Used: @(GetLocalDate(AuthUser.Mfa.EmailCodeLastUsedAt, false))</p>
                                     </div>
                                 }
-
-                            </div>
-                            <br />
-                            <br />
-                            <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterPasskey" />
-                            <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" />
-                            <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllPasskeys" />
-                        </div>
-                        <div class="settings-box">
-                            <h3 class="mb-2">Backup Code</h3>
-                            <p>Use this code to get back into your account if you lose access.</p>
-                            @if (AuthUser.Mfa.IsTwoFactorEnabled)
-                            {
-                                @if (string.IsNullOrEmpty(AuthUser.Mfa.RecoveryCode))
+                    </div>
+                    <div class="settings-box">
+                        <h3>2FA Status</h3>
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                            <span class="iconify settings-icon" style="color: var(--rz-success-light);" data-icon="mdi:check-circle"></span>
+                            <div>
+                                @if (AuthUser.Mfa.IsTwoFactorEnabled)
                                 {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You have not created a recovery code!
-                                    </RadzenAlert>
+                                    <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-success);">Two-factor authentication is Enabled</RadzenText>
                                     <br />
-                                    <RadzenButton Text="Generate" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@GenerateBackupCodes" />
+                                    <RadzenButton Text="Disable 2FA" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" />
                                 }
                                 else
                                 {
-                                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                                        Backup codes have been generated.
-                                    </RadzenAlert>
-                                    <p>Generated: @(GetLocalDate(AuthUser.Mfa.RecoveryCodeCreatedAt, false))</p>
-                                    <p>Last Used: @(GetLocalDate(AuthUser.Mfa.RecoveryCodeLastUsedAt, false))</p>
-                                    <br />
-                                    <RadzenButton Text="Reset" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@GenerateBackupCodes" />
+                                    <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-danger-dark);">Two-factor authentication is Disabled</RadzenText>
                                 }
-                            }
-                            else
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Dark" Shade="Shade.Dark" AllowClose="false">
-                                    You need to setup 2FA Authenticator or Passkey to generate a backup code.
-                                </RadzenAlert>
-                            }
-                        </div>
-                        <div class="settings-box">
-                            <h3>Sessions</h3>
-                            <br />
-                            @if (AuthUser == null)
-                            {
-                                <br />
-                                <RadzenSkeleton></RadzenSkeleton>
-                                <RadzenSkeleton></RadzenSkeleton>
-                                <RadzenSkeleton></RadzenSkeleton>
-                            }
-                            else
-                            {
-                                @foreach (var i in AuthUser.Account.Sessions.Values)
+                                @if (!AuthUser.EmailConfirmed)
                                 {
-                                    <div class="session-item">
-                                        @switch (i.BrowserType)
+                                    <div class="settings-box">
+                                        <h3>Account not Verified</h3>
+                                        <br />
+                                        <p>You need to confirm your email address to enable Two-factor authentication.</p>
+                                    </div>
+                                }
+                            </div>
+                        </RadzenStack>
+                    </div>
+                </RadzenStack>
+                <RadzenStack Orientation="Orientation.Horizontal">
+                    @if (AuthUser != null)
+                    {
+                        <div class="settings-box">
+                        <h3>Sessions</h3>
+                        @if (AuthUser == null)
+                        {
+                            <br />
+                            <RadzenSkeleton></RadzenSkeleton>
+                            <RadzenSkeleton></RadzenSkeleton>
+                            <RadzenSkeleton></RadzenSkeleton>
+                        }
+                        else
+                        {
+                            @foreach (var i in AuthUser.Account.Sessions.Values)
+                            {
+                                <div class="session-item">
+                                    @switch (i.BrowserType)
+                                    {
+                                        case SessionBrowserType.Firefox:
+                                            <span class="iconify" data-icon="logos:firefox"></span>
+                                            break;
+                                        case SessionBrowserType.Chrome:
+                                            <span class="iconify" data-icon="logos:chrome"></span>
+                                            break;
+                                        case SessionBrowserType.Edge:
+                                            <span class="iconify" data-icon="logos:microsoft-edge"></span>
+                                            break;
+                                        case SessionBrowserType.InternetExplorer:
+                                            <span class="iconify" data-icon="logos:internetexplorer"></span>
+                                            break;
+                                        case SessionBrowserType.Opera:
+                                            <span class="iconify" data-icon="logos:opera"></span>
+                                            break;
+                                        case SessionBrowserType.Safari:
+                                            <span class="iconify" data-icon="logos:safari"></span>
+                                            break;
+                                        case SessionBrowserType.Vivaldi:
+                                            <span class="iconify" data-icon="logos:vivaldi-icon"></span>
+                                            break;
+                                        case SessionBrowserType.Unknown:
+                                            <span class="iconify" data-icon="mdi:web"></span>
+                                            break;
+                                    }
+                                    @if (i.IsMobile)
+                                    {
+                                        <span class="iconify" data-icon="mdi:mobile-phone"></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="iconify" data-icon="mdi:computer-classic"></span>
+                                    }
+
+                                    <p>Firefox (Current Session)</p>
+                                    <p>Created At @(GetLocalDate(i.CreatedAt, false))</p>
+                                    <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                                </div>
+                            }
+                        }
+                    </div>
+                    <div class="settings-box">
+                        <h3>2FA Methods</h3>
+                        <div class="session-item">
+                                <h4 class="mb-2">Backup Code</h4>
+                                <p>Use this code to get back into your account if you lose access.</p>
+                                @if (AuthUser.Mfa.IsTwoFactorEnabled)
+                                {
+                                    @if (string.IsNullOrEmpty(AuthUser.Mfa.RecoveryCode))
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                            You have not created a recovery code!
+                                        </RadzenAlert>
+                                        <br />
+                                        <RadzenButton Text="Generate" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@GenerateBackupCodes" />
+                                    }
+                                    else
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                                            Backup codes have been generated.
+                                        </RadzenAlert>
+                                        <p>Generated: @(GetLocalDate(AuthUser.Mfa.RecoveryCodeCreatedAt, false))</p>
+                                        <p>Last Used: @(GetLocalDate(AuthUser.Mfa.RecoveryCodeLastUsedAt, false))</p>
+                                        <br />
+                                        <RadzenButton Text="Reset" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@GenerateBackupCodes" />
+                                    }
+                                }
+                                else
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Dark" Shade="Shade.Dark" AllowClose="false">
+                                        You need to setup 2FA Authenticator or Passkey to generate a backup code.
+                                    </RadzenAlert>
+                                }
+                        </div>
+                        <div class="session-item">
+                                <h4>Authenticator App</h4>
+                                <br />
+                                <p>Last Registered: @(GetLocalDate(AuthUser.Mfa.AuthenticatorLastRegisteredAt, false))</p>
+                                <p>Last Used: @(GetLocalDate(AuthUser.Mfa.AuthenticatorLastUsedAt, false))</p>
+                                <br />
+                                <h3 class="mb-2">Devices</h3>
+                                @foreach (var i in AuthUser.Mfa.AuthenticatorDevices)
+                                {
+                                    <div class="passkey-item" style="height: 40px;">
+                                        <p style="margin-right: 6px;">
+                                            @i.Key
+                                        </p>
+                                        @if (i.Value)
                                         {
-                                            case SessionBrowserType.Firefox:
-                                                <span class="iconify" data-icon="logos:firefox"></span>
-                                                break;
-                                            case SessionBrowserType.Chrome:
-                                                <span class="iconify" data-icon="logos:chrome"></span>
-                                                break;
-                                            case SessionBrowserType.Edge:
-                                                <span class="iconify" data-icon="logos:microsoft-edge"></span>
-                                                break;
-                                            case SessionBrowserType.InternetExplorer:
-                                                <span class="iconify" data-icon="logos:internetexplorer"></span>
-                                                break;
-                                            case SessionBrowserType.Opera:
-                                                <span class="iconify" data-icon="logos:opera"></span>
-                                                break;
-                                            case SessionBrowserType.Safari:
-                                                <span class="iconify" data-icon="logos:safari"></span>
-                                                break;
-                                            case SessionBrowserType.Vivaldi:
-                                                <span class="iconify" data-icon="logos:vivaldi-icon"></span>
-                                                break;
-                                            case SessionBrowserType.Unknown:
-                                                <span class="iconify" data-icon="mdi:web"></span>
-                                                break;
-                                        }
-                                        @if (i.IsMobile)
-                                        {
-                                            <span class="iconify" data-icon="mdi:mobile-phone"></span>
+                                            <RadzenBadge IsPill="true" BadgeStyle="BadgeStyle.Success" Text="Registered" />
                                         }
                                         else
                                         {
-                                            <span class="iconify" data-icon="mdi:computer-classic"></span>
+                                            <RadzenBadge IsPill="true" BadgeStyle="BadgeStyle.Warning" Text="Unregistered" />
                                         }
-
-                                        <p>Firefox (Current Session)</p>
-                                        <p>Created At @(GetLocalDate(i.CreatedAt, false))</p>
-                                        <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" />
                                     </div>
+
                                 }
-                            }
+                                <br />
+                                <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterAuthenticator" />
+                                <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" />
+                                <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllAuthenticators" />
+                        </div>>
+                        <div class="session-item">
+                                <h4>Passkeys (Webauth)</h4>
+                                <br />
+                                <p>Last Registered: @(GetLocalDate(AuthUser.Mfa.PasskeyLastRegisteredAt, false))</p>
+                                <p>Last Used: @(GetLocalDate(AuthUser.Mfa.PasskeyLastUsedAt, false))</p>
+                                <p class="mb-2">Last Device: @AuthUser.Mfa.PasskeyLastUsedDevice</p>
+                                <div>
+
+                                    @foreach (var i in AuthUser.Mfa.Passkeys)
+                                    {
+                                        <div class="passkey-item">
+                                            <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLCAwLCAwLCAxLCAyNy4wMDkwMDEsIC0zOS4yMzg5OTgpIj4KICAgIDxwYXRoIGZpbGw9IiM0Mjg1RjQiIGQ9Ik0gLTMuMjY0IDUxLjUwOSBDIC0zLjI2NCA1MC43MTkgLTMuMzM0IDQ5Ljk2OSAtMy40NTQgNDkuMjM5IEwgLTE0Ljc1NCA0OS4yMzkgTCAtMTQuNzU0IDUzLjc0OSBMIC04LjI4NCA1My43NDkgQyAtOC41NzQgNTUuMjI5IC05LjQyNCA1Ni40NzkgLTEwLjY4NCA1Ny4zMjkgTCAtMTAuNjg0IDYwLjMyOSBMIC02LjgyNCA2MC4zMjkgQyAtNC41NjQgNTguMjM5IC0zLjI2NCA1NS4xNTkgLTMuMjY0IDUxLjUwOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNIC0xNC43NTQgNjMuMjM5IEMgLTExLjUxNCA2My4yMzkgLTguODA0IDYyLjE1OSAtNi44MjQgNjAuMzI5IEwgLTEwLjY4NCA1Ny4zMjkgQyAtMTEuNzY0IDU4LjA0OSAtMTMuMTM0IDU4LjQ4OSAtMTQuNzU0IDU4LjQ4OSBDIC0xNy44ODQgNTguNDg5IC0yMC41MzQgNTYuMzc5IC0yMS40ODQgNTMuNTI5IEwgLTI1LjQ2NCA1My41MjkgTCAtMjUuNDY0IDU2LjYxOSBDIC0yMy40OTQgNjAuNTM5IC0xOS40NDQgNjMuMjM5IC0xNC43NTQgNjMuMjM5IFoiLz4KICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik0gLTIxLjQ4NCA1My41MjkgQyAtMjEuNzM0IDUyLjgwOSAtMjEuODY0IDUyLjAzOSAtMjEuODY0IDUxLjIzOSBDIC0yMS44NjQgNTAuNDM5IC0yMS43MjQgNDkuNjY5IC0yMS40ODQgNDguOTQ5IEwgLTIxLjQ4NCA0NS44NTkgTCAtMjUuNDY0IDQ1Ljg1OSBDIC0yNi4yODQgNDcuNDc5IC0yNi43NTQgNDkuMjk5IC0yNi43NTQgNTEuMjM5IEMgLTI2Ljc1NCA1My4xNzkgLTI2LjI4NCA1NC45OTkgLTI1LjQ2NCA1Ni42MTkgTCAtMjEuNDg0IDUzLjUyOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNIC0xNC43NTQgNDMuOTg5IEMgLTEyLjk4NCA0My45ODkgLTExLjQwNCA0NC41OTkgLTEwLjE1NCA0NS43ODkgTCAtNi43MzQgNDIuMzY5IEMgLTguODA0IDQwLjQyOSAtMTEuNTE0IDM5LjIzOSAtMTQuNzU0IDM5LjIzOSBDIC0xOS40NDQgMzkuMjM5IC0yMy40OTQgNDEuOTM5IC0yNS40NjQgNDUuODU5IEwgLTIxLjQ4NCA0OC45NDkgQyAtMjAuNTM0IDQ2LjA5OSAtMTcuODg0IDQzLjk4OSAtMTQuNzU0IDQzLjk4OSBaIi8+CiAgPC9nPgo8L3N2Zz4=" />
+                                            <h4>@i.Name</h4>
+                                            <p>Created: @(GetLocalDate(i.CreatedAt, false))</p>
+                                            <p>Last Used: @(GetLocalDate(i.LastUsedAt, false))</p>
+                                            <div @onclick="@(() => RemovePasskey(i))" style="cursor: pointer;">
+                                                <span class="iconify" data-icon="mdi:delete"></span>
+                                            </div>
+                                        </div>
+                                    }
+
+                                </div>
+                                <br />
+                                <br />
+                                <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterPasskey" />
+                                <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" />
+                                <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllPasskeys" />
                         </div>
+                    </div>
                     }
-                }
+                </RadzenStack>
             </RadzenTabsItem>
         </Tabs>
     </RadzenTabs>
@@ -365,11 +403,13 @@
     }
 
     public bool EmailVerifySent { get; set; }
+    public string Country { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         _DB.SessionUpdated += SessionChangedEvent;
         AuthUser = await Session.GetCurrentUserAsync();
+        Country = await JS.InvokeAsync<string>("getCountry");
         //var Meta = await Fido2Service._metadata.GetEntryAsync(AuthUser.PasskeyTokens.First().AaGuid);
         //Console.WriteLine("Meta: " + Meta.MetadataStatement.Description);
     }
