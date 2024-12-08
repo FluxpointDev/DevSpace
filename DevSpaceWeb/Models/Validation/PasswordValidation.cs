@@ -11,7 +11,7 @@ public class PasswordValidationAttribute : ValidationAttribute
         bool HasCapital = false;
         bool HasLower = false;
         bool HasDigit = false;
-
+        bool HasSpecial = false;
         foreach (char c in actualValue)
         {
             if (!HasCapital)
@@ -20,7 +20,22 @@ public class PasswordValidationAttribute : ValidationAttribute
                 HasLower = char.IsUpper(c);
             else if (!HasDigit)
                 HasDigit = char.IsDigit(c);
+            else if (HasSpecial)
+                HasSpecial = char.IsSymbol(c);
         }
-        return HasCapital && HasLower && HasDigit;
+        if (actualValue.Equals("password", StringComparison.OrdinalIgnoreCase))
+            return false;
+
+        int Strength = 0;
+        if (HasCapital)
+            Strength += 1;
+        if (HasLower)
+            Strength += 1;
+        if (HasDigit)
+            Strength += 1;
+        if (HasSpecial)
+            Strength += 1;
+
+        return Strength >= 2;
     }
 }
