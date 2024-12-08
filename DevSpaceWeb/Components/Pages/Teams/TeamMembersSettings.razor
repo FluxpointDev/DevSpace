@@ -55,16 +55,16 @@
                             {
                                 @if (user.Disabled == null)
                                 {
-                                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Disable" Click="@(() => DisableMember(ud))"></RadzenButton>
+                                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Disable" Click="@(() => DisableMember(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenButton>
                                 }
                                 else
                                 {
-                                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Disable" Click="@(() => DisableMember(ud))"></RadzenButton>
+                                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Disable" Click="@(() => DisableMember(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenButton>
 
                                 }
 
                                 <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
-                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" />
+                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))" />
                             }
 
                         }
@@ -96,8 +96,17 @@
 
     public async Task EnableMember(PartialUserData user)
     {
+        if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
+            return;
+        }
+
         await DialogService.ShowDynamicFormAsync<ReasonModel>("Enable Member " + user.UserName, new ReasonModel(), (ReasonModel data) =>
         {
+            if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
+                return "You do not have permission for Manage Members.";
+
             if (user.ManagedAccountTeamId.HasValue)
             {
                 FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
@@ -115,8 +124,17 @@
 
     public async Task DisableMember(PartialUserData user)
     {
+        if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
+            return;
+        }
+
         await DialogService.ShowDynamicFormAsync<ReasonModel>("Disable Member " + user.UserName, new ReasonModel(), (ReasonModel data) =>
         {
+            if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
+                return "You do not have permission for Manage Members.";
+
             UserDisabled Disabled = new UserDisabled
             {
                 DisabledAt = DateTime.UtcNow,
