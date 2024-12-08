@@ -914,7 +914,17 @@
                 VanityUrl = TeamForm.VanityUrl
             };
         await _DB.Teams.CreateAsync(Team);
-        _DB.Teams.Cache.TryAdd(Team.Id, Team);
+
+
+
+        if (!string.IsNullOrEmpty(TeamForm.VanityUrl))
+        {
+            var Vanity = new VanityUrlData
+            {
+
+            };
+            await _DB.TeamVanityUrls.CreateAsync(Vanity);
+        }
         _Data.Config.Save();
         SetupStep = SetupStepType.Admin;
     }
@@ -975,9 +985,11 @@
             _DB.Teams.Cache.First().Value.OwnerId = User.Id;
             TeamMemberData member = new TeamMemberData
                 {
-                    TeamId = _DB.Teams.Cache.First().Value.Id
+                    TeamId = _DB.Teams.Cache.First().Value.Id,
+                    UserId = User.Id
                 };
             await _DB.Members.CreateAsync(member);
+            _DB.Teams.Cache.First().Value.Members.Add(User.Id, member.Id);
             await _DB.Teams.Cache.First().Value.UpdateAsync(new UpdateDefinitionBuilder<TeamData>()
                 .Set(x => x.OwnerId, User.Id)
                 .Set(x => x.Members, _DB.Teams.Cache.First().Value.Members));
