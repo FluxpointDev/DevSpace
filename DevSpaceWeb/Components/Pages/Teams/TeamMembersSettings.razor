@@ -111,7 +111,7 @@
             {
                 FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
                 UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, null);
-                var Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("auth_internal").UpdateOne(filter, update);
+                var Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
                 if (!Result.IsAcknowledged)
                     return "Failed to enable user";
             }
@@ -145,7 +145,7 @@
             {
                 FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
                 UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, Disabled);
-                var Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("auth_internal").UpdateOne(filter, update);
+                var Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
                 if (!Result.IsAcknowledged)
                     return "Failed to disable user";
             }

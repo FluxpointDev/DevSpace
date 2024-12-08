@@ -1,5 +1,4 @@
-﻿using DevSpaceWeb.Data.Teams;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using System.Collections;
 
 namespace Radzen.Blazor

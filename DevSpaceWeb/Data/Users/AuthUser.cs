@@ -1,14 +1,12 @@
 ﻿using AspNetCore.Identity.MongoDbCore.Models;
 using DevSpaceWeb.Database;
-using DevSpaceWeb.Fido2;
-using Fido2NetLib;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDbGenericRepository.Attributes;
 
 namespace DevSpaceWeb.Data.Users;
 
-[CollectionName("auth_internal")]
+[CollectionName("users")]
 public class AuthUser : MongoIdentityUser<ObjectId>
 {
     public string? DisplayName { get; set; }
@@ -58,7 +56,7 @@ public class AuthUser : MongoIdentityUser<ObjectId>
 
 
 
-[CollectionName("auth_roles")]
+[CollectionName("user_roles")]
 public class UserRole : MongoIdentityRole<ObjectId>
 {
 

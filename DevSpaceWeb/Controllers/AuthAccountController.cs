@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text;
-using static System.Net.WebRequestMethods;
 
 namespace DevSpaceWeb.Controllers;
 

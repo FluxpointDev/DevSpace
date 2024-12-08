@@ -2,7 +2,6 @@
 using Fido2NetLib;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System.Runtime.Intrinsics.X86;
 using System.Text.Json.Serialization;
 
 namespace DevSpaceWeb.Data.Users;

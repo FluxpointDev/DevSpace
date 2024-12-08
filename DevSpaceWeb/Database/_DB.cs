@@ -1,5 +1,4 @@
-﻿using DevSpaceWeb.Components.Pages.Teams;
-using DevSpaceWeb.Data;
+﻿using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.API;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
@@ -74,7 +73,7 @@ public static class _DB
 
             try
             {
-                await Run.GetCollection<AuthUser>("auth_internal").Find(Builders<AuthUser>.Filter.Empty).ForEachAsync(x =>
+                await Run.GetCollection<AuthUser>("users").Find(Builders<AuthUser>.Filter.Empty).ForEachAsync(x =>
                 {
                     Users.Add(x.Id, new PartialUserData(x));
                 });
