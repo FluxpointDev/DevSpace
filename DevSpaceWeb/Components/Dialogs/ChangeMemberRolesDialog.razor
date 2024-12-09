@@ -19,7 +19,7 @@
                 Current Roles
             </TargetHeader>
             <Template>
-                @if (Program.IsPreviewMode || CurrentRank < context.Position)
+                @if (Program.IsPreviewMode || Team.OwnerId == Session.CurrentUserId.Value || CurrentRank < context.Position)
                 {
                     @context.Name
                 }
@@ -70,7 +70,7 @@
     public ListBoxItemRenderEventArgs<object> ItemRenderAction(ListBoxItemRenderEventArgs<object> data)
     {
         TeamRoleData role = data.Item as TeamRoleData;
-        if (!Program.IsPreviewMode)
+        if (!Program.IsPreviewMode && Team.OwnerId != Session.CurrentUserId.Value)
             data.Disabled = CurrentRank >= role.Position;
         return data;
     }

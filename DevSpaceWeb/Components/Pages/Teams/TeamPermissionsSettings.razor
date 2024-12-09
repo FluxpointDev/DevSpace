@@ -22,7 +22,7 @@
                 TextProperty="@nameof(TeamRoleData.Name)" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
                 Style="width: 100%; max-width: 400px; height:200px" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select role" }})">
                     <Template>
-                        @if (CurrentRank < context.Position)
+                        @if (Team.OwnerId == Member.UserId || CurrentRank < context.Position)
                         {
                             @context.Name
                         }
@@ -41,12 +41,12 @@
                         <RadzenText TextStyle="TextStyle.Body2">
                             @SelectedRole.Description
                         </RadzenText>
-                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Role" Click="@DeleteRole" Disabled="@(SelectedRole.Name == "Default" || CurrentRank >= SelectedRole.Position || !Member.HasTeamPermission(TeamPermission.ManageRoles))" />
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Role" Click="@DeleteRole" Disabled="@(SelectedRole.Name == "Default" || (Team.OwnerId != Member.UserId && CurrentRank >= SelectedRole.Position) || !Member.HasTeamPermission(TeamPermission.ManageRoles))" />
                     </div>
 
                     @if (Member.HasTeamPermission(TeamPermission.ViewPermissions))
                     {
-                        @if (Member.GetRank() >= SelectedRole.Position)
+                        @if (Team.OwnerId != Member.UserId && Member.GetRank() >= SelectedRole.Position)
                         {
                             <div class="role-info" style="background: none !important;">
                                 <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
@@ -56,7 +56,7 @@
                         }
 
                         <PermissionGrid PermissionType="PermissionType.All" Permissions="@Permissions" UnsavedPermissionsChanged="@((arg) => UnsavedPermissions = arg)"
-                        OnSave="@SavePermissions" OnLoad="@LoadPermissions" IsDisabled="@(Member.GetRank() >= SelectedRole.Position)"></PermissionGrid>
+                                        OnSave="@SavePermissions" OnLoad="@LoadPermissions" IsDisabled="@(Team.OwnerId != Member.UserId && Member.GetRank() >= SelectedRole.Position)"></PermissionGrid>
                     }
                     else
                     {
@@ -202,7 +202,7 @@
         else
         {
             CurrentRank = Member.GetRank();
-            if (CurrentRank >= SelectedRole.Position)
+            if (Team.OwnerId != Member.UserId && CurrentRank >= SelectedRole.Position)
                 return;
 
             await SelectedRole.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Permissions, perms));
@@ -241,7 +241,7 @@
         }
 
         CurrentRank = Member.GetRank();
-        if (CurrentRank >= SelectedRole.Position)
+        if (Team.OwnerId != Member.UserId && CurrentRank >= SelectedRole.Position)
             return;
 
         await _DB.Roles.Collection.DeleteOneAsync(new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, SelectedRole.Id));

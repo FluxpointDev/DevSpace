@@ -14,7 +14,7 @@
                 <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" ItemRender="@((x) => RenderItem(x))"
                 LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
                     <Template>
-                        @if (Program.IsPreviewMode || CurrentRank < (context as TeamRoleData).Position)
+                        @if (Program.IsPreviewMode || Team.OwnerId == Member.UserId || CurrentRank < (context as TeamRoleData).Position)
                         {
                             @((context as TeamRoleData).Name)
                         }
@@ -60,7 +60,7 @@
 
     public ListBoxItemRenderEventArgs<TeamRoleData> RenderItem(ListBoxItemRenderEventArgs<TeamRoleData> data)
     {
-        if (!Program.IsPreviewMode)
+        if (!Program.IsPreviewMode && Team.OwnerId != Member.UserId)
             data.Disabled = CurrentRank >= (data.Item as TeamRoleData).Position;
         return data;
     }
@@ -106,7 +106,7 @@
         int Index = RolesList.IndexOf(SelectedRole);
         if (!Program.IsPreviewMode)
         {
-        if (Index == 0 || IsUpdating || CurrentRank >= (Index - 1))
+            if (Index == 0 || IsUpdating || (Team.OwnerId != Member.UserId && CurrentRank >= (Index - 1)))
             return;
         }
         RolesList.RemoveAt(Index);
@@ -120,7 +120,7 @@
 
         if (!Program.IsPreviewMode)
         {
-        if (Index == (RolesList.Count - 1) || IsUpdating || CurrentRank >= Index)
+            if (Index == (RolesList.Count - 1) || IsUpdating || (Team.OwnerId != Member.UserId && CurrentRank >= Index))
             return;
         }
         RolesList.RemoveAt(Index);
@@ -151,7 +151,7 @@
         foreach (var r in RolesList)
         {
             int Index = RolesList.IndexOf(r);
-            if (r.Position != Index && CurrentRank >= Index)
+            if (r.Position != Index && Team.OwnerId != Member.UserId && CurrentRank >= Index)
             {
                 Stop = true;
                 break;
