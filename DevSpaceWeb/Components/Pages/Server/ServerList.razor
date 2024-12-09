@@ -1,10 +1,15 @@
-﻿
+﻿@using DevSpaceWeb.Models.Setup
+@inject DialogService DialogService
+
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
         <RadzenText class="mt-1" TextStyle="TextStyle.H6">Servers</RadzenText>
     </div>
+    <br />
 
+    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Server" Click="@SetupServer" Disabled="(!Member.HasServerPermission(null, ServerPermission.ManageResource))" />
+    <br />
     <br />
     @foreach (var i in _DB.Servers.Cache.Values.Where(x => Member.HasServerPermission(x, ServerPermission.ViewServer)))
     {
@@ -33,77 +38,77 @@
 
 <style>
     .server-item {
-        background-color: #21262d !important;
-        border-radius: 12px;
-        border: 1px solid rgba(0,135,201,0.3) !important;
-        padding-left: 10px;
-        cursor: pointer;
+    background-color: #21262d !important;
+    border-radius: 12px;
+    border: 1px solid rgba(0,135,201,0.3) !important;
+    padding-left: 10px;
+    cursor: pointer;
     }
 
-        .server-item:hover {
-            border-color: rgba(0,135,201,0.5) !important;
-        }
+    .server-item:hover {
+    border-color: rgba(0,135,201,0.5) !important;
+    }
 
     .server-item-icon {
-        vertical-align: center;
+    vertical-align: center;
     }
 
-        .server-item-icon .iconify {
-            width: 40px;
-            height: 40px;
-            margin-top: 16px;
-            color: rgba(0,135,201,0.7) !important;
-        }
+    .server-item-icon .iconify {
+    width: 40px;
+    height: 40px;
+    margin-top: 16px;
+    color: rgba(0,135,201,0.7) !important;
+    }
 
     .server-item:hover .server-item-icon .iconify {
-        color: rgba(0,135,201,0.9) !important;
+    color: rgba(0,135,201,0.9) !important;
     }
 
     .server-item-info {
-        padding-left: 10px;
+    padding-left: 10px;
     }
 
     .server-item-buttons .rz-button {
-        min-width: 34px !important;
-        display: block !important;
-        text-align: right;
-        height: 42px;
-        max-height: 42px !important;
+    min-width: 34px !important;
+    display: block !important;
+    text-align: right;
+    height: 42px;
+    max-height: 42px !important;
     }
 
     .server-item .server-item-buttons .rz-button:hover {
-        background-color: rgba(0,135,201,0.3) !important;
+    background-color: rgba(0,135,201,0.3) !important;
     }
 
     .server-item-buttons .rz-button:first-child {
-        border-radius: 0px 12px 0px 0px;
+    border-radius: 0px 12px 0px 0px;
     }
 
     .server-item-buttons .rz-button:last-child {
-        border-radius: 0px 0px 12px 0px;
+    border-radius: 0px 0px 12px 0px;
     }
 
     .server-item-buttons p {
-        display: inline-block !important;
-        text-transform: capitalize;
-        display: none !important;
+    display: inline-block !important;
+    text-transform: capitalize;
+    display: none !important;
     }
 
     .server-item-buttons .iconify {
-        width: 20px;
-        height: 20px;
-        margin-left: 8px;
-        margin-bottom: -4px;
-        margin-right: 6px;
+    width: 20px;
+    height: 20px;
+    margin-left: 8px;
+    margin-bottom: -4px;
+    margin-right: 6px;
     }
 
     .server-item-buttons:hover .rz-button, .server-item-buttons:hover {
-        min-width: 130px !important;
+    min-width: 130px !important;
     }
 
-        .server-item-buttons:hover p {
-            display: inline-block !important;
-        }
+    .server-item-buttons:hover p {
+    display: inline-block !important;
+    }
 </style>
 
 
@@ -112,4 +117,47 @@
     private SessionProvider Session { get; set; }
 
     public TeamMemberData Member => Session.Selected.Member;
+
+    public async Task SetupServer()
+    {
+        if (!Member.HasServerPermission(null, ServerPermission.ManageResource))
+            return;
+
+        await DialogService.ShowDynamicFormAsync<ServerSetupModel>("Setup Server", new ServerSetupModel(), (ServerSetupModel data) =>
+            {
+                if (!Member.HasServerPermission(null, ServerPermission.ManageResource))
+                    return "You do not have Manage Resource permissions";
+
+                var ServerTask = Task.Run(async () =>
+                {
+                    ServerWebSocket Client = new ServerWebSocket();
+                    Client.Run(new ServerData
+                    {
+                        AgentIp = data.Ip,
+                        AgentPort = 5555,
+                        AgentKey = data.AgentKey
+                    });
+
+                    ServerData Server = new ServerData
+                        {
+                            Name = data.Name,
+                            OwnerId = Member.UserId,
+                            TeamId = Member.TeamId,
+                            AgentIp = data.Ip,
+                            AgentPort = 5555,
+                            AgentKey = data.AgentKey
+                        };
+                    _DB.Servers.CreateAsync(Server);
+                    _DB.Servers.Cache.TryAdd(Server.Id, Server);
+                });
+                Task.WaitAll(ServerTask);
+                if (!ServerTask.IsCompletedSuccessfully)
+                    return "Failed to setup server.";
+
+                
+
+                InvokeAsync(StateHasChanged);
+                return null;
+            });
+    }
 }

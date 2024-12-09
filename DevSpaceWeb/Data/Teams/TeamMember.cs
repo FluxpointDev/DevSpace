@@ -126,7 +126,7 @@ public class TeamMemberData
         return false;
     }
 
-    public bool HasServerPermission(ServerData server, ServerPermission permission)
+    public bool HasServerPermission(ServerData? server, ServerPermission permission)
     {
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
@@ -140,10 +140,13 @@ public class TeamMemberData
         if (Perms.Team.GlobalAdministrator || Perms.Server.ServerAdministrator)
             return true;
 
+        if (permission == ServerPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
+            return true;
+
         if (Perms.Server.Has(permission))
             return true;
 
-        if (server.MemberPermissionOverrides.TryGetValue(server.Id, out var uovr) && uovr.ServerPermissions.HasFlag(permission))
+        if (server != null &&  server.MemberPermissionOverrides.TryGetValue(server.Id, out var uovr) && uovr.ServerPermissions.HasFlag(permission))
             return true;
 
         foreach (ObjectId r in Roles)
@@ -155,7 +158,7 @@ public class TeamMemberData
 
             }
 
-            if (server.RolePermissionOverrides.TryGetValue(r, out var ovr) && ovr.ServerPermissions.HasFlag(permission))
+            if (server != null && server.RolePermissionOverrides.TryGetValue(r, out var ovr) && ovr.ServerPermissions.HasFlag(permission))
                 return true;
         }
 

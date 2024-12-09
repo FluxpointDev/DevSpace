@@ -1,12 +1,47 @@
-﻿
+﻿@inject DialogService DialogService
+
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:home"></span></div>
         <RadzenText class="mt-1" TextStyle="TextStyle.H6">Server</RadzenText>
     </div>
+    <br />
+    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Server" Click="@DeleteServer" Disabled="(!Member.HasServerPermission(Server, ServerPermission.ManageResource))" />
 </div>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
+
+    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+
+    public async Task DeleteServer()
+    {
+        if (!Member.HasServerPermission(Server, ServerPermission.ManageResource))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageResources);
+            return;
+        }
+
+        bool Confirm = await DialogService.ShowConfirmAsync("Delete Server", $"Are you sure you want to delete this server?", "Confirm", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        var Result = await _DB.Servers.Collection.DeleteOneAsync(Builders<ServerData>.Filter.Eq(x => x.Id, Server.Id));
+        if (Result.IsAcknowledged)
+        {
+            if (Server.GetWebSocket() != null)
+                Server.GetWebSocket().Client.Dispose();
+
+            _DB.Servers.Cache.TryRemove(Server.Id, out _);
+            Session.Selected.Team.Server = null;
+            StateHasChanged();
+        }
+        else
+        {
+            await DialogService.ShowInfoAsync("Error", "Failed to delete server.");
+        }
+    }
 }

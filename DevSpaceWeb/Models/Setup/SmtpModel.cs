@@ -7,6 +7,7 @@ public class SmtpModel
     [Required(ErrorMessage = "Smtp host is required")]
     [MaxLength(100, ErrorMessage = "Smtp host has a maximum of 100 characters")]
     public string Host { get; set; }
+
     public int Port { get; set; }
 
     [Required(ErrorMessage = "Smtp email address is required")]
