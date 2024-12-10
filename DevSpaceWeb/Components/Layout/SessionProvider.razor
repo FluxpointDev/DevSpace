@@ -311,7 +311,28 @@
             {
                 var User = await GetCurrentUserAsync();
                 CurrentUserId = User.Id;
-                if (!User.Account.Sessions.ContainsKey(Utils.GetStringSha256Hash(Ip)))
+
+                string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
+                if (string.IsNullOrEmpty(SessionId))
+                {
+                    SessionError = SessionErrorType.AuthenticationRequired;
+                    return;
+                }
+
+                bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out var session);
+                if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
+                {
+                    if (_DB.Users.Keys.Count() == 1 && User.Account.Sessions.Count() == 1 && !session.AuthorizedIps.Any())
+                    {
+                        session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
+                        await UserManager.UpdateAsync(User);
+                    }
+                    else
+                        NewLogin = true;
+                }
+
+
+                if (NewLogin)
                 {
                     SessionError = SessionErrorType.SessionSecurityNewIp;
                     return;

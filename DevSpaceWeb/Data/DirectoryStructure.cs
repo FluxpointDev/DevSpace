@@ -51,6 +51,7 @@ public class DirectoryStructurePublic : DirectoryStructure
     {
         Temp = new DirectoryStructureTemp(folder + "temp/");
         Resources = new DirectoryStructure(folder + "resources/");
+        Instance = new DirectoryStructure(folder + "instance/");
     }
 
     /// <summary>
@@ -58,7 +59,15 @@ public class DirectoryStructurePublic : DirectoryStructure
     /// </summary>
     public DirectoryStructureTemp Temp;
 
+    /// <summary>
+    /// Files for all the teams and resources.
+    /// </summary>
     public DirectoryStructure Resources;
+
+    /// <summary>
+    /// Files for this instance such as instance icon
+    /// </summary>
+    public DirectoryStructure Instance;
 }
 public class DirectoryStructureTemp : DirectoryStructure
 {
