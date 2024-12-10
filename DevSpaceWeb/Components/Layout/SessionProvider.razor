@@ -56,7 +56,20 @@
                                         <RadzenText class="mt-1" TextStyle="TextStyle.H6">Session Security Error</RadzenText>
                                     </div>
                                     <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
-                                        This instance has been incorrectly configured or is using local host ip for connection.
+                                        This instance has been incorrectly configured or is using local host ip for connection, check your nginx config if forwarded headers are set properly.
+                                    </RadzenAlert>
+                                </div>
+                            }
+                            break;
+                        case SessionErrorType.SessionError:
+                            {
+                                <div class="dash-box dash-box-content dash-center">
+                                    <div class="dash-box-header">
+                                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
+                                        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Session Error</RadzenText>
+                                    </div>
+                                    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+                                        Failed to create a session this could be a server/nginx misconfiguration, cloudflare websocket disable, browser issue or other issues.
                                     </RadzenAlert>
                                 </div>
                             }
@@ -234,6 +247,12 @@
             SessionError = SessionErrorType.RestartRequired;
             return;
         }
+
+        if (Http.HttpContext == null)
+        {
+            SessionError = SessionErrorType.SessionError;
+            return;
+        }
         if (!Http.HttpContext.Request.IsHttps)
         {
             SessionError = SessionErrorType.HttpsRequired;
@@ -379,7 +398,7 @@
 
     public enum SessionErrorType
     {
-        Loading, SessionSecurityError, HttpsRequired, SessionSecurityNewIp, AuthenticationError, AuthenticationRequired, DatabaseError, RestartRequired, Success, AccountDisabled
+        Loading, SessionSecurityError, SessionError, HttpsRequired, SessionSecurityNewIp, AuthenticationError, AuthenticationRequired, DatabaseError, RestartRequired, Success, AccountDisabled
     }
 
 }
