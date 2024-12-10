@@ -68,9 +68,24 @@
                                         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
                                         <RadzenText class="mt-1" TextStyle="TextStyle.H6">Session Error</RadzenText>
                                     </div>
-                                    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
-                                        Failed to create a session this could be a server/nginx misconfiguration, cloudflare websocket disable, browser issue or other issues.
-                                    </RadzenAlert>
+                                    @if (WebSocketTest == "no")
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+                                            Failed to use websockets this could be disabled by cloudflare or nginx config does not have the Upgrade and Connection headers set.
+                                        </RadzenAlert>
+                                    }
+                                    else if (WebSocketTest == "fail")
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+                                            Failed to make a request to the server this could be caused by nginx configuration issue.
+                                        </RadzenAlert>
+                                    }
+                                    else
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+                                            Failed to create a session this could be a server/nginx misconfiguration, cloudflare websocket disable, browser issue or other issues.
+                                        </RadzenAlert>
+                                    }
                                 </div>
                             }
                             break;
@@ -181,6 +196,8 @@
 
     public SessionErrorType SessionError { get; set; }
 
+    public string WebSocketTest { get; set; }
+
     public async Task<AuthUser?> GetCurrentUserAsync()
     {
         return await UserManager.GetUserAsync(State.User)!;
@@ -250,6 +267,11 @@
 
         if (Http.HttpContext == null)
         {
+            try
+            {
+                WebSocketTest = await JS.InvokeAsync<string>("TestWebSocket");
+            }
+            catch (Exception ex) { }
             SessionError = SessionErrorType.SessionError;
             return;
         }

@@ -3,6 +3,13 @@
 namespace DevSpaceWeb.Controllers;
 public class TestController : Controller
 {
+    [HttpGet("/api/test/websocket")]
+    public async Task<IActionResult> TestWebsocket()
+    {
+        string Connection = Request.Headers["Connection"];
+        return Connection == "close" ? StatusCode(412) : Ok();
+    }
+
     [HttpGet("/api/test/headers")]
     public async Task<IActionResult> Headers()
     {

@@ -140,7 +140,6 @@ public class Program
         app.MapRazorComponents<Components.App>()
             .AddInteractiveServerRenderMode();
         app.MapControllers();
-        app.UseStatusCodePagesWithRedirects("/error/{0}");
         app.Run();
     }
 }
