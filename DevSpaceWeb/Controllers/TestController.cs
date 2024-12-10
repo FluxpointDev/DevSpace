@@ -15,6 +15,6 @@ public class TestController : Controller
             Logger.LogMessage($"Header: {i.Key} - {i.Value.ToString()}", LogSeverity.Debug);
         }
         Logger.LogMessage("---", LogSeverity.Debug);
-        return Ok();
+        return Ok(Request.Headers);
     }
 }

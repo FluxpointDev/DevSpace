@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Components.Layout;
 using DevSpaceWeb.Data.Users;
+using Microsoft.Extensions.Primitives;
 using Radzen;
 using System.Globalization;
 using System.Runtime.InteropServices;
@@ -129,16 +130,18 @@ public static class Utils
         if (Program.IsDevMode || Program.IsPreviewMode)
             return "1.2.3.4";
 
+        if (!string.IsNullOrEmpty(context.Request.Headers["CF-Connecting-IPv6"]))
+            return context.Request.Headers["CF-Connecting-IPv6"];
 
         // Check CF-Connecting-IP header
-        if (!string.IsNullOrEmpty(context.Request.Headers["CF-CONNECTING-IP"]))
-            return context.Request.Headers["CF-CONNECTING-IP"];
+        if (!string.IsNullOrEmpty(context.Request.Headers["CF-Connecting-IP"]))
+            return context.Request.Headers["CF-Connecting-IP"];
 
         // Check X-Forwarded-For header
         if (!string.IsNullOrEmpty(context.Request.Headers["X-Forwarded-For"]))
             return context.Request.Headers["X-Forwarded-For"];
 
-        return "";
+        return null;
     }
 
     internal static string GetStringSha256Hash(string text)
