@@ -196,6 +196,8 @@
 
     public SessionErrorType SessionError { get; set; }
 
+    public bool IsInstanceAdmin { get; set; }
+
     public string WebSocketTest { get; set; }
 
     public async Task<AuthUser?> GetCurrentUserAsync()
@@ -342,7 +344,7 @@
                     if (User != null)
                     {
                         CurrentUserId = User.Id;
-
+                        IsInstanceAdmin = User.IsInstanceAdmin;
                         if (User.Disabled != null)
                         {
                             SessionError = SessionErrorType.AccountDisabled;
