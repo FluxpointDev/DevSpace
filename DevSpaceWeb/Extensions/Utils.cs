@@ -10,6 +10,27 @@ namespace DevSpaceWeb;
 
 public static class Utils
 {
+    public static string GetBrowserName(SessionBrowserType type)
+    {
+        switch (type)
+        {
+            case SessionBrowserType.Chrome:
+                return "Chrome";
+            case SessionBrowserType.Edge:
+                return "Edge";
+            case SessionBrowserType.Firefox:
+                return "Firefox";
+            case SessionBrowserType.InternetExplorer:
+                return "Internet Explorer";
+            case SessionBrowserType.Opera:
+                return "Opera";
+            case SessionBrowserType.Safari:
+                return "Safari";
+            case SessionBrowserType.Vivaldi:
+                return "Vivaldi";
+        }
+        return null;
+    }
     public static UserPasswordStrength GetPasswordStrength(string password)
     {
         int Capitals = 0;

@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject EmailService Email
 @inject HttpContextAccessor Http
+@inject IJSRuntime JS
 
 <div class="dash-box dash-box-content dash-center">
     <div class="dash-box-header">
@@ -42,8 +43,34 @@
                 session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
             else
             {
+                int Browser = 0;
+                try
+                {
+                    Browser = await JS.InvokeAsync<int>("getBrowser");
+                }
+                catch { }
+
+                string Country = "Unknown";
+                try
+                {
+                    Country = await JS.InvokeAsync<string>("getCountry");
+                }
+                catch { }
+
+                bool IsMobile = false;
+                try
+                {
+                    IsMobile = await JS.InvokeAsync<bool>("getIsMobile");
+                }
+                catch { }
+
                 User.Account.Sessions.TryAdd(SessionId, new UserSession
                 {
+                    IsMobile = IsMobile,
+                    BrowserType = (SessionBrowserType)Browser,
+                    Name = Utils.GetBrowserName((SessionBrowserType)Browser),
+                    Country = Country,
+                    CreatedAt = DateTime.UtcNow,
                     AuthorizedIps = new HashSet<string>
                     {
                         Utils.GetStringSha256Hash(Ip)

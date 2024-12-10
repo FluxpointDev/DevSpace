@@ -86,11 +86,19 @@ public class AuthLoginController : AuthControllerContext
 
         if (!AuthUser.Account.Sessions.ContainsKey(SessionId))
         {
+            string BrowserName = "";
+            switch ((SessionBrowserType)browser)
+            {
+                case SessionBrowserType.Chrome:
+                    break;
+            }
             AuthUser.Account.Sessions.Add(SessionId, new UserSession
             {
+                CreatedAt = DateTime.UtcNow,
                 BrowserType = (SessionBrowserType)browser,
                 IsMobile = isMobile,
-                Country = country
+                Country = country,
+                Name = Utils.GetBrowserName((SessionBrowserType)browser)
             });
         }
         

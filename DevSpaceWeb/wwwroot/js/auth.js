@@ -4,11 +4,7 @@
     formData.append('password', password);
     formData.append('rememberMe', rememberMe)
 
-    var isMobile = false;
-    if (navigator.userAgent.match(/Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i))
-        isMobile = true;
-
-    formData.append('isMobile', isMobile);
+    formData.append('isMobile', getIsMobile());
     formData.append('browser', getBrowser());
     formData.append('country', getCountry());
 
@@ -34,6 +30,13 @@
     }
 
     return "fail";
+}
+
+function getIsMobile() {
+    if (navigator.userAgent.match(/Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i))
+        return true;
+
+    return false;
 }
 
 function getCountry() {

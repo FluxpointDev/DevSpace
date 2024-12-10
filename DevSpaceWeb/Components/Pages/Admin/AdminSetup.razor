@@ -10,6 +10,8 @@
 @using MimeKit
 @using MongoDB.Bson
 @using MongoDB.Driver
+@using System.Net.Sockets
+@using System.Net
 @inject UserManager<AuthUser> UserManager
 @inject SignInManager<AuthUser> SignInManager
 @inject EmailService Email
@@ -167,10 +169,6 @@
                             {
                                 case ConfigEmailType.Custom:
                                     {
-                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                            You will not be able to use custom email templates with this option to prevent abuse.
-                                        </RadzenAlert>
-
                                         <RadzenLabel Text="Smtp Host" class="rz-my-0"></RadzenLabel>
                                         <RadzenTextBox @bind-Value="@SmtpForm.Host" Style="width: 100%" aria-label="Smtp Host" autocomplete="false"
                                         Disabled="@(SetupStep != SetupStepType.Smtp)" Placeholder="smtp.domain.com" MaxLength="100" />
@@ -260,6 +258,10 @@
                                     break;
                                 case ConfigEmailType.FluxpointManaged:
                                     {
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                            You will not be able to use custom email templates with this option to prevent abuse.
+                                        </RadzenAlert>
+
                                         <RadzenLabel Text="Email API Key" class="rz-my-0"></RadzenLabel>
                                         <RadzenTextBox @bind-Value="@ManagedEmailToken" Style="width: 100%" aria-label="Email API Key" autocomplete="false"
                                         Disabled="@(SetupStep != SetupStepType.Smtp)" MaxLength="100" />
@@ -533,11 +535,14 @@
                 Password = _Data.Config.Email.SmtpPassword,
                 EmailAddress = _Data.Config.Email.SenderEmailAddress
             };
+        EmailType = _Data.Config.Email.Type;
 
         if (_Data.Config.Database.IsSetup)
         {
             IsDatabaseSetupDone = true;
             SetupStep = SetupStepType.Smtp;
+
+            IsDatabaseAutomatic = File.Exists(Program.Directory.Data.Path + "root.txt");
         }
 
 
@@ -772,14 +777,33 @@
                     Name = DatabaseForm.Name,
                     Port = DatabaseForm.Port,
                     Password = DatabaseForm.Password,
-                    Username = DatabaseForm.Username
+                    Username = DatabaseForm.Username,
                 };
-            _Data.Config.Save();
-
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(_Data.Config.Database));
             _DB.Client = client;
-            _DB.Run = _DB.Client.GetDatabase(_Data.Config.Database.Name);
+            _DB.Run = null!;
             _DB.Init();
-            await _DB.StartAsync();
+            try
+            {
+                bool Connected = await _DB.StartAsync();
+                if (!Connected)
+                {
+                    DatabaseErrorMessage = "Database error, failed to connect please check your settings.";
+                    SetupStep = SetupStepType.Database;
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message == "Unable to authenticate using sasl protocol mechanism SCRAM-SHA-256.")
+                    DatabaseErrorMessage = "Database error, failed to connect please check your settings.";
+                else
+                    DatabaseErrorMessage = "Database error, " + ex.Message;
+                SetupStep = SetupStepType.Database;
+                return;
+            }
+
+            _Data.Config.Save();
         }
 
         IsDatabaseSetupDone = true;
@@ -821,7 +845,6 @@
                 return;
             }
 
-            _Data.Config.Email.Type = EmailType;
             _Data.Config.Email.ManagedEmailToken = ManagedEmailToken;
         }
         else
@@ -879,6 +902,7 @@
             _Data.Config.Email.SmtpUser = SmtpForm.User;
             _Data.Config.Email.SmtpPassword = SmtpForm.Password;
             _Data.Config.Email.SenderEmailAddress = SmtpForm.EmailAddress;
+            _Data.Config.Email.Type = EmailType;
 
         }
         _Data.Config.Save();
@@ -909,12 +933,12 @@
 
         SetupStep = SetupStepType.Disabled;
         TeamData Team = new TeamData
-            {
-                Name = TeamForm.Name,
-                VanityUrl = TeamForm.VanityUrl
-            };
+        {
+            Name = TeamForm.Name,
+            VanityUrl = TeamForm.VanityUrl
+        };
         await _DB.Teams.CreateAsync(Team);
-
+        _DB.Teams.Cache.TryAdd(Team.Id, Team);
 
 
         if (!string.IsNullOrEmpty(TeamForm.VanityUrl))
@@ -947,6 +971,7 @@
         {
             SentEmailAddress = AdminAccount.Email;
             SentEmailCode = Email.RandomCodeGenerator();
+            Console.WriteLine(SentEmailCode);
             var EmailSuccess = await Email.SendAccessCode(User, "Admin setup confirmation", SentEmailCode);
             if (!EmailSuccess)
             {
@@ -958,20 +983,15 @@
             return;
         }
 
+        if (!string.IsNullOrEmpty(InputEmailCode))
+            InputEmailCode = InputEmailCode.Trim();
+
         if (InputEmailCode != SentEmailCode)
         {
             SetupStep = SetupStepType.Admin;
             return;
         }
 
-
-        @* User.Auth.Sessions.TryAdd(Http.HttpContext.Request.Cookies["DevSpace.SessionId"], new AuthUserSession
-        {
-            AuthorizedIps = new HashSet<string>
-            {
-                Utils.GetStringSha256Hash(Utils.GetUserIpAddress(Http.HttpContext))
-            }
-        }); *@
         var result = await UserManager.CreateAsync(User, AdminAccount.Password);
 
         if (result.Errors.Any())
