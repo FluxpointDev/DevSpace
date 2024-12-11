@@ -15,26 +15,8 @@
     else
     {
         <br />
-        <EditForm Model="@TeamForm" OnValidSubmit="@UpdateTeamSettings">
-            <DataAnnotationsValidator />
+        <DynamicFormDialog Model="@TeamBasicModel" ModelData="@Data" OnSubmit="@UpdateTeamSettings"></DynamicFormDialog>
 
-            <RadzenLabel Text="Team Name" class="rz-my-0"></RadzenLabel>
-            <RadzenTextBox @bind-Value="@TeamForm.Name" Style="width: 100%" aria-label="Team Name" autocomplete="false"
-            Placeholder="My Team" MaxLength="32" />
-            <ValidationMessage For="() => TeamForm.Name" style="color: var(--rz-danger);" />
-
-            <br style="margin-bottom: 20px;" />
-
-            <RadzenLabel Text="Vanity Url" class="rz-my-0"></RadzenLabel>
-            <RadzenTextBox @bind-Value="@TeamForm.VanityUrl" Style="width: 100%" aria-label="Vanity Url" autocomplete="false"
-            Placeholder="myteam" MaxLength="100" />
-            <ValidationMessage For="() => TeamForm.VanityUrl" style="color: var(--rz-danger);" />
-            <br />
-            <br />
-
-            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" ButtonType="ButtonType.Submit" />
-
-        </EditForm>
 
         <br />
         <br />
@@ -56,49 +38,48 @@
 
     public TeamMemberData Member => Session.Selected.Member;
 
+    public TeamBasicModel Data;
 
     protected override async Task OnInitializedAsync()
     {
-        TeamForm = new TeamBasicModel
+        Data = new TeamBasicModel
             {
-                Name = Team.Name
+                Name = Team.Name,
+                VanityUrl = Team.VanityUrl
             };
-        TeamForm.VanityUrl = Team.VanityUrl;
     }
 
-    public TeamBasicModel TeamForm { get; set; } = new TeamBasicModel();
-
-    public async Task UpdateTeamSettings()
+    public async Task<string?> UpdateTeamSettings(TeamBasicModel model)
     {
         if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
-            return;
+            return "Error";
         }
 
-        if (!string.IsNullOrEmpty(TeamForm.VanityUrl))
+        if (!string.IsNullOrEmpty(model.VanityUrl))
         {
-            TeamForm.VanityUrl = TeamForm.VanityUrl.Replace(" ", "-").ToLower();
+            model.VanityUrl = model.VanityUrl.Replace(" ", "-").ToLower();
         }
 
         Dictionary<string, string> props = new Dictionary<string, string>();
-        if (Team.Name != TeamForm.Name)
-            props.Add(nameof(TeamData.Name), TeamForm.Name);
+        if (Team.Name != model.Name)
+            props.Add(nameof(TeamData.Name), model.Name);
 
-        if (Team.VanityUrl != TeamForm.VanityUrl)
-            props.Add(nameof(TeamData.VanityUrl), TeamForm.VanityUrl);
+        if (Team.VanityUrl != model.VanityUrl)
+            props.Add(nameof(TeamData.VanityUrl), model.VanityUrl);
 
         if (!props.Any())
-            return;
+            return null;
 
-        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, TeamForm.Name).Set(x => x.VanityUrl, TeamForm.VanityUrl));
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, model.Name).Set(x => x.VanityUrl, model.VanityUrl));
 
         _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.SettingsChanged).SetTarget(AuditLogTargetType.Team, Team.Id).SetProperties(props));
 
-        Team.Name = TeamForm.Name;
-        if (Team.VanityUrl != TeamForm.VanityUrl)
+        Team.Name = model.Name;
+        if (Team.VanityUrl != model.VanityUrl)
         {
-            if (string.IsNullOrEmpty(TeamForm.VanityUrl))
+            if (string.IsNullOrEmpty(model.VanityUrl))
             {
                 if (!string.IsNullOrEmpty(Team.VanityUrl))
                 {
@@ -108,16 +89,18 @@
             }
             else
             {
-                if (TeamForm.VanityUrl != Team.VanityUrl)
+                if (model.VanityUrl != Team.VanityUrl)
                 {
                     _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
-                    _DB.TeamsVanityCache.TryAdd(TeamForm.VanityUrl, Team);
-                    Team.VanityUrl = TeamForm.VanityUrl;
+                    _DB.TeamsVanityCache.TryAdd(model.VanityUrl, Team);
+                    Team.VanityUrl = model.VanityUrl;
                 }
             }
             Session.Selected.Team.VanityUrl = Team.GetVanityUrl();
         }
         Session.TriggerNavMenuChange();
+
+        return null;
     }
 
     public RadzenUpload IconUploader { get; set; }
@@ -144,7 +127,7 @@
         if (!Team.HasIcon)
             return;
 
-        if (!Member.HasTeamPermission(Data.Permissions.TeamPermission.ManageTeam))
+        if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
             return;
