@@ -9,11 +9,8 @@ using System.Security.Authentication;
 
 namespace DevSpaceWeb.Data.Servers;
 
-public class ServerData : IResource
+public class ServerData : ITeamResource
 {
-    [BsonId]
-    public ObjectId Id { get; set; }
-    public string Name { get; set; }
     public string AgentIp { get; set; }
     public string AgentKey { get; set; }
     public short AgentPort { get; internal set; }

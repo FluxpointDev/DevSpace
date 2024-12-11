@@ -6,13 +6,8 @@ using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Reports;
 
-public class LogData : IResource
+public class LogData : ITeamResource
 {
-    [BsonId]
-    public ObjectId Id { get; set; }
-
-    public string Name { get; set; }
-
     public string GetVanityUrl()
     {
         if (_DB.VanityUrlCache.TryGetValue(Id, out string vanityUrl))

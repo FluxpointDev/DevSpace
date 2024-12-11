@@ -10,13 +10,9 @@ using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Data.Teams;
 
-public class TeamData
+public class TeamData : IResource
 {
-    [BsonId]
-    public ObjectId Id { get; set; }
-    public string Name { get; set; }
     public string VanityUrl { get; set; }
-    public ObjectId OwnerId { get; set; }
     public Guid? ResourceId { get; set; }
     public Guid? IconId { get; set; }
 

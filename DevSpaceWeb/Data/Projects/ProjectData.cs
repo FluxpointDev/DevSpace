@@ -6,11 +6,9 @@ using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Projects;
 
-public class ProjectData : IResource
+public class ProjectData : ITeamResource
 {
-    [BsonId]
-    public ObjectId Id { get; set; }
-    public string Name { get; set; }
+    
     public string GetVanityUrl()
     {
         if (_DB.VanityUrlCache.TryGetValue(Id, out string vanityUrl))
