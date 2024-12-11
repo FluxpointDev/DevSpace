@@ -164,14 +164,7 @@ public static class ServiceBuilder
                 Origins.Add("https://" + _Data.Config.Instance.PublicDomain);
         }
 
-        services.AddSingleton(new Fido2Service(new Fido2Configuration
-        {
-            ServerDomain = Program.IsDevMode ? "localhost" : _Data.Config.Instance.PublicDomain,
-            ServerName = _Data.Config.Instance.Name,
-            Origins = Origins,
-            TimestampDriftTolerance = 300000,
-            MDSCacheDirPath = Program.Directory.Cache.Path
-        }));
+        services.AddSingleton(new Fido2Service());
     }
 
     public static void AddMongoDb(IServiceCollection services)

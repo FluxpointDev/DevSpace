@@ -1,23 +1,39 @@
-﻿using Fido2NetLib;
+﻿using DevSpaceWeb.Data;
+using Fido2NetLib;
 using System.Text;
 
 namespace DevSpaceWeb.Fido2;
 
 public class Fido2Service
 {
-    public Fido2Service(Fido2Configuration config)
+    public Fido2Service()
     {
-        //var repos = new List<IMetadataRepository>
-        //{
-        //    new ConformanceMetadataRepository(Program.Http, config.Origins.First()),
-        //    new FileSystemMetadataRepository(config.MDSCacheDirPath)
-        //};
-        //_metadata = new Fido2Metadata(repos);
-        _lib = new Fido2NetLib.Fido2(config);
-        //_metadata.InitializeAsync();
+        SetConfig();
     }
 
-    public readonly Fido2NetLib.Fido2 _lib;
+    public void SetConfig()
+    {
+        HashSet<string> Origins = new HashSet<string>();
+        if (Program.IsDevMode)
+        {
+            Origins.Add("https://localhost:5149");
+        }
+        else
+        {
+            Origins.Add("https://" + _Data.Config.Instance.PublicDomain);
+        }
+
+        _lib = new Fido2NetLib.Fido2(new Fido2Configuration
+        {
+            ServerDomain = Program.IsDevMode ? "localhost" : _Data.Config.Instance.PublicDomain,
+            ServerName = _Data.Config.Instance.Name,
+            Origins = Origins,
+            TimestampDriftTolerance = 300000,
+            MDSCacheDirPath = Program.Directory.Cache.Path
+        });
+    }
+
+    public Fido2NetLib.Fido2 _lib { get; private set; }
     public readonly Fido2Metadata _metadata;
 
     public static byte[] GetPasskeyIdInBytes(string? passykeyId)

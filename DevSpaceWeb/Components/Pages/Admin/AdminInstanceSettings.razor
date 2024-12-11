@@ -1,4 +1,5 @@
-﻿@using DevSpaceWeb.Models
+﻿@using DevSpaceWeb.Fido2
+@using DevSpaceWeb.Models
 @using DevSpaceWeb.Services
 @using MailKit.Net.Smtp
 @using MimeKit
@@ -6,6 +7,7 @@
 @inject EmailService EmailService
 @inject ISwaggerProvider Swagger
 @inject NavigationManager Nav
+@inject Fido2Service FidoService
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -28,7 +30,12 @@
 
         _Data.Config.Instance.Name = data.Name;
         _Data.Config.Instance.Description = data.Description;
-        _Data.Config.Instance.PublicDomain = data.PublicDomain.ToLower();
+
+        if (CurrentDomain != data.PublicDomain)
+        {
+            _Data.Config.Instance.PublicDomain = CurrentDomain;
+            FidoService.SetConfig();
+        }
         _Data.Config.Save();
         return null;
     }
