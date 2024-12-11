@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DevSpaceWeb.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace DevSpaceWeb.Models;
 
@@ -26,4 +27,16 @@ public class SmtpModel
     [MaxLength(100, ErrorMessage = "Smtp email address has a maximum of 100 characters")]
     [EmailAddress(ErrorMessage = "Email is invalid")]
     public string TestEmailAddress { get; set; }
+
+    public static SmtpModel Create()
+    {
+        return new SmtpModel
+        {
+            Host = _Data.Config.Email.SmtpHost,
+            Port = _Data.Config.Email.SmtpPort,
+            User = _Data.Config.Email.SmtpUser,
+            Password = _Data.Config.Email.SmtpPassword,
+            EmailAddress = _Data.Config.Email.SenderEmailAddress
+        };
+    }
 }

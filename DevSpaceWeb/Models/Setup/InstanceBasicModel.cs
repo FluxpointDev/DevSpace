@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using DevSpaceWeb.Data;
+using System.ComponentModel.DataAnnotations;
 
 namespace DevSpaceWeb.Models;
 
@@ -15,4 +16,14 @@ public class InstanceBasicModel
     [Required]
     [MaxLength(300, ErrorMessage = "Public domain has a maximum of 300 characters")]
     public string PublicDomain { get; set; }
+
+    public static InstanceBasicModel Create()
+    {
+        return new InstanceBasicModel
+        {
+            Name = _Data.Config.Instance.Name,
+            Description = _Data.Config.Instance.Description,
+            PublicDomain = _Data.Config.Instance.PublicDomain
+        };
+    }
 }

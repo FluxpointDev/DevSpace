@@ -39,9 +39,20 @@
             }
 
         </RadzenStack>
-        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-            <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@LoadingSubmit" />
-            <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" Disabled="@LoadingSubmit" />
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="@(IsDialog ? JustifyContent.End : JustifyContent.Start)" Gap="0.5rem">
+            @if (IsDialog)
+            {
+                <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@LoadingSubmit" />
+                <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" Disabled="@LoadingSubmit" />
+            }
+            else
+            {
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" Click="@Submit" />
+                @if (OnTest != null)
+                {
+                    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Test" Click="@Test" />
+                }
+            }
         </RadzenStack>
     </EditForm>
 </RadzenStack>
@@ -64,7 +75,13 @@
     public string Description { get; set; }
 
     [Parameter]
-    public Func<Model, string?> SubmitTask { get; set; }
+    public bool IsDialog { get; set; }
+
+    [Parameter]
+    public Func<Model, Task<string?>> OnSubmit { get; set; }
+
+    [Parameter]
+    public Func<Model, Task>? OnTest { get; set; }
 
     public string? ErrorMessage { get; set; }
 
@@ -74,13 +91,51 @@
 
     public RenderFragment RenderFormElement(object model, DynamicFormItem item, PropertyInfo propInfoValue) => builder =>
     {
-        builder.OpenComponent(0, typeof(RadzenTextBox));
-        builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+        bool IsNumber = false;
 
-        builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<string>(this, (value) =>
+        if (propInfoValue.PropertyType == typeof(string))
+        {
+            builder.OpenComponent(0, typeof(RadzenTextBox));
+            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<string>(this, (value) =>
         {
             propInfoValue.SetValue(model, value);
         }));
+        }
+        else if (propInfoValue.PropertyType == typeof(int))
+        {
+            builder.OpenComponent(0, typeof(RadzenNumeric<int>));
+            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<int>(this, (value) =>
+        {
+            propInfoValue.SetValue(model, value);
+        }));
+            IsNumber = true;
+        }
+        else if (propInfoValue.PropertyType == typeof(long))
+        {
+            builder.OpenComponent(0, typeof(RadzenNumeric<long>));
+            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<long>(this, (value) =>
+        {
+            propInfoValue.SetValue(model, value);
+        }));
+            IsNumber = true;
+        }
+        else if (propInfoValue.PropertyType == typeof(short))
+        {
+            builder.OpenComponent(0, typeof(RadzenNumeric<short>));
+            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<short>(this, (value) =>
+        {
+            propInfoValue.SetValue(model, value);
+        }));
+            IsNumber = true;
+        }
+        else
+        {
+            throw new Exception("Failed to get dynmaic from type");
+        }
 
         builder.AddAttribute(3, "style", "width: 100%");
         builder.AddAttribute(4, "aria-label", $"{item.Label} Text");
@@ -94,6 +149,11 @@
             builder.AddAttribute(6, "autocomplete", AutoComplete.Type.GetType().GetMember(AutoComplete.Type.ToString()).First().GetCustomAttribute<DisplayAttribute>().Name);
         else
             builder.AddAttribute(6, "autocomplete", "off");
+
+        if (IsNumber)
+        {
+            builder.AddAttribute(7, "ShowUpDown", false);
+        }
 
         builder.CloseComponent();
     };
@@ -110,7 +170,6 @@
 
     public async Task Submit()
     {
-
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
@@ -129,8 +188,7 @@
             i.ErrorMessage = string.Empty;
         }
 
-        ErrorMessage = SubmitTask.Invoke(CloneData);
-
+        ErrorMessage = await OnSubmit.Invoke(CloneData);
         if (string.IsNullOrEmpty(ErrorMessage))
         {
             dialogService.Close(true);
@@ -138,4 +196,17 @@
         LoadingSubmit = false;
     }
 
+    public async Task Test()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        LoadingSubmit = true;
+
+        await OnTest.Invoke(CloneData);
+        LoadingSubmit = false;
+    }
 }

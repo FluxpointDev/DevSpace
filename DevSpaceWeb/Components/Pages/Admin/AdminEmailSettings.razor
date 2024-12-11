@@ -1,0 +1,180 @@
+﻿@using DevSpaceWeb.Models
+@using DevSpaceWeb.Services
+@using MailKit.Net.Smtp
+@using MimeKit
+@using Swashbuckle.AspNetCore.Swagger
+@inject EmailService EmailService
+@inject ISwaggerProvider Swagger
+@inject NavigationManager Nav
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">Admin Instance Settings</RadzenText>
+    </div>
+    <br />
+    <RadzenLabel Text="Email Type" class="rz-my-0"></RadzenLabel>
+    <RadzenSelectBar TValue="ConfigEmailType" Value="@(IsManaged ? ConfigEmailType.FluxpointManaged : ConfigEmailType.Custom)" ValueChanged="@(value => { IsManaged = value == ConfigEmailType.FluxpointManaged; })" Style="width: 100%">
+        <Items>
+            <RadzenSelectBarItem Value="@ConfigEmailType.FluxpointManaged" Text="Fluxpoint Managed" />
+            <RadzenSelectBarItem Value="@ConfigEmailType.Custom" Text="Custom" />
+        </Items>
+    </RadzenSelectBar>
+
+    @if (IsManaged)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You will not be able to use custom email templates with this option to prevent abuse.
+        </RadzenAlert>
+
+        <RadzenLabel Text="Email API Key" class="rz-my-0"></RadzenLabel>
+        <RadzenTextBox @bind-Value="@ManagedEmailToken" Style="width: 100%" aria-label="Email API Key" autocomplete="false" MaxLength="100" />
+
+        <br />
+        <br />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Submit" Click="@(() => Submit(null))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Test" Click="@(() => TestEmail(null))" />
+    }
+    else
+    {
+        <br />
+        <br />
+
+        <DynamicFormDialog Model="@SmtpModel" ModelData="SmtpModel.Create()" OnSubmit="@Submit" OnTest="@TestEmail"></DynamicFormDialog>
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        IsManaged = _Data.Config.Email.Type == ConfigEmailType.FluxpointManaged;
+        if (IsManaged)
+            ManagedEmailToken = _Data.Config.Email.ManagedEmailToken;
+    }
+
+    public async Task<string?> Submit(SmtpModel data)
+    {
+        if (IsManaged)
+        {
+            _Data.Config.Email = new ConfigEmail
+            {
+                ManagedEmailToken = ManagedEmailToken,
+                Type = ConfigEmailType.FluxpointManaged
+            };
+        }
+        else
+        {
+            _Data.Config.Email = new ConfigEmail
+            {
+                Type = ConfigEmailType.Custom,
+                SmtpHost = data.Host,
+                SmtpPort = data.Port,
+                SmtpUser = data.User,
+                SmtpPassword = data.Password,
+                SenderEmailAddress = data.EmailAddress
+            };
+        }
+        _Data.Config.Save();
+        return null;
+    }
+
+    public bool IsManaged { get; set; }
+    public string ManagedEmailToken { get; set; }
+    public string TestEmailAddress { get; set; }
+
+    public async Task TestEmail(SmtpModel data)
+    {
+        if (IsManaged)
+        {
+            if (string.IsNullOrEmpty(ManagedEmailToken))
+                return;
+
+            var Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/send");
+            Message.Headers.Add("Authorization", ManagedEmailToken);
+            Message.Content = JsonContent.Create(new EmailService.SendMailJson
+                {
+                    instance_name = _Data.Config.Instance.Name,
+                    instance_icon = _Data.Config.Instance.GetIconOrDefault(true),
+                    email = TestEmailAddress,
+                    name = "Test User",
+                    type = EmailTemplateType.Test,
+                    url = _Data.Config.Instance.GetPublicUrl()
+                });
+            var Res = await Program.Http.SendAsync(Message);
+        }
+        else
+        {
+            try
+            {
+                using (var Client = new SmtpClient())
+                {
+                    await Client.ConnectAsync(data.Host, data.Port);
+                    await Client.AuthenticateAsync(data.User, data.Password);
+
+                    MimeMessage message = new MimeMessage();
+                    message.From.Add(new MailboxAddress("Dev Space", data.User));
+                    message.To.Add(new MailboxAddress("Test User", data.TestEmailAddress));
+                    message.Subject = $"Test Email | {_Data.Config.Instance.Name}";
+                    message.Body = new TextPart("plain") { Text = $"This is a test message." };
+
+                    await Client.SendAsync(message);
+                    await Client.DisconnectAsync(true);
+                }
+            }
+            catch { }
+        }
+    }
+
+    // public async Task SetupEmailAsync()
+    // {
+    //     if (Program.IsPreviewMode)
+    //     {
+    //         Session.ShowPreviewModeNotice();
+    //         return;
+    //     }
+
+    //     if (EmailType == ConfigEmailType.FluxpointManaged)
+    //     {
+    //         if (string.IsNullOrEmpty(ManagedEmailToken))
+    //             return;
+
+    //         var Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/test");
+    //         Message.Headers.Add("Authorization", ManagedEmailToken);
+
+
+    //         var Res = await Program.Http.SendAsync(Message);
+    //         if (Res.IsSuccessStatusCode)
+    //         {
+    //             _Data.Config.Email.Type = ConfigEmailType.FluxpointManaged;
+    //             _Data.Config.Email.ManagedEmailToken = ManagedEmailToken;
+    //             _Data.Config.Save();
+    //         }
+    //     }
+    //     else
+    //     {
+    //         try
+    //         {
+    //             using (var Client = new SmtpClient())
+    //             {
+    //                 await Client.ConnectAsync(SmtpHost, SmtpPort);
+    //                 await Client.AuthenticateAsync(SmtpUser, SmtpPassword);
+
+    //                 await Client.DisconnectAsync(true);
+    //             }
+
+    //             _Data.Config.Email.Type = ConfigEmailType.Custom;
+    //             _Data.Config.Email.SmtpHost = SmtpHost;
+    //             _Data.Config.Email.SmtpPort = SmtpPort;
+    //             _Data.Config.Email.SmtpUser = SmtpUser;
+    //             _Data.Config.Email.SmtpPassword = SmtpPassword;
+    //             _Data.Config.Save();
+    //         }
+    //         catch { }
+    //     }
+    // }
+
+}
+

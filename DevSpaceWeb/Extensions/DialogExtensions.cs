@@ -30,7 +30,8 @@ public static class DialogExtensions
         dynamic dialog = await service.OpenAsync<DynamicFormDialog<Model>>(title, new Dictionary<string, object>()
         {
             { "ModelData", model },
-            { "SubmitTask", function }
+            { "OnSubmit", function },
+            { "IsDialog", true }
         }, options);
 
         if (dialog is not bool)
