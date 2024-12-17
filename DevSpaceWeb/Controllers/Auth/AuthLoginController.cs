@@ -8,7 +8,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using System.Security.Claims;
 
-namespace DevSpaceWeb.Controllers;
+namespace DevSpaceWeb.Controllers.Auth;
 
 public class AuthLoginController : AuthControllerContext
 {
@@ -101,10 +101,10 @@ public class AuthLoginController : AuthControllerContext
                 Name = Utils.GetBrowserName((SessionBrowserType)browser)
             });
         }
-        
+
         AuthUser.Account.LoginAt = DateTime.UtcNow;
         await _signInManager.UserManager.UpdateAsync(AuthUser);
-        
+
         return Ok();
     }
 

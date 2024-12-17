@@ -1,5 +1,6 @@
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Database;
+using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Services;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -61,6 +62,7 @@ public class Program
         // Add services to the container.
         ServiceBuilder.Build(builder, builder.Services);
 
+
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.All;
@@ -68,7 +70,11 @@ public class Program
 
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
-        builder.Services.AddControllers();
+        builder.Services.AddControllers(opt =>
+        {
+            opt.RequireHttpsPermanent = true;
+            opt.Filters.Add<ControllerExceptionFilter>();
+        });
 
         Services = builder.Services;
 
@@ -76,10 +82,10 @@ public class Program
 
 
         // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseExceptionHandler("/Error");
-        }
+        //if (!app.Environment.IsDevelopment())
+        //{
+        //    //app.UseExceptionHandler("/Error");
+        //}
 
         app.UseForwardedHeaders();
 

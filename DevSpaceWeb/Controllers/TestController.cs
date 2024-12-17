@@ -24,4 +24,5 @@ public class TestController : Controller
         Logger.LogMessage("---", LogSeverity.Debug);
         return Ok(Request.Headers);
     }
+
 }

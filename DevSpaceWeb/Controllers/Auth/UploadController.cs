@@ -8,7 +8,7 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using SkiaSharp;
 
-namespace DevSpaceWeb.Controllers;
+namespace DevSpaceWeb.Controllers.Auth;
 
 public class UploadController : Controller
 {
@@ -29,7 +29,7 @@ public class UploadController : Controller
         if (!User.Identity.IsAuthenticated)
             return Unauthorized("No logged in");
 
-            if (!Request.Form.Files.Any())
+        if (!Request.Form.Files.Any())
             return BadRequest("No file");
 
         if (Request.Form.Files.Count != 1)
@@ -336,7 +336,7 @@ public class UploadController : Controller
             catch { }
         }
 
-        
+
         Team.IconId = ImageId;
         return Ok();
     }
@@ -345,10 +345,10 @@ public class UploadController : Controller
     {
         Guid ResourceId = Guid.NewGuid();
 
-        if (System.IO.Directory.Exists(Program.Directory.Public.Resources.Path + ResourceId.ToString()))
+        if (Directory.Exists(Program.Directory.Public.Resources.Path + ResourceId.ToString()))
             return CheckResourceId();
 
-        System.IO.Directory.CreateDirectory(Program.Directory.Public.Resources.Path + ResourceId.ToString());
+        Directory.CreateDirectory(Program.Directory.Public.Resources.Path + ResourceId.ToString());
 
         return ResourceId;
     }

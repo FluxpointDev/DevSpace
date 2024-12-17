@@ -1,20 +1,26 @@
-﻿using DevSpaceWeb.Extensions;
+﻿using DevSpaceWeb.API.Teams;
+using DevSpaceWeb.Database;
+using DevSpaceWeb.Extensions;
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson;
 
 namespace DevSpaceWeb.Controllers.API;
 
 [ShowInSwagger]
-public class TeamController : Controller
+public class TeamController : APIController
 {
-    [HttpGet("/api/team/{teamId?}")]
-    public async Task GetTeam([FromRoute] string teamId = "")
+    [HttpGet("/api/teams/{teamId?}")]
+    public async Task<IActionResult> GetTeam([FromRoute] string teamId = "")
     {
+        if (!ObjectId.TryParse(teamId, out var obj) || !_DB.Teams.Cache.TryGetValue(obj, out var Team))
+            return BadRequest("Could not find team.");
 
+        return Ok(new TeamJson(Team));
     }
 
-    [HttpPost("/api/team/{teamId?}")]
-    public async Task EditTeam([FromRoute] string teamId = "")
+    [HttpPost("/api/teams/{teamId?}")]
+    public async Task<IActionResult> EditTeam([FromRoute] string teamId = "")
     {
-
+        return Ok();
     }
 }

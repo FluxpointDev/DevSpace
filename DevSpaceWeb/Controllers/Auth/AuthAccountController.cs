@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text;
 
-namespace DevSpaceWeb.Controllers;
+namespace DevSpaceWeb.Controllers.Auth;
 
 public class AuthAccountController : AuthControllerContext
 {
@@ -50,7 +50,7 @@ public class AuthAccountController : AuthControllerContext
 
 
         string data = CodeString;
-        MemoryStream content = new System.IO.MemoryStream(Encoding.ASCII.GetBytes(data));
+        MemoryStream content = new MemoryStream(Encoding.ASCII.GetBytes(data));
         string contentType = "APPLICATION/octet-stream";
         string fileName = $"{AuthUser.Email.Replace(".", "_")} Codes.txt";
         return File(content, contentType, fileName);
