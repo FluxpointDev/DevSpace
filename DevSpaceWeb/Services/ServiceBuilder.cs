@@ -70,7 +70,6 @@ public static class ServiceBuilder
             options.LogoutPath = "/logout";
             options.AccessDeniedPath = "/Identity/Account/AccessDenied";
         });
-        services.AddScoped<IAuthService, AuthService>();
     }
 
     public static void AddSwagger(IServiceCollection services)
