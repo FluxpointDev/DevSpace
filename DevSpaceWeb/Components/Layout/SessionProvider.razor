@@ -255,7 +255,8 @@
         return IsSuccess;
     }
 
-    public ObjectId? CurrentUserId { get; set; }
+    public ObjectId? CurrentUserId { get; private set; }
+    public string CurrentSessionId { get; private set; }
 
     [CascadingParameter] public HttpContext? HttpContext { get; set; }
 
@@ -318,6 +319,7 @@
                     SessionError = SessionErrorType.AuthenticationRequired;
                     return;
                 }
+                CurrentSessionId = SessionId;
 
                 bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out var session);
                 if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
@@ -384,6 +386,7 @@
                                 SessionError = SessionErrorType.AuthenticationRequired;
                                 return;
                             }
+                            CurrentSessionId = SessionId;
 
                             bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out var session);
                             if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
