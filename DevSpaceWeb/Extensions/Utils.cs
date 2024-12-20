@@ -257,8 +257,8 @@ public static class Utils
         }
         DateTimeOffset UserDate = DateTimeOffset.UtcNow.AddMinutes(session.UserDateOffset);
 
-
-        if (MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month)
+        Console.WriteLine(System.Globalization.CultureInfo.CurrentCulture.Name);
+        Console.WriteLine(CultureInfo.CurrentUICulture.Name);
         {
             if (MessageOffset.Day == UserDate.Day)
                 return $"Today at {MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)}";
@@ -267,7 +267,178 @@ public static class Utils
             if (MessageOffset.Day == Lastday.Day)
                 return $"Yesterday at {MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)}";
         }
-
-        return $"{MessageOffset.Day.ToString().PadLeft(2, '0')}/{MessageOffset.Month.ToString().PadLeft(2, '0')}/{MessageOffset.Year.ToString().PadLeft(2, '0')}";
+        switch (session.UserDateFormat)
+        {
+            case DateFormatLang.DMYSpace_Dot:
+                return MessageOffset.ToString("dd. MM. yyyy");
+            case DateFormatLang.DMY_Dash:
+                return MessageOffset.ToString("dd-MM-yyyy");
+            case DateFormatLang.DMY_Dot:
+                return MessageOffset.ToString("dd.MM.yyyy");
+            case DateFormatLang.DMY_Slash:
+                return MessageOffset.ToString("dd/MM/yyyy");
+            case DateFormatLang.MDY_Dash:
+                return MessageOffset.ToString("MM-dd-yyyy");
+            case DateFormatLang.MDY_Dot:
+                return MessageOffset.ToString("MM.dd.yyyy");
+            case DateFormatLang.MDY_Slash:
+                return MessageOffset.ToString("MM/dd/yyyy");
+            case DateFormatLang.YMD_Dash:
+                return MessageOffset.ToString("yyyy-MM-dd");
+            case DateFormatLang.YMD_Dot:
+                return MessageOffset.ToString("yyyy.MM.dd");
+            case DateFormatLang.YMD_Slash:
+                return MessageOffset.ToString("yyyy/MM/dd");
+            case DateFormatLang.YMDSpace_Dot:
+                return MessageOffset.ToString("yyyy. MM. dd");
+        }
+        return MessageOffset.ToString("dd/MM/yyyy");
     }
+
+    public static DateFormatLang? GetDateFormat(string lang)
+    {
+        switch (lang)
+        {
+            case "af":
+            case "fr-ca":
+            case "ku-arab":
+            case "lt":
+            case "mi-latn":
+            case "rw":
+            case "sd-arab":
+            case "si":
+            case "sv":
+            case "tn":
+            case "ug-arab":
+            case "zu":
+                return DateFormatLang.YMD_Dash;
+
+            case "am":
+            case "ar-sa":
+            case "en-us":
+            case "es-us":
+            case "fil-latn":
+            case "or":
+                return DateFormatLang.MDY_Slash;
+
+            case "as":
+            case "kok":
+            case "nl":
+            case "nl-be":
+            case "te":
+            case "wo":
+                return DateFormatLang.DMY_Dash;
+
+            case "az-latn":
+            case "be":
+            case "bg":
+            case "bs":
+
+            case "da":
+            case "de":
+            case "de-de":
+            case "et":
+            case "fi":
+            case "he":
+            case "hr":
+            case "hy":
+            case "is":
+            case "ka":
+            case "kk":
+            case "lb":
+            case "lv":
+            case "mk":
+            case "nb":
+            case "nn":
+            case "pl":
+            case "ro":
+            case "ru":
+            case "sq":
+            case "sr-cyrl-ba":
+            case "sr-cyrl-rs":
+            case "sr-latn-rs":
+            case "tk-latn":
+            case "tr":
+            case "tt-cyrl":
+            case "uk":
+                return DateFormatLang.DMY_Dot;
+
+            case "bn-bd":
+            case "bn-in":
+            case "ca":
+            case "ca-es-valencia":
+            case "cy":
+            case "el":
+            case "en-gb":
+            case "es":
+            case "es-es":
+            case "es-mx":
+            case "fr":
+            case "fr-fr":
+            case "ga":
+            case "gd-latn":
+            case "gl":
+            case "gu":
+            case "ha-latn":
+            case "hi":
+            case "id":
+            case "ig-latn":
+            case "it":
+            case "it-it":
+            case "km":
+            case "kn":
+            case "ky-cyrl":
+            case "ml":
+            case "mr":
+            case "ms":
+            case "mt":
+            case "nso":
+            case "pa":
+            case "pa-arab":
+            case "pt-br":
+            case "pt-pt":
+            case "qut-latn":
+            case "quz":
+            case "sw":
+            case "ta":
+            case "tg-cyrl":
+            case "th":
+            case "ti":
+            case "ur":
+            case "uz-latn":
+            case "vi":
+            case "yo-latn":
+                return DateFormatLang.DMY_Slash;
+
+            case "eu":
+            case "fa":
+            case "ja":
+            case "ne":
+            case "prs-arab":
+            case "xh":
+            case "zh-hans":
+            case "zh-hant":
+                return DateFormatLang.YMD_Slash;
+
+            case "mn-cyrl":
+                return DateFormatLang.YMD_Dot;
+
+            case "sl":
+            case "sk":
+            case "cs":
+                return DateFormatLang.DMYSpace_Dot;
+
+            case "hu":
+            case "ko":
+                return DateFormatLang.YMDSpace_Dot;
+        }
+        return null;
+    }
+}
+public enum DateFormatLang
+{
+    Automatic,
+    DMY_Slash, MDY_Slash, YMD_Slash,
+    DMY_Dash, MDY_Dash, YMD_Dash,
+    DMY_Dot, MDY_Dot, YMD_Dot, DMYSpace_Dot, YMDSpace_Dot
 }

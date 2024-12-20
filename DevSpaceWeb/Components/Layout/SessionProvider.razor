@@ -8,6 +8,7 @@
 @using System.Text.Json
 @using Microsoft.Extensions.Caching.Distributed
 @using MongoDB.Bson
+@using System.Globalization
 @inject NavigationManager NavigationManager
 @inject UserManager<AuthUser> UserManager
 @inject IJSRuntime JS
@@ -193,6 +194,7 @@
     public string BackgroundUrl { get; set; } = "https://cdn.fluxpoint.dev/devspace/background.webp";
 
     public int UserDateOffset { get; set; }
+    public DateFormatLang UserDateFormat { get; set; } = DateFormatLang.MDY_Slash;
 
     public SessionErrorType SessionError { get; set; }
 
@@ -258,7 +260,6 @@
     public ObjectId? CurrentUserId { get; private set; }
     public string CurrentSessionId { get; private set; }
 
-    [CascadingParameter] public HttpContext? HttpContext { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -305,7 +306,15 @@
             NavigationManager.NavigateTo("admin/setup", true);
             return;
         }
-
+        try
+        {
+            UserDateFormat = Utils.GetDateFormat(Http.HttpContext.Request.Headers["Accept-Language"].ToString().Split(',').First().Split(';').First().ToLower()).GetValueOrDefault(DateFormatLang.Automatic);
+        }
+        catch
+        {
+            UserDateFormat = DateFormatLang.Automatic;
+        }
+        
         if (Path.StartsWith("admin", StringComparison.OrdinalIgnoreCase))
         {
             if (_Data.Config.Database.IsSetup && State != null && State.User.Identity.IsAuthenticated)
@@ -360,6 +369,10 @@
             }
             else
             {
+                Console.WriteLine(System.Globalization.CultureInfo.CurrentCulture.Name);
+                Console.WriteLine(CultureInfo.CurrentUICulture.Name);
+                Console.WriteLine(Thread.CurrentThread.CurrentCulture.Name);
+
                 _DB.SessionUpdated += SessionChangedEvent;
                 if (_Data.Config.Database.IsSetup)
                 {

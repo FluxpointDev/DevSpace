@@ -67,7 +67,6 @@ public class Program
         {
             options.ForwardedHeaders = ForwardedHeaders.All;
         });
-
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
         builder.Services.AddControllers(opt =>
@@ -86,7 +85,6 @@ public class Program
         //{
         //    //app.UseExceptionHandler("/Error");
         //}
-
         app.UseForwardedHeaders();
 
         // Use both wwwroot and public folder for website access :)
