@@ -146,6 +146,7 @@ public static class ServiceBuilder
                 opt.ClientId = _Data.Config.Providers.Discord.ClientId;
                 opt.ClientSecret = _Data.Config.Providers.Discord.ClientSecret;
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.Prompt = "none";
             });
         }
     }
