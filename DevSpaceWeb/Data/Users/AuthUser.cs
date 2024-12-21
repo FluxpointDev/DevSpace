@@ -37,6 +37,7 @@ public class AuthUser : MongoIdentityUser<ObjectId>
     public bool IsInstanceAdmin { get; set; }
 
     public UserAccount Account { get; set; } = new UserAccount();
+    public UserSettings Settings { get; set; } = new UserSettings();
     public UserMfa Mfa { get; set; } = new UserMfa();
     public UserDisabled? Disabled { get; set; }
 

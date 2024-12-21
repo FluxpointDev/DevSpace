@@ -97,7 +97,7 @@ else
                             {
                                 if (AuthUser.Account.PasswordChangedAt.HasValue)
                                 {
-                                    <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.Account.PasswordChangedAt.Value, false)</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.Account.PasswordChangedAt.Value, true)</RadzenText>
                                 }
                                 else
                                 {
@@ -122,7 +122,7 @@ else
                             }
                             else
                             {
-                                <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.Account.LoginAt, false)</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.Account.LoginAt, true)</RadzenText>
                             }
                         </div>
                     </RadzenStack>
@@ -144,7 +144,7 @@ else
                             {
                                 if (AuthUser.Account.EmailChangedAt.HasValue)
                                 {
-                                    <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.Account.EmailChangedAt.Value, false)</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.Account.EmailChangedAt.Value, true)</RadzenText>
                                 }
                                 else
                                 {
@@ -422,7 +422,7 @@ else
                                             }
                                         </RadzenText>
                                         <RadzenText TextStyle="TextStyle.Body2">
-                                            <span>Created At @(Utils.GetLocalDate(Session, i.Value.CreatedAt, false))</span>
+                                            <span>Created At @(Utils.GetLocalDate(Session, i.Value.CreatedAt, true))</span>
                                         </RadzenText>
                                         <RadzenText TextStyle="TextStyle.Body2">
                                             <span>Region: @i.Value.Country</span>
@@ -471,8 +471,8 @@ else
                             <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
                                 Backup codes have been generated.
                             </RadzenAlert>
-                            <p>Generated: @(Utils.GetLocalDate(Session, AuthUser.Mfa.RecoveryCodeCreatedAt, false))</p>
-                            <p>Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.RecoveryCodeLastUsedAt, false))</p>
+                            <p>Generated: @(Utils.GetLocalDate(Session, AuthUser.Mfa.RecoveryCodeCreatedAt, true))</p>
+                            <p>Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.RecoveryCodeLastUsedAt, true))</p>
                             <br />
                             <RadzenButton Text="Reset" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@GenerateBackupCodes" />
                         }
@@ -491,10 +491,10 @@ else
                         Authenticator App
                     </RadzenText>
                     <RadzenText TextStyle="TextStyle.Body2">
-                        Last Registered: @(Utils.GetLocalDate(Session, AuthUser.Mfa.AuthenticatorLastRegisteredAt, false))
+                        Last Registered: @(Utils.GetLocalDate(Session, AuthUser.Mfa.AuthenticatorLastRegisteredAt, true))
                     </RadzenText>
                     <RadzenText TextStyle="TextStyle.Body2">
-                        Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.AuthenticatorLastUsedAt, false))
+                        Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.AuthenticatorLastUsedAt, true))
                     </RadzenText>
                     <h5 class="mb-2">Devices</h5>
                     @foreach (var i in AuthUser.Mfa.AuthenticatorDevices)
@@ -523,8 +523,8 @@ else
                 <div class="session-item">
                     <h4>Passkeys (Webauth)</h4>
                     <br />
-                    <p>Last Registered: @(Utils.GetLocalDate(Session, AuthUser.Mfa.PasskeyLastRegisteredAt, false))</p>
-                    <p>Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.PasskeyLastUsedAt, false))</p>
+                    <p>Last Registered: @(Utils.GetLocalDate(Session, AuthUser.Mfa.PasskeyLastRegisteredAt, true))</p>
+                    <p>Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.PasskeyLastUsedAt, true))</p>
                     <p class="mb-2">Last Device: @AuthUser.Mfa.PasskeyLastUsedDevice</p>
                     <div>
 
@@ -533,8 +533,8 @@ else
                             <div class="passkey-item">
                                 <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLCAwLCAwLCAxLCAyNy4wMDkwMDEsIC0zOS4yMzg5OTgpIj4KICAgIDxwYXRoIGZpbGw9IiM0Mjg1RjQiIGQ9Ik0gLTMuMjY0IDUxLjUwOSBDIC0zLjI2NCA1MC43MTkgLTMuMzM0IDQ5Ljk2OSAtMy40NTQgNDkuMjM5IEwgLTE0Ljc1NCA0OS4yMzkgTCAtMTQuNzU0IDUzLjc0OSBMIC04LjI4NCA1My43NDkgQyAtOC41NzQgNTUuMjI5IC05LjQyNCA1Ni40NzkgLTEwLjY4NCA1Ny4zMjkgTCAtMTAuNjg0IDYwLjMyOSBMIC02LjgyNCA2MC4zMjkgQyAtNC41NjQgNTguMjM5IC0zLjI2NCA1NS4xNTkgLTMuMjY0IDUxLjUwOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNIC0xNC43NTQgNjMuMjM5IEMgLTExLjUxNCA2My4yMzkgLTguODA0IDYyLjE1OSAtNi44MjQgNjAuMzI5IEwgLTEwLjY4NCA1Ny4zMjkgQyAtMTEuNzY0IDU4LjA0OSAtMTMuMTM0IDU4LjQ4OSAtMTQuNzU0IDU4LjQ4OSBDIC0xNy44ODQgNTguNDg5IC0yMC41MzQgNTYuMzc5IC0yMS40ODQgNTMuNTI5IEwgLTI1LjQ2NCA1My41MjkgTCAtMjUuNDY0IDU2LjYxOSBDIC0yMy40OTQgNjAuNTM5IC0xOS40NDQgNjMuMjM5IC0xNC43NTQgNjMuMjM5IFoiLz4KICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik0gLTIxLjQ4NCA1My41MjkgQyAtMjEuNzM0IDUyLjgwOSAtMjEuODY0IDUyLjAzOSAtMjEuODY0IDUxLjIzOSBDIC0yMS44NjQgNTAuNDM5IC0yMS43MjQgNDkuNjY5IC0yMS40ODQgNDguOTQ5IEwgLTIxLjQ4NCA0NS44NTkgTCAtMjUuNDY0IDQ1Ljg1OSBDIC0yNi4yODQgNDcuNDc5IC0yNi43NTQgNDkuMjk5IC0yNi43NTQgNTEuMjM5IEMgLTI2Ljc1NCA1My4xNzkgLTI2LjI4NCA1NC45OTkgLTI1LjQ2NCA1Ni42MTkgTCAtMjEuNDg0IDUzLjUyOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNIC0xNC43NTQgNDMuOTg5IEMgLTEyLjk4NCA0My45ODkgLTExLjQwNCA0NC41OTkgLTEwLjE1NCA0NS43ODkgTCAtNi43MzQgNDIuMzY5IEMgLTguODA0IDQwLjQyOSAtMTEuNTE0IDM5LjIzOSAtMTQuNzU0IDM5LjIzOSBDIC0xOS40NDQgMzkuMjM5IC0yMy40OTQgNDEuOTM5IC0yNS40NjQgNDUuODU5IEwgLTIxLjQ4NCA0OC45NDkgQyAtMjAuNTM0IDQ2LjA5OSAtMTcuODg0IDQzLjk4OSAtMTQuNzU0IDQzLjk4OSBaIi8+CiAgPC9nPgo8L3N2Zz4=" />
                                 <h4>@i.Name</h4>
-                                <p>Created: @(Utils.GetLocalDate(Session, i.CreatedAt, false))</p>
-                                <p>Last Used: @(Utils.GetLocalDate(Session, i.LastUsedAt, false))</p>
+                                <p>Created: @(Utils.GetLocalDate(Session, i.CreatedAt, true))</p>
+                                <p>Last Used: @(Utils.GetLocalDate(Session, i.LastUsedAt, true))</p>
                                 <div @onclick="@(() => RemovePasskey(i))" style="cursor: pointer;">
                                     <span class="iconify" data-icon="mdi:delete"></span>
                                 </div>

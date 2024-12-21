@@ -2,6 +2,7 @@
 using DevSpaceWeb.Data.Users;
 using Microsoft.Extensions.Primitives;
 using Radzen;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -242,23 +243,15 @@ public static class Utils
         return AllowedChars[(int)result];
     }
 
-    public static string GetLocalDate(SessionProvider session, DateTime? date, bool isMini)
+    public static string GetLocalDate(SessionProvider session, DateTime? date, bool isMini = true)
     {
-        if (!date.HasValue || date.Value.Year == 1)
+        if (!date.HasValue)
             return "";
-        DateTimeOffset MessageOffset;
-        try
-        {
-            MessageOffset = date.Value.AddMinutes(session.UserDateOffset);
-        }
-        catch
-        {
-            return "Unknown";
-        }
+
+        DateTimeOffset MessageOffset = date.Value.AddMinutes(session.UserDateOffset);
         DateTimeOffset UserDate = DateTimeOffset.UtcNow.AddMinutes(session.UserDateOffset);
 
-        Console.WriteLine(System.Globalization.CultureInfo.CurrentCulture.Name);
-        Console.WriteLine(CultureInfo.CurrentUICulture.Name);
+        if (isMini && MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month)
         {
             if (MessageOffset.Day == UserDate.Day)
                 return $"Today at {MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)}";
@@ -267,6 +260,7 @@ public static class Utils
             if (MessageOffset.Day == Lastday.Day)
                 return $"Yesterday at {MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture)}";
         }
+
         switch (session.UserDateFormat)
         {
             case DateFormatLang.DMYSpace_Dot:
@@ -295,7 +289,7 @@ public static class Utils
         return MessageOffset.ToString("dd/MM/yyyy");
     }
 
-    public static DateFormatLang? GetDateFormat(string lang)
+    public static DateFormatLang GetDateFormat(string lang)
     {
         switch (lang)
         {
@@ -432,13 +426,33 @@ public static class Utils
             case "ko":
                 return DateFormatLang.YMDSpace_Dot;
         }
-        return null;
+        return DateFormatLang.DMY_Slash;
     }
 }
 public enum DateFormatLang
 {
+
     Automatic,
-    DMY_Slash, MDY_Slash, YMD_Slash,
-    DMY_Dash, MDY_Dash, YMD_Dash,
-    DMY_Dot, MDY_Dot, YMD_Dot, DMYSpace_Dot, YMDSpace_Dot
+    [Display(Description = "31/12/2024")]
+    DMY_Slash,
+    [Display(Description = "12/31/2024")]
+    MDY_Slash,
+    [Display(Description = "2024/31/12")]
+    YMD_Slash,
+    [Display(Description = "31-12-2024")]
+    DMY_Dash,
+    [Display(Description = "12-31-2024")]
+    MDY_Dash,
+    [Display(Description = "2024-12-31")]
+    YMD_Dash,
+    [Display(Description = "Test")]
+    DMY_Dot,
+    [Display(Description = "Test")]
+    MDY_Dot,
+    [Display(Description = "Test")]
+    YMD_Dot,
+    [Display(Description = "Test")]
+    DMYSpace_Dot,
+    [Display(Description = "Test")]
+    YMDSpace_Dot
 }

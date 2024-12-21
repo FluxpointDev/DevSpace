@@ -308,20 +308,29 @@
         }
         try
         {
-            UserDateFormat = Utils.GetDateFormat(Http.HttpContext.Request.Headers["Accept-Language"].ToString().Split(',').First().Split(';').First().ToLower()).GetValueOrDefault(DateFormatLang.Automatic);
+            UserDateFormat = Utils.GetDateFormat(Http.HttpContext.Request.Headers["Accept-Language"].ToString().Split(',').First().Split(';').First().ToLower());
         }
         catch
         {
             UserDateFormat = DateFormatLang.Automatic;
         }
-        
+
         if (Path.StartsWith("admin", StringComparison.OrdinalIgnoreCase))
         {
             if (_Data.Config.Database.IsSetup && State != null && State.User.Identity.IsAuthenticated)
             {
                 var User = await GetCurrentUserAsync();
-                CurrentUserId = User.Id;
+                if (User == null)
+                    {
+                        SessionError = SessionErrorType.AuthenticationError;
+                        return;
+                    }
 
+                CurrentUserId = User.Id;
+                if (User.Settings.DateFormat != DateFormatLang.Automatic)
+                    UserDateFormat = User.Settings.DateFormat;
+
+                IsInstanceAdmin = User.IsInstanceAdmin;
                 string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
                 if (string.IsNullOrEmpty(SessionId))
                 {
@@ -369,17 +378,20 @@
             }
             else
             {
-                Console.WriteLine(System.Globalization.CultureInfo.CurrentCulture.Name);
-                Console.WriteLine(CultureInfo.CurrentUICulture.Name);
-                Console.WriteLine(Thread.CurrentThread.CurrentCulture.Name);
-
                 _DB.SessionUpdated += SessionChangedEvent;
                 if (_Data.Config.Database.IsSetup)
                 {
                     var User = await GetCurrentUserAsync();
-                    if (User != null)
+                    if (User == null)
                     {
-                        CurrentUserId = User.Id;
+                        SessionError = SessionErrorType.AuthenticationError;
+                        return;
+                    }
+
+                    CurrentUserId = User.Id;
+                    if (User.Settings.DateFormat != DateFormatLang.Automatic)
+                        UserDateFormat = User.Settings.DateFormat;
+
                         IsInstanceAdmin = User.IsInstanceAdmin;
                         if (User.Disabled != null)
                         {
@@ -420,12 +432,7 @@
                                 return;
                             }
                         }
-                    }
-                    else
-                    {
-                        SessionError = SessionErrorType.AuthenticationError;
-                        return;
-                    }
+                    
                 }
 
             }

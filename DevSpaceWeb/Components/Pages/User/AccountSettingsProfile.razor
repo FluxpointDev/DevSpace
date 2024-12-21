@@ -40,7 +40,7 @@
                 <RadzenTextMask Value="@AuthUser.Email" IsEmail="true"></RadzenTextMask>
 
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Account Created</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.CreatedOn, false)</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.CreatedOn, true)</RadzenText>
             </RadzenStack>
         </RadzenStack>
 
@@ -77,11 +77,36 @@
     }
 </div>
 
+<div class="settings-box">
+    <h3>Settings</h3>
+    @if (AuthUser == null)
+    {
+        <br />
+        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenSkeleton></RadzenSkeleton>
+    }
+    else
+    {
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Date Format</RadzenText>
+        <RadzenDropDown TValue="DateFormatLang" Data="@(Enum.GetValues(typeof(DateFormatLang)).Cast<Enum>())" @bind-Value="@UserDateFormat"Style="width: 100%;">
+        </RadzenDropDown>
+        <br />
+        <br />
+        <RadzenText TextStyle="TextStyle.Body2">
+            Current Date: @Utils.GetLocalDate(Session, DateTime.UtcNow, false)
+        </RadzenText>
+    }
+</div>
+
 @code {
     [CascadingParameter]
     public SessionProvider Session { get; set; }
 
     public AuthUser AuthUser { get; set; }
+
+    private DateFormatLang _userDateFormat = DateFormatLang.Automatic;
+    public DateFormatLang UserDateFormat { get { return _userDateFormat; } set { _userDateFormat = value; Session.UserDateFormat = value; SaveUser(); } }
 
     public bool ShowEmailAddress { get; set; }
 
@@ -96,6 +121,15 @@
     {
         _DB.SessionUpdated += SessionChangedEvent;
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser != null)
+            _userDateFormat = AuthUser.Settings.DateFormat;
+    }
+
+    public async Task SaveUser()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        AuthUser.Settings.DateFormat = _userDateFormat;
+        await UserManager.UpdateAsync(AuthUser);
     }
 
     public void Dispose()
