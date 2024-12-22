@@ -1,5 +1,4 @@
 ﻿using DevSpaceWeb.API.Servers;
-using DevSpaceWeb.API.Teams;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using Microsoft.AspNetCore.Mvc;

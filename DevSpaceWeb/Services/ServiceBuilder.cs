@@ -7,7 +7,6 @@ using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
 using DevSpaceWeb.Models.Account;
-using Fido2NetLib;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -27,6 +26,7 @@ public static class ServiceBuilder
         // Add HTTP access
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();
+        services.AddMemoryCache();
         services.AddDistributedMemoryCache();
         services.AddRadzenComponents();
         services.AddSession(options =>
@@ -146,6 +146,7 @@ public static class ServiceBuilder
                 opt.ClientId = _Data.Config.Providers.Discord.ClientId;
                 opt.ClientSecret = _Data.Config.Providers.Discord.ClientSecret;
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.Scope.Add("email");
                 opt.Prompt = "none";
             });
         }

@@ -4,6 +4,7 @@ using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text;
 using System.Text.Json;
 
@@ -20,12 +21,12 @@ public class PasskeyRegisterController : AuthControllerContext
     public PasskeyRegisterController(
         UserManager<AuthUser> userManager,
         SignInManager<AuthUser> signInManager,
-        Fido2Service fido2Service, IDistributedCache cache) : base(userManager, signInManager, fido2Service)
+        Fido2Service fido2Service, IMemoryCache cache) : base(userManager, signInManager, fido2Service)
     {
         Cache = cache;
     }
 
-    private readonly IDistributedCache Cache;
+    private readonly IMemoryCache Cache;
 
     private static string FormatException(Exception e)
     {
@@ -35,7 +36,7 @@ public class PasskeyRegisterController : AuthControllerContext
     [HttpPost("/auth/passkey/register/makeCredentialOptions")]
     public async Task<JsonResult> MakeCredentialOptions()
     {
-        string RequestId = Request.Headers["RequestVerificationToken"];
+        string RequestId = Request.Headers["RequestId"];
         if (string.IsNullOrEmpty(RequestId))
             return Json(new Fido2Error("Failed to verify request id."));
 
@@ -45,7 +46,7 @@ public class PasskeyRegisterController : AuthControllerContext
             if (AuthUser == null)
                 return Json(new Fido2Error("Failed to get user."));
 
-            string Data = Cache.GetString("passkey-" + RequestId);
+            string? Data = Cache.Get<string>("passkey-" + RequestId);
             if (string.IsNullOrEmpty(Data))
                 return Json(new Fido2Error("Failed user validation."));
 
@@ -102,7 +103,7 @@ public class PasskeyRegisterController : AuthControllerContext
     [HttpPost("/auth/passkey/register/makeCredential")]
     public async Task<JsonResult> MakeCredential([FromBody] CustomAuthenticatorAttestationRawResponse attestationResponse)
     {
-        string RequestId = Request.Headers["RequestVerificationToken"];
+        string RequestId = Request.Headers["RequestId"];
         if (string.IsNullOrEmpty(RequestId))
             return Json(new Fido2Error("Failed to verify request id."));
 
@@ -112,7 +113,7 @@ public class PasskeyRegisterController : AuthControllerContext
             if (user == null)
                 return Json(new Fido2Error("Failed to get user."));
 
-            string Data = Cache.GetString("passkey-" + RequestId);
+            string Data = Cache.Get<string>("passkey-" + RequestId);
             if (string.IsNullOrEmpty(Data))
                 return Json(new Fido2Error("Failed user validation."));
 
@@ -162,7 +163,7 @@ public class PasskeyRegisterController : AuthControllerContext
                 await _userManager.UpdateAsync(user);
 
                 RequestData.IsSuccess = true;
-                Cache.SetString("passkey-" + RequestId, JsonSerializer.Serialize(RequestData));
+                Cache.Set("passkey-" + RequestId, RequestData, new TimeSpan(0, 2, 0));
             }
 
             return Json(success);

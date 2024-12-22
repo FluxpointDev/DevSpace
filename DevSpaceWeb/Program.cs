@@ -33,7 +33,7 @@ public class Program
 
     public static void Main(string[] args)
     {
-        Logger.RunLogger("Dev Space", LogSeverity.Error);
+        Logger.RunLogger("Dev Space", LogSeverity.Debug);
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
 

@@ -39,28 +39,28 @@
             User = await Session.GetCurrentUserAsync();
             string Ip = Utils.GetUserIpAddress(Http.HttpContext);
             string SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
-            if (User.Account.Sessions.TryGetValue(SessionId, out var session))
+            if (!string.IsNullOrEmpty(SessionId) && User.Account.Sessions.TryGetValue(SessionId, out var session))
                 session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
             else
             {
                 int Browser = 0;
                 try
                 {
-                    Browser = await JS.InvokeAsync<int>("getBrowser");
+                    Browser = await JS.InvokeAsync<int>("window.Auth.getBrowser");
                 }
                 catch { }
 
                 string Country = "Unknown";
                 try
                 {
-                    Country = await JS.InvokeAsync<string>("getCountry");
+                    Country = await JS.InvokeAsync<string>("window.Auth.getCountry");
                 }
                 catch { }
 
                 bool IsMobile = false;
                 try
                 {
-                    IsMobile = await JS.InvokeAsync<bool>("getIsMobile");
+                    IsMobile = await JS.InvokeAsync<bool>("window.Auth.getIsMobile");
                 }
                 catch { }
 
@@ -78,7 +78,8 @@
                 });
             }
             await UserManager.UpdateAsync(User);
-            await Email.SendNewSessionIP(User, Ip, CultureInfo.CurrentCulture.Name);
+            if (!Program.IsDevMode)
+                await Email.SendNewSessionIP(User, Ip, CultureInfo.CurrentCulture.Name);
             NavigationManager.Refresh(true);
         }
     }

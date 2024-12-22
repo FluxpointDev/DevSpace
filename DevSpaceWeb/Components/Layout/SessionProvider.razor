@@ -12,13 +12,12 @@
 @inject NavigationManager NavigationManager
 @inject UserManager<AuthUser> UserManager
 @inject IJSRuntime JS
-@inject IDistributedCache Cache
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpContextAccessor Http
 @inject DialogService DialogService
-@inject IDistributedCache Cache
 @inject NotificationService NotificationService
 @implements IDisposable
+@inject IMemoryCache Cache
 
 @if (SessionError != SessionErrorType.Loading)
 {
@@ -239,13 +238,13 @@
         string PasskeyRequestId = Guid.NewGuid().ToString();
         try
         {
-            IsSuccess = await JS.InvokeAsync<bool>("passkeyStartAuth", PasskeyRequestId);
+            IsSuccess = await JS.InvokeAsync<bool>("window.Passkey.passkeyStartAuth", PasskeyRequestId);
         }
         catch (Exception ex)
         {
             Logger.LogMessage(ex.ToString(), LogSeverity.Error);
         }
-        string? Data = Cache.GetString("passkey-" + PasskeyRequestId);
+        string? Data = Cache.Get<string>("passkey-" + PasskeyRequestId);
         if (!string.IsNullOrEmpty(Data))
         {
             AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
@@ -273,7 +272,7 @@
         {
             try
             {
-                WebSocketTest = await JS.InvokeAsync<string>("TestWebSocket");
+                WebSocketTest = await JS.InvokeAsync<string>("window.Utils.testWebSocket");
             }
             catch (Exception ex) { }
             SessionError = SessionErrorType.SessionError;
@@ -296,7 +295,7 @@
         State = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         try
         {
-            UserDateOffset = await JS.InvokeAsync<int>("GetUserTimezoneOffset");
+            UserDateOffset = await JS.InvokeAsync<int>("window.Utils.getUserTimezoneOffset");
         }
         catch { }
         string Path = NavigationManager.Uri.Substring(NavigationManager.BaseUri.Length);
@@ -334,7 +333,7 @@
                 string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
                 if (string.IsNullOrEmpty(SessionId))
                 {
-                    SessionError = SessionErrorType.AuthenticationRequired;
+                    SessionError = SessionErrorType.SessionSecurityNewIp;
                     return;
                 }
                 CurrentSessionId = SessionId;
@@ -408,7 +407,7 @@
                             string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
                             if (string.IsNullOrEmpty(SessionId))
                             {
-                                SessionError = SessionErrorType.AuthenticationRequired;
+                            SessionError = SessionErrorType.SessionSecurityNewIp;
                                 return;
                             }
                             CurrentSessionId = SessionId;

@@ -2,12 +2,12 @@
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.Extensions.Caching.Distributed
 @inject UserManager<AuthUser> UserManager
-@inject IDistributedCache Cache
 @inject EmailService Email
 @inject NavigationManager NavigationManager
 @inject AuthenticatorTokenProvider<AuthUser> Authenticator
 @inject Radzen.DialogService dialogService
 @inject IJSRuntime JS
+@inject IMemoryCache Cache
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
     <RadzenStack>
@@ -126,11 +126,11 @@
             return;
         }
 
-        string VerifyCache = Cache.GetString("2fa-verify-" + AuthUser.Id.ToString());
+        string? VerifyCache = Cache.Get<string>("2fa-verify-" + AuthUser.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache))
         {
             string Code = Email.RandomCodeGenerator();
-            Cache.SetString("2fa-verify-" + AuthUser.Id.ToString(), Code, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
+            Cache.Set("2fa-verify-" + AuthUser.Id.ToString(), Code, new TimeSpan(0, 2, 0));
             await Email.SendAccessCode(AuthUser, "2FA Verification", Code);
             if (LogUsage)
             {
@@ -157,7 +157,7 @@
             return;
         }
 
-        string VerifyCache = Cache.GetString("2fa-verify-" + AuthUser.Id.ToString());
+        string? VerifyCache = Cache.Get<string>("2fa-verify-" + AuthUser.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache) || !VerifyCache.Equals(CodeInput))
             await dialogService.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
         else
@@ -239,7 +239,7 @@ if (Program.IsPreviewMode)
         var DetectPasskeyAllow = false;
         try
         {
-            DetectPasskeyAllow = await JS.InvokeAsync<bool>("passkeyIsSupported");
+            DetectPasskeyAllow = await JS.InvokeAsync<bool>("window.Passkey.isPasskeySupported");
         }
         catch { }
         if (!DetectPasskeyAllow)

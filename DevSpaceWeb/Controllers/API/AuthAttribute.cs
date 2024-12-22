@@ -1,6 +1,4 @@
-﻿using DevSpaceWeb.Database;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using DevSpaceWeb.Data.Permissions;
 
 namespace DevSpaceWeb.Controllers.API;

@@ -1,92 +1,149 @@
-﻿async function accountLogin(email, password, rememberMe, requestId) {
-    var formData = new FormData();
-    formData.append('email', email);
-    formData.append('password', password);
-    formData.append('rememberMe', rememberMe)
+﻿
+const Auth = {
+};
 
-    formData.append('isMobile', getIsMobile());
-    formData.append('browser', getBrowser());
-    formData.append('country', getCountry());
+Object.defineProperty(window, 'Auth', {
+    configurable: false,
+    writable: false,
+    value: Auth
+});
 
-    try {
-        let response = await fetch('/auth/login', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'Accept': 'application/json',
-                'requestId': requestId
-            }
-        });
-        if (response.ok)
-            return "ok";
+Object.defineProperty(window.Auth, 'accountLogin', {
+    configurable: false,
+    writable: false,
+    value: async function (email, password, rememberMe, requestId) {
+        var formData = new FormData();
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('rememberMe', rememberMe)
 
-        if (response.status == 429)
-            return "ratelimit";
+        try {
+            let response = await fetch('/auth/login', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json',
+                    'RequestId': requestId
+                }
+            });
+            if (response.ok)
+                return "ok";
+
+            if (response.status == 429)
+                return "ratelimit";
+
+            return "fail";
+        }
+        catch {
+            return "exception";
+        }
 
         return "fail";
     }
-    catch {
-        return "exception";
+});
+
+Object.defineProperty(Auth, 'accountLoginExternal', {
+    configurable: false,
+    writable: false,
+    value: async function (provider, rememberMe, requestId) {
+        var formData = new FormData();
+        formData.append('provider', provider);
+        formData.append('rememberMe', rememberMe)
+
+        try {
+            let response = await fetch('/auth/login/external', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json',
+                    'RequestId': requestId
+                }
+            });
+            if (response.ok)
+                return "ok";
+
+            if (response.status == 429)
+                return "ratelimit";
+
+            return "fail";
+        }
+        catch {
+            return "exception";
+        }
+
+        return "fail";
     }
+});
 
-    return "fail";
-}
+Object.defineProperty(Auth, 'getSessionInfo', {
+    configurable: false,
+    writable: false,
+    value: function () {
+        console.log('Getting session');
+        var countryName;
+        try {
+            countryName = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0];
+        }
+        catch { }
+        if (!countryName)
+            countryName = 'Unknown';
 
-function getIsMobile() {
-    if (navigator.userAgent.match(/Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i))
-        return true;
-
-    return false;
-}
-
-function getCountry() {
-    try {
-        return Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0];
+        return {
+            IsMobile: navigator.userAgent.match(/Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i) !== null,
+            Country: countryName
+        };
     }
-    catch { }
-    return 'Unknown';
-}
+});
 
-function getBrowser() {
-    if ((navigator.userAgent.indexOf("Opera") || navigator.userAgent.indexOf('OPR')) != -1) {
-        return 6;
-    } else if (navigator.userAgent.indexOf("Edg") != -1) {
-        return 5;
-    } else if (navigator.userAgent.indexOf("Vivaldi") != -1) {
-        return 7;
-    } else if (navigator.userAgent.indexOf("Safari") != -1) {
-        return 4;
-    } else if (navigator.userAgent.indexOf("Firefox") != -1) {
-        return 2;
-    } else if ((navigator.userAgent.indexOf("MSIE") != -1) || (!!document.documentMode == true)) //IF IE > 10
-    {
-        return 1;
-    } else if (navigator.userAgent.indexOf("Chrome") != -1) {
-        return 3;
-    } else {
-        return 0;
+Object.defineProperty(Auth, 'getBrowser', {
+    configurable: false,
+    writable: false,
+    value: function () {
+        if ((navigator.userAgent.indexOf("Opera") || navigator.userAgent.indexOf('OPR')) != -1) {
+            return 6;
+        } else if (navigator.userAgent.indexOf("Edg") != -1) {
+            return 5;
+        } else if (navigator.userAgent.indexOf("Vivaldi") != -1) {
+            return 7;
+        } else if (navigator.userAgent.indexOf("Safari") != -1) {
+            return 4;
+        } else if (navigator.userAgent.indexOf("Firefox") != -1) {
+            return 2;
+        } else if ((navigator.userAgent.indexOf("MSIE") != -1) || (!!document.documentMode == true)) //IF IE > 10
+        {
+            return 1;
+        } else if (navigator.userAgent.indexOf("Chrome") != -1) {
+            return 3;
+        } else {
+            return 0;
+        }
     }
-}
+});
 
-async function accountChangePassword(email, password, emailToken, requestId) {
-    var formData = new FormData();
-    formData.append('email', email);
-    formData.append('password', password);
-    formData.append('emailToken', emailToken);
+Object.defineProperty(Auth, 'accountChangePassword', {
+    configurable: false,
+    writable: false,
+    value: async function (email, password, emailToken, requestId) {
+        var formData = new FormData();
+        formData.append('email', email);
+        formData.append('password', password);
+        formData.append('emailToken', emailToken);
 
-    try {
-        let response = await fetch('/auth/account/changePassword', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'Accept': 'application/json',
-                'requestId': requestId
-            }
-        });
-        return response.ok;
+        try {
+            let response = await fetch('/auth/account/changePassword', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json',
+                    'requestId': requestId
+                }
+            });
+            return response.ok;
+        }
+        catch {
+        }
+
+        return false;
     }
-    catch {
-    }
+});
 
-    return false;
-}

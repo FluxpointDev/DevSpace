@@ -5,6 +5,7 @@ using DevSpaceWeb.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using System.Text;
 
 namespace DevSpaceWeb.Controllers.Auth;
@@ -14,13 +15,13 @@ public class AuthAccountController : AuthControllerContext
     public AuthAccountController(
         UserManager<AuthUser> userManager,
         SignInManager<AuthUser> signInManager,
-        Fido2Service fido2Service, IDistributedCache cache, EmailService email) : base(userManager, signInManager, fido2Service)
+        Fido2Service fido2Service, IMemoryCache cache, EmailService email) : base(userManager, signInManager, fido2Service)
     {
         Cache = cache;
         Email = email;
     }
 
-    private readonly IDistributedCache Cache;
+    private readonly IMemoryCache Cache;
     private readonly EmailService Email;
 
     // Download Recovery Code
@@ -36,7 +37,7 @@ public class AuthAccountController : AuthControllerContext
         if (string.IsNullOrEmpty(token))
             return BadRequest("Invalid token");
 
-        string? CodeString = await Cache.GetStringAsync(token);
+        string? CodeString = Cache.Get<string>(token);
         if (string.IsNullOrEmpty(CodeString))
             return BadRequest("Invalid token or expired");
 
@@ -98,7 +99,7 @@ public class AuthAccountController : AuthControllerContext
         if (string.IsNullOrEmpty(email))
             return BadRequest("Email is invalid");
 
-        string Data = Cache.GetString("changepass-" + requestId);
+        string? Data = Cache.Get<string>("changepass-" + requestId);
 
         if (string.IsNullOrEmpty(Data) || Data != email)
             return BadRequest("Request id is invalid");

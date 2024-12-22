@@ -1,7 +1,5 @@
 ﻿using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Projects;

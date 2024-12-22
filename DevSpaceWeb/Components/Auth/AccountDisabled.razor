@@ -1,6 +1,6 @@
 ﻿@using DevSpaceWeb.Data.Users
 @using Microsoft.Extensions.Caching.Distributed
-@inject IDistributedCache Cache
+@inject IMemoryCache Cache
 @inject EmailService Email
 @inject DialogService DialogService
 @inject UserManager<AuthUser> UserManager
@@ -96,7 +96,7 @@
             return;
         }
         string Code = Email.RandomCodeGenerator();
-        Cache.SetString("2fa-verify-" + User.Id.ToString(), Code, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
+        Cache.Set("2fa-verify-" + User.Id.ToString(), Code, new TimeSpan(0, 5, 0));
         await Email.SendAccessCode(User, "2FA Verification", Code);
         User.Mfa.EmailCodeLastSentAt = DateTime.UtcNow;
         await UserManager.UpdateAsync(User);
@@ -111,7 +111,7 @@
             return;
         }
 
-        string VerifyCache = Cache.GetString("2fa-verify-" + User.Id.ToString());
+        string? VerifyCache = Cache.Get<string>("2fa-verify-" + User.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache) || !VerifyCache.Equals(EmailCode))
             await DialogService.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
         else

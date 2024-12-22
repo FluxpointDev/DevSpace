@@ -1,7 +1,9 @@
 ﻿using DevSpaceWeb.Data;
+using DevSpaceWeb.Data.Auth;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Fido2;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
@@ -15,28 +17,26 @@ public class AuthLoginController : AuthControllerContext
     public AuthLoginController(
         UserManager<AuthUser> userManager,
         SignInManager<AuthUser> signInManager,
-        Fido2Service fido2Service, IDistributedCache cache) : base(userManager, signInManager, fido2Service)
+        Fido2Service fido2Service, IMemoryCache cache) : base(userManager, signInManager, fido2Service)
     {
         Cache = cache;
         //User.SetToken(new IdentityUserToken<Guid>(), "test");
     }
 
-    public IDistributedCache Cache { get; private set; }
+    public IMemoryCache Cache { get; private set; }
 
     // Login User
     [HttpPost("/auth/login")]
-    public async Task<IActionResult> Login([FromForm] string email = "", [FromForm] string password = "", [FromHeader] string requestId = "", [FromForm] bool rememberMe = false, [FromForm] bool isMobile = false, [FromForm] int browser = 0, [FromForm] string country = "")
+    public async Task<IActionResult> Login([FromForm] string email = "", [FromForm] string password = "", [FromHeader] string RequestId = "", [FromForm] bool rememberMe = false)
     {
-        if (string.IsNullOrEmpty(requestId))
-            return BadRequest("Request id is invalid");
+        if (string.IsNullOrEmpty(RequestId) || !Cache.TryGetValue("login-" + RequestId, out SessionInfo Session))
+            return BadRequest("Request is invalid or expired");
 
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             return BadRequest("Invalid email or password.");
 
-        string Data = Cache.GetString("login-" + requestId);
-
-        if (string.IsNullOrEmpty(Data) || Data != email)
-            return BadRequest("Invalid email or password.");
+        if (Session.Email != email)
+            return BadRequest("Request is invalid or expired");
 
         AuthUser? AuthUser = await _userManager.FindByEmailAsync(email);
         if (AuthUser == null)
@@ -86,19 +86,13 @@ public class AuthLoginController : AuthControllerContext
 
         if (!AuthUser.Account.Sessions.ContainsKey(SessionId))
         {
-            string BrowserName = "";
-            switch ((SessionBrowserType)browser)
-            {
-                case SessionBrowserType.Chrome:
-                    break;
-            }
             AuthUser.Account.Sessions.Add(SessionId, new UserSession
             {
                 CreatedAt = DateTime.UtcNow,
-                BrowserType = (SessionBrowserType)browser,
-                IsMobile = isMobile,
-                Country = country,
-                Name = Utils.GetBrowserName((SessionBrowserType)browser)
+                BrowserType = Session.Browser,
+                IsMobile = Session.IsMobile,
+                Country = Session.Country,
+                Name = Utils.GetBrowserName(Session.Browser)
             });
         }
 
@@ -108,19 +102,19 @@ public class AuthLoginController : AuthControllerContext
         return Ok();
     }
 
-    [Route("/auth/external"), HttpGet, HttpPost]
-    public async Task<IActionResult> LoginExternalAsync([FromForm] string provider = "")
+    [HttpPost("/auth/login/external")]
+    public async Task<IActionResult> LoginExternalAsync([FromForm] string provider = "", [FromHeader] string RequestId = "", [FromForm] bool rememberMe = false)
     {
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
-        string returnUrl = "/";
         string redirectUrl = "/auth/external/callback";
-        Logger.LogMessage(redirectUrl, LogSeverity.Debug);
-        Microsoft.AspNetCore.Authentication.AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-        return Challenge(properties, provider);
 
-        return Ok();
+        AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+        
+
+
+        return Challenge(properties, provider);
     }
 
     [HttpGet("/auth/external/callback")]
@@ -129,40 +123,48 @@ public class AuthLoginController : AuthControllerContext
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
+        Console.WriteLine("Get External Auth");
+
         ExternalLoginInfo? info = await _signInManager.GetExternalLoginInfoAsync();
         if (info == null)
         {
             return RedirectToAction(nameof(Login));
         }
 
-        foreach (Microsoft.AspNetCore.Authentication.AuthenticationToken i in info.AuthenticationTokens)
+        foreach (AuthenticationToken i in info.AuthenticationTokens)
         {
-            Logger.LogMessage($"Token: {i.Name} - {i.Value}", LogSeverity.Debug);
+            Logger.LogMessage($"Token: {i.Name} - {i.Value}", LogSeverity.Info);
         }
 
         string? Email = info.Principal.FindFirstValue(ClaimTypes.Email);
         string? Name = info.Principal.FindFirstValue(ClaimTypes.Name);
-        string? NameId = info.Principal.FindFirstValue(ClaimTypes.GivenName);
 
-        return Ok();
+        Console.WriteLine($"{Email} - {Name} - {info.ProviderKey}");
 
+        AuthUser? AuthUser = await _userManager.FindByEmailAsync(Email);
+        if (AuthUser != null)
+        {
+            var Result = await _userManager.AddLoginAsync(AuthUser, info);
+            await _signInManager.SignInAsync(AuthUser, true);
+            return Redirect(returnUrl);
+        }
 
-        Microsoft.AspNetCore.Identity.SignInResult signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
-        if (signInResult.Succeeded)
-        {
-            return Redirect("/");
-        }
-        if (signInResult.IsLockedOut)
-        {
-            //return RedirectToAction(nameof(ForgotPassword));
-        }
-        else
-        {
-            ViewData["ReturnUrl"] = returnUrl;
-            ViewData["Provider"] = info.LoginProvider;
-            string email = info.Principal.FindFirstValue(ClaimTypes.Email);
-            //return View("ExternalLogin", new ExternalLoginModel { Email = email });
-        }
+        //Microsoft.AspNetCore.Identity.SignInResult signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+        //if (signInResult.Succeeded)
+        //{
+        //    return Redirect("/");
+        //}
+        //if (signInResult.IsLockedOut)
+        //{
+        //    //return RedirectToAction(nameof(ForgotPassword));
+        //}
+        //else
+        //{
+        //    ViewData["ReturnUrl"] = returnUrl;
+        //    ViewData["Provider"] = info.LoginProvider;
+        //    string email = info.Principal.FindFirstValue(ClaimTypes.Email);
+        //    //return View("ExternalLogin", new ExternalLoginModel { Email = email });
+        //}
 
         return Ok();
     }

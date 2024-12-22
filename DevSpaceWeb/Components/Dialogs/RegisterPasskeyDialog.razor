@@ -8,7 +8,7 @@
 @inject UserManager<AuthUser> UserManager
 @inject IJSRuntime JS
 @inject Radzen.DialogService dialogService
-@inject IDistributedCache Cache
+@inject IMemoryCache Cache
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
     <EditForm Model="@RegisterModel" OnValidSubmit="@Submit">
@@ -83,15 +83,15 @@
         }
         bool IsSuccess = false;
         string? PasskeyRequestId = Guid.NewGuid().ToString();
-        Cache.SetString("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new AuthRequest(user.Id, false)), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
+        Cache.Set("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new AuthRequest(user.Id, false)), new TimeSpan(0, 2, 0));
 
         try
         {
-            IsSuccess = await JS.InvokeAsync<bool>("passkeyStartRegister", RegisterModel.DeviceName, PasskeyRequestId);
+            IsSuccess = await JS.InvokeAsync<bool>("window.Passkey.passkeyStartRegister", RegisterModel.DeviceName, PasskeyRequestId);
         }
         catch { }
         user = await Session.GetCurrentUserAsync();
-        string Data = Cache.GetString("passkey-" + PasskeyRequestId);
+        string? Data = Cache.Get<string>("passkey-" + PasskeyRequestId);
         if (!string.IsNullOrEmpty(Data))
         {
             AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);

@@ -1,4 +1,5 @@
 ﻿@page "/login"
+@using DevSpaceWeb.Data.Auth
 @using DevSpaceWeb.Fido2
 @using DevSpaceWeb.Models
 @using DevSpaceWeb.Models.Account
@@ -10,15 +11,15 @@
 @using DevSpaceWeb.Database
 @using DevSpaceWeb.Services
 @using Microsoft.AspNetCore.Identity
-@using Microsoft.Extensions.Caching.Distributed
+
 @using MongoDB.Driver
 @using System.Text.Json
 @inject SignInManager<AuthUser> UserManager
 @inject NavigationManager NavigationManager
 @inject HttpContextAccessor HttpContext
 @inject IJSRuntime JS
+@inject IMemoryCache Cache
 @inject NavigationManager NavigationManager
-@inject IDistributedCache Cache
 @inject EmailService Email
 
 
@@ -56,7 +57,7 @@
                 }
                 else
                 {
-                    <form data-enhance id="login-external-form" action="/auth/external" method="post" class="form-horizontal">
+                    <form id="login-external-form" action="/auth/external" method="post" class="form-horizontal">
                         <div>
                             <p>
                                 <RadzenButton ButtonType="ButtonType.Submit" value="google" name="provider" ButtonStyle="ButtonStyle.Secondary">
@@ -284,8 +285,8 @@
 </style>
 
 @code {
-    [CascadingParameter]
-    private SessionProvider Session { get; set; }
+        [CascadingParameter]
+        private SessionProvider Session { get; set; }
 
     public LoginPageType Page = LoginPageType.Default;
     public bool FormDisabled { get; set; } = false;
@@ -414,11 +415,19 @@
             return;
         }
 
-        FormDisabled = true;
+        SessionInfo data = await JS.InvokeAsync<SessionInfo>("window.Auth.getSessionInfo");
+        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(data));
+        return;
 
+        FormDisabled = true;
         string RequestId = Guid.NewGuid().ToString();
-        Cache.SetString("login-" + RequestId, LoginForm.Email, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-        string Result = await JS.InvokeAsync<string>("accountLogin", LoginForm.Email, LoginForm.CurrentPassword, RememberMe, RequestId);
+
+        Cache.Set("login-" + RequestId, new SessionInfo
+        {
+            Email = LoginForm.Email,
+        }, new TimeSpan(0, 5, 0));
+
+        string Result = await JS.InvokeAsync<string>("window.Auth.accountLogin", LoginForm.Email, LoginForm.CurrentPassword, RememberMe, RequestId);
         Console.WriteLine("Login Get: " + Result);
         if (Result == "ok")
         {
@@ -444,8 +453,8 @@
         FormDisabled = true;
 
         string RequestId = Guid.NewGuid().ToString();
-        Cache.SetString("changepass-" + RequestId, ChangePasswordForm.Email, new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(2)));
-        bool Result = await JS.InvokeAsync<bool>("accountChangePassword", ChangePasswordForm.Email, ChangePasswordForm.NewPassword, Token, RequestId);
+        Cache.Set("changepass-" + RequestId, ChangePasswordForm.Email, new TimeSpan(0, 5, 0));
+        bool Result = await JS.InvokeAsync<bool>("window.Auth.accountChangePassword", ChangePasswordForm.Email, ChangePasswordForm.NewPassword, Token, RequestId);
         if (Result)
         {
             LoginForm.Email = ChangePasswordForm.Email;

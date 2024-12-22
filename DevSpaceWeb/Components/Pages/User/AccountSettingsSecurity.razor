@@ -5,8 +5,8 @@
 @inject DialogService DialogService
 @inject HttpContextAccessor Http
 @inject UserManager<AuthUser> UserManager
-@inject IDistributedCache Cache
 @implements IDisposable
+@inject IMemoryCache Cache
 
 @if (AuthUser == null)
 {
@@ -572,7 +572,7 @@ else
     {
         _DB.SessionUpdated += SessionChangedEvent;
         AuthUser = await Session.GetCurrentUserAsync();
-        Country = await JS.InvokeAsync<string>("getCountry");
+        Country = await JS.InvokeAsync<string>("window.Auth.getCountry");
         //var Meta = await Fido2Service._metadata.GetEntryAsync(AuthUser.PasskeyTokens.First().AaGuid);
         //Console.WriteLine("Meta: " + Meta.MetadataStatement.Description);
     }
@@ -641,7 +641,7 @@ else
         var DetectPasskeyAllow = false;
         try
         {
-            DetectPasskeyAllow = await JS.InvokeAsync<bool>("passkeyIsSupported");
+            DetectPasskeyAllow = await JS.InvokeAsync<bool>("window.Passkey.isPasskeySupported");
         }
         catch { }
         if (!DetectPasskeyAllow)
@@ -676,7 +676,7 @@ else
         var DetectPasskeyAllow = false;
         try
         {
-            DetectPasskeyAllow = await JS.InvokeAsync<bool>("passkeyIsSupported");
+            DetectPasskeyAllow = await JS.InvokeAsync<bool>("window.Passkey.isPasskeySupported");
         }
         catch { }
         if (!DetectPasskeyAllow)
@@ -826,7 +826,7 @@ else
 
         string Key = Utils.CreateTwoFactorRecoveryCode();
 
-        Cache.SetString(Key, Newtonsoft.Json.JsonConvert.SerializeObject(Code), new DistributedCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(15)));
+        Cache.Set(Key, Code, new TimeSpan(0, 2, 0));
 
         AuthUser.Mfa.RecoveryCode = Hasher.HashPassword(AuthUser, Code);
         AuthUser.Mfa.RecoveryCodeCreatedAt = DateTime.UtcNow;

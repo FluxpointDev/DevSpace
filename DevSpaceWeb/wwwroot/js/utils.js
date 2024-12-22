@@ -1,24 +1,45 @@
-﻿function GetUserTimezoneOffset() {
-    return new Date().getTimezoneOffset();
-}
+﻿const Utils = {
+};
 
-async function TestWebSocket() {
-    let response = await fetch('/api/test/websocket', {
-        method: 'GET'
-    });
-    if (response.ok)
-        return "yes";
+Object.defineProperty(window, 'Utils', {
+    configurable: false,
+    writable: false,
+    value: Utils
+});
 
-    if (response.status == 412)
-        return "no";
+Object.defineProperty(window.Utils, 'getUserTimezoneOffset', {
+    configurable: false,
+    writable: false,
+    value: function () {
+        return new Date().getTimezoneOffset();
+    }
+});
 
-    return "fail";
-}
+Object.defineProperty(window.Utils, 'testWebSocket', {
+    configurable: false,
+    writable: false,
+    value: async function () {
+        let response = await fetch('/api/test/websocket', {
+            method: 'GET'
+        });
+        if (response.ok)
+            return "yes";
 
-function LoadQR() {
-    new QRCode(document.getElementById("qrcode"), {
-        text: document.getElementById('setupurl').textContent,
-        width: 128,
-        height: 128,
-    });
-}
+        if (response.status == 412)
+            return "no";
+
+        return "fail";
+    }
+});
+
+Object.defineProperty(window.Utils, 'loadQR', {
+    configurable: false,
+    writable: false,
+    value: function () {
+        new QRCode(document.getElementById("qrcode"), {
+            text: document.getElementById('setupurl').textContent,
+            width: 128,
+            height: 128,
+        });
+    }
+});

@@ -1,5 +1,23 @@
-﻿coerceToArrayBuffer = function (thing, name) {
-    if (typeof thing === "string") {
+﻿const Passkey = {
+};
+
+Object.defineProperty(window, 'Passkey', {
+    configurable: false,
+    writable: false,
+    value: Passkey
+});
+
+Object.defineProperty(Passkey, 'debug', {
+    configurable: false,
+    writable: false,
+    value: false
+});
+
+Object.defineProperty(Passkey, 'coerceToArrayBuffer', {
+    configurable: false,
+    writable: false,
+    value: function (thing, name) {
+        if (typeof thing === "string") {
         // base64url to base64
         thing = thing.replace(/-/g, "+").replace(/_/g, "/");
 
@@ -28,11 +46,14 @@
     }
 
     return thing;
-};
+    }
+});
 
-
-coerceToBase64Url = function (thing) {
-    // Array or ArrayBuffer to Uint8Array
+Object.defineProperty(Passkey, 'coerceToBase64Url', {
+    configurable: false,
+    writable: false,
+    value: function (thing) {
+// Array or ArrayBuffer to Uint8Array
     if (Array.isArray(thing)) {
         thing = Uint8Array.from(thing);
     }
@@ -61,31 +82,35 @@ coerceToBase64Url = function (thing) {
     thing = thing.replace(/\+/g, "-").replace(/\//g, "_").replace(/=*$/g, "");
 
     return thing;
-};
+    }
+});
 
-// HELPERS
-function passkeyIsSupported() {
-    if (window.PublicKeyCredential === undefined ||
+Object.defineProperty(Passkey, 'isPasskeySupported', {
+    configurable: false,
+    writable: false,
+    value: function () {
+if (window.PublicKeyCredential === undefined ||
         typeof window.PublicKeyCredential !== "function") {
         return false;
     }
     return true;
-}
+    }
+});
 
-/**
-* 
- * Get a querystring value
- * @param {any} parameterName
-* */
-function findGetParameter(parameterName) {
-    var result = null,
-        tmp = [];
-    location.search
-        .substring(1)
-        .split("&")
-        .forEach(function (item) {
-            tmp = item.split("=");
-            if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-        });
-    return result;
-}
+
+Object.defineProperty(Passkey, 'findGetParameter', {
+    configurable: false,
+    writable: false,
+    value: function (parameterName) {
+        var result = null,
+            tmp = [];
+        location.search
+            .substring(1)
+            .split("&")
+            .forEach(function (item) {
+                tmp = item.split("=");
+                if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+            });
+        return result;
+    }
+});
