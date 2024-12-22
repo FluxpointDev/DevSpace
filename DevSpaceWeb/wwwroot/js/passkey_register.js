@@ -7,17 +7,17 @@
         // send to server for registering
         let makeCredentialOptions;
         try {
-            makeCredentialOptions = await fetchMakeCredentialOptions(requestId);
+            makeCredentialOptions = await window.Passkey.fetchMakeCredentialOptions(requestId);
 
         } catch (e) {
-            if (window.Passkey.Debug) {
+            if (window.Passkey.debug) {
                 console.log(e);
             }
             console.log("Something went wrong with making credentials");
             return false;
         }
 
-        if (window.Passkey.Debug) {
+        if (window.Passkey.debug) {
             console.log("Credential Options Object", makeCredentialOptions);
         }
 
@@ -43,20 +43,9 @@
             makeCredentialOptions.authenticatorSelection.authenticatorAttachment = undefined;
 
 
-        if (window.Passkey.Debug) {
+        if (window.Passkey.debug) {
             console.log("Credential Options Formatted", makeCredentialOptions);
         }
-
-
-        //Swal.fire({
-        //    title: 'Registering...',
-        //    text: 'Tap your security key to finish registration.',
-        //    imageUrl: getFolder() + "/images/securitykey.min.svg",
-        //    showCancelButton: true,
-        //    showConfirmButton: false,
-        //    focusConfirm: false,
-        //    focusCancel: false
-        //});
 
 
         console.log("Creating PublicKeyCredential...");
@@ -69,20 +58,20 @@
         } catch (e) {
             var msg = "Could not create credentials in browser. Probably because the username is already registered with your authenticator. Please change username or authenticator."
             console.error(msg);
-            if (window.Passkey.Debug) {
+            if (window.Passkey.debug) {
                 console.log(e);
             }
             return false;
         }
 
-        if (window.Passkey.Debug) {
+        if (window.Passkey.debug) {
             console.log("PublicKeyCredential Created", newCredential);
         }
 
 
 
         try {
-            registerNewCredential(name, newCredential, requestId);
+            window.Passkey.registerNewCredential(name, newCredential, requestId);
 
         } catch (e) {
             console.log(e.message ? e.message : e);
@@ -139,16 +128,16 @@ Object.defineProperty(window.Passkey, 'registerNewCredential', {
 
         let response;
         try {
-            response = await registerCredentialWithServer(data, requestId);
+            response = await window.Passkey.registerCredentialWithServer(data, requestId);
         } catch (e) {
             console.log("Failed to register credentials");
-            if (window.Passkey.Debug) {
+            if (window.Passkey.debug) {
                 console.log(e);
             }
             return;
         }
 
-        if (window.Passkey.Debug) {
+        if (window.Passkey.debug) {
             console.log("Credential Object", response);
         }
 

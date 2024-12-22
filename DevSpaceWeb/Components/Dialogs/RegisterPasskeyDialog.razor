@@ -80,6 +80,7 @@
             user.Mfa.PasskeyId = MongoDB.Bson.ObjectId.GenerateNewId();
             await UserManager.UpdateAsync(user);
         }
+
         bool IsSuccess = false;
         string? PasskeyRequestId = Guid.NewGuid().ToString();
         Cache.Set("passkey-" + PasskeyRequestId, new AuthRequest(user.Id, false), new TimeSpan(0, 5, 0));
@@ -90,7 +91,9 @@
         }
         catch { }
         user = await Session.GetCurrentUserAsync();
+
         AuthRequest? Data = Cache.Get<AuthRequest>("passkey-" + PasskeyRequestId);
+        Console.WriteLine($"{IsSuccess} - {Data?.IsSuccess}/{Data?.UserId} - {user.Id}");
         if (!IsSuccess || Data == null || user == null || Data.UserId != user.Id || !Data.IsSuccess)
         {
             IsLoading = false;

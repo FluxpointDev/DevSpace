@@ -16,13 +16,13 @@
             makeAssertionOptions = await res.json();
         } catch (e) {
             console.log('Request to server failed');
-            if (window.Passkey.Debug) {
+            if (window.Passkey.debug) {
                 console.log(e);
             }
             return false;
         }
 
-        if (window.Passkey.Debug) {
+        if (window.Passkey.debug) {
             console.log("Assertion Options Object", makeAssertionOptions);
         }
 
@@ -44,7 +44,7 @@
             listItem.id = Uint8Array.from(atob(fixedId), c => c.charCodeAt(0));
         });
 
-        if (window.Passkey.Debug) {
+        if (window.Passkey.debug) {
             console.log("Assertion options", makeAssertionOptions);
         }
 
@@ -73,7 +73,7 @@
             await window.Passkey.verifyAssertionWithServer(credential, requestId);
         } catch (e) {
             console.log('Could not verify assertion');
-            if (window.Passkey.Debug) {
+            if (window.Passkey.debug) {
                 console.log(e);
             }
 
@@ -125,7 +125,7 @@ Object.defineProperty(window.Passkey, 'verifyAssertionWithServer', {
             console.log("Request to server failed");
             throw e;
         }
-        if (window.Passkey.Debug) {
+        if (window.Passkey.debug) {
             console.log("Assertion Object", response);
         }
 

@@ -10,7 +10,7 @@ Object.defineProperty(window, 'Passkey', {
 Object.defineProperty(Passkey, 'debug', {
     configurable: false,
     writable: false,
-    value: false
+    value: true
 });
 
 Object.defineProperty(Passkey, 'coerceToArrayBuffer', {

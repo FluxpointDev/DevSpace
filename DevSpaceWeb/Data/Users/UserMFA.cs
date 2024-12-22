@@ -11,10 +11,31 @@ public class UserMfa
     public bool IsTwoFactorEnabled { get; set; }
     public DateTime? EmailCodeLastSentAt { get; set; }
     public DateTime? EmailCodeLastUsedAt { get; set; }
-
     public DateTime? AuthenticatorLastRegisteredAt { get; set; }
     public DateTime? AuthenticatorLastUsedAt { get; set; }
     public Dictionary<string, bool> AuthenticatorDevices { get; set; } = new Dictionary<string, bool>();
+
+    public bool HasAny2FA()
+    {
+        if (AuthenticatorDevices.Any() || Passkeys.Any())
+            return true;
+        return false;
+    }
+    public void Disable2FA()
+    {
+        IsTwoFactorEnabled = false;
+        AuthenticatorLastRegisteredAt = null;
+        AuthenticatorLastUsedAt = null;
+        AuthenticatorDevices.Clear();
+        PasskeyId = null;
+        PasskeyLastRegisteredAt = null;
+        PasskeyLastUsedAt = null;
+        PasskeyLastUsedDevice = null;
+        Passkeys.Clear();
+        RecoveryCodeCreatedAt = null;
+        RecoveryCodeLastUsedAt = null;
+        RecoveryCode = null;
+    }
 
     public ObjectId? PasskeyId { get; set; }
     public DateTime? PasskeyLastRegisteredAt { get; set; }
@@ -22,14 +43,9 @@ public class UserMfa
     public string? PasskeyLastUsedDevice { get; set; }
     public List<FidoStoredCredential> Passkeys { get; set; } = new List<FidoStoredCredential>();
 
-    [BsonIgnore]
-    [JsonIgnore]
-    public bool HasPasskeys => Passkeys.Any();
-
     public DateTime? RecoveryCodeCreatedAt { get; set; }
     public DateTime? RecoveryCodeLastUsedAt { get; set; }
     public string? RecoveryCode { get; set; }
-
 
     public async Task<FidoStoredCredential?> GetPasskeyByIdAsync(byte[] id)
     {
