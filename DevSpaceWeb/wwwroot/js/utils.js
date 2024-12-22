@@ -35,9 +35,9 @@ Object.defineProperty(window.Utils, 'testWebSocket', {
 Object.defineProperty(window.Utils, 'loadQR', {
     configurable: false,
     writable: false,
-    value: function () {
+    value: function (url) {
         new QRCode(document.getElementById("qrcode"), {
-            text: document.getElementById('setupurl').textContent,
+            text: url,
             width: 128,
             height: 128,
         });

@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using System.Globalization
+@using DevSpaceWeb.Data.Auth
 @inject UserManager<AuthUser> UserManager
 @inject NavigationManager NavigationManager
 @inject EmailService Email
@@ -43,33 +44,14 @@
                 session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
             else
             {
-                int Browser = 0;
-                try
-                {
-                    Browser = await JS.InvokeAsync<int>("window.Auth.getBrowser");
-                }
-                catch { }
-
-                string Country = "Unknown";
-                try
-                {
-                    Country = await JS.InvokeAsync<string>("window.Auth.getCountry");
-                }
-                catch { }
-
-                bool IsMobile = false;
-                try
-                {
-                    IsMobile = await JS.InvokeAsync<bool>("window.Auth.getIsMobile");
-                }
-                catch { }
+                SessionInfo SessionInfo = await JS.InvokeAsync<SessionInfo>("window.Auth.getSessionInfo");
 
                 User.Account.Sessions.TryAdd(SessionId, new UserSession
                 {
-                    IsMobile = IsMobile,
-                    BrowserType = (SessionBrowserType)Browser,
-                    Name = Utils.GetBrowserName((SessionBrowserType)Browser),
-                    Country = Country,
+                    IsMobile = SessionInfo.IsMobile,
+                    BrowserType = SessionInfo.Browser,
+                    Name = Utils.GetBrowserName(SessionInfo.Browser),
+                    Country = SessionInfo.Country,
                     CreatedAt = DateTime.UtcNow,
                     AuthorizedIps = new HashSet<string>
                     {

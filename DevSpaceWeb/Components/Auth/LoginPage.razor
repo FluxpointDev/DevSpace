@@ -11,7 +11,6 @@
 @using DevSpaceWeb.Database
 @using DevSpaceWeb.Services
 @using Microsoft.AspNetCore.Identity
-
 @using MongoDB.Driver
 @using System.Text.Json
 @inject SignInManager<AuthUser> UserManager
@@ -285,8 +284,8 @@
 </style>
 
 @code {
-        [CascadingParameter]
-        private SessionProvider Session { get; set; }
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
 
     public LoginPageType Page = LoginPageType.Default;
     public bool FormDisabled { get; set; } = false;
@@ -415,17 +414,11 @@
             return;
         }
 
-        SessionInfo data = await JS.InvokeAsync<SessionInfo>("window.Auth.getSessionInfo");
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(data));
-        return;
-
         FormDisabled = true;
+        SessionInfo SessionInfo = await JS.InvokeAsync<SessionInfo>("window.Auth.getSessionInfo");
         string RequestId = Guid.NewGuid().ToString();
-
-        Cache.Set("login-" + RequestId, new SessionInfo
-        {
-            Email = LoginForm.Email,
-        }, new TimeSpan(0, 5, 0));
+        SessionInfo.Email = LoginForm.Email;
+        Cache.Set("login-" + RequestId, SessionInfo, new TimeSpan(0, 5, 0));
 
         string Result = await JS.InvokeAsync<string>("window.Auth.accountLogin", LoginForm.Email, LoginForm.CurrentPassword, RememberMe, RequestId);
         Console.WriteLine("Login Get: " + Result);

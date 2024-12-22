@@ -80,18 +80,27 @@ Object.defineProperty(Auth, 'getSessionInfo', {
     writable: false,
     value: function () {
         console.log('Getting session');
+        
+
+        return {
+            IsMobile: navigator.userAgent.match(/Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i) !== null,
+            Country: window.Auth.getCountry()
+        };
+    }
+});
+
+Object.defineProperty(Auth, 'getCountry', {
+    configurable: false,
+    writable: false,
+    value: function () {
         var countryName;
         try {
             countryName = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0];
         }
         catch { }
         if (!countryName)
-            countryName = 'Unknown';
-
-        return {
-            IsMobile: navigator.userAgent.match(/Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i) !== null,
-            Country: countryName
-        };
+            return 'Unknown';
+        return countryName;
     }
 });
 
