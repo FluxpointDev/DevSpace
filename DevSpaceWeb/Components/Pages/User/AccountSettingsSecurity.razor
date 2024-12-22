@@ -261,7 +261,7 @@ else
                             </RadzenText>
                             @if (AuthUser == null || !AuthUser.EmailConfirmed)
                             {
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
+                                <RadzenSkeleton></RadzenSkeleton>
                             }
                             else if (!AuthUser.Mfa.IsTwoFactorEnabled)
                             {
@@ -285,7 +285,21 @@ else
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
                                 Backup Code
                             </RadzenText>
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
+                            @if (AuthUser == null)
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+                            else
+                            {
+                                if (!string.IsNullOrEmpty(AuthUser.Mfa.RecoveryCode))
+                                {
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
+                                }
+                                else
+                                {
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
+                                }
+                            }
                         </div>
 
                     </RadzenStack>
@@ -299,7 +313,21 @@ else
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
                                 Authenticator App
                             </RadzenText>
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
+                            @if (AuthUser == null)
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+                            else
+                            {
+                                if (AuthUser.Mfa.AuthenticatorDevices.Any())
+                                {
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
+                                }
+                                else
+                                {
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
+                                }
+                            }
                         </div>
 
                     </RadzenStack>
@@ -313,23 +341,21 @@ else
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
                                 Passkeys (WebAuth)
                             </RadzenText>
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
-                        </div>
-
-                    </RadzenStack>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="6" class="session-item" Style="opacity: 0.6;">
-                    <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
-                        <div>
-                            <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:mobile-phone-text"></span>
-                        </div>
-                        <div>
-                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
-                                Mobile SMS
-                            </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                Coming Soon
-                            </RadzenText>
+                            @if (AuthUser == null)
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+                            else
+                            {
+                                if (AuthUser.Mfa.Passkeys.Any())
+                                {
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
+                                }
+                                else
+                                {
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
+                                }
+                            }
                         </div>
 
                     </RadzenStack>
