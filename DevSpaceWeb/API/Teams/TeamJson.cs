@@ -8,19 +8,19 @@ public class TeamJson : Response
     {
         id = data.Id.ToString();
         name = data.Name;
-        ownerId = data.OwnerId.ToString();
-        vanityUrl = data.VanityUrl;
+        owner_id = data.OwnerId.ToString();
+        vanity_url = data.VanityUrl;
         if (data.ResourceId.HasValue)
-            resourceId = data.ResourceId.Value.ToString();
+            resource_id = data.ResourceId.Value.ToString();
         if (data.IconId.HasValue)
-            iconId = data.IconId.Value.ToString();
+            icon_id = data.IconId.Value.ToString();
 
     }
 
     public string id { get; set; }
     public string name { get; set; }
-    public string ownerId { get; set; }
-    public string vanityUrl { get; set; }
-    public string resourceId { get; set; }
-    public string iconId { get; set; }
+    public string owner_id { get; set; }
+    public string vanity_url { get; set; }
+    public string resource_id { get; set; }
+    public string icon_id { get; set; }
 }
