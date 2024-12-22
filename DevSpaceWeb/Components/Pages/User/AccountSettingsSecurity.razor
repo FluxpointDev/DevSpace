@@ -237,15 +237,16 @@ else
                 {
                     <span class="iconify settings-icon" style="color: var(--rz-success);" data-icon="mdi:check-circle"></span>
                     <div>
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
                             Enabled
                         </RadzenText>
                         <RadzenText TextStyle="TextStyle.Body2">
                             Email codes have been disabled.
                         </RadzenText>
-                        <br />
-                        <RadzenButton Text="Disable 2FA" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@Disable2FA" />
+
                     </div>
+                    <RadzenButton Text="Disable 2FA" Style="max-height: 36px; margin-left: 10px;" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@Disable2FA" />
+
                 }
             </RadzenStack>
             <br />
@@ -259,17 +260,21 @@ else
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
                                 Email Code
                             </RadzenText>
-                            @if (AuthUser == null || !AuthUser.EmailConfirmed)
+                            @if (AuthUser == null)
                             {
                                 <RadzenSkeleton></RadzenSkeleton>
                             }
+                            else if (!AuthUser.EmailConfirmed)
+                            {
+                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
+                            }
                             else if (!AuthUser.Mfa.IsTwoFactorEnabled)
                             {
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
+                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
                             }
                             else
                             {
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Light" Text="Disabled" />
+                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Light" Text="Disabled" />
                             }
 
                         </div>
@@ -293,11 +298,11 @@ else
                             {
                                 if (!string.IsNullOrEmpty(AuthUser.Mfa.RecoveryCode))
                                 {
-                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
+                                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
                                 }
                                 else
                                 {
-                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
+                                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
                                 }
                             }
                         </div>
@@ -321,11 +326,11 @@ else
                             {
                                 if (AuthUser.Mfa.AuthenticatorDevices.Any())
                                 {
-                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
+                                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
                                 }
                                 else
                                 {
-                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
+                                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
                                 }
                             }
                         </div>
@@ -349,11 +354,11 @@ else
                             {
                                 if (AuthUser.Mfa.Passkeys.Any())
                                 {
-                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
+                                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
                                 }
                                 else
                                 {
-                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
+                                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Danger" Text="Disabled" />
                                 }
                             }
                         </div>
@@ -366,7 +371,7 @@ else
                             <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:shield-key"></span>
                         </div>
                         <div>
-                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
                                 Dev Space App
                             </RadzenText>
                             <RadzenText TextStyle="TextStyle.Body2">
