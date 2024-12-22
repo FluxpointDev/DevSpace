@@ -13,28 +13,28 @@
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
     <EditForm Model="@RegisterModel" OnValidSubmit="@Submit">
         <DataAnnotationsValidator />
-    
-    <RadzenStack>
+
+        <RadzenStack>
             <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
                 Passkey uses device authentication using Windows hello, Apple id, Android or Yubikey to verify yourself as a 2FA (Two-factor authentication) method.
             </RadzenAlert>
 
-        @if (!string.IsNullOrEmpty(ErrorMessage))
-        {
-            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                @ErrorMessage
-            </RadzenAlert>
-        }
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                    @ErrorMessage
+                </RadzenAlert>
+            }
 
-        <RadzenLabel Text="Device Name" class="rz-my-0"></RadzenLabel>
-        <RadzenTextBox @bind-Value="@RegisterModel.DeviceName" Style="width: 100%" aria-label="Device Name TextBox" autocomplete="false" MaxLength="100" />
-        <ValidationMessage For="() => RegisterModel.DeviceName" style="color: var(--rz-danger);" />
+            <RadzenLabel Text="Device Name" class="rz-my-0"></RadzenLabel>
+            <RadzenTextBox @bind-Value="@RegisterModel.DeviceName" Style="width: 100%" aria-label="Device Name TextBox" autocomplete="false" MaxLength="100" />
+            <ValidationMessage For="() => RegisterModel.DeviceName" style="color: var(--rz-danger);" />
 
-    </RadzenStack>
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
             <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
             <RadzenButton ButtonType="ButtonType.Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" Disabled="@IsLoading" />
-    </RadzenStack>
+        </RadzenStack>
     </EditForm>
 </RadzenStack>
 
@@ -68,7 +68,6 @@
             return;
         }
 
-
         if (user.Mfa.Passkeys.Any(x => x.Name.Equals(RegisterModel.DeviceName)))
         {
             IsLoading = false;
@@ -83,7 +82,7 @@
         }
         bool IsSuccess = false;
         string? PasskeyRequestId = Guid.NewGuid().ToString();
-        Cache.Set("passkey-" + PasskeyRequestId, JsonSerializer.Serialize(new AuthRequest(user.Id, false)), new TimeSpan(0, 2, 0));
+        Cache.Set("passkey-" + PasskeyRequestId, new AuthRequest(user.Id, false), new TimeSpan(0, 5, 0));
 
         try
         {
@@ -91,17 +90,17 @@
         }
         catch { }
         user = await Session.GetCurrentUserAsync();
-        string? Data = Cache.Get<string>("passkey-" + PasskeyRequestId);
-        if (!string.IsNullOrEmpty(Data))
+        AuthRequest? Data = Cache.Get<AuthRequest>("passkey-" + PasskeyRequestId);
+        if (!IsSuccess || Data == null || user == null || Data.UserId != user.Id || !Data.IsSuccess)
         {
-            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
-            if (RequestData != null && RequestData.UserId == user.Id && RequestData.IsSuccess)
-            {
-                _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
-                dialogService.Close();
-                await dialogService.ShowInfoAsync("Passkey Added", $"The passkey for {RegisterModel.DeviceName} has been added to your account.");
-            }
+            IsLoading = false;
+            ErrorMessage = "Failed passkey verification.";
+            return;
         }
-         IsLoading = false;
+
+        _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+        dialogService.Close();
+        await dialogService.ShowInfoAsync("Passkey Added", $"The passkey for {RegisterModel.DeviceName} has been added to your account.");
+        IsLoading = false;
     }
 }

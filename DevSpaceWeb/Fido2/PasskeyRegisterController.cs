@@ -46,12 +46,8 @@ public class PasskeyRegisterController : AuthControllerContext
             if (AuthUser == null)
                 return Json(new Fido2Error("Failed to get user."));
 
-            string? Data = Cache.Get<string>("passkey-" + RequestId);
-            if (string.IsNullOrEmpty(Data))
-                return Json(new Fido2Error("Failed user validation."));
-
-            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
-            if (RequestData == null && RequestData.UserId != AuthUser.Id)
+            AuthRequest? Data = Cache.Get<AuthRequest>("passkey-" + RequestId);
+            if (Data == null || Data.UserId != AuthUser.Id)
                 return Json(new Fido2Error("Failed user validation."));
 
             Fido2User user = new Fido2User
@@ -113,12 +109,8 @@ public class PasskeyRegisterController : AuthControllerContext
             if (user == null)
                 return Json(new Fido2Error("Failed to get user."));
 
-            string Data = Cache.Get<string>("passkey-" + RequestId);
-            if (string.IsNullOrEmpty(Data))
-                return Json(new Fido2Error("Failed user validation."));
-
-            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
-            if (RequestData == null && RequestData.UserId != user.Id)
+            AuthRequest? Data = Cache.Get<AuthRequest>("passkey-" + RequestId);
+            if (Data == null || Data.UserId != user.Id)
                 return Json(new Fido2Error("Failed user validation."));
 
             // 1. get the options we sent the client
@@ -162,8 +154,8 @@ public class PasskeyRegisterController : AuthControllerContext
                 user.Mfa.IsTwoFactorEnabled = true;
                 await _userManager.UpdateAsync(user);
 
-                RequestData.IsSuccess = true;
-                Cache.Set("passkey-" + RequestId, RequestData, new TimeSpan(0, 2, 0));
+                Data.IsSuccess = true;
+                Cache.Set("passkey-" + RequestId, Data, new TimeSpan(0, 5, 0));
             }
 
             return Json(success);

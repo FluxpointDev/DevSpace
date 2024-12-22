@@ -236,6 +236,7 @@
 
         bool IsSuccess = false;
         string PasskeyRequestId = Guid.NewGuid().ToString();
+        Cache.Set("passkey-" + PasskeyRequestId, new AuthRequest(user.Id, logUsage), new TimeSpan(0, 5, 0));
         try
         {
             IsSuccess = await JS.InvokeAsync<bool>("window.Passkey.passkeyStartAuth", PasskeyRequestId);
@@ -244,15 +245,10 @@
         {
             Logger.LogMessage(ex.ToString(), LogSeverity.Error);
         }
-        string? Data = Cache.Get<string>("passkey-" + PasskeyRequestId);
-        if (!string.IsNullOrEmpty(Data))
-        {
-            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
-            if (RequestData != null && RequestData.UserId == user.Id)
-            {
-                IsSuccess = RequestData.IsSuccess;
-            }
-        }
+        AuthRequest? Data = Cache.Get<AuthRequest>("passkey-" + PasskeyRequestId);
+        user = await GetCurrentUserAsync();
+        if (user != null && IsSuccess && Data != null && Data.IsSuccess && Data.UserId == user.Id)
+            IsSuccess = Data.IsSuccess;
         return IsSuccess;
     }
 

@@ -41,12 +41,8 @@ public class PasskeyAuthController : AuthControllerContext
             if (identityUser == null)
                 throw new ArgumentException("User not found");
 
-            string Data = Cache.Get<string>("passkey-" + RequestId);
-            if (string.IsNullOrEmpty(Data))
-                return Json(new Fido2Error("Failed user validation."));
-
-            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
-            if (RequestData == null && RequestData.UserId != identityUser.Id)
+            AuthRequest? Data = Cache.Get<AuthRequest>("passkey-" + RequestId);
+            if (Data == null || Data.UserId != identityUser.Id)
                 return Json(new Fido2Error("Failed user validation."));
 
             Fido2User user = new Fido2User
@@ -109,13 +105,8 @@ public class PasskeyAuthController : AuthControllerContext
             if (identityUser == null)
                 throw new ArgumentException("User not found");
 
-            string Data = Cache.Get<string>("passkey-" + RequestId);
-            if (string.IsNullOrEmpty(Data))
-                return Json(new Fido2Error("Failed user validation."));
-
-            AuthRequest? RequestData = JsonSerializer.Deserialize<AuthRequest?>(Data);
-
-            if (RequestData == null && RequestData.UserId != identityUser.Id)
+            AuthRequest? Data = Cache.Get<AuthRequest>("passkey-" + RequestId);
+            if (Data == null || Data.UserId != identityUser.Id)
                 return Json(new Fido2Error("Failed user validation."));
 
             // 2. Get registered credential from database
@@ -143,7 +134,7 @@ public class PasskeyAuthController : AuthControllerContext
             if (res.Status == "ok")
             {
                 // 6. Store the updated counter
-                if (RequestData.LogRequest)
+                if (Data.LogRequest)
                 {
                     identityUser = await GetCurrentUserAsync();
                     FidoStoredCredential? passkeyUsed = await identityUser.Mfa.GetPasskeyByIdAsync(res.CredentialId);
@@ -160,8 +151,8 @@ public class PasskeyAuthController : AuthControllerContext
 
                 Logger.LogMessage("Passkey SUCCESS! - " + RequestId, LogSeverity.Debug);
 
-                RequestData.IsSuccess = true;
-                Cache.Set("passkey-" + RequestId, RequestData, new TimeSpan(0, 2, 0));
+                Data.IsSuccess = true;
+                Cache.Set("passkey-" + RequestId, Data, new TimeSpan(0, 5, 0));
             }
             return Json(res);
 
