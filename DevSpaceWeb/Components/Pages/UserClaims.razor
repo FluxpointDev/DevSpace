@@ -10,7 +10,7 @@
 @if (claims.Count() > 0)
 {
     <ul>
-        @foreach (var claim in claims)
+        @foreach (Claim claim in claims)
         {
             <li>@claim.Type: @claim.Value</li>
         }
@@ -26,9 +26,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider
-            .GetAuthenticationStateAsync();
-        var user = authState.User;
+        AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        ClaimsPrincipal user = authState.User;
 
         if (user.Identity is not null && user.Identity.IsAuthenticated)
         {

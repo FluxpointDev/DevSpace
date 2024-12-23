@@ -173,10 +173,10 @@
                     //     };
 
                     List<DockerStackInfo> stacks = new List<DockerStackInfo>();
-                    var list = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
+                    DockerResponse<ContainerItem[]> list = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
 
 
-                    foreach (var i in list.Data)
+                    foreach (ContainerItem i in list.Data)
                     {
                         if (!i.Labels.TryGetValue("com.docker.compose.project", out string label))
                             continue;
@@ -189,7 +189,7 @@
                                 IsRunning = true;
                                 break;
                         }
-                        var Stack = stacks.FirstOrDefault(x => x.Name == label);
+                        DockerStackInfo? Stack = stacks.FirstOrDefault(x => x.Name == label);
                         if (Stack != null)
                         {
                             Stack.Containers.Add(i.Name);
@@ -224,7 +224,7 @@
 
             if (stacksResponse != null)
             {
-                var query = stacksResponse.Data.AsQueryable();
+                IQueryable<DockerStackInfo> query = stacksResponse.Data.AsQueryable();
 
                 if (!string.IsNullOrEmpty(args.Filter))
                     query = query.Where(args.Filter);
@@ -240,8 +240,6 @@
 
     public async Task SetNameFilter(string text)
     {
-
-        Console.WriteLine("Set Filter: " + text);
         await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 

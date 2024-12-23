@@ -20,7 +20,7 @@
         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(!Member.HasTeamPermission(TeamPermission.ManageRoles))" />
         <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" Disabled="(!Member.HasTeamPermission(TeamPermission.ManageRoles))" />
         <br />
-        @foreach(var i in Team.CachedRoles.Values)
+        @foreach(TeamRoleData i in Team.CachedRoles.Values)
         {
             <p>@i.Name</p>
         }
@@ -43,7 +43,7 @@
             return;
         }
 
-        await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), (TeamRoleModel data) =>
+        await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), async (TeamRoleModel data) =>
         {
             if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
                 return "You do not have permission for Manage Roles.";
@@ -52,7 +52,7 @@
                 return "You can't name the role default";
 
 
-            foreach (var r in Team.CachedRoles.Values)
+            foreach (TeamRoleData r in Team.CachedRoles.Values)
             {
                 if (r.Name.Equals(data.Name, StringComparison.OrdinalIgnoreCase))
                     return "A role with this name already exists.";
@@ -66,15 +66,13 @@
                     Position = Team.CachedRoles.Values.OrderBy(x => x.Position).Last().Position + 1
                 };
 
-            var task = Task.Run<bool>(async () =>
-            {
-                try
+try
                 {
                     await _DB.Roles.CreateAsync(role);
                 }
                 catch
                 {
-                    return false;
+                    return "Failed to create role.";
                 }
                 _DB.Roles.Cache.TryAdd(role.Id, role);
                 Team.Roles.Add(role.Id);
@@ -92,15 +90,9 @@
                     FilterDefinition<TeamRoleData> roleFilter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
                     _DB.Roles.Collection.DeleteOne(roleFilter);
                     _DB.Roles.Cache.Remove(role.Id, out _);
-                    return false;
+                    return "Failed to create role";
                 }
                 Team.TriggerRoleChange(role, true);
-                return true;
-            });
-            task.Wait();
-            if (!task.Result)
-                return "Failed to create team role due to a database error.";
-
 
             return string.Empty;
         });
@@ -114,7 +106,7 @@
             return;
         }
 
-        var Dialog = await DialogService.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
+        await DialogService.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
         {
             { "Team", Team }
         });

@@ -141,7 +141,7 @@
 
             if (containers != null)
             {
-                var query = containers.Data.AsQueryable();
+                IQueryable<Plugin> query = containers.Data.AsQueryable();
 
                 if (!string.IsNullOrEmpty(args.Filter))
                     query = query.Where(args.Filter);
@@ -157,8 +157,6 @@
 
     public async Task SetNameFilter(string text)
     {
-
-        Console.WriteLine("Set Filter: " + text);
         await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 
@@ -220,22 +218,21 @@
             return;
         }
 
-        var Response = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, "mickyg/kafka-logdriver", null, ControlPluginType.InstallCheck));
+        DockerResponse<object> Response = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, "mickyg/kafka-logdriver", null, ControlPluginType.InstallCheck));
         if (Response.Error != DockerError.None)
         {
             await DialogService.ShowInfoAsync($"Plugin Install Failed", Response.Data as string);
             return;
         }
-        Console.WriteLine($"{Response.Data.GetType().Name}");
         if (Response.Data is JArray list)
         {
 
             List<string> Perms = new List<string>();
-            foreach (var i in list.ToObject<IList<PluginPrivilege>>())
+            foreach (PluginPrivilege i in list.ToObject<IList<PluginPrivilege>>())
             {
                 Perms.Add($"{i.Name}: {string.Join(",", i.Value)}");
             }
-            var Confirm = await DialogService.ShowConfirmAsync("Plugin Install Permissions", $"This plugin requires permissions.\n\n" + string.Join("\n\n", Perms), "Accept", ButtonStyle.Success);
+            bool Confirm = await DialogService.ShowConfirmAsync("Plugin Install Permissions", $"This plugin requires permissions.\n\n" + string.Join("\n\n", Perms), "Accept", ButtonStyle.Success);
             if (!Confirm)
                 return;
         }

@@ -150,12 +150,15 @@ public class PasskeyRegisterController : AuthControllerContext
                     AaGuid = success.Result.AaGuid
                 });
 
+                Data.IsSuccess = true;
+                Cache.Set("passkey-" + RequestId, Data, new TimeSpan(0, 5, 0));
+
                 user.Mfa.PasskeyLastRegisteredAt = DateTime.UtcNow;
                 user.Mfa.IsTwoFactorEnabled = true;
                 await _userManager.UpdateAsync(user);
 
-                Data.IsSuccess = true;
-                Cache.Set("passkey-" + RequestId, Data, new TimeSpan(0, 5, 0));
+                
+
             }
 
             return Json(success);

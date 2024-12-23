@@ -13,6 +13,7 @@
 @using Microsoft.AspNetCore.Identity
 @using MongoDB.Driver
 @using System.Text.Json
+@using System.Collections.Specialized
 @inject SignInManager<AuthUser> UserManager
 @inject NavigationManager NavigationManager
 @inject HttpContextAccessor HttpContext
@@ -294,7 +295,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var query = NavigationManager.ParseQuery();
+        NameValueCollection query = NavigationManager.ParseQuery();
         string Email = query["email"];
         string Username = query["username"];
         Token = query["token"];
@@ -352,7 +353,7 @@
             return;
         }
         FormDisabled = true;
-        var result = await UserManager.UserManager.CreateAsync(new AuthUser
+        IdentityResult result = await UserManager.UserManager.CreateAsync(new AuthUser
             {
                 UserName = RegisterForm.Username.ToLower(),
                 Email = RegisterForm.Email
@@ -395,13 +396,13 @@
 
         FormDisabled = true;
 
-        var User = await UserManager.UserManager.FindByEmailAsync(ChangePasswordForm.Email);
+        AuthUser User = await UserManager.UserManager.FindByEmailAsync(ChangePasswordForm.Email);
         if (User == null)
         {
             PasswordChangeSent = true;
             return;
         }
-        var Token = await UserManager.UserManager.GeneratePasswordResetTokenAsync(User);
+        string Token = await UserManager.UserManager.GeneratePasswordResetTokenAsync(User);
         await Email.SendPasswordChangeRequest(User, (NavigationManager.BaseUri + $"login?email={Uri.EscapeDataString(ChangePasswordForm.Email)}&token=" + Uri.EscapeDataString(Token)));
         PasswordChangeSent = true;
     }
@@ -415,13 +416,14 @@
         }
 
         FormDisabled = true;
-        SessionInfo SessionInfo = await JS.InvokeAsync<SessionInfo>("window.Auth.getSessionInfo");
+        UserSessionJson SessionInfo = await JS.InvokeAsync<UserSessionJson>("window.Auth.getSessionInfo");
+        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(SessionInfo, Newtonsoft.Json.Formatting.Indented));
         string RequestId = Guid.NewGuid().ToString();
         SessionInfo.Email = LoginForm.Email;
         Cache.Set("login-" + RequestId, SessionInfo, new TimeSpan(0, 5, 0));
 
         string Result = await JS.InvokeAsync<string>("window.Auth.accountLogin", LoginForm.Email, LoginForm.CurrentPassword, RememberMe, RequestId);
-        Console.WriteLine("Login Get: " + Result);
+
         if (Result == "ok")
         {
             NavigationManager.Refresh(true);
@@ -444,9 +446,10 @@
         }
 
         FormDisabled = true;
-
+        UserSessionJson SessionInfo = await JS.InvokeAsync<UserSessionJson>("window.Auth.getSessionInfo");
         string RequestId = Guid.NewGuid().ToString();
-        Cache.Set("changepass-" + RequestId, ChangePasswordForm.Email, new TimeSpan(0, 5, 0));
+        SessionInfo.Email = ChangePasswordForm.Email;
+        Cache.Set("changepass-" + RequestId, SessionInfo, new TimeSpan(0, 5, 0));
         bool Result = await JS.InvokeAsync<bool>("window.Auth.accountChangePassword", ChangePasswordForm.Email, ChangePasswordForm.NewPassword, Token, RequestId);
         if (Result)
         {

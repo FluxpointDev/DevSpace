@@ -72,7 +72,6 @@
 
     public void RoleChanged(object sender, Tuple<TeamRoleData?, bool> role)
     {
-        Console.WriteLine($"Role Change Event Triggered: {role.Item1?.Id.ToString()} - {role.Item2}");
         if (role.Item1 == null)
             RolesList = Team.CachedRoles.Values.OrderBy(x => x.Position).ToList();
         else if (role.Item2)
@@ -148,7 +147,7 @@
 
         List<WriteModel<TeamRoleData>> list = new List<WriteModel<TeamRoleData>>();
         bool Stop = false;
-        foreach (var r in RolesList)
+        foreach (TeamRoleData r in RolesList)
         {
             int Index = RolesList.IndexOf(r);
             if (r.Position != Index && Team.OwnerId != Member.UserId && CurrentRank >= Index)
@@ -164,11 +163,11 @@
         if (Stop)
             return;
 
-        var result = await _DB.Roles.Collection.BulkWriteAsync(list);
+        BulkWriteResult<TeamRoleData> result = await _DB.Roles.Collection.BulkWriteAsync(list);
 
         if (result.IsAcknowledged)
         {
-            foreach (var r in RolesList)
+            foreach (TeamRoleData r in RolesList)
             {
                 r.Position = RolesList.IndexOf(r);
             }

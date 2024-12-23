@@ -440,9 +440,9 @@ else
             bool UpdateNav = false;
 
             TeamData? GotTeam = null;
-            if (!ObjectId.TryParse(team_id, out var TeamId) || !_DB.Teams.Cache.TryGetValue(TeamId, out GotTeam))
+            if (!ObjectId.TryParse(team_id, out ObjectId TeamId) || !_DB.Teams.Cache.TryGetValue(TeamId, out GotTeam))
             {
-                if (_DB.TeamsVanityCache.TryGetValue(team_id, out var tmid))
+                if (_DB.TeamsVanityCache.TryGetValue(team_id, out TeamData tmid))
                     GotTeam = tmid;
             }
 
@@ -465,9 +465,9 @@ else
                             if (!string.IsNullOrEmpty(service_id))
                             {
                                 ServerData? GotServer = null;
-                                if (!ObjectId.TryParse(service_id, out var ServiceId) || !_DB.Servers.Cache.TryGetValue(ServiceId, out GotServer))
+                                if (!ObjectId.TryParse(service_id, out ObjectId ServiceId) || !_DB.Servers.Cache.TryGetValue(ServiceId, out GotServer))
                                 {
-                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out var vanity) && vanity.ServerVanityUrls.TryGetValue(service_id, out var serverId))
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out VanityUrlData vanity) && vanity.ServerVanityUrls.TryGetValue(service_id, out ObjectId serverId))
                                     {
                                         _DB.Servers.Cache.TryGetValue(serverId, out GotServer);
                                     }
@@ -486,9 +486,9 @@ else
                             if (!string.IsNullOrEmpty(service_id))
                             {
                                 ProjectData? GotProject = null;
-                                if (!ObjectId.TryParse(service_id, out var ProjectId) || !_DB.Projects.Cache.TryGetValue(ProjectId, out GotProject))
+                                if (!ObjectId.TryParse(service_id, out ObjectId ProjectId) || !_DB.Projects.Cache.TryGetValue(ProjectId, out GotProject))
                                 {
-                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out var vanity) && vanity.ProjectVanityUrls.TryGetValue(service_id, out var projectId))
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out VanityUrlData vanity) && vanity.ProjectVanityUrls.TryGetValue(service_id, out ObjectId projectId))
                                     {
                                         _DB.Projects.Cache.TryGetValue(projectId, out GotProject);
                                     }
@@ -508,9 +508,9 @@ else
                             if (!string.IsNullOrEmpty(service_id))
                             {
                                 LogData? GotLog = null;
-                                if (!ObjectId.TryParse(service_id, out var LogId) || !_DB.Logs.Cache.TryGetValue(LogId, out GotLog))
+                                if (!ObjectId.TryParse(service_id, out ObjectId LogId) || !_DB.Logs.Cache.TryGetValue(LogId, out GotLog))
                                 {
-                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out var vanity) && vanity.LogsVanityUrls.TryGetValue(service_id, out var logId))
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out VanityUrlData vanity) && vanity.LogsVanityUrls.TryGetValue(service_id, out ObjectId logId))
                                     {
                                         _DB.Logs.Cache.TryGetValue(logId, out GotLog);
                                     }
@@ -529,9 +529,9 @@ else
                             if (!string.IsNullOrEmpty(service_id))
                             {
                                 WebsiteData? GotWebsite = null;
-                                if (!ObjectId.TryParse(service_id, out var WebsiteId) || !_DB.Websites.Cache.TryGetValue(WebsiteId, out GotWebsite))
+                                if (!ObjectId.TryParse(service_id, out ObjectId WebsiteId) || !_DB.Websites.Cache.TryGetValue(WebsiteId, out GotWebsite))
                                 {
-                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out var vanity) && vanity.WebsiteVanityUrls.TryGetValue(service_id, out var websiteId))
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out VanityUrlData vanity) && vanity.WebsiteVanityUrls.TryGetValue(service_id, out ObjectId websiteId))
                                     {
                                         _DB.Websites.Cache.TryGetValue(websiteId, out GotWebsite);
                                     }

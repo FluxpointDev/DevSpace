@@ -584,7 +584,7 @@
             IsDatabaseSetupRunning = true;
             if (!File.Exists("/etc/mongod.conf"))
             {
-                var InstallDB = await DatabaseSetupFunction.Run();
+                DatabaseSetupErrorType InstallDB = await DatabaseSetupFunction.Run();
                 if (InstallDB != DatabaseSetupErrorType.Success)
                 {
                     DatabaseErrorMessage = "Database install error, " + InstallDB.ToString();
@@ -619,9 +619,9 @@
 
                 try
                 {
-                    var cmd2 = Cli.Wrap("mongosh").WithArguments(CreateRoot2);
+                    Command cmd2 = Cli.Wrap("mongosh").WithArguments(CreateRoot2);
 
-                    var res2 = await cmd2.ExecuteBufferedAsync();
+                    BufferedCommandResult res2 = await cmd2.ExecuteBufferedAsync();
                     if (!res2.IsSuccess)
                     {
                         DatabaseErrorMessage = "Setup root error, " + res2.StandardError;
@@ -650,12 +650,12 @@
             {
                 string DevSpacePass = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
 
-                var CreateUser = $"-u 'root' -p '{RootPass}' " + "--eval \"db.getSiblingDB('admin').createUser({ user: '" + _Data.Config.Database.Username + "', pwd: '" + DevSpacePass + "', roles: [ { role: 'dbAdmin', db: '" + _Data.Config.Database.Name + "' }, { role: 'readWrite', db: '" + _Data.Config.Database.Name + "' } ] });\"";
-                var UserCmd = Cli.Wrap("mongosh").WithArguments(CreateUser);
+                string CreateUser = $"-u 'root' -p '{RootPass}' " + "--eval \"db.getSiblingDB('admin').createUser({ user: '" + _Data.Config.Database.Username + "', pwd: '" + DevSpacePass + "', roles: [ { role: 'dbAdmin', db: '" + _Data.Config.Database.Name + "' }, { role: 'readWrite', db: '" + _Data.Config.Database.Name + "' } ] });\"";
+                Command UserCmd = Cli.Wrap("mongosh").WithArguments(CreateUser);
 
                 try
                 {
-                    var UserRes = await UserCmd.ExecuteBufferedAsync();
+                    BufferedCommandResult UserRes = await UserCmd.ExecuteBufferedAsync();
                     if (!UserRes.IsSuccess)
                     {
                         DatabaseErrorMessage = "Setup user error, " + UserRes.StandardError;
@@ -679,9 +679,9 @@
             MongodConfig = MongodConfig.Replace("#security:", "security:\n  authorization: enabled\n  javascriptEnabled: false");
             File.WriteAllText("/etc/mongod.conf", MongodConfig);
 
-            var cmd = Cli.Wrap("sudo").WithArguments("systemctl restart mongod");
+            Command cmd = Cli.Wrap("sudo").WithArguments("systemctl restart mongod");
 
-            var res = await cmd.ExecuteBufferedAsync();
+            BufferedCommandResult res = await cmd.ExecuteBufferedAsync();
             if (!res.IsSuccess)
             {
                 DatabaseErrorMessage = "Setup config error, " + res.StandardError;
@@ -692,11 +692,11 @@
 
             string Connect = $"mongodb://{_Data.Config.Database.Username}:{_Data.Config.Database.Password}@{_Data.Config.Database.IP}:{_Data.Config.Database.Port}";
 
-            var client = new MongoClient(Connect);
+            MongoClient client = new MongoClient(Connect);
 
             try
             {
-                var result = client.GetDatabase(_Data.Config.Database.Name).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+                BsonDocument result = client.GetDatabase(_Data.Config.Database.Name).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
                 Logger.LogMessage("Pinged your deployment. You successfully connected to MongoDB!", LogSeverity.Info);
             }
             catch (Exception ex)
@@ -707,7 +707,7 @@
                 return;
             }
 
-            var db = client.GetDatabase(_Data.Config.Database.Name);
+            IMongoDatabase db = client.GetDatabase(_Data.Config.Database.Name);
 
             try
             {
@@ -739,11 +739,11 @@
         else
         {
             string Connect = $"mongodb://{DatabaseForm.Username}:{DatabaseForm.Password}@{DatabaseForm.IP}:{DatabaseForm.Port}";
-            var client = new MongoClient(Connect);
+            MongoClient client = new MongoClient(Connect);
 
             try
             {
-                var result = client.GetDatabase(DatabaseForm.Name).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+                BsonDocument result = client.GetDatabase(DatabaseForm.Name).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
                 Logger.LogMessage("Pinged your deployment. You successfully connected to MongoDB!", LogSeverity.Info);
             }
             catch (Exception ex)
@@ -753,7 +753,7 @@
                 return;
             }
 
-            var db = client.GetDatabase(DatabaseForm.Name);
+            IMongoDatabase db = client.GetDatabase(DatabaseForm.Name);
 
             try
             {
@@ -779,7 +779,6 @@
                     Password = DatabaseForm.Password,
                     Username = DatabaseForm.Username,
                 };
-            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(_Data.Config.Database));
             _DB.Client = client;
             _DB.Run = null!;
             _DB.Init();
@@ -834,10 +833,10 @@
                 return;
             }
 
-            var Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/test");
+            HttpRequestMessage Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/test");
             Message.Headers.Add("Authorization", ManagedEmailToken);
 
-            var Res = await Program.Http.SendAsync(Message);
+            HttpResponseMessage Res = await Program.Http.SendAsync(Message);
             if (!Res.IsSuccessStatusCode)
             {
                 SmtpErrorMessage = "Failed to connect with status " + Res.StatusCode;
@@ -856,7 +855,7 @@
                 return;
             }
 
-            using (var Client = new SmtpClient())
+            using (SmtpClient Client = new SmtpClient())
             {
                 try
                 {
@@ -943,9 +942,8 @@
 
         if (!string.IsNullOrEmpty(TeamForm.VanityUrl))
         {
-            var Vanity = new VanityUrlData
+            VanityUrlData Vanity = new VanityUrlData
             {
-
             };
             await _DB.TeamVanityUrls.CreateAsync(Vanity);
         }
@@ -959,7 +957,7 @@
     public async Task CheckAdmin()
     {
         SetupStep = SetupStepType.Disabled;
-        var User = new AuthUser
+        AuthUser User = new AuthUser
             {
                 UserName = AdminAccount.Username,
                 Email = AdminAccount.Email,
@@ -972,7 +970,7 @@
             SentEmailAddress = AdminAccount.Email;
             SentEmailCode = Email.RandomCodeGenerator();
             Console.WriteLine(SentEmailCode);
-            var EmailSuccess = await Email.SendAccessCode(User, "Admin setup confirmation", SentEmailCode);
+            bool EmailSuccess = await Email.SendAccessCode(User, "Admin setup confirmation", SentEmailCode);
             if (!EmailSuccess)
             {
                 SmtpErrorMessage = "Failed to send admin email, please update your smtp settings.";
@@ -992,7 +990,7 @@
             return;
         }
 
-        var result = await UserManager.CreateAsync(User, AdminAccount.Password);
+        IdentityResult result = await UserManager.CreateAsync(User, AdminAccount.Password);
 
         if (result.Errors.Any())
         {

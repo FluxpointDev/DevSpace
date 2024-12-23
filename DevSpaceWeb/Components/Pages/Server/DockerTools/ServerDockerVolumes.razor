@@ -131,10 +131,10 @@
                 }
                 try
                 {
-                    var list = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
-                    foreach (var i in list.Data)
+                    DockerResponse<ContainerItem[]> list = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
+                    foreach (ContainerItem i in list.Data)
                     {
-                        foreach(var n in containers.Data.Volumes)
+                        foreach(VolumeItem n in containers.Data.Volumes)
                         {
                             if (i.Mounts.Any(x => x.Name == n.Name))
                                 n.ContainersList.Add(i.Name);
@@ -149,7 +149,7 @@
 
             if (containers != null)
             {
-                var query = containers.Data.Volumes.AsQueryable();
+                IQueryable<VolumeItem> query = containers.Data.Volumes.AsQueryable();
 
                 if (!string.IsNullOrEmpty(args.Filter))
                     query = query.Where(args.Filter);
@@ -165,8 +165,6 @@
 
     public async Task SetNameFilter(string text)
     {
-
-        Console.WriteLine("Set Filter: " + text);
         await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 

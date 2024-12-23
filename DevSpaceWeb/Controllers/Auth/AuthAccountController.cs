@@ -94,15 +94,15 @@ public class AuthAccountController : AuthControllerContext
             return BadRequest("Preview mode is enabled.");
 
         if (string.IsNullOrEmpty(requestId))
-            return BadRequest("Request id is invalid");
+            return BadRequest("Request is invalid");
 
         if (string.IsNullOrEmpty(email))
             return BadRequest("Email is invalid");
 
-        string? Data = Cache.Get<string>("changepass-" + requestId);
+        UserSessionJson? Data = Cache.Get<UserSessionJson>("changepass-" + requestId);
 
-        if (string.IsNullOrEmpty(Data) || Data != email)
-            return BadRequest("Request id is invalid");
+        if (Data == null || Data.Email != email)
+            return BadRequest("Request is invalid");
 
         if (string.IsNullOrEmpty(password))
             return BadRequest("Password is invalid");
@@ -130,17 +130,16 @@ public class AuthAccountController : AuthControllerContext
         User.Account.PasswordChangedAt = DateTime.UtcNow;
         string Ip = Utils.GetUserIpAddress(Request.HttpContext);
         string SessionId = Request.Cookies["DevSpace.SessionId"];
-        if (User.Account.Sessions.TryGetValue(SessionId, out var session))
+        if (User.Account.Sessions.TryGetValue(SessionId, out UserSession? session))
+        {
+            session.LastLoginAt = DateTime.UtcNow;
             session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
+        }
         else
         {
-            User.Account.Sessions.TryAdd(SessionId, new UserSession
-            {
-                AuthorizedIps = new HashSet<string>
-                    {
-                        Utils.GetStringSha256Hash(Ip)
-                    }
-            });
+            UserSession Session = UserSession.Create(Data);
+            Session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
+            User.Account.Sessions.TryAdd(SessionId, Session);
         }
 
         await _userManager.UpdateAsync(User);

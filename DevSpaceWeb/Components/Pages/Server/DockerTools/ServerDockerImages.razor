@@ -163,13 +163,13 @@
                 }
                 try
                 {
-                    var list = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
-                    foreach(var i in containers.Data)
+                    DockerResponse<ContainerItem[]> list = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
+                    foreach(ImageItem i in containers.Data)
                     {
                         i.Containers = list.Data.Count(x => x.ImageID == i.ID);
                         if (i.Containers != 0)
                         {
-                            foreach(var c in list.Data.Where(x => x.ImageID == i.ID))
+                            foreach(ContainerItem c in list.Data.Where(x => x.ImageID == i.ID))
                             {
                                 i.ContainersList.Add(c.Name);
                             }
@@ -184,7 +184,7 @@
 
             if (containers != null)
             {
-                var query = containers.Data.AsQueryable();
+                IQueryable<ImageItem> query = containers.Data.AsQueryable();
 
                 if (!string.IsNullOrEmpty(args.Filter))
                     query = query.Where(args.Filter);
@@ -200,8 +200,6 @@
 
     public async Task SetNameFilter(string text)
     {
-
-        Console.WriteLine("Set Filter: " + text);
         await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 

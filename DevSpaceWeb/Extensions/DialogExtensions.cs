@@ -23,7 +23,7 @@ public static class DialogExtensions
         return (bool)Dialog;
     }
 
-    public static async Task<bool> ShowDynamicFormAsync<Model>(this DialogService service, string title, Model model, Func<Model, string?> function)
+    public static async Task<bool> ShowDynamicFormAsync<Model>(this DialogService service, string title, Model model, Func<Model, Task<string?>> function)
     {
         DialogOptions options = new DialogOptions() { AutoFocusFirstElement = true };
 

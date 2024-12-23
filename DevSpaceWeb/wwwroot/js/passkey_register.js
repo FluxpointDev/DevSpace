@@ -71,14 +71,14 @@
 
 
         try {
-            window.Passkey.registerNewCredential(name, newCredential, requestId);
+            await window.Passkey.registerNewCredential(name, newCredential, requestId);
 
         } catch (e) {
             console.log(e.message ? e.message : e);
 
             return false;
         }
-
+        console.log('Success Request');
         return true;
     }
 });

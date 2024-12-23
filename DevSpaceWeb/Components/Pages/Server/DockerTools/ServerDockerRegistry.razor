@@ -134,7 +134,7 @@
         else
         {
 
-            var query = new DockerRegistry[]
+            IQueryable<DockerRegistry> query = new DockerRegistry[]
             {
                 new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }
             }.AsQueryable();
@@ -153,8 +153,6 @@
 
     public async Task SetNameFilter(string text)
     {
-
-        Console.WriteLine("Set Filter: " + text);
         await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 
@@ -212,7 +210,7 @@
             return;
         }
 
-        var query = new DockerRegistry[]
+        IQueryable<DockerRegistry> query = new DockerRegistry[]
             {
                 new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true, Id = "docker_anonymous" }
             }.AsQueryable();

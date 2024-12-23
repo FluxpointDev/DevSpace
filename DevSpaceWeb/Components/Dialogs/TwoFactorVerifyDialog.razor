@@ -17,50 +17,52 @@
         <br />
         @if (AuthType == 0)
         {
-            @if (User.Mfa.IsTwoFactorEnabled)
+            if (User != null)
             {
-                <div class="twofactor-item twofactor-item-disabled">
-                    <span class="iconify" data-icon="mdi:cloud-key"></span>
-                    <h4>Email Code</h4>
-                    <p>Disabled with more secure options</p>
-                </div>
-                <div class="twofactor-item @(User.Mfa.AuthenticatorDevices.Any(x => x.Value == true) ? "" : "twofactor-item-disabled")" @onclick="(() => AuthType = 2)">
-                    <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
-                    <h4>Authenticator</h4>
-                </div>
+                if (User.Mfa.IsTwoFactorEnabled)
+                {
+                    <div class="twofactor-item twofactor-item-disabled">
+                        <span class="iconify" data-icon="mdi:cloud-key"></span>
+                        <h4>Email Code</h4>
+                        <p>Disabled with more secure options</p>
+                    </div>
+                    <div class="twofactor-item @(User.Mfa.AuthenticatorDevices.Any(x => x.Value == true) ? "" : "twofactor-item-disabled")" @onclick="(() => AuthType = 2)">
+                        <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
+                        <h4>Authenticator</h4>
+                    </div>
 
-                <div class="twofactor-item @(User.Mfa.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="VerifyPasskey">
-                    <span class="iconify" data-icon="mdi:key-chain"></span>
-                    <h4>Passkey, Webauth or Yubikey</h4>
-                </div>
+                    <div class="twofactor-item @(User.Mfa.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="VerifyPasskey">
+                        <span class="iconify" data-icon="mdi:key-chain"></span>
+                        <h4>Passkey, Webauth or Yubikey</h4>
+                    </div>
 
-                <div class="twofactor-item @(!string.IsNullOrEmpty(User.Mfa.RecoveryCode) ? "" : "twofactor-item-disabled")" @onclick="@(() => AuthType = 3)">
-                    <span class="iconify" data-icon="mdi:file-key"></span>
-                    <h4>Recovery Code</h4>
-                </div>
-
-            }
-            else
-            {
-                <div class="twofactor-item" @onclick="(() => { ShowEmail(); })">
-                    <span class="iconify" data-icon="mdi:cloud-key"></span>
-                    <h4>Email Code</h4>
-                </div>
-                <div class="twofactor-item twofactor-item-disabled">
-                    <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
-                    <h4>Authenticator</h4>
-                    <p>Disabled: Not setup</p>
-                </div>
-                <div class="twofactor-item twofactor-item-disabled">
-                    <span class="iconify" data-icon="mdi:key-chain"></span>
-                    <h4>Passkey, Webauth or Yubikey</h4>
-                    <p>Disabled: Not setup</p>
-                </div>
-                <div class="twofactor-item twofactor-item-disabled">
-                    <span class="iconify" data-icon="mdi:file-key"></span>
-                    <h4>Recovery Code</h4>
-                    <p>Disabled: Not setup</p>
-                </div>
+                    <div class="twofactor-item @(!string.IsNullOrEmpty(User.Mfa.RecoveryCode) ? "" : "twofactor-item-disabled")" @onclick="@(() => AuthType = 3)">
+                        <span class="iconify" data-icon="mdi:file-key"></span>
+                        <h4>Recovery Code</h4>
+                    </div>
+                }
+                else
+                {
+                    <div class="twofactor-item" @onclick="(() => { ShowEmail(); })">
+                        <span class="iconify" data-icon="mdi:cloud-key"></span>
+                        <h4>Email Code</h4>
+                    </div>
+                    <div class="twofactor-item twofactor-item-disabled">
+                        <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
+                        <h4>Authenticator</h4>
+                        <p>Disabled: Not setup</p>
+                    </div>
+                    <div class="twofactor-item twofactor-item-disabled">
+                        <span class="iconify" data-icon="mdi:key-chain"></span>
+                        <h4>Passkey, Webauth or Yubikey</h4>
+                        <p>Disabled: Not setup</p>
+                    </div>
+                    <div class="twofactor-item twofactor-item-disabled">
+                        <span class="iconify" data-icon="mdi:file-key"></span>
+                        <h4>Recovery Code</h4>
+                        <p>Disabled: Not setup</p>
+                    </div>
+                }
             }
         }
         else if (AuthType == 1)
@@ -107,10 +109,15 @@
 
     [Parameter] public bool LogUsage { get; set; }
 
-    [Parameter] public AuthUser User { get; set; }
+    public AuthUser User { get; set; }
 
     public string CodeInput { get; set; }
     public int AuthType = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        User = await Session.GetCurrentUserAsync();
+    }
 
     public async Task ShowEmail()
     {
@@ -119,24 +126,25 @@
             await dialogService.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
             return;
         }
-        var AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
+
+        User = await Session.GetCurrentUserAsync();
+        if (User == null)
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
             return;
         }
 
-        string? VerifyCache = Cache.Get<string>("2fa-verify-" + AuthUser.Id.ToString());
+        string? VerifyCache = Cache.Get<string>("2fa-verify-" + User.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache))
         {
             string Code = Email.RandomCodeGenerator();
-            Cache.Set("2fa-verify-" + AuthUser.Id.ToString(), Code, new TimeSpan(0, 2, 0));
-            await Email.SendAccessCode(AuthUser, "2FA Verification", Code);
+            Cache.Set("2fa-verify-" + User.Id.ToString(), Code, new TimeSpan(0, 2, 0));
+            await Email.SendAccessCode(User, "2FA Verification", Code);
             if (LogUsage)
             {
-                AuthUser = await Session.GetCurrentUserAsync();
-                AuthUser.Mfa.EmailCodeLastSentAt = DateTime.UtcNow;
-                await UserManager.UpdateAsync(AuthUser);
+                User = await Session.GetCurrentUserAsync();
+                User.Mfa.EmailCodeLastSentAt = DateTime.UtcNow;
+                await UserManager.UpdateAsync(User);
             }
         }
         AuthType = 1;
@@ -150,28 +158,28 @@
             return;
         }
 
-        var AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
+        User = await Session.GetCurrentUserAsync();
+        if (User == null)
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
             return;
         }
 
-        string? VerifyCache = Cache.Get<string>("2fa-verify-" + AuthUser.Id.ToString());
+        string? VerifyCache = Cache.Get<string>("2fa-verify-" + User.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache) || !VerifyCache.Equals(CodeInput))
             await dialogService.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
         else
         {
             if (LogUsage)
             {
-                AuthUser = await Session.GetCurrentUserAsync();
-                if (AuthUser == null)
+                User = await Session.GetCurrentUserAsync();
+                if (User == null)
                 {
                     Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
                     return;
                 }
-                AuthUser.Mfa.EmailCodeLastUsedAt = DateTime.UtcNow;
-                await UserManager.UpdateAsync(AuthUser);
+                User.Mfa.EmailCodeLastUsedAt = DateTime.UtcNow;
+                await UserManager.UpdateAsync(User);
             }
             dialogService.Close(true);
         }
@@ -181,7 +189,7 @@
 
     public async Task VerifyAuthenticator()
     {
-if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
             return;
@@ -194,19 +202,19 @@ if (Program.IsPreviewMode)
 
         
 
-        var AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
+        User = await Session.GetCurrentUserAsync();
+        if (User == null)
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
             return;
         }
-        var Test = await Authenticator.ValidateAsync("", CodeInput, UserManager, AuthUser);
+        bool Test = await Authenticator.ValidateAsync("", CodeInput, UserManager, User);
         if (Test)
         {
             if (LogUsage)
             {
-                AuthUser.Mfa.AuthenticatorLastUsedAt = DateTime.UtcNow;
-                await UserManager.UpdateAsync(AuthUser);
+                User.Mfa.AuthenticatorLastUsedAt = DateTime.UtcNow;
+                await UserManager.UpdateAsync(User);
             }
             dialogService.Close(true);
         }
@@ -216,19 +224,19 @@ if (Program.IsPreviewMode)
 
     public async Task VerifyPasskey()
     {
-if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
             return;
         }
 
-        var AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
+        User = await Session.GetCurrentUserAsync();
+        if (User == null)
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
             return;
         }
-        if (!AuthUser.Mfa.Passkeys.Any())
+        if (!User.Mfa.Passkeys.Any())
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.PasskeysNoDevices);
             return;
@@ -236,7 +244,7 @@ if (Program.IsPreviewMode)
 
         
 
-        var DetectPasskeyAllow = false;
+        bool DetectPasskeyAllow = false;
         try
         {
             DetectPasskeyAllow = await JS.InvokeAsync<bool>("window.Passkey.isPasskeySupported");
@@ -248,7 +256,7 @@ if (Program.IsPreviewMode)
             return;
         }
 
-        var Result = await Session.TestPasskey(LogUsage);
+        bool Result = await Session.TestPasskey(LogUsage);
         if (Result)
             dialogService.Close(true);
         else
@@ -262,25 +270,25 @@ if (Program.IsPreviewMode)
             Session.ShowPreviewModeNotice();
             return;
         }
-        var AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
+        User = await Session.GetCurrentUserAsync();
+        if (User == null)
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
             return;
         }
-        if (string.IsNullOrEmpty(AuthUser.Mfa.RecoveryCode))
+        if (string.IsNullOrEmpty(User.Mfa.RecoveryCode))
             return;
 
         
 
-        var Hasher = new PasswordHasher<AuthUser>();
-        var Result = Hasher.VerifyHashedPassword(AuthUser, AuthUser.Mfa.RecoveryCode, CodeInput);
+        PasswordHasher<AuthUser> Hasher = new PasswordHasher<AuthUser>();
+        PasswordVerificationResult Result = Hasher.VerifyHashedPassword(User, User.Mfa.RecoveryCode, CodeInput);
         if (Result.HasFlag(PasswordVerificationResult.Success))
         {
             if (LogUsage)
             {
-                AuthUser.Mfa.RecoveryCodeLastUsedAt = DateTime.UtcNow;
-                await UserManager.UpdateAsync(AuthUser);
+                User.Mfa.RecoveryCodeLastUsedAt = DateTime.UtcNow;
+                await UserManager.UpdateAsync(User);
             }
 
             dialogService.Close(true);

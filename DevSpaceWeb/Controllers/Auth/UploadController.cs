@@ -180,10 +180,9 @@ public class UploadController : Controller
             {
                 int Height = bitmap.Height;
                 int Width = bitmap.Width;
-                Console.WriteLine($"{Height} - {Width}");
                 if (Width > 1024)
                 {
-                    var ratio = (double)1024 / Height;
+                    double ratio = (double)1024 / Height;
                     Width = (int)(Width * ratio);
                     Height = (int)(Height * ratio);
                 }

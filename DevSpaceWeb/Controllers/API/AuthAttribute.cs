@@ -22,16 +22,18 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
         APIController controller = filterContext.Controller as APIController;
         if (!filterContext.HttpContext.Request.Headers.ContainsKey("Authorization"))
         {
-            filterContext.Result = controller.CustomStatus(401, "Authorization header is missing. ( G-1 )");
+            filterContext.Result = controller.CustomStatus(401, "Authorization header is missing.");
             return;
         }
 
         string AuthKey = filterContext.HttpContext.Request.Headers["Authorization"];
         if (string.IsNullOrEmpty(AuthKey))
         {
-            filterContext.Result = controller.CustomStatus(401, "Authorization header is empty. ( G-1 )");
+            filterContext.Result = controller.CustomStatus(401, "Authorization header is empty.");
             return;
         }
+        filterContext.Result = controller.CustomStatus(401, "You are not allowed to use the API.");
+        return;
         //if (!_DB.Keys.TryGetValue(AuthKey, out ApiUser User))
         //{
         //    filterContext.Result = controller.CustomStatus(401, "Your token is invalid, for support go to " + Config.Discord + " ( G-2 )");
@@ -44,11 +46,6 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
         //    return;
         //}
 
-        if (AuthKey.StartsWith("FP-Public"))
-        {
-            filterContext.Result = controller.CustomStatus(403, "You are not allowed to use this API with the public token");
-            return;
-        }
 
         //controller.User = User;
     }

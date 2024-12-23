@@ -151,8 +151,6 @@
 
     public async Task SetNameFilter(string text)
     {
-
-        Console.WriteLine("Set Filter: " + text);
         await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 
@@ -208,7 +206,7 @@
 
             if (containersResponse != null)
             {
-                var query = containersResponse.Data.AsQueryable();
+                IQueryable<ContainerItem> query = containersResponse.Data.AsQueryable();
 
                 if (!string.IsNullOrEmpty(args.Filter))
                     query = query.Where(args.Filter);

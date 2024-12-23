@@ -79,12 +79,11 @@ Object.defineProperty(Auth, 'getSessionInfo', {
     configurable: false,
     writable: false,
     value: function () {
-        console.log('Getting session');
-        
-
+        console.log(window.Auth.getBrowser());
         return {
             IsMobile: navigator.userAgent.match(/Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i) !== null,
-            Country: window.Auth.getCountry()
+            Country: window.Auth.getCountry(),
+            BrowserType: window.Auth.getBrowser()
         };
     }
 });

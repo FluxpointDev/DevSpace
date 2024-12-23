@@ -1,6 +1,7 @@
 ﻿@page "/user/change_email"
 @using DevSpaceWeb.Models.Account
 @using Microsoft.AspNetCore.Components.Forms
+@using System.Collections.Specialized
 @inject UserManager<AuthUser> UserManager
 @inject NavigationManager NavigationManager
 @inject IdentityOptions IdentityOptions
@@ -75,7 +76,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var query = NavigationManager.ParseQuery();
+        NameValueCollection query = NavigationManager.ParseQuery();
         Token = query["token"];
         string Email = query["email"];
 
@@ -126,7 +127,7 @@
             return;
         }
 
-        var TokenValidate = await UserManager.VerifyUserTokenAsync(user, IdentityOptions.Tokens.ChangeEmailTokenProvider, UserManager<AuthUser>.GetChangeEmailTokenPurpose(ChangeEmailForm.Email), Token);
+        bool TokenValidate = await UserManager.VerifyUserTokenAsync(user, IdentityOptions.Tokens.ChangeEmailTokenProvider, UserManager<AuthUser>.GetChangeEmailTokenPurpose(ChangeEmailForm.Email), Token);
         if (!TokenValidate)
         {
             IsLoading = false;
@@ -151,8 +152,8 @@
 
         if (string.IsNullOrEmpty(CodeGenerated))
         {
-            var Code = Email.RandomCodeGenerator();
-            var EmailSent = await Email.SendEmailChangeCode(user, ChangeEmailForm.Email, Code);
+            string Code = Email.RandomCodeGenerator();
+            bool EmailSent = await Email.SendEmailChangeCode(user, ChangeEmailForm.Email, Code);
             IsLoading = false;
             if (!EmailSent)
             {
@@ -177,7 +178,7 @@
             return;
         }
 
-        var ChangeValidate = await UserManager.ChangeEmailAsync(user, ChangeEmailForm.Email, Token);
+        IdentityResult ChangeValidate = await UserManager.ChangeEmailAsync(user, ChangeEmailForm.Email, Token);
         if (!ChangeValidate.Succeeded)
         {
             IsLoading = false;

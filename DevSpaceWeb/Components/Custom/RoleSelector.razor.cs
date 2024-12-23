@@ -176,7 +176,7 @@ namespace Radzen.Blazor
         /// </summary>
         protected string GetStyle()
         {
-            if (Attributes != null && Attributes.TryGetValue("style", out var style) && !string.IsNullOrEmpty(Convert.ToString(@style)))
+            if (Attributes != null && Attributes.TryGetValue("style", out object? style) && !string.IsNullOrEmpty(Convert.ToString(@style)))
             {
                 return $"{Style} {@style}";
             }
@@ -235,13 +235,13 @@ namespace Radzen.Blazor
         /// <returns>A Task representing the asynchronous operation.</returns>
         public override async Task SetParametersAsync(ParameterView parameters)
         {
-            var sourceChanged = parameters.DidParameterChange(nameof(Source), Source);
+            bool sourceChanged = parameters.DidParameterChange(nameof(Source), Source);
             if (sourceChanged)
             {
                 source = parameters.GetValueOrDefault<IEnumerable<TItem>>(nameof(Source));
             }
 
-            var targetChanged = parameters.DidParameterChange(nameof(Target), Target);
+            bool targetChanged = parameters.DidParameterChange(nameof(Target), Target);
             if (targetChanged)
             {
                 target = parameters.GetValueOrDefault<IEnumerable<TItem>>(nameof(Target));

@@ -89,25 +89,25 @@
                             @switch (context.TargetType)
                             {
                                 case AuditLogTargetType.Server:
-                                    if (_DB.Servers.Cache.TryGetValue(context.TargetId.Value, out var server))
+                                    if (_DB.Servers.Cache.TryGetValue(context.TargetId.Value, out ServerData server))
                                         @(server.Name)
                                     else
                                         @(context.TargetName)
                                     break;
                                 case AuditLogTargetType.Log:
-                                    if (_DB.Logs.Cache.TryGetValue(context.TargetId.Value, out var log))
+                                    if (_DB.Logs.Cache.TryGetValue(context.TargetId.Value, out LogData log))
                                         @(log.Name)
                                     else
                                         @(context.TargetName)
                                     break;
                                 case AuditLogTargetType.Project:
-                                    if (_DB.Projects.Cache.TryGetValue(context.TargetId.Value, out var project))
+                                    if (_DB.Projects.Cache.TryGetValue(context.TargetId.Value, out ProjectData project))
                                         @(project.Name)
                                     else
                                         @(context.TargetName)
                                     break;
                                 case AuditLogTargetType.Role:
-                                    if (_DB.Roles.Cache.TryGetValue(context.TargetId.Value, out var role))
+                                    if (_DB.Roles.Cache.TryGetValue(context.TargetId.Value, out TeamRoleData role))
                                         @(role.Name + " Role")
                                     else
                                         @(context.TargetName + " Role")
@@ -116,7 +116,7 @@
                                     @context.TargetName
                                     break;
                                 case AuditLogTargetType.Website:
-                                    if (_DB.Websites.Cache.TryGetValue(context.TargetId.Value, out var website))
+                                    if (_DB.Websites.Cache.TryGetValue(context.TargetId.Value, out WebsiteData website))
                                         @(website.Name)
                                     else
                                         @(context.TargetName)
@@ -176,10 +176,8 @@
             {
                 new FilterDefinitionBuilder<AuditLog>().Eq(x => x.TeamId, Team.Id)
             };
-            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(args, Newtonsoft.Json.Formatting.Indented));
 
-
-            foreach (var i in args.Filters)
+            foreach (FilterDescriptor i in args.Filters)
             {
                 switch (i.Property)
                 {
@@ -210,7 +208,7 @@
                 }
             }
 
-            var filter = Builders<AuditLog>.Filter.And(filters);
+            FilterDefinition<AuditLog> filter = Builders<AuditLog>.Filter.And(filters);
 
             try
             {

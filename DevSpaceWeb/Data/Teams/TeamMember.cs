@@ -71,7 +71,7 @@ public class TeamMemberData
         if (Perms.Log.Has(permission))
             return true;
 
-        if (log.MemberPermissionOverrides.TryGetValue(log.Id, out var uovr) && uovr.LogPermissions.HasFlag(permission))
+        if (log.MemberPermissionOverrides.TryGetValue(log.Id, out PermissionsSet? uovr) && uovr.LogPermissions.HasFlag(permission))
             return true;
 
         foreach (ObjectId r in Roles)
@@ -83,7 +83,7 @@ public class TeamMemberData
 
             }
 
-            if (log.RolePermissionOverrides.TryGetValue(r, out var ovr) && ovr.LogPermissions.HasFlag(permission))
+            if (log.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.LogPermissions.HasFlag(permission))
                 return true;
         }
 
@@ -107,7 +107,7 @@ public class TeamMemberData
         if (Perms.Project.Has(permission))
             return true;
 
-        if (project.MemberPermissionOverrides.TryGetValue(project.Id, out var uovr) && uovr.ProjectPermissions.HasFlag(permission))
+        if (project.MemberPermissionOverrides.TryGetValue(project.Id, out PermissionsSet? uovr) && uovr.ProjectPermissions.HasFlag(permission))
             return true;
 
         foreach (ObjectId r in Roles)
@@ -119,7 +119,7 @@ public class TeamMemberData
 
             }
 
-            if (project.RolePermissionOverrides.TryGetValue(r, out var ovr) && ovr.ProjectPermissions.HasFlag(permission))
+            if (project.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.ProjectPermissions.HasFlag(permission))
                 return true;
         }
 
@@ -146,7 +146,7 @@ public class TeamMemberData
         if (Perms.Server.Has(permission))
             return true;
 
-        if (server != null &&  server.MemberPermissionOverrides.TryGetValue(server.Id, out var uovr) && uovr.ServerPermissions.HasFlag(permission))
+        if (server != null &&  server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.ServerPermissions.HasFlag(permission))
             return true;
 
         foreach (ObjectId r in Roles)
@@ -158,7 +158,7 @@ public class TeamMemberData
 
             }
 
-            if (server != null && server.RolePermissionOverrides.TryGetValue(r, out var ovr) && ovr.ServerPermissions.HasFlag(permission))
+            if (server != null && server.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.ServerPermissions.HasFlag(permission))
                 return true;
         }
 
@@ -182,7 +182,7 @@ public class TeamMemberData
         if (Perms.Website.Has(permission))
             return true;
 
-        if (website.MemberPermissionOverrides.TryGetValue(website.Id, out var uovr) && uovr.WebsitePermissions.HasFlag(permission))
+        if (website.MemberPermissionOverrides.TryGetValue(website.Id, out PermissionsSet? uovr) && uovr.WebsitePermissions.HasFlag(permission))
             return true;
 
         foreach (ObjectId r in Roles)
@@ -194,7 +194,7 @@ public class TeamMemberData
 
             }
 
-            if (website.RolePermissionOverrides.TryGetValue(r, out var ovr) && ovr.WebsitePermissions.HasFlag(permission))
+            if (website.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.WebsitePermissions.HasFlag(permission))
                 return true;
         }
 
@@ -218,7 +218,7 @@ public class TeamMemberData
         if (Perms.Docker.Has(permission))
             return true;
 
-        if (server.MemberPermissionOverrides.TryGetValue(server.Id, out var uovr) && uovr.DockerPermissions.HasFlag(permission))
+        if (server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.DockerPermissions.HasFlag(permission))
             return true;
 
         foreach (ObjectId r in Roles)
@@ -230,7 +230,7 @@ public class TeamMemberData
 
             }
 
-            if (server.RolePermissionOverrides.TryGetValue(r, out var ovr) && ovr.DockerPermissions.HasFlag(permission))
+            if (server.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.DockerPermissions.HasFlag(permission))
                 return true;
         }
 
@@ -243,9 +243,9 @@ public class TeamMemberData
         //    return -1;
 
         int CurrentRank = int.MaxValue;
-        foreach(var r in Roles)
+        foreach(ObjectId r in Roles)
         {
-            if (Team.CachedRoles.TryGetValue(r, out var role) && role.Position < CurrentRank)
+            if (Team.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.Position < CurrentRank)
             {
                 CurrentRank = role.Position;
             }

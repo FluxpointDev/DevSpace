@@ -9,7 +9,7 @@
     </div>
     <br />
     <div style="display: flex; align-items: flex-start;">
-        @foreach (var i in _DB.Teams.Cache.Values.Where(x => x.Members.ContainsKey(Session.CurrentUserId.Value)))
+        @foreach (TeamData i in _DB.Teams.Cache.Values.Where(x => x.Members.ContainsKey(Session.CurrentUserId.Value)))
         {
             <a href="teams/@i.GetVanityUrl()" style="color: cornflowerblue">
                 <div Class="team-item">
@@ -62,7 +62,7 @@
 
     public async Task CreateTeam()
     {
-        await DialogService.ShowDynamicFormAsync<TeamBasicModel>("Create Team", new TeamBasicModel(), (TeamBasicModel data) =>
+        await DialogService.ShowDynamicFormAsync<TeamBasicModel>("Create Team", new TeamBasicModel(), async (TeamBasicModel data) =>
             {
                 string VanityUrl = data.VanityUrl.Replace(" ", "-").ToLower();
                 if (_DB.TeamsVanityCache.ContainsKey(VanityUrl))
@@ -74,10 +74,7 @@
                     VanityUrl = VanityUrl,
                     OwnerId = Session.CurrentUserId.Value
                 };
-
-                var TeamTask = Task.Run(async () =>
-                {
-                    await _DB.Teams.CreateAsync(Team);
+                await _DB.Teams.CreateAsync(Team);
                     TeamMemberData Member = new TeamMemberData()
                     {
                         UserId = Session.CurrentUserId.Value,
@@ -100,7 +97,7 @@
 
                     if (!string.IsNullOrEmpty(VanityUrl))
                     {
-                        var Vanity = new VanityUrlData
+                    VanityUrlData Vanity = new VanityUrlData
                         {
 
                         };
@@ -108,11 +105,6 @@
                         _DB.TeamsVanityCache.TryAdd(VanityUrl, Team);
                         _DB.VanityUrlCache.TryAdd(Team.Id, VanityUrl);
                     }
-                });
-
-                Task.WaitAll(TeamTask);
-                if (!TeamTask.IsCompletedSuccessfully)
-                    return "Failed to create team";
 
                 _DB.Teams.Cache.TryAdd(Team.Id, Team);
                 

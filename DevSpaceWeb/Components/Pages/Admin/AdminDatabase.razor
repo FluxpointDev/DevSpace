@@ -153,7 +153,7 @@
             List<FilterDefinition<T>> filters = new List<FilterDefinition<T>>();
             
 
-            foreach (var i in args.Filters)
+            foreach (FilterDescriptor i in args.Filters)
             {
                 switch (i.Property)
                 {
@@ -201,7 +201,7 @@
                         break;
                 }
             }
-            var filter = Builders<T>.Filter.And(filters);
+            FilterDefinition<T> filter = Builders<T>.Filter.And(filters);
             try
             {
                 employees = await _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<T>(CollectionName).Find(x => true).Skip(args.Skip).Limit(args.Top).ToListAsync();

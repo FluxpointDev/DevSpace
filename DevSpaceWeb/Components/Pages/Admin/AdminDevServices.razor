@@ -5,18 +5,18 @@
     </div>
     <br />
     <div>
-        @foreach (var i in ServiceList)
+        @foreach (KeyValuePair<string, ServiceCollection> i in ServiceList)
         {
             <div>
                 <h4>@i.Key</h4>
-                @foreach (var s in i.Value.List)
+                @foreach (KeyValuePair<string, ServiceDescriptor> s in i.Value.List)
                 {
                     <p>
                     <p>@s.Value.ServiceType.Name.Split('`').First()</p>
                         @if (s.Key.Contains("<"))
                         {
                         <p class="service-param service-arrow">@("<")</p>
-                            foreach (var t in FetchParam(s.Value))
+                            foreach (string t in FetchParam(s.Value))
                             {
                                 if ((ParamIndex + 1) == ParamCount)
                                 {
@@ -80,7 +80,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        foreach (var i in Program.Services)
+        foreach (ServiceDescriptor i in Program.Services)
         {
             switch (i.ServiceType.Namespace)
             {
@@ -125,12 +125,12 @@
 
     public void Add(string key, ServiceDescriptor service)
     {
-        var NameTuple = FormatService(service);
+        Tuple<string, List<string>> NameTuple = FormatService(service);
         string Name = NameTuple.Item1;
         if (NameTuple.Item2.Any())
             Name += "<" + string.Join(", ", NameTuple.Item2) + ">";
 
-        if (ServiceList.TryGetValue(key, out var collection))
+        if (ServiceList.TryGetValue(key, out ServiceCollection collection))
         {
             if (!collection.List.ContainsKey(Name))
                 collection.List.Add(Name, service);
@@ -156,7 +156,7 @@
         string Name = service.ServiceType.Name.Split('`').First();
         List<string> Params = new List<string>();
 
-        foreach (var t in service.ServiceType.GetGenericArguments())
+        foreach (Type t in service.ServiceType.GetGenericArguments())
         {
             Params.Add(t.Name);
         }

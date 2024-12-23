@@ -102,7 +102,7 @@
             return;
         }
 
-        await DialogService.ShowDynamicFormAsync<ReasonModel>("Enable Member " + user.UserName, new ReasonModel(), (ReasonModel data) =>
+        await DialogService.ShowDynamicFormAsync<ReasonModel>("Enable Member " + user.UserName, new ReasonModel(), async (ReasonModel data) =>
         {
             if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
                 return "You do not have permission for Manage Members.";
@@ -111,13 +111,14 @@
             {
                 FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
                 UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, null);
-                var Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
+                UpdateResult Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
                 if (!Result.IsAcknowledged)
                     return "Failed to enable user";
             }
             _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+
+            await Team.GetMember(user).UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, null));
             Team.GetMember(user).Disabled = null;
-            Team.GetMember(user).UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, null));
             return null;
         });
     }
@@ -130,7 +131,7 @@
             return;
         }
 
-        await DialogService.ShowDynamicFormAsync<ReasonModel>("Disable Member " + user.UserName, new ReasonModel(), (ReasonModel data) =>
+        await DialogService.ShowDynamicFormAsync<ReasonModel>("Disable Member " + user.UserName, new ReasonModel(), async (ReasonModel data) =>
         {
             if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
                 return "You do not have permission for Manage Members.";
@@ -145,13 +146,14 @@
             {
                 FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
                 UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, Disabled);
-                var Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
+                UpdateResult Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
                 if (!Result.IsAcknowledged)
                     return "Failed to disable user";
             }
             _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+
+            await Team.GetMember(user).UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, Disabled));
             Team.GetMember(user).Disabled = Disabled;
-            Team.GetMember(user).UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, Disabled));
             return null;
         });
     }
@@ -164,7 +166,7 @@
             return;
         }
 
-        await DialogService.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), (TeamAddUserModel data) =>
+        await DialogService.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), async (TeamAddUserModel data) =>
         {
             if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
                 return "You do not have permission for Manage Members.";
@@ -185,36 +187,29 @@
                     UserId = user.Id
                 };
 
-            var task = Task.Run<bool>(async () =>
+            try
             {
-                try
-                {
-                    await _DB.Members.CreateAsync(memberData);
+                await _DB.Members.CreateAsync(memberData);
+            }
+            catch
+            {
+                return "Failed to create member.";
+            }
+            _DB.Members.Cache.TryAdd(memberData.Id, memberData);
+            Team.Members.Add(user.Id, memberData.Id);
+            Team.CachedMembers.Add(memberData.Id, memberData);
+            try
+            {
+                await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members));
+                _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberAdded).SetTarget(AuditLogTargetType.Team, Team.Id));
+            }
+            catch
+            {
+                _DB.Members.Cache.Remove(memberData.Id, out _);
+                Team.Members.Remove(user.Id);
+                Team.CachedMembers.Remove(memberData.Id);
+                return "Failed to add user.";
                 }
-                catch
-                {
-                    return false;
-                }
-                _DB.Members.Cache.TryAdd(memberData.Id, memberData);
-                Team.Members.Add(user.Id, memberData.Id);
-                Team.CachedMembers.Add(memberData.Id, memberData);
-                try
-                {
-                    await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members));
-                    _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberAdded).SetTarget(AuditLogTargetType.Team, Team.Id));
-                }
-                catch
-                {
-                    _DB.Members.Cache.Remove(memberData.Id, out _);
-                    Team.Members.Remove(user.Id);
-                    Team.CachedMembers.Remove(memberData.Id);
-                }
-                return true;
-            });
-            task.Wait();
-            if (!task.Result)
-                return "Failed to create team member due to a database error.";
-
             return string.Empty;
         });
     }
@@ -234,9 +229,9 @@
         if (!Confirm)
             return;
 
-        var User = await Session.GetCurrentUserAsync();
+        AuthUser User = await Session.GetCurrentUserAsync();
 
-        var twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true);
+        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, true);
         if (!twoFactorConfirm)
             return;
 
@@ -263,7 +258,7 @@
             return;
         }
 
-        Team.Members.TryGetValue(user, out var SelectedMember);
+        Team.Members.TryGetValue(user, out ObjectId SelectedMember);
 
         if (SelectedMember == null)
             return;
@@ -290,7 +285,7 @@
             return;
         }
 
-        var Dialog = await DialogService.OpenAsync<ChangeMemberRolesDialog>($"Update Roles for {user.UserName}", new Dictionary<string, object>()
+        await DialogService.OpenAsync<ChangeMemberRolesDialog>($"Update Roles for {user.UserName}", new Dictionary<string, object>()
         {
             { "Team", Team },
             { "Member", Team.GetMember(user) }

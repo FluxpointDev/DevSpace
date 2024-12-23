@@ -29,7 +29,7 @@
         if (!Confirm)
             return;
 
-        var Result = await _DB.Servers.Collection.DeleteOneAsync(Builders<ServerData>.Filter.Eq(x => x.Id, Server.Id));
+        DeleteResult Result = await _DB.Servers.Collection.DeleteOneAsync(Builders<ServerData>.Filter.Eq(x => x.Id, Server.Id));
         if (Result.IsAcknowledged)
         {
             if (Server.GetWebSocket() != null)

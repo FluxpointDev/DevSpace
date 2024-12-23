@@ -159,7 +159,7 @@
 
     public async Task EditAvatar()
     {
-        var Dialog = await DialogService.OpenAsync<ChangeAccountAvatarDialog>("Change Avatar", options: new DialogOptions
+        dynamic Dialog = await DialogService.OpenAsync<ChangeAccountAvatarDialog>("Change Avatar", options: new DialogOptions
         {
 
         });
@@ -177,7 +177,7 @@
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser.EmailConfirmed)
         {
-            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true);
+            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
             if (!TwoFactorValid)
             {
                 await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
@@ -185,9 +185,9 @@
             }
         }
 
-        var options = new DialogOptions() { };
+        DialogOptions options = new DialogOptions() { };
 
-        var Dialog = await DialogService.OpenAsync<ChangeAccountEmailDialog>("Change Account Email", new Dictionary<string, object>(), options);
+        dynamic Dialog = await DialogService.OpenAsync<ChangeAccountEmailDialog>("Change Account Email", new Dictionary<string, object>(), options);
 
         if (Dialog != null)
         {
@@ -203,7 +203,7 @@
     {
         if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
-            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
+            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
                 await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
@@ -229,11 +229,11 @@
             return;
         }
 
-        var Result = await DialogService.ShowConfirmAsync("Disable Account", "Are you sure you want to disable your account?", "Confirm Disable", ButtonStyle.Warning);
+        bool Result = await DialogService.ShowConfirmAsync("Disable Account", "Are you sure you want to disable your account?", "Confirm Disable", ButtonStyle.Warning);
         if (Result)
         {
             AuthUser = await Session.GetCurrentUserAsync();
-            var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
+            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
             if (!TwoFactorValid)
             {
                 await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
@@ -271,13 +271,13 @@
             return;
         }
 
-        var Result = await DialogService.ShowConfirmAsync("Delete Account", "Are you sure you want to delete your account?", "Confirm Delete", ButtonStyle.Warning);
+        bool Result = await DialogService.ShowConfirmAsync("Delete Account", "Are you sure you want to delete your account?", "Confirm Delete", ButtonStyle.Warning);
         if (Result)
         {
             AuthUser = await Session.GetCurrentUserAsync();
             if (AuthUser.EmailConfirmed)
             {
-                var TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, false);
+                bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
                 if (!TwoFactorValid)
                 {
                     await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
@@ -295,7 +295,7 @@
     public async Task SendEmailVerify()
     {
         EmailVerifySent = true;
-        var Code = await UserManager.GenerateEmailConfirmationTokenAsync(AuthUser);
+        string Code = await UserManager.GenerateEmailConfirmationTokenAsync(AuthUser);
         Code = Uri.EscapeDataString(Code);
         await Email.SendAccountConfirm(AuthUser, (NavigationManager.BaseUri + "auth/account/confirmEmail?token=" + Code));
     }

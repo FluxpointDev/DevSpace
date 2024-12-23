@@ -133,9 +133,9 @@
                                 <LoginPage></LoginPage>
                             }
                             break;
-                        case SessionErrorType.SessionSecurityNewIp:
+                        case SessionErrorType.SessionSecurityNew:
                             {
-                                <NewIpPage></NewIpPage>
+                                <NewSessionPage></NewSessionPage>
                             }
                             break;
                         case SessionErrorType.AccountDisabled:
@@ -211,11 +211,16 @@
         DialogService.ShowInfoAsync("Preview Mode", "This feature is not available in preview mode.");
     }
 
-    public async Task<bool> TriggerTwoFactorAuthentication(AuthUser user, bool logUsage)
-    {
-        var options = new DialogOptions() { };
+    public DateTime? TwoFactorTimeout = null;
 
-        var Dialog = await DialogService.OpenAsync<TwoFactorVerifyDialog>("2FA Verification", new Dictionary<string, object>()
+    public async Task<bool> TriggerTwoFactorAuthentication(AuthUser user, bool logUsage, bool forceVerify)
+    {
+        if (!forceVerify && TwoFactorTimeout != null && TwoFactorTimeout > DateTime.UtcNow)
+            return true;
+
+        DialogOptions options = new DialogOptions() { };
+
+        dynamic Dialog = await DialogService.OpenAsync<TwoFactorVerifyDialog>("2FA Verification", new Dictionary<string, object>()
         {
             { "LogUsage", logUsage },
             { "User", user }
@@ -225,7 +230,13 @@
         if (Dialog == null)
             return false;
 
-        return (bool)Dialog;
+        bool Result = (bool)Dialog;
+        if (Result)
+        {
+            TwoFactorTimeout = DateTime.UtcNow.AddMinutes(15);
+        }
+
+        return Result;
     }
 
     public async Task<bool> TestPasskey(bool logUsage)
@@ -281,7 +292,7 @@
         }
 
 
-        var Ip = Utils.GetUserIpAddress(Http.HttpContext);
+        string Ip = Utils.GetUserIpAddress(Http.HttpContext);
         if (!_Data.Config.Instance.Features.AllowLocalhost && (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1"))
         {
             SessionError = SessionErrorType.SessionSecurityError;
@@ -314,12 +325,12 @@
         {
             if (_Data.Config.Database.IsSetup && State != null && State.User.Identity.IsAuthenticated)
             {
-                var User = await GetCurrentUserAsync();
+                AuthUser User = await GetCurrentUserAsync();
                 if (User == null)
-                    {
-                        SessionError = SessionErrorType.AuthenticationError;
-                        return;
-                    }
+                {
+                    SessionError = SessionErrorType.AuthenticationError;
+                    return;
+                }
 
                 CurrentUserId = User.Id;
                 if (User.Settings.DateFormat != DateFormatLang.Automatic)
@@ -329,12 +340,12 @@
                 string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
                 if (string.IsNullOrEmpty(SessionId))
                 {
-                    SessionError = SessionErrorType.SessionSecurityNewIp;
+                    NavigationManager.NavigateTo("/logout", true);
                     return;
                 }
                 CurrentSessionId = SessionId;
 
-                bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out var session);
+                bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession session);
                 if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
                 {
                     if (_DB.Users.Keys.Count() == 1 && User.Account.Sessions.Count() == 1 && !session.AuthorizedIps.Any())
@@ -349,7 +360,7 @@
 
                 if (NewLogin)
                 {
-                    SessionError = SessionErrorType.SessionSecurityNewIp;
+                    SessionError = SessionErrorType.SessionSecurityNew;
                     return;
                 }
             }
@@ -376,7 +387,7 @@
                 _DB.SessionUpdated += SessionChangedEvent;
                 if (_Data.Config.Database.IsSetup)
                 {
-                    var User = await GetCurrentUserAsync();
+                    AuthUser User = await GetCurrentUserAsync();
                     if (User == null)
                     {
                         SessionError = SessionErrorType.AuthenticationError;
@@ -403,12 +414,12 @@
                             string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
                             if (string.IsNullOrEmpty(SessionId))
                             {
-                            SessionError = SessionErrorType.SessionSecurityNewIp;
+                                NavigationManager.NavigateTo("/logout", true);
                                 return;
                             }
                             CurrentSessionId = SessionId;
 
-                            bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out var session);
+                            bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession session);
                             if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
                             {
                                 if (_DB.Users.Keys.Count() == 1 && User.Account.Sessions.Count() == 1 && !session.AuthorizedIps.Any())
@@ -423,7 +434,7 @@
 
                             if (NewLogin)
                             {
-                                SessionError = SessionErrorType.SessionSecurityNewIp;
+                            SessionError = SessionErrorType.SessionSecurityNew;
                                 return;
                             }
                         }
@@ -461,7 +472,7 @@
 
     public enum SessionErrorType
     {
-        Loading, SessionSecurityError, SessionError, HttpsRequired, SessionSecurityNewIp, AuthenticationError, AuthenticationRequired, DatabaseError, RestartRequired, Success, AccountDisabled
+        Loading, SessionSecurityError, SessionError, HttpsRequired, SessionSecurityNew, AuthenticationError, AuthenticationRequired, DatabaseError, RestartRequired, Success, AccountDisabled
     }
 
 }

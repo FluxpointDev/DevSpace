@@ -11,7 +11,7 @@
     <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Server" Click="@SetupServer" Disabled="(!Member.HasServerPermission(null, ServerPermission.ManageResource))" />
     <br />
     <br />
-    @foreach (var i in _DB.Servers.Cache.Values.Where(x => Member.HasServerPermission(x, ServerPermission.ViewServer)))
+    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member.HasServerPermission(x, ServerPermission.ViewServer)))
     {
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + i.GetVanityUrl())">
             <div class="server-item d-flex flex-grow-1 gap-2">
@@ -123,39 +123,30 @@
         if (!Member.HasServerPermission(null, ServerPermission.ManageResource))
             return;
 
-        await DialogService.ShowDynamicFormAsync<ServerSetupModel>("Setup Server", new ServerSetupModel(), (ServerSetupModel data) =>
+        await DialogService.ShowDynamicFormAsync<ServerSetupModel>("Setup Server", new ServerSetupModel(), async (ServerSetupModel data) =>
             {
                 if (!Member.HasServerPermission(null, ServerPermission.ManageResource))
                     return "You do not have Manage Resource permissions";
 
-                var ServerTask = Task.Run(async () =>
-                {
-                    ServerWebSocket Client = new ServerWebSocket();
-                    Client.Run(new ServerData
+                ServerWebSocket Client = new ServerWebSocket();
+                Client.Run(new ServerData
                     {
                         AgentIp = data.Ip,
                         AgentPort = 5555,
                         AgentKey = data.AgentKey
                     });
 
-                    ServerData Server = new ServerData
-                        {
-                            Name = data.Name,
-                            OwnerId = Member.UserId,
-                            TeamId = Member.TeamId,
-                            AgentIp = data.Ip,
-                            AgentPort = 5555,
-                            AgentKey = data.AgentKey
-                        };
-                    await _DB.Servers.CreateAsync(Server);
-                    _DB.Servers.Cache.TryAdd(Server.Id, Server);
-                });
-                Task.WaitAll(ServerTask);
-                if (!ServerTask.IsCompletedSuccessfully)
-                    return "Failed to setup server.";
-
-                
-
+                ServerData Server = new ServerData
+                    {
+                        Name = data.Name,
+                        OwnerId = Member.UserId,
+                        TeamId = Member.TeamId,
+                        AgentIp = data.Ip,
+                        AgentPort = 5555,
+                        AgentKey = data.AgentKey
+                    };
+                await _DB.Servers.CreateAsync(Server);
+                _DB.Servers.Cache.TryAdd(Server.Id, Server);
                 InvokeAsync(StateHasChanged);
                 return null;
             });

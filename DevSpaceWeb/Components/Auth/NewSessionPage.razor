@@ -13,7 +13,7 @@
     </div>
     <br />
     <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
-        A new IP Address has been detected for this account, confirm 2FA to get access.
+        A new session or IP has been detected for this account, confirm 2FA to get access.
     </RadzenAlert>
     <br />
     <RadzenButton Click="@Check2FA" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
@@ -26,38 +26,41 @@
 
     public async Task Check2FA()
     {
-        var User = await Session.GetCurrentUserAsync();
+        Console.WriteLine("Check verify");
+        AuthUser User = await Session.GetCurrentUserAsync();
 
-        var Result = false;
+        bool Result = false;
         if (Program.IsDevMode)
             Result = true;
         else
-            Result = await Session.TriggerTwoFactorAuthentication(User, true);
+            Result = await Session.TriggerTwoFactorAuthentication(User, true, true);
 
         if (Result)
         {
 
             User = await Session.GetCurrentUserAsync();
             string Ip = Utils.GetUserIpAddress(Http.HttpContext);
+
             string SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
-            if (!string.IsNullOrEmpty(SessionId) && User.Account.Sessions.TryGetValue(SessionId, out var session))
-                session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
+            Console.WriteLine("Check verify: " + SessionId);
+            if (!string.IsNullOrEmpty(SessionId))
+            {
+                if (User.Account.Sessions.TryGetValue(SessionId, out UserSession session))
+                {
+                    session.LastLoginAt = DateTime.UtcNow;
+                    session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
+                }
+                else
+                {
+                    UserSessionJson Json = await JS.InvokeAsync<UserSessionJson>("window.Auth.getSessionInfo");
+                    UserSession Session = UserSession.Create(Json);
+                    Session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
+                    User.Account.Sessions.Add(SessionId, Session);
+                }
+            }
             else
             {
-                SessionInfo SessionInfo = await JS.InvokeAsync<SessionInfo>("window.Auth.getSessionInfo");
-
-                User.Account.Sessions.TryAdd(SessionId, new UserSession
-                {
-                    IsMobile = SessionInfo.IsMobile,
-                    BrowserType = SessionInfo.Browser,
-                    Name = Utils.GetBrowserName(SessionInfo.Browser),
-                    Country = SessionInfo.Country,
-                    CreatedAt = DateTime.UtcNow,
-                    AuthorizedIps = new HashSet<string>
-                    {
-                        Utils.GetStringSha256Hash(Ip)
-                    }
-                });
+                return;
             }
             await UserManager.UpdateAsync(User);
             if (!Program.IsDevMode)
