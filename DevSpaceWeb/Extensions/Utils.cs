@@ -11,7 +11,7 @@ namespace DevSpaceWeb;
 
 public static class Utils
 {
-    public static string? GetBrowserName(SessionBrowserType type)
+    public static string GetBrowserName(SessionBrowserType type)
     {
         switch (type)
         {
