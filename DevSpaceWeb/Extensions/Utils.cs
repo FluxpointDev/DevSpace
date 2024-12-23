@@ -11,7 +11,7 @@ namespace DevSpaceWeb;
 
 public static class Utils
 {
-    public static string GetBrowserName(SessionBrowserType type)
+    public static string? GetBrowserName(SessionBrowserType type)
     {
         switch (type)
         {
@@ -30,7 +30,7 @@ public static class Utils
             case SessionBrowserType.Vivaldi:
                 return "Vivaldi";
         }
-        return null;
+        return "Unknown";
     }
     public static UserPasswordStrength GetPasswordStrength(string password)
     {
