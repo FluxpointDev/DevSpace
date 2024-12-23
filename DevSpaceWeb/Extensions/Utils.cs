@@ -262,8 +262,6 @@ public static class Utils
 
         switch (session.UserDateFormat)
         {
-            case DateFormatLang.DMYSpace_Dot:
-                return MessageOffset.ToString("dd. MM. yyyy");
             case DateFormatLang.DMY_Dash:
                 return MessageOffset.ToString("dd-MM-yyyy");
             case DateFormatLang.DMY_Dot:
@@ -282,8 +280,6 @@ public static class Utils
                 return MessageOffset.ToString("yyyy.MM.dd");
             case DateFormatLang.YMD_Slash:
                 return MessageOffset.ToString("yyyy/MM/dd");
-            case DateFormatLang.YMDSpace_Dot:
-                return MessageOffset.ToString("yyyy. MM. dd");
         }
         return MessageOffset.ToString("dd/MM/yyyy");
     }
@@ -304,6 +300,10 @@ public static class Utils
             case "tn":
             case "ug-arab":
             case "zu":
+            case "hu":
+            case "ko":
+            case "sk":
+            case "sl":
                 return DateFormatLang.YMD_Dash;
 
             case "am":
@@ -320,6 +320,7 @@ public static class Utils
             case "nl-be":
             case "te":
             case "wo":
+            case "cs":
                 return DateFormatLang.DMY_Dash;
 
             case "az-latn":
@@ -415,15 +416,6 @@ public static class Utils
 
             case "mn-cyrl":
                 return DateFormatLang.YMD_Dot;
-
-            case "sl":
-            case "sk":
-            case "cs":
-                return DateFormatLang.DMYSpace_Dot;
-
-            case "hu":
-            case "ko":
-                return DateFormatLang.YMDSpace_Dot;
         }
         return DateFormatLang.DMY_Slash;
     }
@@ -444,14 +436,15 @@ public enum DateFormatLang
     MDY_Dash,
     [Display(Description = "2024-12-31")]
     YMD_Dash,
-    [Display(Description = "Test")]
+    [Display(Description = "31.12.2024")]
     DMY_Dot,
-    [Display(Description = "Test")]
+    [Display(Description = "12.31.2024")]
     MDY_Dot,
-    [Display(Description = "Test")]
+    [Display(Description = "2024.12.31")]
     YMD_Dot,
-    [Display(Description = "Test")]
-    DMYSpace_Dot,
-    [Display(Description = "Test")]
-    YMDSpace_Dot
+    //[Display(Description = "31. 12. 2024")]
+    //DMYSpace_Dot,
+    //[Display(Description = "12. 31. 2024")]
+    //MDYSpace_Dot,
+   
 }

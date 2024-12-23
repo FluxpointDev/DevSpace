@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Fido2;
 using Fido2NetLib;
+using Microsoft.AspNetCore.Identity;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json.Serialization;
@@ -21,7 +22,7 @@ public class UserMfa
             return true;
         return false;
     }
-    public void Disable2FA()
+    public void Disable2FA(AuthUser user)
     {
         IsTwoFactorEnabled = false;
         AuthenticatorLastRegisteredAt = null;
@@ -35,6 +36,9 @@ public class UserMfa
         RecoveryCodeCreatedAt = null;
         RecoveryCodeLastUsedAt = null;
         RecoveryCode = null;
+        IdentityUserToken<ObjectId>? Token = user.GetToken("[AspNetUserStore]", "AuthenticatorKey");
+        if (Token != null)
+            user.RemoveUserToken(Token);
     }
 
     public ObjectId? PasskeyId { get; set; }

@@ -166,18 +166,20 @@ public class AuthLoginController : AuthControllerContext
         if (!User.Identity.IsAuthenticated)
             return Redirect("/");
 
-        AuthUser? AuthUser = await _userManager.GetUserAsync(User);
-        if (AuthUser != null)
+        if (!Program.IsPreviewMode)
         {
-            string SessionId = Request.Cookies["DevSpace.SessionId"];
-            if (AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession Session))
+            AuthUser? AuthUser = await _userManager.GetUserAsync(User);
+            if (AuthUser != null)
             {
-                Session.AuthorizedIps.Clear();
-                await _userManager.UpdateAsync(AuthUser);
+                string SessionId = Request.Cookies["DevSpace.SessionId"];
+                if (AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession Session))
+                {
+                    Session.AuthorizedIps.Clear();
+                    await _userManager.UpdateAsync(AuthUser);
+                }
+                _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.Logout);
             }
-            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.Logout);
         }
-        
 
         await _signInManager.SignOutAsync();
         return Redirect("/");

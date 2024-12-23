@@ -26,7 +26,6 @@
 
     public async Task Check2FA()
     {
-        Console.WriteLine("Check verify");
         AuthUser User = await Session.GetCurrentUserAsync();
 
         bool Result = false;
@@ -42,7 +41,6 @@
             string Ip = Utils.GetUserIpAddress(Http.HttpContext);
 
             string SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
-            Console.WriteLine("Check verify: " + SessionId);
             if (!string.IsNullOrEmpty(SessionId))
             {
                 if (User.Account.Sessions.TryGetValue(SessionId, out UserSession session))
@@ -63,7 +61,7 @@
                 return;
             }
             await UserManager.UpdateAsync(User);
-            if (!Program.IsDevMode)
+            if (!Program.IsDevMode && !Program.IsPreviewMode)
                 await Email.SendNewSessionIP(User, Ip, CultureInfo.CurrentCulture.Name);
             NavigationManager.Refresh(true);
         }

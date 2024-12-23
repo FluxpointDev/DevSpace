@@ -68,11 +68,11 @@
         <br />
         <h4 class="mb-2">Manage</h4>
         <RadzenButton Text="Edit Account" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@EditAccount" />
-        <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@AuthUser.IsManaged" />
+        <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@(AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
         <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangePassword" />
         <br />
         <br />
-        <RadzenButton Text="Disable Account" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@DisableAccount" Disabled="@AuthUser.IsManaged" />
+        <RadzenButton Text="Disable Account" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@DisableAccount" Disabled="@(AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
         <RadzenButton Text="Delete Account" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@DeleteAccount" Disabled="@AuthUser.IsManaged" />
     }
 </div>
@@ -127,9 +127,12 @@
 
     public async Task SaveUser()
     {
-        AuthUser = await Session.GetCurrentUserAsync();
-        AuthUser.Settings.DateFormat = _userDateFormat;
-        await UserManager.UpdateAsync(AuthUser);
+        if (!Program.IsPreviewMode)
+        {
+            AuthUser = await Session.GetCurrentUserAsync();
+            AuthUser.Settings.DateFormat = _userDateFormat;
+            await UserManager.UpdateAsync(AuthUser);
+        }
     }
 
     public void Dispose()
@@ -147,7 +150,7 @@
 
     }
 
-    
+
 
     public async Task EditAccount()
     {
@@ -175,15 +178,18 @@
     public async Task ChangeEmail()
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser.EmailConfirmed)
+        if (!AuthUser.EmailConfirmed)
         {
+            await DialogService.ShowInfoAsync("Account Info", "You can't change your email because your current email is not verified.");
+            return;
+        }
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
             if (!TwoFactorValid)
             {
                 await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
-        }
+        
 
         DialogOptions options = new DialogOptions() { };
 
@@ -287,7 +293,9 @@
             AuthUser = await Session.GetCurrentUserAsync();
             await UserManager.DeleteAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.Logout);
-            await Email.SendAccountDeleted(AuthUser);
+            if (AuthUser.EmailConfirmed)
+                await Email.SendAccountDeleted(AuthUser);
+
             NavigationManager.NavigateTo("/logout", true);
         }
     }
