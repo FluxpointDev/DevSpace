@@ -1,4 +1,5 @@
 ﻿using Fido2NetLib.Objects;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using System.Text.Json;
 
@@ -35,6 +36,7 @@ public class FidoStoredCredential
     /// <remarks>
     /// An AAGUID is a 128-bit identifier indicating the type of the authenticator.
     /// </remarks>
+    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid AaGuid { get; set; }
 
     [BsonIgnore]

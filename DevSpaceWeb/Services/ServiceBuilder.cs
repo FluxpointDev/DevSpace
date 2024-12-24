@@ -176,7 +176,7 @@ public static class ServiceBuilder
             .AddTokenProvider(TokenOptions.DefaultProvider, typeof(DataProtectorTokenProvider<AuthUser>))
             .AddTokenProvider(TokenOptions.DefaultEmailProvider, typeof(EmailTokenProvider<AuthUser>))
             .AddTokenProvider(TokenOptions.DefaultAuthenticatorProvider, typeof(AuthenticatorTokenProvider<AuthUser>))
-        .AddMongoDbStores2<MflixDbContext, AuthUser, UserRole, ObjectId>(new MflixDbContext(_DB.Client, _Data.Config.Database.Name));
+        .AddMongoDbStores2<MongoDbContext, AuthUser, UserRole, ObjectId>(new MongoDbContext(_DB.Client, _Data.Config.Database.Name));
 
     }
 
@@ -202,24 +202,24 @@ public static class ServiceBuilder
     }
 }
 
-public class MflixDbContext : MongoDbContext
-{
-    public MflixDbContext(IMongoDatabase mongoDatabase) : base(mongoDatabase)
-    {
+//public class MflixDbContext : MongoDbContext
+//{
+//    public MflixDbContext(IMongoDatabase mongoDatabase) : base(mongoDatabase)
+//    {
 
-    }
+//    }
 
-    public MflixDbContext(string connectionString) : base(connectionString)
-    {
-    }
+//    public MflixDbContext(string connectionString) : base(connectionString)
+//    {
+//    }
 
-    public MflixDbContext(string connectionString, string databaseName) : base(connectionString, databaseName)
-    {
-    }
+//    public MflixDbContext(string connectionString, string databaseName) : base(connectionString, databaseName)
+//    {
+//    }
 
-    public MflixDbContext(MongoClient client, string databaseName) : base(client, databaseName)
-    {
+//    public MflixDbContext(MongoClient client, string databaseName) : base(client, databaseName)
+//    {
 
-    }
+//    }
 
-}
+//}
