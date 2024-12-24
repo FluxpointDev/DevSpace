@@ -100,7 +100,8 @@ public class AuthLoginController : AuthControllerContext
     {
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
-        return BadRequest("Not ready yet.");
+        if (!Program.IsDevMode)
+            return BadRequest("Not ready yet.");
         string redirectUrl = "/auth/external/callback";
 
         AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
@@ -115,7 +116,8 @@ public class AuthLoginController : AuthControllerContext
     {
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
-        return BadRequest("Not ready yet.");
+        if (!Program.IsDevMode)
+            return BadRequest("Not ready yet.");
 
         ExternalLoginInfo? info = await _signInManager.GetExternalLoginInfoAsync();
         if (info == null)

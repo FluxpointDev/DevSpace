@@ -10,17 +10,10 @@
 @implements IDisposable
 @inject IMemoryCache Cache
 
-@if (AuthUser == null)
+@if (AuthUser != null)
 {
-    <div class="settings-box">
-        <h3>Security</h3>
-        <RadzenSkeleton></RadzenSkeleton>
-        <RadzenSkeleton></RadzenSkeleton>
-        <RadzenSkeleton></RadzenSkeleton>
-    </div>
-}
-else
-{
+
+
     <RadzenRow Gap="10px" RowGap="10px">
         <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
             <h3>Security</h3>
@@ -483,6 +476,16 @@ else
         </RadzenColumn>
         <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
             <h3>2FA Methods</h3>
+            @if (AuthUser == null)
+            {
+                <br />
+                <RadzenSkeleton></RadzenSkeleton>
+                <RadzenSkeleton></RadzenSkeleton>
+                <RadzenSkeleton></RadzenSkeleton>
+            }
+            else
+            {
+
             <div class="session-item">
                 <h4>Backup Code</h4>
                 <RadzenText TextStyle="TextStyle.Body2">
@@ -614,10 +617,11 @@ else
                 <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.Passkeys.Any())" />
                 <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllPasskeys" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.Passkeys.Any())" />
             </div>
+            }
         </RadzenColumn>
     </RadzenRow>
+    }
 
-}
 
 <style>
     .settings-icon {

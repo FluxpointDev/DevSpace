@@ -1,0 +1,104 @@
+﻿<div class="settings-box">
+    <h3>Current Connections</h3>
+
+    @if (AuthUser == null)
+    {
+        <br />
+        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenSkeleton></RadzenSkeleton>
+    }
+    else if (!AuthUser.EmailConfirmed)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You need to verify your email address to connect external accounts.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
+        @foreach(var i in AuthUser.Logins)
+        {
+            <div class="passkey-item">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                    <img src="@("https://cdn.fluxpoint.dev/icons/" + i.LoginProvider + ".webp")">
+                    <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
+                            @i.ProviderDisplayName
+                        </RadzenText>
+                    </RadzenStack>
+                    <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                        <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveConnection(i))" />
+                    </RadzenStack>
+
+                </RadzenStack>
+            </div>
+        }
+        </RadzenStack>
+    }
+</div>
+<div class="settings-box">
+    <h3>Available Connections</h3>
+    @if (AuthUser == null)
+    {
+        <br />
+        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenSkeleton></RadzenSkeleton>
+    }
+    else if (!AuthUser.EmailConfirmed)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You need to verify your email address to connect external accounts.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
+        @foreach (var i in ValidConnections)
+        {
+            <div class="passkey-item">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                    <img src="@("https://cdn.fluxpoint.dev/icons/" + i.Key + ".webp")" style="">
+                    <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
+                            @i.Value
+                        </RadzenText>
+                    </RadzenStack>
+                    <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                        <RadzenButton Text="Add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" ButtonType="ButtonType.Submit" />
+                    </RadzenStack>
+                </RadzenStack>
+            </div>
+        }
+        </RadzenStack>
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public AuthUser? AuthUser { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        foreach(var i in AuthUser.Logins)
+        {
+            ValidConnections.Remove(i.LoginProvider);
+        }
+    }
+
+    public Dictionary<string, string> ValidConnections = new Dictionary<string, string>
+    {
+        { "discord", "Discord" },
+        { "google", "Google" },
+        { "github", "GitHub" }
+    };
+
+    public async Task RemoveConnection(UserLoginInfo login)
+    {
+        
+    }
+}
