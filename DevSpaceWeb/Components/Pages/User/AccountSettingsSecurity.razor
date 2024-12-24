@@ -21,8 +21,8 @@
 }
 else
 {
-    <RadzenStack Orientation="Orientation.Horizontal" Gap="12px">
-        <div class="settings-box">
+    <RadzenRow Gap="10px" RowGap="10px">
+        <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
             <h3>Security</h3>
             <RadzenStack Orientation="Orientation.Horizontal">
                 <span class="iconify settings-icon" style="color: var(--rz-success);" data-icon="mdi:check-circle"></span>
@@ -204,8 +204,8 @@ else
                     </RadzenText>
                 </div>
             } *@
-        </div>
-        <div class="settings-box">
+        </RadzenColumn>
+        <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
             <h3>2FA Status</h3>
             <RadzenStack Orientation="Orientation.Horizontal">
 
@@ -384,240 +384,239 @@ else
                     </RadzenStack>
                 </RadzenColumn>
             </RadzenRow>
-        </div>
-    </RadzenStack>
-    <RadzenStack Orientation="Orientation.Horizontal" Gap="12px">
-        @if (AuthUser != null)
-        {
-            <div class="settings-box">
-                <h3>Sessions</h3>
-                @if (AuthUser == null)
-                {
-                    <br />
-                    <RadzenSkeleton></RadzenSkeleton>
-                    <RadzenSkeleton></RadzenSkeleton>
-                    <RadzenSkeleton></RadzenSkeleton>
-                }
-                else
-                {
-                    <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
-                        @foreach (KeyValuePair<string, UserSession> i in AuthUser.Account.Sessions.OrderByDescending(x => x.Value.CreatedAt))
-                        {
-                            <div class="session-item">
-                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
-                                    <div>
-                                        @switch (i.Value.BrowserType)
+        </RadzenColumn>
+     </RadzenRow>
+
+    <RadzenRow Gap="10px" RowGap="10px">
+        <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
+            <h3>Sessions</h3>
+            @if (AuthUser == null)
+            {
+                <br />
+                <RadzenSkeleton></RadzenSkeleton>
+                <RadzenSkeleton></RadzenSkeleton>
+                <RadzenSkeleton></RadzenSkeleton>
+            }
+            else
+            {
+                <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
+                    @foreach (KeyValuePair<string, UserSession> i in AuthUser.Account.Sessions.OrderByDescending(x => x.Value.CreatedAt))
+                    {
+                        <div class="session-item">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                                <div>
+                                    @switch (i.Value.BrowserType)
+                                    {
+                                        case SessionBrowserType.Firefox:
+                                            <span class="iconify" data-icon="logos:firefox"></span>
+                                            break;
+                                        case SessionBrowserType.Chrome:
+                                            <span class="iconify" data-icon="logos:chrome"></span>
+                                            break;
+                                        case SessionBrowserType.Edge:
+                                            <span class="iconify" data-icon="logos:microsoft-edge"></span>
+                                            break;
+                                        case SessionBrowserType.InternetExplorer:
+                                            <span class="iconify" data-icon="logos:internetexplorer"></span>
+                                            break;
+                                        case SessionBrowserType.Opera:
+                                            <span class="iconify" data-icon="logos:opera"></span>
+                                            break;
+                                        case SessionBrowserType.Safari:
+                                            <span class="iconify" data-icon="logos:safari"></span>
+                                            break;
+                                        case SessionBrowserType.Vivaldi:
+                                            <span class="iconify" data-icon="logos:vivaldi-icon"></span>
+                                            break;
+                                        case SessionBrowserType.Unknown:
+                                            <span class="iconify" data-icon="mdi:web"></span>
+                                            break;
+                                    }
+                                    @if (i.Value.IsMobile)
+                                    {
+                                        <span class="iconify" data-icon="mdi:mobile-phone"></span>
+                                    }
+                                    else
+                                    {
+                                        <span class="iconify" data-icon="mdi:computer-classic"></span>
+                                    }
+                                </div>
+
+                                <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
+                                        @if (i.Key == Session.CurrentSessionId)
                                         {
-                                            case SessionBrowserType.Firefox:
-                                                <span class="iconify" data-icon="logos:firefox"></span>
-                                                break;
-                                            case SessionBrowserType.Chrome:
-                                                <span class="iconify" data-icon="logos:chrome"></span>
-                                                break;
-                                            case SessionBrowserType.Edge:
-                                                <span class="iconify" data-icon="logos:microsoft-edge"></span>
-                                                break;
-                                            case SessionBrowserType.InternetExplorer:
-                                                <span class="iconify" data-icon="logos:internetexplorer"></span>
-                                                break;
-                                            case SessionBrowserType.Opera:
-                                                <span class="iconify" data-icon="logos:opera"></span>
-                                                break;
-                                            case SessionBrowserType.Safari:
-                                                <span class="iconify" data-icon="logos:safari"></span>
-                                                break;
-                                            case SessionBrowserType.Vivaldi:
-                                                <span class="iconify" data-icon="logos:vivaldi-icon"></span>
-                                                break;
-                                            case SessionBrowserType.Unknown:
-                                                <span class="iconify" data-icon="mdi:web"></span>
-                                                break;
-                                        }
-                                        @if (i.Value.IsMobile)
-                                        {
-                                            <span class="iconify" data-icon="mdi:mobile-phone"></span>
+                                            <span>@(i.Value.Name) <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" Text="Current Session" class="ml-1" /></span>
                                         }
                                         else
                                         {
-                                            <span class="iconify" data-icon="mdi:computer-classic"></span>
+                                            @i.Value.Name
                                         }
-                                    </div>
-
-                                    <RadzenStack Gap="0px" Style="flex-grow: 2;">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
-                                            @if (i.Key == Session.CurrentSessionId)
-                                            {
-                                                <span>@(i.Value.Name) <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" Text="Current Session" class="ml-1" /></span>
-                                            }
-                                            else
-                                            {
-                                                @i.Value.Name
-                                            }
-                                        </RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body2">
-                                            <span>Created: @(Utils.GetLocalDate(Session, i.Value.CreatedAt, true))</span>
-                                        </RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body2">
-                                            <span>Last Login: @(Utils.GetLocalDate(Session, i.Value.LastLoginAt, true))</span>
-                                        </RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body2">
-                                            <span>Region: @i.Value.Country</span>
-                                        </RadzenText>
-                                    </RadzenStack>
-                                    <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
-                                        <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditSession(i.Key))" />
-                                        <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveSession(i.Key))" />
-                                    </RadzenStack>
-
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        <span>Created: @(Utils.GetLocalDate(Session, i.Value.CreatedAt, true))</span>
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        <span>Last Login: @(Utils.GetLocalDate(Session, i.Value.LastLoginAt, true))</span>
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        <span>Region: @i.Value.Country</span>
+                                    </RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                                    <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditSession(i.Key))" />
+                                    <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveSession(i.Key))" />
                                 </RadzenStack>
 
+                            </RadzenStack>
 
 
 
 
-                            </div>
-                        }
-                    </RadzenStack>
-                    <br />
-                    <RadzenButton Text="Remove All Sessions" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllSessions" />
-                }
-            </div>
-            <div class="settings-box">
-                <h3>2FA Methods</h3>
-                <div class="session-item">
-                    <h4>Backup Code</h4>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        Use this code to get back into your account if you lose access.
-                    </RadzenText>
 
-                    @if (AuthUser.Mfa.IsTwoFactorEnabled)
+                        </div>
+                    }
+                </RadzenStack>
+                <br />
+                <RadzenButton Text="Remove All Sessions" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllSessions" />
+            }
+        </RadzenColumn>
+        <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
+            <h3>2FA Methods</h3>
+            <div class="session-item">
+                <h4>Backup Code</h4>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    Use this code to get back into your account if you lose access.
+                </RadzenText>
+
+                @if (AuthUser.Mfa.IsTwoFactorEnabled)
+                {
+                    @if (string.IsNullOrEmpty(AuthUser.Mfa.RecoveryCode))
                     {
-                        @if (string.IsNullOrEmpty(AuthUser.Mfa.RecoveryCode))
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                You have not created a backup code!
-                            </RadzenAlert>
-                            <br />
-                            <RadzenButton Text="Generate" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@GenerateBackupCodes" />
-                        }
-                        else
-                        {
-                            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                                Backup codes have been generated.
-                            </RadzenAlert>
-                            <p>Generated: @(Utils.GetLocalDate(Session, AuthUser.Mfa.RecoveryCodeCreatedAt, true))</p>
-                            <p>Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.RecoveryCodeLastUsedAt, true))</p>
-                            <br />
-                            <RadzenButton Text="Reset" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@GenerateBackupCodes" />
-                        }
+                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                            You have not created a backup code!
+                        </RadzenAlert>
+                        <br />
+                        <RadzenButton Text="Generate" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@GenerateBackupCodes" />
                     }
                     else
                     {
                         <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                            Setup Authenticator or Passkeys to generate a backup code.
+                            Backup codes have been generated.
                         </RadzenAlert>
-
+                        <p>Generated: @(Utils.GetLocalDate(Session, AuthUser.Mfa.RecoveryCodeCreatedAt, true))</p>
+                        <p>Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.RecoveryCodeLastUsedAt, true))</p>
+                        <br />
+                        <RadzenButton Text="Reset" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@GenerateBackupCodes" />
                     }
-                </div>
-                <br />
-                <div class="session-item">
-                    <h4>Authenticator App</h4>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        Last Registered: @(Utils.GetLocalDate(Session, AuthUser.Mfa.AuthenticatorLastRegisteredAt, true))
-                    </RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.AuthenticatorLastUsedAt, true))
-                    </RadzenText>
-                    <br />
-                    <h5 class="mb-2">Devices</h5>
+                }
+                else
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                        Setup Authenticator or Passkeys to generate a backup code.
+                    </RadzenAlert>
 
-
-                    <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
-                        @foreach (KeyValuePair<string, bool> i in AuthUser.Mfa.AuthenticatorDevices)
-                        {
-                            <div class="passkey-item">
-                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
-                                    <RadzenStack Gap="0px" Style="flex-grow: 2;">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
-                                            @i.Key
-                                        </RadzenText>
-                                        <div>
-                                            @if (i.Value)
-                                            {
-                                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Success" Text="Registered" />
-                                            }
-                                            else
-                                            {
-                                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Warning" Text="Unregistered" />
-                                            }
-                                        </div>
-
-                                    </RadzenStack>
-                                    <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
-                                        <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditAuthenticator(i.Key))" />
-                                    </RadzenStack>
-
-                                </RadzenStack>
-                            </div>
-                        }
-                    </RadzenStack>
-                    <br />
-                    <br />
-                    <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterAuthenticator" Disabled="@(!AuthUser.EmailConfirmed)" />
-                    <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.AuthenticatorDevices.Any())" />
-                    <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllAuthenticators" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.AuthenticatorDevices.Any())" />
-                </div>
-                <br />
-                <div class="session-item">
-                    <h4>Passkeys (WebAuth)</h4>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        Last Registered: @(Utils.GetLocalDate(Session, AuthUser.Mfa.PasskeyLastRegisteredAt, false))
-                    </RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.PasskeyLastUsedAt, true))
-                    </RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        Last Device: @AuthUser.Mfa.PasskeyLastUsedDevice
-                    </RadzenText>
-                    <br />
-                    <h5 class="mb-2">Devices</h5>
-                    <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
-                        @foreach (FidoStoredCredential i in AuthUser.Mfa.Passkeys)
-                        {
-                            <div class="passkey-item">
-                                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
-                                    <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLCAwLCAwLCAxLCAyNy4wMDkwMDEsIC0zOS4yMzg5OTgpIj4KICAgIDxwYXRoIGZpbGw9IiM0Mjg1RjQiIGQ9Ik0gLTMuMjY0IDUxLjUwOSBDIC0zLjI2NCA1MC43MTkgLTMuMzM0IDQ5Ljk2OSAtMy40NTQgNDkuMjM5IEwgLTE0Ljc1NCA0OS4yMzkgTCAtMTQuNzU0IDUzLjc0OSBMIC04LjI4NCA1My43NDkgQyAtOC41NzQgNTUuMjI5IC05LjQyNCA1Ni40NzkgLTEwLjY4NCA1Ny4zMjkgTCAtMTAuNjg0IDYwLjMyOSBMIC02LjgyNCA2MC4zMjkgQyAtNC41NjQgNTguMjM5IC0zLjI2NCA1NS4xNTkgLTMuMjY0IDUxLjUwOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNIC0xNC43NTQgNjMuMjM5IEMgLTExLjUxNCA2My4yMzkgLTguODA0IDYyLjE1OSAtNi44MjQgNjAuMzI5IEwgLTEwLjY4NCA1Ny4zMjkgQyAtMTEuNzY0IDU4LjA0OSAtMTMuMTM0IDU4LjQ4OSAtMTQuNzU0IDU4LjQ4OSBDIC0xNy44ODQgNTguNDg5IC0yMC41MzQgNTYuMzc5IC0yMS40ODQgNTMuNTI5IEwgLTI1LjQ2NCA1My41MjkgTCAtMjUuNDY0IDU2LjYxOSBDIC0yMy40OTQgNjAuNTM5IC0xOS40NDQgNjMuMjM5IC0xNC43NTQgNjMuMjM5IFoiLz4KICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik0gLTIxLjQ4NCA1My41MjkgQyAtMjEuNzM0IDUyLjgwOSAtMjEuODY0IDUyLjAzOSAtMjEuODY0IDUxLjIzOSBDIC0yMS44NjQgNTAuNDM5IC0yMS43MjQgNDkuNjY5IC0yMS40ODQgNDguOTQ5IEwgLTIxLjQ4NCA0NS44NTkgTCAtMjUuNDY0IDQ1Ljg1OSBDIC0yNi4yODQgNDcuNDc5IC0yNi43NTQgNDkuMjk5IC0yNi43NTQgNTEuMjM5IEMgLTI2Ljc1NCA1My4xNzkgLTI2LjI4NCA1NC45OTkgLTI1LjQ2NCA1Ni42MTkgTCAtMjEuNDg0IDUzLjUyOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNIC0xNC43NTQgNDMuOTg5IEMgLTEyLjk4NCA0My45ODkgLTExLjQwNCA0NC41OTkgLTEwLjE1NCA0NS43ODkgTCAtNi43MzQgNDIuMzY5IEMgLTguODA0IDQwLjQyOSAtMTEuNTE0IDM5LjIzOSAtMTQuNzU0IDM5LjIzOSBDIC0xOS40NDQgMzkuMjM5IC0yMy40OTQgNDEuOTM5IC0yNS40NjQgNDUuODU5IEwgLTIxLjQ4NCA0OC45NDkgQyAtMjAuNTM0IDQ2LjA5OSAtMTcuODg0IDQzLjk4OSAtMTQuNzU0IDQzLjk4OSBaIi8+CiAgPC9nPgo8L3N2Zz4=" />
-
-                                    <RadzenStack Gap="0px" Style="flex-grow: 2;">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
-                                            @i.Name
-                                        </RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body2">
-                                            <span>Created: @(Utils.GetLocalDate(Session, i.CreatedAt, true))</span>
-                                        </RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body2">
-                                            <span>Last Used: @(Utils.GetLocalDate(Session, i.LastUsedAt, true))</span>
-                                        </RadzenText>
-                                    </RadzenStack>
-                                    <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
-                                        <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditPasskey(i))" />
-                                        <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemovePasskey(i))" />
-                                    </RadzenStack>
-
-                                </RadzenStack>
-                            </div>
-                        }
-
-                    </RadzenStack>
-                    <br />
-                    <br />
-                    <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterPasskey" Disabled="@(!AuthUser.EmailConfirmed)" />
-                    <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.Passkeys.Any())" />
-                    <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllPasskeys" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.Passkeys.Any())" />
-                </div>
+                }
             </div>
-        }
-    </RadzenStack>
+            <br />
+            <div class="session-item">
+                <h4>Authenticator App</h4>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    Last Registered: @(Utils.GetLocalDate(Session, AuthUser.Mfa.AuthenticatorLastRegisteredAt, true))
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.AuthenticatorLastUsedAt, true))
+                </RadzenText>
+                <br />
+                <h5 class="mb-2">Devices</h5>
+
+
+                <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
+                    @foreach (KeyValuePair<string, bool> i in AuthUser.Mfa.AuthenticatorDevices)
+                    {
+                        <div class="passkey-item">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                                <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">
+                                        @i.Key
+                                    </RadzenText>
+                                    <div>
+                                        @if (i.Value)
+                                        {
+                                            <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Success" Text="Registered" />
+                                        }
+                                        else
+                                        {
+                                            <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Warning" Text="Unregistered" />
+                                        }
+                                    </div>
+
+                                </RadzenStack>
+                                <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                                    <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditAuthenticator(i.Key))" />
+                                </RadzenStack>
+
+                            </RadzenStack>
+                        </div>
+                    }
+                </RadzenStack>
+                <br />
+                <br />
+                <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterAuthenticator" Disabled="@(!AuthUser.EmailConfirmed)" />
+                <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.AuthenticatorDevices.Any())" />
+                <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllAuthenticators" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.AuthenticatorDevices.Any())" />
+            </div>
+            <br />
+            <div class="session-item">
+                <h4>Passkeys (WebAuth)</h4>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    Last Registered: @(Utils.GetLocalDate(Session, AuthUser.Mfa.PasskeyLastRegisteredAt, false))
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    Last Used: @(Utils.GetLocalDate(Session, AuthUser.Mfa.PasskeyLastUsedAt, true))
+                </RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    Last Device: @AuthUser.Mfa.PasskeyLastUsedDevice
+                </RadzenText>
+                <br />
+                <h5 class="mb-2">Devices</h5>
+                <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
+                    @foreach (FidoStoredCredential i in AuthUser.Mfa.Passkeys)
+                    {
+                        <div class="passkey-item">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                                <img src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyB0cmFuc2Zvcm09Im1hdHJpeCgxLCAwLCAwLCAxLCAyNy4wMDkwMDEsIC0zOS4yMzg5OTgpIj4KICAgIDxwYXRoIGZpbGw9IiM0Mjg1RjQiIGQ9Ik0gLTMuMjY0IDUxLjUwOSBDIC0zLjI2NCA1MC43MTkgLTMuMzM0IDQ5Ljk2OSAtMy40NTQgNDkuMjM5IEwgLTE0Ljc1NCA0OS4yMzkgTCAtMTQuNzU0IDUzLjc0OSBMIC04LjI4NCA1My43NDkgQyAtOC41NzQgNTUuMjI5IC05LjQyNCA1Ni40NzkgLTEwLjY4NCA1Ny4zMjkgTCAtMTAuNjg0IDYwLjMyOSBMIC02LjgyNCA2MC4zMjkgQyAtNC41NjQgNTguMjM5IC0zLjI2NCA1NS4xNTkgLTMuMjY0IDUxLjUwOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjMzRBODUzIiBkPSJNIC0xNC43NTQgNjMuMjM5IEMgLTExLjUxNCA2My4yMzkgLTguODA0IDYyLjE1OSAtNi44MjQgNjAuMzI5IEwgLTEwLjY4NCA1Ny4zMjkgQyAtMTEuNzY0IDU4LjA0OSAtMTMuMTM0IDU4LjQ4OSAtMTQuNzU0IDU4LjQ4OSBDIC0xNy44ODQgNTguNDg5IC0yMC41MzQgNTYuMzc5IC0yMS40ODQgNTMuNTI5IEwgLTI1LjQ2NCA1My41MjkgTCAtMjUuNDY0IDU2LjYxOSBDIC0yMy40OTQgNjAuNTM5IC0xOS40NDQgNjMuMjM5IC0xNC43NTQgNjMuMjM5IFoiLz4KICAgIDxwYXRoIGZpbGw9IiNGQkJDMDUiIGQ9Ik0gLTIxLjQ4NCA1My41MjkgQyAtMjEuNzM0IDUyLjgwOSAtMjEuODY0IDUyLjAzOSAtMjEuODY0IDUxLjIzOSBDIC0yMS44NjQgNTAuNDM5IC0yMS43MjQgNDkuNjY5IC0yMS40ODQgNDguOTQ5IEwgLTIxLjQ4NCA0NS44NTkgTCAtMjUuNDY0IDQ1Ljg1OSBDIC0yNi4yODQgNDcuNDc5IC0yNi43NTQgNDkuMjk5IC0yNi43NTQgNTEuMjM5IEMgLTI2Ljc1NCA1My4xNzkgLTI2LjI4NCA1NC45OTkgLTI1LjQ2NCA1Ni42MTkgTCAtMjEuNDg0IDUzLjUyOSBaIi8+CiAgICA8cGF0aCBmaWxsPSIjRUE0MzM1IiBkPSJNIC0xNC43NTQgNDMuOTg5IEMgLTEyLjk4NCA0My45ODkgLTExLjQwNCA0NC41OTkgLTEwLjE1NCA0NS43ODkgTCAtNi43MzQgNDIuMzY5IEMgLTguODA0IDQwLjQyOSAtMTEuNTE0IDM5LjIzOSAtMTQuNzU0IDM5LjIzOSBDIC0xOS40NDQgMzkuMjM5IC0yMy40OTQgNDEuOTM5IC0yNS40NjQgNDUuODU5IEwgLTIxLjQ4NCA0OC45NDkgQyAtMjAuNTM0IDQ2LjA5OSAtMTcuODg0IDQzLjk4OSAtMTQuNzU0IDQzLjk4OSBaIi8+CiAgPC9nPgo8L3N2Zz4=" />
+
+                                <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
+                                        @i.Name
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        <span>Created: @(Utils.GetLocalDate(Session, i.CreatedAt, true))</span>
+                                    </RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        <span>Last Used: @(Utils.GetLocalDate(Session, i.LastUsedAt, true))</span>
+                                    </RadzenText>
+                                </RadzenStack>
+                                <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                                    <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditPasskey(i))" />
+                                    <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemovePasskey(i))" />
+                                </RadzenStack>
+
+                            </RadzenStack>
+                        </div>
+                    }
+
+                </RadzenStack>
+                <br />
+                <br />
+                <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterPasskey" Disabled="@(!AuthUser.EmailConfirmed)" />
+                <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.Passkeys.Any())" />
+                <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllPasskeys" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.Passkeys.Any())" />
+            </div>
+        </RadzenColumn>
+    </RadzenRow>
+
 }
 
 <style>
