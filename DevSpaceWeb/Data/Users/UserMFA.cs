@@ -2,8 +2,6 @@
 using Fido2NetLib;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using System.Text.Json.Serialization;
 
 namespace DevSpaceWeb.Data.Users;
 

@@ -4,7 +4,6 @@ using DevSpaceWeb.Fido2;
 using DevSpaceWeb.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text;
 
