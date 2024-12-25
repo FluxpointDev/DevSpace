@@ -129,6 +129,49 @@ public static class ServiceBuilder
 
     public static void AddProviders(IServiceCollection services)
     {
+        services.AddOpenIddict()
+            .AddCore(options =>
+            {
+                options.UseMongoDb(config =>
+                {
+                    config.UseDatabase(_DB.Run);
+                });
+            })
+            .AddClient(options =>
+            {
+                // Note: this sample only uses the authorization code flow,
+                // but you can enable the other flows if necessary.
+                options.AllowAuthorizationCodeFlow();
+
+                // Register the signing and encryption credentials used to protect
+                // sensitive data like the state tokens produced by OpenIddict.
+                options.AddDevelopmentEncryptionCertificate()
+                       .AddDevelopmentSigningCertificate();
+
+                // Register the ASP.NET Core host and configure the ASP.NET Core-specific options.
+                options.UseAspNetCore()
+                       .EnableRedirectionEndpointPassthrough();
+
+                // Register the System.Net.Http integration.
+                options.UseSystemNetHttp();
+
+                // Register the Web providers integrations.
+                //
+                // Note: to mitigate mix-up attacks, it's recommended to use a unique redirection endpoint
+                // URI per provider, unless all the registered providers support returning a special "iss"
+                // parameter containing their URL as part of authorization responses. For more information,
+                // see https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.4.
+                options.UseWebProviders()
+                       .AddGitHub(options =>
+                       {
+                           options.SetClientId(_Data.Config.Providers.GitHub.ClientId)
+                                  .SetClientSecret(_Data.Config.Providers.GitHub.ClientSecret)
+                                  .SetProviderName("github")
+                                  .AddScopes("user:email", "read:user")
+                                  .SetRedirectUri("callback/login/github");
+                       });
+            });
+
         Microsoft.AspNetCore.Authentication.AuthenticationBuilder Auth = services.AddAuthentication();
         if (!string.IsNullOrEmpty(_Data.Config.Providers.Google.ClientId) && !string.IsNullOrEmpty(_Data.Config.Providers.Google.ClientSecret))
         {
@@ -176,7 +219,7 @@ public static class ServiceBuilder
             .AddTokenProvider(TokenOptions.DefaultProvider, typeof(DataProtectorTokenProvider<AuthUser>))
             .AddTokenProvider(TokenOptions.DefaultEmailProvider, typeof(EmailTokenProvider<AuthUser>))
             .AddTokenProvider(TokenOptions.DefaultAuthenticatorProvider, typeof(AuthenticatorTokenProvider<AuthUser>))
-        .AddMongoDbStores2<MongoDbContext, AuthUser, UserRole, ObjectId>(new MongoDbContext(_DB.Client, _Data.Config.Database.Name));
+        .AddMongoDbStores2<CustomMongoDbContext, AuthUser, UserRole, ObjectId>(new CustomMongoDbContext(_DB.Run));
 
     }
 
@@ -201,25 +244,3 @@ public static class ServiceBuilder
         return builder;
     }
 }
-
-//public class MflixDbContext : MongoDbContext
-//{
-//    public MflixDbContext(IMongoDatabase mongoDatabase) : base(mongoDatabase)
-//    {
-
-//    }
-
-//    public MflixDbContext(string connectionString) : base(connectionString)
-//    {
-//    }
-
-//    public MflixDbContext(string connectionString, string databaseName) : base(connectionString, databaseName)
-//    {
-//    }
-
-//    public MflixDbContext(MongoClient client, string databaseName) : base(client, databaseName)
-//    {
-
-//    }
-
-//}

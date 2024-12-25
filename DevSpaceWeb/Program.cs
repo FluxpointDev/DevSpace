@@ -107,6 +107,7 @@ public class Program
             }
         });
 
+        app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
         app.UseSession();
