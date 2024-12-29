@@ -21,6 +21,7 @@ Object.defineProperty(window.Auth, 'accountLogin', {
             let response = await fetch('/auth/login', {
                 method: 'POST',
                 body: formData,
+                credentials: 'same-origin',
                 headers: {
                     'Accept': 'application/json',
                     'RequestId': requestId
@@ -45,33 +46,8 @@ Object.defineProperty(window.Auth, 'accountLogin', {
 Object.defineProperty(Auth, 'accountLoginExternal', {
     configurable: false,
     writable: false,
-    value: async function (provider, rememberMe, requestId) {
-        var formData = new FormData();
-        formData.append('provider', provider);
-        formData.append('rememberMe', rememberMe)
-
-        try {
-            let response = await fetch('/auth/login/external', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json',
-                    'RequestId': requestId
-                }
-            });
-            if (response.ok)
-                return "ok";
-
-            if (response.status == 429)
-                return "ratelimit";
-
-            return "fail";
-        }
-        catch {
-            return "exception";
-        }
-
-        return "fail";
+    value: async function () {
+        document.getElementById('login-external-form').submit();
     }
 });
 

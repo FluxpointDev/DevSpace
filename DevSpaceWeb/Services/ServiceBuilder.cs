@@ -1,4 +1,6 @@
-﻿using AspNetCore.Identity.MongoDbCore;
+﻿using AspNet.Security.OAuth.GitHub;
+using AspNet.Security.OAuth.Slack;
+using AspNetCore.Identity.MongoDbCore;
 using AspNetCore.Identity.MongoDbCore.Infrastructure;
 using AspNetCore.Identity.MongoDbCore.Models;
 using DevSpaceWeb.Data;
@@ -7,6 +9,8 @@ using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
 using DevSpaceWeb.Models.Account;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OAuth.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -15,7 +19,10 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDbGenericRepository;
 using Radzen;
+using System.Net.Http.Headers;
 using System.Reflection;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace DevSpaceWeb.Services;
 
@@ -129,27 +136,231 @@ public static class ServiceBuilder
 
     public static void AddProviders(IServiceCollection services)
     {
-        Microsoft.AspNetCore.Authentication.AuthenticationBuilder Auth = services.AddAuthentication();
-        if (!string.IsNullOrEmpty(_Data.Config.Providers.Google.ClientId) && !string.IsNullOrEmpty(_Data.Config.Providers.Google.ClientSecret))
+        AuthenticationBuilder Auth = services.AddAuthentication();
+        if (_Data.Config.Providers.Fluxpoint.IsConfigured())
         {
-            Auth.AddGoogle("google", opt =>
-                {
-                    opt.ClientId = _Data.Config.Providers.Google.ClientId;
-                    opt.ClientSecret = _Data.Config.Providers.Google.ClientSecret;
-                    opt.SignInScheme = IdentityConstants.ExternalScheme;
-                });
+            Logger.LogMessage("Fluxpoint oauth login enabled", LogSeverity.Info);
+            //Auth.AddOAuth("fluxpoint", opt =>
+            //{
+            //    opt.AuthorizationEndpoint = "https://auth.fluxpoint.dev/application/o/authorize/";
+            //    opt.CallbackPath = new PathString("/auth/login/fluxpoint");
+            //    opt.ClientId = _Data.Config.Providers.Fluxpoint.ClientId;
+            //    opt.ClientSecret = _Data.Config.Providers.Fluxpoint.ClientSecret;
+            //    opt.Scope.Add("profile");
+            //    opt.Scope.Add("email");
+            //    opt.SignInScheme = IdentityConstants.ExternalScheme;
+            //    opt.TokenEndpoint = "https://auth.fluxpoint.dev/application/o/token/";
+            //    opt.UserInformationEndpoint = "https://auth.fluxpoint.dev/application/o/userinfo/";
+            //    opt.Events.OnCreatingTicket += async context =>
+            //    {
+            //        if (context.AccessToken is { })
+            //        {
+            //            Console.WriteLine("Access: " + context.AccessToken);
+            //            foreach (var i in context.Principal.Claims)
+            //            {
+            //                Console.WriteLine($"Claim: {i.Type} - {i.Value}");
+            //            }
+            //        }
+            //    };
+            //    opt.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "pk");
+            //    opt.ClaimActions.MapJsonKey(ClaimTypes.Name, "username");
+            //    opt.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+            //});
+            Auth.AddOpenIdConnect("fluxpoint", "Fluxpoint", opt =>
+            {
+                opt.CallbackPath = new PathString("/auth/login/fluxpoint");
+                opt.ClientId = _Data.Config.Providers.Fluxpoint.ClientId;
+                opt.ClientSecret = _Data.Config.Providers.Fluxpoint.ClientSecret;
+                opt.Scope.Add("profile");
+                opt.Scope.Add("email");
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "pk");
+                opt.ClaimActions.MapJsonKey(ClaimTypes.Name, "username");
+                opt.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+                opt.GetClaimsFromUserInfoEndpoint = true;
+                opt.Authority = "https://auth.fluxpoint.dev/application/o/dev-space/";
+            });
+            //Auth.AddTwitter("fluxpoint", opt =>
+            //{
+            //    opt.ConsumerKey = _Data.Config.Providers.Twitter.ConsumerKey;
+            //    opt.ConsumerSecret = _Data.Config.Providers.Twitter.ConsumerSecret;
+            //    opt.SignInScheme = IdentityConstants.ExternalScheme;
+            //    opt.RetrieveUserDetails = true;
+            //    opt.CallbackPath = new PathString("/auth/login/twitter");
+            //});
         }
-        if (!string.IsNullOrEmpty(_Data.Config.Providers.Discord.ClientId) && !string.IsNullOrEmpty(_Data.Config.Providers.Discord.ClientSecret))
+        if (_Data.Config.Providers.Apple.IsConfigured())
         {
+            Logger.LogMessage("Apple oauth login enabled", LogSeverity.Info);
+            Auth.AddApple("apple", opt =>
+            {
+                opt.ClientId = _Data.Config.Providers.Apple.ClientId;
+                opt.ClientSecret = _Data.Config.Providers.Apple.ClientSecret;
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.CallbackPath = new PathString("/auth/login/apple");
+                opt.Scope.Add("name");
+                opt.Scope.Add("email");
+                
+            });
+        }
+        if (_Data.Config.Providers.Discord.IsConfigured())
+        {
+            Logger.LogMessage("Discord oauth login enabled", LogSeverity.Info);
             Auth.AddDiscord("discord", opt =>
             {
                 opt.ClientId = _Data.Config.Providers.Discord.ClientId;
                 opt.ClientSecret = _Data.Config.Providers.Discord.ClientSecret;
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.CallbackPath = new PathString("/auth/login/discord");
                 opt.Scope.Add("email");
                 opt.Prompt = "none";
             });
         }
+        if (_Data.Config.Providers.Google.IsConfigured())
+        {
+            Logger.LogMessage("Google oauth login enabled", LogSeverity.Info);
+            Auth.AddGoogle("google", opt =>
+            {
+                opt.ClientId = _Data.Config.Providers.Google.ClientId;
+                opt.ClientSecret = _Data.Config.Providers.Google.ClientSecret;
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.CallbackPath = new PathString("/auth/login/google");
+                opt.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
+            });
+        }
+        if (_Data.Config.Providers.GitHub.IsConfigured())
+        {
+            Logger.LogMessage("GitHub oauth login enabled", LogSeverity.Info);
+            Auth.AddGitHub("github", opt =>
+            {
+                opt.ClientId = _Data.Config.Providers.GitHub.ClientId;
+                opt.ClientSecret = _Data.Config.Providers.GitHub.ClientSecret;
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.CallbackPath = new PathString("/auth/login/github");
+                opt.Scope.Add("user:email");
+                opt.UserEmailsEndpoint = GitHubAuthenticationDefaults.UserEmailsEndpoint;
+                opt.Events.OnCreatingTicket += async context =>
+                {
+                    if (context.AccessToken is { })
+                    {
+                        var EmailClaim = context.Identity.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
+                        if (EmailClaim != null)
+                            context.Identity.RemoveClaim(EmailClaim);
+
+                        using var request = new HttpRequestMessage(HttpMethod.Get, GitHubAuthenticationDefaults.UserEmailsEndpoint);
+                        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
+
+                        using var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            throw new HttpRequestException("An error occurred while retrieving the email address associated to the user profile.");
+                        }
+
+                        using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+
+                        context.Identity.AddClaim(new Claim(ClaimTypes.Email, (from address in payload.RootElement.EnumerateArray()
+                                where address.GetProperty("primary").GetBoolean()
+                                select address.GetString("email")).FirstOrDefault(), ClaimValueTypes.String, context.Options.ClaimsIssuer));
+
+                        
+                        //Console.WriteLine("Access: " + context.AccessToken);
+                        //context.Identity?.AddClaim(new Claim("access_token", context.AccessToken));
+                    }
+                };
+            });
+        }
+        if (_Data.Config.Providers.GitLab.IsConfigured())
+        {
+            Logger.LogMessage("GitLab oauth login enabled", LogSeverity.Info);
+            Auth.AddGitLab("gitlab", opt =>
+            {
+                opt.ClientId = _Data.Config.Providers.GitLab.ClientId;
+                opt.ClientSecret = _Data.Config.Providers.GitLab.ClientSecret;
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.CallbackPath = new PathString("/auth/login/gitlab");
+                opt.Scope.Add("email");
+
+            });
+        }
+        if (_Data.Config.Providers.Slack.IsConfigured())
+        {
+            Logger.LogMessage("Slack oauth login enabled", LogSeverity.Info);
+            Auth.AddSlack("slack", opt =>
+            {
+                opt.ClientId = _Data.Config.Providers.Slack.ClientId;
+                opt.ClientSecret = _Data.Config.Providers.Slack.ClientSecret;
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.CallbackPath = new PathString("/auth/login/slack");
+                opt.Scope.Add("email");
+                opt.Events.OnCreatingTicket = async context =>
+                {
+
+                    using (var request = new HttpRequestMessage(HttpMethod.Get, SlackAuthenticationDefaults.UserInformationEndpoint))
+                    {
+                        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                        request.Headers.Add("Authorization", "Bearer " + context.AccessToken);
+                        using var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                        {
+                            if (!response.IsSuccessStatusCode)
+                            {
+                                throw new HttpRequestException("An error occurred while retrieving the user profile.");
+                            }
+
+                            using (var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted)))
+                            {
+                                var IdClaim = context.Identity.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+                                if (IdClaim != null)
+                                    context.Identity.RemoveClaim(IdClaim);
+
+                                context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, payload.RootElement.GetProperty("user").GetString("id"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                                context.Identity.AddClaim(new Claim(ClaimTypes.Name, payload.RootElement.GetProperty("user").GetString("name"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                                context.Identity.AddClaim(new Claim(ClaimTypes.Email, payload.RootElement.GetProperty("user").GetString("email"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                                context.Identity.AddClaim(new Claim("team", payload.RootElement.GetProperty("team").GetString("id"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                            
+                            }
+                        }
+                    }
+
+
+
+                    //foreach (var i in context.Principal.Claims)
+                    //{
+                    //    Console.WriteLine($"Claim: {i.Type} - {i.Value}");
+                    //}
+                    //Console.WriteLine("Access: " + context.AccessToken);
+                    //if (context.AccessToken is { })
+                    //{
+                    //}
+                };
+            });
+        }
+        if (_Data.Config.Providers.Twitter.IsConfigured())
+        {
+            Logger.LogMessage("Twitter oauth login enabled", LogSeverity.Info);
+            Auth.AddTwitter("twitter", opt =>
+            {
+                opt.ConsumerKey = _Data.Config.Providers.Twitter.ConsumerKey;
+                opt.ConsumerSecret = _Data.Config.Providers.Twitter.ConsumerSecret;
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.RetrieveUserDetails = true;
+                opt.CallbackPath = new PathString("/auth/login/twitter");
+            });
+        }
+        if (_Data.Config.Providers.Microsoft.IsConfigured())
+        {
+            Logger.LogMessage("Microsoft oauth login enabled", LogSeverity.Info);
+            Auth.AddMicrosoftAccount("microsoft", opt =>
+            {
+                opt.ClientId = _Data.Config.Providers.Microsoft.ClientId;
+                opt.ClientSecret = _Data.Config.Providers.Microsoft.ClientSecret;
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+                //opt.AuthorizationEndpoint = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize";
+                //opt.TokenEndpoint = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";
+                opt.CallbackPath = new PathString("/auth/login/microsoft");
+            });
+        }
+
     }
 
     public static void AddFido2(IServiceCollection services)

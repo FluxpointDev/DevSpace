@@ -1,4 +1,7 @@
-﻿<div class="settings-box">
+﻿@inject UserManager<AuthUser> UserManager
+
+<PageTitle>Account Connections | @_Data.Config.Instance.Name</PageTitle>
+<div class="settings-box">
     <h3>Current Connections</h3>
 
     @if (AuthUser == null)
@@ -17,23 +20,30 @@
     else
     {
         <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
-        @foreach(var i in AuthUser.Logins)
-        {
-            <div class="passkey-item">
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
-                    <img src="@("https://cdn.fluxpoint.dev/icons/" + i.LoginProvider + ".webp")">
-                    <RadzenStack Gap="0px" Style="flex-grow: 2;">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
-                            @i.ProviderDisplayName
-                        </RadzenText>
-                    </RadzenStack>
-                    <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
-                        <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveConnection(i))" />
-                    </RadzenStack>
+            @foreach(var i in AuthUser.Logins)
+            {
+                <div class="passkey-item">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                        @if (i.LoginProvider == "fluxpoint")
+                        {
+                            <img src="@("https://fluxpoint.dev/img/icons/fluxpoint.png")" style="margin-top: -4px;">
+                        }
+                        else
+                        {
+                            <img src="@("https://cdn.fluxpoint.dev/icons/" + i.LoginProvider + ".webp")" style="margin-top: -4px;">
+                        }
+                        <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
+                                @i.ProviderDisplayName
+                            </RadzenText>
+                        </RadzenStack>
+                        <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                            <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveConnection(i))" />
+                        </RadzenStack>
 
-                </RadzenStack>
-            </div>
-        }
+                    </RadzenStack>
+                </div>
+            }
         </RadzenStack>
     }
 </div>
@@ -55,22 +65,32 @@
     else
     {
         <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
-        @foreach (var i in ValidConnections)
-        {
-            <div class="passkey-item">
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
-                    <img src="@("https://cdn.fluxpoint.dev/icons/" + i.Key + ".webp")" style="">
-                    <RadzenStack Gap="0px" Style="flex-grow: 2;">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
-                            @i.Value
-                        </RadzenText>
+            @foreach (var i in ValidConnections)
+            {
+                <div class="passkey-item">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                        @if (i.Key == "fluxpoint")
+                        {
+                            <img src="@("https://fluxpoint.dev/img/icons/fluxpoint.png")" style="margin-top: -4px;">
+                        }
+                        else
+                        {
+                            <img src="@("https://cdn.fluxpoint.dev/icons/" + i.Key + ".webp")" style="margin-top: -4px;">
+                        }
+                        
+                        <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
+                                @i.Value
+                            </RadzenText>
+                        </RadzenStack>
+                        <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                            <form id="login-external-form" action="/auth/login/external" method="post" class="form-horizontal">
+                                <RadzenButton Text="Add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" ButtonType="ButtonType.Submit" value="@i.Key" name="provider" />
+                            </form>
+                        </RadzenStack>
                     </RadzenStack>
-                    <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
-                        <RadzenButton Text="Add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" ButtonType="ButtonType.Submit" />
-                    </RadzenStack>
-                </RadzenStack>
-            </div>
-        }
+                </div>
+            }
         </RadzenStack>
     }
 </div>
@@ -84,21 +104,41 @@
     protected override async Task OnInitializedAsync()
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (_Data.Config.Providers.Fluxpoint.IsConfigured())
+            ValidConnections.Add("fluxpoint", "Fluxpoint");
+        if (_Data.Config.Providers.Apple.IsConfigured())
+            ValidConnections.Add("apple", "Apple");
+        if (_Data.Config.Providers.Discord.IsConfigured())
+            ValidConnections.Add("discord", "Discord");
+        if (_Data.Config.Providers.Google.IsConfigured())
+            ValidConnections.Add("google", "Google");
+        if (_Data.Config.Providers.GitHub.IsConfigured())
+            ValidConnections.Add("github", "GitHub");
+        if (_Data.Config.Providers.GitLab.IsConfigured())
+            ValidConnections.Add("gitlab", "GitLab");
+        if (_Data.Config.Providers.Slack.IsConfigured())
+            ValidConnections.Add("slack", "Slack");
+        if (_Data.Config.Providers.Twitter.IsConfigured())
+            ValidConnections.Add("twitter", "Twitter");
+        if (_Data.Config.Providers.Microsoft.IsConfigured())
+            ValidConnections.Add("microsoft", "Microsoft");
+
         foreach(var i in AuthUser.Logins)
         {
             ValidConnections.Remove(i.LoginProvider);
         }
     }
 
-    public Dictionary<string, string> ValidConnections = new Dictionary<string, string>
-    {
-        { "discord", "Discord" },
-        { "google", "Google" },
-        { "github", "GitHub" }
-    };
+    public Dictionary<string, string> ValidConnections = new Dictionary<string, string>();
 
     public async Task RemoveConnection(UserLoginInfo login)
     {
-        
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser.Logins.RemoveAll(x => x.LoginProvider == login.LoginProvider) != 0)
+        {
+            ValidConnections.Add(login.LoginProvider, login.ProviderDisplayName);
+            await UserManager.UpdateAsync(AuthUser);
+
+        }
     }
 }

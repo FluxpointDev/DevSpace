@@ -147,12 +147,37 @@ public enum ConfigEmailType
 }
 public class ConfigProviders
 {
-    public IConfigProvider Google = new IConfigProvider();
-    public IConfigProvider GitHub = new IConfigProvider();
-    public IConfigProvider Discord = new IConfigProvider();
+    public ConfigProvider Fluxpoint = new ConfigProvider();
+    public ConfigProvider Apple = new ConfigProvider();
+    public ConfigProvider Discord = new ConfigProvider();
+    public ConfigProvider Google = new ConfigProvider();
+    public ConfigProvider GitHub = new ConfigProvider();
+    public ConfigProvider GitLab = new ConfigProvider();
+    public ConfigProvider Slack = new ConfigProvider();
+    public ConfigProviderTwitter Twitter = new ConfigProviderTwitter();
+    public ConfigProvider Microsoft = new ConfigProvider();
 }
-public class IConfigProvider
+public class ConfigProvider
 {
     public string ClientId;
     public string ClientSecret;
+    public bool IsConfigured()
+    {
+        if (!string.IsNullOrEmpty(ClientId) && !string.IsNullOrEmpty(ClientSecret))
+            return true;
+
+        return false;
+    }
+}
+public class ConfigProviderTwitter
+{
+    public string ConsumerKey;
+    public string ConsumerSecret;
+    public bool IsConfigured()
+    {
+        if (!string.IsNullOrEmpty(ConsumerKey) && !string.IsNullOrEmpty(ConsumerSecret))
+            return true;
+
+        return false;
+    }
 }

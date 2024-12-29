@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using System.Net;
 
 namespace DevSpaceWeb;
 public class Program
@@ -33,6 +34,7 @@ public class Program
 
     public static void Main(string[] args)
     {
+        //WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
         Logger.RunLogger("Dev Space", LogSeverity.Debug);
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
