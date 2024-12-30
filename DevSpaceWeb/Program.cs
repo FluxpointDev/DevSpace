@@ -8,10 +8,22 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Net;
+using System.Reflection;
 
 namespace DevSpaceWeb;
 public class Program
 {
+    /// <summary>
+    /// Version of DevSpaceWeb.
+    /// </summary>
+    public static string Version => Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
+
+    public static string GetVersionText()
+    {
+        if (Version.StartsWith("0."))
+            return Version + " Dev";
+        return Version + " Release";
+    }
 
     public static InteractiveServerRenderMode RenderMode = new InteractiveServerRenderMode(prerender: false);
     /// <summary>
@@ -36,6 +48,7 @@ public class Program
     {
         //WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
         Logger.RunLogger("Dev Space", LogSeverity.Debug);
+        Console.WriteLine("V: " + Version);
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
 
