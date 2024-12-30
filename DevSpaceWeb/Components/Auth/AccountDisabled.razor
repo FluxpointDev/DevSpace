@@ -19,7 +19,14 @@
                 <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
                     You have disabled your account.
                 </RadzenAlert>
-                <p>You can reactive your account with an email code.</p>
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Account</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @AccountUsername
+                </RadzenText>
+                <br />
+                <RadzenText TextStyle="TextStyle.Body2">
+                    You can reactive your account with an email code.
+                </RadzenText>
                 <br />
                 <RadzenButton Text="Reactivate Account" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@EnableAccount" />
                 @if (ShowEmailCodeConfirm)
@@ -39,21 +46,37 @@
             <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
                 Your account is managed by a Team and has been disabled.
             </RadzenAlert>
+            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Account</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                @AccountUsername
+            </RadzenText>
             @if (!string.IsNullOrEmpty(Reason))
             {
-                <p>Reason: @Reason</p>
-                <br />
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Reason</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @Reason
+                </RadzenText>
             }
+            <br />
+            <a href="/logout"><RadzenButton Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="Logout" /></a>
             break;
         case UserDisabledState.Instance:
             <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
                 Your account has been disabled by the Dev Space instance admin.
             </RadzenAlert>
+            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Account</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                @AccountUsername
+            </RadzenText>
             @if (!string.IsNullOrEmpty(Reason))
             {
-                <p>Reason: @Reason</p>
-                <br />
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Reason</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                @Reason
+            </RadzenText>
             }
+            <br />
+            <a href="/logout"><RadzenButton Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="Logout" /></a>
             break;
     }
 
@@ -81,7 +104,11 @@
             return;
         }
         Disabled = User.Disabled!;
+        AccountUsername = User.UserName;
     }
+
+    public string AccountUsername { get; set; }
+
 
     public async Task EnableAccount()
     {

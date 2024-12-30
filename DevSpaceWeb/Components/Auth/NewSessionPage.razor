@@ -18,7 +18,7 @@
     </RadzenAlert>
     <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Account</RadzenText>
     <RadzenText TextStyle="TextStyle.Body2">
-        @Account
+        @AccountUsername
     </RadzenText>
     <br />
     <RadzenButton Click="@Check2FA" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
@@ -29,12 +29,12 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public string Account { get; set; }
+    public string AccountUsername { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var User = await Session.GetCurrentUserAsync();
-        Account = User.UserName;
+        AccountUsername = User.UserName;
     }
 
     public async Task Check2FA()
