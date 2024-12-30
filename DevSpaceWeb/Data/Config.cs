@@ -162,6 +162,7 @@ public class ConfigProvider
 {
     public string ClientId;
     public string ClientSecret;
+    public bool IsDisabled;
     public bool IsConfigured()
     {
         if (!string.IsNullOrEmpty(ClientId) && !string.IsNullOrEmpty(ClientSecret))
@@ -174,6 +175,7 @@ public class ConfigProviderTwitter
 {
     public string ConsumerKey;
     public string ConsumerSecret;
+    public bool IsDisabled;
     public bool IsConfigured()
     {
         if (!string.IsNullOrEmpty(ConsumerKey) && !string.IsNullOrEmpty(ConsumerSecret))

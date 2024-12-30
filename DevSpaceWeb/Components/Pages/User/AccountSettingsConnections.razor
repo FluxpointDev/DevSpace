@@ -77,7 +77,7 @@
                         {
                             <img src="@("https://cdn.fluxpoint.dev/icons/" + i.Key + ".webp")" style="margin-top: -4px;">
                         }
-                        
+
                         <RadzenStack Gap="0px" Style="flex-grow: 2;">
                             <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">
                                 @i.Value
@@ -85,7 +85,7 @@
                         </RadzenStack>
                         <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
                             <form id="login-external-form" action="/auth/login/external" method="post" class="form-horizontal">
-                                <RadzenButton Text="Add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" ButtonType="ButtonType.Submit" value="@i.Key" name="provider" />
+                                <RadzenButton Text="Add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" ButtonType="ButtonType.Submit" value="@i.Key" name="provider" Disabled="@(IsDisabled(i.Key))" />
                             </form>
                         </RadzenStack>
                     </RadzenStack>
@@ -130,6 +130,33 @@
     }
 
     public Dictionary<string, string> ValidConnections = new Dictionary<string, string>();
+
+    public bool IsDisabled(string provider)
+    {
+        switch (provider)
+        {
+            case "fluxpoint":
+                return _Data.Config.Providers.Fluxpoint.IsDisabled;
+            case "apple":
+                return _Data.Config.Providers.Apple.IsDisabled;
+            case "discord":
+                return _Data.Config.Providers.Discord.IsDisabled;
+            case "google":
+                return _Data.Config.Providers.Google.IsDisabled;
+            case "github":
+                return _Data.Config.Providers.GitHub.IsDisabled;
+            case "gitlab":
+                return _Data.Config.Providers.GitLab.IsDisabled;
+            case "slack":
+                return _Data.Config.Providers.Slack.IsDisabled;
+            case "twitter":
+                return _Data.Config.Providers.Twitter.IsDisabled;
+            case "microsoft":
+                return _Data.Config.Providers.Microsoft.IsDisabled;
+        }
+
+        return true;
+    }
 
     public async Task RemoveConnection(UserLoginInfo login)
     {
