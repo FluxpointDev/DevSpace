@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Filters;
 using DevSpaceWeb.Data.Permissions;
+using DevSpaceWeb.Data;
 
 namespace DevSpaceWeb.Controllers.API;
 
@@ -20,6 +21,11 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
     public override void OnActionExecuting(ActionExecutingContext filterContext)
     {
         APIController controller = filterContext.Controller as APIController;
+        if (!_Data.Config.Instance.Features.APIEnabled)
+        {
+            filterContext.Result = controller.CustomStatus(401, "API access has been disabled on this instance.");
+            return;
+        }
         if (!filterContext.HttpContext.Request.Headers.ContainsKey("Authorization"))
         {
             filterContext.Result = controller.CustomStatus(401, "Authorization header is missing.");
