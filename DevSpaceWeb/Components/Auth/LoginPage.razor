@@ -208,6 +208,12 @@
         case LoginPageType.Register:
             {
                 <PageTitle>Register | @_Data.Config.Instance.Name</PageTitle>
+                @if (Program.IsPreviewMode)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                        Preview Mode is enabled, you can't register an account.
+                    </RadzenAlert>
+                }
                 <EditForm Model="@RegisterForm" OnValidSubmit="@RegisterAccount">
                     <DataAnnotationsValidator />
 
@@ -258,7 +264,7 @@
                     }
 
                     <div class="flex-around" style="margin-top: 30px;">
-                        <RadzenButton Text="Register" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
+                        <RadzenButton Text="Register" IsBusy="@FormDisabled" Disabled="@(FormDisabled || Program.IsPreviewMode)" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
                         <RadzenButton Text="Login" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
                     </div>
                 </EditForm>
@@ -267,6 +273,12 @@
         case LoginPageType.ChangePassword:
             {
                 <PageTitle>Change Password | @_Data.Config.Instance.Name</PageTitle>
+                @if (Program.IsPreviewMode)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                        Preview Mode is enabled, you can't change password.
+                    </RadzenAlert>
+                }
                 @if (PasswordChangeSent)
                 {
                     <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
@@ -332,7 +344,7 @@
 
                         @if (string.IsNullOrEmpty(Token))
                         {
-                            <RadzenButton Text="Request Password Change" IsBusy="@FormDisabled" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@CheckChangePassword" />
+                            <RadzenButton Text="Request Password Change" IsBusy="@FormDisabled" Disabled="@(FormDisabled || Program.IsPreviewMode)" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@CheckChangePassword" />
                             <RadzenButton Text="Login" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
                         }
                         else
