@@ -16,14 +16,26 @@
     <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
         A new session or IP has been detected for this account, confirm 2FA to get access.
     </RadzenAlert>
+    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Account</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body2">
+        @Account
+    </RadzenText>
     <br />
     <RadzenButton Click="@Check2FA" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+    <a href="/logout"><RadzenButton Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="Logout" /></a>
 </div>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public string Account { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var User = await Session.GetCurrentUserAsync();
+        Account = User.UserName;
+    }
 
     public async Task Check2FA()
     {
