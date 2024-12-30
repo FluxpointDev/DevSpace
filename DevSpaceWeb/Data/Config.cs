@@ -82,6 +82,7 @@ public class ConfigAdmin
 public class ConfigAuth
 {
     public bool AllowInternalLogin = true;
+    public bool AllowExternalLogin = false;
     public bool AllowRegister = false;
 }
 public class ConfigDatabase

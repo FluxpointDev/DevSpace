@@ -34,6 +34,9 @@ public class AuthLoginController : AuthControllerContext
         if (string.IsNullOrEmpty(RequestId) || !Cache.TryGetValue("login-" + RequestId, out UserSessionJson SessionJson))
             return BadRequest("Request is invalid or expired");
 
+        if (!_Data.Config.Auth.AllowInternalLogin)
+            return Unauthorized("Internal login has been disabled on this instance.");
+
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             return BadRequest("Invalid email or password.");
 
@@ -108,6 +111,9 @@ public class AuthLoginController : AuthControllerContext
         if (Request.HttpContext.User.Identity != null && Request.HttpContext.User.Identity.IsAuthenticated)
             AlreadyAuthed = true;
 
+        if (!_Data.Config.Auth.AllowExternalLogin)
+            return Unauthorized("External login has been disabled on this instance.");
+
         if (!AlreadyAuthed && (string.IsNullOrEmpty(requestId) || !Cache.TryGetValue("login-" + requestId, out UserSessionJson SessionJson)))
             return BadRequest("Request is invalid or expired");
 
@@ -130,6 +136,9 @@ public class AuthLoginController : AuthControllerContext
     {
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
+
+        if (!_Data.Config.Auth.AllowExternalLogin)
+            return Unauthorized("External login has been disabled on this instance.");
 
         bool AlreadyAuthed = false;
         if (Request.HttpContext.User.Identity != null && Request.HttpContext.User.Identity.IsAuthenticated)
