@@ -37,6 +37,8 @@ public class ConfigInstance
     public bool HasIcon;
     public int IconVersion;
     public string PublicDomain;
+    public bool ShowDemoLink;
+
     public string GetPublicUrl()
     {
         if (Program.IsDevMode)
