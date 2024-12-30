@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
-using Org.BouncyCastle.Asn1.Ocsp;
 using System.Security.Claims;
 
 namespace DevSpaceWeb.Controllers.Auth;
@@ -20,15 +19,13 @@ public class AuthLoginController : AuthControllerContext
         UserManager<AuthUser> userManager,
         SignInManager<AuthUser> signInManager,
         GoogleHandler auth,
-        Fido2Service fido2Service, IMemoryCache cache, GitHubAuthenticationHandler github) : base(userManager, signInManager, fido2Service)
+        Fido2Service fido2Service, IMemoryCache cache) : base(userManager, signInManager, fido2Service)
     {
         Cache = cache;
         //User.SetToken(new IdentityUserToken<Guid>(), "test");
-        GitHub = github;
     }
 
     public IMemoryCache Cache { get; private set; }
-    public GitHubAuthenticationHandler GitHub { get; private set; }
 
     // Login User
     [HttpPost("/auth/login")]
