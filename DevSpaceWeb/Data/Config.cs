@@ -83,8 +83,6 @@ public class ConfigAuth
 {
     public bool AllowInternalLogin = true;
     public bool AllowRegister = false;
-    public bool AllowGoogleAuth = false;
-    public bool AllowFluxpointAuth = false;
 }
 public class ConfigDatabase
 {

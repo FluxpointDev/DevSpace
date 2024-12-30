@@ -23,7 +23,7 @@
 @inject IMemoryCache Cache
 @inject NavigationManager NavigationManager
 @inject EmailService Email
-
+@inject DialogService Dialog
 
 <div class="dash-box dash-box-content dash-center" style="max-width: 700px !important;">
     <div class="flex-center" style="text-align: center !important;">
@@ -214,6 +214,12 @@
                         Preview Mode is enabled, you can't register an account.
                     </RadzenAlert>
                 }
+                else if (!_Data.Config.Auth.AllowRegister)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                        Account registration has been disabled.
+                    </RadzenAlert>
+                }
                 <EditForm Model="@RegisterForm" OnValidSubmit="@RegisterAccount">
                     <DataAnnotationsValidator />
 
@@ -221,7 +227,7 @@
                         Username
                     </RadzenText>
                     <RadzenTextBox @bind-Value="RegisterForm.Username" Style="width: 100%" aria-label="Username" autocomplete="false"
-                    Placeholder="user" Disabled="@FormDisabled" autocapitalize="none" MaxLength="32" />
+                    Placeholder="user" Disabled="@(FormDisabled || !_Data.Config.Auth.AllowRegister || Program.IsPreviewMode)" autocapitalize="none" MaxLength="32" />
                     <ValidationMessage For="() => RegisterForm.Username" style="color: var(--rz-danger);" />
 
                     <br style="margin-bottom: 20px;" />
@@ -230,7 +236,7 @@
                         Email
                     </RadzenText>
                     <RadzenTextBox @bind-Value="RegisterForm.Email" Style="width: 100%" aria-label="Email" autocomplete="true" MaxLength="100"
-                    Placeholder="user@gmail.com" Disabled="@FormDisabled" inputmode="email" autocapitalize="none" AutoCompleteType="Radzen.Blazor.AutoCompleteType.Email" />
+                    Placeholder="user@gmail.com" Disabled="@(FormDisabled || !_Data.Config.Auth.AllowRegister || Program.IsPreviewMode)" inputmode="email" autocapitalize="none" AutoCompleteType="Radzen.Blazor.AutoCompleteType.Email" />
                     <ValidationMessage For="() => RegisterForm.Email" style="color: var(--rz-danger);" />
 
                     <br style="margin-bottom: 20px;" />
@@ -243,7 +249,7 @@
                         Password
                     </RadzenText>
                     <RadzenPassword @bind-Value="RegisterForm.Password" Style="width: 100%" aria-label="Password" autocomplete="false"
-                    Disabled="@FormDisabled" maxlength="100" />
+                    Disabled="@(FormDisabled || !_Data.Config.Auth.AllowRegister || Program.IsPreviewMode)" maxlength="100" />
                     <ValidationMessage For="() => RegisterForm.Password" style="color: var(--rz-danger);" />
 
                     <br style="margin-bottom: 20px;" />
@@ -252,7 +258,7 @@
                         Confirm Password
                     </RadzenText>
                     <RadzenPassword @bind-Value="@RegisterForm.RepeatPassword" Style="width: 100%" aria-label="Confirm Password" autocomplete="false"
-                    Disabled="@FormDisabled" maxlength="100" />
+                    Disabled="@(FormDisabled || !_Data.Config.Auth.AllowRegister || Program.IsPreviewMode)" maxlength="100" />
                     <ValidationMessage For="() => RegisterForm.RepeatPassword" style="color: var(--rz-danger);" />
 
 
@@ -264,7 +270,7 @@
                     }
 
                     <div class="flex-around" style="margin-top: 30px;">
-                        <RadzenButton Text="Register" IsBusy="@FormDisabled" Disabled="@(FormDisabled || Program.IsPreviewMode)" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
+                        <RadzenButton Text="Register" IsBusy="@FormDisabled" Disabled="@(FormDisabled || !_Data.Config.Auth.AllowRegister || Program.IsPreviewMode)" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" ButtonType="ButtonType.Submit" />
                         <RadzenButton Text="Login" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
                     </div>
                 </EditForm>
@@ -288,8 +294,6 @@
 
                 <EditForm Model="@ChangePasswordForm" OnValidSubmit="@ChangePassword">
                     <DataAnnotationsValidator />
-
-
 
                     @if (!string.IsNullOrEmpty(Token))
                     {
@@ -479,6 +483,11 @@
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
+            return;
+        }
+        if (!_Data.Config.Auth.AllowRegister)
+        {
+            await Dialog.ShowInfoAsync("Register Disabled", "You can't create an account on this dev space instance.");
             return;
         }
         FormDisabled = true;
