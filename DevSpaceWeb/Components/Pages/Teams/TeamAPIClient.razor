@@ -1,0 +1,54 @@
+﻿@using DevSpaceWeb.Data.API
+<PageTitle>Team API Settings | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:robot"></span></div>
+        <RadzenText class="mt-1" TextStyle="TextStyle.H6">API Client@((!NoAccess && Client != null) ? " - " + Client.Name : "")</RadzenText>
+    </div>
+    @if (Client == null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            Unknown API client.
+        </RadzenAlert>
+    }
+    else if (NoAccess)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have access to this API client.
+        </RadzenAlert>
+    }
+    else
+    {
+
+    }
+</div>
+@code {
+    [Parameter]
+    public string? ClientId { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public APIClient? Client { get; set; }
+    public bool NoAccess { get; set; }
+    public bool CanManage { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(ClientId) && ObjectId.TryParse(ClientId, out var id) && _DB.API.Cache.TryGetValue(id, out var client))
+            Client = client;
+        else
+            Client = null;
+
+        if (Client != null)
+        {
+            NoAccess = !Client.HasAccess(Member);
+            CanManage = Client.CanManage(Member);
+        }
+    }
+}
