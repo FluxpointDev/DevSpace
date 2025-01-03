@@ -88,7 +88,8 @@ public static class _Data
         const string characterSet =
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
         "abcdefghijklmnopqrstuvwxyz" +
-        "0123456789";
+        "0123456789" +
+        "!&*.-_?";
 
         if (length < 0)
             throw new ArgumentException("length must not be negative", "length");

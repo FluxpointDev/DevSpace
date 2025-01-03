@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Components.Layout;
 using DevSpaceWeb.Data.Users;
+using Microsoft.AspNetCore.Identity;
 using Radzen;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
@@ -419,6 +420,8 @@ public static class Utils
         }
         return DateFormatLang.DMY_Slash;
     }
+
+    public static PasswordHasher<AuthUser> Hasher = new PasswordHasher<AuthUser>();
 }
 public enum DateFormatLang
 {

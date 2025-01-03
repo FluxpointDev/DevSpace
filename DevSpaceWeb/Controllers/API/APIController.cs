@@ -6,7 +6,7 @@ namespace DevSpaceWeb.Controllers.API;
 
 public class APIController : ControllerBase
 {
-    public new APIClient Client = null;
+    public new APIClient Client = null!;
 
     [NonAction]
     public JsonResult Ok()

@@ -106,17 +106,17 @@
 
     public async Task SavePermissions(PermissionsSet perms)
     {
-        // if (SelectedPermission.Name == "Default")
-        // {
-        //     await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, perms));
-        //     Team.DefaultPermissions = perms;
-        //     SelectedPermission.Permissions = perms;
-        // }
-        // else
-        // {
-        //     await SelectedPermission.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Permissions, perms));
-        //     SelectedPermission.Permissions = perms;
-        // }
+        if (SelectedPermission.Name == "Default")
+        {
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, perms));
+            Team.DefaultPermissions = perms;
+            SelectedPermission.Permissions = perms;
+        }
+        else
+        {
+            //await SelectedPermission.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Permissions, perms));
+            //SelectedPermission.Permissions = perms;
+        }
     }
 
     protected override async Task OnParametersSetAsync()

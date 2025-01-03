@@ -1026,15 +1026,13 @@
 
         AuthUser = await Session.GetCurrentUserAsync();
 
-        PasswordHasher<AuthUser> Hasher = new PasswordHasher<AuthUser>();
-
         string Code = Utils.CreateTwoFactorRecoveryCode();
 
         string Key = Utils.CreateTwoFactorRecoveryCode();
 
         Cache.Set(Key, Code, new TimeSpan(0, 2, 0));
 
-        AuthUser.Mfa.RecoveryCode = Hasher.HashPassword(AuthUser, Code);
+        AuthUser.Mfa.RecoveryCode = Utils.Hasher.HashPassword(AuthUser, Code);
         AuthUser.Mfa.RecoveryCodeCreatedAt = DateTime.UtcNow;
         await UserManager.UpdateAsync(AuthUser);
 

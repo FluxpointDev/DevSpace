@@ -1,0 +1,27 @@
+﻿@using System.Text
+@if (string.IsNullOrEmpty(Value))
+{
+    <RadzenText TextStyle="TextStyle.Body2">
+        <span class="rz-link ml-1" @onclick="@(() => OnAction?.Invoke())">@ActionText</span>
+    </RadzenText>
+}
+else
+{
+    <RadzenText TextStyle="TextStyle.Body2">
+        @Value <span class="rz-link ml-1" @onclick="@(() => { if (!Disabled) { OnAction?.Invoke(); } })">@ActionText</span>
+    </RadzenText>
+}
+
+@code {
+    [Parameter]
+    public string Value { get; set; }
+
+    [Parameter]
+    public string ActionText { get; set; }
+
+    [Parameter]
+    public Func<Task> OnAction { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+}
