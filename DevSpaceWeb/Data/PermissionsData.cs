@@ -23,7 +23,7 @@ public static class PermissionsData
     {
         return new PermissionItem<TeamPermission>[]
         {
-            new PermissionItem<TeamPermission>(TeamPermission.ViewMembers, "View Members", "Allows you to view members in the team"),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewMembers, "View Members", "Allows you to view members in the team."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageMembers, "Manage Members", "Add or remove members to the team except global admins."),
             new PermissionItem<TeamPermission>(TeamPermission.AssignRoles, "Assign Roles", "Give members roles."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageRoles, "Manage Roles", "Create, delete and edit roles."),
@@ -31,7 +31,6 @@ public static class PermissionsData
             new PermissionItem<TeamPermission>(TeamPermission.ManagePermissions, "Manage Permissions", "Change permissions for roles except global admin."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage Team", "Change team settings."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageResources, "Manage All Resources", "Add or delete resources for the team such as servers/websites/projects."),
-            new PermissionItem<TeamPermission>(TeamPermission.ViewAuditLogs, "View Audit Logs", "View records for team and resource access and settings changes."),
             new PermissionItem<TeamPermission>(TeamPermission.ViewAuditLogs, "View Audit Logs", "View records for team and resource access and settings changes."),
             new PermissionItem<TeamPermission>(TeamPermission.ViewAPIs, "View APIs", "View all API clients."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageOwnAPIs, "Manage Own APIs", "Create and manage your own API clients."),
@@ -44,7 +43,7 @@ public static class PermissionsData
         return new PermissionItem<ServerPermission>[]
         {
             new PermissionItem<ServerPermission>(ServerPermission.ViewServer, "View Server" + (plural ? "s" : ""), "View all servers the team owns."),
-            new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Server" + (plural ? "s" : ""), "Change server settings."),
+            new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Server" + (plural ? "s" : ""), "Change all server settings."),
             new PermissionItem<ServerPermission>(ServerPermission.ManagePermissions, "Manage Permissions", "Change permissions for all servers the team owns."),
             new PermissionItem<ServerPermission>(ServerPermission.ManageResource, plural ? "Manage Server Resources" : "Manage Resource", "Add or delete servers for the team."),
         };
@@ -66,7 +65,7 @@ public static class PermissionsData
         return new PermissionItem<ProjectPermission>[]
         {
             new PermissionItem<ProjectPermission>(ProjectPermission.ViewProject, "View Project" + (plural ? "s" : ""), "View all projects the team owns."),
-           new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Project" + (plural ? "s" : ""), "Change project settings."),
+           new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Project" + (plural ? "s" : ""), "Change all project settings."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManagePermissions, "Manage Permissions", "Change permissions for all projects the team owns."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManageResource, plural ? "Manage Project Resources" : "Manage Resource", "Add or delete projects for the team."),
         };
@@ -87,9 +86,9 @@ public static class PermissionsData
     {
         return new PermissionItem<DockerPermission>[]
             {
-                new PermissionItem<DockerPermission>(DockerPermission.ViewContainers, "View Container" + (plural ? "s" : ""), "View all docker stacks and containers the team owns."),
+                new PermissionItem<DockerPermission>(DockerPermission.ViewContainers, "View Container" + (plural ? "s" : ""), "View all docker containers and stacks the team owns."),
                 new PermissionItem<DockerPermission>(DockerPermission.ControlContainers, "Control Container" + (plural ? "s" : ""), "Start, stop, restart, pause and kill containers."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageContainers, "Manage Container" + (plural ? "s" : ""), "Create and modify Stacks and containers."),
+                new PermissionItem<DockerPermission>(DockerPermission.ManageContainers, "Manage Container" + (plural ? "s" : ""), "Create and modify containers and stacks."),
                 new PermissionItem<DockerPermission>(DockerPermission.ViewImages, "View Images", "View current docker images."),
                 new PermissionItem<DockerPermission>(DockerPermission.ManageImages, "Manage Images", "Create and modify docker images."),
                 new PermissionItem<DockerPermission>(DockerPermission.ViewVolumes, "View Volumes", "View current docker volumes/storage."),

@@ -4,23 +4,22 @@
 
 @if (Permissions != null)
 {
-
-    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center" Wrap="FlexWrap.Wrap" Gap="0.2rem">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Left" Wrap="FlexWrap.Wrap" Gap="0.2rem">
         @if (PermissionType == PermissionType.All)
         {
-            <RadzenStack Gap="0" class="role-box">
-                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05"><span class="iconify" data-icon="mdi:tag"></span> Role Permissions</RadzenText>
+            <RadzenStack Gap="0" class="permission-grid-box">
+                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05"><span class="iconify" data-icon="mdi:tag"></span> Main Permissions</RadzenText>
 
-                <div class="role-permissions">
+                <div class="permission-grid-info">
                     <RadzenCheckBox @bind-Value="@GlobalAdministrator" Name="TeamGlobalAdministrator" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Global Administrator" Component="TeamGlobalAdministrator" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">Access all permissions and resources for the team.</span>
                 </div>
             </RadzenStack>
-            <RadzenStack Gap="0" class="role-box">
+            <RadzenStack Gap="0" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05"><span class="iconify" data-icon="mdi:people-group"></span> Team Permissions</RadzenText>
 
-                <div class="role-permissions">
+                <div class="permission-grid-info">
                     <RadzenCheckBox @bind-Value="@TeamAdministrator" Name="TeamAdministrator" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Team Administrator" Component="TeamAdministrator" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All team permissions.</span>
@@ -43,10 +42,10 @@
         }
         @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Server)
         {
-            <RadzenStack Gap="0" class="role-box">
+            <RadzenStack Gap="0" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05"><span class="iconify" data-icon="mdi:server"></span> Server Permissions</RadzenText>
 
-                <div class="role-permissions">
+                <div class="permission-grid-info">
                     <RadzenCheckBox @bind-Value="@ServerAdministrator" Name="ServerAdmin" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Server Administrator" Component="ServerAdmin" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All server permissions.</span>
@@ -70,20 +69,20 @@
         }
         @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Server || PermissionType == PermissionType.Docker)
         {
-            <RadzenStack Gap="0" class="role-box">
+            <RadzenStack Gap="0" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05"><span class="iconify" data-icon="mdi:docker"></span> Docker Permissions</RadzenText>
 
                 <RadzenText TextStyle="TextStyle.Body2" Style="">
                     Requires permission <strong>View Servers</strong> to use docker features.
                 </RadzenText>
 
-                <div class="role-permissions">
+                <div class="permission-grid-info">
                     <RadzenCheckBox @bind-Value="@DockerAdministrator" Name="ServerDockerAdministrator" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Docker Administrator" Component="ServerDockerAdministrator" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All docker permissions.</span>
                 </div>
 
-                <div class="role-permissions">
+                <div class="permission-grid-info">
                     <RadzenCheckBox @bind-Value="@DockerManager" Name="ServerDockerManager" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Docker Manager" Component="ServerDockerManager" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">Manage most docker features except for system access or dangerous actions.</span>
@@ -107,10 +106,10 @@
         }
         @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Website)
         {
-            <RadzenStack Gap="0" class="role-box">
+            <RadzenStack Gap="0" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05"><span class="iconify" data-icon="mdi:web"></span> Website Permissions</RadzenText>
 
-                <div class="role-permissions">
+                <div class="permission-grid-info">
                     <RadzenCheckBox @bind-Value="@WebsiteAdministrator" Name="WebsiteAdmin" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Website Administrator" Component="WebsiteAdmin" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All website permissions.</span>
@@ -134,10 +133,10 @@
         }
         @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Project)
         {
-            <RadzenStack Gap="0" class="role-box">
+            <RadzenStack Gap="0" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05"><span class="iconify" data-icon="mdi:lightbulb"></span> Project Permissions</RadzenText>
 
-                <div class="role-permissions">
+                <div class="permission-grid-info">
                     <RadzenCheckBox @bind-Value="@ProjectAdministrator" Name="ProjectAdmin" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Project Administrator" Component="ProjectAdmin" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All project permissions.</span>
@@ -161,10 +160,10 @@
         }
         @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Log)
         {
-            <RadzenStack Gap="0" class="role-box">
+            <RadzenStack Gap="0" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05"><span class="iconify" data-icon="mdi:warning"></span> Log Permissions</RadzenText>
 
-                <div class="role-permissions">
+                <div class="permission-grid-info">
                     <RadzenCheckBox @bind-Value="@LogAdministrator" Name="LogAdmin" Disabled="@(!PermissionsLoaded || IsDisabled)" />
                     <RadzenLabel Text="Log Administrator" Component="LogAdmin" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All log permissions.</span>
@@ -190,6 +189,75 @@
 }
 
 <style>
+    .permission-grid-box {
+width: 260px;
+padding: 4px;
+padding-left: 8px;
+padding-right: 8px !important;
+padding-bottom: 16px;
+background-color: #242527 !important;
+margin-right: 4px;
+margin-bottom: 4px;
+box-shadow: var(--rz-card-shadow);
+}
+
+.permission-grid-box .rz-text-subtitle2 {
+text-align: center !important;
+display: inline-block !important;
+margin-bottom: 14px !important;
+}
+
+.permission-grid-box span {
+display: block;
+}
+
+.permission-grid-info {
+margin-top: 6px;
+margin-bottom: 16px;
+}
+
+.permission-grid-info .rz-chkbox-box {
+margin-top: 4px !important;
+margin-bottom: -4px !important;
+}
+
+.role-info {
+background-color: var(--rz-info-darker) !important;
+padding: 6px;
+padding-left: 10px;
+padding-right: 10px;
+border-radius: 4px;
+margin-bottom: 10px;
+max-width: 796px;
+margin-left: auto;
+margin-right: auto;
+}
+
+
+.permission-grid-box .iconify {
+width: 22px;
+height: 22px;
+margin-right: 6px;
+margin-top: -2px;
+}
+
+.permission-grid-box .rz-text-body2 {
+color: var(--rz-warning);
+}
+
+.permission-grid-box .rz-chkbox-box .rzi {
+color: var(--rz-series-7) !important;
+}
+
+.permission-grid-box .rz-chkbox-box.rz-state-active {
+border-color: var(--rz-success-light);
+}
+
+.permission-grid-info span:not(.rz-chkbox-box span) {
+margin-top: 4px;
+margin-left: 32px;
+}
+
     .dialog-unsaved {
     height: 170px;
     margin-left: 20px;
