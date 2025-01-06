@@ -64,10 +64,11 @@
                     TeamId = Team.Id,
                     Name = data.Name,
                     Description = data.Description,
+                    CreatedAt = DateTime.UtcNow,
                     Position = Team.CachedRoles.Values.OrderBy(x => x.Position).Last().Position + 1
                 };
 
-try
+                try
                 {
                     await _DB.Roles.CreateAsync(role);
                 }

@@ -1,8 +1,6 @@
 ﻿using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Teams;
-using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
-using Microsoft.AspNetCore.Identity;
 using MongoDB.Bson;
 using MongoDB.Driver;
 

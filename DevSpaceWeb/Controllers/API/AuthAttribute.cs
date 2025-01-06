@@ -2,7 +2,6 @@
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data;
 using MongoDB.Bson;
-using DevSpaceWeb.Data.API;
 using DevSpaceWeb.Database;
 
 namespace DevSpaceWeb.Controllers.API;

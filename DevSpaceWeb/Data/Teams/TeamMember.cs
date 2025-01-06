@@ -254,7 +254,7 @@ public class TeamMemberData
     }
 
     public HashSet<ObjectId> Roles { get; set; } = new HashSet<ObjectId>();
-    public string NickName { get; set; }
+    public string? NickName { get; set; }
     public Guid? AvatarId { get; set; }
 
     public async Task UpdateAsync(UpdateDefinition<TeamMemberData> update)

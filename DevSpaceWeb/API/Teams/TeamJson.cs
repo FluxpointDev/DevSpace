@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data.Teams;
+﻿using DevSpaceWeb.Data.Permissions;
+using DevSpaceWeb.Data.Teams;
 
 namespace DevSpaceWeb.API.Teams;
 
@@ -10,17 +11,19 @@ public class TeamJson : Response
         name = data.Name;
         owner_id = data.OwnerId.ToString();
         vanity_url = data.VanityUrl;
-        if (data.ResourceId.HasValue)
-            resource_id = data.ResourceId.Value.ToString();
         if (data.IconId.HasValue)
-            icon_id = data.IconId.Value.ToString();
-
+            icon_url = data.GetIconOrDefault();
+        default_permissions = data.DefaultPermissions;
+        roles = data.Roles.Select(x => x.ToString()).ToArray();
+        members = data.Members.ToDictionary(x => x.Key.ToString(), x => x.Value.ToString());
     }
 
     public string id { get; set; }
     public string name { get; set; }
     public string owner_id { get; set; }
     public string vanity_url { get; set; }
-    public string resource_id { get; set; }
-    public string icon_id { get; set; }
+    public string icon_url { get; set; }
+    public PermissionsSet default_permissions { get; set; }
+    public string[] roles { get; set; }
+    public Dictionary<string, string> members { get; set; }
 }

@@ -34,6 +34,14 @@ public class AuthUser : MongoIdentityUser<ObjectId>
         return Avatar.Url(usePng ? "png" : "webp");
     }
 
+    public string? GetBackground()
+    {
+        if (BackgroundId.HasValue)
+            return Background.Url("webp");
+
+        return null;
+    }
+
     public bool IsInstanceAdmin { get; set; }
 
     public UserAccount Account { get; set; } = new UserAccount();

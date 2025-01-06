@@ -13,6 +13,7 @@ public class TeamRoleData
     public ObjectId Id { get; set; }
     public ObjectId TeamId { get; set; }
     public string Name { get; set; }
+    public DateTime CreatedAt { get; set; }
     public string Description { get; set; }
     public int Position { get; set; }
     public PermissionsSet Permissions { get; set; } = new PermissionsSet();

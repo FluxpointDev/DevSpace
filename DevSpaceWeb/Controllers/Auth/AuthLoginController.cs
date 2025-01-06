@@ -1,5 +1,4 @@
-﻿using AspNet.Security.OAuth.GitHub;
-using DevSpaceWeb.Data;
+﻿using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Fido2;
