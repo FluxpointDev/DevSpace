@@ -24,15 +24,15 @@
     {
         <br />
         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Owner</RadzenText>
-        <RadzenTextAction Value="@OwnerUser" ActionText="Change" Disabled="@(!CanManage)" OnAction="@ChangeOwner"></RadzenTextAction>
+        <RadzenUserSelector Value="@OwnerUser" Disabled="@(!CanManage)" OnSelected="@ChangeOwner"></RadzenUserSelector>
 
         <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Created</RadzenText>
-        <RadzenText Text="@Utils.GetLocalDate(Session, Client.CreatedAt)"></RadzenText>
+        <RadzenText Text="@Utils.GetLocalDate(Session, Client.CreatedAt)" TextStyle="TextStyle.Body2"></RadzenText>
 
         <br />
         <a href="/swagger/index.html" target="_blank"><RadzenButton Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Text="Docs" /></a>
         <RadzenButton Click="@ToggleClientDisable" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="@((Client.IsDisabled ? "Enable" : "Disable") + " Client")" Disabled="@(!CanManage)" />
-        <RadzenButton Click="@GenerateToken" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Generate Token" Disabled="@(!CanManage)" />
+
     }
 </div>
 
@@ -40,27 +40,46 @@
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:form-textbox-password"></span></div>
+            <RadzenText class="mt-1" TextStyle="TextStyle.H6">Token</RadzenText>
+        </div>
+        <br />
+        @if (string.IsNullOrEmpty(Client.TokenHash))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Token has not been generated.
+            </RadzenAlert>
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Generated</RadzenText>
+            <RadzenText Text="@GeneratedUser" TextStyle="TextStyle.Body2"></RadzenText>
+            <RadzenText Text="@Utils.GetLocalDate(Session, Client.CreatedAt)" TextStyle="TextStyle.Body2"></RadzenText>
+        }
+        <br />
+        <RadzenButton Click="@GenerateToken" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Generate Token" Disabled="@(!CanManage)" />
+    </div>
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
             <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lock"></span></div>
             <RadzenText class="mt-1" TextStyle="TextStyle.H6">Permissions</RadzenText>
         </div>
         <br />
-        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Permission Type</RadzenText>
-        <RadzenSelectBar Value="@Client.UseCustomPermissions" Change="@SetPermissionType" TValue="bool" Disabled="@(!CanManage)">
-            <Items>
-                <RadzenSelectBarItem Text="User" Value="false" />
-                <RadzenSelectBarItem Text="Custom" Value="true" />
-            </Items>
-        </RadzenSelectBar>
+        <RadzenText Text="The API client will inherit permissions from the owner user or custom permissions if set." TextStyle="TextStyle.Body1"></RadzenText>
         <br />
-        <br style="margin-bottom: 10px;" />
+        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+            Only global administrators can set custom permissions.
+        </RadzenAlert>
+        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">Permission Type</RadzenText>
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+            <RadzenSwitch Value="@Client.UseCustomPermissions" Disabled="@(!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))" ValueChanged="@ToggleCustomPermissions" Name="UseCustom" />
+            <RadzenLabel Text="Use Custom Permissions" Component="UseCustom" />
+        </RadzenStack>
+        <br />
+        <br />
         @if (Client.UseCustomPermissions)
         {
-            <PermissionGrid IsDisabled="@(!CanManage)" Permissions="@Permissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions"></PermissionGrid>
-        }
-        else
-        {
-            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Access User</RadzenText>
-            <RadzenTextAction Value="@PermissionUser" ActionText="Change" Disabled="@(!CanManage)" OnAction="@ChangePermissionUser"></RadzenTextAction>
+            <PermissionGrid IsDisabled="@(!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))" Permissions="@Permissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions"></PermissionGrid>
         }
 
     </div>
@@ -71,7 +90,7 @@
     max-width: 200px;
     }
 
-    
+
 </style>
 
 
@@ -86,11 +105,13 @@
 
     public TeamMemberData Member => Session.Selected.Member;
 
+
+
     public APIClient? Client { get; set; }
     public bool NoAccess { get; set; }
     public bool CanManage { get; set; }
-    public string OwnerUser { get; set; } = "Builderb";
-    public string PermissionUser { get; set; } = "Builderb";
+    public string OwnerUser { get; set; }
+    public string GeneratedUser { get; set; }
     public PermissionsSet Permissions;
 
     protected override async Task OnParametersSetAsync()
@@ -102,29 +123,53 @@
 
         if (Client != null)
         {
+            if (_DB.Users.TryGetValue(Client.OwnerId, out var user))
+                OwnerUser = user.UserName;
+            else
+                OwnerUser = "Unknown?";
+
+            if (Client.GeneratedBy.HasValue && _DB.Users.TryGetValue(Client.GeneratedBy.Value, out var user2))
+                GeneratedUser = user2.UserName;
+            else
+                GeneratedUser = "Unknown?";
+
+
             NoAccess = !Client.HasAccess(Member);
             CanManage = Client.CanManage(Member);
             Permissions = Client.CustomPermissions.Clone();
         }
     }
 
-    public async Task SetPermissionType(bool val)
+
+    public async Task ChangeOwner(PartialUserData user)
     {
-        CanManage = Client!.CanManage(Member);
+        CanManage = Client.CanManage(Member);
         if (!CanManage)
             return;
-        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.UseCustomPermissions, val));
-        Client.UseCustomPermissions = val;
+
+        bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
+        if (Confirm)
+        {
+            var AuthUser = await Session.GetCurrentUserAsync();
+            await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
+            .Set(x => x.OwnerId, user.Id).Set(x => x.TokenHash, "").Set(x => x.GeneratedBy, AuthUser.Id).Set(x => x.GeneratedAt, DateTime.UtcNow));
+            Client.TokenHash = "";
+            Client.GeneratedBy = AuthUser.Id;
+            Client.GeneratedAt = DateTime.UtcNow;
+            Client.OwnerId = user.Id;
+            OwnerUser = user.UserName;
+            GeneratedUser = AuthUser.UserName;
+            StateHasChanged();
+        }
     }
 
-    public async Task ChangeOwner()
+    public async Task ToggleCustomPermissions(bool value)
     {
+        if (!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))
+            return;
 
-    }
-
-    public async Task ChangePermissionUser()
-    {
-
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.UseCustomPermissions, value));
+        Client.UseCustomPermissions = value;
     }
 
     public void LoadPermissions()
@@ -134,9 +179,9 @@
 
     public async Task SavePermissions(PermissionsSet perms)
     {
-        CanManage = Client!.CanManage(Member);
-        if (!CanManage)
+        if (!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))
             return;
+
         await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.CustomPermissions, perms));
         Client.CustomPermissions = perms;
     }
@@ -157,9 +202,14 @@
 
         string Token = _Data.GetRandomString(new Random().Next(25, 45));
         string Hash = Utils.Hasher.HashPassword(null, Token);
-        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.TokenHash, Hash));
+        AuthUser = await Session.GetCurrentUserAsync();
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
+        .Set(x => x.TokenHash, Hash).Set(x => x.GeneratedAt, DateTime.UtcNow).Set(x => x.GeneratedBy, AuthUser.Id));
         Client.TokenHash = Hash;
-
+        Client.GeneratedAt = DateTime.UtcNow;
+        Client.GeneratedBy = AuthUser.Id;
+        GeneratedUser = AuthUser.UserName;
+        StateHasChanged();
         await DialogService.ShowInfoAsync("API Token", Token);
     }
 

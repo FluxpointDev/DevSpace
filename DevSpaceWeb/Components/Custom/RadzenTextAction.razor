@@ -1,13 +1,13 @@
 ﻿@using System.Text
 @if (string.IsNullOrEmpty(Value))
 {
-    <RadzenText TextStyle="TextStyle.Body2">
+    <RadzenText @ref="@Text" TextStyle="TextStyle.Body2">
         <span class="rz-link ml-1" @onclick="@(() => OnAction?.Invoke())">@ActionText</span>
     </RadzenText>
 }
 else
 {
-    <RadzenText TextStyle="TextStyle.Body2">
+    <RadzenText @ref="@Text" TextStyle="TextStyle.Body2">
         @Value <span class="rz-link ml-1" @onclick="@(() => { if (!Disabled) { OnAction?.Invoke(); } })">@ActionText</span>
     </RadzenText>
 }
@@ -24,4 +24,6 @@ else
 
     [Parameter]
     public bool Disabled { get; set; }
+
+    public RadzenText Text;
 }

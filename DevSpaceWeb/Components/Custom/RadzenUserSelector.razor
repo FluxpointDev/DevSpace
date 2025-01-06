@@ -1,0 +1,42 @@
+﻿@using System.Text
+@if (string.IsNullOrEmpty(Value))
+{
+    <RadzenText @ref="@Text" TextStyle="TextStyle.Body2">
+        <span class="rz-link ml-1" @onclick="@(() => { if (!Disabled) { TogglePopup(); } })">Change</span>
+    </RadzenText>
+}
+else
+{
+    <RadzenText @ref="@Text" TextStyle="TextStyle.Body2">
+        @Value <span class="rz-link ml-1" @onclick="@(() => { if (!Disabled) { TogglePopup(); } })">Change</span>
+    </RadzenText>
+}
+
+<RadzenUserPopup @ref="@UserPopup" OnSelected="@Selected"></RadzenUserPopup>
+
+@code {
+    [Parameter]
+    public string Value { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    public RadzenText Text { get; set; }
+    public RadzenUserPopup UserPopup { get; set; }
+
+    [Parameter]
+    public Func<PartialUserData, Task>? OnSelected { get; set; }
+
+    public async Task Selected(PartialUserData user)
+    {
+        OnSelected?.Invoke(user);
+    }
+
+    public async Task TogglePopup()
+    {
+        Console.WriteLine("Toggle Popup");
+        await UserPopup.popup.ToggleAsync(Text.Element);
+        if (UserPopup.popup.Visible)
+            UserPopup.LoadData(null);
+    }
+}

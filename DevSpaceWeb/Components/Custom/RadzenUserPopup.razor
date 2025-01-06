@@ -1,0 +1,62 @@
+﻿<Popup @ref=popup Lazy="true" class="popup-user">
+    <RadzenListBox AllowClear="true" TValue="PartialUserData" Value="@Selected"
+    LoadData="@LoadData" AllowFiltering="true" ValueChanged="@SelectUser"
+    Data="@users" TextProperty="@nameof(PartialUserData.UserName)" Style="width: 100%; max-width: 220px; height: 260px"
+    InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select user" }})" />
+</Popup>
+
+<style>
+    .popup-user {
+    width: 220px;
+    display: none;
+    position: absolute;
+    overflow: hidden;
+    border: var(--rz-panel-border);
+    background-color: var(--rz-panel-background-color);
+    box-shadow: var(--rz-panel-shadow);
+    border-radius: var(--rz-border-radius)
+    }
+
+</style>
+
+@code {
+    public Popup popup;
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    [Parameter]
+    public Func<PartialUserData, Task>? OnSelected { get; set; }
+
+    public TeamData Team => Session.Selected.Team?.Data;
+
+    IEnumerable<PartialUserData> users;
+
+    public PartialUserData? Selected;
+
+    public void LoadData(LoadDataArgs args)
+    {
+        try
+        {
+            var list = Team.Members.Select(dict => _DB.Users.TryGetValue(dict.Key, out var ur) ? ur : null).Where(val => val != null).AsQueryable();
+            if (args != null && !string.IsNullOrEmpty(args.Filter))
+            {
+                list = list.Where(c => c.UserName.ToLower().Contains(args.Filter, StringComparison.OrdinalIgnoreCase) || (!string.IsNullOrEmpty(c.DisplayName) && c.DisplayName.ToLower().Contains(args.Filter, StringComparison.OrdinalIgnoreCase)));
+            }
+            users = list;
+            InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+
+
+    }
+
+    public async Task SelectUser(PartialUserData user)
+    {
+        popup.CloseAsync();
+        OnSelected?.Invoke(user);
+    }
+}

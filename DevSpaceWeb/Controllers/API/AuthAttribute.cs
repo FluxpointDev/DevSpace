@@ -64,6 +64,12 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
+        if (string.IsNullOrEmpty(controller.Client.TokenHash))
+        {
+            filterContext.Result = controller.CustomStatus(401, "Client authentication has failed.");
+            return;
+        }
+
         var Validate = Utils.Hasher.VerifyHashedPassword(null, controller.Client.TokenHash, AuthKey);
 
         if (Validate == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
