@@ -34,25 +34,21 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
-        if (!filterContext.HttpContext.Request.Headers.ContainsKey("Client-Id"))
-        {
-            filterContext.Result = controller.CustomStatus(401, "Client-Id header is missing.");
-            return;
-        }
-
-        string AuthKey = filterContext.HttpContext.Request.Headers["Authorization"];
-        if (string.IsNullOrEmpty(AuthKey))
+        string Authorization = filterContext.HttpContext.Request.Headers["Authorization"];
+        if (string.IsNullOrEmpty(Authorization))
         {
             filterContext.Result = controller.CustomStatus(401, "Authorization header is empty.");
             return;
         }
 
-        string ClientId = filterContext.HttpContext.Request.Headers["Client-Id"];
-        if (string.IsNullOrEmpty(ClientId))
+        string[] Parts = Authorization.Split('.', StringSplitOptions.TrimEntries);
+        if (Parts.Length != 2)
         {
-            filterContext.Result = controller.CustomStatus(401, "Client-Id header is empty.");
+            filterContext.Result = controller.CustomStatus(401, "Invalid client.");
             return;
         }
+        string ClientId = Parts[0];
+        string Auth = Parts[1];
 
         if (ObjectId.TryParse(ClientId, out ObjectId id))
             _DB.API.Cache.TryGetValue(id, out controller.Client);
@@ -69,7 +65,7 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
-        var Validate = Utils.Hasher.VerifyHashedPassword(null, controller.Client.TokenHash, AuthKey);
+        var Validate = Utils.Hasher.VerifyHashedPassword(null, controller.Client.TokenHash, Auth);
 
         if (Validate == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
         {
@@ -79,21 +75,9 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
 
         if (controller.Client.IsDisabled)
         {
-            filterContext.Result = controller.CustomStatus(401, "Client has been disabled.");
+            filterContext.Result = controller.CustomStatus(403, "Client has been disabled.");
             return;
         }
-
-        //if (!_DB.Keys.TryGetValue(AuthKey, out ApiUser User))
-        //{
-        //    filterContext.Result = controller.CustomStatus(401, "Your token is invalid, for support go to " + Config.Discord + " ( G-2 )");
-        //    return;
-        //}
-
-        //if (User.Disabled)
-        //{
-        //    filterContext.Result = controller.CustomStatus(403, "Your token is disabled, for support go to " + Config.Discord + " ( G-3 )");
-        //    return;
-        //}
 
 
         //controller.User = User;

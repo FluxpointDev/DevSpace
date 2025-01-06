@@ -104,12 +104,11 @@ public static class ServiceBuilder
                 //    Url = new Uri("https://discord.gg/fluxpoint")
                 //}
             });
-            //c.AddServer(new OpenApiServer
-            //{
-            //    Url = "https://api.fluxpoint.dev"
-            //});
-            //c.ExampleFilters();
-            //c.EnableAnnotations(enableAnnotationsForInheritance: false, enableAnnotationsForPolymorphism: false);
+            c.AddServer(new OpenApiServer
+            {
+                Url = string.IsNullOrEmpty(_Data.Config.Instance.PublicDomain) ? "http://localhost" : $"https://{_Data.Config.Instance.PublicDomain}"
+            });
+            c.EnableAnnotations(enableAnnotationsForInheritance: false, enableAnnotationsForPolymorphism: false);
             c.AddSecurityDefinition("key", new OpenApiSecurityScheme
             {
                 Type = SecuritySchemeType.ApiKey,
@@ -117,17 +116,17 @@ public static class ServiceBuilder
                 In = ParameterLocation.Header,
                 Name = "Authorization"
             });
-            //            c.AddSecurityRequirement(new OpenApiSecurityRequirement
-            //{
-            //    {
-            //        new OpenApiSecurityScheme
-            //        {
-            //            Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "key" },
+            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "key" },
 
-            //        },
-            //        new string[] {  }
-            //                }
-            //            });
+                    },
+                    new string[] {  }
+                }
+            });
 
             c.OperationFilter<SwaggerCheckAuthFilter>();
         });
