@@ -1006,11 +1006,15 @@
                     TeamId = _DB.Teams.Cache.First().Value.Id,
                     UserId = User.Id
                 };
+            
             await _DB.Members.CreateAsync(member);
-            _DB.Teams.Cache.First().Value.Members.Add(User.Id, member.Id);
             await _DB.Teams.Cache.First().Value.UpdateAsync(new UpdateDefinitionBuilder<TeamData>()
                 .Set(x => x.OwnerId, User.Id)
-                .Set(x => x.Members, _DB.Teams.Cache.First().Value.Members));
+                .Set(x => x.Members, _DB.Teams.Cache.First().Value.Members), () =>
+                {
+                    
+                    _DB.Teams.Cache.First().Value.Members.Add(User.Id, member.Id);
+                });
 
             _DB.IsRestartRequired = true;
             _Data.Config.IsFullySetup = true;

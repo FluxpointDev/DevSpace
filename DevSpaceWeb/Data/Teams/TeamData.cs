@@ -7,6 +7,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 using Newtonsoft.Json;
+using System;
 
 namespace DevSpaceWeb.Data.Teams;
 
@@ -78,11 +79,11 @@ public class TeamData : IResource
         return Id.ToString();
     }
 
-    public async Task UpdateAsync(UpdateDefinition<TeamData> update)
+    public async Task UpdateAsync(UpdateDefinition<TeamData> update, Action action)
     {
         FilterDefinition<TeamData> filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Teams.Collection.UpdateOneAsync(filter, update);
-        if (!Result.IsAcknowledged)
-            throw new InvalidOperationException("Failed to update team data");
+        if (Result.IsAcknowledged)
+            action?.Invoke();
     }
 }

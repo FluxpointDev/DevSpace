@@ -108,9 +108,12 @@
     {
         if (SelectedPermission.Name == "Default")
         {
-            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, perms));
-            Team.DefaultPermissions = perms;
-            SelectedPermission.Permissions = perms;
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, perms), () =>
+            {
+                Team.DefaultPermissions = perms;
+                SelectedPermission.Permissions = perms;
+            });
+            
         }
         else
         {

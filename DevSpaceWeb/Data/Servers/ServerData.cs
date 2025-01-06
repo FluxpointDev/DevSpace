@@ -40,12 +40,12 @@ public class ServerData : ITeamResource
         return Id.ToString();
     }
 
-    public async Task UpdateAsync(UpdateDefinition<ServerData> update)
+    public async Task UpdateAsync(UpdateDefinition<ServerData> update, Action action)
     {
         FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Servers.Collection.UpdateOneAsync(filter, update);
-        if (!Result.IsAcknowledged)
-            throw new InvalidOperationException("Failed to update server data");
+        if (Result.IsAcknowledged)
+            action?.Invoke();
     }
 }
 public class ServerWebSocket

@@ -88,11 +88,11 @@ public class TeamRoleData
     //    return _Permissions.Docker.Has(permission);
     //}
 
-    public async Task UpdateAsync(UpdateDefinition<TeamRoleData> update)
+    public async Task UpdateAsync(UpdateDefinition<TeamRoleData> update, Action action)
     {
         FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Roles.Collection.UpdateOneAsync(filter, update);
-        if (!Result.IsAcknowledged)
-            throw new InvalidOperationException("Failed to update team data");
+        if (Result.IsAcknowledged)
+            action?.Invoke();
     }
 }

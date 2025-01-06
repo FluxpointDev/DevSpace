@@ -68,33 +68,25 @@
                     Position = Team.CachedRoles.Values.OrderBy(x => x.Position).Last().Position + 1
                 };
 
-                try
-                {
-                    await _DB.Roles.CreateAsync(role);
-                }
-                catch
-                {
-                    return "Failed to create role.";
-                }
-                _DB.Roles.Cache.TryAdd(role.Id, role);
-                Team.Roles.Add(role.Id);
-                Team.CachedRoles.Add(role.Id, role);
+            try
+            {
+                await _DB.Roles.CreateAsync(role);
+            }
+            catch
+            {
+                return "Failed to create role.";
+            }
 
-                try
-                {
-                    await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles));
-                    _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Role, AuditLogEventType.RoleCreated).SetTarget(AuditLogTargetType.Team, Team.Id));
-                }
-                catch
-                {
-                    Team.Roles.Remove(role.Id);
-                    Team.CachedRoles.Remove(role.Id);
-                    FilterDefinition<TeamRoleData> roleFilter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
-                    _DB.Roles.Collection.DeleteOne(roleFilter);
-                    _DB.Roles.Cache.Remove(role.Id, out _);
-                    return "Failed to create role";
-                }
-                Team.TriggerRoleChange(role, true);
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles), () =>
+        {
+            _DB.Roles.Cache.TryAdd(role.Id, role);
+            Team.Roles.Add(role.Id);
+            Team.CachedRoles.Add(role.Id, role);
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Role, AuditLogEventType.RoleCreated).SetTarget(AuditLogTargetType.Team, Team.Id));
+        });
+
+
+            Team.TriggerRoleChange(role, true);
 
             return string.Empty;
         });

@@ -9,6 +9,7 @@ using DevSpaceWeb.Data.Websites;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Users;
+using System;
 
 namespace DevSpaceWeb.Data.Teams;
 
@@ -257,11 +258,11 @@ public class TeamMemberData
     public string? NickName { get; set; }
     public Guid? AvatarId { get; set; }
 
-    public async Task UpdateAsync(UpdateDefinition<TeamMemberData> update)
+    public async Task UpdateAsync(UpdateDefinition<TeamMemberData> update, Action action)
     {
         FilterDefinition<TeamMemberData> filter = Builders<TeamMemberData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Members.Collection.UpdateOneAsync(filter, update);
-        if (!Result.IsAcknowledged)
-            throw new InvalidOperationException("Failed to update member data");
+        if (Result.IsAcknowledged)
+            action?.Invoke();
     }
 }

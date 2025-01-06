@@ -35,11 +35,12 @@ public class APIClient
         return false;
     }
 
-    public async Task UpdateAsync(UpdateDefinition<APIClient> update)
+    public async Task UpdateAsync(UpdateDefinition<APIClient> update, Action action)
     {
         FilterDefinition<APIClient> filter = Builders<APIClient>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.API.Collection.UpdateOneAsync(filter, update);
-        if (!Result.IsAcknowledged)
-            throw new InvalidOperationException("Failed to update api data");
+        if (Result.IsAcknowledged)
+            action?.Invoke();
+
     }
 }

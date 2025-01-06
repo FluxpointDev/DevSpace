@@ -1,6 +1,7 @@
 ﻿using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using MongoDB.Driver;
+using System;
 
 namespace DevSpaceWeb.Data.Projects;
 
@@ -15,11 +16,11 @@ public class ProjectData : ITeamResource
         return Id.ToString();
     }
 
-    public async Task UpdateAsync(UpdateDefinition<ProjectData> update)
+    public async Task UpdateAsync(UpdateDefinition<ProjectData> update, Action action)
     {
         FilterDefinition<ProjectData> filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Projects.Collection.UpdateOneAsync(filter, update);
-        if (!Result.IsAcknowledged)
-            throw new InvalidOperationException("Failed to update project data");
+        if (Result.IsAcknowledged)
+            action?.Invoke();
     }
 }

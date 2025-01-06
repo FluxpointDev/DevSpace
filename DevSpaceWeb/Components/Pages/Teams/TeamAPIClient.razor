@@ -152,13 +152,16 @@
         {
             var AuthUser = await Session.GetCurrentUserAsync();
             await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
-            .Set(x => x.OwnerId, user.Id).Set(x => x.TokenHash, "").Set(x => x.GeneratedBy, AuthUser.Id).Set(x => x.GeneratedAt, DateTime.UtcNow));
-            Client.TokenHash = "";
-            Client.GeneratedBy = AuthUser.Id;
-            Client.GeneratedAt = DateTime.UtcNow;
-            Client.OwnerId = user.Id;
-            OwnerUser = user.UserName;
-            GeneratedUser = AuthUser.UserName;
+            .Set(x => x.OwnerId, user.Id).Set(x => x.TokenHash, "").Set(x => x.GeneratedBy, AuthUser.Id).Set(x => x.GeneratedAt, DateTime.UtcNow), () =>
+            {
+                Client.TokenHash = "";
+                Client.GeneratedBy = AuthUser.Id;
+                Client.GeneratedAt = DateTime.UtcNow;
+                Client.OwnerId = user.Id;
+                OwnerUser = user.UserName;
+                GeneratedUser = AuthUser.UserName;
+            });
+
             StateHasChanged();
         }
     }
@@ -168,8 +171,11 @@
         if (!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))
             return;
 
-        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.UseCustomPermissions, value));
-        Client.UseCustomPermissions = value;
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.UseCustomPermissions, value), () =>
+        {
+            Client.UseCustomPermissions = value;
+        });
+
     }
 
     public void LoadPermissions()
@@ -182,8 +188,11 @@
         if (!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))
             return;
 
-        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.CustomPermissions, perms));
-        Client.CustomPermissions = perms;
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.CustomPermissions, perms), () =>
+        {
+            Client.CustomPermissions = perms;
+        });
+
     }
 
     public async Task GenerateToken()
@@ -204,11 +213,14 @@
         string Hash = Utils.Hasher.HashPassword(null, Token);
         AuthUser = await Session.GetCurrentUserAsync();
         await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
-        .Set(x => x.TokenHash, Hash).Set(x => x.GeneratedAt, DateTime.UtcNow).Set(x => x.GeneratedBy, AuthUser.Id));
-        Client.TokenHash = Hash;
-        Client.GeneratedAt = DateTime.UtcNow;
-        Client.GeneratedBy = AuthUser.Id;
-        GeneratedUser = AuthUser.UserName;
+        .Set(x => x.TokenHash, Hash).Set(x => x.GeneratedAt, DateTime.UtcNow).Set(x => x.GeneratedBy, AuthUser.Id), () =>
+        {
+            Client.TokenHash = Hash;
+            Client.GeneratedAt = DateTime.UtcNow;
+            Client.GeneratedBy = AuthUser.Id;
+            GeneratedUser = AuthUser.UserName;
+        });
+
         StateHasChanged();
         await DialogService.ShowInfoAsync("API Token", Client.Id.ToString() + "." + Token);
     }
@@ -218,16 +230,19 @@
         CanManage = Client!.CanManage(Member);
         if (!CanManage)
             return;
-        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.IsDisabled, !Client.IsDisabled));
-        if (Client.IsDisabled)
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.IsDisabled, !Client.IsDisabled), () =>
         {
-            Client.IsDisabled = false;
-            await DialogService.ShowInfoAsync("API Client", "This client has been enabled.");
-        }
-        else
-        {
-            Client.IsDisabled = true;
-            await DialogService.ShowInfoAsync("API Client", "This client has been disabled.");
-        }
+            if (Client.IsDisabled)
+            {
+                Client.IsDisabled = false;
+                DialogService.ShowInfoAsync("API Client", "This client has been enabled.");
+            }
+            else
+            {
+                Client.IsDisabled = true;
+                DialogService.ShowInfoAsync("API Client", "This client has been disabled.");
+            }
+        });
+        
     }
 }

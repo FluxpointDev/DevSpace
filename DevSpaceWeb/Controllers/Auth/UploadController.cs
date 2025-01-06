@@ -275,8 +275,11 @@ public class UploadController : Controller
         if (Team.ResourceId == null)
         {
             Guid GeneratedId = CheckResourceId();
-            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.ResourceId, GeneratedId));
-            Team.ResourceId = GeneratedId;
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.ResourceId, GeneratedId), () =>
+            {
+                Team.ResourceId = GeneratedId;
+            });
+            
         }
 
         Guid ImageId = Guid.NewGuid();
@@ -318,25 +321,28 @@ public class UploadController : Controller
             }
         }
 
-        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, ImageId));
-
-        _DB.AuditLogs.CreateAsync(new AuditLog(AuthUser.Id, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconChanged).SetTarget(AuditLogTargetType.Team, Team.Id));
-
-        if (Team.IconId != null)
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, ImageId), () =>
         {
-            try
+            _DB.AuditLogs.CreateAsync(new AuditLog(AuthUser.Id, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconChanged).SetTarget(AuditLogTargetType.Team, Team.Id));
+
+            if (Team.IconId != null)
             {
-                if (System.IO.File.Exists(Team.Icon.Path("webp")))
-                    System.IO.File.Delete(Team.Icon.Path("webp"));
+                try
+                {
+                    if (System.IO.File.Exists(Team.Icon.Path("webp")))
+                        System.IO.File.Delete(Team.Icon.Path("webp"));
 
-                if (System.IO.File.Exists(Team.Icon.Path("png")))
-                    System.IO.File.Delete(Team.Icon.Path("png"));
+                    if (System.IO.File.Exists(Team.Icon.Path("png")))
+                        System.IO.File.Delete(Team.Icon.Path("png"));
+                }
+                catch { }
             }
-            catch { }
-        }
 
 
-        Team.IconId = ImageId;
+            Team.IconId = ImageId;
+        });
+
+        
         return Ok();
     }
 

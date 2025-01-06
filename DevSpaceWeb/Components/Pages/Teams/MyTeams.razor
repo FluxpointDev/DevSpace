@@ -76,39 +76,36 @@
                     OwnerId = Session.CurrentUserId.Value
                 };
                 await _DB.Teams.CreateAsync(Team);
-                    TeamMemberData Member = new TeamMemberData()
-                    {
-                        UserId = Session.CurrentUserId.Value,
-                        TeamId = Team.Id
-                    };
+                TeamMemberData Member = new TeamMemberData()
+                {
+                    UserId = Session.CurrentUserId.Value,
+                    TeamId = Team.Id
+                };
 
-                    await _DB.Members.CreateAsync(Member);
+                await _DB.Members.CreateAsync(Member);
 
-                    _DB.Members.Cache.TryAdd(Member.Id, Member);
-                    Team.Members.Add(Member.UserId, Member.Id);
-                    Team.CachedMembers.Add(Member.Id, Member);
-                    try
-                    {
-                        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members));
-                    }
-                    catch
-                    {
-                        throw new Exception("Failed");
-                    }
 
-                    if (!string.IsNullOrEmpty(VanityUrl))
-                    {
+                await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members), () =>
+            {
+                _DB.Members.Cache.TryAdd(Member.Id, Member);
+                Team.Members.Add(Member.UserId, Member.Id);
+                Team.CachedMembers.Add(Member.Id, Member);
+            });
+
+
+                if (!string.IsNullOrEmpty(VanityUrl))
+                {
                     VanityUrlData Vanity = new VanityUrlData
-                        {
+                    {
 
-                        };
-                        await _DB.TeamVanityUrls.CreateAsync(Vanity);
-                        _DB.TeamsVanityCache.TryAdd(VanityUrl, Team);
-                        _DB.VanityUrlCache.TryAdd(Team.Id, VanityUrl);
-                    }
+                    };
+                    await _DB.TeamVanityUrls.CreateAsync(Vanity);
+                    _DB.TeamsVanityCache.TryAdd(VanityUrl, Team);
+                    _DB.VanityUrlCache.TryAdd(Team.Id, VanityUrl);
+                }
 
                 _DB.Teams.Cache.TryAdd(Team.Id, Team);
-                
+
 
                 InvokeAsync(StateHasChanged);
                 return null;

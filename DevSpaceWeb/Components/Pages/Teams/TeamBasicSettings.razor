@@ -72,33 +72,36 @@
         if (!props.Any())
             return null;
 
-        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, model.Name).Set(x => x.VanityUrl, model.VanityUrl));
-
-        _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.SettingsChanged).SetTarget(AuditLogTargetType.Team, Team.Id).SetProperties(props));
-
-        Team.Name = model.Name;
-        if (Team.VanityUrl != model.VanityUrl)
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, model.Name).Set(x => x.VanityUrl, model.VanityUrl), () =>
         {
-            if (string.IsNullOrEmpty(model.VanityUrl))
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.SettingsChanged).SetTarget(AuditLogTargetType.Team, Team.Id).SetProperties(props));
+
+            Team.Name = model.Name;
+            if (Team.VanityUrl != model.VanityUrl)
             {
-                if (!string.IsNullOrEmpty(Team.VanityUrl))
+                if (string.IsNullOrEmpty(model.VanityUrl))
                 {
-                    _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
-                    Team.VanityUrl = string.Empty;
+                    if (!string.IsNullOrEmpty(Team.VanityUrl))
+                    {
+                        _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
+                        Team.VanityUrl = string.Empty;
+                    }
                 }
-            }
-            else
-            {
-                if (model.VanityUrl != Team.VanityUrl)
+                else
                 {
-                    _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
-                    _DB.TeamsVanityCache.TryAdd(model.VanityUrl, Team);
-                    Team.VanityUrl = model.VanityUrl;
+                    if (model.VanityUrl != Team.VanityUrl)
+                    {
+                        _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
+                        _DB.TeamsVanityCache.TryAdd(model.VanityUrl, Team);
+                        Team.VanityUrl = model.VanityUrl;
+                    }
                 }
+                Session.Selected.Team.VanityUrl = Team.GetVanityUrl();
             }
-            Session.Selected.Team.VanityUrl = Team.GetVanityUrl();
-        }
-        Session.TriggerNavMenuChange();
+            Session.TriggerNavMenuChange();
+        });
+
+
 
         return null;
     }
@@ -133,11 +136,14 @@
             return;
         }
 
-        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null));
-        _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconRemoved).SetTarget(AuditLogTargetType.Team, Team.Id));
-        File.Delete(Team.Icon.Path("webp"));
-        File.Delete(Team.Icon.Path("png"));
-        Team.IconId = null;
-        Session.TriggerNavMenuChange();
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null), () =>
+        {
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconRemoved).SetTarget(AuditLogTargetType.Team, Team.Id));
+            File.Delete(Team.Icon.Path("webp"));
+            File.Delete(Team.Icon.Path("png"));
+            Team.IconId = null;
+            Session.TriggerNavMenuChange();
+        });
+        
     }
 }
