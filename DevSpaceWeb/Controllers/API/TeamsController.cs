@@ -20,6 +20,7 @@ public class TeamsController : APIController
     [HttpGet("/api/teams/{teamId?}")]
     [SwaggerOperation("Get a team.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(TeamJson))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetTeam([FromRoute] string teamId = "")
     {
         if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))

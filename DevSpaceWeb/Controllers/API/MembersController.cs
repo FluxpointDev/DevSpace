@@ -20,10 +20,11 @@ public class MembersController : APIController
     [HttpGet("/api/members/{memberId?}")]
     [SwaggerOperation("Get a member.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(MemberJson))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetMember([FromRoute] string memberId = "")
     {
         if (string.IsNullOrEmpty(memberId) || !ObjectId.TryParse(memberId, out ObjectId obj) || !_DB.Members.Cache.TryGetValue(obj, out TeamMemberData member) || member.TeamId != Client.TeamId)
-            return BadRequest("Could not find member.");
+            return NotFound("Could not find member.");
 
         return Ok(new MemberJson(member));
     }

@@ -19,6 +19,7 @@ public class ServersController : APIController
     [HttpGet("/api/servers/{serverId?}")]
     [SwaggerOperation("Get a server.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ServerJson))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetServer([FromRoute] string serverId = "")
     {
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? Server))

@@ -19,24 +19,27 @@ public class Response
     public int code { get; set; }
     public string message { get; set; }
 }
-public class ResponseUnauthorized : Response
+public class ResponseUnauthorized
 {
-    public ResponseUnauthorized() : base(401, "")
-    {
-
-    }
+    public bool success { get; set; }
+    public int code { get; set; } = 401;
+    public string message { get; set; }
 }
-public class ResponseForbidden : Response
+public class ResponseForbidden
 {
-    public ResponseForbidden() : base(403, "")
-    {
-
-    }
+    public bool success { get; set; }
+    public int code { get; set; } = 403;
+    public string message { get; set; }
 }
-public class ResponseBadRequest : Response
+public class ResponseBadRequest
 {
-    public ResponseBadRequest() : base(403, "")
-    {
-
-    }
+    public bool success { get; set; }
+    public int code { get; set; } = 400;
+    public string message { get; set; }
+}
+public class ResponseNotFound
+{
+    public bool success { get; set; }
+    public int code { get; set; } = 404;
+    public string message { get; set; }
 }

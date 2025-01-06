@@ -30,6 +30,7 @@ public class RolesController : APIController
     [HttpGet("/api/teams/{teamId?}/roles")]
     [SwaggerOperation("Get a list of role.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(RoleJson[]))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task GetRoles([FromRoute] string teamId = "")
     {
 

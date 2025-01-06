@@ -21,6 +21,7 @@ public class UsersController : APIController
     [HttpGet("/api/users/{userId?}")]
     [SwaggerOperation("Get a user.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(UserJson))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetUser([FromRoute] string userId = "")
     {
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(Client.TeamId.Value, out TeamData Team) || !Team.Members.ContainsKey(obj))
