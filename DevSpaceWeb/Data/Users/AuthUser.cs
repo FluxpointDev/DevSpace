@@ -11,13 +11,10 @@ public class AuthUser : MongoIdentityUser<ObjectId>
 {
     public string? DisplayName { get; set; }
 
-    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? ResourceId { get; set; }
 
-    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? AvatarId { get; set; }
 
-    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? BackgroundId { get; set; }
 
     [BsonIgnore]

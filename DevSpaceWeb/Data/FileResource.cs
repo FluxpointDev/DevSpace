@@ -14,10 +14,8 @@ public class FileResource
 
     private string Tag;
 
-    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? Resource { get; set; }
 
-    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? Id { get; set; }
 
     public string Path(string fileType)

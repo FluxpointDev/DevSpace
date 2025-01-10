@@ -6,8 +6,12 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
+using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Reflection;
+using MongoDB.Driver;
 
 namespace DevSpaceWeb;
 public class Program
@@ -52,6 +56,7 @@ public class Program
             throw new Exception("Failed to load config file.");
 
         Logger.LogMessage("Loaded config in: " + Program.Directory.Path, LogSeverity.Info);
+        BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.CSharpLegacy));
 
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
