@@ -18,20 +18,6 @@ namespace DevSpaceWeb.Controllers.API;
 [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad Request", typeof(ResponseBadRequest))]
 public class RolesController : APIController
 {
-    [HttpGet("/api/roles/{roleId?}")]
-    [SwaggerOperation("Get a role.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<RoleJson>))]
-    public async Task<IActionResult> GetRole([FromRoute] string roleId = "")
-    {
-        if (string.IsNullOrEmpty(roleId) || !ObjectId.TryParse(roleId, out ObjectId obj) || !_DB.Roles.Cache.TryGetValue(obj, out Data.Teams.TeamRoleData? Role) || !(Client.IsInstanceAdmin || Role.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find role.");
-
-        if (!Client.HasTeamPermission(TeamPermission.ViewRoles))
-            return Forbidden("Client does not have View Roles permission.");
-
-        return Ok(new RoleJson(Role));
-    }
-
     [HttpGet("/api/teams/{teamId?}/roles")]
     [SwaggerOperation("Get a list of role.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<RoleJson[]>))]
@@ -46,6 +32,22 @@ public class RolesController : APIController
 
         return Ok(Team.CachedRoles.Values.Select(x => new RoleJson(x)));
     }
+
+    [HttpGet("/api/roles/{roleId?}")]
+    [SwaggerOperation("Get a role.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<RoleJson>))]
+    public async Task<IActionResult> GetRole([FromRoute] string roleId = "")
+    {
+        if (string.IsNullOrEmpty(roleId) || !ObjectId.TryParse(roleId, out ObjectId obj) || !_DB.Roles.Cache.TryGetValue(obj, out Data.Teams.TeamRoleData? Role) || !(Client.IsInstanceAdmin || Role.TeamId == Client.TeamId.GetValueOrDefault()))
+            return BadRequest("Could not find role.");
+
+        if (!Client.HasTeamPermission(TeamPermission.ViewRoles))
+            return Forbidden("Client does not have View Roles permission.");
+
+        return Ok(new RoleJson(Role));
+    }
+
+    
 
     //[HttpPost("/api/roles/{roleId?}")]
     //[SwaggerOperation("Edit a role.", "")]

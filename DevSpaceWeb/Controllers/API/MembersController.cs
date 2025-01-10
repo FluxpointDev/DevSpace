@@ -19,6 +19,20 @@ namespace DevSpaceWeb.Controllers.API;
 [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad Request", typeof(ResponseBadRequest))]
 public class MembersController : APIController
 {
+    [HttpGet("/api/teams/{teamId?}/members")]
+    [SwaggerOperation("Get a list of members.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<MemberJson[]>))]
+    public async Task<IActionResult> GetMembers([FromRoute] string teamId = "")
+    {
+        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
+            return BadRequest("Could not find team.");
+
+        if (!Client.HasTeamPermission(TeamPermission.ViewMembers))
+            return Forbidden("Client does not have View Members permission.");
+
+        return Ok(Team.CachedMembers.Values.Select(x => new MemberJson(x)));
+    }
+
     [HttpGet("/api/teams/{teamId}/members/{userId?}")]
     [SwaggerOperation("Get a member.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<MemberJson>))]
@@ -37,17 +51,5 @@ public class MembersController : APIController
         return Ok(new MemberJson(member));
     }
 
-    [HttpGet("/api/teams/{teamId?}/members")]
-    [SwaggerOperation("Get a list of members.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<MemberJson[]>))]
-    public async Task<IActionResult> GetMembers([FromRoute] string teamId = "")
-    {
-        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
-            return BadRequest("Could not find team.");
-
-        if (!Client.HasTeamPermission(TeamPermission.ViewMembers))
-            return Forbidden("Client does not have View Members permission.");
-
-        return Ok(Team.CachedMembers.Values.Select(x => new MemberJson(x)));
-    }
+    
 }

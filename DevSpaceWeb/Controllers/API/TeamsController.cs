@@ -18,6 +18,18 @@ namespace DevSpaceWeb.Controllers.API;
 [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad Request", typeof(ResponseBadRequest))]
 public class TeamsController : APIController
 {
+    [HttpGet("/api/teams")]
+    [SwaggerOperation("Get all teams for this instance.", "This requires instance admin.")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<TeamJson[]>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetTeams([FromRoute] string teamId = "")
+    {
+        if (!Client.IsInstanceAdmin)
+            return Forbidden("Client does not have Instance Admin privilages.");
+
+        return Ok(_DB.Teams.Cache.Values.Select(x => new TeamJson(x)));
+    }
+
     [HttpGet("/api/teams/{teamId?}")]
     [SwaggerOperation("Get a team.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<TeamJson>))]
