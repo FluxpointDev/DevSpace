@@ -32,14 +32,6 @@
                     </RadzenMenu> *@
                 }
                 <div style="flex-grow: 1 !important;"></div>
-                @if (Program.IsPreviewMode)
-                {
-                    <RadzenMenu id="NavPreview" ClickToOpen="false">
-                        <RadzenMenuItem Text="Preview Mode">
-                            <RadzenMenuItem Text="Change Background" Click="@ChangeBackgroundDialog"></RadzenMenuItem>
-                        </RadzenMenuItem>
-                    </RadzenMenu>
-                }
                 <RadzenMenu ClickToOpen="false" Responsive="true">
                     <RadzenMenuItem id="NavUser">
                         <Template>
@@ -154,22 +146,4 @@
     private SessionProvider Session { get; set; }
 
     bool SidebarExpanded = true;
-
-
-    public async Task ChangeBackgroundDialog()
-    {
-        if (Program.IsPreviewMode)
-        {
-            await dialogService.ShowDynamicFormAsync<AccountBackgroundModel>("Change Background", new AccountBackgroundModel() { BackgroundUrl = Session.BackgroundUrl }, (AccountBackgroundModel data) =>
-            {
-                Session.BackgroundUrl = data.BackgroundUrl;
-                Session.TriggerChange();
-                return null;
-            });
-        }
-        else
-        {
-            await dialogService.OpenAsync<ChangeAccountBackgroundDialog>("Change Background");
-        }
-    }
 }

@@ -1,4 +1,5 @@
-﻿@implements IDisposable
+﻿@using DevSpaceWeb.Models.Account
+@implements IDisposable
 @inject DialogService DialogService
 @inject UserManager<AuthUser> UserManager
 @inject NavigationManager NavigationManager
@@ -97,6 +98,8 @@
         <RadzenText TextStyle="TextStyle.Body2">
             Current Date: @Utils.GetLocalDate(Session, DateTime.UtcNow, false)
         </RadzenText>
+        <br />
+        <RadzenButton Text="Change Background" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeBackgroundDialog" />
     }
 </div>
 
@@ -307,5 +310,22 @@
         string Code = await UserManager.GenerateEmailConfirmationTokenAsync(AuthUser);
         Code = Uri.EscapeDataString(Code);
         await Email.SendAccountConfirm(AuthUser, (NavigationManager.BaseUri + "auth/account/confirmEmail?token=" + Code));
+    }
+
+    public async Task ChangeBackgroundDialog()
+    {
+        if (Program.IsPreviewMode)
+        {
+            await DialogService.ShowDynamicFormAsync<AccountBackgroundModel>("Change Background", new AccountBackgroundModel() { BackgroundUrl = Session.BackgroundUrl }, (AccountBackgroundModel data) =>
+            {
+                Session.BackgroundUrl = data.BackgroundUrl;
+                Session.TriggerChange();
+                return null;
+            });
+        }
+        else
+        {
+            await DialogService.OpenAsync<ChangeAccountBackgroundDialog>("Change Background");
+        }
     }
 }
