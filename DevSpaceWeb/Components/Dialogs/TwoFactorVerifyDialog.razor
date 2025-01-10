@@ -15,86 +15,131 @@
         <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
             Two-factor authentication is required!
         </RadzenAlert>
-        <br />
-        @if (AuthType == 0)
+        @switch (AuthType)
         {
-            if (User != null)
-            {
-                if (User.Mfa.IsTwoFactorEnabled)
+            case TwoFactorSelector.Menu:
                 {
-                    <div class="twofactor-item twofactor-item-disabled">
-                        <span class="iconify" data-icon="mdi:cloud-key"></span>
-                        <h4>Email Code</h4>
-                        <p>Disabled with more secure options</p>
-                    </div>
-                    <div class="twofactor-item @(User.Mfa.AuthenticatorDevices.Any(x => x.Value == true) ? "" : "twofactor-item-disabled")" @onclick="(() => AuthType = 2)">
-                        <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
-                        <h4>Authenticator</h4>
-                    </div>
+                    if (User != null)
+                    {
+                        if (User.Mfa.IsTwoFactorEnabled)
+                        {
+                            <div class="twofactor-item twofactor-item-disabled">
+                                <span class="iconify" data-icon="mdi:cloud-key"></span>
+                                <h4>Email Code</h4>
+                                <p>Disabled with more secure options</p>
+                            </div>
+                            <div class="twofactor-item @(User.Mfa.AuthenticatorDevices.Any(x => x.Value == true) ? "" : "twofactor-item-disabled")" @onclick="(() => { if (User.Mfa.AuthenticatorDevices.Any(x => x.Value == true)) { AuthType = TwoFactorSelector.AuthCode; } })">
+                                <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
+                                <h4>Authenticator</h4>
+                            </div>
 
-                    <div class="twofactor-item @(User.Mfa.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="VerifyPasskey">
-                        <span class="iconify" data-icon="mdi:key-chain"></span>
-                        <h4>Passkey, Webauth or Yubikey</h4>
-                    </div>
+                            <div class="twofactor-item @(User.Mfa.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="(() => { if (User.Mfa.Passkeys.Any()) { AuthType = TwoFactorSelector.WebAuth; } })">
+                                <span class="iconify" data-icon="mdi:key-chain"></span>
+                                <h4>Passkey, Webauth or Yubikey</h4>
+                            </div>
 
-                    <div class="twofactor-item @(!string.IsNullOrEmpty(User.Mfa.RecoveryCode) ? "" : "twofactor-item-disabled")" @onclick="@(() => AuthType = 3)">
-                        <span class="iconify" data-icon="mdi:file-key"></span>
-                        <h4>Recovery Code</h4>
-                    </div>
+                            <div class="twofactor-item @(!string.IsNullOrEmpty(User.Mfa.RecoveryCode) ? "" : "twofactor-item-disabled")" @onclick="@(() => { if (!string.IsNullOrEmpty(User.Mfa.RecoveryCode)) { AuthType = TwoFactorSelector.RecoveryCode; } })">
+                                <span class="iconify" data-icon="mdi:file-key"></span>
+                                <h4>Recovery Code</h4>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="twofactor-item" @onclick="(() => { AuthType = TwoFactorSelector.EmailCode; })">
+                                <span class="iconify" data-icon="mdi:cloud-key"></span>
+                                <h4>Email Code</h4>
+                            </div>
+                            <div class="twofactor-item twofactor-item-disabled">
+                                <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
+                                <h4>Authenticator</h4>
+                                <p>Disabled: Not setup</p>
+                            </div>
+                            <div class="twofactor-item twofactor-item-disabled">
+                                <span class="iconify" data-icon="mdi:key-chain"></span>
+                                <h4>Passkey, Webauth or Yubikey</h4>
+                                <p>Disabled: Not setup</p>
+                            </div>
+                            <div class="twofactor-item twofactor-item-disabled">
+                                <span class="iconify" data-icon="mdi:file-key"></span>
+                                <h4>Recovery Code</h4>
+                                <p>Disabled: Not setup</p>
+                            </div>
+                        }
+                    }
                 }
-                else
+                break;
+            case TwoFactorSelector.WebAuth:
                 {
-                    <div class="twofactor-item" @onclick="(() => { ShowEmail(); })">
-                        <span class="iconify" data-icon="mdi:cloud-key"></span>
-                        <h4>Email Code</h4>
-                    </div>
-                    <div class="twofactor-item twofactor-item-disabled">
-                        <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
-                        <h4>Authenticator</h4>
-                        <p>Disabled: Not setup</p>
-                    </div>
-                    <div class="twofactor-item twofactor-item-disabled">
-                        <span class="iconify" data-icon="mdi:key-chain"></span>
-                        <h4>Passkey, Webauth or Yubikey</h4>
-                        <p>Disabled: Not setup</p>
-                    </div>
-                    <div class="twofactor-item twofactor-item-disabled">
-                        <span class="iconify" data-icon="mdi:file-key"></span>
-                        <h4>Recovery Code</h4>
-                        <p>Disabled: Not setup</p>
-                    </div>
+                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Passkey Verification</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Verify your fingerprint, security key or passkey account.
+                    </RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenIcon Icon="fingerprint" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'wght' 600;" />
+                        <RadzenIcon Icon="security_key" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
+                        <RadzenIcon Icon="Passkey" IconColor="@Colors.Info" Style="font-size: 2rem;" />
+                    </RadzenStack>
+                    <br />
+                    <RadzenButton Click="@VerifyPasskey" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
                 }
-            }
-        }
-        else if (AuthType == 1)
-        {
-            <RadzenLabel Text="Email Code" class="rz-my-0"></RadzenLabel>
-            <div>
-                <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" Count="8" Gap="6px" aria-label="Email Code" autofocus />
-            </div>
-            <br />
-            <RadzenButton Click="@VerifyEmail" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
-        }
-        else if (AuthType == 2)
-        {
+                break;
+            case TwoFactorSelector.EmailCode:
+                {
+                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Email Code</RadzenText>
+                    @if (!IsEmailSent)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            Click Send to recieve an email code to your @(Session.CurrentUser.Email.Split('@').Last().Split('.').First()) account.
+                        </RadzenText>
+                        <RadzenIcon Icon="mail" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
+                        <br />
+                        <RadzenButton Click="@SendEmail" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Text="Send" />
+                    }
+                    else
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            We have sent an email to your @(Session.CurrentUser.Email.Split('@').Last().Split('.').First()) account.
+                        </RadzenText>
+                        <RadzenIcon Icon="forward_to_inbox" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
+                        <div>
+                            <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" Count="8" Gap="6px" aria-label="Email Code" autofocus />
+                        </div>
+                        <br />
+                        <RadzenButton Click="@VerifyEmail" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                    }
 
-            <RadzenLabel Text="Auth Code" class="rz-my-0"></RadzenLabel>
-            <div>
-                <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" Count="6" Gap="6px" aria-label="Auth Code" autofocus />
-            </div>
-            <br />
-            <RadzenButton Click="@VerifyAuthenticator" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
-        }
-        else if (AuthType == 3)
-        {
-            <RadzenLabel Text="Recovery Code" class="rz-my-0"></RadzenLabel>
-            <RadzenTextBox @bind-Value="CodeInput" Style="width: 100%" aria-label="Email Code TextBox" autofocus />
-            <br />
-            <RadzenButton Click="@VerifyRecoveryCode" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                }
+                break;
+            case TwoFactorSelector.AuthCode:
+                {
+                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Auth Code</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Open your mobile Authenticator App or Password Manager.
+                    </RadzenText>
+                    <RadzenIcon Icon="screen_lock_portrait" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
+                    <div>
+                        <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" Count="6" Gap="6px" aria-label="Auth Code" autofocus />
+                    </div>
+                    <br />
+                    <RadzenButton Click="@VerifyAuthenticator" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                }
+                break;
+            case TwoFactorSelector.RecoveryCode:
+                {
+                    <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Recovery Code</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Enter your account recovery code that you have previously downloaded.
+                    </RadzenText>
+                    <RadzenIcon Icon="key" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
+                    <RadzenTextBox @bind-Value="CodeInput" Style="width: 100%" aria-label="Email Code TextBox" autofocus />
+                    <br />
+                    <RadzenButton Click="@VerifyRecoveryCode" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                }
+                break;
         }
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        @if (AuthType != 0)
+        @if (AuthType != TwoFactorSelector.Menu)
         {
             <RadzenButton Click="@(() => { AuthType = 0; CodeInput = string.Empty; })" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Back" Style="width: 90px" />
         }
@@ -113,14 +158,21 @@
     public AuthUser User { get; set; }
 
     public string CodeInput { get; set; }
-    public int AuthType = 0;
+    public TwoFactorSelector AuthType = TwoFactorSelector.Menu;
+    public enum TwoFactorSelector
+    {
+        Menu, WebAuth, EmailCode, AuthCode, RecoveryCode
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
         User = await Session.GetCurrentUserAsync();
     }
 
-    public async Task ShowEmail()
+    public bool IsEmailSent;
+
+    public async Task SendEmail()
     {
         if (!Email.CanSendEmail())
         {
@@ -148,7 +200,7 @@
                 await UserManager.UpdateAsync(User);
             }
         }
-        AuthType = 1;
+        IsEmailSent = true;
     }
 
     public async Task VerifyEmail()
