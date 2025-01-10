@@ -26,7 +26,10 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="TeamGrid.Grid" @bind-Value="@TeamGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Disabled="@(!PermissionsLoaded || TeamAdministrator || IsDisabled)" Placeholder="Select permission..." AllowFiltering="true" Chips="true" Data="@TeamGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Multiple="true" AllowSelectAll="false" TextProperty="Name">
+                    <RadzenDropDown @ref="TeamGrid.Grid" @bind-Value="@TeamGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })"
+                    Disabled="@(!PermissionsLoaded || TeamAdministrator || IsDisabled)" Placeholder="Select permission..." AllowFiltering="true" Chips="true"
+                    Data="@TeamGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Multiple="true" AllowSelectAll="false" TextProperty="Name"
+                    ItemRender="@((evnt) => TeamItemRender(evnt))">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<TeamPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<TeamPermission>).Description)</span>
@@ -53,7 +56,7 @@
 
                 <div>
                     <RadzenDropDown @ref="ServerGrid.Grid" @bind-Value="@ServerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                    AllowFiltering="true" Chips="true" Data="@ServerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    AllowFiltering="true" Chips="true" Data="@ServerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ServerItemRender(evnt))"
                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ServerAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<ServerPermission>).Name)" Style="display: block;" />
@@ -90,7 +93,7 @@
 
                 <div>
                     <RadzenDropDown @ref="DockerGrid.Grid" @bind-Value="@DockerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                    AllowFiltering="true" Chips="true" Data="@DockerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    AllowFiltering="true" Chips="true" Data="@DockerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => DockerItemRender(evnt))"
                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || DockerManager || DockerAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<DockerPermission>).Name)" Style="display: block;" />
@@ -117,7 +120,7 @@
 
                 <div>
                     <RadzenDropDown @ref="WebsiteGrid.Grid" @bind-Value="@WebsiteGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                    AllowFiltering="true" Chips="true" Data="@WebsiteGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    AllowFiltering="true" Chips="true" Data="@WebsiteGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => WebsiteItemRender(evnt))"
                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || WebsiteAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<WebsitePermission>).Name)" Style="display: block;" />
@@ -144,7 +147,7 @@
 
                 <div>
                     <RadzenDropDown @ref="ProjectGrid.Grid" @bind-Value="@ProjectGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                    AllowFiltering="true" Chips="true" Data="@ProjectGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    AllowFiltering="true" Chips="true" Data="@ProjectGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ProjectItemRender(evnt))"
                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ProjectAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<ProjectPermission>).Name)" Style="display: block;" />
@@ -171,7 +174,7 @@
 
                 <div>
                     <RadzenDropDown @ref="LogGrid.Grid" @bind-Value="@LogGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                    AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                                    AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => LogItemRender(evnt))"
                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || LogAdministrator || IsDisabled)">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<LogPermission>).Name)" Style="display: block;" />
@@ -190,73 +193,73 @@
 
 <style>
     .permission-grid-box {
-width: 260px;
-padding: 4px;
-padding-left: 8px;
-padding-right: 8px !important;
-padding-bottom: 16px;
-background-color: #242527 !important;
-margin-right: 4px;
-margin-bottom: 4px;
-box-shadow: var(--rz-card-shadow);
-}
+    width: 260px;
+    padding: 4px;
+    padding-left: 8px;
+    padding-right: 8px !important;
+    padding-bottom: 16px;
+    background-color: #242527 !important;
+    margin-right: 4px;
+    margin-bottom: 4px;
+    box-shadow: var(--rz-card-shadow);
+    }
 
-.permission-grid-box .rz-text-subtitle2 {
-text-align: center !important;
-display: inline-block !important;
-margin-bottom: 14px !important;
-}
+    .permission-grid-box .rz-text-subtitle2 {
+    text-align: center !important;
+    display: inline-block !important;
+    margin-bottom: 14px !important;
+    }
 
-.permission-grid-box span {
-display: block;
-}
+    .permission-grid-box span {
+    display: block;
+    }
 
-.permission-grid-info {
-margin-top: 6px;
-margin-bottom: 16px;
-}
+    .permission-grid-info {
+    margin-top: 6px;
+    margin-bottom: 16px;
+    }
 
-.permission-grid-info .rz-chkbox-box {
-margin-top: 4px !important;
-margin-bottom: -4px !important;
-}
+    .permission-grid-info .rz-chkbox-box {
+    margin-top: 4px !important;
+    margin-bottom: -4px !important;
+    }
 
-.role-info {
-background-color: var(--rz-info-darker) !important;
-padding: 6px;
-padding-left: 10px;
-padding-right: 10px;
-border-radius: 4px;
-margin-bottom: 10px;
-max-width: 796px;
-margin-left: auto;
-margin-right: auto;
-}
+    .role-info {
+    background-color: var(--rz-info-darker) !important;
+    padding: 6px;
+    padding-left: 10px;
+    padding-right: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    max-width: 796px;
+    margin-left: auto;
+    margin-right: auto;
+    }
 
 
-.permission-grid-box .iconify {
-width: 22px;
-height: 22px;
-margin-right: 6px;
-margin-top: -2px;
-}
+    .permission-grid-box .iconify {
+    width: 22px;
+    height: 22px;
+    margin-right: 6px;
+    margin-top: -2px;
+    }
 
-.permission-grid-box .rz-text-body2 {
-color: var(--rz-warning);
-}
+    .permission-grid-box .rz-text-body2 {
+    color: var(--rz-warning);
+    }
 
-.permission-grid-box .rz-chkbox-box .rzi {
-color: var(--rz-series-7) !important;
-}
+    .permission-grid-box .rz-chkbox-box .rzi {
+    color: var(--rz-series-7) !important;
+    }
 
-.permission-grid-box .rz-chkbox-box.rz-state-active {
-border-color: var(--rz-success-light);
-}
+    .permission-grid-box .rz-chkbox-box.rz-state-active {
+    border-color: var(--rz-success-light);
+    }
 
-.permission-grid-info span:not(.rz-chkbox-box span) {
-margin-top: 4px;
-margin-left: 32px;
-}
+    .permission-grid-info span:not(.rz-chkbox-box span) {
+    margin-top: 4px;
+    margin-left: 32px;
+    }
 
     .dialog-unsaved {
     height: 170px;
@@ -378,6 +381,142 @@ margin-left: 32px;
         {
             Data = PermissionsData.AllTeamData
         };
+
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<TeamPermission>>> TeamItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<TeamPermission>>> data)
+    {
+        PermissionItem<TeamPermission> item = (PermissionItem<TeamPermission>)data.Item;
+        switch (item.Flag)
+        {
+            case TeamPermission.ManageMembers:
+                {
+                    if (!TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewMembers))
+                        data.Disabled = true;
+                }
+                break;
+            case TeamPermission.AssignRoles:
+            case TeamPermission.ManageRoles:
+                {
+                    if (!TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewRoles))
+                        data.Disabled = true;
+                }
+                break;
+            case TeamPermission.ManagePermissions:
+                {
+                    if (!TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewPermissions))
+                        data.Disabled = true;
+                }
+                break;
+            case TeamPermission.ManageAllAPIs:
+            case TeamPermission.ManageOwnAPIs:
+                {
+                    if (!TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewAPIs))
+                        data.Disabled = true;
+                }
+                break;
+        }
+        return data;
+    }
+
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ServerPermission>>> ServerItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ServerPermission>>> data)
+    {
+        PermissionItem<ServerPermission> item = (PermissionItem<ServerPermission>)data.Item;
+        if (item.Flag != ServerPermission.ViewServer)
+        {
+            if (!ServerGrid.Selected.Any(x => x.Flag == ServerPermission.ViewServer))
+                data.Disabled = true;
+        }
+        return data;
+    }
+
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<WebsitePermission>>> WebsiteItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<WebsitePermission>>> data)
+    {
+        PermissionItem<WebsitePermission> item = (PermissionItem<WebsitePermission>)data.Item;
+        if (item.Flag != WebsitePermission.ViewWebsite)
+        {
+            if (!WebsiteGrid.Selected.Any(x => x.Flag == WebsitePermission.ViewWebsite))
+                data.Disabled = true;
+        }
+        return data;
+    }
+
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ProjectPermission>>> ProjectItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ProjectPermission>>> data)
+    {
+        PermissionItem<ProjectPermission> item = (PermissionItem<ProjectPermission>)data.Item;
+        if (item.Flag != ProjectPermission.ViewProject)
+        {
+            if (!ProjectGrid.Selected.Any(x => x.Flag == ProjectPermission.ViewProject))
+                data.Disabled = true;
+        }
+        return data;
+    }
+
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<LogPermission>>> LogItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<LogPermission>>> data)
+    {
+        PermissionItem<LogPermission> item = (PermissionItem<LogPermission>)data.Item;
+        if (item.Flag != LogPermission.ViewLog)
+        {
+            if (!LogGrid.Selected.Any(x => x.Flag == LogPermission.ViewLog))
+                data.Disabled = true;
+        }
+        return data;
+    }
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerPermission>>> DockerItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerPermission>>> data)
+    {
+        PermissionItem<DockerPermission> item = (PermissionItem<DockerPermission>)data.Item;
+        switch (item.Flag)
+        {
+            case DockerPermission.ContainerInspect:
+            case DockerPermission.ContainerLogs:
+            case DockerPermission.ContainerStats:
+            case DockerPermission.ControlContainers:
+            case DockerPermission.ManageContainers:
+            case DockerPermission.ManageStackPermissions:
+            case DockerPermission.ContainerConsole:
+                {
+                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewContainers))
+                        data.Disabled = true;
+                }
+                break;
+            case DockerPermission.ViewCustomTemplates:
+            case DockerPermission.ManageCustomTemplates:
+                {
+                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewTemplates))
+                        data.Disabled = true;
+                }
+                break;
+            case DockerPermission.ManageImages:
+                {
+                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewImages))
+                        data.Disabled = true;
+                }
+                break;
+            case DockerPermission.ManageNetworks:
+                {
+                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewNetworks))
+                        data.Disabled = true;
+                }
+                break;
+            case DockerPermission.ManagePlugins:
+                {
+                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewPlugins))
+                        data.Disabled = true;
+                }
+                break;
+            case DockerPermission.ManageRegistries:
+                {
+                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewRegistries))
+                        data.Disabled = true;
+                }
+                break;
+            case DockerPermission.ManageVolumes:
+                {
+                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewVolumes))
+                        data.Disabled = true;
+                }
+                break;
+        }
+        return data;
+    }
 
     public static PermissionGrid<PermissionItem<ServerPermission>> ServerGrid = new PermissionGrid<PermissionItem<ServerPermission>>
         {

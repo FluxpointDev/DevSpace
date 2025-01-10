@@ -3,9 +3,9 @@ using DevSpaceWeb.Data.Teams;
 
 namespace DevSpaceWeb.API.Teams;
 
-public class TeamJson : Response
+public class TeamJson
 {
-    public TeamJson(TeamData data) : base(200)
+    public TeamJson(TeamData data)
     {
         id = data.Id.ToString();
         name = data.Name;

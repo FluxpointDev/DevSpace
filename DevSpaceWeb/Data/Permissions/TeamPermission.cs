@@ -17,4 +17,5 @@ public enum TeamPermission : ulong
     ViewAPIs = 1L << 11,
     ManageOwnAPIs = 1L << 12,
     ManageAllAPIs = 1L << 13,
+    ViewRoles = 1L << 14
 }

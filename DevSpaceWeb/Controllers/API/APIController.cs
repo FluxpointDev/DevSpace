@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using DevSpaceWeb.Data.API;
 using DevSpaceWeb.API;
+using Newtonsoft.Json.Linq;
+using System.Collections;
 
 namespace DevSpaceWeb.Controllers.API;
 
@@ -17,14 +19,33 @@ public class APIController : ControllerBase
     }
 
     [NonAction]
-    public JsonResult Ok(object? obj = null)
+    public JsonResult Ok(string? msg)
     {
         Response.ContentType = "application/json";
         Response.StatusCode = 200;
-        if (obj is string str)
-            return new JsonResult(new Response(200, str));
+        return new JsonResult(new Response(200, msg));
+    }
 
-        return new JsonResult(obj);
+    [NonAction]
+    public ContentResult Ok(object obj, string? msg = null)
+    {
+        Response.ContentType = "application/json";
+        Response.StatusCode = 200;
+        JObject JObject = new JObject();
+        Type type = obj.GetType();
+        if (type.IsArray || typeof(IEnumerable).IsAssignableFrom(type))
+        {
+            JObject.TryAdd("data", JArray.FromObject(obj));
+        }
+        else
+        {
+            JObject.TryAdd("data", JObject.FromObject(obj));
+        }
+        
+        JObject.TryAdd("success", true);
+        JObject.TryAdd("code", 200);
+        JObject.TryAdd("message", msg);
+        return Content(Newtonsoft.Json.JsonConvert.SerializeObject(JObject));
     }
 
     [NonAction]

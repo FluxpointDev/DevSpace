@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.API;
 using DevSpaceWeb.API.Users;
+using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Data;
 
 namespace DevSpaceWeb.Controllers.API;
 
@@ -20,16 +22,22 @@ public class UsersController : APIController
 {
     [HttpGet("/api/users/{userId?}")]
     [SwaggerOperation("Get a user.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(UserJson))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<UserJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetUser([FromRoute] string userId = "")
     {
-        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(Client.TeamId.Value, out TeamData Team) || !Team.Members.ContainsKey(obj))
+        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj))
             return BadRequest("Could not find user.");
 
-        AuthUser? user = await _DB.Run.GetCollection<AuthUser>("users").Find<AuthUser>(new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, obj)).FirstOrDefaultAsync();
+        if (!(Client.IsInstanceAdmin || (_DB.Teams.Cache.TryGetValue(Client.TeamId.GetValueOrDefault(), out TeamData Team) && Team.Members.ContainsKey(obj))))
+            return BadRequest("Could not find user.");
+
+        AuthUser? user = await _DB.Run.GetCollection<AuthUser>("users").Find(new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, obj)).FirstOrDefaultAsync();
         if (user == null)
             return BadRequest("Could not find user.");
+
+        if (!Client.HasTeamPermission(TeamPermission.ViewMembers))
+            return Forbidden("Client does not have View Members permission.");
 
         return Ok(new UserJson(user));
     }

@@ -46,14 +46,20 @@ public class TeamData : IResource
     [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
     public Dictionary<ObjectId, ObjectId> Members = new Dictionary<ObjectId, ObjectId>();
 
-    public TeamMemberData GetMember(PartialUserData user)
+    public TeamMemberData? GetMember(PartialUserData user)
     {
-        return CachedMembers[Members[user.Id]];
+        if (Members.TryGetValue(user.Id, out ObjectId memberObj))
+            return CachedMembers[memberObj];
+
+        return null;
     }
 
-    public TeamMemberData GetMember(AuthUser user)
+    public TeamMemberData? GetMember(AuthUser user)
     {
-        return CachedMembers[Members[user.Id]];
+        if (Members.TryGetValue(user.Id, out ObjectId memberObj))
+        return CachedMembers[memberObj];
+
+        return null;
     }
 
     public TeamMemberData? GetMember(SessionProvider session)

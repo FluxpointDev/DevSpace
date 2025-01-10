@@ -1,11 +1,13 @@
 ﻿using DevSpaceWeb.API;
 using DevSpaceWeb.API.Teams;
 using DevSpaceWeb.API.Users;
+using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Data;
 
 namespace DevSpaceWeb.Controllers.API;
 
@@ -18,29 +20,47 @@ public class RolesController : APIController
 {
     [HttpGet("/api/roles/{roleId?}")]
     [SwaggerOperation("Get a role.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(RoleJson))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<RoleJson>))]
     public async Task<IActionResult> GetRole([FromRoute] string roleId = "")
     {
-        if (string.IsNullOrEmpty(roleId) || !ObjectId.TryParse(roleId, out ObjectId obj) || !_DB.Roles.Cache.TryGetValue(obj, out Data.Teams.TeamRoleData? Role) && Role.TeamId != Client.TeamId)
+        if (string.IsNullOrEmpty(roleId) || !ObjectId.TryParse(roleId, out ObjectId obj) || !_DB.Roles.Cache.TryGetValue(obj, out Data.Teams.TeamRoleData? Role) || !(Client.IsInstanceAdmin || Role.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find role.");
+
+        if (!Client.HasTeamPermission(TeamPermission.ViewRoles))
+            return Forbidden("Client does not have View Roles permission.");
 
         return Ok(new RoleJson(Role));
     }
 
     [HttpGet("/api/teams/{teamId?}/roles")]
     [SwaggerOperation("Get a list of role.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(RoleJson[]))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<RoleJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
-    public async Task GetRoles([FromRoute] string teamId = "")
+    public async Task<IActionResult> GetRoles([FromRoute] string teamId = "")
     {
+        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
+            return BadRequest("Could not find team.");
 
+        if (!Client.HasTeamPermission(TeamPermission.ViewRoles))
+            return Forbidden("Client does not have View Roles permission.");
+
+        return Ok(Team.CachedRoles.Values.Select(x => new RoleJson(x)));
     }
 
-    [HttpPost("/api/teams/{teamId?}/roles")]
+    [HttpPost("/api/roles/{roleId?}")]
     [SwaggerOperation("Edit a role.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(RoleJson))]
-    public async Task CreateRole([FromRoute] string teamId = "")
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<RoleJson>))]
+    public async Task<IActionResult> EditRole([FromRoute] string roleId = "")
     {
+        if (string.IsNullOrEmpty(roleId) || !ObjectId.TryParse(roleId, out ObjectId obj) || !_DB.Roles.Cache.TryGetValue(obj, out Data.Teams.TeamRoleData? Role) || !(Client.IsInstanceAdmin || Role.TeamId == Client.TeamId.GetValueOrDefault()))
+            return BadRequest("Could not find role.");
 
+        if (!Client.HasTeamPermission(TeamPermission.ViewRoles))
+            return Forbidden("Client does not have View Roles permission.");
+
+        if (!Client.HasTeamPermission(TeamPermission.ManageRoles))
+            return Forbidden("Client does not have Manage Roles permission.");
+
+        return Ok();
     }
 }
