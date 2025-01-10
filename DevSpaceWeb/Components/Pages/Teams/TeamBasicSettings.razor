@@ -74,7 +74,7 @@
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, model.Name).Set(x => x.VanityUrl, model.VanityUrl), () =>
         {
-            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.SettingsChanged).SetTarget(AuditLogTargetType.Team, Team.Id).SetProperties(props));
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.SettingsChanged).SetTarget(AuditLogTargetType.Team, Team.Id).SetProperties(props));
 
             Team.Name = model.Name;
             if (Team.VanityUrl != model.VanityUrl)
@@ -138,7 +138,7 @@
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null), () =>
         {
-            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconRemoved).SetTarget(AuditLogTargetType.Team, Team.Id));
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconRemoved).SetTarget(AuditLogTargetType.Team, Team.Id));
             File.Delete(Team.Icon.Path("webp"));
             File.Delete(Team.Icon.Path("png"));
             Team.IconId = null;

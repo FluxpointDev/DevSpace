@@ -10,7 +10,7 @@
 <RadzenLayout>
     <RadzenHeader>
         <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="Radzen.AlignItems.Center" Gap="0">
-            <RadzenSidebarToggle Click="@(() => sidebar1Expanded = !sidebar1Expanded)" Style="border: none !important;" />
+            <RadzenSidebarToggle Click="@(() => SidebarExpanded = !SidebarExpanded)" Style="border: none !important;" />
             <RadzenText class="top-title" TextStyle="TextStyle.H6">
                 Dev Space
             </RadzenText>
@@ -40,15 +40,32 @@
                         </RadzenMenuItem>
                     </RadzenMenu>
                 }
-                <RadzenMenu ClickToOpen="false">
-                    <RadzenMenuItem id="NavUser" Text="@Session.State.User.Identity.Name">
-                        <RadzenMenuItem Path="/user/account" Text="Account"></RadzenMenuItem>
-                        <RadzenMenuItem Text="Change Background" Click="@ChangeBackgroundDialog"></RadzenMenuItem>
-                        @if (Session.IsInstanceAdmin)
-                        {
-                            <RadzenMenuItem Path="/admin" Text="Admin"></RadzenMenuItem>
-                        }
-                        <RadzenMenuItem Path="/logout" Text="Logout"></RadzenMenuItem>
+                <RadzenMenu ClickToOpen="false" Responsive="true">
+                    <RadzenMenuItem id="NavUser">
+                        <Template>
+                            <img src="@Session.CurrentUser.GetAvatarOrDefault()" /> @Session.CurrentUser.UserName
+                        </Template>
+                        <ChildContent>
+                            <RadzenMenuItem Path="/user/account">
+                                <Template>
+                                    <span class="iconify mr-2" data-icon="mdi:account-circle"></span> Account
+                                </Template>
+                            </RadzenMenuItem>
+                            @if (Session.IsInstanceAdmin)
+                            {
+                                <RadzenMenuItem Path="/admin">
+                                    <Template>
+                                        <span class="iconify mr-2" data-icon="mdi:tools"></span> Admin
+                                    </Template>
+                                </RadzenMenuItem>
+                            }
+                            <RadzenMenuItem Path="/logout">
+                                <Template>
+                                    <span class="iconify mr-2" data-icon="mdi:logout-variant"></span> Logout
+                                </Template>
+                            </RadzenMenuItem>
+                        </ChildContent>
+                        
                     </RadzenMenuItem>
                 </RadzenMenu>
                 <div style="width: 30px;"></div>
@@ -56,7 +73,7 @@
 
         </RadzenStack>
     </RadzenHeader>
-    <RadzenSidebar @bind-Expanded="@sidebar1Expanded">
+    <RadzenSidebar @bind-Expanded="@SidebarExpanded">
         @if (Session.State.User.Identity != null && Session.State.User.Identity.IsAuthenticated)
         {
             <NavMenu />
@@ -123,13 +140,20 @@
     .rz-navigation-item-disabled {
         opacity: 0.5 !important;
     }
+
+    #NavUser img {
+        width: 26px;
+        height: 26px;
+        border-radius: 180px;
+        margin-right: 6px;
+    }
 </style>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    bool sidebar1Expanded = true;
+    bool SidebarExpanded = true;
 
 
     public async Task ChangeBackgroundDialog()

@@ -59,6 +59,7 @@
             IdentityResult Result = await UserManager.SetUserNameAsync(user, AccountForm.Username);
             if (Result.Succeeded)
             {
+                Session.CurrentUser.UserName = AccountForm.Username;
                 Session.TriggerChange();
                 _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
                 dialogService.Close(true);
@@ -68,6 +69,7 @@
         if (!user.DisplayName.Equals(AccountForm.DisplayName, StringComparison.OrdinalIgnoreCase))
         {
             user.DisplayName = AccountForm.DisplayName;
+            Session.CurrentUser.DisplayName = AccountForm.DisplayName;
             await UserManager.UpdateAsync(user);
         }
         user.UpdatePartial();

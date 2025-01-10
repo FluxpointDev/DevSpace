@@ -10,7 +10,7 @@
     </div>
     <br />
     <div style="display: flex; align-items: flex-start;">
-        @foreach (TeamData i in _DB.Teams.Cache.Values.Where(x => x.Members.ContainsKey(Session.CurrentUserId.Value)))
+        @foreach (TeamData i in _DB.Teams.Cache.Values.Where(x => x.Members.ContainsKey(Session.CurrentUser.Id)))
         {
             <a href="teams/@i.GetVanityUrl()" style="color: cornflowerblue">
                 <div Class="team-item">
@@ -73,12 +73,12 @@
                 {
                     Name = data.Name,
                     VanityUrl = VanityUrl,
-                    OwnerId = Session.CurrentUserId.Value
+                    OwnerId = Session.CurrentUser.Id
                 };
                 await _DB.Teams.CreateAsync(Team);
                 TeamMemberData Member = new TeamMemberData()
                 {
-                    UserId = Session.CurrentUserId.Value,
+                    UserId = Session.CurrentUser.Id,
                     TeamId = Team.Id
                 };
 

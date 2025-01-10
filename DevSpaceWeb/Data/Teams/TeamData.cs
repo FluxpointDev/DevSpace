@@ -65,8 +65,8 @@ public class TeamData : IResource
 
     public TeamMemberData? GetMember(SessionProvider session)
     {
-        if (session.CurrentUserId.HasValue)
-            return CachedMembers.GetValueOrDefault(Members.GetValueOrDefault(session.CurrentUserId.Value));
+        if (session.CurrentUser != null)
+            return CachedMembers.GetValueOrDefault(Members.GetValueOrDefault(session.CurrentUser.Id));
         return null;
     }
 

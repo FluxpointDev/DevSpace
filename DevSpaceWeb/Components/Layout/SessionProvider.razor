@@ -262,9 +262,8 @@
         return IsSuccess;
     }
 
-    public ObjectId? CurrentUserId { get; private set; }
+    public PartialUserData? CurrentUser { get; private set; }
     public string CurrentSessionId { get; private set; }
-
 
     protected override async Task OnInitializedAsync()
     {
@@ -331,7 +330,7 @@
                     return;
                 }
 
-                CurrentUserId = User.Id;
+                CurrentUser = new PartialUserData(User);
                 if (User.Settings.DateFormat != DateFormatLang.Automatic)
                     UserDateFormat = User.Settings.DateFormat;
 
@@ -393,7 +392,7 @@
                         return;
                     }
 
-                    CurrentUserId = User.Id;
+                    CurrentUser = new PartialUserData(User);
                     if (User.Settings.DateFormat != DateFormatLang.Automatic)
                         UserDateFormat = User.Settings.DateFormat;
 
@@ -451,7 +450,7 @@
 
     public void SessionChangedEvent(object sender, ObjectId user, SessionEventType type)
     {
-        if (CurrentUserId == null || CurrentUserId != user || type != SessionEventType.Logout)
+        if (CurrentUser == null || CurrentUser.Id != user || type != SessionEventType.Logout)
             return;
 
         _ = InvokeAsync(StateHasChanged);

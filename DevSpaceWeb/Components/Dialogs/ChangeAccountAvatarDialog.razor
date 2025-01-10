@@ -60,12 +60,15 @@
                 return;
             }
 
-            File.Delete(user.Avatar.Path("webp"));
-            File.Delete(user.Avatar.Path("png"));
             user.AvatarId = null;
 
-            await UserManager.UpdateAsync(user);
-
+            var Result = await UserManager.UpdateAsync(user);
+            if (Result.Succeeded)
+            {
+                File.Delete(user.Avatar.Path("webp"));
+                File.Delete(user.Avatar.Path("png"));
+                Session.CurrentUser.AvatarId = null;
+            }
             user.UpdatePartial();
 
             dialogService.Close(true);
@@ -80,5 +83,8 @@
     async Task UploadComplete(UploadCompleteEventArgs args)
     {
         dialogService.Close(true);
+        AuthUser? user = await Session.GetCurrentUserAsync();
+        Session.CurrentUser.ResourceId = user.AvatarId;
+        Session.CurrentUser.AvatarId = user.AvatarId;
     }
 }

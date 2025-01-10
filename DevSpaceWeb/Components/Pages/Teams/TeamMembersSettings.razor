@@ -209,7 +209,7 @@
             _DB.Members.Cache.TryAdd(memberData.Id, memberData);
             Team.Members.Add(user.Id, memberData.Id);
             Team.CachedMembers.Add(memberData.Id, memberData);
-            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberAdded).SetTarget(AuditLogTargetType.Team, Team.Id));
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberAdded).SetTarget(AuditLogTargetType.Team, Team.Id));
         });
 
             return string.Empty;
@@ -224,7 +224,7 @@
             return;
         }
 
-        if (Member.Team.OwnerId != Session.CurrentUserId.Value)
+        if (Member.Team.OwnerId != Session.CurrentUser.Id)
             return;
 
         bool Confirm = await DialogService.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Team.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
@@ -237,12 +237,12 @@
         if (!twoFactorConfirm)
             return;
 
-        if (Member.Team.OwnerId != Session.CurrentUserId.Value)
+        if (Member.Team.OwnerId != Session.CurrentUser.Id)
             return;
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id), () =>
         {
-            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.OwnershipTransfered).SetTarget(AuditLogTargetType.User, user.Id));
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.OwnershipTransfered).SetTarget(AuditLogTargetType.User, user.Id));
             Team.OwnerId = user.Id;
         });
 
@@ -273,7 +273,7 @@
         {
             Team.Members.Remove(user);
             _DB.Members.Cache.Remove(user, out _);
-            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberRemoved).SetTarget(AuditLogTargetType.User, user));
+            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberRemoved).SetTarget(AuditLogTargetType.User, user));
         });
     }
 

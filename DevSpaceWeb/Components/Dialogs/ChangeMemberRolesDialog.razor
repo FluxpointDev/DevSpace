@@ -19,7 +19,7 @@
                 Current Roles
             </TargetHeader>
             <Template>
-                @if (Program.IsPreviewMode || Team.OwnerId == Session.CurrentUserId.Value || CurrentRank < context.Position)
+                @if (Program.IsPreviewMode || Team.OwnerId == Session.CurrentUser.Id || CurrentRank < context.Position)
                 {
                     @context.Name
                 }
@@ -70,7 +70,7 @@
     public ListBoxItemRenderEventArgs<object> ItemRenderAction(ListBoxItemRenderEventArgs<object> data)
     {
         TeamRoleData role = data.Item as TeamRoleData;
-        if (!Program.IsPreviewMode && Team.OwnerId != Session.CurrentUserId.Value)
+        if (!Program.IsPreviewMode && Team.OwnerId != Session.CurrentUser.Id)
             data.Disabled = CurrentRank >= role.Position;
         return data;
     }
@@ -94,7 +94,7 @@
             await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, new HashSet<ObjectId>()), () =>
             {
                 Member.Roles = new HashSet<ObjectId>();
-                _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberRolesChanged).SetTarget(AuditLogTargetType.User, Member.UserId).SetProperties(new Dictionary<string, string>
+                _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberRolesChanged).SetTarget(AuditLogTargetType.User, Member.UserId).SetProperties(new Dictionary<string, string>
                 {
                 { "Roles", "" }
                 }));
@@ -106,7 +106,7 @@
             await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, SelectedRoles.Select(x => x.Id).ToHashSet()), () =>
             {
                 Member.Roles = SelectedRoles.Select(x => x.Id).ToHashSet();
-                _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUserId.Value, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberRolesChanged).SetTarget(AuditLogTargetType.User, Member.UserId).SetProperties(new Dictionary<string, string>
+                _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberRolesChanged).SetTarget(AuditLogTargetType.User, Member.UserId).SetProperties(new Dictionary<string, string>
                 {
                 { "Roles", string.Join(", ", SelectedRoles.Select(x => x.Id.ToString())) }
                 }));
