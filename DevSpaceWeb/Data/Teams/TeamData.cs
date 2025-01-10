@@ -13,7 +13,11 @@ namespace DevSpaceWeb.Data.Teams;
 public class TeamData : IResource
 {
     public string VanityUrl { get; set; }
+
+    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? ResourceId { get; set; }
+
+    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? IconId { get; set; }
 
     [BsonIgnore]

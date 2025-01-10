@@ -1,4 +1,7 @@
-﻿namespace DevSpaceWeb.Data;
+﻿using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson;
+
+namespace DevSpaceWeb.Data;
 
 public class FileResource
 {
@@ -10,7 +13,11 @@ public class FileResource
     }
 
     private string Tag;
+
+    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? Resource { get; set; }
+
+    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? Id { get; set; }
 
     public string Path(string fileType)

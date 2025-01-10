@@ -1,6 +1,7 @@
 ﻿
 using DevSpaceWeb.Data.Users;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace DevSpaceWeb.Data;
 
@@ -15,6 +16,8 @@ public class PartialUserData
     public string? UserName { get; set; }
     public string? DisplayName { get; set; }
     public string? Email { get; set; }
+
+    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? AvatarId { get; set; }
 
     public string GetAvatarOrDefault(bool usePng = false)
@@ -24,6 +27,8 @@ public class PartialUserData
 
         return _Data.Config.Instance.GetPublicUrl() + "/public/resources/" + ResourceId.ToString() + "/Avatar_" + AvatarId.ToString() + ".webp";
     }
+
+    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? ResourceId { get; set; }
     public ObjectId? ManagedAccountTeamId { get; set; }
 

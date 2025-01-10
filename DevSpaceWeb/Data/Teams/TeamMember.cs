@@ -256,6 +256,8 @@ public class TeamMemberData
 
     public HashSet<ObjectId> Roles { get; set; } = new HashSet<ObjectId>();
     public string? NickName { get; set; }
+
+    [BsonGuidRepresentation(GuidRepresentation.CSharpLegacy)]
     public Guid? AvatarId { get; set; }
 
     public async Task UpdateAsync(UpdateDefinition<TeamMemberData> update, Action action)
