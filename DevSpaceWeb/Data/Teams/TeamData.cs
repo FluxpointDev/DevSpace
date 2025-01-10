@@ -7,7 +7,6 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
 using MongoDB.Driver;
 using Newtonsoft.Json;
-using System;
 
 namespace DevSpaceWeb.Data.Teams;
 
