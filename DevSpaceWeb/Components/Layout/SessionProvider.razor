@@ -272,25 +272,25 @@
             SessionError = SessionErrorType.RestartRequired;
             return;
         }
-
-        if (Http.HttpContext == null)
+        HttpContext? HttpContext = Http.HttpContext;
+        if (HttpContext == null)
         {
             try
             {
                 WebSocketTest = await JS.InvokeAsync<string>("window.Utils.testWebSocket");
             }
-            catch (Exception ex) { }
+            catch { }
             SessionError = SessionErrorType.SessionError;
             return;
         }
-        if (!Http.HttpContext.Request.IsHttps)
+        if (!HttpContext.Request.IsHttps)
         {
             SessionError = SessionErrorType.HttpsRequired;
             return;
         }
 
 
-        string Ip = Utils.GetUserIpAddress(Http.HttpContext);
+        string Ip = Utils.GetUserIpAddress(HttpContext);
         if (!_Data.Config.Instance.Features.AllowLocalhost && (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1"))
         {
             SessionError = SessionErrorType.SessionSecurityError;
@@ -312,7 +312,7 @@
         }
         try
         {
-            UserDateFormat = Utils.GetDateFormat(Http.HttpContext.Request.Headers["Accept-Language"].ToString().Split(',').First().Split(';').First().ToLower());
+            UserDateFormat = Utils.GetDateFormat(HttpContext.Request.Headers["Accept-Language"].ToString().Split(',').First().Split(';').First().ToLower());
         }
         catch
         {
@@ -335,7 +335,7 @@
                     UserDateFormat = User.Settings.DateFormat;
 
                 IsInstanceAdmin = User.IsInstanceAdmin;
-                string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
+                string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
                 if (string.IsNullOrEmpty(SessionId))
                 {
                     NavigationManager.NavigateTo("/logout", true);
@@ -396,47 +396,47 @@
                     if (User.Settings.DateFormat != DateFormatLang.Automatic)
                         UserDateFormat = User.Settings.DateFormat;
 
-                        IsInstanceAdmin = User.IsInstanceAdmin;
-                        if (User.Disabled != null)
+                    IsInstanceAdmin = User.IsInstanceAdmin;
+                    if (User.Disabled != null)
+                    {
+                        SessionError = SessionErrorType.AccountDisabled;
+                        return;
+                    }
+
+
+                    if (User.Background.Id.HasValue)
+                        BackgroundUrl = User.Background.Url("webp");
+
+                    if (!Program.IsPreviewMode)
+                    {
+                        string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
+                        if (string.IsNullOrEmpty(SessionId))
                         {
-                            SessionError = SessionErrorType.AccountDisabled;
+                            NavigationManager.NavigateTo("/logout", true);
                             return;
                         }
+                        CurrentSessionId = SessionId;
 
-
-                        if (User.Background.Id.HasValue)
-                            BackgroundUrl = User.Background.Url("webp");
-
-                        if (!Program.IsPreviewMode)
+                        bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession session);
+                        if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
                         {
-                            string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
-                            if (string.IsNullOrEmpty(SessionId))
+                            if (_DB.Users.Keys.Count() == 1 && User.Account.Sessions.Count() == 1 && !session.AuthorizedIps.Any())
                             {
-                                NavigationManager.NavigateTo("/logout", true);
-                                return;
+                                session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
+                                await UserManager.UpdateAsync(User);
                             }
-                            CurrentSessionId = SessionId;
-
-                            bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession session);
-                            if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
-                            {
-                                if (_DB.Users.Keys.Count() == 1 && User.Account.Sessions.Count() == 1 && !session.AuthorizedIps.Any())
-                                {
-                                    session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
-                                    await UserManager.UpdateAsync(User);
-                                }
-                                else
-                                    NewLogin = true;
-                            }
-
-
-                            if (NewLogin)
-                            {
-                            SessionError = SessionErrorType.SessionSecurityNew;
-                                return;
-                            }
+                            else
+                                NewLogin = true;
                         }
-                    
+
+
+                        if (NewLogin)
+                        {
+                            SessionError = SessionErrorType.SessionSecurityNew;
+                            return;
+                        }
+                    }
+
                 }
 
             }
