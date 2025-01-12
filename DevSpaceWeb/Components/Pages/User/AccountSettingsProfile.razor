@@ -7,7 +7,7 @@
 
 <PageTitle>Account Profile | @_Data.Config.Instance.Name</PageTitle>
 <div class="settings-box">
-    <h3>Profile</h3>
+    <h6>Profile</h6>
 
     @if (AuthUser == null)
     {
@@ -28,20 +28,20 @@
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
             <RadzenImage Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" Click="@EditAvatar" />
             <RadzenStack Gap="0">
-                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Username</RadzenText>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Username</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
                     @AuthUser.UserName
                 </RadzenText>
 
-                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Display Name</RadzenText>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Display Name</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
                     @(AuthUser.DisplayName ?? "⠀")
                 </RadzenText>
 
-                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Email</RadzenText>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Email</RadzenText>
                 <RadzenTextMask Value="@AuthUser.Email" IsEmail="true"></RadzenTextMask>
 
-                <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Account Created</RadzenText>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account Created</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.CreatedOn, true)</RadzenText>
             </RadzenStack>
         </RadzenStack>
@@ -68,7 +68,7 @@
             }
         }
         <br />
-        <h4 class="mb-2">Manage</h4>
+        <h6 class="mb-2">Manage</h6>
         <RadzenButton Text="Edit Account" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@EditAccount" />
         <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@(AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
         <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangePassword" />
@@ -80,7 +80,7 @@
 </div>
 
 <div class="settings-box">
-    <h3>Settings</h3>
+    <h6>Settings</h6>
     @if (AuthUser == null)
     {
         <br />
@@ -90,7 +90,7 @@
     }
     else
     {
-        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Date Format</RadzenText>
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Date Format</RadzenText>
         <RadzenDropDown TValue="DateFormatLang" Data="@(Enum.GetValues(typeof(DateFormatLang)).Cast<Enum>())" @bind-Value="@UserDateFormat"Style="width: 100%;">
         </RadzenDropDown>
         <br />

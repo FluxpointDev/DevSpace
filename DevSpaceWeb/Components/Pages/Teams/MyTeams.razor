@@ -6,7 +6,9 @@
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
-        <RadzenText class="mt-1" TextStyle="TextStyle.H6">My Teams</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">My Teams</RadzenText>
+        <br/>
+        <br />
     </div>
     <br />
     <div style="display: flex; align-items: flex-start;">
@@ -14,13 +16,12 @@
         {
             <a href="teams/@i.GetVanityUrl()" style="color: cornflowerblue">
                 <div Class="team-item">
-                    <h4>@i.Name</h4>
+                    <RadzenText TextStyle="TextStyle.Subtitle1">@i.Name</RadzenText>
                     <img src="@i.GetIconOrDefault()">
                 </div>
             </a>
         }
-        <div Class="team-item" @onclick="@CreateTeam" style="cursor: pointer;">
-            <h4>⠀</h4>
+        <div Class="team-item team-item-add" @onclick="@CreateTeam" style="cursor: pointer;">
             <img src="https://cdn.fluxpoint.dev/devspace/team_add.webp">
         </div>
     </div>
@@ -28,33 +29,43 @@
 
 <style>
     .team-item {
-    display: inline-block !important;
-    margin-right: 10px;
-    margin-bottom: 10px;
-    margin-top: 4px;
-    border-radius: 8px;
-    padding: 10px;
-    border: 1px solid #2f2f31 !important;
-    background-color: #161617 !important;
-    width: 180px;
-    height: 180px;
-    text-align: center;
+        display: inline-block !important;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        margin-top: 4px;
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #2f2f31 !important;
+        background-color: #161617 !important;
+        width: 10rem;
+        height: 10rem;
+        text-align: center;
     }
 
-    .team-item:hover {
-    background-color: #1b1b1c !important;
-    border: 1px solid #3b3b3e !important;
+        .team-item:hover {
+            background-color: #1b1b1c !important;
+            border: 1px solid #3b3b3e !important;
+        }
+
+        .team-item .rz-text-subtitle1 {
+            height: 40px;
+            max-height: 40px;
+        }
+
+
+        .team-item img {
+            margin-top: 4px;
+            width: var(--rz-text-h1-font-size);
+            height: var(--rz-text-h1-font-size);
+        }
+
+    .team-item-add {
+        padding-top: 20px;
     }
 
-    .mud-paper h4 {
-    height: 40px;
-    max-height: 40px;
-    }
-
-    .team-item img {
-    width: 100px;
-    height: 100px;
-    }
+        .team-item-add img {
+            margin-top: 2.5rem;
+        }
 </style>
 
 @code {

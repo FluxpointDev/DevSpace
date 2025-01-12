@@ -6,7 +6,7 @@
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:robot"></span></div>
-        <RadzenText class="mt-1" TextStyle="TextStyle.H6">API Client@((!NoAccess && Client != null) ? " - " + Client.Name : "")</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">API Client@((!NoAccess && Client != null) ? " - " + Client.Name : "")</RadzenText>
     </div>
     @if (Client == null)
     {
@@ -23,10 +23,10 @@
     else
     {
         <br />
-        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Owner</RadzenText>
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
         <RadzenUserSelector Value="@OwnerUser" Disabled="@(!CanManage)" OnSelected="@ChangeOwner"></RadzenUserSelector>
 
-        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Created</RadzenText>
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Created</RadzenText>
         <RadzenText Text="@Utils.GetLocalDate(Session, Client.CreatedAt)" TextStyle="TextStyle.Body2"></RadzenText>
 
         <br />
@@ -41,7 +41,7 @@
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon"><span class="iconify" data-icon="mdi:form-textbox-password"></span></div>
-            <RadzenText class="mt-1" TextStyle="TextStyle.H6">Token</RadzenText>
+            <RadzenText TextStyle="TextStyle.H6">Token</RadzenText>
         </div>
         <br />
         @if (string.IsNullOrEmpty(Client.TokenHash))
@@ -52,7 +52,7 @@
         }
         else
         {
-            <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-05">Generated</RadzenText>
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Generated</RadzenText>
             <RadzenText Text="@GeneratedUser" TextStyle="TextStyle.Body2"></RadzenText>
             <RadzenText Text="@Utils.GetLocalDate(Session, Client.CreatedAt)" TextStyle="TextStyle.Body2"></RadzenText>
         }
@@ -62,7 +62,7 @@
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lock"></span></div>
-            <RadzenText class="mt-1" TextStyle="TextStyle.H6">Permissions</RadzenText>
+            <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
         </div>
         <br />
         <RadzenText Text="The API client will inherit permissions from the owner user or custom permissions if set." TextStyle="TextStyle.Body1"></RadzenText>
@@ -70,7 +70,7 @@
         <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
             Only global administrators can set custom permissions.
         </RadzenAlert>
-        <RadzenText TextStyle="TextStyle.Subtitle2" TagName="TagName.H3" class="rz-mb-1">Permission Type</RadzenText>
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Permission Type</RadzenText>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
             <RadzenSwitch Value="@Client.UseCustomPermissions" Disabled="@(!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))" ValueChanged="@ToggleCustomPermissions" Name="UseCustom" />
             <RadzenLabel Text="Use Custom Permissions" Component="UseCustom" />
