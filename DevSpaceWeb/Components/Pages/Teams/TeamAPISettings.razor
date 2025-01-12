@@ -9,39 +9,39 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:robot"></span></div>
         <RadzenText TextStyle="TextStyle.H6">@Team.Name API</RadzenText>
     </div>
-        @if (!Member.HasTeamPermission(TeamPermission.ViewAPIs))
-        {
-            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                You do not have permission for View APIs.
-            </RadzenAlert>
-        }
-        else
-        {
+    @if (!Member.HasTeamPermission(TeamPermission.ViewAPIs))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View APIs.
+        </RadzenAlert>
+    }
+    else
+    {
         <br />
-            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create API Client" Click="@CreateApi" Disabled="(!(Member.HasTeamPermission(TeamPermission.ManageOwnAPIs) || Member.HasTeamPermission(TeamPermission.ManageAllAPIs)))" />
-            <br />
-            <br />
-            <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
-                @foreach (APIClient i in _DB.API.Cache.Values.Where(x => x.HasAccess(Member)))
-                {
-                    <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/api/" + i.Id.ToString())">
-                        <div class="api-item">
-                            <h6>@i.Name</h6>
-                        </div>
-                    </a>
-                }
-            </RadzenStack>
-        }
-    
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create API Client" Click="@CreateApi" Disabled="(!(Member.HasTeamPermission(TeamPermission.ManageOwnAPIs) || Member.HasTeamPermission(TeamPermission.ManageAllAPIs)))" />
+        <br />
+        <br />
+        <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
+            @foreach (APIClient i in _DB.API.Cache.Values.Where(x => x.HasAccess(Member)))
+            {
+                <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/api/" + i.Id.ToString())">
+                    <div class="api-item">
+                        <h6>@i.Name</h6>
+                    </div>
+                </a>
+            }
+        </RadzenStack>
+    }
+
 </div>
 
 <style>
     .api-item {
-        padding: 10px;
-        padding-left: 20px;
-        padding-right: 20px;
-        border-radius: 8px;
-        background-color: rgba(52,53,63,0.8) !important;
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 8px;
+    background-color: rgba(52,53,63,0.8) !important;
     }
 </style>
 
@@ -55,14 +55,19 @@
 
     public async Task CreateApi()
     {
+        if (!(Member.HasTeamPermission(TeamPermission.ManageOwnAPIs) || Member.HasTeamPermission(TeamPermission.ManageAllAPIs)))
+            return;
         await dialogService.ShowDynamicFormAsync<TeamCreateAPIModel>("Create API Client", new TeamCreateAPIModel() { }, async (TeamCreateAPIModel data) =>
             {
+                if (!(Member.HasTeamPermission(TeamPermission.ManageOwnAPIs) || Member.HasTeamPermission(TeamPermission.ManageAllAPIs)))
+                    return "You do not have Manage API permissions.";
+
                 APIClient client = new APIClient
-                {
-                    Name = data.Name,
-                    OwnerId = Member.UserId,
-                    TeamId = Member.TeamId
-                };
+                    {
+                        Name = data.Name,
+                        OwnerId = Member.UserId,
+                        TeamId = Member.TeamId
+                    };
                 await _DB.API.CreateAsync(client);
                 _DB.API.Cache.TryAdd(client.Id, client);
                 StateHasChanged();

@@ -111,8 +111,8 @@
     public bool NoAccess { get; set; }
     public bool CanManage { get; set; }
     public string OwnerUser { get; set; }
-    public string GeneratedUser { get; set; }
-    public PermissionsSet Permissions;
+    public string? GeneratedUser { get; set; }
+    public PermissionsSet? Permissions;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -152,14 +152,14 @@
         {
             var AuthUser = await Session.GetCurrentUserAsync();
             await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
-            .Set(x => x.OwnerId, user.Id).Set(x => x.TokenHash, "").Set(x => x.GeneratedBy, AuthUser.Id).Set(x => x.GeneratedAt, DateTime.UtcNow), () =>
+            .Set(x => x.OwnerId, user.Id).Set(x => x.TokenHash, null).Set(x => x.GeneratedAt, null).Set(x => x.GeneratedBy, null), () =>
             {
-                Client.TokenHash = "";
-                Client.GeneratedBy = AuthUser.Id;
-                Client.GeneratedAt = DateTime.UtcNow;
+                Client.TokenHash = null;
+                Client.GeneratedBy = null;
+                Client.GeneratedAt = null;
                 Client.OwnerId = user.Id;
                 OwnerUser = user.UserName;
-                GeneratedUser = AuthUser.UserName;
+                GeneratedUser = null;
             });
 
             StateHasChanged();
