@@ -1,12 +1,7 @@
-﻿<PageTitle>Docker Templates | @_Data.Config.Instance.Name</PageTitle>
+﻿@using DevSpaceWeb.Models
+@inject DialogService DialogService
 
-<div class="dash-box dash-box-content">
-    <div class="dash-box-header">
-        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:application-variable"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">Docker Custom Templates</RadzenText>
-    </div>
-    <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/templates/custom")"><RadzenButton Variant="Variant.Filled" Text="Custom Templates" ButtonStyle="ButtonStyle.Info" /></a>
-</div>
+<PageTitle>Docker App Templates | @_Data.Config.Instance.Name</PageTitle>
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -14,9 +9,30 @@
         <RadzenText TextStyle="TextStyle.H6">Docker App Templates</RadzenText>
         <RadzenTextBox Placeholder="Search..." Style="max-width: 240px;" class="ml-4" />
     </div>
+    <br />
+    <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/templates/custom")"><RadzenButton Variant="Variant.Filled" Text="Custom Templates" ButtonStyle="ButtonStyle.Info" /></a>
+    <br />
 </div>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
+
+    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+
+    public async Task SetupTemplate()
+    {
+        await DialogService.ShowDynamicFormAsync<SetupTemplateStackModel>("Setup Anyviz Cloud Adaptor", new SetupTemplateStackModel(), async (SetupTemplateStackModel data) =>
+        {
+            if (!Member.HasDockerPermission(Server, DockerPermission.ViewTemplates))
+                return "You do not have permission for View Templates.";
+
+            if (!Member.HasDockerPermission(Server, DockerPermission.ManageContainers))
+                return "You do not have permission for Manage Containers.";
+
+            return null;
+        });
+    }
 }
