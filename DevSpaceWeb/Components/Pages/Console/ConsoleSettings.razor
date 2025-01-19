@@ -1,0 +1,67 @@
+﻿@using DevSpaceWeb.Data.Consoles
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
+        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
+    </div>
+    <br />
+    <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/settings")">
+            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+                <span class="iconify" data-icon="mdi:list-box"></span>
+                <RadzenText TextStyle="TextStyle.H6">Basic</RadzenText>
+            </RadzenCard>
+        </a>
+        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/rcon")">
+            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+                <span class="iconify" data-icon="mdi:console-line"></span>
+                <RadzenText TextStyle="TextStyle.H6">Rcon</RadzenText>
+            </RadzenCard>
+        </a>
+        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/permissions")">
+            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+                <span class="iconify" data-icon="mdi:shield-key"></span>
+                <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
+            </RadzenCard>
+        </a>
+    </RadzenStack>
+</div>
+
+<style>
+    .settings-item {
+        width: 140px;
+        height: 140px;
+    }
+
+        .settings-item .iconify {
+            width: 36px;
+            height: 36px;
+            margin-top: 26px;
+            color: var(--rz-info);
+        }
+
+        .settings-item .rz-text-h6 {
+            margin-top: 14px;
+            font-size: 1.1rem;
+            color: var(--rz-base-200) !important;
+        }
+
+    .rz-stack a {
+        text-decoration: none !important;
+    }
+
+    .settings-item:hover {
+        background-color: var(--rz-base-dark);
+        outline: solid 1px var(--rz-secondary-dark) !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+}

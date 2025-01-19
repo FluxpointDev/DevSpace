@@ -52,34 +52,28 @@
     public async Task<string?> UpdateTeamSettings(TeamBasicModel model)
     {
         if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
-        {
-            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
-            return "Error";
-        }
+            return "You do not have Manage Team permissions.";
 
-        if (!string.IsNullOrEmpty(model.VanityUrl))
-        {
-            model.VanityUrl = model.VanityUrl.Replace(" ", "-").ToLower();
-        }
+        string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
 
         Dictionary<string, string> props = new Dictionary<string, string>();
         if (Team.Name != model.Name)
             props.Add(nameof(TeamData.Name), model.Name);
 
-        if (Team.VanityUrl != model.VanityUrl)
-            props.Add(nameof(TeamData.VanityUrl), model.VanityUrl);
+        if (Team.VanityUrl != VanityUrl)
+            props.Add(nameof(TeamData.VanityUrl), VanityUrl);
 
         if (!props.Any())
             return null;
 
-        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, model.Name).Set(x => x.VanityUrl, model.VanityUrl), () =>
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, model.Name).Set(x => x.VanityUrl, VanityUrl), () =>
         {
             _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.SettingsChanged).SetTarget(AuditLogTargetType.Team, Team.Id).SetProperties(props));
 
             Team.Name = model.Name;
-            if (Team.VanityUrl != model.VanityUrl)
+            if (Team.VanityUrl != VanityUrl)
             {
-                if (string.IsNullOrEmpty(model.VanityUrl))
+                if (string.IsNullOrEmpty(VanityUrl))
                 {
                     if (!string.IsNullOrEmpty(Team.VanityUrl))
                     {
@@ -89,14 +83,14 @@
                 }
                 else
                 {
-                    if (model.VanityUrl != Team.VanityUrl)
+                    if (VanityUrl != Team.VanityUrl)
                     {
                         _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
-                        _DB.TeamsVanityCache.TryAdd(model.VanityUrl, Team);
-                        Team.VanityUrl = model.VanityUrl;
+                        _DB.TeamsVanityCache.TryAdd(VanityUrl, Team);
+                        Team.VanityUrl = VanityUrl;
                     }
                 }
-                Session.Selected.Team.VanityUrl = Team.GetVanityUrl();
+                Session.Selected.Team.VanityUrl = Team.GetVanityUrlOrId();
             }
             Session.TriggerNavMenuChange();
         });

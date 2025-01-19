@@ -14,7 +14,7 @@
     <div style="display: flex; align-items: flex-start;">
         @foreach (TeamData i in _DB.Teams.Cache.Values.Where(x => x.Members.ContainsKey(Session.CurrentUser.Id)))
         {
-            <a href="teams/@i.GetVanityUrl()" style="color: cornflowerblue">
+            <a href="teams/@i.GetVanityUrlOrId()" style="color: cornflowerblue">
                 <div Class="team-item">
                     <RadzenText TextStyle="TextStyle.Subtitle1">@i.Name</RadzenText>
                     <img src="@i.GetIconOrDefault()">
@@ -76,9 +76,9 @@
     {
         await DialogService.ShowDynamicFormAsync<TeamBasicModel>("Create Team", new TeamBasicModel(), async (TeamBasicModel data) =>
             {
-                string VanityUrl = data.VanityUrl.Replace(" ", "-").ToLower();
-                if (_DB.TeamsVanityCache.ContainsKey(VanityUrl))
-                    return "This vanity url is already taken.";
+                string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
+                if (!string.IsNullOrEmpty(VanityUrl) && _DB.TeamsVanityCache.ContainsKey(VanityUrl))
+                    return Lang.Errors.vanity_url_already_taken;
 
                 TeamData Team = new TeamData
                 {

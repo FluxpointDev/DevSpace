@@ -1,4 +1,4 @@
-﻿namespace DevSpaceWeb.Models;
+﻿namespace DevSpaceWeb.Models.Docker;
 
 public class SetupTemplateStackModel
 {

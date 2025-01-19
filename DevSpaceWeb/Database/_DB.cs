@@ -1,14 +1,18 @@
-﻿using DevSpaceWeb.Data;
+﻿using DaRT;
+using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.API;
+using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Data.Websites;
+using LibMCRcon.RCon;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Concurrent;
+using System.Net;
 
 namespace DevSpaceWeb.Database;
 
@@ -36,6 +40,7 @@ public static class _DB
             Roles = new ICacheCollection<TeamRoleData>("roles");
             Members = new ICacheCollection<TeamMemberData>("members");
             Servers = new ICacheCollection<ServerData>("servers");
+            Consoles = new ICacheCollection<ConsoleData>("consoles");
             Projects = new ICacheCollection<ProjectData>("projects");
             Websites = new ICacheCollection<WebsiteData>("websites");
             Logs = new ICacheCollection<LogData>("logs");
@@ -123,11 +128,15 @@ public static class _DB
                         {
                             VanityUrlCache.TryAdd(i.Value, i.Key);
                         }
-                        foreach (KeyValuePair<string, ObjectId> i in x.LogsVanityUrls)
+                        foreach (KeyValuePair<string, ObjectId> i in x.LogVanityUrls)
                         {
                             VanityUrlCache.TryAdd(i.Value, i.Key);
                         }
                         foreach (KeyValuePair<string, ObjectId> i in x.ProjectVanityUrls)
+                        {
+                            VanityUrlCache.TryAdd(i.Value, i.Key);
+                        }
+                        foreach (KeyValuePair<string, ObjectId> i in x.ConsoleVanityUrls)
                         {
                             VanityUrlCache.TryAdd(i.Value, i.Key);
                         }
@@ -140,7 +149,7 @@ public static class _DB
                 Logger.LogMessage("Database", "- Vanity URLs: " + TeamVanityUrls.Cache.Keys.Count, LogSeverity.Info);
             });
 
-            
+
             Task TemplateTask = Task.Run(async () =>
             {
                 await EmailTemplates.Find(Builders<EmailTemplateData>.Filter.Empty).ForEachAsync(x =>
@@ -187,6 +196,39 @@ public static class _DB
                 Logger.LogMessage("Database", "- Projects: " + Projects.Cache.Keys.Count, LogSeverity.Info);
             });
 
+            Task ConsoleTask = Task.Run(async () =>
+            {
+                await Consoles.Find(Builders<ConsoleData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    Consoles.Cache.TryAdd(x.Id, x);
+                    switch (x.Type)
+                    {
+                        case ConsoleType.Battleye:
+                            {
+                                RCon rc = new RCon();
+                                rc.Connect(IPAddress.Parse(x.Ip), x.Port, x.GetDecryptedPassword());
+                                if (rc.IsConnected)
+                                    x.ConnectedAt = DateTime.UtcNow;
+                                _Data.BattleyeRcons.Add(x.Id, rc);
+                            }
+                            break;
+                        case ConsoleType.Minecraft:
+                            {
+                                TCPRconAsync rcon = new TCPRconAsync
+                                {
+                                    RConHost = x.Ip,
+                                    RConPort = x.Port,
+                                    RConPass = x.GetDecryptedPassword()
+                                };
+                                rcon.StartComms();
+                                _Data.MinecraftRcons.Add(x.Id, rcon);
+                            }
+                            break;
+                    }
+                });
+                Logger.LogMessage("Database", "- Consoles: " + Consoles.Cache.Keys.Count, LogSeverity.Info);
+            });
+
             Task APITask = Task.Run(async () =>
             {
                 await API.Find(Builders<APIClient>.Filter.Empty).ForEachAsync(x =>
@@ -198,7 +240,7 @@ public static class _DB
 
 
             Task.WaitAll(RoleTask, MemberTask, TeamVanityTask, TemplateTask, LogTask,
-                ServerTask, WebsiteTask, ProjectTask, APITask);
+                ServerTask, WebsiteTask, ProjectTask, APITask, ConsoleTask);
 
             Logger.LogMessage("Database", "Data Loaded", LogSeverity.Info);
             IsCacheDone = true;
@@ -217,6 +259,8 @@ public static class _DB
     public static ICacheCollection<ServerData> Servers = null!;
 
     public static Dictionary<ObjectId, PartialUserData> Users = new Dictionary<ObjectId, PartialUserData>();
+
+    public static ICacheCollection<ConsoleData> Consoles = null;
 
     public static ICacheCollection<ProjectData> Projects = null!;
 

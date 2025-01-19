@@ -1,6 +1,5 @@
 ﻿using DevSpaceWeb.API;
 using DevSpaceWeb.API.Teams;
-using DevSpaceWeb.API.Users;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
@@ -27,8 +26,8 @@ public class RolesController : APIController
         if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
             return BadRequest("Could not find team.");
 
-        if (!Client.HasTeamPermission(TeamPermission.ViewRoles))
-            return Forbidden("Client does not have View Roles permission.");
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out var perm))
+            return PermissionFailed(perm);
 
         return Ok(Team.CachedRoles.Values.Select(x => new RoleJson(x)));
     }
@@ -41,13 +40,13 @@ public class RolesController : APIController
         if (string.IsNullOrEmpty(roleId) || !ObjectId.TryParse(roleId, out ObjectId obj) || !_DB.Roles.Cache.TryGetValue(obj, out Data.Teams.TeamRoleData? Role) || !(Client.IsInstanceAdmin || Role.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find role.");
 
-        if (!Client.HasTeamPermission(TeamPermission.ViewRoles))
-            return Forbidden("Client does not have View Roles permission.");
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out var perm))
+            return PermissionFailed(perm);
 
         return Ok(new RoleJson(Role));
     }
 
-    
+
 
     //[HttpPost("/api/roles/{roleId?}")]
     //[SwaggerOperation("Edit a role.", "")]

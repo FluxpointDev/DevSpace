@@ -7,6 +7,7 @@ public class PermissionsSet
     public ProjectPermission ProjectPermissions;
     public ServerPermission ServerPermissions;
     public WebsitePermission WebsitePermissions;
+    public ConsolePermission ConsolePermissions;
     public DockerPermission DockerPermissions;
 
     public PermissionsSet Clone()

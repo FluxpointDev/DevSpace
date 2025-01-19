@@ -74,6 +74,12 @@ public class SwaggerCheckAuthFilter : IOperationFilter
             i.Value.Content.Remove("text/json");
         }
 
+        if (operation.RequestBody != null)
+        {
+            operation.RequestBody.Content.Remove("text/json");
+            operation.RequestBody.Content.Remove("application/*+json");
+        }
+
 
         if (hasAuthorize)
         {

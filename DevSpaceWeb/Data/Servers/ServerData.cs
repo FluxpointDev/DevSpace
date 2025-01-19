@@ -32,14 +32,6 @@ public class ServerData : ITeamResource
         return false;
     }
 
-    public string GetVanityUrl()
-    {
-        if (_DB.VanityUrlCache.TryGetValue(Id, out string vanityUrl))
-            return vanityUrl;
-
-        return Id.ToString();
-    }
-
     public async Task UpdateAsync(UpdateDefinition<ServerData> update, Action action)
     {
         FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);

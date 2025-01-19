@@ -1,4 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using DaRT;
+using LibMCRcon.RCon;
+using MongoDB.Bson;
+using Newtonsoft.Json;
 using System.Security.Cryptography;
 
 namespace DevSpaceWeb.Data;
@@ -6,7 +9,8 @@ namespace DevSpaceWeb.Data;
 public static class _Data
 {
     public static Config Config = null!;
-
+    public static Dictionary<ObjectId, RCon> BattleyeRcons = new Dictionary<ObjectId, RCon>();
+    public static Dictionary<ObjectId, TCPRconAsync> MinecraftRcons = new Dictionary<ObjectId, TCPRconAsync>();
     public static bool LoadConfig()
     {
         bool SaveConfig = false;
@@ -17,7 +21,7 @@ public static class _Data
             {
                 Program.Directory = new DirectoryStructureMain(AppDomain.CurrentDomain.BaseDirectory);
             }
-            catch (Exception ex)
+            catch
             {
                 Logger.LogMessage("Failed to write data to the program path: " + Program.Directory.Path, LogSeverity.Error);
                 System.Environment.Exit(1);

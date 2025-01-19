@@ -501,7 +501,7 @@
     public SmtpModel SmtpForm { get; set; }
     public string ManagedEmailToken { get; set; }
 
-    public string TeamNameInput { get { return TeamForm.Name; } set { TeamForm.Name = value; TeamForm.VanityUrl = TeamForm.Name.Replace(" ", "-").ToLower(); } }
+    public string TeamNameInput { get { return TeamForm.Name; } set { TeamForm.Name = value; TeamForm.VanityUrl = Utils.FormatVanityUrl(TeamForm.Name); } }
     public TeamBasicModel TeamForm { get; set; } = new TeamBasicModel();
 
     public AccountRegisterModel AdminAccount = new AccountRegisterModel();
@@ -925,28 +925,19 @@
 
     public async Task CheckTeam()
     {
-        if (!string.IsNullOrEmpty(TeamForm.VanityUrl))
-        {
-            TeamForm.VanityUrl = TeamForm.VanityUrl.Replace(" ", "-").ToLower();
-        }
-
         SetupStep = SetupStepType.Disabled;
         TeamData Team = new TeamData
         {
             Name = TeamForm.Name,
-            VanityUrl = TeamForm.VanityUrl
+            VanityUrl = Utils.FormatVanityUrl(TeamForm.VanityUrl)
         };
         await _DB.Teams.CreateAsync(Team);
         _DB.Teams.Cache.TryAdd(Team.Id, Team);
-
-
-        if (!string.IsNullOrEmpty(TeamForm.VanityUrl))
+        VanityUrlData Vanity = new VanityUrlData
         {
-            VanityUrlData Vanity = new VanityUrlData
-            {
-            };
-            await _DB.TeamVanityUrls.CreateAsync(Vanity);
-        }
+            Id = Team.Id
+        };
+        await _DB.TeamVanityUrls.CreateAsync(Vanity);
         _Data.Config.Save();
         SetupStep = SetupStepType.Admin;
     }
@@ -1037,7 +1028,6 @@
                     else
                         return PointStyle.Success;
                 }
-                break;
             case SetupStepType.Smtp:
                 {
                     if (SetupStep == SetupStepType.Smtp)

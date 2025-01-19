@@ -1,0 +1,217 @@
+﻿@using DaRT
+@using System.Linq.Dynamic.Core
+@using DevSpaceWeb.Data.Consoles
+@using DevSpaceWeb.Models.Consoles
+@using Newtonsoft.Json.Linq
+@inject ContextMenuService ContextMenuService
+@inject DialogService Dialog
+
+<div class="dash-box">
+    <div class="dash-box-header dash-box-content">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Players</RadzenText>
+        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
+    </div>
+    <br />
+    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewPlayers))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Players.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+            <Columns>
+                <RadzenDataGridColumn Title="Name" Width="200px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.name</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Actions" Width="80px">
+                    <Template>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                            <RadzenButton Icon="build" Click="@(args => ShowContextMenuWithManageItems(context, args))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+    }
+</div>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public IEnumerable<Player> Players { get; set; }
+    public int PlayerCount { get; set; }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc))
+        {
+            if (rc.IsConnected)
+            {
+                string ListCommand = await rc.ExecuteCmd("list");
+                try
+                {
+                    ListCommand = ListCommand.Split("online:").Last();
+                }
+                catch { }
+                
+                List<Player> list = new List<Player>();
+                
+                foreach (var i in ListCommand.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(x => new Player(0, null, null, null, x, null)))
+                {
+                    if (i.name.Contains(" and "))
+                    {
+                        var SplitAnd = i.name.Split(" and ");
+                        list.Add(new Player(0, null, null, null, SplitAnd[0], null));
+                        list.Add(new Player(0, null, null, null, SplitAnd[1], null));
+                    }
+                    else
+                        list.Add(i);
+                }
+                
+                var query = list;
+
+                PlayerCount = query.Count();
+                Players = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+            }
+            else
+            {
+                PlayerCount = 0;
+                Players = new List<Player>();
+            }
+
+            StateHasChanged();
+        }
+        else
+        {
+            PlayerCount = 0;
+            Players = new List<Player>();
+        }
+
+    }
+
+
+    void ShowContextMenuWithManageItems(Player item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Message", Value = "message", Icon = "chat" },
+                new ContextMenuItem(){ Text = "Ban Player", Value = "ban", Icon = "hardware" },
+                new ContextMenuItem(){ Text = "Kick Player", Value = "kick", Icon = "podiatry" },
+                                                         }, x => MenuItemClick(x, item));
+    }
+
+    void MenuItemClick(MenuItemEventArgs args, Player item)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            switch (args.Value.ToString())
+            {
+                case "ban":
+                    {
+                        if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Ban", "You do not have permission for Ban Players.");
+                            return;
+                        }
+
+                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rcon) || !rcon.IsConnected)
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+                            return;
+                        }
+
+                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        {
+                            if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+                                return "You do not have permission for Ban Players.";
+
+                            if (!rcon.IsConnected)
+                                return "Could not connect to server.";
+
+                            var Result = await rcon.ExecuteCmd("ban " + item.name);
+                            await Dialog.ShowInfoAsync("Ban Result", Result);
+                            return null;
+                        });
+                    }
+                    break;
+                case "kick":
+                    {
+                        if (!Member.HasConsolePermission(Console, ConsolePermission.KickPlayers))
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Kick", "You do not have permission for Kick Players.");
+                            return;
+                        }
+
+                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rcon) || !rcon.IsConnected)
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+                            return;
+                        }
+
+                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        {
+                            if (!Member.HasConsolePermission(Console, ConsolePermission.KickPlayers))
+                                return "You do not have permission for Kick Players.";
+
+                            if (!rcon.IsConnected)
+                                return "Could not connect to server.";
+
+                            var Result = await rcon.ExecuteCmd("kick " + item.name);
+                            await Dialog.ShowInfoAsync("Kick Result", Result);
+                            return null;
+                        });
+                    }
+                    break;
+                case "message":
+                    {
+                        if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Send Message", "You do not have permission for Message Players.");
+                            return;
+                        }
+
+                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rcon) || !rcon.IsConnected)
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+                            return;
+                        }
+
+                        await Dialog.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
+                        {
+                            if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
+                                return "You do not have permission for Message Players.";
+
+                            if (!rcon.IsConnected)
+                                return "Could not connect to server.";
+
+                            var Result = await rcon.ExecuteCmd("tell " + item.name + " " + data.Message);
+                            await Dialog.ShowInfoAsync("Message Result", Result);
+                            return null;
+                        });
+                    }
+                    break;
+            }
+        });
+
+        ContextMenuService.Close();
+    }
+
+}

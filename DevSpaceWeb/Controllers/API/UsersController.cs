@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Swashbuckle.AspNetCore.Annotations;
-using System.Data;
 
 namespace DevSpaceWeb.Controllers.API;
 
@@ -36,8 +35,8 @@ public class UsersController : APIController
         if (user == null)
             return BadRequest("Could not find user.");
 
-        if (!Client.HasTeamPermission(TeamPermission.ViewMembers))
-            return Forbidden("Client does not have View Members permission.");
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out var perm))
+            return PermissionFailed(perm);
 
         return Ok(new UserJson(user));
     }

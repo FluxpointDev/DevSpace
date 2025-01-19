@@ -198,7 +198,7 @@ public static class ServiceBuilder
                 opt.CallbackPath = new PathString("/auth/login/apple");
                 opt.Scope.Add("name");
                 opt.Scope.Add("email");
-                
+
             });
         }
         if (_Data.Config.Providers.Discord.IsConfigured())
@@ -258,10 +258,10 @@ public static class ServiceBuilder
                         using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
 
                         context.Identity.AddClaim(new Claim(ClaimTypes.Email, (from address in payload.RootElement.EnumerateArray()
-                                where address.GetProperty("primary").GetBoolean()
-                                select address.GetString("email")).FirstOrDefault(), ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                                                                               where address.GetProperty("primary").GetBoolean()
+                                                                               select address.GetString("email")).FirstOrDefault(), ClaimValueTypes.String, context.Options.ClaimsIssuer));
 
-                        
+
                         //Console.WriteLine("Access: " + context.AccessToken);
                         //context.Identity?.AddClaim(new Claim("access_token", context.AccessToken));
                     }
@@ -315,7 +315,7 @@ public static class ServiceBuilder
                                 context.Identity.AddClaim(new Claim(ClaimTypes.Name, payload.RootElement.GetProperty("user").GetString("name"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
                                 context.Identity.AddClaim(new Claim(ClaimTypes.Email, payload.RootElement.GetProperty("user").GetString("email"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
                                 context.Identity.AddClaim(new Claim("team", payload.RootElement.GetProperty("team").GetString("id"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
-                            
+
                             }
                         }
                     }

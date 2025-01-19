@@ -9,6 +9,7 @@ public class PermissionsAll
         Project = new ProjectPermissions(permissions.ProjectPermissions);
         Server = new ServerPermissions(permissions.ServerPermissions);
         Website = new WebsitePermissions(permissions.WebsitePermissions);
+        Console = new ConsolePermissions(permissions.ConsolePermissions);
         Docker = new DockerPermissions(permissions.DockerPermissions);
     }
 
@@ -17,5 +18,7 @@ public class PermissionsAll
     public ProjectPermissions Project { get; set; }
     public ServerPermissions Server { get; set; }
     public WebsitePermissions Website { get; set; }
+
+    public ConsolePermissions Console { get; set; }
     public DockerPermissions Docker { get; set; }
 }

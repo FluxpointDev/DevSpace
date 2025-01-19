@@ -12,7 +12,7 @@ namespace DevSpaceWeb.Data.Teams;
 
 public class TeamData : IResource
 {
-    public string VanityUrl { get; set; }
+    public string? VanityUrl { get; set; }
 
     public Guid? ResourceId { get; set; }
 
@@ -58,7 +58,7 @@ public class TeamData : IResource
     public TeamMemberData? GetMember(AuthUser user)
     {
         if (Members.TryGetValue(user.Id, out ObjectId memberObj))
-        return CachedMembers[memberObj];
+            return CachedMembers[memberObj];
 
         return null;
     }
@@ -78,12 +78,24 @@ public class TeamData : IResource
     [BsonIgnore]
     public Dictionary<ObjectId, TeamMemberData> CachedMembers = new Dictionary<ObjectId, TeamMemberData>();
 
-    public string GetVanityUrl()
+    public string GetVanityUrlOrId()
     {
         if (!string.IsNullOrEmpty(VanityUrl))
             return VanityUrl;
 
         return Id.ToString();
+    }
+
+    public VanityUrlData GetVanityUrlData()
+    {
+        if (_DB.TeamVanityUrls.Cache.TryGetValue(Id, out VanityUrlData data))
+            return data;
+        data = new VanityUrlData
+        {
+            Id = Id
+        };
+        _DB.TeamVanityUrls.CreateAsync(data);
+        return data;
     }
 
     public async Task UpdateAsync(UpdateDefinition<TeamData> update, Action action)

@@ -188,6 +188,34 @@
                 </div>
             </RadzenStack>
         }
+
+        @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Console)
+        {
+            <RadzenStack Gap="0" class="permission-grid-box">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:console-line"></span> Console Permissions</RadzenText>
+
+                <div class="permission-grid-info">
+                    <RadzenCheckBox @bind-Value="@ConsoleAdministrator" Name="ConsoleAdmin" Disabled="@(!PermissionsLoaded || IsDisabled)" />
+                    <RadzenLabel Text="Console Administrator" Component="ConsoleAdmin" class="rz-ms-2" />
+                    <span style="color: var(--rz-text-tertiary-color)">All console permissions.</span>
+                </div>
+
+                <div>
+                    <RadzenDropDown @ref="ConsoleGrid.Grid" @bind-Value="@ConsoleGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                                    AllowFiltering="true" Chips="true" Data="@ConsoleGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ConsoleItemRender(evnt))"
+                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@(!PermissionsLoaded || ConsoleAdministrator || IsDisabled)">
+                        <Template>
+                            <RadzenLabel Text="@((context as PermissionItem<ConsolePermission>).Name)" Style="display: block;" />
+                            <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ConsolePermission>).Description)</span>
+
+                        </Template>
+                        <ValueTemplate>
+                            @((context as PermissionItem<ConsolePermission>).Name)
+                        </ValueTemplate>
+                    </RadzenDropDown>
+                </div>
+            </RadzenStack>
+        }
     </RadzenStack>
 }
 
@@ -377,6 +405,10 @@
     private bool _logAdministrator;
     public bool LogAdministrator { get { return _logAdministrator; } set { _logAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
 
+    private bool _consoleAdministrator;
+    public bool ConsoleAdministrator { get { return _consoleAdministrator; } set { _consoleAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+
+
     public static PermissionGrid<PermissionItem<TeamPermission>> TeamGrid = new PermissionGrid<PermissionItem<TeamPermission>>
         {
             Data = PermissionsData.AllTeamData
@@ -460,6 +492,7 @@
         }
         return data;
     }
+    
     public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerPermission>>> DockerItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerPermission>>> data)
     {
         PermissionItem<DockerPermission> item = (PermissionItem<DockerPermission>)data.Item;
@@ -518,6 +551,16 @@
         return data;
     }
 
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ConsolePermission>>> ConsoleItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ConsolePermission>>> data)
+    {
+        PermissionItem<ConsolePermission> item = (PermissionItem<ConsolePermission>)data.Item;
+        switch (item.Flag)
+        {
+            
+        }
+        return data;
+    }
+
     public static PermissionGrid<PermissionItem<ServerPermission>> ServerGrid = new PermissionGrid<PermissionItem<ServerPermission>>
         {
             Data = PermissionsData.AllServerData
@@ -541,6 +584,11 @@
     public static PermissionGrid<PermissionItem<DockerPermission>> DockerGrid = new PermissionGrid<PermissionItem<DockerPermission>>
         {
             Data = PermissionsData.AllDockerData
+        };
+
+    public static PermissionGrid<PermissionItem<ConsolePermission>> ConsoleGrid = new PermissionGrid<PermissionItem<ConsolePermission>>
+        {
+            Data = PermissionsData.AllConsoleData
         };
 
     public PermissionsSet GetPermissions()
@@ -610,6 +658,17 @@
                 Set.LogPermissions |= i.Flag;
             }
         }
+
+        if (ConsoleAdministrator)
+            Set.ConsolePermissions |= ConsolePermission.ConsoleAdministrator;
+        else
+        {
+            foreach (PermissionItem<ConsolePermission> i in ConsoleGrid.Selected)
+            {
+                Set.ConsolePermissions |= i.Flag;
+            }
+        }
+
         return Set;
     }
 

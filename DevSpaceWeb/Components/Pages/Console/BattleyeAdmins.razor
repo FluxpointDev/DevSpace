@@ -1,0 +1,234 @@
+﻿@using DaRT
+@using System.Linq.Dynamic.Core
+@using DevSpaceWeb.Data.Consoles
+@using DevSpaceWeb.Models.Consoles
+@using Newtonsoft.Json.Linq
+@inject ContextMenuService ContextMenuService
+@inject DialogService Dialog
+
+<div class="dash-box">
+    <div class="dash-box-header dash-box-content">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account-supervisor"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Admins</RadzenText>
+        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
+    </div>
+    <br />
+    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewAdmins))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Admins.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+            <Columns>
+                <RadzenDataGridColumn Title="ID" Width="60px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.Id</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="IP">
+                    <Template>
+                        <RadzenTextMask Value="@context.Ip" IsIp="true"></RadzenTextMask>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+    }
+</div>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public IEnumerable<RconAdmin> Players { get; set; }
+    public int PlayerCount { get; set; }
+
+    void LoadData(LoadDataArgs args)
+    {
+        if (_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc))
+        {
+            if (rc.IsConnected)
+            {
+                var query = rc.GetAdmins().AsQueryable();
+
+                PlayerCount = query.Count();
+                Players = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+            }
+            else
+            {
+                PlayerCount = 0;
+                Players = new List<RconAdmin>();
+            }
+
+            StateHasChanged();
+        }
+        else
+        {
+            PlayerCount = 0;
+            Players = new List<RconAdmin>();
+        }
+
+    }
+
+    public string ParseTime(int time)
+    {
+        if (time > 1440)
+        {
+            return $"{(int)new TimeSpan(0, time, 0).TotalDays} days";
+        }
+        else if (time > 60)
+        {
+            return $"{(int)new TimeSpan(0, time, 0).TotalHours} hours";
+        }
+
+        return $"{time} minutes";
+    }
+
+    void ShowContextMenuWithManageItems(RconAdmin item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Message", Value = "message", Icon = "chat" },
+                new ContextMenuItem(){ Text = "Ban Player", Value = "ban", Icon = "hardware" },
+                new ContextMenuItem(){ Text = "Ban IP", Value = "ban_ip", Icon = "plumbing" },
+                new ContextMenuItem(){ Text = "Kick", Value = "kick", Icon = "podiatry" },
+                                                         }, x => MenuItemClick(x, item));
+    }
+
+    void MenuItemClick(MenuItemEventArgs args, RconAdmin item)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        // _ = Task.Run(async () =>
+        // {
+        //     switch (args.Value.ToString())
+        //     {
+        //         case "ban":
+        //             {
+        //                 if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+        //                 {
+        //                     await Dialog.ShowInfoAsync("Failed to Ban", "You do not have permission for Ban Players.");
+        //                     return;
+        //                 }
+
+        //                 if (!_Data.Rcons.TryGetValue(Console.Id, out var rc) || rc.BEResult != BattleNET.BattlEyeConnectionResult.Success)
+        //                 {
+        //                     await Dialog.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
+        //                     return;
+        //                 }
+
+        //                 await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+        //                 {
+        //                     if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+        //                         return "You do not have permission for Ban Players.";
+
+        //                     if (rc.BEResult != BattleNET.BattlEyeConnectionResult.Success)
+        //                         return "Could not connect to server.";
+
+        //                     rc.BanPlayer(new Ban(item.guid, 0, data.Reason));
+
+        //                     return null;
+        //                 });
+        //             }
+        //             break;
+        //         case "ban_ip":
+        //             {
+        //                 if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+        //                 {
+        //                     await Dialog.ShowInfoAsync("Failed to Ban IP", "You do not have permission for Ban Players.");
+        //                     return;
+        //                 }
+
+        //                 if (!_Data.Rcons.TryGetValue(Console.Id, out var rc) || rc.BEResult != BattleNET.BattlEyeConnectionResult.Success)
+        //                 {
+        //                     await Dialog.ShowInfoAsync("Failed to Ban IP", "Could not connect to server.");
+        //                     return;
+        //                 }
+
+        //                 await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban IP " + item.ip, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+        //                 {
+        //                     if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+        //                         return "You do not have permission for Ban Players.";
+
+        //                     if (rc.BEResult != BattleNET.BattlEyeConnectionResult.Success)
+        //                         return "Could not connect to server.";
+
+        //                     rc.BanIP(new BanIP(item.number, item.name, "0", data.Reason));
+
+        //                     return null;
+        //                 });
+        //             }
+        //             break;
+        //         case "kick":
+        //             {
+        //                 if (!Member.HasConsolePermission(Console, ConsolePermission.KickPlayers))
+        //                 {
+        //                     await Dialog.ShowInfoAsync("Failed to Kick", "You do not have permission for Kick Players.");
+        //                     return;
+        //                 }
+
+        //                 if (!_Data.Rcons.TryGetValue(Console.Id, out var rc) || rc.BEResult != BattleNET.BattlEyeConnectionResult.Success)
+        //                 {
+        //                     await Dialog.ShowInfoAsync("Failed to Kick", "Could not connect to server.");
+        //                     return;
+        //                 }
+        //                 await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+        //                 {
+        //                     if (!Member.HasConsolePermission(Console, ConsolePermission.KickPlayers))
+        //                         return "You do not have permission for Kick Players.";
+
+        //                     if (rc.BEResult != BattleNET.BattlEyeConnectionResult.Success)
+        //                         return "Could not connect to server.";
+
+        //                     rc.KickPlayer(new Kick(item.number, item.name, data.Reason));
+
+        //                     return null;
+        //                 });
+        //             }
+        //             break;
+        //         case "message":
+        //             {
+        //                 if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
+        //                 {
+        //                     await Dialog.ShowInfoAsync("Failed to Send Message", "You do not have permission for Message Players.");
+        //                     return;
+        //                 }
+
+        //                 if (!_Data.Rcons.TryGetValue(Console.Id, out var rc) || rc.BEResult != BattleNET.BattlEyeConnectionResult.Success)
+        //                 {
+        //                     await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+        //                     return;
+        //                 }
+
+        //                 await Dialog.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
+        //                 {
+        //                     if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
+        //                         return "You do not have permission for Message Players.";
+
+        //                     if (rc.BEResult != BattleNET.BattlEyeConnectionResult.Success)
+        //                         return "Could not connect to server.";
+
+        //                     rc.SayPrivate(new Message(item.number, item.name, data.Message));
+        //                     return null;
+        //                 });
+        //             }
+        //             break;
+        //     }
+        // });
+
+        ContextMenuService.Close();
+    }
+
+}

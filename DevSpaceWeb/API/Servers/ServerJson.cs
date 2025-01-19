@@ -10,9 +10,7 @@ public class ServerJson
         team_id = data.TeamId.ToString();
         name = data.Name;
         owner_id = data.OwnerId.ToString();
-        vanity_url = data.GetVanityUrl();
-        if (vanity_url == id)
-            vanity_url = null;
+        vanity_url = data.VanityUrl;
     }
 
     public string id { get; set; }

@@ -1,0 +1,258 @@
+﻿@using DaRT
+@using System.Linq.Dynamic.Core
+@using DevSpaceWeb.Data.Consoles
+@using DevSpaceWeb.Models.Consoles
+@using Newtonsoft.Json.Linq
+@inject ContextMenuService ContextMenuService
+@inject DialogService Dialog
+
+<div class="dash-box">
+    <div class="dash-box-header dash-box-content">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Players</RadzenText>
+        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
+    </div>
+    <br />
+    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewPlayers))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Players.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+            <Columns>
+                <RadzenDataGridColumn Title="ID" Width="60px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.number</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="GUID" Width="240px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.guid</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Name">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.name</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Ping" Width="80px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.ping ms</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Status" Width="100px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.status</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Actions" Width="80px">
+                    <Template>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                            <RadzenButton Icon="build" Click="@(args => ShowContextMenuWithManageItems(context, args))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+    }
+</div>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public IEnumerable<Player> Players { get; set; }
+    public int PlayerCount { get; set; }
+
+    void LoadData(LoadDataArgs args)
+    {
+        if (_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc))
+        {
+            if (rc.IsConnected)
+            {
+                var query = rc.GetPlayers().AsQueryable();
+                rc.GetMissions();
+
+                PlayerCount = query.Count();
+                Players = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+            }
+            else
+            {
+                PlayerCount = 0;
+                Players = new List<Player>();
+            }
+
+            StateHasChanged();
+        }
+        else
+        {
+            PlayerCount = 0;
+            Players = new List<Player>();
+        }
+
+    }
+
+    public string ParseTime(int time)
+    {
+        if (time > 1440)
+        {
+            return $"{(int)new TimeSpan(0, time, 0).TotalDays} days";
+        }
+        else if (time > 60)
+        {
+            return $"{(int)new TimeSpan(0, time, 0).TotalHours} hours";
+        }
+
+        return $"{time} minutes";
+    }
+
+    void ShowContextMenuWithManageItems(Player item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Message", Value = "message", Icon = "chat" },
+                new ContextMenuItem(){ Text = "Ban Player", Value = "ban", Icon = "hardware" },
+                new ContextMenuItem(){ Text = "Ban IP", Value = "ban_ip", Icon = "plumbing" },
+                new ContextMenuItem(){ Text = "Kick Player", Value = "kick", Icon = "podiatry" },
+                                                         }, x => MenuItemClick(x, item));
+    }
+
+    void MenuItemClick(MenuItemEventArgs args, Player item)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            switch (args.Value.ToString())
+            {
+                case "ban":
+                    {
+                        if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Ban", "You do not have permission for Ban Players.");
+                            return;
+                        }
+
+                        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
+                            return;
+                        }
+
+                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        {
+                            if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+                                return "You do not have permission for Ban Players.";
+
+                            if (!rc.IsConnected)
+                                return "Could not connect to server.";
+
+                            rc.BanPlayer(new Ban(item.guid, 0, data.Reason));
+                            await Dialog.ShowInfoAsync("Ban Result", $"{item.name} has been banned.");
+                            return null;
+                        });
+                    }
+                    break;
+                case "ban_ip":
+                    {
+                        if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Ban IP", "You do not have permission for Ban Players.");
+                            return;
+                        }
+
+                        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Ban IP", "Could not connect to server.");
+                            return;
+                        }
+
+                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban IP " + item.ip, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        {
+                            if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+                                return "You do not have permission for Ban Players.";
+
+                            if (!rc.IsConnected)
+                                return "Could not connect to server.";
+
+                            rc.BanIP(new BanIP(item.number, item.name, "0", data.Reason));
+                            await Dialog.ShowInfoAsync("IP Ban Result", $"{item.name}'s IP has been banned.");
+                            return null;
+                        });
+                    }
+                    break;
+                case "kick":
+                    {
+                        if (!Member.HasConsolePermission(Console, ConsolePermission.KickPlayers))
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Kick", "You do not have permission for Kick Players.");
+                            return;
+                        }
+
+                        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Kick", "Could not connect to server.");
+                            return;
+                        }
+                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        {
+                            if (!Member.HasConsolePermission(Console, ConsolePermission.KickPlayers))
+                                return "You do not have permission for Kick Players.";
+
+                            if (!rc.IsConnected)
+                                return "Could not connect to server.";
+
+                            rc.KickPlayer(new Kick(item.number, item.name, data.Reason));
+                            await Dialog.ShowInfoAsync("Kick Result", $"{item.name} has been kicked.");
+                            return null;
+                        });
+                    }
+                    break;
+                case "message":
+                    {
+                        if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Send Message", "You do not have permission for Message Players.");
+                            return;
+                        }
+
+                        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                        {
+                            await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                            return;
+                        }
+
+                        await Dialog.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
+                        {
+                            if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
+                                return "You do not have permission for Message Players.";
+
+                            if (!rc.IsConnected)
+                                return "Could not connect to server.";
+
+                            rc.SayPrivate(new Message(item.number, item.name, data.Message));
+                            await Dialog.ShowInfoAsync("Message Result", $"Message sent to {item.name}");
+                            return null;
+                        });
+                    }
+                    break;
+            }
+        });
+
+        ContextMenuService.Close();
+    }
+
+}

@@ -12,26 +12,27 @@ namespace DevSpaceWeb;
 
 public static class Utils
 {
+    public static string? FormatVanityUrl(string? vanityUrl)
+    {
+        if (string.IsNullOrEmpty(vanityUrl))
+            return null;
+
+        return vanityUrl.Replace(" ", "-").ToLower();
+    }
     public static string GetBrowserName(SessionBrowserType type)
     {
-        switch (type)
+        return type switch
         {
-            case SessionBrowserType.Chrome:
-                return "Chrome";
-            case SessionBrowserType.Edge:
-                return "Edge";
-            case SessionBrowserType.Firefox:
-                return "Firefox";
-            case SessionBrowserType.InternetExplorer:
-                return "Internet Explorer";
-            case SessionBrowserType.Opera:
-                return "Opera";
-            case SessionBrowserType.Safari:
-                return "Safari";
-            case SessionBrowserType.Vivaldi:
-                return "Vivaldi";
-        }
-        return "Unknown";
+            SessionBrowserType.Chrome => "Chrome",
+            SessionBrowserType.Edge => "Edge",
+            SessionBrowserType.Firefox => "Firefox",
+            SessionBrowserType.InternetExplorer => "Internet Explorer",
+            SessionBrowserType.Opera => "Opera",
+            SessionBrowserType.Safari => "Safari",
+            SessionBrowserType.Vivaldi => "Vivaldi",
+            SessionBrowserType.Unknown => "Unknown",
+            _ => "Unknown"
+        };
     }
     public static UserPasswordStrength GetPasswordStrength(string password)
     {
@@ -60,7 +61,7 @@ public static class Utils
 
         if (Digits == 0 && Special == 0)
             return UserPasswordStrength.Low;
-        
+
         if (password.Contains("123"))
             return UserPasswordStrength.Low;
 
@@ -449,5 +450,5 @@ public enum DateFormatLang
     //DMYSpace_Dot,
     //[Display(Description = "12. 31. 2024")]
     //MDYSpace_Dot,
-   
+
 }

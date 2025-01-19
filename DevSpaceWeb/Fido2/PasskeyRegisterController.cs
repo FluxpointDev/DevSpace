@@ -145,7 +145,6 @@ public class PasskeyRegisterController : AuthControllerContext
                     Descriptor = new PublicKeyCredentialDescriptor(success.Result.Id),
                     PublicKey = success.Result.PublicKey,
                     UserHandle = success.Result.User.Id,
-                    CreatedAt = DateTime.UtcNow,
                     AaGuid = success.Result.AaGuid
                 });
 
@@ -156,7 +155,7 @@ public class PasskeyRegisterController : AuthControllerContext
                 user.Mfa.IsTwoFactorEnabled = true;
                 await _userManager.UpdateAsync(user);
 
-                
+
 
             }
 

@@ -26,7 +26,7 @@ public class FidoStoredCredential
     /// <summary>
     /// Gets or sets the registration date for this user.
     /// </summary>
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public DateTime? LastUsedAt { get; set; }
 

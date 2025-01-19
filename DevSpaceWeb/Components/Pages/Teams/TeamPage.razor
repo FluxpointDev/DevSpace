@@ -1,5 +1,6 @@
 ﻿@page "/teams/{team_id?}/{service?}/{service_id?}/{resource_type?}/{resource_data?}"
 @using DevSpaceWeb.Components.Pages.Server.DockerTools
+@using DevSpaceWeb.Data.Consoles
 
 @if (Team == null || Member == null)
 {
@@ -337,6 +338,22 @@ else
 
             }
             break;
+        case "consoles":
+            {
+                @if (string.IsNullOrEmpty(service_id))
+                {
+                    <DevSpaceWeb.Components.Pages.Console.ConsolesList></DevSpaceWeb.Components.Pages.Console.ConsolesList>
+                }
+                else if (Console == null || !Member.HasConsolePermission(Console, ConsolePermission.ViewConsoles))
+                {
+                    <p>This console does not exist.</p>
+                }
+                else
+                {
+                    <DevSpaceWeb.Components.Pages.Console.ConsolePage Page="@resource_type"></DevSpaceWeb.Components.Pages.Console.ConsolePage>
+                }                    
+            }
+            break;
         case "projects":
             {
                 @if (string.IsNullOrEmpty(service_id))
@@ -437,6 +454,7 @@ else
     public TeamMemberData Member => Session.Selected.Member;
     public ServerData Server => Session.Selected.Server;
     public ProjectData Project => Session.Selected.Project;
+    public ConsoleData Console => Session.Selected.Console;
     public LogData Log => Session.Selected.Log;
     public WebsiteData Website => Session.Selected.Website;
 
@@ -483,7 +501,29 @@ else
 
                                 if (GotServer != null && (Session.Selected.Server == null || Session.Selected.Server.Id != GotServer.Id))
                                 {
-                                    Session.Selected.Team.Server = new SelectedServerData(Session.Selected.Team, GotServer);
+                                    Session.Selected.Team.Server = new SelectedServerData(GotServer);
+                                    UpdateNav = true;
+                                }
+                            }
+                        }
+                        break;
+                    case "consoles":
+                        {
+                            if (!string.IsNullOrEmpty(service_id))
+                            {
+                                ConsoleData? GotConsole = null;
+                                if (!ObjectId.TryParse(service_id, out ObjectId ConsoleId) || !_DB.Consoles.Cache.TryGetValue(ConsoleId, out GotConsole))
+                                {
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out VanityUrlData vanity) && vanity.ConsoleVanityUrls.TryGetValue(service_id, out ObjectId consoleId))
+                                    {
+                                        _DB.Consoles.Cache.TryGetValue(consoleId, out GotConsole);
+                                    }
+                                }
+
+
+                                if (GotConsole != null && (Session.Selected.Console == null || Session.Selected.Console.Id != GotConsole.Id))
+                                {
+                                    Session.Selected.Team.Console = new SelectedConsoleData(GotConsole);
                                     UpdateNav = true;
                                 }
                             }
@@ -505,7 +545,7 @@ else
 
                                 if (GotProject != null && (Session.Selected.Project == null || Session.Selected.Project.Id != GotProject.Id))
                                 {
-                                    Session.Selected.Team.Project = new SelectedProjectData(Session.Selected.Team, GotProject);
+                                    Session.Selected.Team.Project = new SelectedProjectData(GotProject);
                                     UpdateNav = true;
                                 }
                             }
@@ -518,7 +558,7 @@ else
                                 LogData? GotLog = null;
                                 if (!ObjectId.TryParse(service_id, out ObjectId LogId) || !_DB.Logs.Cache.TryGetValue(LogId, out GotLog))
                                 {
-                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out VanityUrlData vanity) && vanity.LogsVanityUrls.TryGetValue(service_id, out ObjectId logId))
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out VanityUrlData vanity) && vanity.LogVanityUrls.TryGetValue(service_id, out ObjectId logId))
                                     {
                                         _DB.Logs.Cache.TryGetValue(logId, out GotLog);
                                     }
@@ -526,7 +566,7 @@ else
 
                                 if (GotLog != null && (Session.Selected.Log == null || Session.Selected.Log.Id != GotLog.Id))
                                 {
-                                    Session.Selected.Team.Log = new SelectedLogData(Session.Selected.Team, GotLog);
+                                    Session.Selected.Team.Log = new SelectedLogData(GotLog);
                                     UpdateNav = true;
                                 }
                             }
@@ -547,7 +587,7 @@ else
 
                                 if (GotWebsite != null && (Session.Selected.Website == null || Session.Selected.Website.Id != GotWebsite.Id))
                                 {
-                                    Session.Selected.Team.Website = new SelectedWebsiteData(Session.Selected.Team, GotWebsite);
+                                    Session.Selected.Team.Website = new SelectedWebsiteData(GotWebsite);
                                     UpdateNav = true;
                                 }
                             }

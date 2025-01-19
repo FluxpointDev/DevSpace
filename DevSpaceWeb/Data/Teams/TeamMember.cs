@@ -1,15 +1,15 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
+﻿using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
-using DevSpaceWeb.Database;
-using MongoDB.Driver;
-using Newtonsoft.Json;
-using DevSpaceWeb.Data.Servers;
-using DevSpaceWeb.Data.Websites;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
+using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Users;
-using System;
+using DevSpaceWeb.Data.Websites;
+using DevSpaceWeb.Database;
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Driver;
+using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Data.Teams;
 
@@ -147,7 +147,7 @@ public class TeamMemberData
         if (Perms.Server.Has(permission))
             return true;
 
-        if (server != null &&  server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.ServerPermissions.HasFlag(permission))
+        if (server != null && server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.ServerPermissions.HasFlag(permission))
             return true;
 
         foreach (ObjectId r in Roles)
@@ -202,6 +202,42 @@ public class TeamMemberData
         return false;
     }
 
+    public bool HasConsolePermission(ConsoleData? console, ConsolePermission permission)
+    {
+        TeamData? SelectedTeam = Team;
+        if (SelectedTeam == null)
+            return false;
+
+        if (SelectedTeam.OwnerId == UserId)
+            return true;
+
+        PermissionsAll Perms = SelectedTeam.GetPermissions();
+
+        if (Perms.Team.GlobalAdministrator || Perms.Console.ConsoleAdministrator)
+            return true;
+
+        if (Perms.Console.Has(permission))
+            return true;
+
+        if (console != null && console.MemberPermissionOverrides.TryGetValue(console.Id, out PermissionsSet? uovr) && uovr.ConsolePermissions.HasFlag(permission))
+            return true;
+
+        foreach (ObjectId r in Roles)
+        {
+            if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
+            {
+                if (role.Permissions.ConsolePermissions.HasFlag(permission))
+                    return true;
+
+            }
+
+            if (console != null && console.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.ConsolePermissions.HasFlag(permission))
+                return true;
+        }
+
+        return false;
+    }
+
     public bool HasDockerPermission(ServerData server, DockerPermission permission)
     {
         TeamData? SelectedTeam = Team;
@@ -244,7 +280,7 @@ public class TeamMemberData
         //    return -1;
 
         int CurrentRank = int.MaxValue;
-        foreach(ObjectId r in Roles)
+        foreach (ObjectId r in Roles)
         {
             if (Team.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.Position < CurrentRank)
             {

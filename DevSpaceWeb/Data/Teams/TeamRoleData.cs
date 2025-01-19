@@ -1,7 +1,7 @@
 ﻿using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Database;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using Newtonsoft.Json;
 
@@ -13,7 +13,7 @@ public class TeamRoleData
     public ObjectId Id { get; set; }
     public ObjectId TeamId { get; set; }
     public string Name { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string Description { get; set; }
     public int Position { get; set; }
     public PermissionsSet Permissions { get; set; } = new PermissionsSet();

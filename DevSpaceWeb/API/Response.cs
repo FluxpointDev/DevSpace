@@ -19,6 +19,7 @@ public class Response
 
     public bool success { get; set; }
     public int code { get; set; }
+
     public string? message { get; set; }
 }
 public class ResponseData<T>
@@ -27,6 +28,8 @@ public class ResponseData<T>
 
     [DefaultValue(200)]
     public int code { get; set; } = 200;
+
+    [DefaultValue(null)]
     public string message { get; set; }
     public T data { get; set; }
 }
@@ -38,6 +41,7 @@ public class ResponseUnauthorized
     [DefaultValue(401)]
     public int code { get; set; } = 401;
 
+    [DefaultValue("")]
     public string message { get; set; }
 }
 public class ResponseForbidden
@@ -48,6 +52,7 @@ public class ResponseForbidden
     [DefaultValue(403)]
     public int code { get; set; } = 403;
 
+    [DefaultValue("")]
     public string message { get; set; }
 }
 public class ResponseBadRequest
@@ -58,6 +63,7 @@ public class ResponseBadRequest
     [DefaultValue(400)]
     public int code { get; set; } = 400;
 
+    [DefaultValue("")]
     public string message { get; set; }
 }
 public class ResponseNotFound
@@ -68,5 +74,6 @@ public class ResponseNotFound
     [DefaultValue(404)]
     public int code { get; set; } = 404;
 
+    [DefaultValue("")]
     public string message { get; set; }
 }

@@ -2,12 +2,12 @@
 
 public class UserSession
 {
-    public bool IsMobile;
-    public SessionBrowserType BrowserType;
-    public string Country;
+    public bool IsMobile { get; private set; }
+    public SessionBrowserType BrowserType { get; private set; }
+    public string Country { get; private set; }
     public string Name;
-    public HashSet<string> AuthorizedIps = new HashSet<string>();
-    public DateTime CreatedAt = DateTime.UtcNow;
+    public HashSet<string> AuthorizedIps { get; private set; } = new HashSet<string>();
+    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt;
 
     public static UserSession Create(UserSessionJson json)
@@ -17,7 +17,6 @@ public class UserSession
             Name = Utils.GetBrowserName((SessionBrowserType)json.BrowserType),
             Country = json.Country,
             BrowserType = (SessionBrowserType)json.BrowserType,
-            CreatedAt = DateTime.UtcNow,
             LastLoginAt = DateTime.UtcNow,
             IsMobile = json.IsMobile
         };

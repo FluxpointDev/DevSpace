@@ -1,0 +1,136 @@
+﻿@using DaRT
+@using System.Linq.Dynamic.Core
+@using DevSpaceWeb.Data.Consoles
+@using Newtonsoft.Json.Linq
+@inject DialogService Dialog
+
+<div class="dash-box">
+    <div class="dash-box-header dash-box-content">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:court-hammer"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Bans</RadzenText>
+        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
+    </div>
+    <br />
+    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewBans))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Bans.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Count="@BanCount" Data="@Bans" LoadData="@LoadData"
+        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+            <Columns>
+                <RadzenDataGridColumn Title="ID/IP" Width="120px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.ipguid</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Reason" >
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.reason</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Duration" Width="100px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@ParseTime(context.Duration)</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Action" Width="80px">
+                    <Template>
+                        <RadzenButton Text="Unban" Click="@(() => UnbanPlayer(context))" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+    }
+</div>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public IEnumerable<Ban> Bans { get; set; }
+    public int BanCount { get; set; }
+
+    void LoadData(LoadDataArgs args)
+    {
+        if (_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc))
+        {
+            if (rc.IsConnected)
+            {
+                var query = rc.GetBans().AsQueryable();
+
+                BanCount = query.Count();
+                Bans = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+            }
+            else
+            {
+                BanCount = 0;
+                Bans = new List<Ban>();
+            }
+
+            StateHasChanged();
+        }
+        else
+        {
+            BanCount = 0;
+            Bans = new List<Ban>();
+        }
+    }
+
+    public string ParseTime(int time)
+    {
+        if (time == 0)
+            return "Permanent";
+
+        if (time > 1440)
+        {
+            return $"{(int)new TimeSpan(0, time, 0).TotalDays} days";
+        }
+        else if (time > 60)
+        {
+            return $"{(int)new TimeSpan(0, time, 0).TotalHours} hours";
+        }
+
+        return $"{time} minutes";
+    }
+
+    public async Task UnbanPlayer(Ban ban)
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+        {
+            await Dialog.ShowInfoAsync("Failed to Unban", "You do not have permission for Ban Players.");
+            return;
+        }
+
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        {
+            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+            return;
+        }
+
+        bool Confirm = await Dialog.ShowConfirmAsync($"Unban {ban.ipguid}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
+        if (Confirm)
+        {
+            if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+            {
+                await Dialog.ShowInfoAsync("Failed to Unban", "You do not have permission for Ban Players.");
+                return;
+            }
+
+            if (!rc.IsConnected)
+            {
+                await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+                return;
+            }
+            rc.UnbanPlayer(ban.GUID);
+        }
+    }
+}

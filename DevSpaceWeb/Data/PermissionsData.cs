@@ -12,12 +12,14 @@ public static class PermissionsData
     public static PermissionItem<ProjectPermission>[] AllProjectData = GetProjectData(true);
     public static PermissionItem<LogPermission>[] AllLogData = GetLogData(true);
     public static PermissionItem<DockerPermission>[] AllDockerData = GetDockerData(true);
+    public static PermissionItem<ConsolePermission>[] AllConsoleData = GetConsoleData(true);
 
     public static PermissionItem<ServerPermission>[] ResourceServerData = GetServerData(false);
     public static PermissionItem<WebsitePermission>[] ResourceWebsiteData = GetWebsiteData(false);
     public static PermissionItem<ProjectPermission>[] ResourceProjectData = GetProjectData(false);
     public static PermissionItem<LogPermission>[] ResourceLogData = GetLogData(false);
     public static PermissionItem<DockerPermission>[] ResourceDockerData = GetDockerData(false);
+    public static PermissionItem<ConsolePermission>[] ResourceConsoleData = GetConsoleData(false);
 
     private static PermissionItem<TeamPermission>[] GetTeamData()
     {
@@ -107,6 +109,29 @@ public static class PermissionsData
                 new PermissionItem<DockerPermission>(DockerPermission.ManageStackPermissions, "Manage Stack Permissions", "Manage permissions for stacks."),
             };
     }
+
+    private static PermissionItem<ConsolePermission>[] GetConsoleData(bool plural)
+    {
+        return new PermissionItem<ConsolePermission>[]
+            {
+                new PermissionItem<ConsolePermission>(ConsolePermission.ViewConsoles, "View Console" + (plural ? "s" : ""), "View all consoles the team owns."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ManagePermissions, "Manage Permissions", "Change permissions for all consoles the team owns"),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ManageConsoles, "Manage Console" + (plural ? "s" : ""), "Manage all console settings for the team."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ManageResource, "Manage Resource", "Manage all console resources for the team."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.UseConsoleCommands, "Use Console Commands", "Execute console commands on the server."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ViewPlayers, "View Players", "View all players on the server."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.KickPlayers, "Kick Players", "Kick players from the server."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.BanPlayers, "Ban Players", "Ban players from the server."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ViewBans, "View Bans", "View banned players."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ControlServer, "Control Server", "Restart, shutdown, lock or perform other actions on the server."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ViewConsoleLogs, "View Console Logs", "View console logs in realtime, may contain private/sensitive info."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.MessagePlayers, "Message Players", "Send private messages to players on the server."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.MessageGlobal, "Message Global", "Send global messages on the server."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ManageConnections, "Manage Connection" + (plural ? "s" : ""), "Modify server/rcon connection settings."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ViewIPs, "View IPs", "View IPs from players and admins."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ViewAdmins, "View Admins", "View authorized admins."),
+            };
+    }
 }
 public class PermissionGrid<T>
 {
@@ -117,5 +142,5 @@ public class PermissionGrid<T>
 }
 public enum PermissionType
 {
-    All, Server, Docker, Website, Project, Log
+    All, Server, Docker, Website, Project, Log, Console
 }

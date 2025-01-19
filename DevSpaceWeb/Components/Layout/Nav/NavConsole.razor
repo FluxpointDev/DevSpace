@@ -1,0 +1,49 @@
+﻿@using DevSpaceWeb.Data.Consoles
+<div class="nav-list nav-list-sub nav-server">
+    <div class="nav-list-header">
+        <span class="iconify" data-icon="mdi:console"></span>
+        <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Console.Name</h5>
+    </div>
+    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <Template>
+            <span class="iconify" data-icon="mdi:home"></span>
+            <p>Home</p>
+        </Template>
+    </RadzenPanelMenuItem>
+    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/players")" Match="NavLinkMatch.All">
+        <Template>
+            <span class="iconify" data-icon="mdi:account"></span>
+            <p>Players</p>
+        </Template>
+    </RadzenPanelMenuItem>
+    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/bans")" Match="NavLinkMatch.All">
+        <Template>
+            <span class="iconify" data-icon="mdi:court-hammer"></span>
+            <p>Bans</p>
+        </Template>
+    </RadzenPanelMenuItem>
+    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/console")" Match="NavLinkMatch.All">
+        <Template>
+            <span class="iconify" data-icon="mdi:console-line"></span>
+            <p>Console</p>
+        </Template>
+    </RadzenPanelMenuItem>
+    @switch (Session.Selected.Team.Console.Data.Type)
+    {
+        case ConsoleType.Battleye:
+            {
+                <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/admins")" Match="NavLinkMatch.All">
+                    <Template>
+                        <span class="iconify" data-icon="mdi:account-supervisor"></span>
+                        <p>Admins</p>
+                    </Template>
+                </RadzenPanelMenuItem>
+            }
+            break;
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+}

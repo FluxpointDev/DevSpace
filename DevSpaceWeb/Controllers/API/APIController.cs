@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DevSpaceWeb.API;
 using DevSpaceWeb.Data.API;
-using DevSpaceWeb.API;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.Collections;
 
@@ -8,7 +8,7 @@ namespace DevSpaceWeb.Controllers.API;
 
 public class APIController : ControllerBase
 {
-    public new APIClient Client = null!;
+    public APIClient Client = null!;
 
     [NonAction]
     public JsonResult Ok()
@@ -41,7 +41,7 @@ public class APIController : ControllerBase
         {
             JObject.TryAdd("data", JObject.FromObject(obj));
         }
-        
+
         JObject.TryAdd("success", true);
         JObject.TryAdd("code", 200);
         JObject.TryAdd("message", msg);
@@ -102,5 +102,13 @@ public class APIController : ControllerBase
         Response.ContentType = "application/json";
         Response.StatusCode = code;
         return new JsonResult(new Response(code, msg));
+    }
+
+    [NonAction]
+    public JsonResult PermissionFailed(Enum flag)
+    {
+        Response.ContentType = "application/json";
+        Response.StatusCode = 400;
+        return new JsonResult(new Response(400, $"Client does not have {flag.ToString()} permission."));
     }
 }

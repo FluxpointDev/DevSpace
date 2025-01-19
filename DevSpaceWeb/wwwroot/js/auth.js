@@ -43,7 +43,7 @@ Object.defineProperty(window.Auth, 'accountLogin', {
     }
 });
 
-Object.defineProperty(Auth, 'accountLoginExternal', {
+Object.defineProperty(window.Auth, 'accountLoginExternal', {
     configurable: false,
     writable: false,
     value: async function () {
@@ -51,35 +51,56 @@ Object.defineProperty(Auth, 'accountLoginExternal', {
     }
 });
 
-Object.defineProperty(Auth, 'getSessionInfo', {
+Object.defineProperty(window.Auth, 'getSessionInfo', {
     configurable: false,
     writable: false,
-    value: function () {
+    value: async function () {
         console.log(window.Auth.getBrowser());
+        var Country = await window.Auth.getCountry();
         return {
             IsMobile: navigator.userAgent.match(/Mobi|Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i) !== null,
-            Country: window.Auth.getCountry(),
+            Country: Country,
             BrowserType: window.Auth.getBrowser()
         };
     }
 });
 
-Object.defineProperty(Auth, 'getCountry', {
+Object.defineProperty(window.Auth, 'getCountry', {
     configurable: false,
     writable: false,
-    value: function () {
+    value: async function () {
         var countryName;
+
         try {
-            countryName = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0];
+            let response = await fetch('https://ip-check-perf.radar.cloudflare.com', {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            if (response.ok) {
+                var json = await response.json();
+                countryName = json.region + " (" + json.country + ")";
+            }
+            
         }
         catch { }
+
+        if (!countryName) {
+            try {
+                countryName = Intl.DateTimeFormat().resolvedOptions().timeZone.split('/')[0];
+            }
+            catch { }
+        }
+
+        
         if (!countryName)
             return 'Unknown';
         return countryName;
     }
 });
 
-Object.defineProperty(Auth, 'getBrowser', {
+Object.defineProperty(window.Auth, 'getBrowser', {
     configurable: false,
     writable: false,
     value: function () {
@@ -104,7 +125,7 @@ Object.defineProperty(Auth, 'getBrowser', {
     }
 });
 
-Object.defineProperty(Auth, 'accountChangePassword', {
+Object.defineProperty(window.Auth, 'accountChangePassword', {
     configurable: false,
     writable: false,
     value: async function (email, password, emailToken, requestId) {

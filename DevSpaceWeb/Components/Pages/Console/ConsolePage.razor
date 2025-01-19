@@ -1,0 +1,509 @@
+﻿@using BattleNET
+@using DaRT
+@using DevSpaceWeb.Data.Consoles
+@inject DialogService Dialog
+
+<RadzenLayout Style="grid-template-columns: auto 1fr auto; grid-template-areas: 'rz-header rz-header rz-header' 'rz-sidebar rz-body rz-right-sidebar'">
+    <RadzenBody>
+        <div class="dash-box dash-box-content">
+            <div class="dash-box-header">
+                <div class="dash-box-icon"><span class="iconify" data-icon="mdi:console-line"></span></div>
+                <RadzenText TextStyle="TextStyle.H6">@Console.Name</RadzenText>
+                @if (Console.Type == ConsoleType.Battleye)
+                {
+                    <div @onclick="@(() => LogSidebarExpanded = !LogSidebarExpanded)" style="margin-left: auto;">
+                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-split-vertical"></span></div>
+                    </div>
+                }
+            </div>
+            <br />
+            @switch (Console.Type)
+            {
+                case ConsoleType.Battleye:
+                    {
+                        if (_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon rcon))
+                        {
+                            switch (rcon.BEResult)
+                            {
+                                case BattlEyeConnectionResult.Success:
+                                    <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Success" Text="Connected" IsPill="true" />
+                                    break;
+                                case BattlEyeConnectionResult.InvalidLogin:
+                                    <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Warning" Text="Invalid Login" IsPill="true" />
+                                    break;
+                                case BattlEyeConnectionResult.ConnectionFailed:
+                                    <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Warning" Text="Connection Failed" IsPill="true" />
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Warning" Text="Error" IsPill="true" />
+                        }
+                    }
+                    break;
+                case ConsoleType.Minecraft:
+                    {
+                        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out var rcon))
+                        {
+                            switch (rcon.IsConnected)
+                            {
+                                case true:
+                                    <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Success" Text="Connected" IsPill="true" />
+                                    break;
+                                case false:
+                                    <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Warning" Text="Connection Failed" IsPill="true" />
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Warning" Text="Error" IsPill="true" />
+                        }
+                    }
+                    break;
+            }
+
+            @switch (Console.Type)
+            {
+                case ConsoleType.Battleye:
+                    {
+                        @switch (Page)
+                        {
+                            case null:
+                            case "":
+                            case "home":
+                                <br />
+                                <br />
+                                <div>
+                                    <RadzenButton Click="@LockServer" Text="Lock Server" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                                    <RadzenButton Click="@UnlockServer" Text="Unlock Server" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                                    <RadzenButton Click="@RestartServer" Text="Restart Server" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                                    <RadzenButton Click="@ShutdownServer" Text="Shutdown Server" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                                </div>
+                                <div class="mt-4">
+                                    <RadzenButton Click="@ReloadConfig" Text="Reload Config" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                                    <RadzenButton Click="@ReloadEvents" Text="Reload Events" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                                    <RadzenButton Click="@ReloadScripts" Text="Reload Scripts" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                                    <RadzenButton Click="@ReloadBans" Text="Reload Bans" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                                    <RadzenButton Click="@Reassign" Text="Reassign" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                                </div>
+                                break;
+                        }
+                    }
+                    break;
+                case ConsoleType.Minecraft:
+                    {
+                        <br />
+                        <br />
+                        <div>
+                            <RadzenButton Click="@RestartServer" Text="Restart Server" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                            <RadzenButton Click="@ShutdownServer" Text="Shutdown Server" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))" />
+                        </div>
+                    }
+                    break;
+            }
+
+        </div>
+        @switch (Page)
+        {
+            case null:
+            case "":
+            case "home":
+                <ConsoleSettings></ConsoleSettings>
+                break;
+            case "players":
+                @switch (Console.Type)
+                {
+                    case ConsoleType.Battleye:
+                        {
+                            <BattleyePlayers></BattleyePlayers>
+                        }
+                        break;
+                    case ConsoleType.Minecraft:
+                        {
+                            <MinecraftPlayers></MinecraftPlayers>
+                        }
+                        break;
+                }
+
+                break;
+            case "bans":
+                @switch (Console.Type)
+                {
+                    case ConsoleType.Battleye:
+                        {
+                            <BattleyeBans></BattleyeBans>
+                        }
+                        break;
+                    case ConsoleType.Minecraft:
+                        {
+                            <MinecraftBans></MinecraftBans>
+                        }
+                        break;
+                }
+
+                break;
+            case "console":
+                @switch (Console.Type)
+                {
+                    case ConsoleType.Battleye:
+                        {
+                            <ConsoleCommands></ConsoleCommands>
+                        }
+                        break;
+                    case ConsoleType.Minecraft:
+                        {
+                            <ConsoleCommands></ConsoleCommands>
+                        }
+                        break;
+                }
+
+                break;
+            case "admins":
+                @switch (Console.Type)
+                {
+                    case ConsoleType.Battleye:
+                        {
+                            <BattleyeAdmins></BattleyeAdmins>
+                        }
+                        break;
+                    case ConsoleType.Minecraft:
+                        {
+
+                        }
+                        break;
+                }
+                break;
+            case"settings":
+                <ConsoleSettingsBasic></ConsoleSettingsBasic>
+                break;
+            case "rcon":
+                <ConsoleSettingsRcon></ConsoleSettingsRcon>
+                break;
+        }
+    </RadzenBody>
+
+    @if (Console.Type == ConsoleType.Battleye)
+    {
+        <RadzenSidebar @bind-Expanded="@LogSidebarExpanded" class="rz-right-sidebar" Style="@("width: " + (LogSidebarExpanded ? "340px" : "0px") + " !important; grid-area: rz-right-sidebar")">
+            @if (Member.HasConsolePermission(Console, ConsolePermission.ViewConsoleLogs) && _Data.BattleyeRcons.TryGetValue(Console.Id, out RCon rcon))
+            {
+                <div>
+                    <div class="dash-box-header dash-box-content">
+                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
+                        <RadzenText TextStyle="TextStyle.H6">Logs</RadzenText>
+
+                    </div>
+                    @switch (Console.Type)
+                    {
+                        case ConsoleType.Battleye:
+                            {
+                                <RadzenDataGrid Data="@rcon.CachedMessages"
+                                PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+                                    <Columns>
+                                        <RadzenDataGridColumn Width="90px">
+                                            <Template>
+                                                <RadzenText TextStyle="TextStyle.Body2" class="log-time">@context.Time</RadzenText>
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn>
+                                            <Template>
+                                                <RadzenText TextStyle="TextStyle.Body2">@context.FilteredMessage</RadzenText>
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                    </Columns>
+
+                                </RadzenDataGrid>
+
+                            }
+                            break;
+                        case ConsoleType.Minecraft:
+                            {
+
+                            }
+                            break;
+                    }
+
+                </div>
+            }
+        </RadzenSidebar>
+    }
+</RadzenLayout>
+<style>
+    .rz-body .rz-sidebar {
+    background: none !important;
+    border-color: none !important;
+    width: 260px !important;
+    background-color: rgba(24,25,28,0.85) !important;
+    border: 1px solid rgba(47,48,49,0.8) !important;
+    border-radius: 8px;
+    height: calc(100vh - 90px);
+    }
+
+    .rz-body .rz-body {
+    padding: 0px;
+    }
+
+    .log-time {
+    text-align: center;
+    text-wrap: wrap;
+    }
+
+    .rz-right-sidebar thead {
+    display: none;
+    }
+
+    .rz-right-sidebar td {
+    padding: 2px !important;
+    }
+
+    .rz-right-sidebar {
+        padding: 0px;
+        margin-left: 18px;
+    }
+
+</style>
+
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public bool LogSidebarExpanded { get; set; }
+
+    [Parameter]
+    public string Page { get; set; }
+
+    //public List<BattlEyeMessageEventArgs> Messages = null;
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     if (_Data.Rcons.TryGetValue(Console.Id, out var rc))
+    //     {
+    //         rc.OnMessage += Message;
+    //         Messages = CloneStack(rc.CachedMessages);
+    //     }
+    //     else
+    //     {
+    //         Messages = new List<BattlEyeMessageEventArgs>();
+    //     }
+    // }
+
+    // public void Message(object sender, BattlEyeMessageEventArgs msg)
+    // {
+    //     System.Console.WriteLine("Msg: " + msg.FilteredMessage);
+    //     if (Messages.Count >= 100)
+    //         Messages.RemoveAt(Messages.Count - 1);
+    //     Messages.Append(msg);
+
+    //     InvokeAsync(StateHasChanged);
+    // }
+
+    // public List<T> CloneStack<T>(Stack<T> original)
+    // {
+    //     var arr = new T[original.Count];
+    //     original.CopyTo(arr, 0);
+    //     Array.Reverse(arr);
+    //     return new List<T>(arr);
+    // }
+
+    public async Task LockServer()
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))
+        {
+            await Dialog.ShowInfoAsync("Failed to Lock Server", "You do not have permission for Manage Server.");
+            return;
+        }
+
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        {
+            await Dialog.ShowInfoAsync("Failed to Lock Server", "Could not connect to server.");
+            return;
+        }
+
+        rc.LockServer();
+    }
+
+    public async Task UnlockServer()
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))
+        {
+            await Dialog.ShowInfoAsync("Failed to Unlock Server", "You do not have permission for Manage Server.");
+            return;
+        }
+
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        {
+            await Dialog.ShowInfoAsync("Failed to Unlock Server", "Could not connect to server.");
+            return;
+        }
+
+        rc.UnlockServer();
+    }
+
+    public async Task RestartServer()
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))
+        {
+            await Dialog.ShowInfoAsync("Failed to Restart Server", "You do not have permission for Manage Server.");
+            return;
+        }
+
+        switch (Console.Type)
+        {
+            case ConsoleType.Battleye:
+                {
+                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                    {
+                        await Dialog.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
+                        return;
+                    }
+
+                    rc.RestartServer();
+                }
+                break;
+            case ConsoleType.Minecraft:
+                {
+                    if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                    {
+                        await Dialog.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
+                        return;
+                    }
+
+                    var Result = await rc.ExecuteCmd("restart");
+                    if (Result.Contains("unknown command", StringComparison.OrdinalIgnoreCase))
+                    {
+                        await Dialog.ShowInfoAsync("Failed to Restart Server", "Server does not support restart.");
+                        return;
+                    }
+                }
+                break;
+        }
+
+        
+    }
+
+    public async Task ShutdownServer()
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))
+        {
+            await Dialog.ShowInfoAsync("Failed to Shutdown Server", "You do not have permission for Manage Server.");
+            return;
+        }
+
+        switch (Console.Type)
+        {
+            case ConsoleType.Battleye:
+                {
+                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                    {
+                        await Dialog.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
+                        return;
+                    }
+
+                    rc.ShutdownServer();
+                }
+                break;
+            case ConsoleType.Minecraft:
+                {
+                    if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                    {
+                        await Dialog.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
+                        return;
+                    }
+
+                    rc.ExecuteCmd("stop");
+                }
+                break;
+        }
+    }
+
+    public async Task ReloadConfig()
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))
+        {
+            await Dialog.ShowInfoAsync("Failed to Reload Config", "You do not have permission for Manage Server.");
+            return;
+        }
+
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        {
+            await Dialog.ShowInfoAsync("Failed to Reload Config", "Could not connect to server.");
+            return;
+        }
+
+        rc.ReloadConfig();
+    }
+
+    public async Task ReloadEvents()
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))
+        {
+            await Dialog.ShowInfoAsync("Failed to Reload Events", "You do not have permission for Manage Server.");
+            return;
+        }
+
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        {
+            await Dialog.ShowInfoAsync("Failed to Reload Events", "Could not connect to server.");
+            return;
+        }
+        rc.ReloadEvents();
+    }
+
+    public async Task ReloadScripts()
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))
+        {
+            await Dialog.ShowInfoAsync("Failed to Reload Scripts", "You do not have permission for Manage Server.");
+            return;
+        }
+
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        {
+            await Dialog.ShowInfoAsync("Failed to Reload Scripts", "Could not connect to server.");
+            return;
+        }
+
+        rc.ReloadScripts();
+    }
+
+    public async Task ReloadBans()
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))
+        {
+            await Dialog.ShowInfoAsync("Failed to Reload Bans", "You do not have permission for Manage Server.");
+            return;
+        }
+
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        {
+            await Dialog.ShowInfoAsync("Failed to Reload Bans", "Could not connect to server.");
+            return;
+        }
+
+        rc.ReloadBans();
+    }
+
+    public async Task Reassign()
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.ControlServer))
+        {
+            await Dialog.ShowInfoAsync("Failed to Reassign", "You do not have permission for Manage Server.");
+            return;
+        }
+
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        {
+            await Dialog.ShowInfoAsync("Failed to Reassign", "Could not connect to server.");
+            return;
+        }
+
+        rc.Reassign();
+    }
+}

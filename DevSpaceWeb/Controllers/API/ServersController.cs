@@ -1,7 +1,5 @@
 ﻿using DevSpaceWeb.API;
 using DevSpaceWeb.API.Servers;
-using DevSpaceWeb.API.Teams;
-using DevSpaceWeb.API.Users;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
@@ -39,11 +37,11 @@ public class ServersController : APIController
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find server.");
 
-        if (!Client.HasServerPermission(server, ServerPermission.ViewServer))
-            return Forbidden("Client does not have View Server permission.");
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
 
         return Ok(new ServerJson(server));
     }
 
-    
+
 }

@@ -1,0 +1,198 @@
+﻿@using DaRT
+@using DevSpaceWeb.Data.Consoles
+@using DevSpaceWeb.Models.Consoles
+@using DevSpaceWeb.Models.Setup
+@using System.Net
+@using LibMCRcon.RCon
+@inject DialogService DialogService
+
+<PageTitle>My Consoles | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:console-line"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Consoles</RadzenText>
+    </div>
+    <br />
+
+    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Console" Click="@SetupConsole" Disabled="(!Member.HasConsolePermission(null, ConsolePermission.ManageResource))" />
+    <br />
+    <br />
+    @foreach (ConsoleData i in _DB.Consoles.Cache.Values.Where(x => Member.HasConsolePermission(x, ConsolePermission.ViewConsoles)))
+    {
+        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + i.GetVanityUrlOrId())">
+            <div class="server-item d-flex flex-grow-1 gap-2">
+                <div class="server-item-icon flex-none d-flex">
+                    <span class="iconify" data-icon="mdi:console-line"></span>
+                </div>
+
+                <div class="server-item-info flex-auto d-flex py-1">
+                    <h6>@i.Name</h6>
+                    @* <MudChip T="string" Color="Color.Success" Variant="Variant.Text">Online</MudChip> *@
+
+                </div>
+
+                <div class="server-item-buttons flex-none">
+                    @* <MudButton Variant="Variant.Text"><p>Settings</p> <span class="iconify" data-icon="mdi:gear-outline"></span></MudButton>
+                    <MudButton Variant="Variant.Text"><p>Permissions</p><span class="iconify" data-icon="mdi:key-outline"></span></MudButton> *@
+                </div>
+            </div>
+        </a>
+        <br />
+    }
+
+</div>
+
+<style>
+    .server-item {
+    background-color: #21262d !important;
+    border-radius: 12px;
+    border: 1px solid rgba(0,135,201,0.3) !important;
+    padding-left: 10px;
+    cursor: pointer;
+    }
+
+    .server-item:hover {
+    border-color: rgba(0,135,201,0.5) !important;
+    }
+
+    .server-item-icon {
+    vertical-align: center;
+    }
+
+    .server-item-icon .iconify {
+    width: 40px;
+    height: 40px;
+    margin-top: 16px;
+    color: rgba(0,135,201,0.7) !important;
+    }
+
+    .server-item:hover .server-item-icon .iconify {
+    color: rgba(0,135,201,0.9) !important;
+    }
+
+    .server-item-info {
+    padding-left: 10px;
+    }
+
+    .server-item-buttons .rz-button {
+    min-width: 34px !important;
+    display: block !important;
+    text-align: right;
+    height: 42px;
+    max-height: 42px !important;
+    }
+
+    .server-item .server-item-buttons .rz-button:hover {
+    background-color: rgba(0,135,201,0.3) !important;
+    }
+
+    .server-item-buttons .rz-button:first-child {
+    border-radius: 0px 12px 0px 0px;
+    }
+
+    .server-item-buttons .rz-button:last-child {
+    border-radius: 0px 0px 12px 0px;
+    }
+
+    .server-item-buttons p {
+    display: inline-block !important;
+    text-transform: capitalize;
+    display: none !important;
+    }
+
+    .server-item-buttons .iconify {
+    width: 20px;
+    height: 20px;
+    margin-left: 8px;
+    margin-bottom: -4px;
+    margin-right: 6px;
+    }
+
+    .server-item-buttons:hover .rz-button, .server-item-buttons:hover {
+    min-width: 130px !important;
+    }
+
+    .server-item-buttons:hover p {
+    display: inline-block !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public async Task SetupConsole()
+    {
+        await DialogService.ShowDynamicFormAsync<SetupConsoleModel>("Setup Console", new SetupConsoleModel(), async (SetupConsoleModel data) =>
+        {
+            if (!Member.HasConsolePermission(null, ConsolePermission.ManageResource))
+                return "You do not have permission for Manage Console Resources.";
+
+            string[] Split = data.Ip.Split(':');
+            string IP = Split[0];
+
+            if (!IPAddress.TryParse(IP, out _))
+                return "Failed to parse IP address.";
+            string Port = Split[1];
+            if (string.IsNullOrEmpty(Port))
+                return "Port is missing";
+
+            if (!int.TryParse(Port, out _))
+                return "Failed to parse port";
+
+            ConsoleData NewConsole = new ConsoleData
+            {
+                Ip = IP,
+                Port = int.Parse(Port),
+                Name = data.Name,
+                OwnerId = Session.CurrentUser.Id,
+                TeamId = Session.Selected.Team.Data.Id,
+                Type = Enum.Parse<ConsoleType>(data.Type),
+                EncryptedPassword = data.Password,
+                VanityUrl = data.VanityUrl
+            };
+
+            VanityUrlData Vanity = Member.Team.GetVanityUrlData();
+            if (Vanity.CheckAlreadyExists(null, NewConsole.VanityUrl))
+                return Lang.Errors.vanity_url_already_taken;
+
+            switch (NewConsole.Type)
+            {
+                case ConsoleType.Battleye:
+                    {
+                        RCon rcon = new RCon();
+                        rcon.Connect(IPAddress.Parse(IP), int.Parse(Port), data.Password);
+                        if (!rcon.IsConnected)
+                            return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
+
+                        _Data.BattleyeRcons.Add(NewConsole.Id, rcon);
+                    }
+                    break;
+                case ConsoleType.Minecraft:
+                    {
+                        TCPRconAsync rcon = new TCPRconAsync
+                            {
+                                RConHost = IP,
+                                RConPort = int.Parse(Port),
+                                RConPass = data.Password
+                            };
+                        bool Success = await rcon.StartComms();
+                        if (!Success)
+                            return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
+
+                        _Data.MinecraftRcons.Add(NewConsole.Id, rcon);
+                    }
+                    break;
+            }
+
+
+            await _DB.Consoles.CreateAsync(NewConsole);
+            _DB.Consoles.Cache.TryAdd(NewConsole.Id, NewConsole);
+            await Vanity.UpdateAsync(NewConsole, NewConsole.VanityUrl);
+            return null;
+        });
+    }
+}

@@ -1,6 +1,5 @@
 ﻿using DevSpaceWeb.API;
 using DevSpaceWeb.API.Teams;
-using DevSpaceWeb.API.Users;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
@@ -27,8 +26,8 @@ public class MembersController : APIController
         if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
             return BadRequest("Could not find team.");
 
-        if (!Client.HasTeamPermission(TeamPermission.ViewMembers))
-            return Forbidden("Client does not have View Members permission.");
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out var perm))
+            return PermissionFailed(perm);
 
         return Ok(Team.CachedMembers.Values.Select(x => new MemberJson(x)));
     }
@@ -45,11 +44,11 @@ public class MembersController : APIController
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !Team.Members.TryGetValue(obj2, out ObjectId memberObj) || !Team.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
             return NotFound("Could not find member.");
 
-        if (!Client.HasTeamPermission(TeamPermission.ViewMembers))
-            return Forbidden("Client does not have View Members permission.");
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out var perm))
+            return PermissionFailed(perm);
 
         return Ok(new MemberJson(member));
     }
 
-    
+
 }

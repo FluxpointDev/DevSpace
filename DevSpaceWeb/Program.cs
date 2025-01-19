@@ -6,12 +6,12 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Bson.Serialization;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.Serializers;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Reflection;
-using MongoDB.Driver;
+using System.Text.RegularExpressions;
 
 namespace DevSpaceWeb;
 public class Program
@@ -46,7 +46,11 @@ public class Program
 
     public static bool IsPreviewMode { get; set; } = false;
 
-    public static void Main(string[] args)
+    public static Regex IpRegex = new Regex(@"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", RegexOptions.Compiled | RegexOptions.Multiline);
+
+    public static string PublicIP { get; private set; }
+
+    public static async Task Main(string[] args)
     {
         //WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
         Logger.RunLogger("Dev Space", LogSeverity.Debug);
@@ -57,12 +61,49 @@ public class Program
         Logger.LogMessage("Loaded config in: " + Program.Directory.Path, LogSeverity.Info);
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.CSharpLegacy));
 
+
+
+
+        // Rcon support
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
         IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
+
+        Logger.LogMessage("Running connection test...", LogSeverity.Info);
+
+        // Don't run connection test in development
+        if (!IsDevMode)
+        {
+            bool ConnectionTest = false;
+            try
+            {
+                string IPString = await Http.GetStringAsync("https://icanhazip.com");
+                IPString = IPString.Trim();
+                if (!IPString.Contains("."))
+                    Logger.LogMessage("Connection test invalid response", LogSeverity.Info);
+                else
+                    ConnectionTest = true;
+
+                PublicIP = IPString;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogMessage("Connection test error " + ex.Message, LogSeverity.Info);
+            }
+
+            if (ConnectionTest)
+                Logger.LogMessage("Connection test success", LogSeverity.Info);
+            else
+            {
+                throw new Exception("Connection test failed");
+            }
+        }
+
         _DB.Client = new MongoDB.Driver.MongoClient(_Data.Config.Database.GetConnectionString());
         _DB.Init();
-        
+
 
         if (_Data.Config.Database.IsSetup)
         {
@@ -74,6 +115,7 @@ public class Program
                 {
 
                 }
+
             });
         }
 

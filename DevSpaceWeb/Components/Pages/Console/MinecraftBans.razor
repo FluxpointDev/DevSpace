@@ -1,0 +1,167 @@
+﻿@using DaRT
+@using System.Linq.Dynamic.Core
+@using DevSpaceWeb.Data.Consoles
+@using DevSpaceWeb.Models.Consoles
+@using Newtonsoft.Json.Linq
+@inject DialogService Dialog
+
+<div class="dash-box">
+    <div class="dash-box-header dash-box-content">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:court-hammer"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Bans</RadzenText>
+        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
+    </div>
+    <br />
+    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewBans))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Bans.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+            <Columns>
+                <RadzenDataGridColumn Title="Name" Width="200px">
+                    <Template>
+                        <RadzenText TextStyle="TextStyle.Body2">@context.name</RadzenText>
+                        @if (context.number == 0)
+                        {
+                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Player" IsPill="true" />
+                        }
+                        else
+                        {
+                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="IP" IsPill="true" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Actions" Width="80px">
+                    <Template>
+                        <RadzenButton Icon="hardware" Click="@(() => Unban(context))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+
+        </RadzenDataGrid>
+    }
+</div>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public IEnumerable<Player> Players { get; set; }
+    public int PlayerCount { get; set; }
+
+    async Task LoadData(LoadDataArgs args)
+    {
+        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc))
+        {
+            if (rc.IsConnected)
+            {
+                string ListCommand = await rc.ExecuteCmd("banlist");
+                try
+                {
+                    ListCommand = ListCommand.Split("players:").Last();
+                }
+                catch { }
+                string[] lines = ListCommand.Split(
+                    new string[] { "\r\n", "\r", "\n" },
+    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                );
+                List<Player> list = new List<Player>();
+
+                foreach (var i in lines.First().Split(", ").Select(x => new Player(1, null, null, null, x, null)))
+                {
+                    if (i.name.Contains(" and "))
+                    {
+                        var SplitAnd = lines.First().Split(" and ");
+                        list.Add(new Player(0, null, null, null, SplitAnd[0], null));
+                        list.Add(new Player(0, null, null, null, SplitAnd[1], null));
+                    }
+                    else
+                        list.Add(i);
+                }
+
+
+                try
+                {
+                    ListCommand = await rc.ExecuteCmd("banlist ips");
+                    try
+                    {
+                        ListCommand = ListCommand.Split("addresses:").Last();
+                    }
+                    catch { }
+                    lines = ListCommand.Split(
+                        new string[] { "\r\n", "\r", "\n" },
+    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries
+                    );
+                    foreach (var i in lines.First().Split(", ").Select(x => new Player(1, null, null, null, x, null)))
+                    {
+                        if (i.name.Contains(" and "))
+                        {
+                            var SplitAnd = lines.First().Split(" and ");
+                            list.Add(new Player(1, null, null, null, SplitAnd[0], null));
+                            list.Add(new Player(1, null, null, null, SplitAnd[1], null));
+                        }
+                        else
+                            list.Add(i);
+                    }
+                    
+                }
+                catch { }
+
+                var query = list;
+
+                PlayerCount = query.Count();
+                Players = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+            }
+            else
+            {
+                PlayerCount = 0;
+                Players = new List<Player>();
+            }
+
+            StateHasChanged();
+        }
+        else
+        {
+            PlayerCount = 0;
+            Players = new List<Player>();
+        }
+
+    }
+
+    public async Task Unban(Player player)
+    {
+        if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+        {
+            await Dialog.ShowInfoAsync("Failed to Unban", "You do not have permission for Ban Players.");
+            return;
+        }
+
+        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rcon) || !rcon.IsConnected)
+        {
+            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+            return;
+        }
+
+        bool Confirm = await Dialog.ShowConfirmAsync($"Unban {player.name}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
+        if (Confirm)
+        {
+            if (rcon.IsConnected)
+            {
+                var Result = await rcon.ExecuteCmd("pardon " + player.name);
+                await Dialog.ShowInfoAsync("Unban Result", Result);
+            }
+            else
+                await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+        }
+    }
+
+}

@@ -1,0 +1,177 @@
+﻿@using DaRT
+@using DevSpaceWeb.Data.Consoles
+@inject DialogService Dialog
+
+<div class="dash-box">
+    <div class="dash-box-header dash-box-content">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:console"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Console</RadzenText>
+    </div>
+    <br />
+    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewConsoleLogs))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Console Logs.
+        </RadzenAlert>
+    }
+    else
+    {
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="2" class="dash-box-content">
+            <RadzenDropDown @bind-Value="@SelectedCommandType" Data="@CommandTypes" Style="min-width: 120px;" />
+            @if (SelectedCommandType == "Say Player")
+            {
+                <RadzenDropDown @bind-Value="@SelectedPlayer" Data="@Players" TextProperty="@nameof(Player.name)" Style="min-width: 200px;" />
+            }
+            <RadzenTextBox @bind-Value="@CommandInput" Style="width: 100%" aria-label="Command TextBox" />
+            <RadzenButton Click="@SendCommand" Text="Send" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Style="min-width: 60px;" />
+        </RadzenStack>
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public string SelectedCommandType = "Command";
+
+    [Parameter]
+    public ObjectId ConsoleId { get; set; }
+
+    public string[] CommandTypes = new string[]
+    {
+        "Command",
+        "Say Global",
+        "Say Player"
+    };
+
+    public Player SelectedPlayer;
+
+    public List<Player> Players = new List<Player>();
+
+    public string CommandInput;
+
+    public async Task SendCommand()
+    {
+        switch (SelectedCommandType)
+        {
+            case "Command":
+                {
+                    if (!Member.HasConsolePermission(Console, ConsolePermission.UseConsoleCommands))
+                    {
+                        await Dialog.ShowInfoAsync("Failed to Send Command", "You do not have permission for Use Console Commands.");
+                        return;
+                    }
+
+                    switch (Console.Type)
+                    {
+                        case ConsoleType.Battleye:
+                            {
+                                if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                {
+                                    await Dialog.ShowInfoAsync("Failed to Send Command", "Could not connect to server.");
+                                    return;
+                                }
+                                rc.ExecuteCommand(CommandInput);
+                            }
+                            break;
+                        case ConsoleType.Minecraft:
+                            {
+                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                {
+                                    await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    return;
+                                }
+
+                                var Result = await rc.ExecuteCmd(CommandInput);
+                                await Dialog.ShowInfoAsync("Command Result", Result);
+                            }
+                            break;
+                    }
+
+
+                }
+                break;
+            case "Say Global":
+                {
+                    if (!Member.HasConsolePermission(Console, ConsolePermission.MessageGlobal))
+                    {
+                        await Dialog.ShowInfoAsync("Failed to Send Message", "You do not have permission for Message Global.");
+                        return;
+                    }
+
+                    switch (Console.Type)
+                    {
+                        case ConsoleType.Battleye:
+                            {
+                                if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                {
+                                    await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    return;
+                                }
+
+                                rc.SayGlobal(CommandInput);
+                            }
+                            break;
+                        case ConsoleType.Minecraft:
+                            {
+                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                {
+                                    await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    return;
+                                }
+
+                                var Result = await rc.SayGlobal(CommandInput);
+                                await Dialog.ShowInfoAsync("Message Result", Result);
+                            }
+                            break;
+                    }
+
+
+                }
+                break;
+            case "Say Player":
+                {
+                    if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
+                    {
+                        await Dialog.ShowInfoAsync("Failed to Send Message", "You do not have permission for Message Players.");
+                        return;
+                    }
+
+                    switch (Console.Type)
+                    {
+                        case ConsoleType.Battleye:
+                            {
+                                if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                {
+                                    await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    return;
+                                }
+
+                                rc.SayPrivate(new Message(SelectedPlayer.number, SelectedPlayer.name, CommandInput));
+                            }
+                            break;
+                        case ConsoleType.Minecraft:
+                            {
+                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                {
+                                    await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    return;
+                                }
+
+                                var Result = await rc.SayPlayer(SelectedPlayer.name, CommandInput);
+                                await Dialog.ShowInfoAsync("Message Result", Result);
+                            }
+                            break;
+                    }
+
+
+                }
+                break;
+        }
+
+        CommandInput = null;
+    }
+}
