@@ -1,7 +1,4 @@
-﻿using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Bson;
-
-namespace DevSpaceWeb.Data;
+﻿namespace DevSpaceWeb.Data;
 
 public class FileResource
 {

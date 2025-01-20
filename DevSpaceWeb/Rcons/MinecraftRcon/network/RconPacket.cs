@@ -1,10 +1,5 @@
-﻿using System;
-
+﻿using System.Net.Sockets;
 using System.Text;
-using System.Net.Sockets;
-using System.Threading.Tasks;
-
-
 
 //!Classes directly related to the minecraft server.
 namespace LibMCRcon.RCon
@@ -79,16 +74,12 @@ namespace LibMCRcon.RCon
         /// <returns>The dest array passed into the function.</returns>
         private byte[] fillByteArray(byte[] dest, byte[] source, int offset, int size)
         {
-
-
             if (dest.Length > offset + size)
                 if (source.Length <= size)
                     for (int x = 0; x < size; x++)
                         dest[offset + x] = source[x];
 
             return dest;
-
-
         }
         /// <summary>
         /// Transmits the contents of the RCon packet - converts data into the packet format require by RCon and writes to the network stream.
@@ -155,7 +146,7 @@ namespace LibMCRcon.RCon
                 var count = TotalBytes;
 
                 var rx = NS.Read(Buffer, idx, TotalBytes);
-                
+
                 while (rx < count)
                 {
 
@@ -229,7 +220,7 @@ namespace LibMCRcon.RCon
 
         }
 
-       
+
 
         public async Task ReadFromNetworkSteamAsync(NetworkStream NS)
         {

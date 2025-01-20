@@ -1,15 +1,11 @@
-﻿using System;
-
-
-
-//!Classes directly related to the minecraft server.
+﻿//!Classes directly related to the minecraft server.
 namespace LibMCRcon.RCon
 {
     //!Track time passing using computer time.
     public class TimeCheck
     {
         DateTime dT;
-        
+
         /// <summary>
         /// Create a TimeCheck object setting to a default of 5 seconds into the future from the time created.
         /// </summary>
@@ -46,11 +42,6 @@ namespace LibMCRcon.RCon
         {
             dT = DateTime.Now.AddMilliseconds((double)Milliseconds);
         }
-
-        public DateTime CheckDT { get { return dT; } set { dT = value; } }
-
-        public TimeSpan TimeLeft { get { return DateTime.Now - dT; } }
-        public TimeSpan TimeLapse { get { return dT - DateTime.Now; } }
 
     }
 

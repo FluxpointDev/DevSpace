@@ -1,7 +1,5 @@
 ﻿using DevSpaceWeb.API;
 using DevSpaceWeb.API.Teams;
-using DevSpaceWeb.API.Users;
-using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using Microsoft.AspNetCore.Mvc;

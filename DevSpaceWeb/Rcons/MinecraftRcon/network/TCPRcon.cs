@@ -1,8 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Text;
 
-
-
 //!Classes directly related to the minecraft server.
 namespace LibMCRcon.RCon
 {
@@ -439,7 +437,6 @@ namespace LibMCRcon.RCon
 
     public class TCPRconAsync : Queue<RconPacket>
     {
-
 
         public enum TCPState { IDLE, CONNECTING, CONNECTED, CLOSING, CLOSED, ABORTED };
         public enum RConState { IDLE, AUTHENTICATE, READY, NETWORK_FAIL, AUTHENTICATE_FAIL };
