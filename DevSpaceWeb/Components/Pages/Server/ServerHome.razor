@@ -7,9 +7,6 @@
         <RadzenText TextStyle="TextStyle.H6">Server</RadzenText>
     </div>
     <br />
-    <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Delete Server" Click="@DeleteServer" Disabled="(!Member.HasServerPermission(Server, ServerPermission.ManageResource))" />
-    <br />
-    <br />
     <RadzenRow Gap="10px" RowGap="10px">
         <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
             <h6>System</h6>
@@ -206,70 +203,129 @@
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
-            <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
-                    <div>
+                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+                    <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                        <div>
                             <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:power-plug"></span>
-                    </div>
-                    <div>
-                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                            Plugins
-                        </RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2">
-                            1
-                        </RadzenText>
-                    </div>
-                </RadzenStack>
-            </RadzenColumn>
+                        </div>
+                        <div>
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
+                                Plugins
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                1
+                            </RadzenText>
+                        </div>
+                    </RadzenStack>
+                </RadzenColumn>
             </RadzenRow>
         </RadzenColumn>
     </RadzenRow>
 </div>
 
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
+        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
+    </div>
+    <br />
+    <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/settings")">
+            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+                <span class="iconify" data-icon="mdi:list-box"></span>
+                <RadzenText TextStyle="TextStyle.H6">Basic</RadzenText>
+            </RadzenCard>
+        </a>
+    </RadzenStack>
+</div>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Manage</RadzenText>
+        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
+    </div>
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
+    <RadzenUserSelector Value="@OwnerUser" Disabled="@(!Member.HasServerPermission(Server, ServerPermission.ManageResource))" OnSelected="@ChangeOwner"></RadzenUserSelector>
+    <br />
+    <RadzenButton Click="@DeleteServer" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Server" Disabled="@(!Member.HasServerPermission(Server, ServerPermission.ManageResource))" />
+</div>
+
+<style>
+    .settings-item {
+        width: 140px;
+        height: 140px;
+    }
+
+        .settings-item .iconify {
+            width: 36px;
+            height: 36px;
+            margin-top: 26px;
+            color: var(--rz-info);
+        }
+
+        .settings-item .rz-text-h6 {
+            margin-top: 14px;
+            font-size: 1.1rem;
+            color: var(--rz-base-200) !important;
+        }
+
+    .rz-stack a {
+        text-decoration: none !important;
+    }
+
+    .settings-item:hover {
+        background-color: var(--rz-base-dark);
+        outline: solid 1px var(--rz-secondary-dark) !important;
+    }
+</style>
+
 <style>
     .settings-box .rz-align-items-normal .rz-text-body2 {
-        text-overflow: "";
-        overflow: hidden;
-        white-space: nowrap;
+    text-overflow: "";
+    overflow: hidden;
+    white-space: nowrap;
     }
 
     .settings-box {
-        background-color: rgba(43,44,54,0.8);
-        width: 100% !important;
-        padding: 10px;
-        border-radius: 8px;
-        margin-bottom: 10px;
+    background-color: rgba(43,44,54,0.8);
+    width: 100% !important;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
     }
     .settings-icon {
-        width: 40px;
-        height: 40px;
+    width: 40px;
+    height: 40px;
     }
 
     .session-item {
-        padding: 10px;
-        padding-right: 10px;
-        padding-left: 10px;
-        padding-left: 20px;
-        padding-right: 20px;
-        border-radius: 8px;
-        background-color: rgba(52,53,63,0.8) !important;
-        min-height: 70px;
+    padding: 10px;
+    padding-right: 10px;
+    padding-left: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 8px;
+    background-color: rgba(52,53,63,0.8) !important;
+    min-height: 70px;
     }
 
-        .session-item .iconify:first-child {
-            width: 44px;
-            height: 44px;
-        }
+    .session-item .iconify:first-child {
+    width: 44px;
+    height: 44px;
+    }
 
-        .session-item .iconify:nth-child(2) {
-            width: 36px;
-            height: 36px;
-            margin-left: -26px;
-            margin-bottom: -36px;
-            background-color: #17171b;
-            padding: 6px;
-            border-radius: 100px;
-        }
+    .session-item .iconify:nth-child(2) {
+    width: 36px;
+    height: 36px;
+    margin-left: -26px;
+    margin-bottom: -36px;
+    background-color: #17171b;
+    padding: 6px;
+    border-radius: 100px;
+    }
 </style>
 
 @code {
@@ -279,6 +335,48 @@
     public TeamMemberData Member => Session.Selected.Member;
     public TeamData Team => Session.Selected.Team.Data;
     public ServerData Server => Session.Selected.Server;
+
+    public string OwnerUser { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Server != null)
+        {
+            if (_DB.Users.TryGetValue(Server.OwnerId, out var user))
+                OwnerUser = user.UserName;
+            else
+                OwnerUser = "Unknown?";
+
+        }
+    }
+
+
+    public async Task ChangeOwner(PartialUserData user)
+    {
+        if (!Member.HasServerPermission(Server, ServerPermission.ManageResource))
+            return;
+
+        bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change server owner.", "Confirm", ButtonStyle.Success);
+        if (Confirm)
+        {
+            if (!Member.HasServerPermission(Server, ServerPermission.ManageResource))
+                return;
+
+            await Server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>()
+            .Set(x => x.OwnerId, user.Id), () =>
+            {
+                Server.OwnerId = user.Id;
+                OwnerUser = user.UserName;
+
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.ServerOwnershipChanged)
+                .SetTarget(Server)
+                .AddProperty("User", user.UserName)
+                .AddProperty("ID", user.Id.ToString()));
+
+                StateHasChanged();
+            });
+        }
+    }
 
     public async Task DeleteServer()
     {
@@ -292,19 +390,16 @@
         if (!Confirm)
             return;
 
-        DeleteResult Result = await _DB.Servers.Collection.DeleteOneAsync(Builders<ServerData>.Filter.Eq(x => x.Id, Server.Id));
-        if (Result.IsAcknowledged)
+        if (!Member.HasServerPermission(Server, ServerPermission.ManageResource))
         {
-            if (Server.GetWebSocket() != null)
-                Server.GetWebSocket().Client.Dispose();
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageResources);
+            return;
+        }
 
-            _DB.Servers.Cache.TryRemove(Server.Id, out _);
+        await Server.DeleteAsync(Member, () =>
+        {
             Session.Selected.Team.Server = null;
             StateHasChanged();
-        }
-        else
-        {
-            await DialogService.ShowInfoAsync("Error", "Failed to delete server.");
-        }
+        });
     }
 }

@@ -57,21 +57,27 @@
     {
         if (!(Member.HasTeamPermission(TeamPermission.ManageOwnAPIs) || Member.HasTeamPermission(TeamPermission.ManageAllAPIs)))
             return;
-        await dialogService.ShowDynamicFormAsync<TeamCreateAPIModel>("Create API Client", new TeamCreateAPIModel() { }, async (TeamCreateAPIModel data) =>
-            {
-                if (!(Member.HasTeamPermission(TeamPermission.ManageOwnAPIs) || Member.HasTeamPermission(TeamPermission.ManageAllAPIs)))
-                    return "You do not have Manage API permissions.";
 
-                APIClient client = new APIClient
-                    {
-                        Name = data.Name,
-                        OwnerId = Member.UserId,
-                        TeamId = Member.TeamId
-                    };
-                await _DB.API.CreateAsync(client);
-                _DB.API.Cache.TryAdd(client.Id, client);
-                StateHasChanged();
-                return null;
-            });
+        await dialogService.ShowDynamicFormAsync<TeamCreateAPIModel>("Create API Client", new TeamCreateAPIModel() { }, async (TeamCreateAPIModel data) =>
+        {
+            if (!(Member.HasTeamPermission(TeamPermission.ManageOwnAPIs) || Member.HasTeamPermission(TeamPermission.ManageAllAPIs)))
+                return "You do not have Manage API permissions.";
+
+            APIClient client = new APIClient
+                {
+                    Name = data.Name,
+                    OwnerId = Member.UserId,
+                    TeamId = Member.TeamId
+                };
+            await _DB.API.CreateAsync(client);
+            _DB.API.Cache.TryAdd(client.Id, client);
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.APIClientCreated)
+            .SetTarget(client)
+            .AddProperty("Client", client.Name));
+
+            StateHasChanged();
+            return null;
+        });
     }
 }

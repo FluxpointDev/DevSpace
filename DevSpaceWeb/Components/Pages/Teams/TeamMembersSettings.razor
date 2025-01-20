@@ -209,7 +209,8 @@
             _DB.Members.Cache.TryAdd(memberData.Id, memberData);
             Team.Members.Add(user.Id, memberData.Id);
             Team.CachedMembers.Add(memberData.Id, memberData);
-            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberAdded).SetTarget(AuditLogTargetType.Team, Team.Id));
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.MemberAdded)
+            .SetTarget(user));
         });
 
             return string.Empty;
@@ -242,7 +243,8 @@
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id), () =>
         {
-            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.OwnershipTransfered).SetTarget(AuditLogTargetType.User, user.Id));
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.TeamOwnershipChanged)
+            .SetTarget(user));
             Team.OwnerId = user.Id;
         });
 
@@ -269,11 +271,15 @@
             return;
 
 
+
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members), () =>
         {
             Team.Members.Remove(user);
             _DB.Members.Cache.Remove(user, out _);
-            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberRemoved).SetTarget(AuditLogTargetType.User, user));
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.MemberRemoved)
+            .SetTarget(_DB.Users[user])
+            .AddProperty("User", _DB.Users[user].UserName)
+            .AddProperty("ID", _DB.Users[user].Id.ToString()));
         });
     }
 

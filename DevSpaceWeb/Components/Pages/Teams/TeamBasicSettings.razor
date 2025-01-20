@@ -56,19 +56,12 @@
 
         string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
 
-        Dictionary<string, string> props = new Dictionary<string, string>();
-        if (Team.Name != model.Name)
-            props.Add(nameof(TeamData.Name), model.Name);
-
-        if (Team.VanityUrl != VanityUrl)
-            props.Add(nameof(TeamData.VanityUrl), VanityUrl);
-
-        if (!props.Any())
-            return null;
-
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, model.Name).Set(x => x.VanityUrl, VanityUrl), () =>
         {
-            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.SettingsChanged).SetTarget(AuditLogTargetType.Team, Team.Id).SetProperties(props));
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.TeamSettingsChanged)
+            .SetTarget(Team)
+            .AddPropertyChange("Name", Team.Name, model.Name)
+        .AddPropertyChange("Vanity Url", Team.VanityUrl, VanityUrl));
 
             Team.Name = model.Name;
             if (Team.VanityUrl != VanityUrl)
@@ -132,7 +125,8 @@
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null), () =>
         {
-            _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconRemoved).SetTarget(AuditLogTargetType.Team, Team.Id));
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.IconRemoved)
+            .SetTarget(Team));
             File.Delete(Team.Icon.Path("webp"));
             File.Delete(Team.Icon.Path("png"));
             Team.IconId = null;

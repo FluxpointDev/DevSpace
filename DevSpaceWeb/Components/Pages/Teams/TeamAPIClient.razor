@@ -32,6 +32,7 @@
         <br />
         <a href="/swagger/index.html" target="_blank"><RadzenButton Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Text="Docs" /></a>
         <RadzenButton Click="@ToggleClientDisable" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="@((Client.IsDisabled ? "Enable" : "Disable") + " Client")" Disabled="@(!CanManage)" />
+        <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Client" />
 
     }
 </div>
@@ -140,6 +141,21 @@
         }
     }
 
+    public async Task Delete()
+    {
+        CanManage = Client.CanManage(Member);
+        if (!CanManage)
+            return;
+
+        bool Confirm = await DialogService.ShowConfirmAsync("Delete API Client", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
+        if (Confirm)
+        {
+            await Client.DeleteAsync(Member, () =>
+            {
+                Client = null;
+            });
+        }
+    }
 
     public async Task ChangeOwner(PartialUserData user)
     {
@@ -160,9 +176,17 @@
                 Client.OwnerId = user.Id;
                 OwnerUser = user.UserName;
                 GeneratedUser = null;
-            });
 
-            StateHasChanged();
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.APIClientOwnershipChanged)
+                .SetTarget(Client)
+                .AddProperty("User", user.UserName)
+                .AddProperty("ID", user.Id.ToString()));
+
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientTokenGenerated)
+                .SetTarget(Client));
+
+                StateHasChanged();
+            });
         }
     }
 
@@ -174,6 +198,9 @@
         await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.UseCustomPermissions, value), () =>
         {
             Client.UseCustomPermissions = value;
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientSettingsChanged)
+                .SetTarget(Client)
+                .AddProperty("Use Custom Permissions", value.ToString()));
         });
 
     }
@@ -191,6 +218,9 @@
         await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.CustomPermissions, perms), () =>
         {
             Client.CustomPermissions = perms;
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Permission, AuditLogEventType.APIClientPermissionsChanged)
+                .SetTarget(Client)
+                .SetPermissions(perms));
         });
 
     }
@@ -213,16 +243,21 @@
         string Hash = Utils.Hasher.HashPassword(null, Token);
         AuthUser = await Session.GetCurrentUserAsync();
         await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
-        .Set(x => x.TokenHash, Hash).Set(x => x.GeneratedAt, DateTime.UtcNow).Set(x => x.GeneratedBy, AuthUser.Id), () =>
+        .Set(x => x.TokenHash, Hash).Set(x => x.GeneratedAt, DateTime.UtcNow).Set(x => x.GeneratedBy, AuthUser.Id), async () =>
         {
             Client.TokenHash = Hash;
             Client.GeneratedAt = DateTime.UtcNow;
             Client.GeneratedBy = AuthUser.Id;
             GeneratedUser = AuthUser.UserName;
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientTokenGenerated)
+                .SetTarget(Client));
+
+            StateHasChanged();
+            await DialogService.ShowInfoAsync("API Token", Client.Id.ToString() + "." + Token);
         });
 
-        StateHasChanged();
-        await DialogService.ShowInfoAsync("API Token", Client.Id.ToString() + "." + Token);
+        
     }
 
     public async Task ToggleClientDisable()
@@ -234,11 +269,17 @@
         {
             if (Client.IsDisabled)
             {
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientEnabled)
+                .SetTarget(Client));
+
                 Client.IsDisabled = false;
                 DialogService.ShowInfoAsync("API Client", "This client has been enabled.");
             }
             else
             {
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientDisabled)
+                .SetTarget(Client));
+
                 Client.IsDisabled = true;
                 DialogService.ShowInfoAsync("API Client", "This client has been disabled.");
             }

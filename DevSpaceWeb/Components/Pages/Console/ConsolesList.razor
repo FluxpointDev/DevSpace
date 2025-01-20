@@ -190,6 +190,10 @@
 
 
             await _DB.Consoles.CreateAsync(NewConsole);
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ConsoleCreated)
+                .SetTarget(NewConsole));
+
             _DB.Consoles.Cache.TryAdd(NewConsole.Id, NewConsole);
             await Vanity.UpdateAsync(NewConsole, NewConsole.VanityUrl);
             return null;

@@ -1,7 +1,9 @@
 ﻿using DevSpaceWeb.Data.Permissions;
+using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Bson.Serialization.Options;
+using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Data.Teams;
 
@@ -39,5 +41,7 @@ public class ITeamResource : IResource
 
     public ObjectId TeamId { get; set; }
 
-
+    [JsonIgnore]
+    [BsonIgnore]
+    public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 }

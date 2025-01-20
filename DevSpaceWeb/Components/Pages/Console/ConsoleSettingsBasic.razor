@@ -45,14 +45,22 @@
         if (Vanity.CheckAlreadyExists(Console, model.VanityUrl))
             return Lang.Errors.vanity_url_already_taken;
 
+        string VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+
         await Console.UpdateAsync(new UpdateDefinitionBuilder<ConsoleData>()
         .Set(x => x.Name, model.Name)
-        .Set(x => x.VanityUrl, Utils.FormatVanityUrl(model.VanityUrl)),
+        .Set(x => x.VanityUrl, VanityUrl),
         async () =>
         {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.ConsoleSettingsChanged)
+                .SetTarget(Console)
+                .AddPropertyChange("Name", Console.Name, model.Name)
+                .AddPropertyChange("Vanity URL", Console.VanityUrl, VanityUrl));
+
             Console.Name = model.Name;
+            Console.VanityUrl = model.VanityUrl;
             VanityUrlData Vanity = Team.GetVanityUrlData();
-            await Vanity.UpdateAsync(Console, Utils.FormatVanityUrl(model.VanityUrl));
+            await Vanity.UpdateAsync(Console, VanityUrl);
             Session.Selected.Team.Console.VanityUrl = Console.GetVanityUrlOrId();
             Session.TriggerNavMenuChange();
         });

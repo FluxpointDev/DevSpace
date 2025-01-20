@@ -65,6 +65,42 @@ public class ConsoleData : ITeamResource
         if (Result.IsAcknowledged)
             action?.Invoke();
     }
+
+    public async Task DeleteAsync(TeamMemberData member, Action action)
+    {
+        FilterDefinition<ConsoleData> filter = Builders<ConsoleData>.Filter.Eq(r => r.Id, Id);
+        DeleteResult Result = await _DB.Consoles.Collection.DeleteOneAsync(filter);
+        if (Result.IsAcknowledged)
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.ConsoleDeleted)
+                .SetTarget(this));
+
+            _DB.Consoles.Cache.TryRemove(Id, out _);
+            switch (Type)
+            {
+                case ConsoleType.Battleye:
+                    {
+                        if (_Data.BattleyeRcons.TryGetValue(Id, out var rcon))
+                        {
+                            _Data.BattleyeRcons.Remove(Id);
+                            rcon.Disconnect();
+                        }
+                    }
+                    break;
+                case ConsoleType.Minecraft:
+                    {
+                        if (_Data.MinecraftRcons.TryGetValue(Id, out var rcon))
+                        {
+                            _Data.MinecraftRcons.Remove(Id);
+                            rcon.StopComms();
+                        }
+                    }
+                    break;
+            }
+
+            action?.Invoke();
+        }
+    }
 }
 
 public enum ConsoleType

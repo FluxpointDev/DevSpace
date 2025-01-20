@@ -94,10 +94,9 @@
             await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, new HashSet<ObjectId>()), () =>
             {
                 Member.Roles = new HashSet<ObjectId>();
-                _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberRolesChanged).SetTarget(AuditLogTargetType.User, Member.UserId).SetProperties(new Dictionary<string, string>
-                {
-                { "Roles", "" }
-                }));
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Session.Selected.Member, AuditLogCategoryType.Role, AuditLogEventType.MemberRolesChanged)
+                .SetTarget(Member)
+                .AddProperty("Roles", ""));
             });
 
         }
@@ -106,10 +105,10 @@
             await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, SelectedRoles.Select(x => x.Id).ToHashSet()), () =>
             {
                 Member.Roles = SelectedRoles.Select(x => x.Id).ToHashSet();
-                _DB.AuditLogs.CreateAsync(new AuditLog(Session.CurrentUser.Id, Team.Id, AuditLogCategoryType.Member, AuditLogEventType.MemberRolesChanged).SetTarget(AuditLogTargetType.User, Member.UserId).SetProperties(new Dictionary<string, string>
-                {
-                { "Roles", string.Join(", ", SelectedRoles.Select(x => x.Id.ToString())) }
-                }));
+
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Session.Selected.Member, AuditLogCategoryType.Role, AuditLogEventType.MemberRolesChanged)
+                .SetTarget(Member)
+                .AddProperty("Roles", string.Join(", ", SelectedRoles.Select(x => x.Id.ToString()))));
             });
             
         }

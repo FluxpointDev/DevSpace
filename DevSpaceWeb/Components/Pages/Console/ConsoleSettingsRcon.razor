@@ -78,10 +78,17 @@
 
 
         await Console.UpdateAsync(new UpdateDefinitionBuilder<ConsoleData>()
-        .Set(x => x.Ip, model.Ip)
+        .Set(x => x.Ip, IP)
+        .Set(x => x.Port, int.Parse(Port))
         .Set(x => x.EncryptedPassword, string.IsNullOrEmpty(model.Password) ? Console.EncryptedPassword : model.Password),
         async () =>
         {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.ConsoleRconChanged)
+                .SetTarget(Console)
+                .AddPropertyChange("IP", Console.Ip, IP)
+                .AddPropertyChange("Password", Console.GetDecryptedPassword(), model.Password)
+                .AddPropertyChange("Port", Console.Port, int.Parse(Port)));
+
             Console.Ip = model.Ip;
             Console.EncryptedPassword = model.Password;
             Console.ResetDecryptedPassword();

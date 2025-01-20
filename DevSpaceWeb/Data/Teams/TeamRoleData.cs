@@ -22,6 +22,10 @@ public class TeamRoleData
     [BsonIgnore]
     private PermissionsAll _Permissions => new PermissionsAll(Permissions);
 
+    [JsonIgnore]
+    [BsonIgnore]
+    public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
+
     //public bool HasTeamPermission(TeamMemberData member, TeamPermission permission)
     //{
     //    if (member.Team == null)
@@ -94,5 +98,28 @@ public class TeamRoleData
         UpdateResult Result = await _DB.Roles.Collection.UpdateOneAsync(filter, update);
         if (Result.IsAcknowledged)
             action?.Invoke();
+    }
+
+    public async Task DeleteAsync(TeamMemberData member, Action action)
+    {
+        FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, Id);
+        DeleteResult Result = await _DB.Roles.Collection.DeleteOneAsync(filter);
+        if (Result.IsAcknowledged)
+        {
+            _DB.Roles.Cache.TryRemove(Id, out _);
+            Team.CachedRoles.Remove(Id);
+
+            var RoleSet = Team.Roles.Where(x => x != Id).ToHashSet();
+
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, RoleSet), () =>
+            {
+                Team.Roles = RoleSet;
+                Team.TriggerRoleChange(this, false);
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.RoleDeleted)
+                .SetTarget(this));
+            });
+
+            action?.Invoke();
+        }
     }
 }

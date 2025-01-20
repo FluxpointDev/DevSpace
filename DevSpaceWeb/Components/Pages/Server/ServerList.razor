@@ -130,6 +130,8 @@
                 if (!Member.HasServerPermission(null, ServerPermission.ManageResource))
                     return "You do not have Manage Resource permissions";
 
+
+
                 ServerWebSocket Client = new ServerWebSocket();
                 Client.Run(new ServerData
                     {
@@ -149,6 +151,10 @@
                     };
                 await _DB.Servers.CreateAsync(Server);
                 _DB.Servers.Cache.TryAdd(Server.Id, Server);
+
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ServerCreated)
+                .SetTarget(Server));
+
                 InvokeAsync(StateHasChanged);
                 return null;
             });

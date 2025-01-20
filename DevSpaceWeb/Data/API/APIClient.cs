@@ -321,4 +321,18 @@ public class APIClient
             action?.Invoke();
 
     }
+
+    public async Task DeleteAsync(TeamMemberData member, Action action)
+    {
+        FilterDefinition<APIClient> filter = Builders<APIClient>.Filter.Eq(r => r.Id, Id);
+        DeleteResult Result = await _DB.API.Collection.DeleteOneAsync(filter);
+        if (Result.IsAcknowledged)
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.APIClientDeleted)
+                .SetTarget(this));
+
+            _DB.API.Cache.TryRemove(Id, out _);
+            action?.Invoke();
+        }
+    }
 }

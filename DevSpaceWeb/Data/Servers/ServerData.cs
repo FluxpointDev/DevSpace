@@ -39,6 +39,24 @@ public class ServerData : ITeamResource
         if (Result.IsAcknowledged)
             action?.Invoke();
     }
+
+    public async Task DeleteAsync(TeamMemberData member, Action action)
+    {
+        FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
+        DeleteResult Result = await _DB.Servers.Collection.DeleteOneAsync(filter);
+        if (Result.IsAcknowledged)
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.ServerDeleted)
+                .SetTarget(this));
+
+            _DB.Servers.Cache.TryRemove(Id, out _);
+
+            if (GetWebSocket() != null)
+                GetWebSocket().Client.Dispose();
+
+            action?.Invoke();
+        }
+    }
 }
 public class ServerWebSocket
 {
