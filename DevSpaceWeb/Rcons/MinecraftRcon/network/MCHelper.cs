@@ -26,7 +26,6 @@ namespace LibMCRcon.RCon
                 catch (Exception ee)
                 {
                     list_players = new string[] { };
-                    sb.AppendFormat(@"{0} => Connection:{1}, Network:{2}", ee.Message, r.LastTCPError, r.StateTCP, r.StateRCon);
 
                 }
 
