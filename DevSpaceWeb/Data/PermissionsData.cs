@@ -45,7 +45,6 @@ public static class PermissionsData
     {
         return new PermissionItem<ServerPermission>[]
         {
-            new PermissionItem<ServerPermission>(ServerPermission.ViewServer, "View Server" + (plural ? "s" : ""), "View all servers the team owns."),
             new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Server" + (plural ? "s" : ""), "Change all server settings."),
             new PermissionItem<ServerPermission>(ServerPermission.ViewPermissions, "View Permissions", "View permissions for the server."),
             new PermissionItem<ServerPermission>(ServerPermission.ManagePermissions, "Manage Permissions", "Change permissions for all servers the team owns."),
@@ -56,20 +55,18 @@ public static class PermissionsData
     private static PermissionItem<WebsitePermission>[] GetWebsiteData(bool plural)
     {
         return new PermissionItem<WebsitePermission>[]
-            {
-            new PermissionItem<WebsitePermission>(WebsitePermission.ViewWebsite, "View Website" + (plural ? "s" : ""), "View all websites the team owns."),
+        {
             new PermissionItem<WebsitePermission>(WebsitePermission.ManageWebsite, "Manage Website" + (plural ? "s" : ""), "Change website settings."),
             new PermissionItem<WebsitePermission>(WebsitePermission.ViewPermissions, "View Permissions", "View permissions for the website."),
                 new PermissionItem<WebsitePermission>(WebsitePermission.ManagePermissions, "Manage Permissions", "Change permissions for all websites the team owns."),
             new PermissionItem<WebsitePermission>(WebsitePermission.ManageResource, plural ? "Manage Website Resources" : "Manage Resource", "Add or delete websites for the team."),
-            };
+        };
     }
 
     private static PermissionItem<ProjectPermission>[] GetProjectData(bool plural)
     {
         return new PermissionItem<ProjectPermission>[]
         {
-            new PermissionItem<ProjectPermission>(ProjectPermission.ViewProject, "View Project" + (plural ? "s" : ""), "View all projects the team owns."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Project" + (plural ? "s" : ""), "Change all project settings."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ViewPermissions, "View Permissions", "View permissions for the project."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManagePermissions, "Manage Permissions", "Change permissions for all projects the team owns."),
@@ -81,7 +78,6 @@ public static class PermissionsData
     {
         return new PermissionItem<LogPermission>[]
         {
-            new PermissionItem<LogPermission>(LogPermission.ViewLog, "View Log" + (plural ? "s" : ""), "View all logs the team owns."),
             new PermissionItem<LogPermission>(LogPermission.ManageLog, "Manage Log" + (plural ? "s" : ""), "Change log settings."),
             new PermissionItem<LogPermission>(LogPermission.ViewPermissions, "View Permissions", "View permissions for the log."),
             new PermissionItem<LogPermission>(LogPermission.ManagePermissions, "Manage Permissions", "Change permissions for all logs the team owns."),
@@ -119,7 +115,6 @@ public static class PermissionsData
     {
         return new PermissionItem<ConsolePermission>[]
             {
-                new PermissionItem<ConsolePermission>(ConsolePermission.ViewConsole, "View Console" + (plural ? "s" : ""), "View all consoles the team owns."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewPermissions, "View Permissions", "View permissions for the console"),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManagePermissions, "Manage Permissions", "Change permissions for all consoles the team owns"),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManageConsole, "Manage Console" + (plural ? "s" : ""), "Manage all console settings for the team."),
