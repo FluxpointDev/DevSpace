@@ -16,7 +16,7 @@
     @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewPlayers))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for View Players.
+            You do not have permission for View Players
         </RadzenAlert>
     }
     else
@@ -128,7 +128,7 @@
                     {
                         if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
                         {
-                            await Dialog.ShowInfoAsync("Failed to Ban", "You do not have permission for Ban Players.");
+                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
                             return;
                         }
 
@@ -141,7 +141,7 @@
                         await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
                             if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
-                                return "You do not have permission for Ban Players.";
+                                return "You do not have permission for Ban Players";
 
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";
@@ -156,7 +156,7 @@
                     {
                         if (!Member.HasConsolePermission(Console, ConsolePermission.KickPlayers))
                         {
-                            await Dialog.ShowInfoAsync("Failed to Kick", "You do not have permission for Kick Players.");
+                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.KickPlayers);
                             return;
                         }
 
@@ -169,7 +169,7 @@
                         await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
                             if (!Member.HasConsolePermission(Console, ConsolePermission.KickPlayers))
-                                return "You do not have permission for Kick Players.";
+                                return "You do not have permission for Kick Players";
 
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";
@@ -184,7 +184,7 @@
                     {
                         if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
                         {
-                            await Dialog.ShowInfoAsync("Failed to Send Message", "You do not have permission for Message Players.");
+                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
                             return;
                         }
 
@@ -197,7 +197,7 @@
                         await Dialog.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
                         {
                             if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
-                                return "You do not have permission for Message Players.";
+                                return "You do not have permission for Message Players";
 
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";

@@ -129,7 +129,7 @@ public static class PermissionsData
                 new PermissionItem<ConsolePermission>(ConsolePermission.MessageGlobal, "Message Global", "Send global messages on the server."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManageConnections, "Manage Connection" + (plural ? "s" : ""), "Modify server/rcon connection settings."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewIPs, "View IPs", "View IPs from players and admins."),
-                new PermissionItem<ConsolePermission>(ConsolePermission.ViewAdmins, "View Admins", "View authorized admins."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ViewConnections, "View Connections", "View authorized rcon connections to the server."),
             };
     }
 }

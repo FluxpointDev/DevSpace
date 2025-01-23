@@ -574,7 +574,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ViewAdmins, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ViewConnections, out var perm))
             return PermissionFailed(perm);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)

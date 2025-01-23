@@ -1,4 +1,5 @@
 ﻿using DevSpaceWeb.Components.Dialogs;
+using DevSpaceWeb.Data.Permissions;
 using Radzen;
 
 namespace DevSpaceWeb;
@@ -56,5 +57,27 @@ public static class DialogExtensions
             return false;
 
         return (bool)Dialog;
+    }
+
+    public static Task ShowPermissionErrorAsync(this DialogService service, TeamPermission flag)
+        => InternalShowPermissionErrorAsync(service, flag);
+
+    public static Task ShowPermissionErrorAsync(this DialogService service, ServerPermission flag)
+        => InternalShowPermissionErrorAsync(service, flag);
+
+    public static Task ShowPermissionErrorAsync(this DialogService service, ConsolePermission flag)
+        => InternalShowPermissionErrorAsync(service, flag);
+
+    private static async Task InternalShowPermissionErrorAsync(this DialogService service, Enum flag)
+    {
+        DialogOptions options = new DialogOptions() { };
+
+        dynamic Dialog = await service.OpenAsync<ConfirmInfoDialog>("Permission Error", new Dictionary<string, object>()
+        {
+            { "ContentText", $"You do not have permission for {Utils.FriendlyName(flag.ToString())}" },
+            { "ButtonText", "Ok" },
+            { "Color", ButtonStyle.Success },
+            { "ShowCancel", false }
+        }, options);
     }
 }

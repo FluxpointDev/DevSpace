@@ -6,7 +6,7 @@ namespace DevSpaceWeb;
 public static class NotificationExtensions
 {
     public static void ShowPermissionWarning(this NotificationService notify, TeamPermission permission)
-        => ShowPermissionWarningInternal(notify, permission.GetName());
+        => ShowPermissionWarningInternal(notify, Utils.FriendlyName(permission.ToString()));
 
     public static void ShowPermissionWarningInternal(NotificationService notify, string permission)
     {
@@ -15,8 +15,8 @@ public static class NotificationExtensions
             Severity = NotificationSeverity.Warning,
             Duration = 40000,
             Summary = "Permission Error",
-            Detail = $"You do not have {permission} permission."
-           
+            Detail = $"You do not have permission for {permission}"
+
         });
     }
 

@@ -89,6 +89,15 @@
             return;
         }
 
+        TeamMemberData SelectedMember = Member;
+        int CurrentRank = Session.Selected.Member.GetRank();
+        int SelectedRank = SelectedMember.GetRank();
+        if (CurrentRank <= SelectedRank)
+        {
+            await dialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+            return;
+        }
+
         if (SelectedRoles == null)
         {
             await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, new HashSet<ObjectId>()), () =>

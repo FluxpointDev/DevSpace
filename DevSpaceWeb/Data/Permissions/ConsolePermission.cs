@@ -51,6 +51,6 @@ public enum ConsolePermission : ulong
     /// <summary> Lets you view IPS </summary>
     ViewIPs = 1L << 15,
 
-    /// <summary> Lets you view Authorized admins </summary>
-    ViewAdmins = 1L << 16,
+    /// <summary> Lets you view Authorized rcon connections </summary>
+    ViewConnections = 1L << 16,
 }

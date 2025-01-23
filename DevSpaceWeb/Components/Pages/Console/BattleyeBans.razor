@@ -8,13 +8,12 @@
     <div class="dash-box-header dash-box-content">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:court-hammer"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Bans</RadzenText>
-        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
     </div>
     <br />
     @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewBans))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for View Bans.
+            You do not have permission for View Bans
         </RadzenAlert>
     }
     else
@@ -106,7 +105,7 @@
     {
         if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
         {
-            await Dialog.ShowInfoAsync("Failed to Unban", "You do not have permission for Ban Players.");
+            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
             return;
         }
 
@@ -121,7 +120,7 @@
         {
             if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
             {
-                await Dialog.ShowInfoAsync("Failed to Unban", "You do not have permission for Ban Players.");
+                await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
                 return;
             }
 

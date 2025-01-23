@@ -276,13 +276,13 @@ public class TeamMemberData
 
     public int GetRank()
     {
-        //if (Team.OwnerId == UserId)
-        //    return -1;
+        if (Team.OwnerId == UserId)
+            return int.MaxValue;
 
-        int CurrentRank = int.MaxValue;
+        int CurrentRank = -1;
         foreach (ObjectId r in Roles)
         {
-            if (Team.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.Position < CurrentRank)
+            if (Team.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.Position > CurrentRank)
             {
                 CurrentRank = role.Position;
             }

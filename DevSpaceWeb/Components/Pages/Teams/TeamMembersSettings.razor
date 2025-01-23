@@ -2,6 +2,7 @@
 @using DevSpaceWeb.Models.Defaults
 @using DevSpaceWeb.Models.Teams
 @inject DialogService DialogService
+@inject TooltipService TooltipService
 
 <PageTitle>Team Members | @_Data.Config.Instance.Name</PageTitle>
 <div class="dash-box dash-box-content">
@@ -14,7 +15,7 @@
     @if (!Member.HasTeamPermission(TeamPermission.ViewMembers))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for View Members.
+            You do not have permission for View Members
         </RadzenAlert>
     }
     else
@@ -28,57 +29,113 @@
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                         @if (_DB.Users.TryGetValue(user.UserId, out PartialUserData ud))
                         {
-                            <RadzenImage Path="@ud.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" />
-                            <RadzenStack Gap="0">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Username</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @ud.UserName
-                                </RadzenText>
-                            </RadzenStack>
+                            <RadzenImage Path="@ud.GetAvatarOrDefault()" Style="width: 60px; height: 60px; border-radius: 50%" />
+                            <RadzenText TextStyle="TextStyle.H6">
+                                @ud.UserName
+                            </RadzenText>
                         }
                         else
                         {
-                            <RadzenImage Path="https://cdn.fluxpoint.dev/devspace/user_avatar.webp" Style="width: 80px; height: 80px; border-radius: 50%" />
-                            <RadzenStack Gap="0">
-                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account Deleted</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @user.ToString()
-                                </RadzenText>
-                            </RadzenStack>
+                            <RadzenImage Path="https://cdn.fluxpoint.dev/devspace/user_avatar.webp" Style="width: 60px; height: 60px; border-radius: 50%" />
+                            <RadzenText TextStyle="TextStyle.H6">
+                                @user.ToString()
+                            </RadzenText>
                         }
                     </RadzenStack>
-                    <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
-                    <RadzenStack Gap="6px" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-                        @if (_DB.Users.TryGetValue(user.UserId, out PartialUserData ud))
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" class="mt-3">
+                        @if (user.UserId == Team.OwnerId)
                         {
-                            <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Change Roles" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.AssignRoles))" />
-                            @if (user.UserId != Team.OwnerId)
+                            <RadzenIcon class="filled-icon" Icon="assignment_ind" IconColor="#F0B232" />
+                        }
+                        else if (user.HasTeamPermission(TeamPermission.GlobalAdministrator))
+                        {
+                            <RadzenIcon class="filled-icon" Icon="shield_person" IconColor="#D88838" />
+                        }
+                        else
+                        {
+                            <RadzenIcon class="filled-icon" Icon="person" IconColor="#1ABC9C" />
+                        }
+                        <RadzenIcon class="filled-icon" Icon="person_off" IconColor="#ff3535" />
+                    </RadzenStack>
+                    <br />
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="@(user.Roles.Any() ? "rz-mb-1" : "rz-mb-05")">Roles</RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="6px">
+                        @if (user.Roles.Any())
+                        {
+                            @foreach(var i in user.Roles)
                             {
-                                @if (user.Disabled == null)
+                                if (Team.CachedRoles.TryGetValue(i, out var role))
                                 {
-                                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Disable" Click="@(() => DisableMember(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenButton>
+                                    <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Primary" Text="@role.Name" />
                                 }
                                 else
                                 {
-                                    <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Disable" Click="@(() => DisableMember(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenButton>
-
+                                    <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Primary" Text="Unknown Role?" />
                                 }
-
-                                <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
-                                <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))" />
                             }
-
                         }
                         else
                         {
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(user.UserId))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))" />
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                No roles
+                            </RadzenText>
                         }
                     </RadzenStack>
+                    <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
+                    <RadzenStack Gap="6px" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceEvenly">
+                        <RadzenMenu>
+                            <RadzenMenuItem Text="View" Icon="visibility">
+                                <RadzenMenuItem Text="Info" Icon="account_circle"></RadzenMenuItem>
+                                <RadzenMenuItem Text="Roles" Icon="account_circle"></RadzenMenuItem>
+                                <RadzenMenuItem Text="Permissions" Icon="shield_person"></RadzenMenuItem>
+                                <RadzenMenuItem Text="Resources" Icon="account_circle"></RadzenMenuItem>
+                            </RadzenMenuItem>
+                        </RadzenMenu>
+                        <RadzenMenu>
+                            <RadzenMenuItem Text="Manage" Icon="manage_accounts">
+                                <RadzenMenuItem Text="Change Roles" Icon="account_circle"></RadzenMenuItem>
+                                <RadzenMenuItem Text="Disable Member" Icon="account_circle"></RadzenMenuItem>
+                                <RadzenMenuItem Text="Transfer Ownership" Icon="account_circle"></RadzenMenuItem>
+                                <RadzenMenuItem Text="Remove Member" Icon="account_circle"></RadzenMenuItem>
+                            </RadzenMenuItem>
+                        </RadzenMenu>
+                    </RadzenStack>
+
+                    @* @if (_DB.Users.TryGetValue(user.UserId, out PartialUserData ud))
+                    {
+                        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Change Roles" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.AssignRoles))" />
+                        @if (user.UserId != Team.OwnerId)
+                        {
+                            @if (user.Disabled == null)
+                            {
+                                <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Disable" Click="@(() => DisableMember(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenButton>
+                            }
+                            else
+                            {
+                                <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Enable" Click="@(() => EnableMember(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenButton>
+
+                            }
+
+                            <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
+                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))" />
+                        }
+
+                    }
+                    else
+                    {
+                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(user.UserId))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))" />
+                    } *@
                 </RadzenCard>
             </Template>
         </RadzenDataList>
     }
 </div>
+
+<style>
+    .rz-body .rz-navigation-item-wrapper .rz-navigation-item-icon, .filled-icon {
+        font-variation-settings: 'FILL' 1;
+    }
+</style>
 
 @code {
     [CascadingParameter]
@@ -93,6 +150,8 @@
         Members = Team.CachedMembers.Values;
     }
 
+    void ShowTooltip(ElementReference elementReference, string text) => TooltipService.Open(elementReference, text, null);
+
     public IEnumerable<TeamMemberData> Members { get; set; }
 
     public async Task EnableMember(PartialUserData user)
@@ -103,10 +162,29 @@
             return;
         }
 
-        await DialogService.ShowDynamicFormAsync<ReasonModel>("Enable Member " + user.UserName, new ReasonModel(), async (ReasonModel data) =>
+        TeamMemberData SelectedMember = Team.GetMember(user);
+        int CurrentRank = Member.GetRank();
+        int SelectedRank = SelectedMember.GetRank();
+        if (CurrentRank <= SelectedRank)
         {
+            await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+            return;
+        }
+
+        bool Confirm = await DialogService.ShowConfirmAsync("Enable Member " + user.UserName, "Are you sure you want to enable this member?", "Confirm", ButtonStyle.Success);
+        if (Confirm)
+        {
+            if (Program.IsPreviewMode)
+            {
+                Session.ShowPreviewModeNotice();
+                return;
+            }
+
             if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
-                return "You do not have permission for Manage Members.";
+            {
+                await DialogService.ShowPermissionErrorAsync(TeamPermission.ManageMembers);
+                return;
+            }
 
             if (user.ManagedAccountTeamId.HasValue)
             {
@@ -114,7 +192,10 @@
                 UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, null);
                 UpdateResult Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
                 if (!Result.IsAcknowledged)
-                    return "Failed to enable user";
+                {
+                    await DialogService.ShowInfoAsync("Database Error", "Failed to enable account.");
+                    return;
+                }
             }
 
 
@@ -123,9 +204,7 @@
                 _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
                 Team.GetMember(user).Disabled = null;
             });
-
-            return null;
-        });
+        }
     }
 
     public async Task DisableMember(PartialUserData user)
@@ -136,10 +215,21 @@
             return;
         }
 
+
+        Console.WriteLine("User: " + user.Id.ToString());
+        TeamMemberData SelectedMember = Team.GetMember(user);
+        int CurrentRank = Member.GetRank();
+        int SelectedRank = SelectedMember.GetRank();
+        if (CurrentRank <= SelectedRank)
+        {
+            await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+            return;
+        }
+
         await DialogService.ShowDynamicFormAsync<ReasonModel>("Disable Member " + user.UserName, new ReasonModel(), async (ReasonModel data) =>
         {
             if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
-                return "You do not have permission for Manage Members.";
+                return "You do not have permission for Manage Members";
 
             UserDisabled Disabled = new UserDisabled
             {
@@ -174,10 +264,16 @@
             return;
         }
 
+        AuthUser User = await Session.GetCurrentUserAsync();
+
+        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, false);
+        if (!twoFactorConfirm)
+            return;
+
         await DialogService.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), async (TeamAddUserModel data) =>
         {
             if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
-                return "You do not have permission for Manage Members.";
+                return "You do not have permission for Manage Members";
 
             PartialUserData? user = _DB.Users.Values.FirstOrDefault(x => x.Email.Equals(data.Email, StringComparison.OrdinalIgnoreCase));
             if (user == null)
@@ -264,13 +360,20 @@
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
             return;
         }
+        
+        Team.Members.TryGetValue(user, out ObjectId selected);
 
-        Team.Members.TryGetValue(user, out ObjectId SelectedMember);
+        TeamMemberData SelectedMember = Team.CachedMembers[selected];
+        int CurrentRank = Member.GetRank();
+        int SelectedRank = SelectedMember.GetRank();
+        if (CurrentRank <= SelectedRank)
+        {
+            await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+            return;
+        }
 
         if (SelectedMember == null)
             return;
-
-
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members), () =>
         {
@@ -288,6 +391,15 @@
         if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
+            return;
+        }
+
+        TeamMemberData SelectedMember = Team.GetMember(user);
+        int CurrentRank = Member.GetRank();
+        int SelectedRank = SelectedMember.GetRank();
+        if (CurrentRank <= SelectedRank)
+        {
+            await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
             return;
         }
 

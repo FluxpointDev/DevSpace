@@ -262,8 +262,8 @@ public class AuthLoginController : AuthControllerContext
             AuthUser? AuthUser = await _userManager.GetUserAsync(User);
             if (AuthUser != null)
             {
-                string SessionId = Request.Cookies["DevSpace.SessionId"];
-                if (AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession Session))
+                string? SessionId = Request.Cookies["DevSpace.SessionId"];
+                if (!string.IsNullOrEmpty(SessionId) && AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession Session))
                 {
                     Session.AuthorizedIps.Clear();
                     await _userManager.UpdateAsync(AuthUser);

@@ -12,7 +12,7 @@
     @if (!Member.HasTeamPermission(TeamPermission.ViewRoles))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for View Roles.
+            You do not have permission for View Roles
         </RadzenAlert>
     }
     else
@@ -47,7 +47,7 @@
         await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), async (TeamRoleModel data) =>
         {
             if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
-                return "You do not have permission for Manage Roles.";
+                return "You do not have permission for Manage Roles";
 
             if (data.Name.Equals("Default"))
                 return "You can't name the role default";
@@ -64,7 +64,7 @@
                     TeamId = Team.Id,
                     Name = data.Name,
                     Description = data.Description,
-                    Position = Team.CachedRoles.Values.OrderBy(x => x.Position).Last().Position + 1
+                    Position = Team.CachedRoles.Any() ? Team.CachedRoles.Values.OrderBy(x => x.Position).Last().Position + 1 : 0
                 };
 
             try
