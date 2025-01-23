@@ -26,6 +26,30 @@ public class TeamMemberData
 
     public UserDisabled? Disabled { get; set; }
 
+    public bool IsGlobalAdministrator()
+    {
+        TeamData CurrentTeam = Team;
+        if (CurrentTeam.OwnerId == UserId)
+            return true;
+        if (CurrentTeam.DefaultPermissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
+            return true;
+
+        var Permissions = new PermissionsSet
+        {
+            TeamPermissions = CurrentTeam.DefaultPermissions.TeamPermissions,
+        };
+
+        foreach (var i in Roles)
+        {
+            if (CurrentTeam.CachedRoles.TryGetValue(i, out var role))
+            {
+                Permissions.TeamPermissions &= role.Permissions.TeamPermissions;
+            }
+        }
+
+        return Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator);
+    }
+
     public bool HasTeamPermission(TeamPermission permission)
     {
         TeamData? SelectedTeam = Team;
@@ -291,9 +315,65 @@ public class TeamMemberData
     }
 
     public HashSet<ObjectId> Roles { get; set; } = new HashSet<ObjectId>();
+
+    public IEnumerable<TeamRoleData> GetCachedRoles()
+    {
+        TeamData GetTeam = Team;
+        return (IEnumerable<TeamRoleData>)Roles.Select(x => GetTeam.CachedRoles.GetValueOrDefault(x)).Where(x => x != null);
+    }
     public string? NickName { get; set; }
 
     public Guid? AvatarId { get; set; }
+
+    public PermissionsSet CalculatePermissions()
+    {
+        PermissionsSet Permissions = null;
+        TeamData CurrentTeam = Team;
+        if (UserId == CurrentTeam.OwnerId || CurrentTeam.DefaultPermissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
+        {
+            Console.WriteLine("All Permissions");
+            Permissions = new PermissionsSet
+            {
+                ConsolePermissions = (ConsolePermission)ulong.MaxValue,
+                DockerPermissions = (DockerPermission)ulong.MaxValue,
+                LogPermissions = (LogPermission)ulong.MaxValue,
+                ProjectPermissions = (ProjectPermission)ulong.MaxValue,
+                ServerPermissions = (ServerPermission)ulong.MaxValue,
+                TeamPermissions = (TeamPermission)ulong.MaxValue,
+                WebsitePermissions = (WebsitePermission)ulong.MaxValue
+            };
+        }
+        else
+        {
+            Permissions = new PermissionsSet
+            {
+                ConsolePermissions = CurrentTeam.DefaultPermissions.ConsolePermissions,
+                DockerPermissions = CurrentTeam.DefaultPermissions.DockerPermissions,
+                LogPermissions = CurrentTeam.DefaultPermissions.LogPermissions,
+                ProjectPermissions = CurrentTeam.DefaultPermissions.ProjectPermissions,
+                ServerPermissions = CurrentTeam.DefaultPermissions.ServerPermissions,
+                TeamPermissions = CurrentTeam.DefaultPermissions.TeamPermissions,
+                WebsitePermissions = CurrentTeam.DefaultPermissions.WebsitePermissions
+            };
+
+            foreach (var i in Roles)
+            {
+                if (CurrentTeam.CachedRoles.TryGetValue(i, out var role))
+                {
+                    Permissions.ConsolePermissions &= role.Permissions.ConsolePermissions;
+                    Permissions.DockerPermissions &= role.Permissions.DockerPermissions;
+                    Permissions.LogPermissions &= role.Permissions.LogPermissions;
+                    Permissions.ProjectPermissions &= role.Permissions.ProjectPermissions;
+                    Permissions.ServerPermissions &= role.Permissions.ServerPermissions;
+                    Permissions.TeamPermissions &= role.Permissions.TeamPermissions;
+                    Permissions.WebsitePermissions &= role.Permissions.WebsitePermissions;
+                }
+            }
+        }
+
+
+        return Permissions;
+    }
 
     public async Task UpdateAsync(UpdateDefinition<TeamMemberData> update, Action action)
     {

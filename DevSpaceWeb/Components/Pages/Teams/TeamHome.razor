@@ -8,15 +8,6 @@
     <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings")"><RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Settings" /></a>
 </div>
 
-<div class="dash-box dash-box-content">
-    <div class="dash-box-header">
-        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
-    </div>
-    <br />
-    <PermissionGrid IsPreview="true" Permissions="@Permissions"></PermissionGrid>
-</div>
-
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
@@ -24,38 +15,4 @@
     public TeamData Team => Session.Selected.Team.Data;
     public TeamMemberData Member => Session.Selected.Member;
 
-    protected override async Task OnInitializedAsync()
-    {
-        Permissions = Team.DefaultPermissions;
-        if (Member.UserId == Team.OwnerId || Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
-        {
-            Console.WriteLine("All Permissions");
-            Permissions = new PermissionsSet
-                {
-                    ConsolePermissions = (ConsolePermission)ulong.MaxValue,
-                    DockerPermissions = (DockerPermission)ulong.MaxValue,
-                    LogPermissions = (LogPermission)ulong.MaxValue,
-                    ProjectPermissions = (ProjectPermission)ulong.MaxValue,
-                    ServerPermissions = (ServerPermission)ulong.MaxValue,
-                    TeamPermissions = (TeamPermission)ulong.MaxValue,
-                    WebsitePermissions = (WebsitePermission)ulong.MaxValue
-                };
-        }
-
-        foreach (var i in Member.Roles)
-        {
-            if (Team.CachedRoles.TryGetValue(i, out var role))
-            {
-                Permissions.ConsolePermissions &= role.Permissions.ConsolePermissions;
-                Permissions.DockerPermissions &= role.Permissions.DockerPermissions;
-                Permissions.LogPermissions &= role.Permissions.LogPermissions;
-                Permissions.ProjectPermissions &= role.Permissions.ProjectPermissions;
-                Permissions.ServerPermissions &= role.Permissions.ServerPermissions;
-                Permissions.TeamPermissions &= role.Permissions.TeamPermissions;
-                Permissions.WebsitePermissions &= role.Permissions.WebsitePermissions;
-            }
-        }
-    }
-
-    public PermissionsSet Permissions { get; set; }
 }

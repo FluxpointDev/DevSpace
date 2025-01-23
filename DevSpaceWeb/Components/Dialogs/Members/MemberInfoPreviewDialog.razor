@@ -1,0 +1,25 @@
+﻿@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+
+<PageTitle>Member Permissions | @_Data.Config.Instance.Name</PageTitle>
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    [Parameter]
+    public TeamMemberData Member { get; set; }
+}

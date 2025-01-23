@@ -114,9 +114,9 @@ public static class PermissionsData
     {
         return new PermissionItem<ConsolePermission>[]
             {
-                new PermissionItem<ConsolePermission>(ConsolePermission.ViewConsoles, "View Console" + (plural ? "s" : ""), "View all consoles the team owns."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ViewConsole, "View Console" + (plural ? "s" : ""), "View all consoles the team owns."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManagePermissions, "Manage Permissions", "Change permissions for all consoles the team owns"),
-                new PermissionItem<ConsolePermission>(ConsolePermission.ManageConsoles, "Manage Console" + (plural ? "s" : ""), "Manage all console settings for the team."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ManageConsole, "Manage Console" + (plural ? "s" : ""), "Manage all console settings for the team."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManageResource, "Manage Resource", "Manage all console resources for the team."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.UseConsoleCommands, "Use Console Commands", "Execute console commands on the server."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewPlayers, "View Players", "View all players on the server."),

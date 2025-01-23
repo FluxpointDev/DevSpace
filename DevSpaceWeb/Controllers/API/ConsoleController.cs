@@ -28,7 +28,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
             return BadRequest("Could not find team.");
 
-        return Ok(_DB.Consoles.Cache.Values.Where(x => (Client.IsInstanceAdmin || x.TeamId == Client.TeamId.GetValueOrDefault()) && Client.HasConsolePermission(x, ConsolePermission.ViewConsoles)).Select(x => new ConsoleJson(x)));
+        return Ok(_DB.Consoles.Cache.Values.Where(x => (Client.IsInstanceAdmin || x.TeamId == Client.TeamId.GetValueOrDefault()) && Client.HasConsolePermission(x, ConsolePermission.ViewConsole)).Select(x => new ConsoleJson(x)));
     }
 
     [HttpGet("/api/consoles/{consoleId?}")]
@@ -40,7 +40,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole, out var perm))
             return PermissionFailed(perm);
 
         return Ok(new ConsoleJson(server));
@@ -55,7 +55,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ViewPlayers, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ViewPlayers, out var perm))
             return PermissionFailed(perm);
 
         switch (server.Type)
@@ -110,7 +110,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ViewPlayers, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ViewPlayers, out var perm))
             return PermissionFailed(perm);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
@@ -134,7 +134,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.UseConsoleCommands, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.UseConsoleCommands, out var perm))
             return PermissionFailed(perm);
 
         if (command == null || string.IsNullOrEmpty(command.command))
@@ -175,7 +175,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.MessageGlobal, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.MessageGlobal, out var perm))
             return PermissionFailed(perm);
 
         if (message == null || string.IsNullOrEmpty(message.message))
@@ -213,7 +213,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.MessagePlayers, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.MessagePlayers, out var perm))
             return PermissionFailed(perm);
 
         if (json == null || string.IsNullOrEmpty(json.player))
@@ -257,7 +257,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.KickPlayers, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.KickPlayers, out var perm))
             return PermissionFailed(perm);
 
         if (json == null || string.IsNullOrEmpty(json.player))
@@ -300,7 +300,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.BanPlayers, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.BanPlayers, out var perm))
             return PermissionFailed(perm);
 
         if (json == null || string.IsNullOrEmpty(json.player))
@@ -343,7 +343,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ControlServer, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
 
         switch (server.Type)
@@ -381,7 +381,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ControlServer, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
 
 
@@ -420,7 +420,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ControlServer, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
@@ -442,7 +442,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ControlServer, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
@@ -464,7 +464,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ControlServer, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
@@ -486,7 +486,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ControlServer, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
@@ -508,7 +508,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ControlServer, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
@@ -530,7 +530,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ControlServer, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
@@ -552,7 +552,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ControlServer, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
@@ -574,7 +574,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find console.");
 
-        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsoles | ConsolePermission.ViewConnections, out var perm))
+        if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ViewConnections, out var perm))
             return PermissionFailed(perm);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)

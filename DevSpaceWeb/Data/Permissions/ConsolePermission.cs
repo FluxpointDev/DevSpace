@@ -4,13 +4,13 @@
 public enum ConsolePermission : ulong
 {
     /// <summary> Allows you to view this resource </summary>
-    ViewConsoles = 1L << 0,
+    ViewConsole = 1L << 0,
 
     /// <summary> Manage permissions for this resource </summary>
     ManagePermissions = 1L << 1,
 
     /// <summary> Manage the console properties </summary>
-    ManageConsoles = 1L << 2,
+    ManageConsole = 1L << 2,
 
     /// <summary> All permissions </summary>
     ConsoleAdministrator = 1L << 3,
