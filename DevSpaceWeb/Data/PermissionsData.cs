@@ -27,6 +27,7 @@ public static class PermissionsData
         {
             new PermissionItem<TeamPermission>(TeamPermission.ViewMembers, "View Members", "Allows you to view members in the team."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageMembers, "Manage Members", "Add or remove members to the team except global admins."),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewRoles, "View Roles", "View roles for the team."),
             new PermissionItem<TeamPermission>(TeamPermission.AssignRoles, "Assign Roles", "Give members roles."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageRoles, "Manage Roles", "Create, delete and edit roles."),
             new PermissionItem<TeamPermission>(TeamPermission.ViewPermissions, "View Permissions", "Allows you to view all the team permissions."),
@@ -46,6 +47,7 @@ public static class PermissionsData
         {
             new PermissionItem<ServerPermission>(ServerPermission.ViewServer, "View Server" + (plural ? "s" : ""), "View all servers the team owns."),
             new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Server" + (plural ? "s" : ""), "Change all server settings."),
+            new PermissionItem<ServerPermission>(ServerPermission.ViewPermissions, "View Permissions", "View permissions for the server."),
             new PermissionItem<ServerPermission>(ServerPermission.ManagePermissions, "Manage Permissions", "Change permissions for all servers the team owns."),
             new PermissionItem<ServerPermission>(ServerPermission.ManageResource, plural ? "Manage Server Resources" : "Manage Resource", "Add or delete servers for the team."),
         };
@@ -57,7 +59,8 @@ public static class PermissionsData
             {
             new PermissionItem<WebsitePermission>(WebsitePermission.ViewWebsite, "View Website" + (plural ? "s" : ""), "View all websites the team owns."),
             new PermissionItem<WebsitePermission>(WebsitePermission.ManageWebsite, "Manage Website" + (plural ? "s" : ""), "Change website settings."),
-            new PermissionItem<WebsitePermission>(WebsitePermission.ManagePermissions, "Manage Permissions", "Change permissions for all websites the team owns."),
+            new PermissionItem<WebsitePermission>(WebsitePermission.ViewPermissions, "View Permissions", "View permissions for the website."),
+                new PermissionItem<WebsitePermission>(WebsitePermission.ManagePermissions, "Manage Permissions", "Change permissions for all websites the team owns."),
             new PermissionItem<WebsitePermission>(WebsitePermission.ManageResource, plural ? "Manage Website Resources" : "Manage Resource", "Add or delete websites for the team."),
             };
     }
@@ -67,7 +70,8 @@ public static class PermissionsData
         return new PermissionItem<ProjectPermission>[]
         {
             new PermissionItem<ProjectPermission>(ProjectPermission.ViewProject, "View Project" + (plural ? "s" : ""), "View all projects the team owns."),
-           new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Project" + (plural ? "s" : ""), "Change all project settings."),
+            new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Project" + (plural ? "s" : ""), "Change all project settings."),
+            new PermissionItem<ProjectPermission>(ProjectPermission.ViewPermissions, "View Permissions", "View permissions for the project."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManagePermissions, "Manage Permissions", "Change permissions for all projects the team owns."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManageResource, plural ? "Manage Project Resources" : "Manage Resource", "Add or delete projects for the team."),
         };
@@ -79,6 +83,7 @@ public static class PermissionsData
         {
             new PermissionItem<LogPermission>(LogPermission.ViewLog, "View Log" + (plural ? "s" : ""), "View all logs the team owns."),
             new PermissionItem<LogPermission>(LogPermission.ManageLog, "Manage Log" + (plural ? "s" : ""), "Change log settings."),
+            new PermissionItem<LogPermission>(LogPermission.ViewPermissions, "View Permissions", "View permissions for the log."),
             new PermissionItem<LogPermission>(LogPermission.ManagePermissions, "Manage Permissions", "Change permissions for all logs the team owns."),
             new PermissionItem<LogPermission>(LogPermission.ManageResource, plural ? "Manage Log Resources" : "Manage Resource", "Add or delete logs for the team."),
         };
@@ -115,6 +120,7 @@ public static class PermissionsData
         return new PermissionItem<ConsolePermission>[]
             {
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewConsole, "View Console" + (plural ? "s" : ""), "View all consoles the team owns."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ViewPermissions, "View Permissions", "View permissions for the console"),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManagePermissions, "Manage Permissions", "Change permissions for all consoles the team owns"),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManageConsole, "Manage Console" + (plural ? "s" : ""), "Manage all console settings for the team."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManageResource, "Manage Resource", "Manage all console resources for the team."),
@@ -127,7 +133,7 @@ public static class PermissionsData
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewConsoleLogs, "View Console Logs", "View console logs in realtime, may contain private/sensitive info."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.MessagePlayers, "Message Players", "Send private messages to players on the server."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.MessageGlobal, "Message Global", "Send global messages on the server."),
-                new PermissionItem<ConsolePermission>(ConsolePermission.ManageConnections, "Manage Connection" + (plural ? "s" : ""), "Modify server/rcon connection settings."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ManageConnection, "Manage Connection", "Modify server/rcon connection settings."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewIPs, "View IPs", "View IPs from players and admins."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewConnections, "View Connections", "View authorized rcon connections to the server."),
             };

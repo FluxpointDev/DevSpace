@@ -10,19 +10,19 @@
     <br />
     <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/settings")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasConsolePermission(Console, ConsolePermission.ManageConsole) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:list-box"></span>
                 <RadzenText TextStyle="TextStyle.H6">Basic</RadzenText>
             </RadzenCard>
         </a>
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/rcon")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasConsolePermission(Console, ConsolePermission.ManageConnection) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:console-line"></span>
                 <RadzenText TextStyle="TextStyle.H6">Rcon</RadzenText>
             </RadzenCard>
         </a>
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/permissions")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasConsolePermission(Console, ConsolePermission.ManagePermissions) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:shield-key"></span>
                 <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
             </RadzenCard>
@@ -69,6 +69,11 @@
     .settings-item:hover {
     background-color: var(--rz-base-dark);
     outline: solid 1px var(--rz-secondary-dark) !important;
+    }
+
+    .settings-item-disabled {
+        opacity: 0.6;
+        cursor: not-allowed !important;
     }
 </style>
 

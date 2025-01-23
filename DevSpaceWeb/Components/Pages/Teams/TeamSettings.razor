@@ -3,46 +3,49 @@
 @using DevSpaceWeb.Models.Teams
 @using Microsoft.AspNetCore.Components.Forms
 
-<PageTitle>Team Settings | @_Data.Config.Instance.Name</PageTitle>
+@if (!IsHome)
+{
+    <PageTitle>Team Settings | @_Data.Config.Instance.Name</PageTitle>
+}
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">@Team.Name Settings</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">@(IsHome ? "Settings" : Team.Name + " Settings")</RadzenText>
     </div>
     <br />
     <RadzenStack Gap="10px" JustifyContent="JustifyContent.Center" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/basic")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(TeamPermission.ManageTeam) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:list-box"></span>
                 <RadzenText TextStyle="TextStyle.H6">Basic</RadzenText>
             </RadzenCard>
         </a>
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/members")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(TeamPermission.ViewMembers) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:account-supervisor"></span>
                 <RadzenText TextStyle="TextStyle.H6">Members</RadzenText>
             </RadzenCard>
         </a>
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/roles")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(TeamPermission.ViewRoles) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:tag"></span>
                 <RadzenText TextStyle="TextStyle.H6">Roles</RadzenText>
             </RadzenCard>
         </a>
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/permissions")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(TeamPermission.ViewPermissions) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:shield-key"></span>
                 <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
             </RadzenCard>
         </a>
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/audit")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(TeamPermission.ViewAuditLogs) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:format-list-bulleted-square"></span>
                 <RadzenText TextStyle="TextStyle.H6">Audit Logs</RadzenText>
             </RadzenCard>
         </a>
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/api")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(TeamPermission.ViewAPIs) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:robot"></span>
                 <RadzenText TextStyle="TextStyle.H6">API</RadzenText>
             </RadzenCard>
@@ -53,30 +56,36 @@
 
 <style>
     .settings-item {
-        width: 140px;
-        height: 140px;
+    width: 140px;
+    height: 140px;
     }
 
-        .settings-item .iconify {
-            width: 36px;
-            height: 36px;
-            margin-top: 26px;
-            color: var(--rz-info);
-        }
 
-        .settings-item .rz-text-h6 {
-            margin-top: 14px;
-            font-size: 1.1rem;
-            color: var(--rz-base-200) !important;
-        }
+    .settings-item .iconify {
+    width: 36px;
+    height: 36px;
+    margin-top: 26px;
+    color: var(--rz-info);
+    }
+
+    .settings-item .rz-text-h6 {
+    margin-top: 14px;
+    font-size: 1.1rem;
+    color: var(--rz-base-200) !important;
+    }
 
     .rz-stack a {
-        text-decoration: none !important;
+    text-decoration: none !important;
     }
 
     .settings-item:hover {
-        background-color: var(--rz-base-dark);
-        outline: solid 1px var(--rz-secondary-dark) !important;
+    background-color: var(--rz-base-dark);
+    outline: solid 1px var(--rz-secondary-dark) !important;
+    }
+
+    .settings-item-disabled {
+    opacity: 0.6;
+    cursor: not-allowed !important;
     }
 </style>
 
@@ -87,4 +96,7 @@
     public TeamData Team => Session.Selected.Team.Data;
 
     public TeamMemberData Member => Session.Selected.Member;
+
+    [Parameter]
+    public bool IsHome { get; set; }
 }

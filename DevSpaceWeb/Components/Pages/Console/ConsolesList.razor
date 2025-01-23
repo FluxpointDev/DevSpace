@@ -21,21 +21,12 @@
     @foreach (ConsoleData i in _DB.Consoles.Cache.Values.Where(x => Member.HasConsolePermission(x, ConsolePermission.ViewConsole)))
     {
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + i.GetVanityUrlOrId())">
-            <div class="server-item d-flex flex-grow-1 gap-2">
+            <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
                 <div class="server-item-icon flex-none d-flex">
                     <span class="iconify" data-icon="mdi:console-line"></span>
                 </div>
-
-                <div class="server-item-info flex-auto d-flex py-1">
-                    <h6>@i.Name</h6>
-                    @* <MudChip T="string" Color="Color.Success" Variant="Variant.Text">Online</MudChip> *@
-
-                </div>
-
-                <div class="server-item-buttons flex-none">
-                    @* <MudButton Variant="Variant.Text"><p>Settings</p> <span class="iconify" data-icon="mdi:gear-outline"></span></MudButton>
-                    <MudButton Variant="Variant.Text"><p>Permissions</p><span class="iconify" data-icon="mdi:key-outline"></span></MudButton> *@
-                </div>
+                <RadzenText TextStyle="TextStyle.H6" class="mt-5 ml-2">@i.Name</RadzenText>
+                
             </div>
         </a>
         <br />
