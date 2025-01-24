@@ -3,6 +3,7 @@
 @using DevSpaceWeb.Data.Consoles
 @using DevSpaceWeb.Models.Consoles
 @using Newtonsoft.Json.Linq
+@using System.Text
 @inject DialogService Dialog
 
 <div class="dash-box">
@@ -24,13 +25,23 @@
             <Columns>
                 <RadzenDataGridColumn Title="Name" Width="200px">
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Body2">@context.name</RadzenText>
                         @if (context.number == 0)
                         {
+                            <RadzenText TextStyle="TextStyle.Body2">@context.name</RadzenText>
                             <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Player" IsPill="true" />
                         }
                         else
                         {
+                            @if (Member.HasConsolePermission(Console, ConsolePermission.ViewIPs))
+                            {
+                                <RadzenTextMask Value="@context.name" IsIp="true"></RadzenTextMask>
+                            }
+                            else
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @GetMask(context.name)
+                                </RadzenText>
+                            }
                             <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="IP" IsPill="true" />
                         }
                     </Template>
@@ -56,6 +67,29 @@
 
     public IEnumerable<Player> Players { get; set; }
     public int PlayerCount { get; set; }
+
+     public string GetMask(string value)
+    {
+        bool FirstDot = false;
+        StringBuilder result = new StringBuilder();
+        foreach (char c in value)
+        {
+            if (c == '.')
+            {
+                result.Append(c);
+                FirstDot = true;
+            }
+            else
+            {
+                if (FirstDot)
+                    result.Append('*');
+                else
+                    result.Append(c);
+            }
+        }
+        return result.ToString();
+    }
+
 
     async Task LoadData(LoadDataArgs args)
     {
