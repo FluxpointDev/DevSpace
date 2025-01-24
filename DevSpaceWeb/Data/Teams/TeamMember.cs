@@ -43,7 +43,7 @@ public class TeamMemberData
         {
             if (CurrentTeam.CachedRoles.TryGetValue(i, out var role))
             {
-                Permissions.TeamPermissions &= role.Permissions.TeamPermissions;
+                Permissions.TeamPermissions |= role.Permissions.TeamPermissions;
             }
         }
 
@@ -331,7 +331,6 @@ public class TeamMemberData
         TeamData CurrentTeam = Team;
         if (UserId == CurrentTeam.OwnerId || CurrentTeam.DefaultPermissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
         {
-            Console.WriteLine("All Permissions");
             Permissions = new PermissionsSet
             {
                 ConsolePermissions = (ConsolePermission)ulong.MaxValue,
@@ -360,13 +359,13 @@ public class TeamMemberData
             {
                 if (CurrentTeam.CachedRoles.TryGetValue(i, out var role))
                 {
-                    Permissions.ConsolePermissions &= role.Permissions.ConsolePermissions;
-                    Permissions.DockerPermissions &= role.Permissions.DockerPermissions;
-                    Permissions.LogPermissions &= role.Permissions.LogPermissions;
-                    Permissions.ProjectPermissions &= role.Permissions.ProjectPermissions;
-                    Permissions.ServerPermissions &= role.Permissions.ServerPermissions;
-                    Permissions.TeamPermissions &= role.Permissions.TeamPermissions;
-                    Permissions.WebsitePermissions &= role.Permissions.WebsitePermissions;
+                    Permissions.ConsolePermissions |= role.Permissions.ConsolePermissions;
+                    Permissions.DockerPermissions |= role.Permissions.DockerPermissions;
+                    Permissions.LogPermissions |= role.Permissions.LogPermissions;
+                    Permissions.ProjectPermissions |= role.Permissions.ProjectPermissions;
+                    Permissions.ServerPermissions |= role.Permissions.ServerPermissions;
+                    Permissions.TeamPermissions |= role.Permissions.TeamPermissions;
+                    Permissions.WebsitePermissions |= role.Permissions.WebsitePermissions;
                 }
             }
         }
