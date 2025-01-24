@@ -329,7 +329,8 @@ public class APIClient
         if (Result.IsAcknowledged)
         {
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.APIClientDeleted)
-                .SetTarget(this));
+                .SetTarget(Team)
+                .AddProperty("Name", Name));
 
             _DB.API.Cache.TryRemove(Id, out _);
             action?.Invoke();

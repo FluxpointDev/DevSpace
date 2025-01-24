@@ -132,6 +132,12 @@ public class AuditLog
         return this;
     }
 
+    public AuditLog SetSensitive()
+    {
+        IsSensitive = true;
+        return this;
+    }
+
     public ObjectId Id;
     public DateTime CreatedAt;
     public ObjectId? TeamId;
@@ -143,6 +149,7 @@ public class AuditLog
     public ObjectId? TargetId;
     public string TargetName;
     public Dictionary<string, string> Properties = new Dictionary<string, string>();
+    public bool IsSensitive;
     public PermissionsSet? Permissions;
 
 }

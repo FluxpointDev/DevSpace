@@ -73,7 +73,8 @@ public class ConsoleData : ITeamResource
         if (Result.IsAcknowledged)
         {
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.ConsoleDeleted)
-                .SetTarget(this));
+                .SetTarget(Team)
+                .AddProperty("Name", Name));
 
             _DB.Consoles.Cache.TryRemove(Id, out _);
             switch (Type)

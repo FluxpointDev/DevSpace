@@ -85,8 +85,8 @@
         {
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.ConsoleRconChanged)
                 .SetTarget(Console)
+                .SetSensitive()
                 .AddPropertyChange("IP", Console.Ip, IP)
-                .AddPropertyChange("Password", Console.GetDecryptedPassword(), model.Password)
                 .AddPropertyChange("Port", Console.Port, int.Parse(Port)));
 
             Console.Ip = model.Ip;

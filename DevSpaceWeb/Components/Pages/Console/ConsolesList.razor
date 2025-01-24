@@ -183,7 +183,11 @@
             await _DB.Consoles.CreateAsync(NewConsole);
 
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ConsoleCreated)
-                .SetTarget(NewConsole));
+                .SetTarget(NewConsole)
+                .SetSensitive()
+                .AddProperty("Name", data.Name)
+                .AddProperty("IP", data.Ip)
+                .AddProperty("Port", Port));
 
             _DB.Consoles.Cache.TryAdd(NewConsole.Id, NewConsole);
             await Vanity.UpdateAsync(NewConsole, NewConsole.VanityUrl);

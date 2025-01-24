@@ -1,0 +1,76 @@
+﻿@using DevSpaceWeb.Models.Consoles
+@using DevSpaceWeb.Models.Servers
+@using System.Net
+<PageTitle>Server Settings | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lightning-bolt"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Server Connection</RadzenText>
+    </div>
+    <br />
+    <DynamicFormDialog Model="@ModifyServerConnectionModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Data = new ModifyServerConnectionModel
+            {
+                Ip = Server.AgentIp + ":" + Server.AgentPort
+            };
+    }
+
+    public ModifyServerConnectionModel Data { get; set; }
+
+    public async Task<string?> UpdateSettings(ModifyServerConnectionModel model)
+    {
+        if (!Member.HasServerPermission(Server, ServerPermission.ManageConnection))
+            return "You do not have Manage Connection permissions.";
+
+        if (!IPAddress.TryParse(model.Ip, out _))
+            return "Invalid IP address.";
+
+        if (model.Port == 0)
+            return "Server port is required.";
+
+        ServerWebSocket Client = new ServerWebSocket();
+        Client.Run(new ServerData
+            {
+                AgentIp = model.Ip,
+                AgentPort = model.Port,
+                AgentKey = model.AgentKey
+            });
+        if (!Client.Client.IsConnected)
+            return "Failed to connect to server.";
+
+        await Server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>()
+        .Set(x => x.AgentIp, model.Ip)
+        .Set(x => x.AgentPort, model.Port)
+        .Set(x => x.AgentKey, model.AgentKey),
+        async () =>
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.ServerSettingsChanged)
+                .SetTarget(Server)
+                .SetSensitive()
+                .AddPropertyChange("IP", Server.AgentIp, model.Ip)
+                .AddPropertyChange("Port", Server.AgentPort, model.Port));
+
+            Server.AgentIp = model.Ip;
+            Server.AgentPort = model.Port;
+            Server.AgentKey = model.AgentKey;
+            if (Server.GetWebSocket(false) != null)
+                Client.Client.Dispose();
+            Server.SetWebSocket(Client);
+            Session.TriggerNavMenuChange();
+        });
+        return null;
+    }
+}

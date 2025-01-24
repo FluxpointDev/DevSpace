@@ -223,35 +223,7 @@
     </RadzenRow>
 </div>
 
-<div class="dash-box dash-box-content">
-    <div class="dash-box-header">
-        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
-        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
-    </div>
-    <br />
-    <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/settings")">
-            <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
-                <span class="iconify" data-icon="mdi:list-box"></span>
-                <RadzenText TextStyle="TextStyle.H6">Basic</RadzenText>
-            </RadzenCard>
-        </a>
-    </RadzenStack>
-</div>
-
-<div class="dash-box dash-box-content">
-    <div class="dash-box-header">
-        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">Manage</RadzenText>
-        @* <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" /> *@
-    </div>
-    <br />
-    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
-    <RadzenUserSelector Value="@OwnerUser" Disabled="@(!Member.HasServerPermission(Server, ServerPermission.ManageResource))" OnSelected="@ChangeOwner"></RadzenUserSelector>
-    <br />
-    <RadzenButton Click="@DeleteServer" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Server" Disabled="@(!Member.HasServerPermission(Server, ServerPermission.ManageResource))" />
-</div>
+<ServerSettings></ServerSettings>
 
 <style>
     .settings-item {

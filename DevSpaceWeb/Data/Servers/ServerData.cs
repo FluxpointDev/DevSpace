@@ -14,15 +14,19 @@ public class ServerData : ITeamResource
     public short AgentPort { get; internal set; }
 
     private ServerWebSocket WebSocket;
-    public ServerWebSocket GetWebSocket()
+    public ServerWebSocket GetWebSocket(bool create = true)
     {
-        if (WebSocket == null)
+        if (WebSocket == null && create)
         {
             WebSocket = new ServerWebSocket();
             if (!Program.IsPreviewMode)
                 WebSocket.Run(this);
         }
         return WebSocket;
+    }
+    public void SetWebSocket(ServerWebSocket websocket)
+    {
+        WebSocket = websocket;
     }
 
     public bool IsRunningDockerContainer()
@@ -47,7 +51,8 @@ public class ServerData : ITeamResource
         if (Result.IsAcknowledged)
         {
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.ServerDeleted)
-                .SetTarget(this));
+                .SetTarget(Team)
+                .AddProperty("Name", Name));
 
             _DB.Servers.Cache.TryRemove(Id, out _);
 

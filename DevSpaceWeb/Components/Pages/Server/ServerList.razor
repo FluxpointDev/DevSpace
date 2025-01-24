@@ -1,4 +1,5 @@
 ﻿@using DevSpaceWeb.Models.Setup
+@using System.Net
 @inject DialogService DialogService
 
 <PageTitle>My Servers | @_Data.Config.Instance.Name</PageTitle>
@@ -120,15 +121,21 @@
                 if (!Member.HasServerPermission(null, ServerPermission.ManageResource))
                     return "You do not have Manage Resource permissions";
 
+                if (!IPAddress.TryParse(data.Ip, out _))
+                    return "Invalid IP address.";
 
+                if (data.Port == 0)
+                    return "Server port is required.";
 
                 ServerWebSocket Client = new ServerWebSocket();
                 Client.Run(new ServerData
                     {
                         AgentIp = data.Ip,
-                        AgentPort = 5555,
+                        AgentPort = data.Port,
                         AgentKey = data.AgentKey
                     });
+                if (!Client.Client.IsConnected)
+                    return "Failed to connect to server.";
 
                 ServerData Server = new ServerData
                     {
@@ -136,14 +143,21 @@
                         OwnerId = Member.UserId,
                         TeamId = Member.TeamId,
                         AgentIp = data.Ip,
-                        AgentPort = 5555,
+                        AgentPort = data.Port,
                         AgentKey = data.AgentKey
                     };
+                
+
                 await _DB.Servers.CreateAsync(Server);
+                Server.SetWebSocket(Client);
                 _DB.Servers.Cache.TryAdd(Server.Id, Server);
 
                 _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ServerCreated)
-                .SetTarget(Server));
+                .SetTarget(Server)
+                .SetSensitive()
+                .AddProperty("Name", data.Name)
+                .AddProperty("IP", data.Ip)
+                .AddProperty("Port", data.Port.ToString()));
 
                 InvokeAsync(StateHasChanged);
                 return null;

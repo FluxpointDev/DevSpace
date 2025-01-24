@@ -83,7 +83,10 @@
             Team.Roles.Add(role.Id);
             Team.CachedRoles.Add(role.Id, role);
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Role, AuditLogEventType.RoleCreated)
-            .SetTarget(role));
+            .SetTarget(role)
+            .AddProperty("Name", role.Name)
+            .AddProperty("Description", role.Description)
+            .AddProperty("Position", role.Position.ToString()));
         });
 
 

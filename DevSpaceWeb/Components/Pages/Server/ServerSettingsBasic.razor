@@ -1,0 +1,65 @@
+﻿@using DevSpaceWeb.Models.Consoles
+<PageTitle>Server Settings | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Server Settings</RadzenText>
+    </div>
+    <br />
+    <DynamicFormDialog Model="@ModifyServerModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Data = new ModifyServerModel
+            {
+                Name = Server.Name,
+                VanityUrl = Server.VanityUrl
+            };
+    }
+
+    public ModifyServerModel Data { get; set; }
+
+    public async Task<string?> UpdateSettings(ModifyServerModel model)
+    {
+        if (!Member.HasServerPermission(Server, ServerPermission.ManageServer))
+            return "You do not have Manage Server permissions.";
+
+        VanityUrlData Vanity = Team.GetVanityUrlData();
+        if (!string.IsNullOrEmpty(model.VanityUrl))
+            model.VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+
+        if (Vanity.CheckAlreadyExists(Server, model.VanityUrl))
+            return Lang.Errors.vanity_url_already_taken;
+
+        string VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+
+        await Server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>()
+        .Set(x => x.Name, model.Name)
+        .Set(x => x.VanityUrl, VanityUrl),
+        async () =>
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.ServerSettingsChanged)
+                .SetTarget(Server)
+                .AddPropertyChange("Name", Server.Name, model.Name)
+                .AddPropertyChange("Vanity URL", Server.VanityUrl, VanityUrl));
+
+            Server.Name = model.Name;
+            Server.VanityUrl = model.VanityUrl;
+            VanityUrlData Vanity = Team.GetVanityUrlData();
+            await Vanity.UpdateAsync(Server, VanityUrl);
+            Session.Selected.Team.Server.VanityUrl = Server.GetVanityUrlOrId();
+            Session.TriggerNavMenuChange();
+        });
+        return null;
+    }
+}

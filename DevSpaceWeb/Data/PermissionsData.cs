@@ -49,6 +49,7 @@ public static class PermissionsData
             new PermissionItem<ServerPermission>(ServerPermission.ViewPermissions, "View Permissions", "View permissions for the server."),
             new PermissionItem<ServerPermission>(ServerPermission.ManagePermissions, "Manage Permissions", "Change permissions for all servers the team owns."),
             new PermissionItem<ServerPermission>(ServerPermission.ManageResource, plural ? "Manage Server Resources" : "Manage Resource", "Add or delete servers for the team."),
+            new PermissionItem<ServerPermission>(ServerPermission.ManageConnection, "Manage Connection", "Update the server agent connection settings."),
         };
     }
 
@@ -115,9 +116,9 @@ public static class PermissionsData
     {
         return new PermissionItem<ConsolePermission>[]
             {
+                new PermissionItem<ConsolePermission>(ConsolePermission.ManageConsole, "Manage Console" + (plural ? "s" : ""), "Manage all console settings for the team."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewPermissions, "View Permissions", "View permissions for the console"),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManagePermissions, "Manage Permissions", "Change permissions for all consoles the team owns"),
-                new PermissionItem<ConsolePermission>(ConsolePermission.ManageConsole, "Manage Console" + (plural ? "s" : ""), "Manage all console settings for the team."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManageResource, "Manage Resource", "Manage all console resources for the team."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.UseConsoleCommands, "Use Console Commands", "Execute console commands on the server."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewPlayers, "View Players", "View all players on the server."),

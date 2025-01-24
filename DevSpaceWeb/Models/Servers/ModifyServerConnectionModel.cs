@@ -1,16 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DevSpaceWeb.Models.Setup;
+namespace DevSpaceWeb.Models.Servers;
 
-public class ServerSetupModel
+public class ModifyServerConnectionModel
 {
-    [Required(ErrorMessage = "Server name is required")]
-    public string Name { get; set; }
-
     [Required(ErrorMessage = "Server IP address is required")]
     public string Ip { get; set; }
 
-    public short Port { get; set; } = 5555;
+    public short Port { get; set; }
 
     [Required(ErrorMessage = "Agent key is required")]
     public string AgentKey { get; set; }

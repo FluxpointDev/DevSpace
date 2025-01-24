@@ -116,7 +116,8 @@ public class TeamRoleData
                 Team.Roles = RoleSet;
                 Team.TriggerRoleChange(this, false);
                 _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.RoleDeleted)
-                .SetTarget(this));
+                .SetTarget(Team)
+                .AddProperty("Name", Name));
             });
 
             action?.Invoke();

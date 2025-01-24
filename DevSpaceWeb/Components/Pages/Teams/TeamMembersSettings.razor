@@ -312,7 +312,9 @@
             Team.Members.Add(user.Id, memberData.Id);
             Team.CachedMembers.Add(memberData.Id, memberData);
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.MemberAdded)
-            .SetTarget(user));
+            .SetTarget(user)
+            .AddProperty("User", user.UserName)
+            .AddProperty("ID", user.Id.ToString()));
         });
 
             return string.Empty;
@@ -346,7 +348,9 @@
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id), () =>
         {
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.TeamOwnershipChanged)
-            .SetTarget(user));
+            .SetTarget(user)
+            .AddProperty("User", user.UserName)
+        .AddProperty("ID", user.Id.ToString()));
             Team.OwnerId = user.Id;
         });
 

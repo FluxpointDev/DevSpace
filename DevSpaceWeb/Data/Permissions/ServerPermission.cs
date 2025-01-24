@@ -9,4 +9,5 @@ public enum ServerPermission : ulong
     ManageServer = 1L << 3,
     ServerAdministrator = 1L << 4,
     ManageResource = 1L << 5,
+    ManageConnection = 1L << 6,
 }
