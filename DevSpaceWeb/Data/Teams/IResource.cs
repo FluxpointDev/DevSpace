@@ -29,6 +29,8 @@ public class ITeamResource : IResource
     [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
     public Dictionary<ObjectId, PermissionsSet> ApiPermissionOverrides = new Dictionary<ObjectId, PermissionsSet>();
 
+    public PermissionsSet DefaultPermissions { get; set; } = new PermissionsSet();
+
     public string? VanityUrl { get; set; }
 
     public string GetVanityUrlOrId()

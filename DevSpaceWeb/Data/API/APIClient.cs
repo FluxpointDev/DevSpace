@@ -65,12 +65,12 @@ public class APIClient
         }
         else
         {
-            PermissionsAll Perms = SelectedTeam.GetPermissions();
+            PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-            if (Perms.Team.GlobalAdministrator)
+            if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
                 return true;
 
-            if (Perms.Team.Has(checkPermission))
+            if (Default.TeamPermissions.HasFlag(checkPermission))
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
@@ -89,6 +89,9 @@ public class APIClient
         if (SelectedTeam == null)
             return false;
 
+        if (log != null && log.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.LogPermissions.HasFlag(LogPermission.LogAdministrator) || perms.LogPermissions.HasFlag(checkPermission)))
+            return true;
+
         if (CustomPermissions != null)
         {
             if (CustomPermissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
@@ -99,20 +102,27 @@ public class APIClient
         }
         else
         {
-            PermissionsAll Perms = SelectedTeam.GetPermissions();
+            PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-            if (Perms.Team.GlobalAdministrator || Perms.Log.LogAdministrator)
+            if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.LogPermissions.HasFlag(LogPermission.LogAdministrator))
                 return true;
 
-            if (Perms.Log.Has(checkPermission))
+            if (Default.LogPermissions.HasFlag(checkPermission))
+                return true;
+
+            if (checkPermission == LogPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
+                return true;
+
+            if (log != null && log.MemberPermissionOverrides.TryGetValue(OwnerId, out PermissionsSet? uovr) && uovr.LogPermissions.HasFlag(checkPermission))
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
                 return member.HasLogPermission(log, checkPermission);
+
+
         }
 
-        if (log.MemberPermissionOverrides.TryGetValue(log.Id, out PermissionsSet? uovr) && uovr.LogPermissions.HasFlag(checkPermission))
-            return true;
+
 
 
         return false;
@@ -127,6 +137,9 @@ public class APIClient
         if (SelectedTeam == null)
             return false;
 
+        if (project != null && project.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator) || perms.ProjectPermissions.HasFlag(checkPermission)))
+            return true;
+
         if (CustomPermissions != null)
         {
             if (CustomPermissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
@@ -137,26 +150,33 @@ public class APIClient
         }
         else
         {
-            PermissionsAll Perms = SelectedTeam.GetPermissions();
+            PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-            if (Perms.Team.GlobalAdministrator || Perms.Project.ProjectAdministrator)
+            if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator))
                 return true;
 
-            if (Perms.Project.Has(checkPermission))
+            if (Default.ProjectPermissions.HasFlag(checkPermission))
+                return true;
+
+            if (checkPermission == ProjectPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
+                return true;
+
+            if (project != null && project.MemberPermissionOverrides.TryGetValue(OwnerId, out PermissionsSet? uovr) && uovr.ProjectPermissions.HasFlag(checkPermission))
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
                 return member.HasProjectPermission(project, checkPermission);
+
+
         }
 
-        if (project.MemberPermissionOverrides.TryGetValue(project.Id, out PermissionsSet? uovr) && uovr.ProjectPermissions.HasFlag(checkPermission))
-            return true;
+
 
 
         return false;
     }
 
-    public bool HasServerPermission(ServerData? server, ServerPermission checkPermission)
+    public bool HasServerPermission(ServerData server, ServerPermission checkPermission)
     {
         if (IsInstanceAdmin)
             return true;
@@ -164,6 +184,9 @@ public class APIClient
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
             return false;
+
+        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.ServerPermissions.HasFlag(checkPermission)))
+            return true;
 
         if (CustomPermissions != null)
         {
@@ -175,29 +198,30 @@ public class APIClient
         }
         else
         {
-            PermissionsAll Perms = SelectedTeam.GetPermissions();
+            PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-            if (Perms.Team.GlobalAdministrator || Perms.Server.ServerAdministrator)
+            if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator))
+                return true;
+
+            if (Default.ServerPermissions.HasFlag(checkPermission))
                 return true;
 
             if (checkPermission == ServerPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
                 return true;
 
-            if (Perms.Server.Has(checkPermission))
+            if (server != null && server.MemberPermissionOverrides.TryGetValue(OwnerId, out PermissionsSet? uovr) && uovr.ServerPermissions.HasFlag(checkPermission))
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
                 return member.HasServerPermission(server, checkPermission);
+
+
+
         }
-
-        if (server != null && server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.ServerPermissions.HasFlag(checkPermission))
-            return true;
-
-
         return false;
     }
 
-    public bool HasConsolePermission(ConsoleData? console, ConsolePermission checkPermission)
+    public bool HasConsolePermission(ConsoleData console, ConsolePermission checkPermission)
     {
         if (IsInstanceAdmin)
             return true;
@@ -205,6 +229,9 @@ public class APIClient
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
             return false;
+
+        if (console != null && console.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator) || perms.ConsolePermissions.HasFlag(checkPermission)))
+            return true;
 
         if (CustomPermissions != null)
         {
@@ -216,26 +243,26 @@ public class APIClient
         }
         else
         {
-            PermissionsAll Perms = SelectedTeam.GetPermissions();
+            PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-            if (Perms.Team.GlobalAdministrator || Perms.Console.ConsoleAdministrator)
+            if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator))
+                return true;
+
+            if (Default.ConsolePermissions.HasFlag(checkPermission))
                 return true;
 
             if (checkPermission == ConsolePermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
                 return true;
 
-            if (Perms.Console.Has(checkPermission))
+            if (console != null && console.MemberPermissionOverrides.TryGetValue(OwnerId, out PermissionsSet? uovr) && uovr.ConsolePermissions.HasFlag(checkPermission))
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
-            {
-                Console.WriteLine("Check Owner: " + member.Id);
                 return member.HasConsolePermission(console, checkPermission);
-            }
+
         }
 
-        if (console != null && console.MemberPermissionOverrides.TryGetValue(console.Id, out PermissionsSet? uovr) && uovr.ConsolePermissions.HasFlag(checkPermission))
-            return true;
+
 
 
         return false;
@@ -250,6 +277,9 @@ public class APIClient
         if (SelectedTeam == null)
             return false;
 
+        if (website != null && website.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator) || perms.WebsitePermissions.HasFlag(checkPermission)))
+            return true;
+
         if (CustomPermissions != null)
         {
             if (CustomPermissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
@@ -260,21 +290,23 @@ public class APIClient
         }
         else
         {
-            PermissionsAll Perms = SelectedTeam.GetPermissions();
+            PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-            if (Perms.Team.GlobalAdministrator || Perms.Website.WebsiteAdministrator)
+            if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator))
                 return true;
 
-            if (Perms.Website.Has(checkPermission))
+            if (Default.WebsitePermissions.HasFlag(checkPermission))
+                return true;
+
+            if (checkPermission == WebsitePermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
+                return true;
+
+            if (website != null && website.MemberPermissionOverrides.TryGetValue(OwnerId, out PermissionsSet? uovr) && uovr.WebsitePermissions.HasFlag(checkPermission))
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
                 return member.HasWebsitePermission(website, checkPermission);
         }
-
-        if (website.MemberPermissionOverrides.TryGetValue(website.Id, out PermissionsSet? uovr) && uovr.WebsitePermissions.HasFlag(checkPermission))
-            return true;
-
 
         return false;
     }
@@ -288,6 +320,9 @@ public class APIClient
         if (SelectedTeam == null)
             return false;
 
+        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator) || perms.DockerPermissions.HasFlag(checkPermission)))
+            return true;
+
         if (CustomPermissions != null)
         {
             if (CustomPermissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
@@ -298,12 +333,15 @@ public class APIClient
         }
         else
         {
-            PermissionsAll Perms = SelectedTeam.GetPermissions();
+            PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-            if (Perms.Team.GlobalAdministrator || Perms.Docker.DockerAdministrator)
+            if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator))
                 return true;
 
-            if (Perms.Docker.Has(checkPermission))
+            if (Default.DockerPermissions.HasFlag(checkPermission))
+                return true;
+
+            if (server != null && server.MemberPermissionOverrides.TryGetValue(OwnerId, out PermissionsSet? uovr) && uovr.DockerPermissions.HasFlag(checkPermission))
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))

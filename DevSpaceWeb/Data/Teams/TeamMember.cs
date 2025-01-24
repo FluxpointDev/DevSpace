@@ -59,12 +59,12 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsAll Perms = SelectedTeam.GetPermissions();
+        PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-        if (Perms.Team.GlobalAdministrator)
+        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
             return true;
 
-        if (Perms.Team.Has(permission))
+        if (Default.TeamPermissions.HasFlag(permission))
             return true;
 
         foreach (ObjectId r in Roles)
@@ -88,12 +88,15 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsAll Perms = SelectedTeam.GetPermissions();
+        PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-        if (Perms.Team.GlobalAdministrator || Perms.Log.LogAdministrator)
+        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.LogPermissions.HasFlag(LogPermission.LogAdministrator))
             return true;
 
-        if (Perms.Log.Has(permission))
+        if (Default.LogPermissions.HasFlag(permission))
+            return true;
+
+        if (permission == LogPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
             return true;
 
         if (log.MemberPermissionOverrides.TryGetValue(log.Id, out PermissionsSet? uovr) && uovr.LogPermissions.HasFlag(permission))
@@ -124,12 +127,15 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsAll Perms = SelectedTeam.GetPermissions();
+        PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-        if (Perms.Team.GlobalAdministrator || Perms.Project.ProjectAdministrator)
+        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator))
             return true;
 
-        if (Perms.Project.Has(permission))
+        if (Default.ProjectPermissions.HasFlag(permission))
+            return true;
+
+        if (permission == ProjectPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
             return true;
 
         if (project.MemberPermissionOverrides.TryGetValue(project.Id, out PermissionsSet? uovr) && uovr.ProjectPermissions.HasFlag(permission))
@@ -160,15 +166,15 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsAll Perms = SelectedTeam.GetPermissions();
+        PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-        if (Perms.Team.GlobalAdministrator || Perms.Server.ServerAdministrator)
+        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator))
+            return true;
+
+        if (Default.ServerPermissions.HasFlag(permission))
             return true;
 
         if (permission == ServerPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
-            return true;
-
-        if (Perms.Server.Has(permission))
             return true;
 
         if (server != null && server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.ServerPermissions.HasFlag(permission))
@@ -199,12 +205,15 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsAll Perms = SelectedTeam.GetPermissions();
+        PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-        if (Perms.Team.GlobalAdministrator || Perms.Website.WebsiteAdministrator)
+        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator))
             return true;
 
-        if (Perms.Website.Has(permission))
+        if (Default.WebsitePermissions.HasFlag(permission))
+            return true;
+
+        if (permission == WebsitePermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
             return true;
 
         if (website.MemberPermissionOverrides.TryGetValue(website.Id, out PermissionsSet? uovr) && uovr.WebsitePermissions.HasFlag(permission))
@@ -235,12 +244,15 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsAll Perms = SelectedTeam.GetPermissions();
+        PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-        if (Perms.Team.GlobalAdministrator || Perms.Console.ConsoleAdministrator)
+        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator))
             return true;
 
-        if (Perms.Console.Has(permission))
+        if (Default.ConsolePermissions.HasFlag(permission))
+            return true;
+
+        if (permission == ConsolePermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
             return true;
 
         if (console != null && console.MemberPermissionOverrides.TryGetValue(console.Id, out PermissionsSet? uovr) && uovr.ConsolePermissions.HasFlag(permission))
@@ -271,12 +283,12 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsAll Perms = SelectedTeam.GetPermissions();
+        PermissionsSet Default = SelectedTeam.DefaultPermissions;
 
-        if (Perms.Team.GlobalAdministrator || Perms.Docker.DockerAdministrator)
+        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator))
             return true;
 
-        if (Perms.Docker.Has(permission))
+        if (Default.DockerPermissions.HasFlag(permission))
             return true;
 
         if (server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.DockerPermissions.HasFlag(permission))
@@ -294,6 +306,8 @@ public class TeamMemberData
             if (server.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.DockerPermissions.HasFlag(permission))
                 return true;
         }
+
+
 
         return false;
     }

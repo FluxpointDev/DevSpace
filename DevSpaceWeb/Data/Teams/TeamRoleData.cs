@@ -20,10 +20,6 @@ public class TeamRoleData
 
     [JsonIgnore]
     [BsonIgnore]
-    private PermissionsAll _Permissions => new PermissionsAll(Permissions);
-
-    [JsonIgnore]
-    [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
     //public bool HasTeamPermission(TeamMemberData member, TeamPermission permission)

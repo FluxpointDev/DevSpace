@@ -40,7 +40,6 @@ public class TeamData : IResource
 
     public PermissionsSet DefaultPermissions { get; set; } = new PermissionsSet();
 
-    public PermissionsAll GetPermissions() { return new PermissionsAll(DefaultPermissions); }
 
     public HashSet<ObjectId> Roles = new HashSet<ObjectId>();
 
