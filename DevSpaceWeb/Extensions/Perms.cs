@@ -49,6 +49,17 @@ public static class Perms
         return false;
     }
 
+    public static bool CheckDockerManagerPermission(DockerPermission perm)
+    {
+        switch (perm)
+        {
+            case DockerPermission.ContainerConsole:
+                return true;
+        }
+
+        return false;
+    }
+
     public static IEnumerable<T> GetUniqueFlags<T>(T flags) where T : Enum
     {
         ulong flag = 1;

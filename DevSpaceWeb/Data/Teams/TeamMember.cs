@@ -6,6 +6,7 @@ using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Data.Websites;
 using DevSpaceWeb.Database;
+using DevSpaceWeb.Extensions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -71,7 +72,7 @@ public class TeamMemberData
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.Permissions.TeamPermissions.HasFlag(permission))
+                if (role.HasTeamPermission(permission))
                     return true;
             }
         }
@@ -106,13 +107,9 @@ public class TeamMemberData
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.Permissions.LogPermissions.HasFlag(permission))
+                if (role.HasLogPermission(log, permission))
                     return true;
-
             }
-
-            if (log.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.LogPermissions.HasFlag(permission))
-                return true;
         }
 
         return false;
@@ -145,13 +142,9 @@ public class TeamMemberData
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.Permissions.ProjectPermissions.HasFlag(permission))
+                if (role.HasProjectPermission(project, permission))
                     return true;
-
             }
-
-            if (project.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.ProjectPermissions.HasFlag(permission))
-                return true;
         }
 
         return false;
@@ -184,13 +177,9 @@ public class TeamMemberData
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.Permissions.ServerPermissions.HasFlag(permission))
+                if (role.HasServerPermission(server, permission))
                     return true;
-
             }
-
-            if (server != null && server.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.ServerPermissions.HasFlag(permission))
-                return true;
         }
 
         return false;
@@ -223,13 +212,9 @@ public class TeamMemberData
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.Permissions.WebsitePermissions.HasFlag(permission))
+                if (role.HasWebsitePermission(website, permission))
                     return true;
-
             }
-
-            if (website.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.WebsitePermissions.HasFlag(permission))
-                return true;
         }
 
         return false;
@@ -262,13 +247,9 @@ public class TeamMemberData
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.Permissions.ConsolePermissions.HasFlag(permission))
+                if (role.HasConsolePermission(console, permission))
                     return true;
-
             }
-
-            if (console != null && console.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.ConsolePermissions.HasFlag(permission))
-                return true;
         }
 
         return false;
@@ -294,17 +275,16 @@ public class TeamMemberData
         if (server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.DockerPermissions.HasFlag(permission))
             return true;
 
+        if (Default.DockerPermissions.HasFlag(DockerPermission.DockerManager) && Perms.CheckDockerManagerPermission(permission))
+            return true;
+
         foreach (ObjectId r in Roles)
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.Permissions.DockerPermissions.HasFlag(permission))
+                if (role.HasDockerPermission(server, permission))
                     return true;
-
             }
-
-            if (server.RolePermissionOverrides.TryGetValue(r, out PermissionsSet? ovr) && ovr.DockerPermissions.HasFlag(permission))
-                return true;
         }
 
 

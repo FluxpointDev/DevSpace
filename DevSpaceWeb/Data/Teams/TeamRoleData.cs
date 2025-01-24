@@ -1,5 +1,11 @@
-﻿using DevSpaceWeb.Data.Permissions;
+﻿using DevSpaceWeb.Data.Consoles;
+using DevSpaceWeb.Data.Permissions;
+using DevSpaceWeb.Data.Projects;
+using DevSpaceWeb.Data.Reports;
+using DevSpaceWeb.Data.Servers;
+using DevSpaceWeb.Data.Websites;
 using DevSpaceWeb.Database;
+using DevSpaceWeb.Extensions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -22,71 +28,118 @@ public class TeamRoleData
     [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
-    //public bool HasTeamPermission(TeamMemberData member, TeamPermission permission)
-    //{
-    //    if (member.Team == null)
-    //        return false;
+    public bool HasTeamPermission(TeamPermission checkPermission)
+    {
+        if (Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
+            return true;
 
-    //    if (_Permissions.Team.GlobalAdministrator)
-    //        return true;
+        if (Permissions.TeamPermissions.HasFlag(checkPermission))
+            return true;
 
-    //    return _Permissions.Team.Has(permission);
-    //}
+        return false;
+    }
 
-    //public bool HasLogPermission(TeamMemberData member, LogPermission permission)
-    //{
-    //    if (member.Team == null)
-    //        return false;
+    public bool HasLogPermission(LogData log, LogPermission checkPermission)
+    {
+        if (log != null && log.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.LogPermissions.HasFlag(LogPermission.LogAdministrator) || perms.LogPermissions.HasFlag(checkPermission)))
+            return true;
 
-    //    if (_Permissions.Team.GlobalAdministrator || _Permissions.Log.LogAdministrator)
-    //        return true;
+        if (Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Permissions.LogPermissions.HasFlag(LogPermission.LogAdministrator))
+            return true;
 
-    //    return _Permissions.Log.Has(permission);
-    //}
+        if (Permissions.LogPermissions.HasFlag(checkPermission))
+            return true;
 
-    //public bool HasProjectPermission(TeamMemberData member, ProjectPermission permission)
-    //{
-    //    if (member.Team == null)
-    //        return false;
+        if (checkPermission == LogPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
+            return true;
 
-    //    if (_Permissions.Team.GlobalAdministrator || _Permissions.Project.ProjectAdministrator)
-    //        return true;
+        return false;
+    }
 
-    //    return _Permissions.Project.Has(permission);
-    //}
+    public bool HasProjectPermission(ProjectData project, ProjectPermission checkPermission)
+    {
+        if (project != null && project.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator) || perms.ProjectPermissions.HasFlag(checkPermission)))
+            return true;
 
-    //public bool HasServerPermission(TeamMemberData member, ServerPermission permission)
-    //{
-    //    if (member.Team == null)
-    //        return false;
+        if (Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Permissions.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator))
+            return true;
 
-    //    if (_Permissions.Team.GlobalAdministrator || _Permissions.Server.ServerAdministrator)
-    //        return true;
+        if (Permissions.ProjectPermissions.HasFlag(checkPermission))
+            return true;
 
-    //    return _Permissions.Server.Has(permission);
-    //}
+        if (checkPermission == ProjectPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
+            return true;
 
-    //public bool HasWebsitePermission(TeamMemberData member, WebsitePermission permission)
-    //{
-    //    if (member.Team == null)
-    //        return false;
+        return false;
+    }
 
-    //    if (_Permissions.Team.GlobalAdministrator || _Permissions.Website.WebsiteAdministrator)
-    //        return true;
+    public bool HasServerPermission(ServerData server, ServerPermission checkPermission)
+    {
+        if (server != null && server.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.ServerPermissions.HasFlag(checkPermission)))
+            return true;
 
-    //    return _Permissions.Website.Has(permission);
-    //}
+        if (Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Permissions.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator))
+            return true;
 
-    //public bool HasDockerPermission(TeamMemberData member, DockerPermission permission)
-    //{
-    //    if (member.Team == null)
-    //        return false;
+        if (Permissions.ServerPermissions.HasFlag(checkPermission))
+            return true;
 
-    //    if (_Permissions.Team.GlobalAdministrator || _Permissions.Docker.DockerAdministrator)
-    //        return true;
+        if (checkPermission == ServerPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
+            return true;
 
-    //    return _Permissions.Docker.Has(permission);
-    //}
+        return false;
+    }
+
+    public bool HasConsolePermission(ConsoleData console, ConsolePermission checkPermission)
+    {
+        if (console != null && console.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator) || perms.ConsolePermissions.HasFlag(checkPermission)))
+            return true;
+
+        if (Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Permissions.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator))
+            return true;
+
+        if (Permissions.ConsolePermissions.HasFlag(checkPermission))
+            return true;
+
+        if (checkPermission == ConsolePermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
+            return true;
+
+        return false;
+    }
+
+    public bool HasWebsitePermission(WebsiteData website, WebsitePermission checkPermission)
+    {
+        if (website != null && website.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator) || perms.WebsitePermissions.HasFlag(checkPermission)))
+            return true;
+
+        if (Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Permissions.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator))
+            return true;
+
+        if (Permissions.WebsitePermissions.HasFlag(checkPermission))
+            return true;
+
+        if (checkPermission == WebsitePermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
+            return true;
+
+        return false;
+    }
+
+    public bool HasDockerPermission(ServerData server, DockerPermission checkPermission)
+    {
+        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator) || perms.DockerPermissions.HasFlag(checkPermission)))
+            return true;
+
+        if (Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Permissions.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator))
+            return true;
+
+        if (Permissions.DockerPermissions.HasFlag(checkPermission))
+            return true;
+
+        if (Permissions.DockerPermissions.HasFlag(DockerPermission.DockerManager) && Perms.CheckDockerManagerPermission(checkPermission))
+            return true;
+
+        return false;
+    }
 
     public async Task UpdateAsync(UpdateDefinition<TeamRoleData> update, Action action)
     {

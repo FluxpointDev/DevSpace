@@ -6,6 +6,7 @@ using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Websites;
 using DevSpaceWeb.Database;
+using DevSpaceWeb.Extensions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -113,13 +114,14 @@ public class APIClient
             if (checkPermission == LogPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
                 return true;
 
-            if (log != null && log.MemberPermissionOverrides.TryGetValue(OwnerId, out PermissionsSet? uovr) && uovr.LogPermissions.HasFlag(checkPermission))
-                return true;
+            if (log != null && log.MemberPermissionOverrides.TryGetValue(OwnerId, out PermissionsSet? uovr))
+            {
+                if (uovr.LogPermissions.HasFlag(checkPermission))
+                    return true;
+            }
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
                 return member.HasLogPermission(log, checkPermission);
-
-
         }
 
 
@@ -320,8 +322,14 @@ public class APIClient
         if (SelectedTeam == null)
             return false;
 
-        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && (perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator) || perms.DockerPermissions.HasFlag(checkPermission)))
-            return true;
+        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms))
+        {
+            if (perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator) || perms.DockerPermissions.HasFlag(checkPermission))
+                return true;
+
+            if (perms.DockerPermissions.HasFlag(DockerPermission.DockerManager) && Perms.CheckDockerManagerPermission(checkPermission))
+                return true;
+        }
 
         if (CustomPermissions != null)
         {
@@ -329,6 +337,9 @@ public class APIClient
                 return true;
 
             if (CustomPermissions.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator) || CustomPermissions.DockerPermissions.HasFlag(checkPermission))
+                return true;
+
+            if (CustomPermissions.DockerPermissions.HasFlag(DockerPermission.DockerManager) && Perms.CheckDockerManagerPermission(checkPermission))
                 return true;
         }
         else
@@ -342,6 +353,9 @@ public class APIClient
                 return true;
 
             if (server != null && server.MemberPermissionOverrides.TryGetValue(OwnerId, out PermissionsSet? uovr) && uovr.DockerPermissions.HasFlag(checkPermission))
+                return true;
+
+            if (Default.DockerPermissions.HasFlag(DockerPermission.DockerManager) && Perms.CheckDockerManagerPermission(checkPermission))
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
