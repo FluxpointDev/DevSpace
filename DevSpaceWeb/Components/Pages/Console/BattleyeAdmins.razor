@@ -3,13 +3,14 @@
 @using DevSpaceWeb.Data.Consoles
 @using DevSpaceWeb.Models.Consoles
 @using Newtonsoft.Json.Linq
+@using System.Text
 @inject ContextMenuService ContextMenuService
 @inject DialogService Dialog
 
 <div class="dash-box">
     <div class="dash-box-header dash-box-content">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account-supervisor"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">Rcon Connections</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">Rcon Admins</RadzenText>
     </div>
     <br />
     @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewConnections))
@@ -30,7 +31,17 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="IP">
                     <Template>
-                        <RadzenTextMask Value="@context.Ip" IsIp="true"></RadzenTextMask>
+                        @if (Member.HasConsolePermission(Console, ConsolePermission.ViewIPs))
+                        {
+                            <RadzenTextMask Value="@context.Ip" IsIp="true"></RadzenTextMask>
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                @GetMask(context.Ip)
+                            </RadzenText>
+                        }
+
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
@@ -49,6 +60,28 @@
 
     public IEnumerable<RconAdmin> Connections { get; set; }
     public int ConnectionCount { get; set; }
+
+    public string GetMask(string value)
+    {
+        bool FirstDot = false;
+        StringBuilder result = new StringBuilder();
+        foreach (char c in value)
+        {
+            if (c == '.')
+            {
+                result.Append(c);
+                FirstDot = true;
+            }
+            else
+            {
+                if (FirstDot)
+                    result.Append('*');
+                else
+                    result.Append(c);
+            }
+        }
+        return result.ToString();
+    }
 
     void LoadData(LoadDataArgs args)
     {
