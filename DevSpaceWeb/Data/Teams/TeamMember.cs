@@ -157,7 +157,7 @@ public class TeamMemberData
         return false;
     }
 
-    public bool HasServerPermission(ServerData? server, ServerPermission permission)
+    public bool HasServerPermission(ServerData server, ServerPermission permission)
     {
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
@@ -235,7 +235,7 @@ public class TeamMemberData
         return false;
     }
 
-    public bool HasConsolePermission(ConsoleData? console, ConsolePermission permission)
+    public bool HasConsolePermission(ConsoleData console, ConsolePermission permission)
     {
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
