@@ -92,7 +92,15 @@
                             <RadzenMenu>
                                 <RadzenMenuItem Text="Manage" Icon="manage_accounts" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))">
                                     <RadzenMenuItem Text="Change Roles" Icon="sell" Click="@(() => ChangeMemberRoles(ud))"></RadzenMenuItem>
-                                    <RadzenMenuItem Text="Disable Member" Icon="cancel" Click="@(() => DisableMember(ud))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id)"></RadzenMenuItem>
+                                    @if (user.Disabled == null)
+                                    {
+                                        <RadzenMenuItem Text="Disable Member" Icon="cancel" Click="@(() => DisableMember(ud))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id)"></RadzenMenuItem>
+                                    }
+                                    else
+                                    {
+                                        <RadzenMenuItem Text="Enable Member" Icon="check" Click="@(() => EnableMember(ud))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id)"></RadzenMenuItem>
+                                    }
+                                    
                                     @if (ud.Id != Team.OwnerId && Member.UserId == Team.OwnerId)
                                     {
                                         <RadzenMenuItem Text="Transfer Ownership" Icon="social_distance" Click="@(() => TransferOwnership(ud))"></RadzenMenuItem>
