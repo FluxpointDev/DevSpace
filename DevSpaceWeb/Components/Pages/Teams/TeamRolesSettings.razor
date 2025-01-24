@@ -22,7 +22,7 @@
         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(!Member.HasTeamPermission(TeamPermission.ManageRoles))" />
         <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" Disabled="(!Member.HasTeamPermission(TeamPermission.ManageRoles))" />
         <br />
-        @foreach(TeamRoleData i in Team.CachedRoles.Values)
+        @foreach(TeamRoleData i in Team.CachedRoles.Values.OrderBy(x => x.Position))
         {
             <p>@i.Name</p>
         }
