@@ -10,30 +10,30 @@
 
     @if (Session.Selected.Team != null)
     {
-        <NavTeam></NavTeam>
+        <NavTeam StateChange="@StateChange"></NavTeam>
 
         @if (Session.Selected.Server != null)
         {
-            <NavServer></NavServer>
+            <NavServer StateChange="@StateChange"></NavServer>
         }
 
         @if (Session.Selected.Console != null)
         {
-            <NavConsole></NavConsole>
+            <NavConsole StateChange="@StateChange"></NavConsole>
         }
 
         @if (Session.Selected.Website != null)
         {
-            <NavWebsite></NavWebsite>
+            <NavWebsite StateChange="@StateChange"></NavWebsite>
         }
 
         @if (Session.Selected.Project != null)
         {
-            <NavProject></NavProject>
+            <NavProject StateChange="@StateChange"></NavProject>
         }
         @if (Session.Selected.Log != null)
         {
-            <NavLog></NavLog>
+            <NavLog StateChange="@StateChange"></NavLog>
         }
     }
 </RadzenPanelMenu>
@@ -42,18 +42,21 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public bool StateChange { get; set; } = false;
+
     protected override void OnInitialized()
     {
-        Session.EventNavMenuChange += Test;
+        Session.EventNavMenuChange += UpdateState;
     }
 
     void IDisposable.Dispose()
     {
-        Session.EventNavMenuChange -= Test;
+        Session.EventNavMenuChange -= UpdateState;
     }
 
-    public void Test(object sender, EventArgs e)
+    public void UpdateState(object sender, EventArgs e)
     {
+        StateChange = !StateChange;
         StateHasChanged();
     }
 }
