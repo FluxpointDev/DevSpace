@@ -22,10 +22,18 @@
         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(!Member.HasTeamPermission(TeamPermission.ManageRoles))" />
         <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" Disabled="(!Member.HasTeamPermission(TeamPermission.ManageRoles))" />
         <br />
-        @foreach(TeamRoleData i in Team.CachedRoles.Values.OrderBy(x => x.Position))
+        <br />
+        <RadzenStack Orientation="Orientation.Vertical" Gap="20px">
+        @foreach(TeamRoleData i in Team.CachedRoles.Values.OrderByDescending(x => x.Position))
         {
-            <p>@i.Name</p>
+            <div>
+                    <p>@i.Name (@i.Position)</p>
+                    <RadzenButton Text="Delete" Click="@(() => DeleteRole(i))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageRoles) || i.Position >= Member.GetRank())"
+                                  ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Medium" Shade="Shade.Dark" />
+            </div>
+            
         }
+        </RadzenStack>
     }
 </div>
 
@@ -94,6 +102,24 @@
 
             return string.Empty;
         });
+    }
+
+    public async Task DeleteRole(TeamRoleData role)
+    {
+        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+            return;
+
+        bool Confirm = await DialogService.ShowConfirmAsync("Delete Role", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
+        if (Confirm)
+        {
+            if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+                return;
+
+            await role.DeleteAsync(Member, () =>
+            {
+                Session.Selected.Team.Console = null;
+            });
+        }
     }
 
     public async Task UpdateRolePositions()

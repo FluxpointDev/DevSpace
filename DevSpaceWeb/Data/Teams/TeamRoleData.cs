@@ -157,6 +157,10 @@ public class TeamRoleData
         {
             _DB.Roles.Cache.TryRemove(Id, out _);
             Team.CachedRoles.Remove(Id);
+            Team.TriggerRoleChange(this, false);
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.RoleDeleted)
+                .SetTarget(Team)
+                .AddProperty("Name", Name));
 
             var RoleSet = Team.Roles.Where(x => x != Id).ToHashSet();
 
@@ -164,9 +168,7 @@ public class TeamRoleData
             {
                 Team.Roles = RoleSet;
                 Team.TriggerRoleChange(this, false);
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.RoleDeleted)
-                .SetTarget(Team)
-                .AddProperty("Name", Name));
+
             });
 
             action?.Invoke();

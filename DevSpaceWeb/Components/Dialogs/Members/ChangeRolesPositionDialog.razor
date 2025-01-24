@@ -14,7 +14,7 @@
                 <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" ItemRender="@((x) => RenderItem(x))"
                 LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
                     <Template>
-                        @if (Program.IsPreviewMode || Team.OwnerId == Member.UserId || CurrentRank < (context as TeamRoleData).Position)
+                        @if (Program.IsPreviewMode || Team.OwnerId == Member.UserId || (context as TeamRoleData).Position < CurrentRank)
                         {
                             @((context as TeamRoleData).Name)
                         }
@@ -61,7 +61,7 @@
     public ListBoxItemRenderEventArgs<TeamRoleData> RenderItem(ListBoxItemRenderEventArgs<TeamRoleData> data)
     {
         if (!Program.IsPreviewMode && Team.OwnerId != Member.UserId)
-            data.Disabled = CurrentRank >= (data.Item as TeamRoleData).Position;
+            data.Disabled = (data.Item as TeamRoleData).Position >= CurrentRank;
         return data;
     }
 
@@ -73,9 +73,9 @@
     public void RoleChanged(object sender, Tuple<TeamRoleData?, bool> role)
     {
         if (role.Item1 == null)
-            RolesList = Team.CachedRoles.Values.OrderBy(x => x.Position).ToList();
+            RolesList = Team.CachedRoles.Values.OrderByDescending(x => x.Position).ToList();
         else if (role.Item2)
-            RolesList = RolesList.Append(role.Item1).ToList();
+            RolesList = RolesList.Prepend(role.Item1).ToList();
         else
         {
             try
@@ -95,7 +95,7 @@
         if (RolesList == null)
         {
             CurrentRank = Member.GetRank();
-            RolesList = Team.CachedRoles.Values.OrderBy(x => x.Position).ToList();
+            RolesList = Team.CachedRoles.Values.OrderByDescending(x => x.Position).ToList();
         }
     }
 
@@ -106,7 +106,7 @@
         if (!Program.IsPreviewMode)
         {
             if (Index == 0 || IsUpdating || (Team.OwnerId != Member.UserId && CurrentRank >= (Index - 1)))
-            return;
+                return;
         }
         RolesList.RemoveAt(Index);
         RolesList.Insert(Index - 1, SelectedRole);
@@ -120,7 +120,7 @@
         if (!Program.IsPreviewMode)
         {
             if (Index == (RolesList.Count - 1) || IsUpdating || (Team.OwnerId != Member.UserId && CurrentRank >= Index))
-            return;
+                return;
         }
         RolesList.RemoveAt(Index);
         RolesList.Insert(Index + 1, SelectedRole);
@@ -147,18 +147,22 @@
 
         List<WriteModel<TeamRoleData>> list = new List<WriteModel<TeamRoleData>>();
         bool Stop = false;
-        foreach (TeamRoleData r in RolesList)
+        int Index = 0;
+        Dictionary<TeamRoleData, int> Positions = new Dictionary<TeamRoleData, int>();
+        CurrentRank = Member.GetRank();
+        foreach (TeamRoleData r in RolesList.Reverse())
         {
-            int Index = RolesList.IndexOf(r);
-            if (r.Position != Index && Team.OwnerId != Member.UserId && CurrentRank >= Index)
+            if (r.Position != Index && Team.OwnerId != Member.UserId && Index >= CurrentRank)
             {
                 Stop = true;
                 break;
             }
 
             FilterDefinition<TeamRoleData> filter = new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, r.Id);
-            UpdateDefinition<TeamRoleData> upd = new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Position, RolesList.IndexOf(r));
+            UpdateDefinition<TeamRoleData> upd = new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Position, Index);
             list.Add(new UpdateOneModel<TeamRoleData>(filter, upd));
+            Positions.Add(r, Index);
+            Index += 1;
         }
         if (Stop)
             return;
@@ -167,9 +171,9 @@
 
         if (result.IsAcknowledged)
         {
-            foreach (TeamRoleData r in RolesList)
+            foreach (var r in Positions)
             {
-                r.Position = RolesList.IndexOf(r);
+                r.Key.Position = r.Value;
             }
             Team.TriggerRoleChange(null, true);
         }
