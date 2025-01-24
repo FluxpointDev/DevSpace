@@ -8,7 +8,7 @@ namespace DevSpaceWeb.Data.Consoles;
 public class ConsoleData : ITeamResource
 {
     public string Ip { get; set; }
-    public int Port { get; set; }
+    public short Port { get; set; }
     public string EncryptedPassword { get; set; }
     public ConsoleType Type { get; set; }
     public DateTime ConnectedAt { get; set; } = DateTime.UtcNow;

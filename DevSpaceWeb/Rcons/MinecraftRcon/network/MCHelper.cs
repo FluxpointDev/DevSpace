@@ -9,13 +9,12 @@ namespace LibMCRcon.RCon
 
             string[] list_players;
 
-
             if (r.IsReadyForCommands == true)
             {
 
                 try
                 {
-                    r.Clear();
+                    //r.Clear();
 
                     string resp = r.ExecuteCmd("list");
 
@@ -33,7 +32,7 @@ namespace LibMCRcon.RCon
             }
             else
             {
-                list_players = new string[] { "RCON_ERROR" };
+                list_players = new string[] { };
             }
 
 

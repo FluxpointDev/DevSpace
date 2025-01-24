@@ -35,6 +35,18 @@ public class AuditLog
         return this;
     }
 
+    public AuditLog AddProperty(string name, bool value)
+    {
+        Properties.Add(name, value.ToString());
+        return this;
+    }
+
+    public AuditLog AddProperty(string name, int value)
+    {
+        Properties.Add(name, value.ToString());
+        return this;
+    }
+
     public AuditLog AddPropertyChange(string name, string oldValue, string newValue)
     {
         if (oldValue != newValue)

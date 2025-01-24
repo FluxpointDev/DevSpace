@@ -26,7 +26,8 @@
     {
         Data = new ModifyRconModel
         {
-            Ip = $"{Console.Ip}:{Console.Port}"
+            Ip = Console.Ip,
+            Port = Console.Port
         };
     }
 
@@ -37,24 +38,21 @@
         if (!Member.HasConsolePermission(Console, ConsolePermission.ManageConsole))
             return "You do not have Manage Console permissions.";
 
-        string[] Split = model.Ip.Split(':');
-        string IP = Split[0];
 
-        if (!IPAddress.TryParse(IP, out _))
-            return "Failed to parse IP address.";
-        string Port = Split[1];
-        if (string.IsNullOrEmpty(Port))
-            return "Port is missing";
+        if (!IPAddress.TryParse(model.Ip, out _))
+            return "Invalid IP address.";
+        
 
-        if (!int.TryParse(Port, out _))
-            return "Failed to parse port";
+
+        if (model.Port == 0)
+            return "Console port is required.";
 
         switch (Console.Type)
         {
             case ConsoleType.Battleye:
                 {
                     RCon rcon = new RCon();
-                    rcon.Connect(IPAddress.Parse(IP), int.Parse(Port), model.Password);
+                    rcon.Connect(IPAddress.Parse(model.Ip), model.Port, model.Password);
                     if (!rcon.IsConnected)
                         return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
 
@@ -64,8 +62,8 @@
                 {
                     TCPRconAsync rcon = new TCPRconAsync
                         {
-                            RConHost = IP,
-                            RConPort = int.Parse(Port),
+                            RConHost = model.Ip,
+                            RConPort = model.Port,
                             RConPass = model.Password
                         };
                     bool Success = await rcon.StartComms();
@@ -78,28 +76,28 @@
 
 
         await Console.UpdateAsync(new UpdateDefinitionBuilder<ConsoleData>()
-        .Set(x => x.Ip, IP)
-        .Set(x => x.Port, int.Parse(Port))
+        .Set(x => x.Ip, model.Ip)
+        .Set(x => x.Port, model.Port)
         .Set(x => x.EncryptedPassword, string.IsNullOrEmpty(model.Password) ? Console.EncryptedPassword : model.Password),
         async () =>
         {
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.ConsoleRconChanged)
                 .SetTarget(Console)
                 .SetSensitive()
-                .AddPropertyChange("IP", Console.Ip, IP)
-                .AddPropertyChange("Port", Console.Port, int.Parse(Port)));
+                .AddPropertyChange("IP", Console.Ip, model.Ip)
+                .AddPropertyChange("Port", Console.Port, model.Port));
 
             Console.Ip = model.Ip;
             Console.EncryptedPassword = model.Password;
             Console.ResetDecryptedPassword();
-            Console.Port = int.Parse(Port);
+            Console.Port = model.Port;
 
             switch (Console.Type)
             {
                 case ConsoleType.Battleye:
                     {
                         RCon rcon = new RCon();
-                        rcon.Connect(IPAddress.Parse(IP), int.Parse(Port), model.Password);
+                        rcon.Connect(IPAddress.Parse(model.Ip), model.Port, model.Password);
                         _Data.BattleyeRcons.Remove(Console.Id);
                         _Data.BattleyeRcons.TryAdd(Console.Id, rcon);
                     }
@@ -108,8 +106,8 @@
                     {
                         TCPRconAsync rcon = new TCPRconAsync
                             {
-                                RConHost = IP,
-                                RConPort = int.Parse(Port),
+                                RConHost = model.Ip,
+                                RConPort = model.Port,
                                 RConPass = model.Password
                             };
                         await rcon.StartComms();

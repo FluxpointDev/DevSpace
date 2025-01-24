@@ -122,22 +122,15 @@
             if (!Member.HasConsolePermission(null, ConsolePermission.ManageResource))
                 return "You do not have permission for Manage Console Resources";
 
-            string[] Split = data.Ip.Split(':');
-            string IP = Split[0];
+            if (!IPAddress.TryParse(data.Ip, out _))
 
-            if (!IPAddress.TryParse(IP, out _))
-                return "Failed to parse IP address.";
-            string Port = Split[1];
-            if (string.IsNullOrEmpty(Port))
-                return "Port is missing";
-
-            if (!int.TryParse(Port, out _))
+            if (data.Port == 0)
                 return "Failed to parse port";
 
             ConsoleData NewConsole = new ConsoleData
             {
-                Ip = IP,
-                Port = int.Parse(Port),
+                Ip = data.Ip,
+                Port = data.Port,
                 Name = data.Name,
                 OwnerId = Session.CurrentUser.Id,
                 TeamId = Session.Selected.Team.Data.Id,
@@ -155,7 +148,7 @@
                 case ConsoleType.Battleye:
                     {
                         RCon rcon = new RCon();
-                        rcon.Connect(IPAddress.Parse(IP), int.Parse(Port), data.Password);
+                        rcon.Connect(IPAddress.Parse(data.Ip), data.Port, data.Password);
                         if (!rcon.IsConnected)
                             return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
 
@@ -166,8 +159,8 @@
                     {
                         TCPRconAsync rcon = new TCPRconAsync
                             {
-                                RConHost = IP,
-                                RConPort = int.Parse(Port),
+                                RConHost = data.Ip,
+                                RConPort = data.Port,
                                 RConPass = data.Password
                             };
                         bool Success = await rcon.StartComms();
@@ -187,7 +180,7 @@
                 .SetSensitive()
                 .AddProperty("Name", data.Name)
                 .AddProperty("IP", data.Ip)
-                .AddProperty("Port", Port));
+                .AddProperty("Port", data.Port));
 
             _DB.Consoles.Cache.TryAdd(NewConsole.Id, NewConsole);
             await Vanity.UpdateAsync(NewConsole, NewConsole.VanityUrl);
