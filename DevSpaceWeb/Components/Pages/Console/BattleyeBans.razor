@@ -2,6 +2,7 @@
 @using System.Linq.Dynamic.Core
 @using DevSpaceWeb.Data.Consoles
 @using Newtonsoft.Json.Linq
+@using System.Text
 @inject DialogService Dialog
 
 <div class="dash-box">
@@ -23,7 +24,23 @@
             <Columns>
                 <RadzenDataGridColumn Title="ID/IP" Width="120px">
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Body2">@context.ipguid</RadzenText>
+                        @if (context.ipguid.Contains('.'))
+                        {
+                            @if (Member.HasConsolePermission(Console, ConsolePermission.ViewIPs))
+                            {
+                                <RadzenTextMask Value="@context.ipguid" IsIp="true"></RadzenTextMask>
+                            }
+                            else
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @GetMask(context.ipguid)
+                                </RadzenText>
+                            }
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2">@context.ipguid</RadzenText>
+                        }
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Reason" >
@@ -57,6 +74,28 @@
 
     public IEnumerable<Ban> Bans { get; set; }
     public int BanCount { get; set; }
+
+    public string GetMask(string value)
+    {
+        bool FirstDot = false;
+        StringBuilder result = new StringBuilder();
+        foreach (char c in value)
+        {
+            if (c == '.')
+            {
+                result.Append(c);
+                FirstDot = true;
+            }
+            else
+            {
+                if (FirstDot)
+                    result.Append('*');
+                else
+                    result.Append(c);
+            }
+        }
+        return result.ToString();
+    }
 
     void LoadData(LoadDataArgs args)
     {
