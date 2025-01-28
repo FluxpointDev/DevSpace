@@ -9,6 +9,8 @@ namespace DevSpaceWeb.Data.Servers;
 
 public class ServerData : ITeamResource
 {
+    public ServerData() : base(ResourceType.Server) { }
+
     public string AgentIp { get; set; }
     public string AgentKey { get; set; }
     public short AgentPort { get; internal set; }

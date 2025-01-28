@@ -25,6 +25,24 @@ public class TeamMemberData
     [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
+    public string? GetUserName()
+    {
+        if (_DB.Users.TryGetValue(UserId, out var user))
+            return user.UserName;
+
+        return null;
+    }
+
+    public bool CanManage(TeamMemberData currentMember)
+    {
+        if (Team.OwnerId == currentMember.UserId)
+            return true;
+
+        if (currentMember.GetRank() > this.GetRank())
+            return true;
+        return false;
+    }
+
     public UserDisabled? Disabled { get; set; }
 
     public bool IsGlobalAdministrator()
@@ -80,7 +98,7 @@ public class TeamMemberData
         return false;
     }
 
-    public bool HasLogPermission(LogData log, LogPermission permission)
+    public bool HasLogPermission(LogData log, LogPermission checkPermission)
     {
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
@@ -94,20 +112,20 @@ public class TeamMemberData
         if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.LogPermissions.HasFlag(LogPermission.LogAdministrator))
             return true;
 
-        if (Default.LogPermissions.HasFlag(permission))
+        if (Default.LogPermissions.HasFlag(checkPermission))
             return true;
 
-        if (permission == LogPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
+        if (checkPermission == LogPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
             return true;
 
-        if (log.MemberPermissionOverrides.TryGetValue(log.Id, out PermissionsSet? uovr) && uovr.LogPermissions.HasFlag(permission))
+        if (log.MemberPermissionOverrides.TryGetValue(log.Id, out PermissionsSet? permOverride) && permOverride.LogPermissions.HasFlag(checkPermission))
             return true;
 
         foreach (ObjectId r in Roles)
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.HasLogPermission(log, permission))
+                if (role.HasLogPermission(log, checkPermission))
                     return true;
             }
         }
@@ -286,8 +304,6 @@ public class TeamMemberData
                     return true;
             }
         }
-
-
 
         return false;
     }

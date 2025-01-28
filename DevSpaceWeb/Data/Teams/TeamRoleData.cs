@@ -28,6 +28,16 @@ public class TeamRoleData
     [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
+    public bool CanManage(TeamMemberData currentMember)
+    {
+        if (Team.OwnerId == currentMember.UserId)
+            return true;
+
+        if (currentMember.GetRank() > Position)
+            return true;
+        return false;
+    }
+
     public bool HasTeamPermission(TeamPermission checkPermission)
     {
         if (Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))

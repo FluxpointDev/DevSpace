@@ -396,6 +396,8 @@
     public void LoadPerms()
     {
         PermissionsLoaded = false;
+        if (Permissions == null)
+            return;
         GlobalAdministrator = Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator);
         TeamAdministrator = Permissions.TeamPermissions.HasFlag(TeamPermission.TeamAdministrator);
 
@@ -533,10 +535,15 @@
                         data.Disabled = true;
                 }
                 break;
-            case TeamPermission.ManageAllAPIs:
             case TeamPermission.ManageOwnAPIs:
                 {
-                    if (!TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewAPIs))
+                    if (!TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewOwnAPIs) && !TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewAllAPIs))
+                        data.Disabled = true;
+                }
+                break;
+            case TeamPermission.ManageAllAPIs:
+                {
+                    if (!TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewAllAPIs))
                         data.Disabled = true;
                 }
                 break;

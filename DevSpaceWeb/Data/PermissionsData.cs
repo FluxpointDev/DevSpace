@@ -35,8 +35,9 @@ public static class PermissionsData
             new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage Team", "Change team settings."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageResources, "Manage All Resources", "Add or delete resources for the team such as servers/websites/projects."),
             new PermissionItem<TeamPermission>(TeamPermission.ViewAuditLogs, "View Audit Logs", "View records for team and resource access and settings changes."),
-            new PermissionItem<TeamPermission>(TeamPermission.ViewAPIs, "View APIs", "View all API clients."),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewOwnAPIs, "View Own APIs", "View API clients that you own."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageOwnAPIs, "Manage Own APIs", "Create and manage your own API clients."),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewAllAPIs, "View All APIs", "View all API clients in the team."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageAllAPIs, "Manage All APIs", "Create and manage all API clients."),
         };
     }

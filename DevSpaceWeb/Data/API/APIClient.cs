@@ -35,14 +35,18 @@ public class APIClient
 
     public bool HasAccess(TeamMemberData member)
     {
-        if (OwnerId == member.UserId || member.HasTeamPermission(TeamPermission.ManageAllAPIs))
+        if (OwnerId == member.UserId && member.HasTeamPermission(TeamPermission.ViewOwnAPIs))
+            return true;
+        if (member.HasTeamPermission(TeamPermission.ViewAllAPIs))
             return true;
         return false;
     }
 
     public bool CanManage(TeamMemberData member)
     {
-        if ((member.HasTeamPermission(TeamPermission.ManageOwnAPIs) && OwnerId == member.UserId) || member.HasTeamPermission(TeamPermission.ManageAllAPIs))
+        if (member.HasTeamPermission(TeamPermission.ManageOwnAPIs) && OwnerId == member.UserId)
+            return true;
+        if (member.HasTeamPermission(TeamPermission.ManageAllAPIs))
             return true;
         return false;
     }

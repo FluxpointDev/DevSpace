@@ -1,0 +1,25 @@
+﻿@using DevSpaceWeb.Data.Consoles
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
+    </div>
+    <br />
+    <PermissionsOverride Resource="@Console" PermissionType="PermissionType.Console"></PermissionsOverride>
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+    }
+}

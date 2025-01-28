@@ -61,9 +61,6 @@ public class Program
         Logger.LogMessage("Loaded config in: " + Program.Directory.Path, LogSeverity.Info);
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.CSharpLegacy));
 
-
-
-
         // Rcon support
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 

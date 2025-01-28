@@ -6,6 +6,8 @@ namespace DevSpaceWeb.Data.Projects;
 
 public class ProjectData : ITeamResource
 {
+    public ProjectData() : base(ResourceType.Project) { }
+
     public async Task UpdateAsync(UpdateDefinition<ProjectData> update, Action action)
     {
         FilterDefinition<ProjectData> filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);

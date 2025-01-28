@@ -1,0 +1,39 @@
+﻿@using DevSpaceWeb.Data.Consoles
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
+    </div>
+    <br />
+    <RadzenButton ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Text="Delete Role" Click="@Update" />
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public async Task Update()
+    {
+        await Update(Member.Id, new PermissionsSet() { ConsolePermissions = ConsolePermission.BanPlayers });
+        await Update(Console.Id, new PermissionsSet());
+    }
+
+    public async Task Update(ObjectId id1, PermissionsSet set)
+    {
+        UpdateDefinition<ConsoleData> update = new UpdateDefinitionBuilder<ConsoleData>()
+        .Inc($"RolePermissionOverrides.$[{id1.ToString()}]", new KeyValuePair<ObjectId, PermissionsSet>(id1, set));
+
+
+
+        FilterDefinition<ConsoleData> filter = Builders<ConsoleData>.Filter.Eq(r => r.Id, Console.Id);
+        UpdateResult Result = await _DB.Consoles.Collection.UpdateOneAsync(filter, update, new UpdateOptions
+        {
+            IsUpsert = true
+        });
+    }
+}

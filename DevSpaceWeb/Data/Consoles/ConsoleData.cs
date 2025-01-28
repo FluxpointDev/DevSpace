@@ -7,6 +7,8 @@ namespace DevSpaceWeb.Data.Consoles;
 
 public class ConsoleData : ITeamResource
 {
+    public ConsoleData() : base(ResourceType.Console) { }
+
     public string Ip { get; set; }
     public short Port { get; set; }
     public string EncryptedPassword { get; set; }
@@ -15,6 +17,7 @@ public class ConsoleData : ITeamResource
 
     [BsonIgnore]
     private string? DecryptedPassword;
+
     public void ResetDecryptedPassword()
     {
         DecryptedPassword = null;
@@ -57,6 +60,8 @@ public class ConsoleData : ITeamResource
 
         return RconStatusType.Unknown;
     }
+
+
 
     public async Task UpdateAsync(UpdateDefinition<ConsoleData> update, Action action)
     {
