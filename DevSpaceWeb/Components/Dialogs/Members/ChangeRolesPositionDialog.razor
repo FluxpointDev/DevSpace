@@ -118,9 +118,12 @@
         IsUpdating = true;
         CurrentRank = Member.GetRank();
         int CurrentIndex = RolesList.IndexOf(SelectedRole);
+        Console.WriteLine($"Up: {CurrentRank}/{CurrentIndex}");
         TeamRoleData? TopRole = RolesList.ElementAtOrDefault(CurrentIndex - 1);
         if (TopRole != null)
         {
+            Console.WriteLine("Top: " + TopRole.Name);
+            return;
             Team.UpdateRolesPosition(Member, SelectedRole, true);
         }
         IsUpdating = false;
@@ -146,9 +149,14 @@
         IsUpdating = true;
         CurrentRank = Member.GetRank();
         int CurrentIndex = RolesList.IndexOf(SelectedRole);
+        Console.WriteLine($"Down: {CurrentRank}/{CurrentIndex}");
+        if (CurrentRank <= CurrentIndex)
+            return;
         TeamRoleData? BottomRole = RolesList.ElementAtOrDefault(CurrentIndex + 1);
         if (BottomRole != null)
         {
+            Console.WriteLine("Bottom: " + BottomRole.Name);
+            return;
             Team.UpdateRolesPosition(Member, SelectedRole, false);
         }
         IsUpdating = false;

@@ -155,34 +155,32 @@ public class TeamData : IResource
                         CurrentIndex = Roles.Count();
                     Roles.Add(i);
                 }
-                Console.WriteLine("Current Index: " + CurrentIndex + " | Roles: " + Roles.Count());
                 if (CurrentIndex != -1)
                 {
                     if (moveUp)
                     {
                         if (CurrentIndex < Roles.Count())
                         {
-                            Console.WriteLine($"Move to {CurrentIndex - 1}");
                             Roles.RemoveAt(CurrentIndex);
-                            Roles.Insert(CurrentIndex - 1, role);
+                            Roles.Insert(CurrentIndex + 1, role);
                         }
                     }
                     else
                     {
                         if (CurrentIndex != 0)
                         {
-                            Console.WriteLine($"Move to {CurrentIndex + 1}");
                             Roles.RemoveAt(CurrentIndex);
-                            Roles.Insert(CurrentIndex + 1, role);
+                            Roles.Insert(CurrentIndex - 1, role);
                         }
                     }
                 }
-
+                Position = 0;
                 foreach (var i in Roles)
                 {
                     FilterDefinition<TeamRoleData> filter = new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, i.Id);
-                    UpdateDefinition<TeamRoleData> update = new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Position, Roles.IndexOf(i));
+                    UpdateDefinition<TeamRoleData> update = new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Position, Position);
                     list.Add(new UpdateOneModel<TeamRoleData>(filter, update));
+                    Position += 1;
                 }
             }
             else
@@ -205,9 +203,11 @@ public class TeamData : IResource
             {
                 if (IsOutOfDate)
                 {
+                    Position = 0;
                     foreach (var i in Roles)
                     {
-                        i.Position = Roles.IndexOf(i);
+                        i.Position = Position;
+                        Position += 1;
                     }
                 }
                 else
