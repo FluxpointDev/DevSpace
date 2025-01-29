@@ -69,7 +69,7 @@
                 break;
             case OverrideType.APIs:
                 {
-                    <RadzenButton @ref="@ApiButton" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add API Client Permission" Click="@(() => ApiPopup.ToggleAsync(ApiButton.Element))" Disabled="@(UnsavedPermissions || IsDisabled || (!Member.HasTeamPermission(TeamPermission.ViewOwnAPIs) && !Member.HasTeamPermission(TeamPermission.ViewAllAPIs)))" />
+                    <RadzenButton @ref="@ApiButton" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add API Client Permission" Click="@(() => ApiPopup.ToggleAsync(ApiButton.Element))" Disabled="@(UnsavedPermissions || IsDisabled || (!Member.HasAPIPermission(APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(APIPermission.ViewAllAPIs)))" />
 
                     <Popup @ref="@ApiPopup" Lazy="true" class="permission-popup">
                         <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
@@ -147,7 +147,7 @@
                     break;
                 case OverrideType.APIs:
                     {
-                        if (!Member.HasTeamPermission(TeamPermission.ViewOwnAPIs) && !Member.HasTeamPermission(TeamPermission.ViewAllAPIs))
+                        if (!Member.HasAPIPermission(APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(APIPermission.ViewAllAPIs))
                         {
                             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
                                 You do not have View APIs permission and can't add api permissions.

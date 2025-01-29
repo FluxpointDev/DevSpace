@@ -9,7 +9,7 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:robot"></span></div>
         <RadzenText TextStyle="TextStyle.H6">@Team.Name API</RadzenText>
     </div>
-    @if (!Member.HasTeamPermission(TeamPermission.ViewOwnAPIs) && !Member.HasTeamPermission(TeamPermission.ViewAllAPIs))
+    @if (!Member.HasAPIPermission(APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(APIPermission.ViewAllAPIs))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for View APIs
@@ -18,7 +18,7 @@
     else
     {
         <br />
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create API Client" Click="@CreateApi" Disabled="(!(Member.HasTeamPermission(TeamPermission.ManageOwnAPIs) || Member.HasTeamPermission(TeamPermission.ManageAllAPIs)))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create API Client" Click="@CreateApi" Disabled="(!(Member.HasAPIPermission(APIPermission.ManageOwnAPIs) || Member.HasAPIPermission(APIPermission.APIAdministrator)))" />
         <br />
         <br />
         <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
@@ -55,12 +55,12 @@
 
     public async Task CreateApi()
     {
-        if (!(Member.HasTeamPermission(TeamPermission.ManageOwnAPIs) || Member.HasTeamPermission(TeamPermission.ManageAllAPIs)))
+        if (!(Member.HasAPIPermission(APIPermission.ManageOwnAPIs) || Member.HasAPIPermission(APIPermission.APIAdministrator)))
             return;
 
         await dialogService.ShowDynamicFormAsync<TeamCreateAPIModel>("Create API Client", new TeamCreateAPIModel() { }, async (TeamCreateAPIModel data) =>
         {
-            if (!(Member.HasTeamPermission(TeamPermission.ManageOwnAPIs) || Member.HasTeamPermission(TeamPermission.ManageAllAPIs)))
+            if (!(Member.HasAPIPermission(APIPermission.ManageOwnAPIs) || Member.HasAPIPermission(APIPermission.APIAdministrator)))
                 return "You do not have Manage API permissions.";
 
             APIClient client = new APIClient

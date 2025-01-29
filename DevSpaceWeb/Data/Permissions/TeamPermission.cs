@@ -12,11 +12,11 @@ public enum TeamPermission : ulong
     ManageTeam = 1L << 6,
     TeamAdministrator = 1L << 7,
     GlobalAdministrator = 1L << 8,
-    ManageResources = 1L << 9,
+    UNUSED_ = 1L << 9,
     ViewAuditLogs = 1L << 10,
-    ViewOwnAPIs = 1L << 11,
-    ManageOwnAPIs = 1L << 12,
-    ManageAllAPIs = 1L << 13,
+    UNUSED1_ = 1L << 11,
+    UNUSED2_ = 1L << 12,
+    UNUSED3_ = 1L << 13,
     ViewRoles = 1L << 14,
-    ViewAllAPIs = 1L << 15
+    UNUSED4_ = 1L << 15
 }

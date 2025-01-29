@@ -6,7 +6,6 @@ using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Data.Websites;
 using DevSpaceWeb.Database;
-using DevSpaceWeb.Extensions;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
@@ -69,7 +68,7 @@ public class TeamMemberData
         return Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator);
     }
 
-    public bool HasTeamPermission(TeamPermission permission)
+    public bool HasTeamPermission(TeamPermission checkPermission)
     {
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
@@ -78,19 +77,38 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsSet Default = SelectedTeam.DefaultPermissions;
-
-        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
-            return true;
-
-        if (Default.TeamPermissions.HasFlag(permission))
+        if (SelectedTeam.DefaultPermissions.HasTeamPermission(checkPermission))
             return true;
 
         foreach (ObjectId r in Roles)
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.HasTeamPermission(permission))
+                if (role.HasTeamPermission(checkPermission))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool HasAPIPermission(APIPermission checkPermission)
+    {
+        TeamData? SelectedTeam = Team;
+        if (SelectedTeam == null)
+            return false;
+
+        if (SelectedTeam.OwnerId == UserId)
+            return true;
+
+        if (SelectedTeam.DefaultPermissions.HasAPIPermission(checkPermission))
+            return true;
+
+        foreach (ObjectId r in Roles)
+        {
+            if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
+            {
+                if (role.HasAPIPermission(checkPermission))
                     return true;
             }
         }
@@ -107,18 +125,10 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsSet Default = SelectedTeam.DefaultPermissions;
-
-        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.LogPermissions.HasFlag(LogPermission.LogAdministrator))
+        if (SelectedTeam.DefaultPermissions.HasLogPermission(checkPermission))
             return true;
 
-        if (Default.LogPermissions.HasFlag(checkPermission))
-            return true;
-
-        if (checkPermission == LogPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
-            return true;
-
-        if (log.MemberPermissionOverrides.TryGetValue(log.Id, out PermissionsSet? permOverride) && permOverride.LogPermissions.HasFlag(checkPermission))
+        if (log.MemberPermissionOverrides.TryGetValue(log.Id, out PermissionsSet? permOverride) && permOverride.HasLogPermission(checkPermission))
             return true;
 
         foreach (ObjectId r in Roles)
@@ -133,7 +143,7 @@ public class TeamMemberData
         return false;
     }
 
-    public bool HasProjectPermission(ProjectData project, ProjectPermission permission)
+    public bool HasProjectPermission(ProjectData project, ProjectPermission checkPermission)
     {
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
@@ -142,25 +152,17 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsSet Default = SelectedTeam.DefaultPermissions;
-
-        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator))
+        if (SelectedTeam.DefaultPermissions.HasProjectPermission(checkPermission))
             return true;
 
-        if (Default.ProjectPermissions.HasFlag(permission))
-            return true;
-
-        if (permission == ProjectPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
-            return true;
-
-        if (project.MemberPermissionOverrides.TryGetValue(project.Id, out PermissionsSet? uovr) && uovr.ProjectPermissions.HasFlag(permission))
+        if (project.MemberPermissionOverrides.TryGetValue(project.Id, out PermissionsSet? uovr) && uovr.HasProjectPermission(checkPermission))
             return true;
 
         foreach (ObjectId r in Roles)
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.HasProjectPermission(project, permission))
+                if (role.HasProjectPermission(project, checkPermission))
                     return true;
             }
         }
@@ -168,7 +170,7 @@ public class TeamMemberData
         return false;
     }
 
-    public bool HasServerPermission(ServerData server, ServerPermission permission)
+    public bool HasServerPermission(ServerData server, ServerPermission checkPermission)
     {
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
@@ -177,25 +179,17 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsSet Default = SelectedTeam.DefaultPermissions;
-
-        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator))
+        if (SelectedTeam.DefaultPermissions.HasServerPermission(checkPermission))
             return true;
 
-        if (Default.ServerPermissions.HasFlag(permission))
-            return true;
-
-        if (permission == ServerPermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
-            return true;
-
-        if (server != null && server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.ServerPermissions.HasFlag(permission))
+        if (server != null && server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.HasServerPermission(checkPermission))
             return true;
 
         foreach (ObjectId r in Roles)
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.HasServerPermission(server, permission))
+                if (role.HasServerPermission(server, checkPermission))
                     return true;
             }
         }
@@ -203,7 +197,7 @@ public class TeamMemberData
         return false;
     }
 
-    public bool HasWebsitePermission(WebsiteData website, WebsitePermission permission)
+    public bool HasWebsitePermission(WebsiteData website, WebsitePermission checkPermission)
     {
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
@@ -212,25 +206,17 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsSet Default = SelectedTeam.DefaultPermissions;
-
-        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator))
+        if (SelectedTeam.DefaultPermissions.HasWebsitePermission(checkPermission))
             return true;
 
-        if (Default.WebsitePermissions.HasFlag(permission))
-            return true;
-
-        if (permission == WebsitePermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
-            return true;
-
-        if (website.MemberPermissionOverrides.TryGetValue(website.Id, out PermissionsSet? uovr) && uovr.WebsitePermissions.HasFlag(permission))
+        if (website.MemberPermissionOverrides.TryGetValue(website.Id, out PermissionsSet? uovr) && uovr.HasWebsitePermission(checkPermission))
             return true;
 
         foreach (ObjectId r in Roles)
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.HasWebsitePermission(website, permission))
+                if (role.HasWebsitePermission(website, checkPermission))
                     return true;
             }
         }
@@ -238,7 +224,7 @@ public class TeamMemberData
         return false;
     }
 
-    public bool HasConsolePermission(ConsoleData console, ConsolePermission permission)
+    public bool HasConsolePermission(ConsoleData console, ConsolePermission checkPermission)
     {
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
@@ -247,25 +233,17 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsSet Default = SelectedTeam.DefaultPermissions;
-
-        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator))
+        if (SelectedTeam.DefaultPermissions.HasConsolePermission(checkPermission))
             return true;
 
-        if (Default.ConsolePermissions.HasFlag(permission))
-            return true;
-
-        if (permission == ConsolePermission.ManageResource && HasTeamPermission(TeamPermission.ManageResources))
-            return true;
-
-        if (console != null && console.MemberPermissionOverrides.TryGetValue(console.Id, out PermissionsSet? uovr) && uovr.ConsolePermissions.HasFlag(permission))
+        if (console != null && console.MemberPermissionOverrides.TryGetValue(console.Id, out PermissionsSet? uovr) && uovr.HasConsolePermission(checkPermission))
             return true;
 
         foreach (ObjectId r in Roles)
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.HasConsolePermission(console, permission))
+                if (role.HasConsolePermission(console, checkPermission))
                     return true;
             }
         }
@@ -273,7 +251,7 @@ public class TeamMemberData
         return false;
     }
 
-    public bool HasDockerPermission(ServerData server, DockerPermission permission)
+    public bool HasDockerPermission(ServerData server, DockerPermission checkPermission)
     {
         TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
@@ -282,25 +260,17 @@ public class TeamMemberData
         if (SelectedTeam.OwnerId == UserId)
             return true;
 
-        PermissionsSet Default = SelectedTeam.DefaultPermissions;
-
-        if (Default.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator) || Default.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator))
+        if (SelectedTeam.DefaultPermissions.HasDockerPermission(checkPermission))
             return true;
 
-        if (Default.DockerPermissions.HasFlag(permission))
-            return true;
-
-        if (server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.DockerPermissions.HasFlag(permission))
-            return true;
-
-        if (Default.DockerPermissions.HasFlag(DockerPermission.DockerManager) && Perms.CheckDockerManagerPermission(permission))
+        if (server.MemberPermissionOverrides.TryGetValue(server.Id, out PermissionsSet? uovr) && uovr.HasDockerPermission(checkPermission))
             return true;
 
         foreach (ObjectId r in Roles)
         {
             if (SelectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
-                if (role.HasDockerPermission(server, permission))
+                if (role.HasDockerPermission(server, checkPermission))
                     return true;
             }
         }
@@ -337,8 +307,11 @@ public class TeamMemberData
 
     public PermissionsSet CalculatePermissions()
     {
-        PermissionsSet Permissions = null;
+        PermissionsSet Permissions = null!;
         TeamData CurrentTeam = Team;
+        if (CurrentTeam == null)
+            return new PermissionsSet();
+
         if (UserId == CurrentTeam.OwnerId || CurrentTeam.DefaultPermissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
         {
             Permissions = new PermissionsSet

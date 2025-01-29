@@ -7,6 +7,7 @@ namespace DevSpaceWeb.Data;
 public static class PermissionsData
 {
     public static PermissionItem<TeamPermission>[] AllTeamData = GetTeamData();
+    public static PermissionItem<APIPermission>[] AllApiData = GetApiData();
     public static PermissionItem<ServerPermission>[] AllServerData = GetServerData(true);
     public static PermissionItem<WebsitePermission>[] AllWebsiteData = GetWebsiteData(true);
     public static PermissionItem<ProjectPermission>[] AllProjectData = GetProjectData(true);
@@ -25,20 +26,25 @@ public static class PermissionsData
     {
         return new PermissionItem<TeamPermission>[]
         {
-            new PermissionItem<TeamPermission>(TeamPermission.ViewMembers, "View Members", "Allows you to view members in the team."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageMembers, "Manage Members", "Add or remove members to the team except global admins."),
-            new PermissionItem<TeamPermission>(TeamPermission.ViewRoles, "View Roles", "View roles for the team."),
-            new PermissionItem<TeamPermission>(TeamPermission.AssignRoles, "Assign Roles", "Give members roles."),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewMembers, "View Members", "View members in the team."),
+            new PermissionItem<TeamPermission>(TeamPermission.ManageMembers, "Manage Members", "Add or remove members to the team."),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewRoles, "View Roles", "View roles in the team."),
+            new PermissionItem<TeamPermission>(TeamPermission.AssignRoles, "Assign Roles", "Give or remove roles to members."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageRoles, "Manage Roles", "Create, delete and edit roles."),
-            new PermissionItem<TeamPermission>(TeamPermission.ViewPermissions, "View Permissions", "Allows you to view all the team permissions."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManagePermissions, "Manage Permissions", "Change permissions for roles except global admin."),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewPermissions, "View Permissions", "View all team permissions."),
+            new PermissionItem<TeamPermission>(TeamPermission.ManagePermissions, "Manage Permissions", "Change permissions for the team."),
             new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage Team", "Change team settings."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageResources, "Manage All Resources", "Add or delete resources for the team such as servers/websites/projects."),
-            new PermissionItem<TeamPermission>(TeamPermission.ViewAuditLogs, "View Audit Logs", "View records for team and resource access and settings changes."),
-            new PermissionItem<TeamPermission>(TeamPermission.ViewOwnAPIs, "View Own APIs", "View API clients that you own."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageOwnAPIs, "Manage Own APIs", "Create and manage your own API clients."),
-            new PermissionItem<TeamPermission>(TeamPermission.ViewAllAPIs, "View All APIs", "View all API clients in the team."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageAllAPIs, "Manage All APIs", "Create and manage all API clients."),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewAuditLogs, "View Audit Logs", "View records and changes for the team.")
+        };
+    }
+
+    private static PermissionItem<APIPermission>[] GetApiData()
+    {
+        return new PermissionItem<APIPermission>[]
+        {
+            new PermissionItem<APIPermission>(APIPermission.ViewOwnAPIs, "View Own APIs", "View API clients that you own."),
+            new PermissionItem<APIPermission>(APIPermission.ManageOwnAPIs, "Manage Own APIs", "Create and manage your own API clients."),
+            new PermissionItem<APIPermission>(APIPermission.ViewAllAPIs, "View All APIs", "View all API clients in the team."),
         };
     }
 
@@ -46,10 +52,10 @@ public static class PermissionsData
     {
         return new PermissionItem<ServerPermission>[]
         {
-            new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Server" + (plural ? "s" : ""), "Change all server settings."),
+            new PermissionItem<ServerPermission>(ServerPermission.ManageResource, plural ? "Manage Server Resources" : "Manage Resource", plural ? "Add or delete servers for the team." : "Delete this resource."),
+            new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Server" + (plural ? "s" : ""), plural ? "Change all server settings." : "Change settings for this server."),
             new PermissionItem<ServerPermission>(ServerPermission.ViewPermissions, "View Permissions", "View permissions for the server."),
             new PermissionItem<ServerPermission>(ServerPermission.ManagePermissions, "Manage Permissions", "Change permissions for all servers the team owns."),
-            new PermissionItem<ServerPermission>(ServerPermission.ManageResource, plural ? "Manage Server Resources" : "Manage Resource", "Add or delete servers for the team."),
             new PermissionItem<ServerPermission>(ServerPermission.ManageConnection, "Manage Connection", "Update the server agent connection settings."),
         };
     }
@@ -58,10 +64,11 @@ public static class PermissionsData
     {
         return new PermissionItem<WebsitePermission>[]
         {
+            new PermissionItem<WebsitePermission>(WebsitePermission.ManageResource, plural ? "Manage Website Resources" : "Manage Resource", "Add or delete websites for the team."),
             new PermissionItem<WebsitePermission>(WebsitePermission.ManageWebsite, "Manage Website" + (plural ? "s" : ""), "Change website settings."),
             new PermissionItem<WebsitePermission>(WebsitePermission.ViewPermissions, "View Permissions", "View permissions for the website."),
-                new PermissionItem<WebsitePermission>(WebsitePermission.ManagePermissions, "Manage Permissions", "Change permissions for all websites the team owns."),
-            new PermissionItem<WebsitePermission>(WebsitePermission.ManageResource, plural ? "Manage Website Resources" : "Manage Resource", "Add or delete websites for the team."),
+            new PermissionItem<WebsitePermission>(WebsitePermission.ManagePermissions, "Manage Permissions", "Change permissions for all websites the team owns."),
+
         };
     }
 
@@ -69,10 +76,11 @@ public static class PermissionsData
     {
         return new PermissionItem<ProjectPermission>[]
         {
+            new PermissionItem<ProjectPermission>(ProjectPermission.ManageResource, plural ? "Manage Project Resources" : "Manage Resource", "Add or delete projects for the team."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Project" + (plural ? "s" : ""), "Change all project settings."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ViewPermissions, "View Permissions", "View permissions for the project."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManagePermissions, "Manage Permissions", "Change permissions for all projects the team owns."),
-            new PermissionItem<ProjectPermission>(ProjectPermission.ManageResource, plural ? "Manage Project Resources" : "Manage Resource", "Add or delete projects for the team."),
+
         };
     }
 
@@ -80,10 +88,11 @@ public static class PermissionsData
     {
         return new PermissionItem<LogPermission>[]
         {
+            new PermissionItem<LogPermission>(LogPermission.ManageResource, plural ? "Manage Log Resources" : "Manage Resource", "Add or delete logs for the team."),
             new PermissionItem<LogPermission>(LogPermission.ManageLog, "Manage Log" + (plural ? "s" : ""), "Change log settings."),
             new PermissionItem<LogPermission>(LogPermission.ViewPermissions, "View Permissions", "View permissions for the log."),
             new PermissionItem<LogPermission>(LogPermission.ManagePermissions, "Manage Permissions", "Change permissions for all logs the team owns."),
-            new PermissionItem<LogPermission>(LogPermission.ManageResource, plural ? "Manage Log Resources" : "Manage Resource", "Add or delete logs for the team."),
+
         };
     }
 
@@ -117,10 +126,10 @@ public static class PermissionsData
     {
         return new PermissionItem<ConsolePermission>[]
             {
+                new PermissionItem<ConsolePermission>(ConsolePermission.ManageResource, "Manage Resource", "Manage all console resources for the team."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManageConsole, "Manage Console" + (plural ? "s" : ""), "Manage all console settings for the team."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewPermissions, "View Permissions", "View permissions for the console"),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManagePermissions, "Manage Permissions", "Change permissions for all consoles the team owns"),
-                new PermissionItem<ConsolePermission>(ConsolePermission.ManageResource, "Manage Resource", "Manage all console resources for the team."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.UseConsoleCommands, "Use Console Commands", "Execute console commands on the server."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewPlayers, "View Players", "View all players on the server."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.KickPlayers, "Kick Players", "Kick players from the server."),

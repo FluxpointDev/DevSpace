@@ -8,6 +8,8 @@ public static class NotificationExtensions
     public static void ShowPermissionWarning(this NotificationService notify, TeamPermission permission)
         => ShowPermissionWarningInternal(notify, Utils.FriendlyName(permission.ToString()));
 
+    public static void ShowPermissionWarning(this NotificationService notify, ServerPermission permission)
+        => ShowPermissionWarningInternal(notify, Utils.FriendlyName(permission.ToString()));
     public static void ShowPermissionWarningInternal(NotificationService notify, string permission)
     {
         notify.Notify(new NotificationMessage

@@ -48,39 +48,6 @@ public static class Perms
         perm = null;
         return false;
     }
-
-    public static bool CheckDockerManagerPermission(DockerPermission perm)
-    {
-        switch (perm)
-        {
-            case DockerPermission.ContainerConsole:
-            case DockerPermission.ContainerInspect:
-            case DockerPermission.ContainerLogs:
-            case DockerPermission.ContainerStats:
-            case DockerPermission.ControlContainers:
-            case DockerPermission.ManageContainers:
-            case DockerPermission.ManageCustomTemplates:
-            case DockerPermission.ManageImages:
-            case DockerPermission.ManageNetworks:
-            case DockerPermission.ManageRegistries:
-            case DockerPermission.ManageSettings:
-            case DockerPermission.ManageStackPermissions:
-            case DockerPermission.ManageVolumes:
-            case DockerPermission.ViewContainers:
-            case DockerPermission.ViewCustomTemplates:
-            case DockerPermission.ViewEvents:
-            case DockerPermission.ViewImages:
-            case DockerPermission.ViewNetworks:
-            case DockerPermission.ViewPlugins:
-            case DockerPermission.ViewRegistries:
-            case DockerPermission.ViewTemplates:
-            case DockerPermission.ViewVolumes:
-                return true;
-        }
-
-        return false;
-    }
-
     public static IEnumerable<T> GetUniqueFlags<T>(T flags) where T : Enum
     {
         ulong flag = 1;
@@ -98,4 +65,6 @@ public static class Perms
             }
         }
     }
+
+
 }
