@@ -104,4 +104,129 @@ public class TeamData : IResource
         if (Result.IsAcknowledged)
             action?.Invoke();
     }
+
+    [JsonIgnore]
+    [BsonIgnore]
+    public object RolePositionLock = new object();
+
+    public void UpdateRolesPosition(TeamMemberData member, TeamRoleData role, bool moveUp)
+    {
+        lock (RolePositionLock)
+        {
+            if (!member.HasTeamPermission(TeamPermission.ManageRoles))
+                return;
+
+            int CurrentRank = member.GetRank();
+            if (CurrentRank <= role.Position)
+                return;
+
+            int Position = 0;
+            bool IsOutOfDate = false;
+            TeamRoleData? MoveRole = null;
+            foreach (var i in _DB.Roles.Cache.Values.Where(x => x.TeamId == member.TeamId).OrderBy(x => x.Position))
+            {
+                if (moveUp)
+                {
+                    if (i.Position == (role.Position + 1))
+                        MoveRole = i;
+                }
+                else
+                {
+                    if (i.Position == (role.Position - 1))
+                        MoveRole = i;
+                }
+
+                if (i.Position != Position)
+                {
+                    IsOutOfDate = true;
+                    break;
+                }
+                Position += 1;
+            }
+
+            List<WriteModel<TeamRoleData>> list = new List<WriteModel<TeamRoleData>>();
+            List<TeamRoleData> Roles = new List<TeamRoleData>();
+            if (IsOutOfDate)
+            {
+                int CurrentIndex = -1;
+                foreach (var i in _DB.Roles.Cache.Values.Where(x => x.TeamId == member.TeamId).OrderBy(x => x.Position))
+                {
+                    if (role.Id == i.Id)
+                        CurrentIndex = Roles.Count();
+                    Roles.Add(i);
+                }
+                Console.WriteLine("Current Index: " + CurrentIndex + " | Roles: " + Roles.Count());
+                if (CurrentIndex != -1)
+                {
+                    if (moveUp)
+                    {
+                        if (CurrentIndex < Roles.Count())
+                        {
+                            Console.WriteLine($"Move to {CurrentIndex - 1}");
+                            Roles.RemoveAt(CurrentIndex);
+                            Roles.Insert(CurrentIndex - 1, role);
+                        }
+                    }
+                    else
+                    {
+                        if (CurrentIndex != 0)
+                        {
+                            Console.WriteLine($"Move to {CurrentIndex + 1}");
+                            Roles.RemoveAt(CurrentIndex);
+                            Roles.Insert(CurrentIndex + 1, role);
+                        }
+                    }
+                }
+
+                foreach (var i in Roles)
+                {
+                    FilterDefinition<TeamRoleData> filter = new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, i.Id);
+                    UpdateDefinition<TeamRoleData> update = new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Position, Roles.IndexOf(i));
+                    list.Add(new UpdateOneModel<TeamRoleData>(filter, update));
+                }
+            }
+            else
+            {
+                if (MoveRole == null)
+                    return;
+
+                FilterDefinition<TeamRoleData> firstFilter = new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, role.Id);
+                UpdateDefinition<TeamRoleData> firstUpdate = new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Position, moveUp ? role.Position + 1 : role.Position - 1);
+                list.Add(new UpdateOneModel<TeamRoleData>(firstFilter, firstUpdate));
+
+                FilterDefinition<TeamRoleData> secondFilter = new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, MoveRole.Id);
+                UpdateDefinition<TeamRoleData> secondUpdate = new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Position, moveUp ? MoveRole.Position - 1 : MoveRole.Position + 1);
+                list.Add(new UpdateOneModel<TeamRoleData>(secondFilter, secondUpdate));
+            }
+
+
+            BulkWriteResult<TeamRoleData> result = _DB.Roles.Collection.BulkWrite(list);
+            if (result.IsAcknowledged)
+            {
+                if (IsOutOfDate)
+                {
+                    foreach (var i in Roles)
+                    {
+                        i.Position = Roles.IndexOf(i);
+                    }
+                }
+                else
+                {
+                    if (moveUp)
+                    {
+                        role.Position += 1;
+                        MoveRole.Position -= 1;
+                    }
+                    else
+                    {
+                        role.Position -= 1;
+                        MoveRole.Position += 1;
+                    }
+
+                }
+                TriggerRoleChange(null, true);
+            }
+
+        }
+    }
 }

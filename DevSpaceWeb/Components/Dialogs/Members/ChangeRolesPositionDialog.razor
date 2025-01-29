@@ -35,8 +35,7 @@
         </RadzenStack>
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
-        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" />
     </RadzenStack>
 </RadzenStack>
 
@@ -101,32 +100,33 @@
 
     public async Task MoveRoleUp()
     {
-        CurrentRank = Member.GetRank();
-        int Index = RolesList.IndexOf(SelectedRole);
-        if (!Program.IsPreviewMode)
+        if (Program.IsPreviewMode)
         {
-            if (Index == 0 || IsUpdating || (Team.OwnerId != Member.UserId && CurrentRank >= (Index - 1)))
-                return;
+            Session.ShowPreviewModeNotice();
+            return;
         }
-        RolesList.RemoveAt(Index);
-        RolesList.Insert(Index - 1, SelectedRole);
+
+        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
+            return;
+        }
+
+        if (IsUpdating)
+            return;
+
+        IsUpdating = true;
+        CurrentRank = Member.GetRank();
+        int CurrentIndex = RolesList.IndexOf(SelectedRole);
+        TeamRoleData? TopRole = RolesList.ElementAtOrDefault(CurrentIndex - 1);
+        if (TopRole != null)
+        {
+            Team.UpdateRolesPosition(Member, SelectedRole, true);
+        }
+        IsUpdating = false;
     }
 
     public async Task MoveRoleDown()
-    {
-        CurrentRank = Member.GetRank();
-        int Index = RolesList.IndexOf(SelectedRole);
-
-        if (!Program.IsPreviewMode)
-        {
-            if (Index == (RolesList.Count - 1) || IsUpdating || (Team.OwnerId != Member.UserId && CurrentRank >= Index))
-                return;
-        }
-        RolesList.RemoveAt(Index);
-        RolesList.Insert(Index + 1, SelectedRole);
-    }
-
-    async Task Submit()
     {
         if (Program.IsPreviewMode)
         {
@@ -144,41 +144,14 @@
             return;
 
         IsUpdating = true;
-
-        List<WriteModel<TeamRoleData>> list = new List<WriteModel<TeamRoleData>>();
-        bool Stop = false;
-        int Index = 0;
-        Dictionary<TeamRoleData, int> Positions = new Dictionary<TeamRoleData, int>();
         CurrentRank = Member.GetRank();
-        foreach (TeamRoleData r in RolesList.Reverse())
+        int CurrentIndex = RolesList.IndexOf(SelectedRole);
+        TeamRoleData? BottomRole = RolesList.ElementAtOrDefault(CurrentIndex + 1);
+        if (BottomRole != null)
         {
-            if (r.Position != Index && Team.OwnerId != Member.UserId && Index >= CurrentRank)
-            {
-                Stop = true;
-                break;
-            }
-
-            FilterDefinition<TeamRoleData> filter = new FilterDefinitionBuilder<TeamRoleData>().Eq(x => x.Id, r.Id);
-            UpdateDefinition<TeamRoleData> upd = new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Position, Index);
-            list.Add(new UpdateOneModel<TeamRoleData>(filter, upd));
-            Positions.Add(r, Index);
-            Index += 1;
+            Team.UpdateRolesPosition(Member, SelectedRole, false);
         }
-        if (Stop)
-            return;
-
-        BulkWriteResult<TeamRoleData> result = await _DB.Roles.Collection.BulkWriteAsync(list);
-
-        if (result.IsAcknowledged)
-        {
-            foreach (var r in Positions)
-            {
-                r.Key.Position = r.Value;
-            }
-            Team.TriggerRoleChange(null, true);
-        }
-
-        dialogService.Close(true);
-        
+        IsUpdating = false;
     }
+
 }
