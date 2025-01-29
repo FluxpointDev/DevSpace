@@ -1,6 +1,9 @@
-﻿<div class="nav-list nav-list-team">
+﻿@inject ContextMenuService ContextMenuService
+@inject NavigationManager Nav
+
+<div class="nav-list nav-list-team">
     <a href="@("/teams/" + Session.Selected.Team.VanityUrl)">
-        <div class="selected-team mb-2">
+        <div class="rz-navigation-item-wrapper selected-team mb-2">
             <img src="@Session.Selected.Team.Data.GetIconOrDefault()" />
             <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Team.Data.Name</h5>
         </div>
@@ -48,4 +51,19 @@
     [Parameter]
     public bool StateChange { get; set; }
 
+    void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, ds =>
+    @<RadzenMenu>
+        <RadzenMenuItem Click="@OnMenuItemClick" Value="1" Text="Members" Icon="group" Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/members")"></RadzenMenuItem>
+        <RadzenMenuItem Text="Roles" Icon="sell" Value="1" Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/roles")"></RadzenMenuItem>
+        <RadzenMenuItem Text="Permissions" Icon="key" Value="1" Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/permissions")"></RadzenMenuItem>
+        <RadzenMenuItem Text="Audit Logs" Icon="format_list_bulleted" Value="1" Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/audit")"></RadzenMenuItem>
+        <RadzenMenuItem Text="API" Icon="smart_toy" Value="1" Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/api")"></RadzenMenuItem>
+    </RadzenMenu>
+    );
+
+    void OnMenuItemClick(MenuItemEventArgs args)
+    {
+        Console.WriteLine("Selected: " + args.Path);
+        Nav.NavigateTo(args.Path);
+    }
 }

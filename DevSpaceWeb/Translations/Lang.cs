@@ -6,6 +6,7 @@ public static class Lang
 {
     public static TBase Base = new TBase();
     public static TErrors Errors = new TErrors();
+    public static TPermissions Permissions = new TPermissions();
 
     public static TServer Server = new TServer();
     public static TServerErrors ServerErrors = new TServerErrors();

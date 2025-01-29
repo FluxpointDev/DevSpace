@@ -1,10 +1,12 @@
 ﻿<div class="nav-list nav-list-sub nav-server">
-    <div class="nav-list-header">
+    <div class="nav-list-header" @onclick="@(() => IsOpen = !IsOpen)">
         <span class="iconify" data-icon="mdi:server"></span>
         <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Server.Name</h5>
     </div>
-    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/home")" Match="NavLinkMatch.All">
-        <Template>
+    @if (IsOpen)
+    {
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/home")" Match="NavLinkMatch.All">
+            <Template>
             <span class="iconify" data-icon="mdi:home"></span>
             <p>Home</p>
         </Template>
@@ -125,6 +127,7 @@
             <p>Webhooks</p>
         </Template>
     </RadzenPanelMenuItem>
+    }
 </div>
 
 @code {
@@ -138,4 +141,6 @@
 
     public bool DockerExpanded { get; set; }
     public bool ToolsExpanded { get; set; }
+
+    public bool IsOpen { get; set; } = true;
 }

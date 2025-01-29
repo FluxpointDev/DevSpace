@@ -1,10 +1,12 @@
 ﻿<div class="nav-list nav-list-sub nav-web">
-    <div class="nav-list-header">
+    <div class="nav-list-header" @onclick="@(() => IsOpen = !IsOpen)">
         <span class="iconify" data-icon="mdi:web"></span>
         <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Website.Name</h5>
     </div>
-    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/websites/" + Session.Selected.Team.Website.VanityUrl + "/home")" Match="NavLinkMatch.All">
-        <Template>
+    @if (IsOpen)
+    {
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/websites/" + Session.Selected.Team.Website.VanityUrl + "/home")" Match="NavLinkMatch.All">
+            <Template>
             <span class="iconify" data-icon="mdi:home"></span>
             <p>Home</p>
         </Template>
@@ -15,6 +17,7 @@
             <p>Cloudflare</p>
         </Template>
     </RadzenPanelMenuItem>
+    }
 </div>
 
 @code {
@@ -23,4 +26,6 @@
 
     [Parameter]
     public bool StateChange { get; set; }
+
+    public bool IsOpen { get; set; } = true;
 }

@@ -26,15 +26,15 @@ public static class PermissionsData
     {
         return new PermissionItem<TeamPermission>[]
         {
-            new PermissionItem<TeamPermission>(TeamPermission.ViewMembers, "View Members", "View members in the team."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageMembers, "Manage Members", "Add or remove members to the team."),
-            new PermissionItem<TeamPermission>(TeamPermission.ViewRoles, "View Roles", "View roles in the team."),
-            new PermissionItem<TeamPermission>(TeamPermission.AssignRoles, "Assign Roles", "Give or remove roles to members."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageRoles, "Manage Roles", "Create, delete and edit roles."),
-            new PermissionItem<TeamPermission>(TeamPermission.ViewPermissions, "View Permissions", "View all team permissions."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManagePermissions, "Manage Permissions", "Change permissions for the team."),
-            new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, "Manage Team", "Change team settings."),
-            new PermissionItem<TeamPermission>(TeamPermission.ViewAuditLogs, "View Audit Logs", "View records and changes for the team.")
+            new PermissionItem<TeamPermission>(TeamPermission.ViewMembers, Lang.Permissions.view_members, Lang.Permissions.view_members_description),
+            new PermissionItem<TeamPermission>(TeamPermission.ManageMembers, Lang.Permissions.manage_members, Lang.Permissions.manage_members_description),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewRoles, Lang.Permissions.view_roles, Lang.Permissions.view_roles_description),
+            new PermissionItem<TeamPermission>(TeamPermission.AssignRoles, Lang.Permissions.assign_roles, Lang.Permissions.assign_roles_description),
+            new PermissionItem<TeamPermission>(TeamPermission.ManageRoles, Lang.Permissions.manage_roles, Lang.Permissions.manage_roles_description),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewPermissions, Lang.Permissions.view_permissions, Lang.Permissions.view_permissions_description),
+            new PermissionItem<TeamPermission>(TeamPermission.ManagePermissions, Lang.Permissions.manage_permissions, Lang.Permissions.manage_permissions_description),
+            new PermissionItem<TeamPermission>(TeamPermission.ManageTeam, Lang.Permissions.manage_team, Lang.Permissions.manage_team_description),
+            new PermissionItem<TeamPermission>(TeamPermission.ViewAuditLogs, Lang.Permissions.view_audit_logs, Lang.Permissions.view_audit_logs_description)
         };
     }
 
@@ -42,9 +42,9 @@ public static class PermissionsData
     {
         return new PermissionItem<APIPermission>[]
         {
-            new PermissionItem<APIPermission>(APIPermission.ViewOwnAPIs, "View Own APIs", "View API clients that you own."),
-            new PermissionItem<APIPermission>(APIPermission.ManageOwnAPIs, "Manage Own APIs", "Create and manage your own API clients."),
-            new PermissionItem<APIPermission>(APIPermission.ViewAllAPIs, "View All APIs", "View all API clients in the team."),
+            new PermissionItem<APIPermission>(APIPermission.ViewOwnAPIs, Lang.Permissions.view_own_apis, Lang.Permissions.view_own_apis_description),
+            new PermissionItem<APIPermission>(APIPermission.ManageOwnAPIs, Lang.Permissions.manage_own_apis, Lang.Permissions.manage_own_apis_description),
+            new PermissionItem<APIPermission>(APIPermission.ViewAllAPIs, Lang.Permissions.view_all_apis, Lang.Permissions.view_all_apis_description),
         };
     }
 
