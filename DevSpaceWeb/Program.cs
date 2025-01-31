@@ -28,6 +28,7 @@ public class Program
     }
 
     public static InteractiveServerRenderMode RenderMode = new InteractiveServerRenderMode(prerender: false);
+
     /// <summary>
     /// Current directory of the running program
     /// </summary>
@@ -126,6 +127,7 @@ public class Program
         });
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
+        builder.Services.AddRazorPages();
         builder.Services.AddControllers(opt =>
         {
             opt.RequireHttpsPermanent = true;
@@ -201,6 +203,7 @@ public class Program
         //new InfoTest().Run();
         app.MapRazorComponents<Components.App>()
             .AddInteractiveServerRenderMode();
+        app.MapRazorPages();
         app.MapControllers();
         app.Run();
     }
