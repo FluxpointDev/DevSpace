@@ -1,6 +1,6 @@
 ﻿@page "/link"
 @model DevSpaceWeb.Pages.LinkPageModel
-
+@using DevSpaceWeb.Data.Links
 
 <!doctype html>
 <html lang="en">
@@ -9,7 +9,109 @@
     <title>Hello World!</title>
 </head>
 <body>
-    <h3>Hello World!</h3>
+    <div class="box">
+        @if (Model.RequireAuth && !Model.IsAuthenticated)
+        {
+            <h3>Authentication Required</h3>
+            <p>You must be logged in to access this link.</p>
+        }
+        else if (Model.RequireMember && !Model.IsMember)
+        {
+            <h3>Team Member Required</h3>
+            <p>You must be a team member to access this link.</p>
+        }
+        else if (Model.RequireRoles && !Model.HasRoles)
+        {
+            <h3>Team Role Required</h3>
+            <p>You must have a team role to access this link.</p>
+        }
+        else
+        {
+            <h3>@LinkData.Static.Title</h3>
+            <p>@LinkData.Static.Description</p>
+            @if (string.IsNullOrEmpty(LinkData.Static.Link))
+            {
+                <p>No link set</p>
+            }
+            else
+            {
+                @if (LinkData.Static.IsDownload)
+                {
+                    <p>Downloading from <strong>@LinkData.Static.GetDomain()</strong></p>
+                    <a href="@LinkData.Static.Link"><button class="button-download">Go to Download</button></a>
+                }
+                else
+                {
+                    <p>Visiting <strong>@LinkData.Static.GetDomain()</strong></p>
+                    <a href="@LinkData.Static.Link"><button>Go to Link</button></a>
+                }
+            }
+        }
+    </div>
+
+    <style>
+        html {
+        background-color: #272727;
+        box-shadow: inset 0 0 0 100vh rgba(0, 0, 0, 0.55);
+        height: 100vh !important;
+        color: #eaebec;
+        }
+
+        .box {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        padding-left: 16px;
+        padding-right: 16px;
+        background-color: rgba(24,25,28,0.85) !important;
+        border: 1px solid rgba(47,48,49,0.8) !important;
+        padding-bottom: 12px;
+        border-radius: 8px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+        }
+
+        button {
+        border: none;
+        background-color: rgb(15, 138, 206);
+        color: rgb(255, 255, 255);
+        font-size: 14px;
+        font-weight: 600;
+        height: 34px;
+        line-height: 20px;
+        padding-bottom: 6.4px;
+        padding-left: 16px;
+        padding-right: 16px;
+        padding-top: 6.4px;
+        cursor: pointer;
+        border-radius: 4px;
+        }
+
+        button:hover {
+        background-color: #0E7FBE;
+        }
+
+        .button-download {
+        background-color: #008244;
+        }
+
+        .button-download:hover {
+        background-color: #00783F;
+        }
+    </style>
+
+    @if (!string.IsNullOrEmpty(LinkData.Static.BackgroundUrl))
+    {
+        <style>
+            html {
+                background-image: url("@LinkData.Static.BackgroundUrl") !important;
+                background-repeat: no-repeat;
+                background-size: cover !important;
+                background-attachment: fixed !important;
+            }
+            
+        </style>
+    }
 </body>
 </html>
 

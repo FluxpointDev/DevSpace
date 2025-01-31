@@ -1,0 +1,76 @@
+﻿@using DevSpaceWeb.Data.Links
+<PageTitle>My Servers | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:link-variant"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Link</RadzenText>
+    </div>
+    <br />
+    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+        This is a testing feature
+    </RadzenAlert>
+    <a href="/link" target="_blank"><RadzenButton ButtonStyle="ButtonStyle.Light" Shade="Shade.Default" Text="View Link" /></a>
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.H6">Customize</RadzenText>
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Title</RadzenText>
+    <RadzenTextBox @bind-Value="@LinkData.Static.Title" Style="width: 100%" aria-label="Title TextBox" />
+
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Description</RadzenText>
+    <RadzenTextArea @bind-Value="@LinkData.Static.Description" Style="width: 100%" aria-label="Description TextBox" />
+
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Link</RadzenText>
+    <RadzenTextBox @bind-Value="@LinkData.Static.Link" Style="width: 100%" aria-label="Link TextBox" />
+
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Is Download</RadzenText>
+    <RadzenSwitch @bind-Value="@LinkData.Static.IsDownload" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Is Download Switch" }})" />
+
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Background URL</RadzenText>
+    <RadzenTextBox @bind-Value="@LinkData.Static.BackgroundUrl" Style="width: 100%" aria-label="Background URL TextBox" />
+
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Button Timer Seconds</RadzenText>
+    <RadzenNumeric @bind-Value="@LinkData.Static.ButtonTimer" ShowUpDown="false" Style="width: 100%" aria-label="Timer TextBox" />
+
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.H6">Code</RadzenText>
+    <p>Does not work yet.</p>
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Require Code</RadzenText>
+    <RadzenSwitch @bind-Value="@LinkData.Static.RequireCode" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Require Code Switch" }})" />
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Code</RadzenText>
+    <RadzenTextBox @bind-Value="@LinkData.Static.Code" Style="width: 100%" aria-label="Code TextBox" Disabled="@(!LinkData.Static.RequireCode)" />
+
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.H6">Authentication</RadzenText>
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Require Authentication</RadzenText>
+    <RadzenSwitch @bind-Value="@LinkData.Static.RequireAuthentication" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Require Authentication Switch" }})" />
+
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Require Member</RadzenText>
+    <RadzenSwitch @bind-Value="@LinkData.Static.RequireMember" Disabled="@(!LinkData.Static.RequireAuthentication)" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Require Member Switch" }})" />
+
+    <br />
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Require Roles</RadzenText>
+    <RadzenSwitch @bind-Value="@LinkData.Static.RequireRoles" Disabled="@(!LinkData.Static.RequireAuthentication || !LinkData.Static.RequireMember)" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Require Roles Switch" }})" />
+</div>
+
+@code {
+
+}
