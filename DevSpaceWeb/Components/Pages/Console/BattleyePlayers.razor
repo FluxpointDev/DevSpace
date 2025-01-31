@@ -11,17 +11,21 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Players</RadzenText>
     </div>
-    <br />
+
     @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewPlayers))
     {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for View Players
-        </RadzenAlert>
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for View Players
+            </RadzenAlert>
+        </div>
+
     }
     else
     {
+        <br />
         <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
-        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
                 <RadzenDataGridColumn Title="ID" Width="60px">
                     <Template>
@@ -122,7 +126,7 @@
                 new ContextMenuItem(){ Text = "Ban Player", Value = "ban", Icon = "hardware" },
                 new ContextMenuItem(){ Text = "Ban IP", Value = "ban_ip", Icon = "plumbing" },
                 new ContextMenuItem(){ Text = "Kick Player", Value = "kick", Icon = "podiatry" },
-                                                         }, x => MenuItemClick(x, item));
+                                                                 }, x => MenuItemClick(x, item));
     }
 
     void MenuItemClick(MenuItemEventArgs args, Player item)

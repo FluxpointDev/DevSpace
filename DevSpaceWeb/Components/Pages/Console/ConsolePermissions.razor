@@ -5,8 +5,17 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
     </div>
-    <br />
-    <PermissionsOverride Resource="@Console" PermissionType="PermissionType.Console"></PermissionsOverride>
+    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewPermissions))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Permissions
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <PermissionsOverride Resource="@Console" PermissionType="PermissionType.Console"></PermissionsOverride>
+    }
 </div>
 
 @code {

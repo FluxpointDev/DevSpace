@@ -14,14 +14,17 @@
     <br />
     @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewBans))
     {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for View Bans
-        </RadzenAlert>
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for View Bans
+            </RadzenAlert>
+        </div>
+
     }
     else
     {
         <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
-        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
                 <RadzenDataGridColumn Title="Name" Width="200px">
                     <Template>
@@ -68,7 +71,7 @@
     public IEnumerable<Player> Players { get; set; }
     public int PlayerCount { get; set; }
 
-     public string GetMask(string value)
+    public string GetMask(string value)
     {
         bool FirstDot = false;
         StringBuilder result = new StringBuilder();
@@ -145,7 +148,7 @@
                         else
                             list.Add(i);
                     }
-                    
+
                 }
                 catch { }
 

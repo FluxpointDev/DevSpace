@@ -11,7 +11,7 @@ public class RoleJson
         team_id = data.TeamId.ToString();
         name = data.Name;
         description = data.Description;
-        position = data.Position;
+        position = data.GetPosition();
         permissions = data.Permissions;
     }
 

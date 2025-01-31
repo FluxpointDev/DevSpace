@@ -14,7 +14,7 @@
                 <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" ItemRender="@((x) => RenderItem(x))"
                 LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
                     <Template>
-                        @if (Program.IsPreviewMode || Team.OwnerId == Member.UserId || (context as TeamRoleData).Position < CurrentRank)
+                        @if (Program.IsPreviewMode || Team.OwnerId == Member.UserId || (context as TeamRoleData).GetPosition() < CurrentRank)
                         {
                             @((context as TeamRoleData).Name)
                         }
@@ -60,7 +60,7 @@
     public ListBoxItemRenderEventArgs<TeamRoleData> RenderItem(ListBoxItemRenderEventArgs<TeamRoleData> data)
     {
         if (!Program.IsPreviewMode && Team.OwnerId != Member.UserId)
-            data.Disabled = (data.Item as TeamRoleData).Position >= CurrentRank;
+            data.Disabled = (data.Item as TeamRoleData).GetPosition() >= CurrentRank;
         return data;
     }
 
@@ -72,9 +72,9 @@
     public void RoleChanged(object sender, Tuple<TeamRoleData?, bool> role)
     {
         if (role.Item1 == null)
-            RolesList = Team.CachedRoles.Values.OrderByDescending(x => x.Position).ToList();
+            RolesList = Team.CachedRoles.Values.OrderByDescending(x => x.GetPosition()).ToList();
         else if (role.Item2)
-            RolesList = RolesList.Prepend(role.Item1).ToList();
+            RolesList = RolesList.Append(role.Item1).ToList();
         else
         {
             try
@@ -94,7 +94,7 @@
         if (RolesList == null)
         {
             CurrentRank = Member.GetRank();
-            RolesList = Team.CachedRoles.Values.OrderByDescending(x => x.Position).ToList();
+            RolesList = Team.CachedRoles.Values.OrderByDescending(x => x.GetPosition()).ToList();
         }
     }
 
@@ -116,16 +116,11 @@
             return;
 
         IsUpdating = true;
-        CurrentRank = Member.GetRank();
         int CurrentIndex = RolesList.IndexOf(SelectedRole);
-        Console.WriteLine($"Up: {CurrentRank}/{CurrentIndex}");
         TeamRoleData? TopRole = RolesList.ElementAtOrDefault(CurrentIndex - 1);
         if (TopRole != null)
-        {
-            Console.WriteLine("Top: " + TopRole.Name);
-            return;
             Team.UpdateRolesPosition(Member, SelectedRole, true);
-        }
+
         IsUpdating = false;
     }
 
@@ -147,18 +142,12 @@
             return;
 
         IsUpdating = true;
-        CurrentRank = Member.GetRank();
         int CurrentIndex = RolesList.IndexOf(SelectedRole);
-        Console.WriteLine($"Down: {CurrentRank}/{CurrentIndex}");
-        if (CurrentRank <= CurrentIndex)
-            return;
+
         TeamRoleData? BottomRole = RolesList.ElementAtOrDefault(CurrentIndex + 1);
         if (BottomRole != null)
-        {
-            Console.WriteLine("Bottom: " + BottomRole.Name);
-            return;
             Team.UpdateRolesPosition(Member, SelectedRole, false);
-        }
+
         IsUpdating = false;
     }
 

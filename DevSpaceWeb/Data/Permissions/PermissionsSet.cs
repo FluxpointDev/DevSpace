@@ -2,6 +2,71 @@
 
 public class PermissionsSet
 {
+    public static PermissionsSet MaxPermissions = new PermissionsSet
+    {
+        TeamPermissions = (TeamPermission)ulong.MaxValue,
+        APIPermissions = (APIPermission)ulong.MaxValue,
+        ConsolePermissions = (ConsolePermission)ulong.MaxValue,
+        DockerPermissions = (DockerPermission)ulong.MaxValue,
+        LogPermissions = (LogPermission)ulong.MaxValue,
+        ProjectPermissions = (ProjectPermission)ulong.MaxValue,
+        ServerPermissions = (ServerPermission)ulong.MaxValue,
+        WebsitePermissions = (WebsitePermission)ulong.MaxValue
+    };
+
+    public void AddFrom(PermissionsSet perms)
+    {
+        ConsolePermissions |= perms.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator)
+                ? (ConsolePermission)ulong.MaxValue : perms.ConsolePermissions;
+
+        DockerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator)
+        ? (DockerPermission)ulong.MaxValue : perms.DockerPermissions;
+
+        if (perms.DockerPermissions.HasFlag(DockerPermission.DockerManager))
+        {
+            DockerPermissions |= DockerPermission.ContainerConsole;
+            DockerPermissions |= DockerPermission.ContainerInspect;
+            DockerPermissions |= DockerPermission.ContainerLogs;
+            DockerPermissions |= DockerPermission.ContainerStats;
+            DockerPermissions |= DockerPermission.ControlContainers;
+            DockerPermissions |= DockerPermission.ManageContainers;
+            DockerPermissions |= DockerPermission.ManageCustomTemplates;
+            DockerPermissions |= DockerPermission.ManageImages;
+            DockerPermissions |= DockerPermission.ManageNetworks;
+            DockerPermissions |= DockerPermission.ManageRegistries;
+            DockerPermissions |= DockerPermission.ManageSettings;
+            DockerPermissions |= DockerPermission.ManageStackPermissions;
+            DockerPermissions |= DockerPermission.ManageVolumes;
+            DockerPermissions |= DockerPermission.ViewContainers;
+            DockerPermissions |= DockerPermission.ViewCustomTemplates;
+            DockerPermissions |= DockerPermission.ViewEvents;
+            DockerPermissions |= DockerPermission.ViewImages;
+            DockerPermissions |= DockerPermission.ViewNetworks;
+            DockerPermissions |= DockerPermission.ViewPlugins;
+            DockerPermissions |= DockerPermission.ViewRegistries;
+            DockerPermissions |= DockerPermission.ViewTemplates;
+            DockerPermissions |= DockerPermission.ViewVolumes;
+        }
+
+        LogPermissions |= perms.LogPermissions.HasFlag(LogPermission.LogAdministrator)
+        ? (LogPermission)ulong.MaxValue : perms.LogPermissions;
+
+        ProjectPermissions |= perms.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator)
+        ? (ProjectPermission)ulong.MaxValue : perms.ProjectPermissions;
+
+        ServerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator)
+        ? (ServerPermission)ulong.MaxValue : perms.ServerPermissions;
+
+        TeamPermissions |= perms.TeamPermissions.HasFlag(TeamPermission.TeamAdministrator)
+        ? (TeamPermission)ulong.MaxValue : perms.TeamPermissions;
+
+        APIPermissions |= perms.APIPermissions.HasFlag(APIPermission.APIAdministrator)
+        ? (APIPermission)ulong.MaxValue : perms.APIPermissions;
+
+        WebsitePermissions |= perms.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator)
+        ? (WebsitePermission)ulong.MaxValue : perms.WebsitePermissions;
+    }
+
     public TeamPermission TeamPermissions;
     public APIPermission APIPermissions;
     public LogPermission LogPermissions;
@@ -30,7 +95,7 @@ public class PermissionsSet
         if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
             return true;
 
-        if (checkPermission != APIPermission.APIAdministrator && TeamPermissions.HasFlag(APIPermission.APIAdministrator))
+        if (checkPermission != APIPermission.APIAdministrator && APIPermissions.HasFlag(APIPermission.APIAdministrator))
             return true;
 
         if (APIPermissions.HasFlag(checkPermission))

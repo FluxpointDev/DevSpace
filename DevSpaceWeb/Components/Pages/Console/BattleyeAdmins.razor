@@ -12,17 +12,20 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account-supervisor"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Rcon Admins</RadzenText>
     </div>
-    <br />
+
     @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewConnections))
     {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for View Connections
-        </RadzenAlert>
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for View Connections
+            </RadzenAlert>
+        </div>
     }
     else
     {
+        <br />
         <RadzenDataGrid Count="@ConnectionCount" Data="@Connections" LoadData="@LoadData"
-        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
                 <RadzenDataGridColumn Title="ID" Width="60px">
                     <Template>

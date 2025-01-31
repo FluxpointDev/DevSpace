@@ -14,14 +14,17 @@
     <br />
     @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewPlayers))
     {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for View Players
-        </RadzenAlert>
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for View Players
+            </RadzenAlert>
+        </div>
+
     }
     else
     {
         <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
-        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
                 <RadzenDataGridColumn Title="Name" Width="200px">
                     <Template>
@@ -64,9 +67,9 @@
                     ListCommand = ListCommand.Split("online:").Last();
                 }
                 catch { }
-                
+
                 List<Player> list = new List<Player>();
-                
+
                 foreach (var i in ListCommand.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(x => new Player(0, null, null, null, x, null)))
                 {
                     if (i.name.Contains(" and "))
@@ -78,7 +81,7 @@
                     else
                         list.Add(i);
                 }
-                
+
                 var query = list;
 
                 PlayerCount = query.Count();
@@ -108,7 +111,7 @@
                 new ContextMenuItem(){ Text = "Message", Value = "message", Icon = "chat" },
                 new ContextMenuItem(){ Text = "Ban Player", Value = "ban", Icon = "hardware" },
                 new ContextMenuItem(){ Text = "Kick Player", Value = "kick", Icon = "podiatry" },
-                                                         }, x => MenuItemClick(x, item));
+                                                             }, x => MenuItemClick(x, item));
     }
 
     void MenuItemClick(MenuItemEventArgs args, Player item)

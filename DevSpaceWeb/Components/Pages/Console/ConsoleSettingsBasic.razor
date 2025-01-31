@@ -10,8 +10,17 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Basic Settings</RadzenText>
     </div>
-    <br />
-    <DynamicFormDialog Model="@ModifyConsoleModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+    @if (!Member.HasConsolePermission(Console, ConsolePermission.ManageConsole))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for Manage Console
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <DynamicFormDialog Model="@ModifyConsoleModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+    }
 </div>
 
 @code {

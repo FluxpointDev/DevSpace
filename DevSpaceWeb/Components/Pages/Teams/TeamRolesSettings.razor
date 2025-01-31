@@ -24,11 +24,11 @@
         <br />
         <br />
         <RadzenStack Orientation="Orientation.Vertical" Gap="20px">
-            @foreach(TeamRoleData i in Team.CachedRoles.Values.OrderByDescending(x => x.Position))
+            @foreach(TeamRoleData i in Team.CachedRoles.Values.OrderByDescending(x => x.GetPosition()))
             {
                 <div>
-                    <p>@i.Name (@i.Position)</p>
-                    <RadzenButton Text="Delete" Click="@(() => DeleteRole(i))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageRoles) || i.Position >= Member.GetRank())"
+                    <p>@i.Name (@i.GetPosition())</p>
+                    <RadzenButton Text="Delete" Click="@(() => DeleteRole(i))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageRoles) || i.GetPosition() >= Member.GetRank())"
                     ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Medium" Shade="Shade.Dark" />
                 </div>
 
@@ -72,8 +72,7 @@
                 {
                     TeamId = Team.Id,
                     Name = data.Name,
-                    Description = data.Description,
-                    Position = Team.CachedRoles.Any() ? Team.CachedRoles.Values.OrderBy(x => x.Position).Last().Position + 1 : 0
+                    Description = data.Description
                 };
 
             try
@@ -84,21 +83,8 @@
             {
                 return "Failed to create role.";
             }
+            Team.AddRole(Member, role);
 
-            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, Team.Roles), () =>
-        {
-            _DB.Roles.Cache.TryAdd(role.Id, role);
-            Team.Roles.Add(role.Id);
-            Team.CachedRoles.Add(role.Id, role);
-            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Role, AuditLogEventType.RoleCreated)
-            .SetTarget(role)
-            .AddProperty("Name", role.Name)
-            .AddProperty("Description", role.Description)
-            .AddProperty("Position", role.Position.ToString()));
-        });
-
-
-            Team.TriggerRoleChange(role, true);
 
             return string.Empty;
         });
@@ -109,7 +95,7 @@
         if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
             return;
 
-        if (role.Position >= Member.GetRank())
+        if (role.GetPosition() >= Member.GetRank())
             return;
 
         bool Confirm = await DialogService.ShowConfirmAsync("Delete Role", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
@@ -118,13 +104,13 @@
             if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
                 return;
 
-            if (role.Position >= Member.GetRank())
+            if (role.GetPosition() >= Member.GetRank())
                 return;
 
-            await role.DeleteAsync(Member, () =>
-            {
-                Session.Selected.Team.Console = null;
-            });
+            FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
+            DeleteResult Result = await _DB.Roles.Collection.DeleteOneAsync(filter);
+            if (Result.IsAcknowledged)
+                Team.DeleteRole(Member, role);
         }
     }
 

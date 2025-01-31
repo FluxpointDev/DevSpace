@@ -19,20 +19,33 @@ public class TeamRoleData
     public ObjectId TeamId { get; set; }
     public string Name { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
     public string Description { get; set; }
-    public int Position { get; set; }
+
+    [Obsolete]
+    [BsonIgnoreIfNull]
+    public int? Position { get; set; }
+
     public PermissionsSet Permissions { get; set; } = new PermissionsSet();
 
     [JsonIgnore]
     [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
+    public int GetPosition()
+    {
+        if (Team != null && Team.RolePositions.TryGetValue(Id, out int position))
+            return position;
+
+        return 0;
+    }
+
     public bool CanManage(TeamMemberData currentMember)
     {
         if (Team.OwnerId == currentMember.UserId)
             return true;
 
-        if (currentMember.GetRank() > Position)
+        if (currentMember.GetRank() > GetPosition())
             return true;
         return false;
     }
@@ -125,31 +138,5 @@ public class TeamRoleData
         UpdateResult Result = await _DB.Roles.Collection.UpdateOneAsync(filter, update);
         if (Result.IsAcknowledged)
             action?.Invoke();
-    }
-
-    public async Task DeleteAsync(TeamMemberData member, Action action)
-    {
-        FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, Id);
-        DeleteResult Result = await _DB.Roles.Collection.DeleteOneAsync(filter);
-        if (Result.IsAcknowledged)
-        {
-            _DB.Roles.Cache.TryRemove(Id, out _);
-            Team.CachedRoles.Remove(Id);
-            Team.TriggerRoleChange(this, false);
-            _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.RoleDeleted)
-                .SetTarget(Team)
-                .AddProperty("Name", Name));
-
-            var RoleSet = Team.Roles.Where(x => x != Id).ToHashSet();
-
-            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Roles, RoleSet), () =>
-            {
-                Team.Roles = RoleSet;
-                Team.TriggerRoleChange(this, false);
-
-            });
-
-            action?.Invoke();
-        }
     }
 }

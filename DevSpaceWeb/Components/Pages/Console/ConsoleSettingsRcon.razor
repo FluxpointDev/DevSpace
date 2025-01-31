@@ -10,8 +10,17 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Rcon Settings</RadzenText>
     </div>
-    <br />
-    <DynamicFormDialog Model="@ModifyRconModel" ModelData="@Data" OnSubmit="@UpdateRconSettings"></DynamicFormDialog>
+    @if (!Member.HasConsolePermission(Console, ConsolePermission.ManageConnection))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for Manage Connection
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <DynamicFormDialog Model="@ModifyRconModel" ModelData="@Data" OnSubmit="@UpdateRconSettings"></DynamicFormDialog>
+    }
 </div>
 
 @code {

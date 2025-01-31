@@ -14,7 +14,7 @@ public class TeamJson
         if (data.IconId.HasValue)
             icon_url = data.GetIconOrDefault();
         default_permissions = data.DefaultPermissions;
-        roles = data.Roles.Select(x => x.ToString()).ToArray();
+        roles = data.CachedRoles.Values.Select(x => x.Id.ToString()).ToArray();
         members = data.Members.ToDictionary(x => x.Key.ToString(), x => x.Value.ToString());
     }
 

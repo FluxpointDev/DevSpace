@@ -22,7 +22,8 @@ public static class _DB
 
     public static bool IsConnected;
     public static bool IsRestartRequired = false;
-    private static bool IsCacheDone;
+    public static bool IsCacheDone;
+    public static bool HasException;
 
     public static event SessionEventHandler SessionUpdated;
 
@@ -63,18 +64,28 @@ public static class _DB
 
         if (!IsCacheDone)
         {
-            Logger.LogMessage("Database", "Loading Data", LogSeverity.Info);
-            await Teams.Find(Builders<TeamData>.Filter.Empty).ForEachAsync(x =>
+            Logger.LogMessage("Database", "Loading...", LogSeverity.Info);
+            try
             {
-                Teams.Cache.TryAdd(x.Id, x);
-                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(x, Newtonsoft.Json.Formatting.Indented));
-                if (!string.IsNullOrEmpty(x.VanityUrl))
+                await Teams.Find(Builders<TeamData>.Filter.Empty).ForEachAsync(x =>
                 {
-                    TeamsVanityCache.TryAdd(x.VanityUrl, x);
-                    VanityUrlCache.TryAdd(x.Id, x.VanityUrl);
-                }
-            });
-            Logger.LogMessage("Database", "- Teams: " + Teams.Cache.Keys.Count, LogSeverity.Info);
+                    Teams.Cache.TryAdd(x.Id, x);
+                    if (!string.IsNullOrEmpty(x.VanityUrl))
+                    {
+                        TeamsVanityCache.TryAdd(x.VanityUrl, x);
+                        VanityUrlCache.TryAdd(x.Id, x.VanityUrl);
+                    }
+                });
+                Logger.LogMessage("Database", "- Teams: " + Teams.Cache.Keys.Count, LogSeverity.Info);
+            }
+            catch (Exception ex)
+            {
+                HasException = true;
+                Logger.LogMessage("Database", "- Teams: FAIL!", LogSeverity.Info);
+                Console.WriteLine(ex);
+                return false;
+            }
+
 
             try
             {
@@ -82,162 +93,300 @@ public static class _DB
                 {
                     Users.Add(x.Id, new PartialUserData(x));
                 });
+                Logger.LogMessage("Database", "- Users: " + Users.Keys.Count, LogSeverity.Info);
             }
             catch (Exception ex)
             {
+                HasException = true;
+                Logger.LogMessage("Database", "- Users: FAIL!", LogSeverity.Info);
                 Console.WriteLine(ex);
+
                 return false;
             }
 
-            Logger.LogMessage("Database", "- Auth: " + Users.Keys.Count, LogSeverity.Info);
+
 
             Task RoleTask = Task.Run(async () =>
             {
-                await Roles.Find(Builders<TeamRoleData>.Filter.Empty).ForEachAsync(x =>
+                try
                 {
-                    if (Roles.Cache.TryAdd(x.Id, x))
+                    await Roles.Find(Builders<TeamRoleData>.Filter.Empty).ForEachAsync(x =>
                     {
-                        if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))
-                            team.CachedRoles.Add(x.Id, x);
+                        if (Roles.Cache.TryAdd(x.Id, x))
+                        {
+                            if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))
+                                team.CachedRoles.Add(x.Id, x);
+                        }
+                    });
+                    Logger.LogMessage("Database", "- Roles: " + Roles.Cache.Keys.Count, LogSeverity.Info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Database", "- Roles: FAIL!", LogSeverity.Info);
+                    Console.WriteLine(ex);
+                    HasException = true;
+                }
+                if (!HasException)
+                {
+                    try
+                    {
+                        // Migrate/Fix roles and role positions
+                        foreach (var i in Teams.Cache.Values)
+                        {
+                            if (i.CachedRoles.Any() && !i.RolePositions.Any())
+                            {
+                                Logger.LogMessage("Database", "- Roles: Migrating " + i.Name, LogSeverity.Info);
+
+                                if (i.Roles != null)
+                                {
+                                    _ = i.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Unset(x => x.Roles), () =>
+                                    {
+
+                                    });
+                                }
+
+                                int Position = 0;
+                                Dictionary<ObjectId, int> UpdatedPositions = new Dictionary<ObjectId, int>();
+                                foreach (var r in i.CachedRoles.Values.OrderBy(x => x.Position.GetValueOrDefault()))
+                                {
+
+                                    UpdatedPositions.Add(r.Id, Position);
+                                    Position += 1;
+                                    _ = r.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Unset(x => x.Position), () =>
+                                    {
+
+                                    });
+                                }
+                                await i.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.RolePositions, UpdatedPositions), () =>
+                                {
+
+                                });
+                                Logger.LogMessage("Database", "- Roles: Migration done " + i.Name, LogSeverity.Info);
+                            }
+                        }
                     }
-                });
-                Logger.LogMessage("Database", "- Roles: " + Roles.Cache.Keys.Count, LogSeverity.Info);
+                    catch (Exception ex)
+                    {
+                        Logger.LogMessage("Database", "- Roles: MIGRATION FAIL!", LogSeverity.Info);
+                        Console.WriteLine(ex);
+                        HasException = true;
+                    }
+                }
             });
 
             Task MemberTask = Task.Run(async () =>
             {
-                await Members.Find(Builders<TeamMemberData>.Filter.Empty).ForEachAsync(x =>
+                try
                 {
-
-                    if (Members.Cache.TryAdd(x.Id, x))
+                    await Members.Find(Builders<TeamMemberData>.Filter.Empty).ForEachAsync(x =>
                     {
-                        if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))
-                            team.CachedMembers.Add(x.Id, x);
-                    }
-                });
-                Logger.LogMessage("Database", "- Members: " + Members.Cache.Keys.Count, LogSeverity.Info);
+                        if (Members.Cache.TryAdd(x.Id, x))
+                        {
+                            if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))
+                                team.CachedMembers.Add(x.Id, x);
+                        }
+                    });
+                    Logger.LogMessage("Database", "- Members: " + Members.Cache.Keys.Count, LogSeverity.Info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Database", "- Members: FAIL!", LogSeverity.Info);
+                    Console.WriteLine(ex);
+                    HasException = true;
+                }
             });
 
             Task TeamVanityTask = Task.Run(async () =>
             {
-                await TeamVanityUrls.Find(Builders<VanityUrlData>.Filter.Empty).ForEachAsync(x =>
+                try
                 {
-                    if (TeamVanityUrls.Cache.TryAdd(x.Id, x))
+                    await TeamVanityUrls.Find(Builders<VanityUrlData>.Filter.Empty).ForEachAsync(x =>
                     {
-                        foreach (KeyValuePair<string, ObjectId> i in x.ServerVanityUrls)
+                        if (TeamVanityUrls.Cache.TryAdd(x.Id, x))
                         {
-                            VanityUrlCache.TryAdd(i.Value, i.Key);
+                            foreach (KeyValuePair<string, ObjectId> i in x.ServerVanityUrls)
+                            {
+                                VanityUrlCache.TryAdd(i.Value, i.Key);
+                            }
+                            foreach (KeyValuePair<string, ObjectId> i in x.LogVanityUrls)
+                            {
+                                VanityUrlCache.TryAdd(i.Value, i.Key);
+                            }
+                            foreach (KeyValuePair<string, ObjectId> i in x.ProjectVanityUrls)
+                            {
+                                VanityUrlCache.TryAdd(i.Value, i.Key);
+                            }
+                            foreach (KeyValuePair<string, ObjectId> i in x.ConsoleVanityUrls)
+                            {
+                                VanityUrlCache.TryAdd(i.Value, i.Key);
+                            }
+                            foreach (KeyValuePair<string, ObjectId> i in x.WebsiteVanityUrls)
+                            {
+                                VanityUrlCache.TryAdd(i.Value, i.Key);
+                            }
                         }
-                        foreach (KeyValuePair<string, ObjectId> i in x.LogVanityUrls)
-                        {
-                            VanityUrlCache.TryAdd(i.Value, i.Key);
-                        }
-                        foreach (KeyValuePair<string, ObjectId> i in x.ProjectVanityUrls)
-                        {
-                            VanityUrlCache.TryAdd(i.Value, i.Key);
-                        }
-                        foreach (KeyValuePair<string, ObjectId> i in x.ConsoleVanityUrls)
-                        {
-                            VanityUrlCache.TryAdd(i.Value, i.Key);
-                        }
-                        foreach (KeyValuePair<string, ObjectId> i in x.WebsiteVanityUrls)
-                        {
-                            VanityUrlCache.TryAdd(i.Value, i.Key);
-                        }
-                    }
-                });
-                Logger.LogMessage("Database", "- Vanity URLs: " + TeamVanityUrls.Cache.Keys.Count, LogSeverity.Info);
+                    });
+                    Logger.LogMessage("Database", "- Vanity URLs: " + TeamVanityUrls.Cache.Keys.Count, LogSeverity.Info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Database", "- Vanity URLs: FAIL!", LogSeverity.Info);
+                    Console.WriteLine(ex);
+                    HasException = true;
+                }
             });
 
 
             Task TemplateTask = Task.Run(async () =>
             {
-                await EmailTemplates.Find(Builders<EmailTemplateData>.Filter.Empty).ForEachAsync(x =>
+                try
                 {
-                    EmailTemplates.Cache.TryAdd(x.Id, x);
-                });
-                Logger.LogMessage("Database", "- Email Templates: " + EmailTemplates.Cache.Keys.Count, LogSeverity.Info);
+                    await EmailTemplates.Find(Builders<EmailTemplateData>.Filter.Empty).ForEachAsync(x =>
+                    {
+                        EmailTemplates.Cache.TryAdd(x.Id, x);
+                    });
+                    Logger.LogMessage("Database", "- Email Templates: " + EmailTemplates.Cache.Keys.Count, LogSeverity.Info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Database", "- Email Templates: FAIL!", LogSeverity.Info);
+                    Console.WriteLine(ex);
+                    HasException = true;
+                }
             });
 
             Task LogTask = Task.Run(async () =>
             {
-                await Logs.Find(Builders<LogData>.Filter.Empty).ForEachAsync(x =>
+                try
                 {
-                    Logs.Cache.TryAdd(x.Id, x);
-                });
-                Logger.LogMessage("Database", "- Logs: " + Logs.Cache.Keys.Count, LogSeverity.Info);
+                    await Logs.Find(Builders<LogData>.Filter.Empty).ForEachAsync(x =>
+                    {
+                        Logs.Cache.TryAdd(x.Id, x);
+                    });
+                    Logger.LogMessage("Database", "- Logs: " + Logs.Cache.Keys.Count, LogSeverity.Info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Database", "- Logs: FAIL!", LogSeverity.Info);
+                    Console.WriteLine(ex);
+                    HasException = true;
+                }
             });
 
             Task ServerTask = Task.Run(async () =>
             {
-                await Servers.Find(Builders<ServerData>.Filter.Empty).ForEachAsync(x =>
+                try
                 {
-                    Servers.Cache.TryAdd(x.Id, x);
-                    x.GetWebSocket();
-                });
-                Logger.LogMessage("Database", "- Servers: " + Servers.Cache.Keys.Count, LogSeverity.Info);
+                    await Servers.Find(Builders<ServerData>.Filter.Empty).ForEachAsync(x =>
+                    {
+                        Servers.Cache.TryAdd(x.Id, x);
+                        x.GetWebSocket();
+                    });
+                    Logger.LogMessage("Database", "- Servers: " + Servers.Cache.Keys.Count, LogSeverity.Info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Database", "- Servers: FAIL!", LogSeverity.Info);
+                    Console.WriteLine(ex);
+                    HasException = true;
+                }
             });
 
             Task WebsiteTask = Task.Run(async () =>
             {
-                await Websites.Find(Builders<WebsiteData>.Filter.Empty).ForEachAsync(x =>
+                try
                 {
-                    Websites.Cache.TryAdd(x.Id, x);
-                });
-                Logger.LogMessage("Database", "- Websites: " + Websites.Cache.Keys.Count, LogSeverity.Info);
+                    await Websites.Find(Builders<WebsiteData>.Filter.Empty).ForEachAsync(x =>
+                    {
+                        Websites.Cache.TryAdd(x.Id, x);
+                    });
+                    Logger.LogMessage("Database", "- Websites: " + Websites.Cache.Keys.Count, LogSeverity.Info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Database", "- Websites: FAIL!", LogSeverity.Info);
+                    Console.WriteLine(ex);
+                    HasException = true;
+                }
             });
 
             Task ProjectTask = Task.Run(async () =>
             {
-                await Projects.Find(Builders<ProjectData>.Filter.Empty).ForEachAsync(x =>
+                try
                 {
-                    Projects.Cache.TryAdd(x.Id, x);
-                });
-                Logger.LogMessage("Database", "- Projects: " + Projects.Cache.Keys.Count, LogSeverity.Info);
+                    await Projects.Find(Builders<ProjectData>.Filter.Empty).ForEachAsync(x =>
+                    {
+                        Projects.Cache.TryAdd(x.Id, x);
+                    });
+                    Logger.LogMessage("Database", "- Projects: " + Projects.Cache.Keys.Count, LogSeverity.Info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Database", "- Projects: FAIL!", LogSeverity.Info);
+                    Console.WriteLine(ex);
+                    HasException = true;
+                }
             });
 
             Task ConsoleTask = Task.Run(async () =>
             {
-                await Consoles.Find(Builders<ConsoleData>.Filter.Empty).ForEachAsync(x =>
+                try
                 {
-                    Consoles.Cache.TryAdd(x.Id, x);
-                    switch (x.Type)
+                    await Consoles.Find(Builders<ConsoleData>.Filter.Empty).ForEachAsync(x =>
                     {
-                        case ConsoleType.Battleye:
-                            {
-                                RCon rc = new RCon();
-                                rc.Connect(IPAddress.Parse(x.Ip), x.Port, x.GetDecryptedPassword());
-                                if (rc.IsConnected)
-                                    x.ConnectedAt = DateTime.UtcNow;
-                                _Data.BattleyeRcons.Add(x.Id, rc);
-                            }
-                            break;
-                        case ConsoleType.Minecraft:
-                            {
-                                TCPRconAsync rcon = new TCPRconAsync
+                        Consoles.Cache.TryAdd(x.Id, x);
+                        switch (x.Type)
+                        {
+                            case ConsoleType.Battleye:
                                 {
-                                    RConHost = x.Ip,
-                                    RConPort = x.Port,
-                                    RConPass = x.GetDecryptedPassword()
-                                };
-                                rcon.StartComms();
-                                _Data.MinecraftRcons.Add(x.Id, rcon);
-                            }
-                            break;
-                    }
-                });
-                Logger.LogMessage("Database", "- Consoles: " + Consoles.Cache.Keys.Count, LogSeverity.Info);
+                                    RCon rc = new RCon();
+                                    rc.Connect(IPAddress.Parse(x.Ip), x.Port, x.GetDecryptedPassword());
+                                    if (rc.IsConnected)
+                                        x.ConnectedAt = DateTime.UtcNow;
+                                    _Data.BattleyeRcons.Add(x.Id, rc);
+                                }
+                                break;
+                            case ConsoleType.Minecraft:
+                                {
+                                    TCPRconAsync rcon = new TCPRconAsync
+                                    {
+                                        RConHost = x.Ip,
+                                        RConPort = x.Port,
+                                        RConPass = x.GetDecryptedPassword()
+                                    };
+                                    rcon.StartComms();
+                                    _Data.MinecraftRcons.Add(x.Id, rcon);
+                                }
+                                break;
+                        }
+                    });
+                    Logger.LogMessage("Database", "- Consoles: " + Consoles.Cache.Keys.Count, LogSeverity.Info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Database", "- Consoles: FAIL!", LogSeverity.Info);
+                    Console.WriteLine(ex);
+                    HasException = true;
+                }
             });
 
             Task APITask = Task.Run(async () =>
             {
-                await API.Find(Builders<APIClient>.Filter.Empty).ForEachAsync(x =>
+                try
                 {
-                    API.Cache.TryAdd(x.Id, x);
-                });
-                Logger.LogMessage("Database", "- API: " + API.Cache.Keys.Count, LogSeverity.Info);
+                    await API.Find(Builders<APIClient>.Filter.Empty).ForEachAsync(x =>
+                    {
+                        API.Cache.TryAdd(x.Id, x);
+                    });
+                    Logger.LogMessage("Database", "- APIs: " + API.Cache.Keys.Count, LogSeverity.Info);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Database", "- APIs: FAIL!", LogSeverity.Info);
+                    Console.WriteLine(ex);
+                    HasException = true;
+                }
             });
-
 
             Task.WaitAll(RoleTask, MemberTask, TeamVanityTask, TemplateTask, LogTask,
                 ServerTask, WebsiteTask, ProjectTask, APITask, ConsoleTask);
@@ -245,6 +394,9 @@ public static class _DB
             Logger.LogMessage("Database", "Data Loaded", LogSeverity.Info);
             IsCacheDone = true;
         }
+
+        if (HasException)
+            return false;
 
         return true;
     }

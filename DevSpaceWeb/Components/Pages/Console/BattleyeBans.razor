@@ -10,17 +10,21 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:court-hammer"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Bans</RadzenText>
     </div>
-    <br />
+
     @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewBans))
     {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for View Bans
-        </RadzenAlert>
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for View Bans
+            </RadzenAlert>
+        </div>
+
     }
     else
     {
+        <br />
         <RadzenDataGrid Count="@BanCount" Data="@Bans" LoadData="@LoadData"
-        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
                 <RadzenDataGridColumn Title="ID/IP" Width="120px">
                     <Template>
@@ -43,7 +47,7 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Reason" >
+                <RadzenDataGridColumn Title="Reason">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.reason</RadzenText>
                     </Template>

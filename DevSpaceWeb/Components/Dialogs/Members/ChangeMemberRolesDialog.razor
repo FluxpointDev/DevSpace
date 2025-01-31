@@ -19,7 +19,7 @@
                 Current Roles
             </TargetHeader>
             <Template>
-                @if (Program.IsPreviewMode || Team.OwnerId == Session.CurrentUser.Id || CurrentRank < context.Position)
+                @if (Program.IsPreviewMode || Team.OwnerId == Session.CurrentUser.Id || CurrentRank < context.GetPosition())
                 {
                     @context.Name
                 }
@@ -45,8 +45,6 @@
 
     public int CurrentRank;
 
-
-
     [Parameter]
     public TeamMemberData Member { get; set; }
 
@@ -64,14 +62,14 @@
                 list.Add(role);
         }
         SelectedRoles = list;
-        AllRoles = Team.CachedRoles.Values.Except(SelectedRoles).OrderBy(x => x.Position);
+        AllRoles = Team.CachedRoles.Values.Except(SelectedRoles).OrderBy(x => x.GetPosition());
     }
 
     public ListBoxItemRenderEventArgs<object> ItemRenderAction(ListBoxItemRenderEventArgs<object> data)
     {
         TeamRoleData role = data.Item as TeamRoleData;
         if (!Program.IsPreviewMode && Team.OwnerId != Session.CurrentUser.Id)
-            data.Disabled = CurrentRank >= role.Position;
+            data.Disabled = CurrentRank >= role.GetPosition();
         return data;
     }
 

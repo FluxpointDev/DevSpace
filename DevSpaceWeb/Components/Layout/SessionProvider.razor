@@ -370,7 +370,7 @@
                 SessionError = SessionErrorType.AuthenticationError;
                 return;
             }
-            else if (_Data.Config.Database.IsSetup && !_DB.IsConnected)
+            else if (_Data.Config.Database.IsSetup && (!_DB.IsConnected || !_DB.IsCacheDone || _DB.HasException))
             {
                 SessionError = SessionErrorType.DatabaseError;
                 return;

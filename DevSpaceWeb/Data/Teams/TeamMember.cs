@@ -286,9 +286,9 @@ public class TeamMemberData
         int CurrentRank = -1;
         foreach (ObjectId r in Roles)
         {
-            if (Team.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.Position > CurrentRank)
+            if (Team.CachedRoles.TryGetValue(r, out TeamRoleData? role) && role.GetPosition() > CurrentRank)
             {
-                CurrentRank = role.Position;
+                CurrentRank = role.GetPosition();
             }
         }
         return CurrentRank;
@@ -305,50 +305,46 @@ public class TeamMemberData
 
     public Guid? AvatarId { get; set; }
 
-    public PermissionsSet CalculatePermissions()
+    public PermissionsSet CalculatePermissions(ITeamResource? resource)
     {
-        PermissionsSet Permissions = null!;
+        PermissionsSet Permissions = new PermissionsSet();
         TeamData CurrentTeam = Team;
         if (CurrentTeam == null)
             return new PermissionsSet();
 
         if (UserId == CurrentTeam.OwnerId || CurrentTeam.DefaultPermissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
         {
-            Permissions = new PermissionsSet
-            {
-                ConsolePermissions = (ConsolePermission)ulong.MaxValue,
-                DockerPermissions = (DockerPermission)ulong.MaxValue,
-                LogPermissions = (LogPermission)ulong.MaxValue,
-                ProjectPermissions = (ProjectPermission)ulong.MaxValue,
-                ServerPermissions = (ServerPermission)ulong.MaxValue,
-                TeamPermissions = (TeamPermission)ulong.MaxValue,
-                WebsitePermissions = (WebsitePermission)ulong.MaxValue
-            };
+            return PermissionsSet.MaxPermissions;
         }
         else
         {
-            Permissions = new PermissionsSet
+            Permissions.AddFrom(CurrentTeam.DefaultPermissions);
+
+            if (resource != null && resource.MemberPermissionOverrides.TryGetValue(UserId, out PermissionsSet perms))
             {
-                ConsolePermissions = CurrentTeam.DefaultPermissions.ConsolePermissions,
-                DockerPermissions = CurrentTeam.DefaultPermissions.DockerPermissions,
-                LogPermissions = CurrentTeam.DefaultPermissions.LogPermissions,
-                ProjectPermissions = CurrentTeam.DefaultPermissions.ProjectPermissions,
-                ServerPermissions = CurrentTeam.DefaultPermissions.ServerPermissions,
-                TeamPermissions = CurrentTeam.DefaultPermissions.TeamPermissions,
-                WebsitePermissions = CurrentTeam.DefaultPermissions.WebsitePermissions
-            };
+                if (perms.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
+                    return PermissionsSet.MaxPermissions;
+
+                Permissions.AddFrom(perms);
+            }
 
             foreach (var i in Roles)
             {
                 if (CurrentTeam.CachedRoles.TryGetValue(i, out var role))
                 {
-                    Permissions.ConsolePermissions |= role.Permissions.ConsolePermissions;
-                    Permissions.DockerPermissions |= role.Permissions.DockerPermissions;
-                    Permissions.LogPermissions |= role.Permissions.LogPermissions;
-                    Permissions.ProjectPermissions |= role.Permissions.ProjectPermissions;
-                    Permissions.ServerPermissions |= role.Permissions.ServerPermissions;
-                    Permissions.TeamPermissions |= role.Permissions.TeamPermissions;
-                    Permissions.WebsitePermissions |= role.Permissions.WebsitePermissions;
+                    if (role.Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
+                    {
+                        return PermissionsSet.MaxPermissions;
+                    }
+                    else
+                    {
+                        Permissions.AddFrom(role.Permissions);
+
+                        if (resource != null && resource.RolePermissionOverrides.TryGetValue(i, out PermissionsSet roleOverride))
+                        {
+                            Permissions.AddFrom(roleOverride);
+                        }
+                    }
                 }
             }
         }
@@ -364,4 +360,6 @@ public class TeamMemberData
         if (Result.IsAcknowledged)
             action?.Invoke();
     }
+
+
 }

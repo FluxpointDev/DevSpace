@@ -65,7 +65,7 @@
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.NoWrap" Style="overflow: hidden;">
                         @if (user.Roles.Any())
                         {
-                            @foreach(var i in user.GetCachedRoles().OrderBy(x => x.Position))
+                            @foreach(var i in user.GetCachedRoles().OrderBy(x => x.GetPosition()))
                             {
                                 <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="@i.Name" />
                             }
@@ -475,7 +475,7 @@
 
         await DialogService.OpenAsync<MemberPermissionsPreviewDialog>($"Permissions for {user.UserName}", new Dictionary<string, object>()
         {
-            { "Permissions", Team.GetMember(user).CalculatePermissions() }
+            { "Permissions", Team.GetMember(user).CalculatePermissions(null) }
         }, new DialogOptions
         {
             Width = "850px"
