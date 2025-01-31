@@ -11,7 +11,7 @@
         ItemRender="((arg) => ItemRenderAction(arg))"
         TextProperty="@nameof(TeamRoleData.Name)" AllowFiltering="true" Multiple="true" ShowHeader="true"
         ButtonGap="12px" ButtonJustifyContent="JustifyContent.Center" ButtonSize="ButtonSize.Medium" ButtonShade="Shade.Dark"
-        ButtonVariant="Variant.Filled">
+                      ButtonVariant="Variant.Filled">
             <SourceHeader>
                 All Roles
             </SourceHeader>
@@ -19,13 +19,13 @@
                 Current Roles
             </TargetHeader>
             <Template>
-                @if (Program.IsPreviewMode || Team.OwnerId == Session.CurrentUser.Id || CurrentRank < context.GetPosition())
+                @if (Team.OwnerId != Session.CurrentUser.Id && context.GetPosition() >= CurrentRank)
                 {
-                    @context.Name
+                    <span class="iconify" data-icon="mdi:lock"></span> @context.Name
                 }
                 else
                 {
-                    <span class="iconify" data-icon="mdi:lock"></span> @context.Name
+                    @context.Name
                 }
             </Template>
         </RoleSelector>
@@ -52,24 +52,29 @@
 
     public IEnumerable<TeamRoleData> SelectedRoles { get; set; }
 
+    public async Task SourceChanged(IEnumerable<TeamRoleData> roles)
+    {
+        
+    }
+
     protected override void OnParametersSet()
     {
-        CurrentRank = Member.GetRank();
+        CurrentRank = Session.Selected.Member.GetRank();
         List<TeamRoleData> list = new List<TeamRoleData>();
         foreach(ObjectId i in Member.Roles)
         {
             if (Team.CachedRoles.TryGetValue(i, out TeamRoleData role))
                 list.Add(role);
         }
-        SelectedRoles = list;
-        AllRoles = Team.CachedRoles.Values.Except(SelectedRoles).OrderBy(x => x.GetPosition());
+        SelectedRoles = list.OrderByDescending(x => x.GetPosition());
+        AllRoles = Team.CachedRoles.Values.Except(SelectedRoles).OrderByDescending(x => x.GetPosition());
     }
 
     public ListBoxItemRenderEventArgs<object> ItemRenderAction(ListBoxItemRenderEventArgs<object> data)
     {
         TeamRoleData role = data.Item as TeamRoleData;
-        if (!Program.IsPreviewMode && Team.OwnerId != Session.CurrentUser.Id)
-            data.Disabled = CurrentRank >= role.GetPosition();
+        if (Team.OwnerId != Session.CurrentUser.Id && role.GetPosition() >= CurrentRank)
+            data.Disabled = true;
         return data;
     }
 
@@ -81,9 +86,9 @@
             return;
         }
 
-        if (!Session.Selected.Member.HasTeamPermission(TeamPermission.ManageMembers))
+        if (!Session.Selected.Member.HasTeamPermission(TeamPermission.AssignRoles))
         {
-            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
+            Session.Notifications.ShowPermissionWarning(TeamPermission.AssignRoles);
             return;
         }
 
@@ -98,30 +103,11 @@
                 return;
             }
         }
+
         if (SelectedRoles == null)
-        {
-            await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, new HashSet<ObjectId>()), () =>
-            {
-                Member.Roles = new HashSet<ObjectId>();
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Session.Selected.Member, AuditLogCategoryType.Role, AuditLogEventType.MemberRolesChanged)
-                .SetTarget(Member)
-                .AddProperty("Roles", ""));
-            });
-
-        }
+            Member.UpdateRoles(Session.Selected.Member, new HashSet<ObjectId>());
         else
-        {
-            await Member.UpdateAsync(new UpdateDefinitionBuilder<TeamMemberData>().Set(x => x.Roles, SelectedRoles.Select(x => x.Id).ToHashSet()), () =>
-            {
-                Member.Roles = SelectedRoles.Select(x => x.Id).ToHashSet();
-
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Session.Selected.Member, AuditLogCategoryType.Role, AuditLogEventType.MemberRolesChanged)
-                .SetTarget(Member)
-                .AddProperty("Roles", string.Join(", ", SelectedRoles.Select(x => x.Id.ToString()))));
-            });
-            
-        }
-        
+            Member.UpdateRoles(Session.Selected.Member, SelectedRoles.Select(x => x.Id).ToHashSet());
         
         dialogService.Close(true);
         

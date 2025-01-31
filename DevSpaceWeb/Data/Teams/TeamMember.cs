@@ -361,5 +361,35 @@ public class TeamMemberData
             action?.Invoke();
     }
 
+    [JsonIgnore]
+    [BsonIgnore]
+    public object RolesLock = new object();
 
+    public void UpdateRoles(TeamMemberData member, HashSet<ObjectId> roles)
+    {
+        lock (RolesLock)
+        {
+            FilterDefinition<TeamData> filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
+            UpdateDefinition<TeamData> update = new UpdateDefinitionBuilder<TeamData>()
+                .Set(x => x.Roles, roles);
+
+            UpdateResult Result = _DB.Teams.Collection.UpdateOne(filter, update);
+            if (Result.IsAcknowledged)
+            {
+                Roles = roles;
+                if (roles.Any())
+                {
+                    _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.MemberRolesChanged)
+                        .SetTarget(this)
+                        .AddProperty("Roles", string.Join(", ", roles.Select(x => x.ToString()))));
+                }
+                else
+                {
+                    _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.MemberRolesChanged)
+                        .SetTarget(this)
+                        .AddProperty("Roles", ""));
+                }
+            }
+        }
+    }
 }

@@ -65,7 +65,7 @@
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.NoWrap" Style="overflow: hidden;">
                         @if (user.Roles.Any())
                         {
-                            @foreach(var i in user.GetCachedRoles().OrderBy(x => x.GetPosition()))
+                            @foreach(var i in user.GetCachedRoles().OrderByDescending(x => x.GetPosition()))
                             {
                                 <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="@i.Name" />
                             }
@@ -90,22 +90,22 @@
                                 </RadzenMenuItem>
                             </RadzenMenu>
                             <RadzenMenu>
-                                <RadzenMenuItem Text="Manage" Icon="manage_accounts" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))">
+                                <RadzenMenuItem Text="Manage" Icon="manage_accounts">
                                     <RadzenMenuItem Text="Change Roles" Icon="sell" Click="@(() => ChangeMemberRoles(ud))" Disabled="(ud.Id == Team.OwnerId && Member.UserId != Team.OwnerId)"></RadzenMenuItem>
                                     @if (user.Disabled == null)
                                     {
-                                        <RadzenMenuItem Text="Disable Member" Icon="cancel" Click="@(() => DisableMember(ud))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id)"></RadzenMenuItem>
+                                        <RadzenMenuItem Text="Disable Member" Icon="cancel" Click="@(() => DisableMember(ud))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenMenuItem>
                                     }
                                     else
                                     {
-                                        <RadzenMenuItem Text="Enable Member" Icon="check" Click="@(() => EnableMember(ud))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id)"></RadzenMenuItem>
+                                        <RadzenMenuItem Text="Enable Member" Icon="check" Click="@(() => EnableMember(ud))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenMenuItem>
                                     }
                                     
                                     @if (ud.Id != Team.OwnerId && Member.UserId == Team.OwnerId)
                                     {
                                         <RadzenMenuItem Text="Transfer Ownership" Icon="social_distance" Click="@(() => TransferOwnership(ud))"></RadzenMenuItem>
                                     }
-                                    <RadzenMenuItem Text="Remove Member" Icon="person_cancel" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id)"></RadzenMenuItem>
+                                    <RadzenMenuItem Text="Remove Member" Icon="person_cancel" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenMenuItem>
                                 </RadzenMenuItem>
                             </RadzenMenu>
                         </RadzenStack>
@@ -406,9 +406,9 @@
 
     public async Task ChangeMemberRoles(PartialUserData user)
     {
-        if (!Member.HasTeamPermission(TeamPermission.ManageMembers))
+        if (!Member.HasTeamPermission(TeamPermission.AssignRoles))
         {
-            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
+            Session.Notifications.ShowPermissionWarning(TeamPermission.AssignRoles);
             return;
         }
 
