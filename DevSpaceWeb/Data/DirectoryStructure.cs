@@ -50,7 +50,12 @@ public class DirectoryStructurePublic : DirectoryStructure
     public DirectoryStructurePublic(string folder) : base(folder)
     {
         Temp = new DirectoryStructureTemp(folder + "temp/");
-        Resources = new DirectoryStructure(folder + "resources/");
+
+        // Migrate old directory
+        if (Directory.Exists(folder + "resources"))
+            Directory.Move(folder + "resources", folder + "files");
+
+        Files = new DirectoryStructure(folder + "files/");
         Instance = new DirectoryStructure(folder + "instance/");
     }
 
@@ -62,7 +67,7 @@ public class DirectoryStructurePublic : DirectoryStructure
     /// <summary>
     /// Files for all the teams and resources.
     /// </summary>
-    public DirectoryStructure Resources;
+    public DirectoryStructure Files;
 
     /// <summary>
     /// Files for this instance such as instance icon

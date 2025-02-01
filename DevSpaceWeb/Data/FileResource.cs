@@ -17,7 +17,7 @@ public class FileResource
 
     public string Path(string fileType)
     {
-        return Program.Directory.Public.Resources.Path + Resource.ToString() + $"/{Tag}_" + Id.Value.ToString() + "." + fileType;
+        return Program.Directory.Public.Files.Path + Resource.ToString() + $"/{Tag}_" + Id.Value.ToString() + "." + fileType;
     }
 
     public string Url(string fileType)

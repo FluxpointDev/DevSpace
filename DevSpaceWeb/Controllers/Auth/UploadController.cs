@@ -89,7 +89,7 @@ public class UploadController : Controller
                 using (SKData Webp = Image.Encode(SKEncodedImageFormat.Webp, 100))
                 using (Stream Save = Webp.AsStream())
                 using (FileStream Stream = System.IO.File.OpenWrite(
-                    Program.Directory.Public.Resources.Path + AuthUser.ResourceId.ToString() + $"/Avatar_{ImageId.ToString()}.webp"
+                    Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString() + $"/Avatar_{ImageId.ToString()}.webp"
                     ))
                 {
                     Save.CopyTo(Stream);
@@ -98,7 +98,7 @@ public class UploadController : Controller
                 using (SKData Png = Image.Encode(SKEncodedImageFormat.Png, 100))
                 using (Stream Save = Png.AsStream())
                 using (FileStream Stream = System.IO.File.OpenWrite(
-                    Program.Directory.Public.Resources.Path + AuthUser.ResourceId.ToString() + $"/Avatar_{ImageId.ToString()}.png"
+                    Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString() + $"/Avatar_{ImageId.ToString()}.png"
                     ))
                 {
                     Save.CopyTo(Stream);
@@ -197,7 +197,7 @@ public class UploadController : Controller
                 using (SKData Webp = Image.Encode(SKEncodedImageFormat.Webp, 80))
                 using (Stream Save = Webp.AsStream())
                 using (FileStream Stream = System.IO.File.OpenWrite(
-                    Program.Directory.Public.Resources.Path + AuthUser.ResourceId.ToString() + $"/Background_{ImageId.ToString()}.webp"
+                    Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString() + $"/Background_{ImageId.ToString()}.webp"
                     ))
                 {
                     Save.CopyTo(Stream);
@@ -305,7 +305,7 @@ public class UploadController : Controller
                 using (SKData Webp = Image.Encode(SKEncodedImageFormat.Webp, 100))
                 using (Stream Save = Webp.AsStream())
                 using (FileStream Stream = System.IO.File.OpenWrite(
-                    Program.Directory.Public.Resources.Path + Team.ResourceId.ToString() + $"/Icon_{ImageId.ToString()}.webp"
+                    Program.Directory.Public.Files.Path + Team.ResourceId.ToString() + $"/Icon_{ImageId.ToString()}.webp"
                     ))
                 {
                     Save.CopyTo(Stream);
@@ -313,7 +313,7 @@ public class UploadController : Controller
                 using (SKData Png = Image.Encode(SKEncodedImageFormat.Png, 100))
                 using (Stream Save = Png.AsStream())
                 using (FileStream Stream = System.IO.File.OpenWrite(
-                    Program.Directory.Public.Resources.Path + Team.ResourceId.ToString() + $"/Icon_{ImageId.ToString()}.png"
+                    Program.Directory.Public.Files.Path + Team.ResourceId.ToString() + $"/Icon_{ImageId.ToString()}.png"
                     ))
                 {
                     Save.CopyTo(Stream);
@@ -351,10 +351,10 @@ public class UploadController : Controller
     {
         Guid ResourceId = Guid.NewGuid();
 
-        if (Directory.Exists(Program.Directory.Public.Resources.Path + ResourceId.ToString()))
+        if (Directory.Exists(Program.Directory.Public.Files.Path + ResourceId.ToString()))
             return CheckResourceId();
 
-        Directory.CreateDirectory(Program.Directory.Public.Resources.Path + ResourceId.ToString());
+        Directory.CreateDirectory(Program.Directory.Public.Files.Path + ResourceId.ToString());
 
         return ResourceId;
     }
