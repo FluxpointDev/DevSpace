@@ -18,32 +18,40 @@ public class Program
 
     public static X509Certificate2 Certificate;
 
+    public static bool DockerFailed = false;
+
     static async Task Main(string[] args)
     {
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
 
-        bool DockerFailed = false;
         try
         {
-            DockerClient = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
+            var UnixTest = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
+            await UnixTest.System.PingAsync();
+            Console.WriteLine("[Docker] Connected using direct socket access, not recommended.");
         }
         catch
         {
-            DockerFailed = true;
-        }
-
-        try
-        {
-            await DockerClient.System.PingAsync();
-        }
-        catch
-        {
-            DockerFailed = true;
+            DockerFailed = false;
         }
 
         if (DockerFailed)
-            throw new Exception("Docker is required to run on this server for Dev Space");
+        {
+            try
+            {
+                DockerClient = new DockerClientConfiguration(new Uri("tcp://127.0.0.1:2376")).CreateClient();
+                await DockerClient.System.PingAsync();
+                Console.WriteLine("[Docker] Connected using secure socket.");
+            }
+            catch
+            {
+                DockerFailed = true;
+            }
+        }
+
+        if (DockerFailed)
+            Console.WriteLine("[Docker] Failed to connect to socket!!!");
 
         SslContext context = new SslContext(SslProtocols.None, Certificate);
         context.CertificateValidationCallback = (x, s, t, b) => { return true; };

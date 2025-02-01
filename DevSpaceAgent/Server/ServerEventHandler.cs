@@ -66,7 +66,7 @@ public static class ServerEventHandler
                     {
                         DockerEvent @event = payload.ToObject<DockerEvent>()!;
                         DockerResponse<object?> response = new DockerResponse<object?>();
-                        if (!Directory.Exists("/var/lib/docker"))
+                        if (Program.DockerFailed)
                         {
                             response.Error = DockerError.NotInstalled;
                         }
@@ -81,11 +81,11 @@ public static class ServerEventHandler
                                 response.Data = ex.Message;
                                 response.Error = DockerError.Failed;
                             }
-
                         }
+
                         await ws.RespondAsync(@event.TaskId, response);
                     }
-                    
+
                     break;
                 case EventType.CommandWait:
                     {

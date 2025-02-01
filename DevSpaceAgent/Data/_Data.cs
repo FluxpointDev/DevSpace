@@ -13,7 +13,27 @@ public static class _Data
         bool SaveConfig = false;
 
         if (!Directory.Exists(Program.CurrentDirectory + "Data"))
-            Directory.CreateDirectory(Program.CurrentDirectory + "Data");
+        {
+            try
+            {
+                Directory.CreateDirectory(Program.CurrentDirectory + "Data");
+            }
+            catch
+            {
+                Console.WriteLine("Failed to create Data folder");
+                return false;
+            }
+        }
+
+        try
+        {
+            File.WriteAllText(Program.CurrentDirectory + "Data/WriteTest.txt", "Hi");
+        }
+        catch
+        {
+            Console.WriteLine("Failed to write in Data folder");
+            return false;
+        }
 
         if (!File.Exists(Program.CurrentDirectory + "Data/Config.json"))
         {
