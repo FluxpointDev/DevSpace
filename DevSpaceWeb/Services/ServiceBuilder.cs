@@ -86,12 +86,24 @@ public static class ServiceBuilder
             {
                 ControllerActionDescriptor actionDescriptor = (ControllerActionDescriptor)description.ActionDescriptor;
 
-                return actionDescriptor.ControllerTypeInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any()
-                       || actionDescriptor.MethodInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any();
+                if (actionDescriptor.ControllerTypeInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any()
+                       || actionDescriptor.MethodInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any())
+                {
+                    bool RequireInstanceAdmin = actionDescriptor.ControllerTypeInfo.GetCustomAttributes<RequireInstanceAdmin>().Any()
+                       || actionDescriptor.MethodInfo.GetCustomAttributes<RequireInstanceAdmin>().Any();
 
+                    if (_ == "instance")
+                        return RequireInstanceAdmin;
+                    else
+                        return !RequireInstanceAdmin;
+
+                    return true;
+                }
+
+                return false;
                 //or any other visibility strategy...
             });
-            c.SwaggerDoc("v1", new OpenApiInfo
+            c.SwaggerDoc("client", new OpenApiInfo
             {
                 Title = "Dev Space API",
                 Version = "v1",
@@ -104,6 +116,13 @@ public static class ServiceBuilder
                 //    Url = new Uri("https://discord.gg/fluxpoint")
                 //}
             });
+            c.SwaggerDoc("instance", new OpenApiInfo
+            {
+                Title = "Dev Space Instance API",
+                Version = "v1",
+                Description = "These endpoints are only available for the instance admin"
+            });
+
             c.AddServer(new OpenApiServer
             {
                 Url = string.IsNullOrEmpty(_Data.Config.Instance.PublicDomain) ? "http://localhost" : $"https://{_Data.Config.Instance.PublicDomain}"
@@ -127,6 +146,8 @@ public static class ServiceBuilder
                     new string[] {  }
                 }
             });
+            c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+
 
             c.OperationFilter<SwaggerCheckAuthFilter>();
         });

@@ -20,6 +20,8 @@ public class TeamMemberData
     public ObjectId UserId { get; set; }
     public ObjectId TeamId { get; set; }
 
+    public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+
     [JsonIgnore]
     [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);

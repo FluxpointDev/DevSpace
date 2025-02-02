@@ -180,6 +180,10 @@ public static class _DB
                 {
                     await Members.Find(Builders<TeamMemberData>.Filter.Empty).ForEachAsync(x =>
                     {
+                        // Fix joined date for old members data
+                        if (x.JoinedAt != x.Id.CreationTime)
+                            x.JoinedAt = x.Id.CreationTime;
+
                         if (Members.Cache.TryAdd(x.Id, x))
                         {
                             if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))

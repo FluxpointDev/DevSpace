@@ -7,6 +7,12 @@ using System.Reflection;
 namespace DevSpaceWeb.Extensions;
 
 [AttributeUsage(AttributeTargets.All, Inherited = true, AllowMultiple = false)]
+public class RequireInstanceAdmin : Attribute
+{
+
+}
+
+[AttributeUsage(AttributeTargets.All, Inherited = true, AllowMultiple = false)]
 public class SwaggerNoAuthAttribute : Attribute
 {
 

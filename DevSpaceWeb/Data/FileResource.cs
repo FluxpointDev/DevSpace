@@ -22,6 +22,6 @@ public class FileResource
 
     public string Url(string fileType)
     {
-        return _Data.Config.Instance.GetPublicUrl() + "/public/resources/" + Resource.ToString() + $"/{Tag}_" + Id.ToString() + "." + fileType;
+        return _Data.Config.Instance.GetPublicUrl() + "/public/files/" + Resource.ToString() + $"/{Tag}_" + Id.ToString() + "." + fileType;
     }
 }

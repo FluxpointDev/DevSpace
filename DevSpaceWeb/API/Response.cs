@@ -32,6 +32,16 @@ public class ResponseData<T>
     public string message { get; set; } = "";
     public T? data { get; set; }
 }
+public class ResponseSuccess
+{
+    [DefaultValue(true)]
+    public bool success { get; set; } = true;
+
+    [DefaultValue(200)]
+    public int code { get; set; } = 200;
+
+    public string message { get; set; } = "";
+}
 public class ResponseUnauthorized
 {
     [DefaultValue(false)]

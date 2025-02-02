@@ -23,7 +23,7 @@ public class PartialUserData
         if (!AvatarId.HasValue)
             return "https://cdn.fluxpoint.dev/devspace/user_avatar." + (usePng ? "png" : "webp");
 
-        return _Data.Config.Instance.GetPublicUrl() + "/public/resources/" + ResourceId.ToString() + "/Avatar_" + AvatarId.ToString() + ".webp";
+        return _Data.Config.Instance.GetPublicUrl() + "/public/files/" + ResourceId.ToString() + "/Avatar_" + AvatarId.ToString() + ".webp";
     }
 
     public Guid? ResourceId { get; set; }

@@ -29,7 +29,9 @@ public class RolesController : APIController
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out var perm))
             return PermissionFailed(perm);
 
-        return Ok(Team.CachedRoles.Values.Select(x => new RoleJson(x)));
+        bool HasViewPerms = Client.HasTeamPermission(TeamPermission.ViewPermissions);
+
+        return Ok(Team.CachedRoles.Values.Select(x => new RoleJson(x, HasViewPerms)).OrderBy(x => x.position));
     }
 
     [HttpGet("/api/roles/{roleId?}")]
@@ -43,25 +45,8 @@ public class RolesController : APIController
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out var perm))
             return PermissionFailed(perm);
 
-        return Ok(new RoleJson(Role));
+        bool HasViewPerms = Client.HasTeamPermission(TeamPermission.ViewPermissions);
+
+        return Ok(new RoleJson(Role, HasViewPerms));
     }
-
-
-
-    //[HttpPost("/api/roles/{roleId?}")]
-    //[SwaggerOperation("Edit a role.", "")]
-    //[SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<RoleJson>))]
-    //public async Task<IActionResult> EditRole([FromRoute] string roleId = "")
-    //{
-    //    if (string.IsNullOrEmpty(roleId) || !ObjectId.TryParse(roleId, out ObjectId obj) || !_DB.Roles.Cache.TryGetValue(obj, out Data.Teams.TeamRoleData? Role) || !(Client.IsInstanceAdmin || Role.TeamId == Client.TeamId.GetValueOrDefault()))
-    //        return BadRequest("Could not find role.");
-
-    //    if (!Client.HasTeamPermission(TeamPermission.ViewRoles))
-    //        return Forbidden("Client does not have View Roles permission.");
-
-    //    if (!Client.HasTeamPermission(TeamPermission.ManageRoles))
-    //        return Forbidden("Client does not have Manage Roles permission.");
-
-    //    return Ok();
-    //}
 }

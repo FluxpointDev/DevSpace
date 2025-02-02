@@ -133,7 +133,6 @@ public class Program
             opt.RequireHttpsPermanent = true;
             opt.Filters.Add<ControllerExceptionFilter>();
         });
-
         Services = builder.Services;
 
         WebApplication app = builder.Build();
@@ -177,6 +176,7 @@ public class Program
             Logger.LogMessage("Swagger Enabled", LogSeverity.Info);
             app.UseSwagger(c =>
             {
+
             });
 
             if (_Data.Config.Instance.Features.SwaggerUIEnabled)
@@ -184,11 +184,16 @@ public class Program
                 Logger.LogMessage("Swagger UI Enabled", LogSeverity.Info);
                 app.UseSwaggerUI(c =>
                 {
+                    c.ShowCommonExtensions();
                     c.DocumentTitle = "Dev Space Endpoints";
-                    c.SwaggerEndpoint("v1/swagger.json", "Dev Space API");
                     c.SupportedSubmitMethods(SubmitMethod.Get, SubmitMethod.Post);
                     c.ConfigObject = new ConfigObject
                     {
+                        Urls = new List<UrlDescriptor>
+                        {
+                            new UrlDescriptor() { Url = "/swagger/client/swagger.json", Name = "Client API" },
+                            new UrlDescriptor() { Url = "/swagger/instance/swagger.json", Name = "Instance API" },
+                        },
                         //DefaultModelExpandDepth = 2,
                         DefaultModelRendering = ModelRendering.Example,
                         DefaultModelsExpandDepth = -1,
@@ -197,7 +202,6 @@ public class Program
                     //c.EnableFilter();
                 });
             }
-
             app.MapSwagger();
         }
         //new InfoTest().Run();

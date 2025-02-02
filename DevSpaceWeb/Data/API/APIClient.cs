@@ -28,6 +28,17 @@ public class APIClient
     public PermissionsSet CustomPermissions { get; set; } = new PermissionsSet();
     public string? TokenHash { get; set; }
 
+    public int GetRank()
+    {
+        if (Team != null && Team.Members.TryGetValue(OwnerId, out ObjectId memberObj) && Team.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+            return member.GetRank();
+
+        if (IsInstanceAdmin)
+            return int.MaxValue;
+
+        return 0;
+    }
+
     [JsonIgnore]
     [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId.GetValueOrDefault());
@@ -60,9 +71,9 @@ public class APIClient
         if (SelectedTeam == null)
             return false;
 
-        if (CustomPermissions != null)
+        if (UseCustomPermissions)
         {
-            if (CustomPermissions.HasTeamPermission(checkPermission))
+            if (CustomPermissions != null && CustomPermissions.HasTeamPermission(checkPermission))
                 return true;
         }
         else

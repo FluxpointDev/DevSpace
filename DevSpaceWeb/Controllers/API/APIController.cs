@@ -15,7 +15,7 @@ public class APIController : ControllerBase
     {
         Response.ContentType = "application/json";
         Response.StatusCode = 200;
-        return new JsonResult(new Response(200));
+        return new JsonResult(new ResponseSuccess());
     }
 
     [NonAction]
@@ -23,25 +23,27 @@ public class APIController : ControllerBase
     {
         Response.ContentType = "application/json";
         Response.StatusCode = 200;
-        return new JsonResult(new Response(200, msg));
+        return new JsonResult(new ResponseSuccess() { message = msg });
     }
 
     [NonAction]
-    public ContentResult Ok(object obj, string? msg = null)
+    public ContentResult Ok(object? obj, string? msg = null)
     {
         Response.ContentType = "application/json";
         Response.StatusCode = 200;
         JObject JObject = new JObject();
-        Type type = obj.GetType();
-        if (type.IsArray || typeof(IEnumerable).IsAssignableFrom(type))
+        if (obj != null)
         {
-            JObject.TryAdd("data", JArray.FromObject(obj));
+            Type type = obj.GetType();
+            if (type.IsArray || typeof(IEnumerable).IsAssignableFrom(type))
+            {
+                JObject.TryAdd("data", JArray.FromObject(obj));
+            }
+            else
+            {
+                JObject.TryAdd("data", JObject.FromObject(obj));
+            }
         }
-        else
-        {
-            JObject.TryAdd("data", JObject.FromObject(obj));
-        }
-
         JObject.TryAdd("success", true);
         JObject.TryAdd("code", 200);
         JObject.TryAdd("message", msg);
@@ -109,6 +111,14 @@ public class APIController : ControllerBase
     {
         Response.ContentType = "application/json";
         Response.StatusCode = 400;
-        return new JsonResult(new Response(400, $"Client does not have {flag.ToString()} permission."));
+        return new JsonResult(new Response(400, $"Client does not have {Utils.FriendlyName(flag.ToString())} permission."));
+    }
+
+    [NonAction]
+    public JsonResult RankFailed()
+    {
+        Response.ContentType = "application/json";
+        Response.StatusCode = 403;
+        return new JsonResult(new Response(403, "This member has a higher rank than the client."));
     }
 }

@@ -100,7 +100,7 @@
                                     {
                                         <RadzenMenuItem Text="Enable Member" Icon="check" Click="@(() => EnableMember(ud))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenMenuItem>
                                     }
-                                    
+
                                     @if (ud.Id != Team.OwnerId && Member.UserId == Team.OwnerId)
                                     {
                                         <RadzenMenuItem Text="Transfer Ownership" Icon="social_distance" Click="@(() => TransferOwnership(ud))"></RadzenMenuItem>
@@ -211,12 +211,12 @@
                     return;
                 }
             }
+            TeamMemberData member = Team.GetMember(user);
 
-
-            await Team.GetMember(user).UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, null), () =>
+            await member.UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, null), () =>
             {
                 _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
-                Team.GetMember(user).Disabled = null;
+                member.Disabled = null;
             });
         }
     }
@@ -260,9 +260,11 @@
                     return "Failed to disable user";
             }
 
-            await Team.GetMember(user).UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, Disabled), () =>
+            TeamMemberData member = Team.GetMember(user);
+
+            await member.UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, Disabled), () =>
             {
-                Team.GetMember(user).Disabled = Disabled;
+                member.Disabled = Disabled;
                 _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
             });
 
@@ -395,7 +397,9 @@
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members), () =>
         {
+            _DB.Members.Collection.DeleteOneAsync(new FilterDefinitionBuilder<TeamMemberData>().Eq(x => x.Id, SelectedMember.Id));
             Team.Members.Remove(user);
+            Team.CachedMembers.Remove(SelectedMember.Id);
             _DB.Members.Cache.Remove(user, out _);
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.MemberRemoved)
             .SetTarget(_DB.Users[user])

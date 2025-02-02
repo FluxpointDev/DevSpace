@@ -25,10 +25,12 @@ public class ConsoleJson
                 }
                 break;
         }
+        created_at = data.CreatedAt;
     }
 
     public string ip { get; set; }
     public int port { get; set; }
     public ConsoleType type { get; set; }
     public bool is_online { get; set; }
+    public DateTime created_at { get; set; }
 }
