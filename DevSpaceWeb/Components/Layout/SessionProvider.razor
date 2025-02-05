@@ -213,8 +213,11 @@
 
     public DateTime? TwoFactorTimeout = null;
 
-    public async Task<bool> TriggerTwoFactorAuthentication(AuthUser user, bool logUsage, bool forceVerify)
+    public async Task<bool> TriggerTwoFactorAuthentication(AuthUser? user, bool logUsage, bool forceVerify)
     {
+        if (user == null)
+            return false;
+
         if (!forceVerify && TwoFactorTimeout != null && TwoFactorTimeout > DateTime.UtcNow)
             return true;
 

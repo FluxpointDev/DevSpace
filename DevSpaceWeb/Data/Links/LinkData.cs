@@ -21,6 +21,6 @@ public class LinkData
 
     public string GetDomain()
     {
-        return Link.Replace("https://", "").Replace("http://", "").Split('/').First();
+        return Utils.GetDomain(Link)!;
     }
 }

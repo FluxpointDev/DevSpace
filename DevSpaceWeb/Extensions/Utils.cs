@@ -19,6 +19,14 @@ public static class Utils
 
         return vanityUrl.Replace(" ", "-").ToLower();
     }
+
+    public static string? GetDomain(string? url)
+    {
+        if (string.IsNullOrEmpty(url))
+            return url;
+
+        return url.Replace("https://", "").Replace("http://", "").Split('/').First();
+    }
     public static string GetBrowserName(SessionBrowserType type)
     {
         return type switch

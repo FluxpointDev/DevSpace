@@ -27,13 +27,13 @@ public class Program
 
         try
         {
-            var UnixTest = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
-            await UnixTest.System.PingAsync();
+            DockerClient = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
+            await DockerClient.System.PingAsync();
             Console.WriteLine("[Docker] Connected using direct socket access, not recommended.");
         }
         catch
         {
-            DockerFailed = false;
+            DockerFailed = true;
         }
 
         if (DockerFailed)
@@ -43,6 +43,7 @@ public class Program
                 DockerClient = new DockerClientConfiguration(new Uri("tcp://127.0.0.1:2376")).CreateClient();
                 await DockerClient.System.PingAsync();
                 Console.WriteLine("[Docker] Connected using secure socket.");
+                DockerFailed = false;
             }
             catch
             {

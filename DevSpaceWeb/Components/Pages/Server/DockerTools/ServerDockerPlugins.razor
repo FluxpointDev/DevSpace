@@ -1,5 +1,6 @@
 ﻿@using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
+@using DevSpaceWeb.Models.Servers
 @using Docker.DotNet.Models
 @using System.Linq.Dynamic.Core
 @using Newtonsoft.Json.Linq
@@ -23,7 +24,7 @@
         <RadzenButton Variant="Variant.Filled" Text="Refresh Plugins" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshPlugins" />
     </div>
 
-    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
+    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
     @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
     PagingSummaryFormat="@(count + " plugin" + (count != 1 ? "s" : "") )" Density="Density.Compact"
@@ -41,7 +42,7 @@
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedEmployees != null && selectedEmployees.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                    TValue="bool" />
+                                    TValue="bool" Change="@(() => grid.SelectRow(data))" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Filterable="false">
@@ -61,19 +62,20 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Width="100px" Sortable="false" Filterable="false" Pickable="false">
+            <RadzenDataGridColumn Title="Actions" Width="70px" Sortable="false" Filterable="false" Pickable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                         <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                        @if (!string.IsNullOrEmpty(context.Config.Documentation))
-                        {
-                            <a href="@context.Config.Documentation" target="_blank"><RadzenButton Icon="book" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" /></a>
-                        }
-                        else
-                        {
-                            <RadzenButton Icon="book" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="true" />
-                        }
+
                     </RadzenStack>
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Docs" Width="100px" Sortable="false" Filterable="false" Pickable="false">
+                <Template>
+                    @if (!string.IsNullOrEmpty(context.Config.Documentation) && context.Config.Documentation != "-")
+                    {
+                        <a href="@context.Config.Documentation" target="_blank"><RadzenButton Icon="book" Text="Docs" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Style="width: 100%;" /></a>
+                    }
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Description">
@@ -115,7 +117,6 @@
 
     public async Task LoadData(LoadDataArgs args)
     {
-        Logger.LogMessage("Loading Data", LogSeverity.Info);
         if (Program.IsPreviewMode)
         {
             employees = new List<Plugin>
@@ -137,8 +138,6 @@
                     Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
                 }
                 isLoading = false;
-
-
             }
 
             if (containers != null)
@@ -152,7 +151,7 @@
                     query = query.OrderBy(args.OrderBy);
 
                 count = query.Count();
-                employees = query.Skip(args.Skip.Value).Take(args.Top.Value);
+                employees = query.Skip(args.Skip.Value).Take(args.Top.Value).OrderBy(x => x.Name);
             }
         }
     }
@@ -172,16 +171,15 @@
         _ = Task.Run(async () =>
         {
             await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, null, null, type) { ResourceList = selectedEmployees.Select(x => x.ID).ToArray() });
+            await RefreshPlugins();
         });
-        selectedEmployees.Clear();
     }
 
     void ShowContextMenuWithManageItems(Plugin item, MouseEventArgs args)
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Enable", Value = "enable", Icon = "power_settings_new", Disabled = item.Enabled },
-                new ContextMenuItem(){ Text = "Disable", Value = "disable", Icon = "stop", Disabled = !item.Enabled },
+                new ContextMenuItem(){ Text = item.Enabled ? "Disable" : "Enable", Value = item.Enabled ? "disable" : "enable", Icon = item.Enabled ? "stop" : "power_settings_new" },
                 new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete" },
                                          }, x => MenuItemClick(x, item));
     }
@@ -198,13 +196,37 @@
             switch (args.Value.ToString())
             {
                 case "enable":
-                    await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, item.ID, null, ControlPluginType.Enable));
+                    {
+                        Console.WriteLine("Enable Plugin: " + item.ID);
+                        var Result = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, item.ID, null, ControlPluginType.Enable));
+                        
+                        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Result));
+
+                        if (Result.Error == DockerError.None)
+                        {
+                            Console.WriteLine("Refresh");
+                            item.Enabled = true;
+                        }
+                    }
                     break;
                 case "disable":
-                    await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, item.ID, null, ControlPluginType.Disable));
+                    {
+                        var Result = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, item.ID, null, ControlPluginType.Disable));
+                        if (Result.Error == DockerError.None)
+                        {
+                            Console.WriteLine("Refresh");
+                            item.Enabled = false;
+                        }
+                    }
                     break;
                 case "remove":
-                    await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, item.ID, null, ControlPluginType.Remove));
+                    {
+                        var Result = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, item.ID, null, ControlPluginType.Remove));
+                        if (Result.Error == DockerError.None)
+                        {
+                            await RefreshPlugins();
+                        }
+                    }
                     break;
             }
         });
@@ -220,30 +242,43 @@
             return;
         }
 
-        DockerResponse<object> Response = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, "mickyg/kafka-logdriver", null, ControlPluginType.InstallCheck));
-        if (Response.Error != DockerError.None)
+        var AuthUser = await Session.GetCurrentUserAsync();
+        bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
+        if (!TwoFactorValid)
         {
-            await DialogService.ShowInfoAsync($"Plugin Install Failed", Response.Data as string);
+            await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
             return;
         }
-        if (Response.Data is JArray list)
-        {
 
-            List<string> Perms = new List<string>();
-            foreach (PluginPrivilege i in list.ToObject<IList<PluginPrivilege>>())
-            {
-                Perms.Add($"{i.Name}: {string.Join(",", i.Value)}");
-            }
-            bool Confirm = await DialogService.ShowConfirmAsync("Plugin Install Permissions", $"This plugin requires permissions.\n\n" + string.Join("\n\n", Perms), "Accept", ButtonStyle.Success);
-            if (!Confirm)
-                return;
-        }
-        Response = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, "mickyg/kafka-logdriver", null, ControlPluginType.InstallFull));
-        if (Response.Error != DockerError.None)
+        await DialogService.ShowDynamicFormAsync<InstallPluginModel>("Install Plugin", new InstallPluginModel(), async (InstallPluginModel data) =>
         {
-            await DialogService.ShowInfoAsync($"Plugin Install Failed", Response.Data as string);
-            return;
-        }
+            DockerResponse<object> Response = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, data.Name, null, ControlPluginType.InstallCheck));
+            if (Response.Error != DockerError.None)
+                return "Plugin install failed: " + Response.Data as string;
+
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Response.Data, Newtonsoft.Json.Formatting.Indented));
+            if (Response.Data is JArray list)
+            {
+                List<string> Perms = new List<string>();
+                foreach (PluginPrivilege i in list.ToObject<IList<PluginPrivilege>>())
+                {
+                    Perms.Add($"{i.Name}: {string.Join(",", i.Value)}");
+                }
+
+                if (Perms.Any())
+                {
+                bool Confirm = await DialogService.ShowConfirmAsync($"{data.Name} Requires Permissions", $"This plugin requires permissions.\n\n" + string.Join("\n\n", Perms), "Accept", ButtonStyle.Success);
+                if (!Confirm)
+                    return "You need to accept plugin permissions to install.";
+                }
+            }
+            Response = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, data.Name, null, ControlPluginType.InstallFull));
+            if (Response.Error != DockerError.None)
+                return "Plugin install failed: " + Response.Data as string;
+
+            await RefreshPlugins();
+            return null;
+        });
     }
 
     public async Task RefreshPlugins()
@@ -253,7 +288,7 @@
             Session.ShowPreviewModeNotice();
             return;
         }
-
+        containers = null;
         await grid.RefreshDataAsync();
     }
 }

@@ -26,7 +26,7 @@
         <RadzenButton Variant="Variant.Filled" Text="Refresh Networks" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshNetworks" />
     </div>
 
-    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
+    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
     @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
     PagingSummaryFormat="@(count + " network" + (count != 1 ? "s" : "") )" Density="Density.Compact"
@@ -44,7 +44,7 @@
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedEmployees != null && selectedEmployees.Contains(data))" Disabled="@(data.IsSystem())" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                    TValue="bool" />
+                                    TValue="bool" Change="@(() => grid.SelectRow(data))" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Filterable="false">

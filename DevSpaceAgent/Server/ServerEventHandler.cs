@@ -78,6 +78,7 @@ public static class ServerEventHandler
                             }
                             catch (Exception ex)
                             {
+                                Console.WriteLine(ex);
                                 response.Data = ex.Message;
                                 response.Error = DockerError.Failed;
                             }

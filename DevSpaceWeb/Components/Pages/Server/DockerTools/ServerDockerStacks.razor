@@ -26,7 +26,7 @@
         <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshStacks" Disabled="@isLoading" />
     </div>
 
-    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="true" Data="@stacksList" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
+    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" Data="@stacksList" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
     @bind-Value="@selectedStacks" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
     PagingSummaryFormat="@(count + " stack" + (count != 1 ? "s" : "") )" Density="Density.Compact"
@@ -44,7 +44,7 @@
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedStacks != null && selectedStacks.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                    TValue="bool" />
+                    TValue="bool" Change="@(() => grid.SelectRow(data))" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="160px" Frozen="true" Filterable="false">
@@ -59,7 +59,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Width="100px" Filterable="false">
                 <Template>
-                    <RadzenBadge Shade="Shade.Lighter" BadgeStyle="@(context.IsRunning ? BadgeStyle.Success : BadgeStyle.Danger)" Text="@(context.IsRunning ? "Running" : "Down")" IsPill="true" />
+                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="@(context.IsRunning ? BadgeStyle.Success : BadgeStyle.Danger)" Text="@(context.IsRunning ? "Running" : "Down")" IsPill="true" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Containers" Width="120px" Filterable="false">
