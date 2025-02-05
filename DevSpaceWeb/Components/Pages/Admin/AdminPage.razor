@@ -8,22 +8,20 @@
         <RadzenText TextStyle="TextStyle.Body2">
             Enter your Admin Key here, you can find this in /Data/Config.json
         </RadzenText>
-        <br />
-        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Admin Key</RadzenText>
-        <RadzenPassword @bind-Value="AdminKeyInput" Style="width: 100%" aria-label="Admin key TextBox" AutoCompleteType="AutoCompleteType.Off" maxlength="100" />
-        @if (Program.IsPreviewMode)
+        @if (InvalidKey)
         {
-            <br />
-            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                Preview Mode: You can press Check or enter anything to view this.
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Invalid admin key entered.
             </RadzenAlert>
         }
         else
         {
             <br />
-            <br />
         }
-        <RadzenButton Click="@CheckAdminKey" Variant="Variant.Filled" Shade="Shade.Dark" Text="Check" />
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Admin Key</RadzenText>
+        <RadzenPassword @bind-Value="AdminKeyInput" Style="width: 100%" aria-label="Admin key TextBox" AutoCompleteType="AutoCompleteType.Off" maxlength="100" />
+
+        <RadzenButton Click="@CheckAdminKey" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Check" />
     </div>
 }
 else if (!_Data.Config.IsFullySetup)
@@ -72,7 +70,7 @@ else
     public bool IsAdmin { get; set; }
     public string AdminKeyInput { get; set; }
 
-    public string ErrorText { get; set; }
+    public bool InvalidKey { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -87,9 +85,9 @@ else
 
     public void CheckAdminKey()
     {
-        if (Program.IsPreviewMode || (!string.IsNullOrEmpty(AdminKeyInput) && AdminKeyInput == _Data.Config.AdminKey))
-            IsAdmin = true;
+        if (string.IsNullOrEmpty(AdminKeyInput) || AdminKeyInput != _Data.Config.AdminKey)
+            InvalidKey = true;
         else
-            ErrorText = "Invalid admin key";
+            IsAdmin = true;
     }
 }
