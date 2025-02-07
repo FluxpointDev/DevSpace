@@ -1,0 +1,102 @@
+﻿@implements IDisposable
+
+<RadzenButton id="buttonNotifications" @ref="@NotificationsButton" Click="@(() => NotificationsPopup.ToggleAsync(NotificationsButton.Element))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text">
+    @if (Session.CurrentUser.HasNotifications)
+    {
+        <RadzenIcon Icon="notifications" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+        <RadzenBadge Variant="Variant.Filled" BadgeStyle="BadgeStyle.Info" />
+    }
+    else
+    {
+        <RadzenIcon Icon="notifications"></RadzenIcon>
+    }
+</RadzenButton>
+
+<Popup id="popupNotifications" @ref="@NotificationsPopup" class="rz-popup" Lazy="true" AutoFocusFirstElement="false">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+        <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Notifications</RadzenText>
+        <RadzenButton Variant="Variant.Text" Size="ButtonSize.Small" Click="@ClearNotifications" Text="Clear All" ButtonStyle="ButtonStyle.Info" Disabled="@(!Session.CurrentUser.HasNotifications)" />
+    </RadzenStack>
+    <RadzenDataList @ref="@dataList" Density="Density.Compact" Data="@NotificationItems" class="@((NotificationItems.Count() > 3) ? "mt-1 pr-3" : "mt-1")" Style="flex: 1; --rz-datalist-padding: 2px 0; --rz-datalist-item-margin-inline: 0; overflow: auto;">
+        <Template Context="item">
+            <RadzenStack Gap="8px" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
+                @if (!string.IsNullOrEmpty(item.GetIcon()))
+                {
+                    <RadzenImage Path="@item.GetIcon()" Style="width: 32px; height: 32px; border-radius: 50%;" AlternateText="" />
+                }
+                else
+                {
+                    <div style="width: 22px;">
+
+                    </div>
+                }
+                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-caption-color);">@item.GetText()</RadzenText>
+                <div style="flex-grow: 1 !important;"></div>
+                <a href="/user/account"><RadzenButton Text="View" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Shade="Shade.Dark" /></a>
+            </RadzenStack>
+        </Template>
+    </RadzenDataList>
+</Popup>
+
+<style>
+    #popupNotifications {
+    width: 300px;
+    margin-top: 2px;
+    left: calc(100vw - 310px) !important;
+    }
+
+    #popupNotifications .rz-datalist-content {
+    height: 322px;
+    overflow: auto !important;
+    }
+
+    #buttonNotifications .rz-badge {
+    width: 14px;
+    height: 14px;
+    position: absolute;
+    margin-left: 20px;
+    margin-top: 20px;
+    border-radius: 90px;
+    }
+
+    #popupNotifications a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public Popup NotificationsPopup { get; set; }
+    public RadzenButton NotificationsButton { get; set; }
+    public bool IsFirstOpen { get; set; } = true;
+
+    public RadzenDataList<Notification> dataList;
+    public List<Notification> NotificationItems = new List<Notification>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Session.CurrentUser.NotificationTriggered += NotificationTriggered;
+    }
+
+    public void Dispose()
+    {
+        Session.CurrentUser.NotificationTriggered -= NotificationTriggered;
+    }
+
+    public void NotificationTriggered(Notification notification)
+    {
+        NotificationItems.Add(notification);
+        InvokeAsync(StateHasChanged);
+    }
+
+    public async Task ClearNotifications()
+    {
+        Session.CurrentUser.HasNotifications = false;
+        NotificationItems.Clear();
+        await Session.CurrentUser.ClearNotifications();
+    }
+}

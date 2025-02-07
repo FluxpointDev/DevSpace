@@ -10,6 +10,7 @@ public class UserAccount
     public DateTime? EmailChangedAt { get; set; }
     public ObjectId? ManagedAccountTeamId { get; set; }
     public UserPasswordStrength PasswordStrength = UserPasswordStrength.Normal;
+    public bool HasNotifications { get; set; }
 }
 public enum UserPasswordStrength
 {

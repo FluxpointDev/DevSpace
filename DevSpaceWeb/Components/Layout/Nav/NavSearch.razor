@@ -1,0 +1,227 @@
+﻿@inject IJSRuntime JS
+
+<RadzenFormField @ref="@SearchBox" Variant="Variant.Outlined" placeholder="a">
+    <Start>
+        <RadzenIcon Icon="search" />
+    </Start>
+    <ChildContent>
+        <RadzenTextBox @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+        autocapitalize="none" MaxLength="100" placeholder="Test" @onclick="@(args => OpenSearch())"
+        @oninput="@(args => Search(args.Value as string))" />
+    </ChildContent>
+    <End>
+        @if (SearchHasValue)
+        {
+            <RadzenButton Icon="close" Click="@(args => ClearSearch())" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+        }
+    </End>
+</RadzenFormField>
+
+<Popup id="popupSearch" @ref="@SearchPopup" Visible="false" class="rz-popup" AutoFocusFirstElement="false">
+    <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Search Results</RadzenText>
+    <RadzenDataList @ref="@dataList" class="mt-1" Density="Density.Compact" Data="@SearchItems" Style="flex: 1; --rz-datalist-padding: 2px 0; --rz-datalist-item-margin-inline: 0; overflow:auto;">
+        <Template Context="item">
+            <a href="/" @onclick="@(() => SearchPopup.ToggleAsync(SearchBox.Element))">
+                <RadzenStack Orientation="Orientation.Vertical" AlignItems="AlignItems.Normal" JustifyContent="JustifyContent.SpaceAround">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="8px">
+                        <span class="iconify" data-icon="@item.GetIcon()" style="color: var(--rz-text-caption-color); height: 32px; width: 32px;"></span>
+                        <RadzenText TextStyle="TextStyle.Body1">@item.Name</RadzenText>
+                        <div style="flex-grow: 1 !important;"></div>
+                        <RadzenBadge BadgeStyle="BadgeStyle.Base" Shade="Shade.Dark" Text="@item.Type" />
+                    </RadzenStack>
+                    <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                        <RadzenImage Path="@item.GetAvatar(Session)" Style="width: 22px; height: 22px; border-radius: 50%; margin-left: 4px;" AlternateText="" />
+                        <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-caption-color);">@item.GetSmallName(Session)</RadzenText>
+                    </RadzenStack>
+                </RadzenStack>
+
+            </a>
+
+        </Template>
+    </RadzenDataList>
+</Popup>
+
+<style>
+    #popupSearch {
+    width: 300px;
+    }
+
+    .rz-form-field {
+    width: 300px;
+    }
+
+    .rz-form-field-content {
+    margin-block: 0px !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public Popup SearchPopup { get; set; }
+    public RadzenFormField SearchBox { get; set; }
+    public string SearchText { get; set; }
+    public bool SearchHasValue { get; set; }
+
+    public RadzenDataList<SearchItem> dataList;
+    public IEnumerable<SearchItem> SearchItems = new List<SearchItem>();
+
+    public bool IsFirstOpen { get; set; } = true;
+
+    public async Task OpenSearch()
+    {
+        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", "popupSearch");
+        if (!IsSearchOpen || IsFirstOpen)
+        {
+            IsFirstOpen = false;
+            SearchPopup.ToggleAsync(SearchBox.Element);
+        }
+    }
+
+    public async Task Search(string text)
+    {
+        SearchHasValue = !string.IsNullOrEmpty(text);
+        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", "popupSearch");
+        if (!IsSearchOpen || IsFirstOpen)
+        {
+            IsFirstOpen = false;
+            SearchPopup.ToggleAsync(SearchBox.Element);
+        }
+        await LoadData(Session, null, text);
+    }
+
+    public async Task ClearSearch()
+    {
+        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", "popupSearch");
+        if (IsSearchOpen)
+            SearchPopup.ToggleAsync(SearchBox.Element);
+        SearchText = null;
+        SearchHasValue = false;
+        SearchItems = new List<SearchItem>();
+    }
+
+    public class SearchItem
+    {
+        public TeamData? Team;
+        public string Name;
+        public string Type;
+        public string Path;
+
+        public string GetIcon()
+        {
+            switch (Type)
+            {
+                case "account":
+                    return "mdi:account-circle";
+                case "team":
+                    return "mdi:account-supervisor-circle";
+                case "server":
+                    return "mdi:server";
+                case "console":
+                    return "mdi:console";
+                case "log":
+                    return "mdi:warning";
+                case "project":
+                    return "mdi:lightbulb";
+                case "website":
+                    return "mdi:web";
+            }
+
+            return "question-mark";
+        }
+
+        public string GetAvatar(SessionProvider session)
+        {
+            if (Team != null)
+                return Team.GetIconOrDefault();
+
+            return session.CurrentUser.GetAvatarOrDefault();
+        }
+
+        public string GetSmallName(SessionProvider session)
+        {
+            if (Team != null)
+                return Team.Name;
+
+            return session.CurrentUser.UserName;
+        }
+    }
+
+    async Task LoadData(SessionProvider session, LoadDataArgs args, string searchText)
+    {
+        List<SearchItem> items = new List<SearchItem>();
+        if (!string.IsNullOrEmpty(searchText) && searchText.Length > 1)
+        {
+            if (session.CurrentUser != null)
+            {
+                List<TeamMemberData> Members = new List<TeamMemberData>();
+                foreach (var i in _DB.Teams.Cache.Values.Where(x => x.Members.ContainsKey(session.CurrentUser.Id)))
+                {
+                    if (i.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                        items.Add(new SearchItem { Name = i.Name, Team = i, Type = "team", Path = "/teams/" + i.GetVanityUrlOrId() });
+
+                    var Member = i.GetMember(session.CurrentUser);
+                    if (Member != null)
+                        Members.Add(Member);
+                }
+                foreach (var s in _DB.Servers.Cache.Values)
+                {
+                    if (s.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (var m in Members)
+                        {
+                            if (m.TeamId != s.TeamId)
+                                continue;
+
+                            if (m.HasServerPermission(s, ServerPermission.ViewServer))
+                                items.Add(new SearchItem { Name = s.Name, Type = "server", Team = s.Team, Path = "/teams/" + m.Team.GetVanityUrlOrId() + "/servers/" + s.GetVanityUrlOrId() });
+                        }
+                    }
+                }
+                foreach (var c in _DB.Consoles.Cache.Values)
+                {
+                    if (c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (var m in Members)
+                        {
+                            if (m.TeamId != c.TeamId)
+                                continue;
+
+                            if (m.HasConsolePermission(c, ConsolePermission.ViewConsole))
+                                items.Add(new SearchItem { Name = c.Name, Type = "console", Team = c.Team, Path = "/teams/" + m.Team.GetVanityUrlOrId() + "/consoles/" + c.GetVanityUrlOrId() });
+                        }
+                    }
+                }
+                foreach (var a in _DB.API.Cache.Values)
+                {
+                    if (a.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (var m in Members)
+                        {
+                            if (m.TeamId != a.TeamId)
+                                continue;
+
+                            if (a.HasAccess(m))
+                                items.Add(new SearchItem { Name = a.Name, Type = "console", Team = a.Team, Path = "/teams/" + m.Team.GetVanityUrlOrId() + "/clients/" + a.Id.ToString() });
+                        }
+                    }
+                }
+            }
+            foreach (var d in SearchData.List)
+            {
+                if (d.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) || d.Tags.Any(x => x.Equals(searchText)))
+                {
+                    items.Add(new SearchItem { Name = d.Name, Type = d.Type, Path = d.Path });
+                }
+            }
+            SearchItems = items.Take(3);
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(SearchText))
+                SearchItems = new List<SearchItem>();
+
+        }
+    }
+}

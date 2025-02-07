@@ -49,6 +49,7 @@ public static class _DB
             TeamVanityUrls = new ICacheCollection<VanityUrlData>("vanity_urls");
             AuditLogs = new ICollection<AuditLog>("audit");
             API = new ICacheCollection<APIClient>("api");
+            Notifications = new ICollection<Notification>("notifications");
         }
     }
 
@@ -435,4 +436,6 @@ public static class _DB
     public static ICollection<AuditLog> AuditLogs = null!;
 
     public static ICacheCollection<APIClient> API = null!;
+
+    public static ICollection<Notification> Notifications = null!;
 }
