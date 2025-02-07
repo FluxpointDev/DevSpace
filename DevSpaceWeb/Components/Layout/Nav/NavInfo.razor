@@ -1,0 +1,53 @@
+﻿<RadzenButton id="buttonInfo" @ref="@InfoButton" Icon="info" IconColor="var(--rz-header-color)" Click="@(() => InfoPopup.ToggleAsync(InfoButton.Element))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text">
+</RadzenButton>
+
+<Popup id="popupInfo" @ref="@InfoPopup" class="rz-popup" Lazy="true" AutoFocusFirstElement="false">
+    <RadzenStack Orientation="Orientation.Vertical" JustifyContent="JustifyContent.SpaceBetween" Style="height: 100%;">
+        <RadzenStack>
+            <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Information</RadzenText>
+            <div class="pl-2 pr-2">
+                <h6>Dev Space v@(Program.Version)</h6>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" class="mt-4" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.Center">
+                    <a href="https://fluxpoint.dev" target="_blank">
+                        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Default" Variant="Variant.Outlined" Style="width: 110px;">
+                            <RadzenImage Style="height: 20px; margin-right: 6px;" Path="https://fluxpoint.dev/img/icons/fluxpoint.png"></RadzenImage> Website
+                        </RadzenButton>
+                    </a>
+                    <a href="https://discord.gg/fluxpoint" target="_blank">
+                        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Default" Variant="Variant.Outlined" Style="width: 110px;">
+                            <RadzenImage Style="height: 20px; margin-right: 6px;" Path="https://cdn.fluxpoint.dev/icons/discord.webp"></RadzenImage> Discord
+                        </RadzenButton>
+                    </a>
+                    <a href="https://github.com/FluxpointDev/DevSpace" target="_blank">
+                        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Default" Variant="Variant.Outlined" Style="width: 110px;">
+                            <RadzenImage Style="height: 20px; margin-right: 6px; background-color: white; border-radius: 120px; padding: 1px;" Path="https://cdn.fluxpoint.dev/icons/github.webp"></RadzenImage> GitHub
+                        </RadzenButton>
+                    </a>
+                    <a href="https://docs.fluxpoint.dev/devspace" target="_blank">
+                        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Default" Variant="Variant.Outlined" Style="width: 110px;">
+                            <RadzenIcon Icon="menu_book" Style="height: 20px; margin-right: 6px;"></RadzenIcon> Docs
+                        </RadzenButton>
+                    </a>
+                </RadzenStack>
+                
+            </div>
+        </RadzenStack>
+        <RadzenText Style="text-align: center;" TextStyle="TextStyle.Body2">Created by <a href="https://fluxpoint.dev" target="_blank">Fluxpoint Development</a></RadzenText>
+    </RadzenStack>
+</Popup>
+
+<style>
+    #popupInfo{
+        width: 300px;
+        margin-top: 2px;
+        left: calc(100vw - 310px) !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public Popup InfoPopup { get; set; }
+    public RadzenButton InfoButton { get; set; }
+}
