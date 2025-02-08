@@ -113,7 +113,6 @@ public class Program
                 {
 
                 }
-
             });
         }
 
@@ -204,6 +203,7 @@ public class Program
             }
             app.MapSwagger();
         }
+
         //new InfoTest().Run();
         app.MapRazorComponents<Components.App>()
             .AddInteractiveServerRenderMode();

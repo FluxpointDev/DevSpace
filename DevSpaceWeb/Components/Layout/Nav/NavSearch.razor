@@ -5,8 +5,8 @@
         <RadzenIcon Icon="search" />
     </Start>
     <ChildContent>
-        <RadzenTextBox @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-        autocapitalize="none" MaxLength="100" placeholder="Test" @onclick="@(args => OpenSearch())"
+        <RadzenTextBox @ref="@SearchTextBox" id="inputSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+        autocapitalize="none" MaxLength="100" @onclick="@(args => OpenSearch())"
         @oninput="@(args => Search(args.Value as string))" />
     </ChildContent>
     <End>
@@ -55,6 +55,14 @@
     }
 </style>
 
+<script>
+    function LoadSearchPlaceholder()
+    {
+    document.getElementById('inputSearch').placeholder = 'Type to search';
+    }
+
+</script>
+
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
@@ -68,6 +76,8 @@
     public IEnumerable<SearchItem> SearchItems = new List<SearchItem>();
 
     public bool IsFirstOpen { get; set; } = true;
+
+    public RadzenTextBox SearchTextBox { get; set; }
 
     public async Task OpenSearch()
     {

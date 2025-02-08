@@ -17,7 +17,9 @@
         <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Notifications</RadzenText>
         <RadzenButton Variant="Variant.Text" Size="ButtonSize.Small" Click="@ClearNotifications" Text="Clear All" ButtonStyle="ButtonStyle.Info" Disabled="@(!Session.CurrentUser.HasNotifications)" />
     </RadzenStack>
-    <RadzenDataList @ref="@dataList" Density="Density.Compact" Data="@NotificationItems" class="@((NotificationItems.Count() > 3) ? "mt-1 pr-3" : "mt-1")" Style="flex: 1; --rz-datalist-padding: 2px 0; --rz-datalist-item-margin-inline: 0; overflow: auto;">
+    <RadzenDataList @ref="@dataList" Density="Density.Compact" Data="@NotificationItems" PageSize="5" Count="@NotificationCount" LoadData="@LoadData" class="@((NotificationItems.Count() > 3) ? "mt-1 pr-3" : "mt-1")"
+    Style="flex: 1; --rz-datalist-padding: 2px 0; --rz-datalist-item-margin-inline: 0; overflow: auto;"
+    AllowPaging="true"  PagerAlwaysVisible="true" PagerHorizontalAlign="HorizontalAlign.Center">
         <Template Context="item">
             <RadzenStack Gap="8px" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
                 @if (!string.IsNullOrEmpty(item.GetIcon()))
@@ -76,10 +78,36 @@
 
     public RadzenDataList<Notification> dataList;
     public List<Notification> NotificationItems = new List<Notification>();
+    public int NotificationCount { get; set; }
+
+    public async Task LoadData(LoadDataArgs args)
+    {
+        var filter = new FilterDefinitionBuilder<Notification>().Eq(x => x.UserId, Session.CurrentUser.Id);
+        try
+        {
+            Console.WriteLine($"Skip: {args.Skip.GetValueOrDefault()} | Limit: {args.Top.GetValueOrDefault()}");
+            NotificationItems = await _DB.Notifications.Find(filter).SortByDescending(x => x.CreatedAt).Skip(args.Skip.GetValueOrDefault()).Limit(args.Top.GetValueOrDefault()).ToListAsync();
+            long Count = await _DB.Notifications.Find(filter).CountDocumentsAsync();
+            if (Count >= 30)
+                NotificationCount = 30;
+            else
+                NotificationCount = (int)Count;
+            Console.WriteLine("Get notifications: " + NotificationItems.Count());
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine("Init");
         Session.CurrentUser.NotificationTriggered += NotificationTriggered;
+        await LoadData(new LoadDataArgs
+        {
+            Top = 5
+        });
     }
 
     public void Dispose()
@@ -89,7 +117,13 @@
 
     public void NotificationTriggered(Notification notification)
     {
-        NotificationItems.Add(notification);
+        if (NotificationCount < 30)
+            NotificationCount += 1;
+
+
+        if (NotificationItems.Count == 5)
+            NotificationItems.RemoveAt(4);
+        NotificationItems.Prepend(notification);
         InvokeAsync(StateHasChanged);
     }
 
