@@ -17,7 +17,7 @@
     </End>
 </RadzenFormField>
 
-<Popup id="popupSearch" @ref="@SearchPopup" Visible="false" class="rz-popup" AutoFocusFirstElement="false">
+<Popup id="@(IsMobile ? "popupSearch" : "popupSearchMobile")" @ref="@SearchPopup" Visible="false" class="rz-popup" AutoFocusFirstElement="false">
     <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Search Results</RadzenText>
     <RadzenDataList @ref="@dataList" class="mt-1" Density="Density.Compact" Data="@SearchItems" Style="flex: 1; --rz-datalist-padding: 2px 0; --rz-datalist-item-margin-inline: 0; overflow:auto;">
         <Template Context="item">
@@ -42,7 +42,7 @@
 </Popup>
 
 <style>
-    #popupSearch {
+    #popupSearch, #popupSearchMobile {
     width: 300px;
     }
 
@@ -50,22 +50,24 @@
     width: 300px;
     }
 
+    @@media (max-width: 768px) {
+    .rz-form-field {
+    width: 100% !important;
+    }
+
+    }
+
     .rz-form-field-content {
     margin-block: 0px !important;
     }
 </style>
 
-<script>
-    function LoadSearchPlaceholder()
-    {
-    document.getElementById('inputSearch').placeholder = 'Type to search';
-    }
-
-</script>
-
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
+
+    [Parameter]
+    public bool IsMobile { get; set; }
 
     public Popup SearchPopup { get; set; }
     public RadzenFormField SearchBox { get; set; }
@@ -81,7 +83,7 @@
 
     public async Task OpenSearch()
     {
-        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", "popupSearch");
+        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", IsMobile ? "popupSearch" : "popupSearchMobile");
         if (!IsSearchOpen || IsFirstOpen)
         {
             IsFirstOpen = false;
@@ -92,7 +94,7 @@
     public async Task Search(string text)
     {
         SearchHasValue = !string.IsNullOrEmpty(text);
-        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", "popupSearch");
+        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", IsMobile ? "popupSearch" : "popupSearchMobile");
         if (!IsSearchOpen || IsFirstOpen)
         {
             IsFirstOpen = false;
@@ -103,7 +105,7 @@
 
     public async Task ClearSearch()
     {
-        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", "popupSearch");
+        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", IsMobile ? "popupSearch" : "popupSearchMobile");
         if (IsSearchOpen)
             SearchPopup.ToggleAsync(SearchBox.Element);
         SearchText = null;

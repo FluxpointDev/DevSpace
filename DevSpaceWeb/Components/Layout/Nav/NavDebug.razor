@@ -1,0 +1,32 @@
+﻿<RadzenButton id="buttonDebug" @ref="@DebugButton" Icon="bug_report" IconColor="var(--rz-header-color)" class="rz-button-icon-only" Click="@(() => DebugPopup.ToggleAsync(DebugButton.Element))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text">
+</RadzenButton>
+
+<Popup id="popupDebug" @ref="@DebugPopup" class="rz-popup" Lazy="true" AutoFocusFirstElement="false">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+        <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Debug</RadzenText>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" Gap="8px" class="mt-1">
+        <RadzenButton Click="@CreateNotification">Create Notification</RadzenButton>
+    </RadzenStack>
+</Popup>
+
+<style>
+    #popupDebug {
+    width: 300px;
+    margin-top: 2px;
+    left: calc(100vw - 310px) !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public Popup DebugPopup { get; set; }
+    public RadzenButton DebugButton { get; set; }
+
+    public async Task CreateNotification()
+    {
+        await Session.CurrentUser.AddNotification(NotificationType.InvitedToTeam, _DB.Teams.Cache.Values.First());
+    }
+}

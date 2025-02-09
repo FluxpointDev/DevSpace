@@ -1,0 +1,30 @@
+﻿<RadzenButton id="buttonTools" Disabled="true" @ref="@ToolsButton" Icon="build" IconColor="var(--rz-header-color)" class="rz-button-icon-only" Click="@(() => ToolsPopup.ToggleAsync(ToolsButton.Element))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text">
+</RadzenButton>
+
+<Popup @ref="@ToolsPopup" class="rz-popup popup-tools" Lazy="true" AutoFocusFirstElement="false">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+        <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Tools</RadzenText>
+    </RadzenStack>
+</Popup>
+
+<style>
+    .popup-tools {
+        width: 300px;
+        margin-top: 2px;
+        left: calc(100vw - 310px) !important;
+    }
+
+    @@media (max-width: 768px) {
+        .popup-tools {
+            left: 10px !important;
+        }
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public Popup ToolsPopup { get; set; }
+    public RadzenButton ToolsButton { get; set; }
+}
