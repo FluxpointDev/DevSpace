@@ -31,7 +31,7 @@ public static class _DB
 
     public static void TriggerSessionEvent(ObjectId user, SessionEventType type)
     {
-        SessionUpdated?.Invoke(null, user, type);
+        SessionUpdated?.Invoke(user, type);
     }
 
     public static void Init(ConfigurationManager configuration)
