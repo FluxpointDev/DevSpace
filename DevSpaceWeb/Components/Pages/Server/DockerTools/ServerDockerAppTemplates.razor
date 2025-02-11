@@ -27,11 +27,8 @@
     {
         await DialogService.ShowDynamicFormAsync<SetupTemplateStackModel>("Setup Anyviz Cloud Adaptor", new SetupTemplateStackModel(), async (SetupTemplateStackModel data) =>
         {
-            if (!Member.HasDockerPermission(Server, DockerPermission.ViewTemplates))
-                return "You do not have permission for View Templates";
-
-            if (!Member.HasDockerPermission(Server, DockerPermission.ManageContainers))
-                return "You do not have permission for Manage Containers";
+            if (!Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))
+                return "You do not have permission for Docker Administrator";
 
             return null;
         });

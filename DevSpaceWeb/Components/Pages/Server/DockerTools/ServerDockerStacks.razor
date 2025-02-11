@@ -19,10 +19,10 @@
     </div>
 
     <div class="dash-box-content">
-        <RadzenButton Variant="Variant.Outlined" Text="Export" Click="@(() => RunSelectedContainersAction(ControlImageType.Export))" Icon="folder_zip" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.ManageContainers))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
-        <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.ManageContainers))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+        <RadzenButton Variant="Variant.Outlined" Text="Export" Click="@(() => RunSelectedContainersAction(ControlImageType.Export))" Icon="folder_zip" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
+        <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
 
-        <RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateStack" Disabled="@(!Member.HasDockerPermission(Server, DockerPermission.ManageContainers))" />
+        <RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateStack" Disabled="@(!Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))" />
         <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshStacks" Disabled="@isLoading" />
     </div>
 
@@ -70,7 +70,7 @@
             <RadzenDataGridColumn Title="Actions" Width="70px" Sortable="false" Filterable="false" Pickable="false" >
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                        <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerPermission(Server, DockerPermission.ManageContainers))" />
+                        <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>

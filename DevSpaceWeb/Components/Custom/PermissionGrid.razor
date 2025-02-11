@@ -121,22 +121,15 @@
                 </RadzenText>
 
                 <div class="permission-grid-info">
-                    <RadzenCheckBox @bind-Value="@DockerAdministrator" Name="ServerDockerAdministrator" Disabled="@CheckDisabled(DockerManager || GlobalAdministrator || ServerAdministrator || !CalculatedPermissions.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator))" ReadOnly="@CheckReadOnly()" />
+                    <RadzenCheckBox @bind-Value="@DockerAdministrator" Name="ServerDockerAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || ServerAdministrator || !CalculatedPermissions.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator))" ReadOnly="@CheckReadOnly()" />
                     <RadzenLabel Text="Docker Administrator" Component="ServerDockerAdministrator" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">All docker permissions.</span>
-                </div>
-
-
-                @* <div class="permission-grid-info">
-                    <RadzenCheckBox @bind-Value="@DockerManager" Name="ServerDockerManager" Disabled="@CheckDisabled(DockerAdministrator || GlobalAdministrator || ServerAdministrator || !CalculatedPermissions.DockerPermissions.HasFlag(DockerPermission.DockerManager))" ReadOnly="@CheckReadOnly()" />
-                    <RadzenLabel Text="Docker Manager" Component="ServerDockerManager" class="rz-ms-2" />
-                    <span style="color: var(--rz-text-tertiary-color)">Manage most docker features except for system access or dangerous actions.</span>
                 </div>
 
                 <div>
                     <RadzenDropDown @ref="DockerGrid.Grid" @bind-Value="@DockerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                     AllowFiltering="true" Chips="true" Data="@DockerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => DockerItemRender(evnt))"
-                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || (DockerAdministrator || DockerManager) || ServerAdministrator)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
+                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || (DockerAdministrator) || ServerAdministrator)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
                         <Template>
                             <RadzenLabel Text="@((context as PermissionItem<DockerPermission>).Name)" Style="display: block;" />
                             <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<DockerPermission>).Description)</span>
@@ -146,7 +139,7 @@
                             @((context as PermissionItem<DockerPermission>).Name)
                         </ValueTemplate>
                     </RadzenDropDown>
-                </div> *@
+                </div>
             </RadzenStack>
         }
 
@@ -455,7 +448,6 @@
         ViewServer = Permissions.ServerPermissions.HasFlag(ServerPermission.ViewServer);
 
         DockerAdministrator = Permissions.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator);
-        DockerManager = Permissions.DockerPermissions.HasFlag(DockerPermission.DockerManager);
 
         WebsiteAdministrator = Permissions.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator);
         ViewWebsite = Permissions.WebsitePermissions.HasFlag(WebsitePermission.ViewWebsite);
@@ -533,9 +525,6 @@
 
     private bool _dockerAdministrator;
     public bool DockerAdministrator { get { return _dockerAdministrator; } set { _dockerAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
-
-    private bool _dockerManager;
-    public bool DockerManager { get { return _dockerManager; } set { _dockerManager = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
 
     private bool _websiteAdministrator;
     public bool WebsiteAdministrator { get { return _websiteAdministrator; } set { _websiteAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
@@ -697,55 +686,13 @@
 
         switch (item.Flag)
         {
-            case DockerPermission.ContainerInspect:
-            case DockerPermission.ContainerLogs:
-            case DockerPermission.ContainerStats:
             case DockerPermission.ControlContainers:
-            case DockerPermission.ManageContainers:
-            case DockerPermission.ManageStackPermissions:
-            case DockerPermission.ContainerConsole:
                 {
                     if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewContainers))
                         data.Disabled = true;
                 }
                 break;
-            case DockerPermission.ViewCustomTemplates:
-            case DockerPermission.ManageCustomTemplates:
-                {
-                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewTemplates))
-                        data.Disabled = true;
-                }
-                break;
-            case DockerPermission.ManageImages:
-                {
-                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewImages))
-                        data.Disabled = true;
-                }
-                break;
-            case DockerPermission.ManageNetworks:
-                {
-                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewNetworks))
-                        data.Disabled = true;
-                }
-                break;
-            case DockerPermission.ManagePlugins:
-                {
-                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewPlugins))
-                        data.Disabled = true;
-                }
-                break;
-            case DockerPermission.ManageRegistries:
-                {
-                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewRegistries))
-                        data.Disabled = true;
-                }
-                break;
-            case DockerPermission.ManageVolumes:
-                {
-                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewVolumes))
-                        data.Disabled = true;
-                }
-                break;
+            
         }
         return data;
     }
@@ -835,8 +782,6 @@
 
         if (DockerAdministrator)
             Set.DockerPermissions |= DockerPermission.DockerAdministrator;
-        else if (DockerManager)
-            Set.DockerPermissions |= DockerPermission.DockerManager;
         else
         {
             foreach (PermissionItem<DockerPermission> i in DockerGrid.Selected)

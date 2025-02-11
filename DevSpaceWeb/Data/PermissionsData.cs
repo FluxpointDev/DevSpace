@@ -102,23 +102,16 @@ public static class PermissionsData
             {
                 new PermissionItem<DockerPermission>(DockerPermission.ViewContainers, "View Container" + (plural ? "s" : ""), "View all docker containers and stacks the team owns."),
                 new PermissionItem<DockerPermission>(DockerPermission.ControlContainers, "Control Container" + (plural ? "s" : ""), "Start, stop, restart, pause and kill containers."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageContainers, "Manage Container" + (plural ? "s" : ""), "Create and modify containers and stacks."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewImages, "View Images", "View current docker images."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageImages, "Manage Images", "Create and modify docker images."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewVolumes, "View Volumes", "View current docker volumes/storage."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageVolumes, "Manage Volumes", "Create and modify docker volumes."),
+                new PermissionItem<DockerPermission>(DockerPermission.ViewImages, "View Images", "View docker images for the system."),
+                new PermissionItem<DockerPermission>(DockerPermission.ViewVolumes, "View Volumes", "View docker volumes/storage."),
                 new PermissionItem<DockerPermission>(DockerPermission.ViewNetworks, "View Networks", "View current docker networks."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageNetworks, "Manage Networks", "Create and modify docker networks."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewTemplates, "View Templates", "View a list bunch of premade docker templates."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewCustomTemplates, "View Custom Templates", "View a list of custom docker templates made by other members."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageCustomTemplates, "Manage Custom Templates", "Create and modify custom docker templates."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewPlugins, "View Plugins", "View current docker templates installed."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManagePlugins, "Manage Plugins", "Install docker plugins on the server."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewEvents, "View Events", "View realtime docker events for all stacks, containers, images, networks, volumes and plugins."),
                 new PermissionItem<DockerPermission>(DockerPermission.ViewRegistries, "View Registry", "View current docker registries."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageRegistries, "Manage Registry", "Create and modify docker registries."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageSettings, "Manage Settings", "Modify server-wide docker settings and features."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageStackPermissions, "Manage Stack Permissions", "Manage permissions for stacks."),
+                new PermissionItem<DockerPermission>(DockerPermission.ViewContainerLogs, "View Container Logs", "View live container logs."),
+                new PermissionItem<DockerPermission>(DockerPermission.ViewContainerEnvironment, "View Container Environment", "View environment variables for containers."),
+                new PermissionItem<DockerPermission>(DockerPermission.ViewContainerFiles, "View Container Files", "View files inside the containers."),
+                new PermissionItem<DockerPermission>(DockerPermission.ManageContainerFiles, "Manage Container Files", "Create and modify files inside the containers."),
+                new PermissionItem<DockerPermission>(DockerPermission.ViewPermissions, "View Permissions", "View permissions for the containers."),
+                new PermissionItem<DockerPermission>(DockerPermission.ManagePermissions, "Manage Permissions", "Manage permissions for the containers.")
             };
     }
 

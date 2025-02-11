@@ -22,32 +22,6 @@ public class PermissionsSet
         DockerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator)
         ? (DockerPermission)ulong.MaxValue : perms.DockerPermissions;
 
-        if (perms.DockerPermissions.HasFlag(DockerPermission.DockerManager))
-        {
-            DockerPermissions |= DockerPermission.ContainerConsole;
-            DockerPermissions |= DockerPermission.ContainerInspect;
-            DockerPermissions |= DockerPermission.ContainerLogs;
-            DockerPermissions |= DockerPermission.ContainerStats;
-            DockerPermissions |= DockerPermission.ControlContainers;
-            DockerPermissions |= DockerPermission.ManageContainers;
-            DockerPermissions |= DockerPermission.ManageCustomTemplates;
-            DockerPermissions |= DockerPermission.ManageImages;
-            DockerPermissions |= DockerPermission.ManageNetworks;
-            DockerPermissions |= DockerPermission.ManageRegistries;
-            DockerPermissions |= DockerPermission.ManageSettings;
-            DockerPermissions |= DockerPermission.ManageStackPermissions;
-            DockerPermissions |= DockerPermission.ManageVolumes;
-            DockerPermissions |= DockerPermission.ViewContainers;
-            DockerPermissions |= DockerPermission.ViewCustomTemplates;
-            DockerPermissions |= DockerPermission.ViewEvents;
-            DockerPermissions |= DockerPermission.ViewImages;
-            DockerPermissions |= DockerPermission.ViewNetworks;
-            DockerPermissions |= DockerPermission.ViewPlugins;
-            DockerPermissions |= DockerPermission.ViewRegistries;
-            DockerPermissions |= DockerPermission.ViewTemplates;
-            DockerPermissions |= DockerPermission.ViewVolumes;
-        }
-
         LogPermissions |= perms.LogPermissions.HasFlag(LogPermission.LogAdministrator)
         ? (LogPermission)ulong.MaxValue : perms.LogPermissions;
 
@@ -128,38 +102,6 @@ public class PermissionsSet
 
         if (checkPermission != DockerPermission.DockerAdministrator)
             return true;
-
-        // Docker manager permissions set
-        switch (checkPermission)
-        {
-            case DockerPermission.ContainerConsole:
-            case DockerPermission.ContainerInspect:
-            case DockerPermission.ContainerLogs:
-            case DockerPermission.ContainerStats:
-            case DockerPermission.ControlContainers:
-            case DockerPermission.ManageContainers:
-            case DockerPermission.ManageCustomTemplates:
-            case DockerPermission.ManageImages:
-            case DockerPermission.ManageNetworks:
-            case DockerPermission.ManageRegistries:
-            case DockerPermission.ManageSettings:
-            case DockerPermission.ManageStackPermissions:
-            case DockerPermission.ManageVolumes:
-            case DockerPermission.ViewContainers:
-            case DockerPermission.ViewCustomTemplates:
-            case DockerPermission.ViewEvents:
-            case DockerPermission.ViewImages:
-            case DockerPermission.ViewNetworks:
-            case DockerPermission.ViewPlugins:
-            case DockerPermission.ViewRegistries:
-            case DockerPermission.ViewTemplates:
-            case DockerPermission.ViewVolumes:
-                {
-                    if (checkPermission != DockerPermission.DockerManager && DockerPermissions.HasFlag(DockerPermission.DockerManager))
-                        return true;
-                }
-                break;
-        }
 
         if (DockerPermissions.HasFlag(checkPermission))
             return true;

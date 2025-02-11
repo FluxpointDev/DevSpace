@@ -3,29 +3,36 @@
 [Flags]
 public enum DockerPermission : ulong
 {
-    DockerManager = 1L << 0,
-    DockerAdministrator = 1L << 1,
-    ViewContainers = 1L << 2,
-    ControlContainers = 1L << 3,
-    ManageContainers = 1L << 4,
-    ViewImages = 1L << 5,
-    ViewNetworks = 1L << 6,
+    // ALl docker permissions including system access.
+    DockerAdministrator = 1L << 0,
+    // View all containers, stacks 
+    ViewContainers = 1L << 1,
+    // Start/stop/restart/kill/pause containers
+    ControlContainers = 1L << 2,
+    // View container logs
+    ViewContainerLogs = 1L << 3,
+    // View sensitive container environment variables.
+    ViewContainerEnvironment = 1L << 4,
+    // View the container files 
+    ViewContainerFiles = 1L << 5,
+    // Lets you create and modify files in the container
+    ManageContainerFiles = 1L << 6,
+    // View container volume info
     ViewVolumes = 1L << 7,
-    ViewTemplates = 1L << 8,
-    ViewCustomTemplates = 1L << 9,
-    ManageCustomTemplates = 1L << 10,
-    ViewPlugins = 1L << 11,
-    ManagePlugins = 1L << 12,
-    ContainerLogs = 1L << 13,
-    ContainerInspect = 1L << 14,
-    ContainerStats = 1L << 15,
-    ContainerConsole = 1L << 16,
-    ManageImages = 1L << 17,
-    ManageNetworks = 1L << 18,
-    ManageVolumes = 1L << 19,
-    ViewEvents = 1L << 20,
-    ViewRegistries = 1L << 21,
-    ManageRegistries = 1L << 22,
-    ManageSettings = 1L << 23,
-    ManageStackPermissions = 1L << 24,
+    // View container network info
+    ViewNetworks = 1L << 8,
+    // View container images
+    ViewImages = 1L << 9,
+    // View host docker registries
+    ViewRegistries = 1L << 10,
+    // Lets you view permissions for containers
+    ViewPermissions = 1L << 12,
+    // Lets you manage permissions for the container
+    ManagePermissions = 1L << 13,
+    // Remote access containers with your permissions with the dev space api
+    UseAPIs = 1L << 14,
+    // View potentially sensitive open ports for the containers
+    ViewContainerPorts = 1L << 15,
+    // Execute commands inside the container.
+    UseContainerConsole = 1L << 16,
 }
