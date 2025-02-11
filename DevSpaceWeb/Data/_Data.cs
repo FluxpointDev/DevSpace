@@ -69,12 +69,6 @@ public static class _Data
             Config.AdminKey = GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
         }
 
-        if (Config.Database == null)
-        {
-            SaveConfig = true;
-            Config.Database = new ConfigDatabase();
-        }
-
         if (Config.Admin == null)
         {
             SaveConfig = true;

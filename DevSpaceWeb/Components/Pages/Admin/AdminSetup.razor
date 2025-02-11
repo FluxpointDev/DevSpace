@@ -26,121 +26,6 @@
     <br />
     <RadzenTimeline LinePosition="LinePosition.Left">
         <Items>
-            <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Database)">
-                <ChildContent>
-                    <RadzenCard>
-                        <RadzenText TextStyle="TextStyle.Subtitle1">Database</RadzenText>
-
-                        <br />
-
-                        <RadzenLabel Text="Database Type" class="rz-my-0"></RadzenLabel>
-                        <RadzenSelectBar TValue="bool" @bind-Value="@IsDatabaseAutomatic" Style="width: 100%" Disabled="@(SetupStep != SetupStepType.Database || MongoDBDetected)">
-                            <Items>
-                                <RadzenSelectBarItem Value="true" Text="Automatic" />
-                                <RadzenSelectBarItem Value="false" Text="Manual" />
-                            </Items>
-                        </RadzenSelectBar>
-
-                        @if (IsDatabaseAutomatic)
-                        {
-                            @if (IsDatabaseSetupRunning)
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                                    Database setup is in progress...
-                                </RadzenAlert>
-                                <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-                                <br />
-                                <br />
-                            }
-                            else
-                            {
-                                @if (IsDatabaseSetupDone)
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose="false">
-                                        Database setup is complete!
-                                    </RadzenAlert>
-                                }
-                                else
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                                        Click Next to begin the automatic setup, this will install MongoDB on your server and setup the database with authentication.
-                                    </RadzenAlert>
-                                }
-                            }
-
-
-
-                            @if (!string.IsNullOrEmpty(DatabaseErrorMessage))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    @DatabaseErrorMessage
-                                </RadzenAlert>
-                            }
-
-
-
-                            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Database)" Click="@CheckDatabase" />
-                        }
-                        else
-                        {
-                            @if (!string.IsNullOrEmpty(DatabaseErrorMessage))
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    @DatabaseErrorMessage
-                                </RadzenAlert>
-                            }
-                            else
-                            {
-                                <br style="margin-bottom: 20px;" />
-                            }
-
-                            <EditForm Model="@DatabaseForm" OnValidSubmit="@CheckDatabase">
-                                <DataAnnotationsValidator />
-
-                                <RadzenLabel Text="Database Name" class="rz-my-0"></RadzenLabel>
-                                <RadzenTextBox @bind-Value="@DatabaseForm.Name" Style="width: 100%" aria-label="Database Name" AutoCompleteType="AutoCompleteType.Off"
-                                Disabled="@(SetupStep != SetupStepType.Database)" MaxLength="100" />
-                                <ValidationMessage For="() => DatabaseForm.Name" style="color: var(--rz-danger);" />
-
-                                <br style="margin-bottom: 20px;" />
-
-                                <RadzenLabel Text="Database IP" class="rz-my-0"></RadzenLabel>
-                                <RadzenTextBox @bind-Value="@DatabaseForm.IP" Style="width: 100%" aria-label="Database IP" AutoCompleteType="AutoCompleteType.Off"
-                                Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="1.1.1.1" MaxLength="100" />
-                                <ValidationMessage For="() => DatabaseForm.IP" style="color: var(--rz-danger);" />
-
-                                <br style="margin-bottom: 20px;" />
-
-                                <RadzenLabel Text="Database Port" class="rz-my-0"></RadzenLabel>
-                                <RadzenNumeric @bind-Value="@DatabaseForm.Port" Style="width: 100%" aria-label="Database Port" AutoCompleteType="AutoCompleteType.Off"
-                                Disabled="@(SetupStep != SetupStepType.Database)" Placeholder="0000" ShowUpDown="false" />
-                                <ValidationMessage For="() => DatabaseForm.Port" style="color: var(--rz-danger);" />
-
-                                <br style="margin-bottom: 20px;" />
-
-                                <RadzenLabel Text="Database Username" class="rz-my-0"></RadzenLabel>
-                                <RadzenTextBox @bind-Value="@DatabaseForm.Username" Style="width: 100%" aria-label="Database Username" AutoCompleteType="AutoCompleteType.Off"
-                                Disabled="@(SetupStep != SetupStepType.Database)" MaxLength="100" />
-                                <ValidationMessage For="() => DatabaseForm.Username" style="color: var(--rz-danger);" />
-
-                                <br style="margin-bottom: 20px;" />
-
-                                <RadzenLabel Text="Database Password" class="rz-my-0"></RadzenLabel>
-                                <RadzenPassword @bind-Value="@DatabaseForm.Password" Style="width: 100%" aria-label="Database Password" AutoCompleteType="AutoCompleteType.Off"
-                                Disabled="@(SetupStep != SetupStepType.Database)" maxlength="100" />
-                                <ValidationMessage For="() => DatabaseForm.Password" style="color: var(--rz-danger);" />
-
-                                <br />
-                                <br />
-
-                                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Database)" ButtonType="ButtonType.Submit" />
-                            </EditForm>
-                        }
-
-                    </RadzenCard>
-                </ChildContent>
-            </RadzenTimelineItem>
-
             <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Smtp)">
                 <ChildContent>
                     <RadzenCard>
@@ -447,13 +332,6 @@
                             <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose="false">
                                 Dev Space setup complete, you will need to restart this service/program.
                             </RadzenAlert>
-
-                            @if (IsDatabaseAutomatic)
-                            {
-                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                    The database root password has been saved to a seperate file in <strong>/Data</strong> which you can move.
-                                </RadzenAlert>
-                            }
                         }
                     </RadzenCard>
                 </ChildContent>
@@ -466,15 +344,7 @@
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; }
-
-    public bool MongoDBDetected { get; set; }
-
     public InstanceBasicModel InstanceForm { get; set; }
-    public DatabaseSetupModel DatabaseForm { get; set; }
-    public bool IsDatabaseAutomatic { get; set; } = true;
-    public bool IsDatabaseSetupRunning { get; set; }
-    public bool IsDatabaseSetupDone { get; set; }
-    public string DatabaseErrorMessage { get; set; }
 
     private ConfigEmailType _emailType { get; set; }
     public ConfigEmailType EmailType
@@ -507,7 +377,7 @@
     public AccountRegisterModel AdminAccount = new AccountRegisterModel();
     public string AdminErrorMessage { get; set; }
 
-    public SetupStepType SetupStep = SetupStepType.Database;
+    public SetupStepType SetupStep = SetupStepType.Smtp;
 
     protected override async Task OnInitializedAsync()
     {
@@ -516,15 +386,6 @@
                 Name = _Data.Config.Instance.Name,
                 Description = _Data.Config.Instance.Description,
                 PublicDomain = Nav.BaseUri
-            };
-
-        DatabaseForm = new DatabaseSetupModel
-            {
-                Name = _Data.Config.Database.Name,
-                IP = _Data.Config.Database.IP,
-                Port = _Data.Config.Database.Port,
-                Username = _Data.Config.Database.Username,
-                Password = _Data.Config.Database.Password
             };
 
         SmtpForm = new SmtpModel
@@ -536,30 +397,8 @@
                 EmailAddress = _Data.Config.Email.SenderEmailAddress
             };
         EmailType = _Data.Config.Email.Type;
-
-        if (_Data.Config.Database.IsSetup)
-        {
-            IsDatabaseSetupDone = true;
-            SetupStep = SetupStepType.Smtp;
-
-            IsDatabaseAutomatic = File.Exists(Program.Directory.Data.Path + "root.txt");
-        }
-
-
         if (_Data.Config.Email.SmtpPort != 0 || !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
             SetupStep = SetupStepType.Instance;
-
-        // Check if mongodb has already been setup with auth
-        if (File.Exists("/etc/mongod.conf") && !IsDatabaseSetupDone)
-        {
-            string MongodConfig = File.ReadAllText("/etc/mongod.conf");
-            if (!MongodConfig.Contains("#security:"))
-            {
-                DatabaseErrorMessage = "MongoDB is already installed on this server, manual setup is required!";
-                IsDatabaseAutomatic = false;
-                MongoDBDetected = true;
-            }
-        }
 
         if (_DB.Teams.Cache.Any())
             SetupStep = SetupStepType.Admin;
@@ -567,7 +406,6 @@
         if (_DB.Users.Any())
         {
             SetupStep = SetupStepType.Confirm;
-            _DB.IsRestartRequired = true;
             _Data.Config.IsFullySetup = true;
             _Data.Config.Save();
         }
@@ -575,141 +413,7 @@
     }
 
 
-    public async Task CheckDatabase()
-    {
-        SetupStep = SetupStepType.Disabled;
-        DatabaseErrorMessage = string.Empty;
-        if (IsDatabaseAutomatic)
-        {
-            IsDatabaseSetupRunning = true;
-            if (!File.Exists("/etc/mongod.conf"))
-            {
-                DatabaseSetupErrorType InstallDB = await DatabaseSetupFunction.Run();
-                if (InstallDB != DatabaseSetupErrorType.Success)
-                {
-                    DatabaseErrorMessage = "Database install error, " + InstallDB.ToString();
-                    IsDatabaseSetupRunning = false;
-                    SetupStep = SetupStepType.Database;
-                    return;
-                }
-
-                await Task.Delay(TimeSpan.FromSeconds(3));
-            }
-            else
-            {
-                string MongodConfigCheck = File.ReadAllText("/etc/mongod.conf");
-                if (!MongodConfigCheck.Contains("#security:"))
-                {
-                    DatabaseErrorMessage = "MongoDB is already installed on this server, manual setup is required!";
-                    IsDatabaseAutomatic = true;
-                    MongoDBDetected = true;
-                    SetupStep = SetupStepType.Database;
-                    return;
-                }
-            }
-
-            string RootPass = "";
-
-            // Create root user and password if dosen't exist
-            if (!File.Exists(Program.Directory.Data.Path + "root.txt"))
-            {
-                RootPass = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
-
-                string CreateRoot2 = "--eval \"db.getSiblingDB('admin').createUser({ user: 'root', pwd: '" + RootPass + "', roles: [ 'root' ] });\"";
-
-                try
-                {
-                    Command cmd2 = Cli.Wrap("mongosh").WithArguments(CreateRoot2);
-
-                    BufferedCommandResult res2 = await cmd2.ExecuteBufferedAsync();
-                    if (!res2.IsSuccess)
-                    {
-                        DatabaseErrorMessage = "Setup root error, " + res2.StandardError;
-                        IsDatabaseSetupRunning = false;
-                        SetupStep = SetupStepType.Database;
-                        return;
-                    }
-
-                    File.WriteAllText(Program.Directory.Data.Path + "root.txt", RootPass);
-                }
-                catch (Exception ex)
-                {
-                    DatabaseErrorMessage = "Setup connection error, " + ex.Message;
-                    IsDatabaseSetupRunning = false;
-                    SetupStep = SetupStepType.Database;
-                    return;
-                }
-            }
-            else
-                RootPass = File.ReadAllText(Program.Directory.Data.Path + "root.txt");
-
-
-
-            // Create devspace user and pass if dosen't exists
-            if (string.IsNullOrEmpty(_Data.Config.Database.Password))
-            {
-                string DevSpacePass = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
-
-                string CreateUser = $"-u 'root' -p '{RootPass}' " + "--eval \"db.getSiblingDB('admin').createUser({ user: '" + _Data.Config.Database.Username + "', pwd: '" + DevSpacePass + "', roles: [ { role: 'dbAdmin', db: '" + _Data.Config.Database.Name + "' }, { role: 'readWrite', db: '" + _Data.Config.Database.Name + "' } ] });\"";
-                Command UserCmd = Cli.Wrap("mongosh").WithArguments(CreateUser);
-
-                try
-                {
-                    BufferedCommandResult UserRes = await UserCmd.ExecuteBufferedAsync();
-                    if (!UserRes.IsSuccess)
-                    {
-                        DatabaseErrorMessage = "Setup user error, " + UserRes.StandardError;
-                        IsDatabaseSetupRunning = false;
-                        SetupStep = SetupStepType.Database;
-                        return;
-                    }
-                    _Data.Config.Database.Password = DevSpacePass;
-                    _Data.Config.Save();
-                }
-                catch (Exception ex)
-                {
-                    DatabaseErrorMessage = "Setup user error, " + ex.Message;
-                    IsDatabaseSetupRunning = false;
-                    SetupStep = SetupStepType.Database;
-                    return;
-                }
-            }
-
-            string MongodConfig = File.ReadAllText("/etc/mongod.conf");
-            MongodConfig = MongodConfig.Replace("#security:", "security:\n  authorization: enabled\n  javascriptEnabled: false");
-            File.WriteAllText("/etc/mongod.conf", MongodConfig);
-
-            Command cmd = Cli.Wrap("sudo").WithArguments("systemctl restart mongod");
-
-            BufferedCommandResult res = await cmd.ExecuteBufferedAsync();
-            if (!res.IsSuccess)
-            {
-                DatabaseErrorMessage = "Setup config error, " + res.StandardError;
-                IsDatabaseSetupRunning = false;
-                SetupStep = SetupStepType.Database;
-                return;
-            }
-
-            string Connect = $"mongodb://{_Data.Config.Database.Username}:{_Data.Config.Database.Password}@{_Data.Config.Database.IP}:{_Data.Config.Database.Port}";
-
-            MongoClient client = new MongoClient(Connect);
-
-            try
-            {
-                BsonDocument result = client.GetDatabase(_Data.Config.Database.Name).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
-                Logger.LogMessage("Pinged your deployment. You successfully connected to MongoDB!", LogSeverity.Info);
-            }
-            catch (Exception ex)
-            {
-                DatabaseErrorMessage = "Connection error, " + ex.Message;
-                IsDatabaseSetupRunning = false;
-                SetupStep = SetupStepType.Database;
-                return;
-            }
-
-            IMongoDatabase db = client.GetDatabase(_Data.Config.Database.Name);
-
-            try
+            @* try
             {
                 await db.GetCollection<TestWrite>("TestWrite").InsertOneAsync(new()
                     {
@@ -723,92 +427,8 @@
                 IsDatabaseSetupRunning = false;
                 SetupStep = SetupStepType.Database;
                 return;
-            }
+            } *@
 
-            _Data.Config.Database.IsSetup = true;
-            _Data.Config.Save();
-
-            _DB.Client = client;
-            _DB.Run = _DB.Client.GetDatabase(_Data.Config.Database.Name);
-            _DB.Init();
-            await _DB.StartAsync();
-
-            IsDatabaseSetupRunning = false;
-
-        }
-        else
-        {
-            string Connect = $"mongodb://{DatabaseForm.Username}:{DatabaseForm.Password}@{DatabaseForm.IP}:{DatabaseForm.Port}";
-            MongoClient client = new MongoClient(Connect);
-
-            try
-            {
-                BsonDocument result = client.GetDatabase(DatabaseForm.Name).RunCommand<BsonDocument>(new BsonDocument("ping", 1));
-                Logger.LogMessage("Pinged your deployment. You successfully connected to MongoDB!", LogSeverity.Info);
-            }
-            catch (Exception ex)
-            {
-                DatabaseErrorMessage = "Database connection error, " + ex.Message;
-                SetupStep = SetupStepType.Database;
-                return;
-            }
-
-            IMongoDatabase db = client.GetDatabase(DatabaseForm.Name);
-
-            try
-            {
-                await db.GetCollection<TestWrite>("TestWrite").InsertOneAsync(new()
-                    {
-                        Name = "Fluxpoint Development",
-                    });
-                db.DropCollection("TestWrite");
-            }
-            catch (Exception ex)
-            {
-                DatabaseErrorMessage = "Database write error, " + ex.Message;
-                SetupStep = SetupStepType.Database;
-                return;
-            }
-
-            _Data.Config.Database = new ConfigDatabase
-                {
-                    IsSetup = true,
-                    IP = DatabaseForm.IP,
-                    Name = DatabaseForm.Name,
-                    Port = DatabaseForm.Port,
-                    Password = DatabaseForm.Password,
-                    Username = DatabaseForm.Username,
-                };
-            _DB.Client = client;
-            _DB.Run = null!;
-            _DB.Init();
-            try
-            {
-                bool Connected = await _DB.StartAsync();
-                if (!Connected)
-                {
-                    DatabaseErrorMessage = "Database error, failed to connect please check your settings.";
-                    SetupStep = SetupStepType.Database;
-                    return;
-                }
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message == "Unable to authenticate using sasl protocol mechanism SCRAM-SHA-256.")
-                    DatabaseErrorMessage = "Database error, failed to connect please check your settings.";
-                else
-                    DatabaseErrorMessage = "Database error, " + ex.Message;
-                SetupStep = SetupStepType.Database;
-                return;
-            }
-
-            _Data.Config.Save();
-        }
-
-        IsDatabaseSetupDone = true;
-
-        SetupStep = SetupStepType.Smtp;
-    }
 
     public string SmtpErrorMessage { get; set; }
 
@@ -1007,7 +627,6 @@
                     _DB.Teams.Cache.First().Value.Members.Add(User.Id, member.Id);
                 });
 
-            _DB.IsRestartRequired = true;
             _Data.Config.IsFullySetup = true;
             _Data.Config.Save();
             SetupStep = SetupStepType.Confirm;
@@ -1021,13 +640,6 @@
 
         switch (compare)
         {
-            case SetupStepType.Database:
-                {
-                    if (SetupStep == SetupStepType.Database)
-                        return PointStyle.Info;
-                    else
-                        return PointStyle.Success;
-                }
             case SetupStepType.Smtp:
                 {
                     if (SetupStep == SetupStepType.Smtp)
@@ -1073,6 +685,6 @@
 
     public enum SetupStepType
     {
-        Disabled, Database, Smtp, Instance, Team, Admin, Confirm
+        Disabled, Smtp, Instance, Team, Admin, Confirm
     }
 }

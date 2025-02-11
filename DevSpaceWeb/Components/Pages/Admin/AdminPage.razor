@@ -75,13 +75,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        if (_Data.Config.Database.IsSetup)
-        {
-            AuthUser? User = await Session.GetCurrentUserAsync();
-            if (User != null)
-                IsAdmin = User.IsInstanceAdmin;
-        }
-
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User != null)
+            IsAdmin = User.IsInstanceAdmin;
     }
 
     public void CheckAdminKey()

@@ -115,19 +115,6 @@
                                 </div>
                             }
                             break;
-                        case SessionErrorType.RestartRequired:
-                            {
-                                <div class="dash-box dash-box-content dash-center">
-                                    <div class="dash-box-header">
-                                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
-                                        <RadzenText TextStyle="TextStyle.H6">Restart Required</RadzenText>
-                                    </div>
-                                    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
-                                        You need to restart this service/program due to a configuration change.
-                                    </RadzenAlert>
-                                </div>
-                            }
-                            break;
                         case SessionErrorType.AuthenticationRequired:
                             {
                                 <LoginPage></LoginPage>
@@ -270,11 +257,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (_DB.IsRestartRequired)
-        {
-            SessionError = SessionErrorType.RestartRequired;
-            return;
-        }
         HttpContext? HttpContext = Http.HttpContext;
         if (HttpContext == null)
         {
@@ -324,7 +306,7 @@
 
         if (Path.StartsWith("admin", StringComparison.OrdinalIgnoreCase))
         {
-            if (_Data.Config.Database.IsSetup && State != null && State.User.Identity.IsAuthenticated)
+            if (State != null && State.User.Identity.IsAuthenticated)
             {
                 AuthUser User = await GetCurrentUserAsync();
                 if (User == null)
@@ -373,7 +355,7 @@
                 SessionError = SessionErrorType.AuthenticationError;
                 return;
             }
-            else if (_Data.Config.Database.IsSetup && (!_DB.IsConnected || !_DB.IsCacheDone || _DB.HasException))
+            else if (!_DB.IsConnected || _DB.HasException)
             {
                 SessionError = SessionErrorType.DatabaseError;
                 return;
@@ -386,60 +368,57 @@
             else
             {
                 _DB.SessionUpdated += SessionChangedEvent;
-                if (_Data.Config.Database.IsSetup)
+
+                AuthUser User = await GetCurrentUserAsync();
+                if (User == null)
                 {
-                    AuthUser User = await GetCurrentUserAsync();
-                    if (User == null)
+                    SessionError = SessionErrorType.AuthenticationError;
+                    return;
+                }
+
+                CurrentUser = _DB.Users[User.Id];
+                if (User.Settings.DateFormat != DateFormatLang.Automatic)
+                    UserDateFormat = User.Settings.DateFormat;
+
+                IsInstanceAdmin = User.IsInstanceAdmin;
+                if (User.Disabled != null)
+                {
+                    SessionError = SessionErrorType.AccountDisabled;
+                    return;
+                }
+
+
+                if (User.Background.Id.HasValue)
+                    BackgroundUrl = User.Background.Url("webp");
+
+                if (!Program.IsPreviewMode)
+                {
+                    string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
+                    if (string.IsNullOrEmpty(SessionId))
                     {
-                        SessionError = SessionErrorType.AuthenticationError;
+                        NavigationManager.NavigateTo("/logout", true);
                         return;
                     }
+                    CurrentSessionId = SessionId;
 
-                    CurrentUser = _DB.Users[User.Id];
-                    if (User.Settings.DateFormat != DateFormatLang.Automatic)
-                        UserDateFormat = User.Settings.DateFormat;
-
-                    IsInstanceAdmin = User.IsInstanceAdmin;
-                    if (User.Disabled != null)
+                    bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession session);
+                    if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
                     {
-                        SessionError = SessionErrorType.AccountDisabled;
+                        if (_DB.Users.Keys.Count() == 1 && User.Account.Sessions.Count() == 1 && !session.AuthorizedIps.Any())
+                        {
+                            session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
+                            await UserManager.UpdateAsync(User);
+                        }
+                        else
+                            NewLogin = true;
+                    }
+
+
+                    if (NewLogin)
+                    {
+                        SessionError = SessionErrorType.SessionSecurityNew;
                         return;
                     }
-
-
-                    if (User.Background.Id.HasValue)
-                        BackgroundUrl = User.Background.Url("webp");
-
-                    if (!Program.IsPreviewMode)
-                    {
-                        string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
-                        if (string.IsNullOrEmpty(SessionId))
-                        {
-                            NavigationManager.NavigateTo("/logout", true);
-                            return;
-                        }
-                        CurrentSessionId = SessionId;
-
-                        bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession session);
-                        if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
-                        {
-                            if (_DB.Users.Keys.Count() == 1 && User.Account.Sessions.Count() == 1 && !session.AuthorizedIps.Any())
-                            {
-                                session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));
-                                await UserManager.UpdateAsync(User);
-                            }
-                            else
-                                NewLogin = true;
-                        }
-
-
-                        if (NewLogin)
-                        {
-                            SessionError = SessionErrorType.SessionSecurityNew;
-                            return;
-                        }
-                    }
-
                 }
 
             }
@@ -473,7 +452,7 @@
 
     public enum SessionErrorType
     {
-        Loading, SessionSecurityError, SessionError, HttpsRequired, SessionSecurityNew, AuthenticationError, AuthenticationRequired, DatabaseError, RestartRequired, Success, AccountDisabled
+        Loading, SessionSecurityError, SessionError, HttpsRequired, SessionSecurityNew, AuthenticationError, AuthenticationRequired, DatabaseError, Success, AccountDisabled
     }
 
 }

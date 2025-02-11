@@ -82,7 +82,7 @@ public class MembersController : APIController
         {
             FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
             UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, null);
-            UpdateResult Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
+            UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
             if (!Result.IsAcknowledged)
                 return InternalServerError("Failed to disable member.");
         }
@@ -127,7 +127,7 @@ public class MembersController : APIController
         {
             FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
             UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, Disabled);
-            UpdateResult Result = _DB.Client.GetDatabase(_Data.Config.Database.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
+            UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
             if (!Result.IsAcknowledged)
                 return InternalServerError("Failed to disable member.");
         }

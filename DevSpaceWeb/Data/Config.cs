@@ -10,7 +10,6 @@ public class Config
 {
     public bool IsFullySetup = false;
     public string AdminKey;
-    public ConfigDatabase Database = new ConfigDatabase();
     public ConfigAdmin Admin = new ConfigAdmin();
     public ConfigAuth Auth = new ConfigAuth();
     public ConfigInstance Instance = new ConfigInstance();
@@ -37,7 +36,6 @@ public class ConfigInstance
     public bool HasIcon;
     public int IconVersion;
     public string PublicDomain;
-    public bool ShowDemoLink;
 
     public string GetPublicUrl()
     {
@@ -85,20 +83,7 @@ public class ConfigAuth
     public bool AllowExternalLogin = true;
     public bool AllowRegister = false;
 }
-public class ConfigDatabase
-{
-    public bool IsSetup;
-    public string Name = "devspace";
-    public string IP = "127.0.0.1";
-    public int Port = 27017;
-    public string Username = "devspace";
-    public string Password;
 
-    public string GetConnectionString()
-    {
-        return $"mongodb://{Username}:{Password}@{IP}:{Port}";
-    }
-}
 public class ConfigEmail
 {
     public string SenderEmailAddress;

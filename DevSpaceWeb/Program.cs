@@ -46,6 +46,7 @@ public class Program
     public static bool IsDevMode { get; private set; }
 
     public static bool IsPreviewMode { get; set; } = false;
+    public static bool ShowDemoLink { get; set; } = false;
 
     public static Regex IpRegex = new Regex(@"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", RegexOptions.Compiled | RegexOptions.Multiline);
 
@@ -53,9 +54,14 @@ public class Program
 
     public static async Task Main(string[] args)
     {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        ShowDemoLink = builder.Configuration.GetValue<bool>("ShowDemoLink");
+        IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
+        IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
+
         //WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
         Logger.RunLogger("Dev Space", LogSeverity.Debug);
-        Console.WriteLine("V: " + Version);
+
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
 
@@ -65,9 +71,7 @@ public class Program
         // Rcon support
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
-        WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
-        IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
-        IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
+
 
         Logger.LogMessage("Running connection test...", LogSeverity.Info);
 
@@ -99,22 +103,14 @@ public class Program
             }
         }
 
-        _DB.Client = new MongoDB.Driver.MongoClient(_Data.Config.Database.GetConnectionString());
-        _DB.Init();
 
+        _DB.Init(builder.Configuration);
 
-        if (_Data.Config.Database.IsSetup)
+        _ = Task.Run(async () =>
         {
-            _ = Task.Run(async () =>
-            {
-                await _DB.StartAsync();
+            _DB.IsConnected = await _DB.StartAsync();
+        });
 
-                while (!_DB.IsConnected)
-                {
-
-                }
-            });
-        }
 
         // Add services to the container.
         ServiceBuilder.Build(builder, builder.Services);
