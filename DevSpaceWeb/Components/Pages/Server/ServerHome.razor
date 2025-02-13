@@ -1,4 +1,6 @@
-﻿@inject DialogService DialogService
+﻿@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@inject DialogService DialogService
 
 <PageTitle>@Server?.Name | @_Data.Config.Instance.Name</PageTitle>
 <div class="dash-box dash-box-content">
@@ -16,9 +18,17 @@
                     <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
                         Version
                     </RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        Ubuntu 24.04 LTS
-                    </RadzenText>
+                    @if (Data != null)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            @Data.OperatingSystem
+                        </RadzenText>
+                    }
+                    else
+                    {
+                        <RadzenSkeleton></RadzenSkeleton>
+                    }
+
                 </div>
             </RadzenStack>
             <br />
@@ -32,9 +42,16 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 Uptime
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                47 Days 21 Hours 36 Minutes 17 Seconds
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @Data.Uptime
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -47,7 +64,15 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 IP
                             </RadzenText>
-                            <RadzenTextMask Value="107.000.00.00" IsIp="true"></RadzenTextMask>
+                            @if (Data != null)
+                            {
+                                <RadzenTextMask Value="@Server.AgentIp" IsIp="true"></RadzenTextMask>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -60,9 +85,17 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 CPU
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                6
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @Data.CpuCount
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -75,9 +108,17 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 RAM
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                20 GB
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @ToPrettySize(Data.RamTotal)
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -88,11 +129,19 @@
                         </div>
                         <div>
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                Storage
+                                Test
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                414/493 GB
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -103,11 +152,19 @@
                         </div>
                         <div>
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                .NET
+                                Agent
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                8.0.7
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @($"v {Data.AgentVersion} (.NET {Data.AgentNET})")
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -121,9 +178,17 @@
                     <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
                         Version
                     </RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        27.0.3
-                    </RadzenText>
+                    @if (Data != null)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            @Data.Docker.DockerVersion
+                        </RadzenText>
+                    }
+                    else
+                    {
+                        <RadzenSkeleton></RadzenSkeleton>
+                    }
+
                 </div>
             </RadzenStack>
             <br />
@@ -137,9 +202,17 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 Stacks
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                18
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @Data.Docker.Stacks
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -152,9 +225,17 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 Containers
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                23
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @Data.Docker.AllContainers
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -167,9 +248,17 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 Volumes
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                2
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @Data.Docker.Volumes
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -182,9 +271,17 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 Images
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                16
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @Data.Docker.Images
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -197,9 +294,17 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 Networks
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                6
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @Data.Docker.Networks
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -212,9 +317,17 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 Plugins
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                1
-                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @Data.Docker.Plugins
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
+
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -227,30 +340,30 @@
 
 <style>
     .settings-item {
-        width: 140px;
-        height: 140px;
+    width: 140px;
+    height: 140px;
     }
 
-        .settings-item .iconify {
-            width: 36px;
-            height: 36px;
-            margin-top: 26px;
-            color: var(--rz-info);
-        }
+    .settings-item .iconify {
+    width: 36px;
+    height: 36px;
+    margin-top: 26px;
+    color: var(--rz-info);
+    }
 
-        .settings-item .rz-text-h6 {
-            margin-top: 14px;
-            font-size: 1.1rem;
-            color: var(--rz-base-200) !important;
-        }
+    .settings-item .rz-text-h6 {
+    margin-top: 14px;
+    font-size: 1.1rem;
+    color: var(--rz-base-200) !important;
+    }
 
     .rz-stack a {
-        text-decoration: none !important;
+    text-decoration: none !important;
     }
 
     .settings-item:hover {
-        background-color: var(--rz-base-dark);
-        outline: solid 1px var(--rz-secondary-dark) !important;
+    background-color: var(--rz-base-dark);
+    outline: solid 1px var(--rz-secondary-dark) !important;
     }
 </style>
 
@@ -310,6 +423,22 @@
 
     public string OwnerUser { get; set; }
 
+    public SystemInfoResponse? Data { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var Response = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<SystemInfoResponse>>(new DockerEvent(DockerEventType.SystemInfo));
+            if (Response != null && Response.Error == DockerError.None)
+            {
+                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Response.Data, Newtonsoft.Json.Formatting.Indented));
+                Data = Response.Data;
+                StateHasChanged();
+            }
+        }
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         if (Server != null)
@@ -318,10 +447,29 @@
                 OwnerUser = user.UserName;
             else
                 OwnerUser = "Unknown?";
-
         }
+
+
     }
 
+    private const long OneKb = 1024;
+    private const long OneMb = OneKb * 1024;
+    private const long OneGb = OneMb * 1024;
+    private const long OneTb = OneGb * 1024;
+
+    public string ToPrettySize(long value, int decimalPlaces = 0)
+    {
+        var asTb = Math.Round((double)value / OneTb, decimalPlaces);
+        var asGb = Math.Round((double)value / OneGb, decimalPlaces);
+        var asMb = Math.Round((double)value / OneMb, decimalPlaces);
+        var asKb = Math.Round((double)value / OneKb, decimalPlaces);
+        string chosenValue = asTb > 1 ? string.Format("{0} TB", asTb)
+            : asGb > 1 ? string.Format("{0} GB", asGb)
+            : asMb > 1 ? string.Format("{0} MB", asMb)
+            : asKb > 1 ? string.Format("{0} KB", asKb)
+            : string.Format("{0}B", Math.Round((double)value, decimalPlaces));
+        return chosenValue;
+    }
 
     public async Task ChangeOwner(PartialUserData user)
     {

@@ -12,6 +12,5 @@ public enum EventType
     CommandWait,
     CommandStream,
     Docker,
-    FirewallInfo,
-    SystemInfo
+    FirewallInfo
 }

@@ -3,6 +3,7 @@ using DevSpaceAgent.Server;
 using Docker.DotNet;
 using NetCoreServer;
 using System.Net;
+using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 
@@ -10,6 +11,11 @@ namespace DevSpaceAgent;
 
 public class Program
 {
+    /// <summary>
+    /// Version of DevSpace Agent.
+    /// </summary>
+    public static string Version => Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
+
     //public static ConcurrentDictionary<string, WebSocketBase<System.Net.WebSockets.WebSocket>> Clients = new ConcurrentDictionary<string, WebSocketBase<System.Net.WebSockets.WebSocket>>();
 
     public static string CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
