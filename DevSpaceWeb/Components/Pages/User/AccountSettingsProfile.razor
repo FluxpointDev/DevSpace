@@ -1,9 +1,11 @@
 ﻿@using DevSpaceWeb.Models.Account
+@using System.Reflection
 @implements IDisposable
 @inject DialogService DialogService
 @inject UserManager<AuthUser> UserManager
 @inject NavigationManager NavigationManager
 @inject EmailService Email
+@inject IJSRuntime JS
 
 <PageTitle>Account Profile | @_Data.Config.Instance.Name</PageTitle>
 <div class="settings-box">
@@ -26,23 +28,38 @@
         }
 
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-            <RadzenImage Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" Click="@EditAvatar" />
-            <RadzenStack Gap="0">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Username</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">
-                    @AuthUser.UserName
-                </RadzenText>
+            <RadzenImage class="account-avatar" Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" Click="@EditAvatar" />
+            <RadzenStack Gap="8px">
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
+                    <div style="width: 120px;">
+                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Username</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            @AuthUser.UserName
+                        </RadzenText>
+                    </div>
+                    <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Light" Click="@EditAccountUsername" Size="ButtonSize.Small" />
+                </RadzenStack>
 
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Display Name</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">
-                    @(AuthUser.DisplayName ?? "⠀")
-                </RadzenText>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
+                    <div style="width: 120px;">
+                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Display Name</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            @(AuthUser.DisplayName ?? "⠀")
+                        </RadzenText>
+                    </div>
+                    <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Light" Click="@EditAccountDisplayName" Size="ButtonSize.Small" />
+                </RadzenStack>
 
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Email</RadzenText>
-                <RadzenTextMask Value="@AuthUser.Email" IsEmail="true"></RadzenTextMask>
-
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account Created</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.CreatedOn, true)</RadzenText>
+                <div>
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Email</RadzenText>
+                    <RadzenTextMask Value="@AuthUser.Email" IsEmail="true"></RadzenTextMask>
+                </div>
+                
+                <div>
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account Created</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.CreatedOn, true)</RadzenText>
+                </div>
+                
             </RadzenStack>
         </RadzenStack>
 
@@ -69,7 +86,7 @@
         }
         <br />
         <h6 class="mb-2">Manage</h6>
-        <RadzenButton Text="Edit Account" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@EditAccount" />
+        
         <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@(AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
         <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangePassword" />
         <br />
@@ -90,8 +107,19 @@
     }
     else
     {
-        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Date Format</RadzenText>
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1 mt-2">Date Format</RadzenText>
         <RadzenDropDown TValue="DateFormatLang" Data="@(Enum.GetValues(typeof(DateFormatLang)).Cast<Enum>())" @bind-Value="@UserDateFormat"Style="width: 100%;">
+            <Template>
+
+                @if (((DateFormatLang)context) == DateFormatLang.Automatic)
+                {
+                    @($"Automatic - {Country}")
+                }
+                else
+                {
+                    @(GetDisplayName((DateFormatLang)context))
+                }
+            </Template>
         </RadzenDropDown>
         <br />
         <br />
@@ -102,6 +130,15 @@
         <RadzenButton Text="Change Background" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeBackgroundDialog" />
     }
 </div>
+
+<style>
+    .account-avatar:hover {
+        cursor: pointer;
+        opacity: 0.6;
+        padding: 1px;
+        box-shadow: var(--rz-shadow-2) !important;
+    }
+</style>
 
 @code {
     [CascadingParameter]
@@ -120,6 +157,7 @@
     }
 
     public bool EmailVerifySent { get; set; }
+    public string Country { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -127,6 +165,16 @@
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser != null)
             _userDateFormat = AuthUser.Settings.DateFormat;
+        Country = await Session.GetCountryAsync();
+    }
+
+    public string GetDisplayName(Enum enumValue)
+    {
+        var enumValueAsString = enumValue.ToString();
+        var val = enumValue.GetType().GetMember(enumValueAsString).FirstOrDefault();
+        var enumVal = val?.GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetDescription() ?? enumValueAsString;
+
+        return enumVal;
     }
 
     public async Task SaveUser()
@@ -156,12 +204,20 @@
 
 
 
-    public async Task EditAccount()
+    public async Task EditAccountUsername()
     {
-        await DialogService.OpenAsync<EditAccountDialog>("Edit Account", options: new DialogOptions
+        await DialogService.OpenAsync<EditAccountUsernameDialog>("Edit Username", options: new DialogOptions
             {
                 AutoFocusFirstElement = true
             });
+    }
+
+    public async Task EditAccountDisplayName()
+    {
+        await DialogService.OpenAsync<EditAccountDisplayNameDialog>("Edit Display Name", options: new DialogOptions
+        {
+            AutoFocusFirstElement = true
+        });
     }
 
     public async Task EditAvatar()

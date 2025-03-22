@@ -12,9 +12,7 @@ public class ServerJson
         owner_id = data.OwnerId.ToString();
         vanity_url = data.VanityUrl;
         created_at = data.CreatedAt;
-        var WebSocket = data.GetWebSocket(false);
-        if (WebSocket != null && WebSocket.Client.IsConnected)
-            is_online = true;
+        is_online = data.IsConnected;
     }
 
     public string id { get; set; }

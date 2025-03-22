@@ -45,7 +45,7 @@ public static class Logger
 
                 }
             }
-            
+
 
         }, TaskCreationOptions.LongRunning);
     }
@@ -96,9 +96,9 @@ public static class Logger
 
     private static string FormatJsonPretty(string json)
     {
-            dynamic parsedJson = JsonConvert.DeserializeObject(json);
-            return JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
-        
+        dynamic parsedJson = JsonConvert.DeserializeObject(json);
+        return JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
+
 
     }
 

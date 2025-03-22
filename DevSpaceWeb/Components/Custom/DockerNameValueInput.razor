@@ -1,0 +1,109 @@
+﻿
+<div class="input-namevalue">
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@Title</RadzenText>
+    <RadzenFormField Variant="Variant.Outlined" class="input-namevalue-name mb-2">
+        <Start>
+            name:
+        </Start>
+        <ChildContent>
+            <RadzenTextBox MaxLength="100" Value="@Name" @oninput="@((arg) => NameChanged.InvokeAsync(arg.Value as string))" Disabled="@IsDisabled" />
+        </ChildContent>
+        <End>
+            @if (!string.IsNullOrEmpty(Name))
+            {
+                <RadzenIcon Icon="check" IconStyle="IconStyle.Success"></RadzenIcon>
+            }
+            else
+            {
+                <RadzenIcon Icon="close" IconStyle="IconStyle.Danger"></RadzenIcon>
+            }
+        </End>
+    </RadzenFormField>
+    <RadzenFormField Variant="Variant.Outlined" class="input-namevalue-value">
+        <Start>
+            value:
+        </Start>
+        <ChildContent>
+            <RadzenTextBox MaxLength="100" Value="@Value" @oninput="@((arg) => ValueChanged.InvokeAsync(arg.Value as string))" Disabled="@IsDisabled" />
+        </ChildContent>
+        <End>
+            @* @if (!string.IsNullOrEmpty(Name))
+            {
+                <RadzenIcon Icon="check" IconStyle="IconStyle.Success"></RadzenIcon>
+            }
+            else
+            {
+                <RadzenIcon Icon="close" IconStyle="IconStyle.Danger"></RadzenIcon>
+            } *@
+        </End>
+    </RadzenFormField>
+    <RadzenButton Icon="delete" class="input-namevalue-icon" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@(() => DeleteInput.InvokeAsync())" Style="margin-left: 4px; height: 100%; margin-top: 2px;" />
+
+</div>
+
+<style>
+    .input-namevalue {
+    background-color: #31313a;
+    padding: 8px;
+    border-radius: 4px;
+    }
+
+    .input-namevalue-name, .input-namevalue-value {
+    width: calc(100% - 54px) !important;
+    }
+
+    .input-namevalue-icon {
+    float: right;
+    margin-top: -22px !important;
+    margin-right: 6px;
+    }s
+</style>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    [Parameter]
+    public string Title { get; set; }
+
+    [Parameter]
+    public string Name { get; set; }
+
+    [Parameter]
+    public string Value { get; set; }
+
+    [Parameter]
+    public bool IsDisabled { get; set; }
+
+    [Parameter]
+    public EventCallback<string> NameChanged { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    [Parameter]
+    public EventCallback DeleteInput { get; set; }
+
+    public static RenderFragment RenderElement(object receiver, Dictionary<string, Tuple<string, string>> values, string title, string id, Tuple<string, string> input, bool isDisabled) => builder =>
+    {
+        builder.OpenComponent(0, typeof(DockerNameValueInput));
+        builder.AddAttribute(1, "NameChanged", EventCallback.Factory.Create<string>(receiver, (value) =>
+        {
+            values[id] = new Tuple<string, string>(value, values[id].Item2);
+        }));
+        builder.AddAttribute(2, "ValueChanged", EventCallback.Factory.Create<string>(receiver, (value) =>
+        {
+            values[id] = new Tuple<string, string>(values[id].Item1, value);
+        }));
+        builder.AddAttribute(3, "DeleteInput", EventCallback.Factory.Create(receiver, () =>
+        {
+            values.Remove(id);
+        }));
+        builder.AddComponentParameter(4, "Title", title);
+        builder.AddComponentParameter(5, "Id", id);
+        builder.AddComponentParameter(6, "Name", input.Item1);
+        builder.AddComponentParameter(7, "Value", input.Item2);
+        builder.AddComponentParameter(8, "IsDisabled", isDisabled);
+        builder.CloseComponent();
+    };
+}

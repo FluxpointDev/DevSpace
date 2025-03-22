@@ -1,0 +1,280 @@
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using Docker.DotNet.Models
+@using Newtonsoft.Json.Linq
+@using System.Text
+@using System.Timers
+@inject NotificationService Notifications
+@implements IDisposable
+@inject IJSRuntime JS
+
+@if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs))
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Container Logs</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
+            <RadzenBreadCrumbItem Text="Logs" />
+        </RadzenBreadCrumb>
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Containers Logs
+        </RadzenAlert>
+    </div>
+}
+else
+{
+<div class="dash-box">
+    <div class="dash-box-header dash-box-content">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Container Logs</RadzenText>
+        @if (!Failed && string.IsNullOrEmpty(ContainerName))
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+        }
+    </div>
+    <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@(string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName)" />
+        <RadzenBreadCrumbItem Text="Logs" />
+    </RadzenBreadCrumb>
+    @if (Failed)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+            Failed to get container logs.
+        </RadzenAlert>
+    }
+    <br />
+    <RadzenDataGrid id="gridLogs" @ref="@Grid" AllowPaging="false" AllowSorting="false" IsLoading="false"
+                    Data="@Messages" AllowVirtualization="true" VirtualizationOverscanCount="3"
+                    GridLines="DataGridGridLines.Vertical" Density="Density.Compact"
+                    PageSize="10" Style="height: 600px">
+        <HeaderTemplate>
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" JustifyContent="JustifyContent.SpaceAround" Wrap="FlexWrap.NoWrap" class="pd-1">
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenSwitch Value="@AutoRefresh" Disabled="@(RefreshTimer == null)" TValue="bool" ValueChanged="@((arg) => { AutoRefresh = arg; if (AutoRefresh) { RefreshTimer.Start(); } else { RefreshTimer.Stop(); } })" />
+                    <RadzenLabel Text="Auto Refresh" />
+                </RadzenStack>
+                <RadzenButton Icon="refresh" Click="@(() => OnParametersSetAsync())" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Size="ButtonSize.Medium" Disabled="@(RefreshTimer == null || AutoRefresh)" class="rz-border-radius-10" />
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenLabel Text="Lines" />
+                    <RadzenNumeric ShowUpDown="false" Value="@Limit" Min="1" Max="9999" TValue="int" ValueChanged="@((value) => { Limit = value; OnParametersSetAsync(); })"></RadzenNumeric>
+                </RadzenStack>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenLabel Text="Show Timestamp" />
+                    <RadzenCheckBox Value="@ShowTimestamp" TValue="bool" ValueChanged="@((value) => { ShowTimestamp = value; OnParametersSetAsync(); })"></RadzenCheckBox>
+                </RadzenStack>
+                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    <RadzenLabel Text="Show Line Number" />
+                    <RadzenCheckBox @bind-Value="@ShowLineNumbers"></RadzenCheckBox>
+                </RadzenStack>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="0px">
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenLabel Text="Auto Scroll" />
+                        <RadzenCheckBox @bind-Value="@AutoScroll"></RadzenCheckBox>
+                    </RadzenStack>
+                    <RadzenButton Icon="arrow_upward" Click="@(() => JS.InvokeVoidAsync("Utils.scrollLogsUp"))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Medium" class="rz-border-radius-10 ml-2" />
+                    <RadzenButton Icon="arrow_downward" Click="@(() => JS.InvokeVoidAsync("Utils.scrollLogsDown"))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Medium" class="rz-border-radius-10" />
+                </RadzenStack>
+                
+                </RadzenStack>
+            
+        </HeaderTemplate>
+        <Columns>
+                <RadzenDataGridColumn Width="48px" Visible="@ShowLineNumbers">
+                    <Template>
+                    <strong><RadzenText TextStyle="TextStyle.Body2">@(Messages.IndexOf(context) + 1)</RadzenText></strong>
+                </Template>
+                </RadzenDataGridColumn>
+            
+            <RadzenDataGridColumn>
+                <Template>
+                    <RadzenText class="ml-1" TextStyle="TextStyle.Body2">@context.Text</RadzenText>
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+</div>
+}
+
+
+<style>
+    .dash-box .rz-grid-table td:first-child .rz-text-body2 {
+        -webkit-user-select: none; /* Safari */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* IE10+/Edge */
+        user-select: none; /* Standard */
+    }
+
+    .dash-box .rz-grid-table td:last-child .rz-text-body2 {
+        font-family: monospace !important;
+        white-space-collapse: preserve !important;
+        font-size: 13px !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    [Parameter]
+    public string ContainerId { get; set; }
+
+    public List<LogMessage> Messages = new List<LogMessage>();
+    public string ContainerName { get; set; }
+    public bool Failed { get; set; }
+
+    public bool AutoRefresh { get; set; } = true;
+    public int Limit { get; set; } = 100;
+    public bool ShowTimestamp { get; set; }
+    public bool ShowLineNumbers { get; set; } = true;
+    public bool AutoScroll { get; set; } = true;
+    public System.Timers.Timer RefreshTimer;
+
+    public RadzenDataGrid<LogMessage> Grid { get; set; }
+
+    public DateTime? SinceDate = null;
+
+    public class LogMessage
+    {
+        public string Text { get; set; }
+    }
+
+    private int firstTimeChange;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs) && firstTimeChange < 2)
+        {
+            firstTimeChange += 1;
+            await JS.InvokeVoidAsync("Utils.scrollLogsDown");
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs))
+        {
+            if (RefreshTimer != null)
+                RefreshTimer.Stop();
+            return;
+        }
+
+        if (RefreshTimer != null && AutoRefresh)
+        {
+            RefreshTimer.Stop();
+            RefreshTimer.Start();
+        }
+
+        try
+        {
+            var Result = await Server.RunJsonAsync<DockerContainerLogs>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
+            {
+                Data = JObject.FromObject(new ContainerLogsEvent
+                {
+                    Limit = Limit,
+                    ShowTimestamp = ShowTimestamp
+                })
+            });
+            Failed = !Result.IsSuccess;
+            if (Failed)
+                return;
+            ContainerName = Result.Data.ContainerName;
+            SinceDate = Result.Data.SinceDate;
+            string[] lines = Result.Data.Logs.Split(
+                new string[] { "\r\n", "\r", "\n" },
+                StringSplitOptions.RemoveEmptyEntries
+            );
+            if (lines.Any())
+            {
+                Messages.Clear();
+
+                foreach (var i in lines)
+                {
+                    Messages.Add(new LogMessage { Text = i });
+                }
+                StateHasChanged();
+            }
+
+            if (RefreshTimer == null)
+            {
+                RefreshTimer = new System.Timers.Timer();
+                RefreshTimer.Enabled = true;
+                RefreshTimer.Interval = new TimeSpan(0, 0, 5).TotalMilliseconds;
+                RefreshTimer.Elapsed += OnTimedEvent1;
+            }
+        }
+        catch (Exception ex)
+        {
+            Failed = true;
+            if (RefreshTimer != null)
+                RefreshTimer.Stop();
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+
+
+    }
+
+    public async void OnTimedEvent1(object source, ElapsedEventArgs e)
+    {
+        Console.WriteLine("Timer Trigger");
+        RefreshTimer.Stop();
+        var Result = await Server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
+        {
+            Data = JObject.FromObject(new ContainerLogsEvent
+            {
+                Limit = Limit,
+                ShowTimestamp = ShowTimestamp,
+                SinceDate = SinceDate
+            })
+        });
+        if (Result.IsSuccess)
+        {
+            SinceDate = Result.Data.SinceDate;
+            string[] lines = Result.Data.Logs.Split(
+                new string[] { "\r\n", "\r", "\n" },
+                StringSplitOptions.RemoveEmptyEntries
+            );
+
+            if (lines.Any())
+            {
+                foreach (var i in lines)
+                {
+                    if (Messages.Count >= 100)
+                        Messages.RemoveAt(0);
+
+                    Messages.Add(new LogMessage { Text = i });
+                }
+                await InvokeAsync(StateHasChanged);
+                if (AutoScroll)
+                {
+                    JS.InvokeVoidAsync("Utils.scrollLogsDown");
+                }
+            }
+        }
+        if (AutoRefresh)
+        {
+            try
+            {
+                RefreshTimer.Start();
+            }
+            catch { }
+        }
+    }
+
+    public void Dispose()
+    {
+        if (RefreshTimer != null)
+        {
+            RefreshTimer.Elapsed -= OnTimedEvent1;
+            RefreshTimer.Dispose();
+        }
+    }
+}

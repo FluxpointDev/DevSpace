@@ -4,13 +4,20 @@
 @using System.Net
 @using LibMCRcon.RCon
 
+<PageTitle>Console Settings | @_Data.Config.Instance.Name</PageTitle>
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">Basic Settings</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">Console Settings</RadzenText>
     </div>
-    @if (!Member.HasConsolePermission(Console, ConsolePermission.ManageConsole))
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Text="Settings" />
+    </RadzenBreadCrumb>
+
+    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for Manage Console
@@ -44,7 +51,7 @@
 
     public async Task<string?> UpdateSettings(ModifyConsoleModel model)
     {
-        if (!Member.HasConsolePermission(Console, ConsolePermission.ManageConsole))
+        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole))
             return "You do not have Manage Console permissions.";
 
         VanityUrlData Vanity = Team.GetVanityUrlData();

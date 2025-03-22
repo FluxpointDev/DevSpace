@@ -193,6 +193,16 @@
         return await UserManager.GetUserAsync(State.User)!;
     }
 
+    public string CurrentCountry { get; set; }
+
+    public async Task<string> GetCountryAsync()
+    {
+        if (string.IsNullOrWhiteSpace(CurrentCountry))
+            CurrentCountry = await JS.InvokeAsync<string>("window.Auth.getCountry");
+
+        return CurrentCountry;
+    }
+
     public void ShowPreviewModeNotice()
     {
         DialogService.ShowInfoAsync("Preview Mode", "This feature is not available in preview mode.");
@@ -268,6 +278,8 @@
             SessionError = SessionErrorType.SessionError;
             return;
         }
+
+        Console.WriteLine($"Req: {HttpContext.Request.IsHttps} - {HttpContext.Request.Scheme} - {HttpContext.Request.Host.ToString()}");
         if (!HttpContext.Request.IsHttps)
         {
             SessionError = SessionErrorType.HttpsRequired;
@@ -386,7 +398,6 @@
                     SessionError = SessionErrorType.AccountDisabled;
                     return;
                 }
-
 
                 if (User.Background.Id.HasValue)
                     BackgroundUrl = User.Background.Url("webp");

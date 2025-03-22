@@ -28,13 +28,13 @@
                     </div>
                 </div>
                 <div>
-                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="Radzen.AlignItems.Center" Gap="4px">
-                        <div class="pc-only">
-                            @if (Program.IsDevMode)
-                            {
+                    <RadzenStack Orientation="Radzen.Orientation.Horizontal" AlignItems="Radzen.AlignItems.Center" Gap="8px">
+                        @if (Program.IsDevMode)
+                        {
+                            <div class="pc-only">
                                 <NavDebug></NavDebug>
-                            }
-                        </div>
+                            </div>
+                        }
                         <div class="pc-only">
                             <NavInfo></NavInfo>
                         </div>
@@ -46,6 +46,10 @@
                         <div class="pc-only">
                             <NavBookmarks></NavBookmarks>
                         </div>
+
+                        <div class="pc-only">
+                            <NavTasks></NavTasks>
+                        </div>
                         
                         <div class="pc-only">
                             <NavNotifications></NavNotifications>
@@ -53,7 +57,7 @@
                         <RadzenMenu ClickToOpen="false" Responsive="false" Style="margin-right: 10px;">
                             <RadzenMenuItem id="NavUser">
                                 <Template>
-                                    <img src="@Session.CurrentUser.GetAvatarOrDefault()" /> @Session.CurrentUser.UserName
+                                    <img class="img-round" src="@Session.CurrentUser.GetAvatarOrDefault()" /> @Session.CurrentUser.GetCurrentName()
                                 </Template>
                                 <ChildContent>
                                     <RadzenMenuItem Path="/user/account">
@@ -85,7 +89,7 @@
 
         }
     </RadzenHeader>
-    <RadzenSidebar @bind-Expanded="@SidebarExpanded">
+    <RadzenSidebar @bind-Expanded="@SidebarExpanded" id="MainSidebar">
         @if (Session.State.User.Identity != null && Session.State.User.Identity.IsAuthenticated)
         {
             <NavMenu />
@@ -104,74 +108,88 @@
     --rz-sidebar-width: 260px;
     --rz-input-shadow: none !important;
     }
+
+    .rz-popup {
+        display: none;
+        position: absolute;
+        overflow: hidden;
+        border: var(--rz-panel-border);
+        background-color: var(--rz-menu-background-color);
+        box-shadow: var(--rz-context-menu-box-shadow);
+        border-radius: var(--rz-border-radius);
+        padding: 4px;
+    }
+
+
     .twofactor-item .iconify {
-    color: #0bba83 !important;
-    width: 32px;
-    height: 32px;
-    float: left;
-    margin-right: 10px;
+        color: #0bba83 !important;
+        width: 32px;
+        height: 32px;
+        float: left;
+        margin-right: 10px;
     }
 
     .twofactor-item {
-    display: block !important;
-    height: 52px;
-    margin-bottom: 6px;
-    background-color: #272731 !important;
-    border-radius: 16px;
-    padding: 6px;
-    padding-left: 10px;
-    padding-right: 10px;
-    padding-top: 8px;
-    cursor: pointer;
+        display: block !important;
+        height: 52px;
+        margin-bottom: 6px;
+        background-color: #272731 !important;
+        border-radius: 16px;
+        padding: 6px;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 8px;
+        cursor: pointer;
     }
 
-    .twofactor-item h4 {
-    margin-top: 0px !important;
-    }
+        .twofactor-item h4 {
+            margin-top: 0px !important;
+        }
 
-    .twofactor-item p {
-    margin-top: -14px !important;
-    }
+        .twofactor-item p {
+            margin-top: -14px !important;
+        }
 
     .twofactor-item-disabled {
-    opacity: 0.5;
-    background-color: rgba(39,40,49,0.4) !important;
-    color: rgb(130,129,129) !important;
-    cursor: default !important;
+        opacity: 0.5;
+        background-color: rgba(39,40,49,0.4) !important;
+        color: rgb(130,129,129) !important;
+        cursor: default !important;
     }
 
 
 
     input:focus {
-    box-shadow: none !important;
+        box-shadow: none !important;
     }
 
 
     .top-divider {
-    align-self: stretch;
-    margin-top: 6px;
-    margin-bottom: 6px;
-    margin-left: 14px;
-    margin-right: 14px;
-    border-style: none solid none none;
-    border-color: var(--rz-base-600);
-    border-width: 1px;
+        align-self: stretch;
+        margin-top: 6px;
+        margin-bottom: 6px;
+        margin-left: 14px;
+        margin-right: 14px;
+        border-style: none solid none none;
+        border-color: var(--rz-base-600);
+        border-width: 1px;
     }
 
     .rz-navigation-item-disabled {
-    opacity: 0.5 !important;
+        opacity: 0.5 !important;
     }
 
     #NavUser img {
-    width: 26px;
-    height: 26px;
-    border-radius: 180px;
-    margin-right: 6px;
+        width: 26px;
+        height: 26px !important;
+        border-radius: 180px;
+        margin-right: 6px;
     }
 
+
     .rz-navigation-item-link p {
-    font-size: var(--rz-text-subtitle1-font-size);
-    margin-bottom: 0;
+        font-size: var(--rz-text-subtitle1-font-size);
+        margin-bottom: 0;
     }
 </style>
 

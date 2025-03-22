@@ -1,5 +1,6 @@
 ﻿@using DevSpaceWeb.Data.Consoles
 @inject DialogService DialogService
+@inject NavigationManager Nav
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -9,19 +10,19 @@
     <br />
     <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/settings")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasConsolePermission(Console, ConsolePermission.ManageConsole) ? "" : " settings-item-disabled"))">
-                <span class="iconify" data-icon="mdi:list-box"></span>
-                <RadzenText TextStyle="TextStyle.H6">Basic</RadzenText>
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole) ? "" : " settings-item-disabled"))">
+                <span class="iconify" data-icon="mdi:gear"></span>
+                <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
             </RadzenCard>
         </a>
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/rcon")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasConsolePermission(Console, ConsolePermission.ManageConnection) ? "" : " settings-item-disabled"))">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConnection) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:console-line"></span>
                 <RadzenText TextStyle="TextStyle.H6">Rcon</RadzenText>
             </RadzenCard>
         </a>
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/permissions")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasConsolePermission(Console, ConsolePermission.ManagePermissions) ? "" : " settings-item-disabled"))">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasConsolePermission(Team, Console, ConsolePermission.ManagePermissions) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:shield-key"></span>
                 <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
             </RadzenCard>
@@ -36,21 +37,21 @@
     </div>
     <br />
     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
-    <RadzenUserSelector Value="@OwnerUser" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ManageResource))" OnSelected="@ChangeOwner"></RadzenUserSelector>
+    <RadzenUserSelector Value="@OwnerUser" Disabled="@(!Member.CanOwn(Console))" OnSelected="@ChangeOwner"></RadzenUserSelector>
     <br />
-    <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Console" Disabled="@(!Member.HasConsolePermission(Console, ConsolePermission.ManageResource))" />
+    <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Console" Disabled="@(!Member.HasConsolePermission(Team, Console, ConsolePermission.DeleteConsoleResource))" />
 </div>
 
 <style>
     .settings-item {
-    width: 140px;
-    height: 140px;
+    width: 120px;
+    height: 120px;
     }
 
     .settings-item .iconify {
-    width: 36px;
-    height: 36px;
-    margin-top: 26px;
+    width: 30px;
+    height: 30px;
+    margin-top: 16px;
     color: var(--rz-info);
     }
 
@@ -79,6 +80,7 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public TeamData Team => Session.Selected.Team.Data;
     public ConsoleData Console => Session.Selected.Console;
     public TeamMemberData Member => Session.Selected.Member;
 
@@ -98,18 +100,18 @@
 
     public async Task Delete()
     {
-        if (!Member.HasConsolePermission(Console, ConsolePermission.ManageResource))
+        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.DeleteConsoleResource))
             return;
 
         bool Confirm = await DialogService.ShowConfirmAsync("Delete Console", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
-            if (!Member.HasConsolePermission(Console, ConsolePermission.ManageResource))
+            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.DeleteConsoleResource))
                 return;
 
             await Console.DeleteAsync(Member, () =>
             {
-                Session.Selected.Team.Console = null;
+                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/consoles");
             });
         }
     }
@@ -117,14 +119,14 @@
 
     public async Task ChangeOwner(PartialUserData user)
     {
-        if (!Member.HasConsolePermission(Console, ConsolePermission.ManageResource))
+        if (!Member.CanOwn(Console))
             return;
 
         bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
-            if (!Member.HasConsolePermission(Console, ConsolePermission.ManageResource))
-                return;
+            if (!Member.CanOwn(Console))
+                 return;
 
             await Console.UpdateAsync(new UpdateDefinitionBuilder<ConsoleData>()
             .Set(x => x.OwnerId, user.Id), () =>

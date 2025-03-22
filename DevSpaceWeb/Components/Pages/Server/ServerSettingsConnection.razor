@@ -8,8 +8,21 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lightning-bolt"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Server Connection</RadzenText>
     </div>
-    <br />
-    <DynamicFormDialog Model="@ModifyServerConnectionModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl)" Text="@Session.Selected.Team.Server.Data.Name" />
+        <RadzenBreadCrumbItem Text="Connection" />
+    </RadzenBreadCrumb>
+    @if (!Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for Manage Connection
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <DynamicFormDialog Model="@ModifyServerConnectionModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+    }
 </div>
 
 @code {
@@ -33,26 +46,42 @@
 
     public async Task<string?> UpdateSettings(ModifyServerConnectionModel model)
     {
-        if (!Member.HasServerPermission(Server, ServerPermission.ManageConnection))
+        if (!Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection))
             return "You do not have Manage Connection permissions.";
-
-        if (!IPAddress.TryParse(model.Ip, out _))
-            return "Invalid IP address.";
 
         if (model.Port == 0)
             return "Server port is required.";
 
         ServerWebSocket Client = new ServerWebSocket();
-        Client.Run(new ServerData
-            {
-                AgentIp = model.Ip,
-                AgentPort = model.Port,
-                AgentKey = model.AgentKey
-            });
-        if (!Client.Client.IsConnected)
-            return "Failed to connect to server.";
+        var TempServer = new ServerData
+        {
+            AgentIp = model.Ip,
+            AgentPort = model.Port,
+            AgentKey = model.AgentKey
+        };
+        await Client.DiscoverAsync(TempServer);
+        if (Client.Discover == null)
+            return "Failed to discover server.";
+
+        TempServer.AgentId = Client.Discover.Id;
+
+        HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + TempServer.AgentIp + ":" + TempServer.AgentPort + "/setup");
+        Req.Headers.Add("Authorization", TempServer.AgentKey);
+        HttpResponseMessage DiscoverResponse = await Program.AgentDiscoverHttp.SendAsync(Req);
+        if (!DiscoverResponse.IsSuccessStatusCode)
+        {
+            return "Failed to setup server.";
+        }
+
+        await Client.RunAsync(TempServer);
+
+        await Task.Delay(new TimeSpan(0, 0, 2));
+
+        if (Client.Client == null || !Client.Client.IsConnected)
+            return "Failed to connect to server: " + Client.Error.ToString();
 
         await Server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>()
+        .Set(x => x.AgentId, Client.Discover.Id)
         .Set(x => x.AgentIp, model.Ip)
         .Set(x => x.AgentPort, model.Port)
         .Set(x => x.AgentKey, model.AgentKey),
@@ -67,8 +96,9 @@
             Server.AgentIp = model.Ip;
             Server.AgentPort = model.Port;
             Server.AgentKey = model.AgentKey;
-            if (Server.GetWebSocket(false) != null)
-                Client.Client.Dispose();
+
+            Server.RemoveWebSocket();
+
             Server.SetWebSocket(Client);
             Session.TriggerNavMenuChange();
         });

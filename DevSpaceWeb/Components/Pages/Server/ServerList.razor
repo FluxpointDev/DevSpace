@@ -1,5 +1,6 @@
 ﻿@using DevSpaceWeb.Models.Setup
 @using System.Net
+@using Newtonsoft.Json
 @inject DialogService DialogService
 
 <PageTitle>My Servers | @_Data.Config.Instance.Name</PageTitle>
@@ -11,19 +12,34 @@
     </div>
     <br />
 
-    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Server" Click="@SetupServer" Disabled="(!Member.HasServerPermission(null, ServerPermission.ManageResource))" />
+    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Server" Click="@SetupServer" Disabled="(!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))" />
     <br />
     <br />
-    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member.HasServerPermission(x, ServerPermission.ViewServer)))
+    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member.HasServerPermission(Team, x, ServerPermission.ViewServer)).OrderBy(x => x.Name))
     {
         <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + i.GetVanityUrlOrId())">
-            <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
-                <div class="server-item-icon flex-none d-flex">
-                    <span class="iconify" data-icon="mdi:server"></span>
+                <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
+                    <div class="server-item-icon flex-none d-flex">
+                        <span class="iconify" data-icon="mdi:server"></span>
+                    </div>
+                    <div>
+                    <RadzenText TextStyle="TextStyle.H6" class="mt-5 ml-2">@i.Name</RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <RadzenText class="ml-2" Style="@("color: var(" + (i.IsConnected ? "--rz-success" : "--rz-danger") + ");")" TextStyle="TextStyle.Body2">@(i.IsConnected ? "Online" : "Down")</RadzenText>
+                        @if (i.GetWebSocket() != null && i.GetWebSocket().Discover != null)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2">@("v" + i.GetWebSocket().Discover.Version)</RadzenText>
+                        }
+                        @if (i.WebSocketError.HasValue)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(i.WebSocketError.Value.ToString())</RadzenText>
+                        }
+                    </RadzenStack>
+                    </div>
+                    
                 </div>
-                <RadzenText TextStyle="TextStyle.H6" class="mt-5 ml-2">@i.Name</RadzenText>
-            </div>
-        </a>
+            </a>
+        
         <br />
     }
 
@@ -109,39 +125,58 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public TeamData Team => Session.Selected.Team.Data;
     public TeamMemberData Member => Session.Selected.Member;
 
     public async Task SetupServer()
     {
-        if (!Member.HasServerPermission(null, ServerPermission.ManageResource))
+        if (!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
             return;
 
         await DialogService.ShowDynamicFormAsync<ServerSetupModel>("Setup Server", new ServerSetupModel(), async (ServerSetupModel data) =>
             {
-                if (!Member.HasServerPermission(null, ServerPermission.ManageResource))
+                if (!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
                     return "You do not have Manage Resource permissions";
-
-                if (!IPAddress.TryParse(data.Ip, out _))
-                    return "Invalid IP address.";
 
                 if (data.Port == 0)
                     return "Server port is required.";
 
                 ServerWebSocket Client = new ServerWebSocket();
-                Client.Run(new ServerData
-                    {
-                        AgentIp = data.Ip,
-                        AgentPort = data.Port,
-                        AgentKey = data.AgentKey
-                    });
-                if (!Client.Client.IsConnected)
-                    return "Failed to connect to server.";
+                var TempServer = new ServerData
+                {
+                    AgentIp = data.Ip,
+                    AgentPort = data.Port,
+                    AgentKey = data.AgentKey
+                };
+                await Client.DiscoverAsync(TempServer);
+                if (Client.Discover == null)
+                    return "Failed to discover server.";
+
+                TempServer.AgentId = Client.Discover.Id;
+
+                HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + TempServer.AgentIp + ":" + TempServer.AgentPort + "/setup");
+                Req.Headers.Add("Authorization", TempServer.AgentKey);
+                HttpResponseMessage DiscoverResponse = await Program.AgentDiscoverHttp.SendAsync(Req);
+                if (!DiscoverResponse.IsSuccessStatusCode)
+                {
+                    return "Failed to setup server.";
+                }
+
+                await Client.RunAsync(TempServer);
+                await Task.Delay(new TimeSpan(0, 0, 2));
+                if (Client.Client == null || !Client.Client.IsConnected)
+                {
+                    Client.Client.DisconnectAndStop();
+                    Client.Client.Dispose();
+                    return "Failed to connect to server: " + Client.Error.ToString();
+                }
 
                 ServerData Server = new ServerData
                     {
                         Name = data.Name,
                         OwnerId = Member.UserId,
                         TeamId = Member.TeamId,
+                        AgentId = Client.Discover.Id,
                         AgentIp = data.Ip,
                         AgentPort = data.Port,
                         AgentKey = data.AgentKey

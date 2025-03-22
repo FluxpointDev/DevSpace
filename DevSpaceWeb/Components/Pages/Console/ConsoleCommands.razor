@@ -2,13 +2,20 @@
 @using DevSpaceWeb.Data.Consoles
 @inject DialogService Dialog
 
+<PageTitle>Console Commands | @_Data.Config.Instance.Name</PageTitle>
+
 <div class="dash-box">
     <div class="dash-box-header dash-box-content">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:console"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Console</RadzenText>
     </div>
+    <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Text="Console" />
+    </RadzenBreadCrumb>
 
-    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewConsoleLogs))
+    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConsoleLogs))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for View Console Logs
@@ -33,6 +40,7 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public TeamData Team => Session.Selected.Team.Data;
     public ConsoleData Console => Session.Selected.Console;
     public TeamMemberData Member => Session.Selected.Member;
 
@@ -60,7 +68,7 @@
         {
             case "Command":
                 {
-                    if (!Member.HasConsolePermission(Console, ConsolePermission.UseConsoleCommands))
+                    if (!Member.HasConsolePermission(Team, Console, ConsolePermission.UseConsoleCommands))
                     {
                         await Dialog.ShowPermissionErrorAsync(ConsolePermission.UseConsoleCommands);
                         return;
@@ -97,7 +105,7 @@
                 break;
             case "Say Global":
                 {
-                    if (!Member.HasConsolePermission(Console, ConsolePermission.MessageGlobal))
+                    if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessageGlobal))
                     {
                         await Dialog.ShowPermissionErrorAsync(ConsolePermission.MessageGlobal);
                         return;
@@ -135,7 +143,7 @@
                 break;
             case "Say Player":
                 {
-                    if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
+                    if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                     {
                         await Dialog.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
                         return;

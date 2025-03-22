@@ -4,55 +4,34 @@ using Newtonsoft.Json;
 namespace DevSpaceAgent.Server;
 public class AgentWebSocket
 {
-    public bool IsCertValid;
     public AgentSession Session;
 
     public async Task SendStringAsync(string message, CancellationToken token = default)
     {
-        if (!IsCertValid)
-        {
-            Console.WriteLine("Invalid Cert: " + message);
-            return;
-        }
         Session.SendTextAsync(message);
     }
 
-    public async Task SendJsonAsync(IWebSocketEvent json, CancellationToken token = default, bool bypassCertCheck = false)
+    public async Task SendJsonAsync(IWebSocketEvent json, CancellationToken token = default)
     {
-        if (!bypassCertCheck && !IsCertValid)
-        {
-            Console.WriteLine("Invalid Cert: " + json.type.ToString());
-            return;
-        }
-        string message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
-        Console.WriteLine("Send Cert Message");
-        bool Check = Session.SendTextAsync(message);
-        Console.WriteLine("Send: " + Check);
+        string message = JsonConvert.SerializeObject(json);
+        Session.SendTextAsync(message);
     }
 
 
-    public async Task RespondAsync(string taskId, object json, CancellationToken token = default)
+    public async Task RespondAsync(string taskId, object json, bool noResponse = false, CancellationToken token = default)
     {
-        if (!IsCertValid)
-        {
-            Console.WriteLine("Invalid Cert: " + json.GetType().Name);
-            return;
-        }
-        Console.WriteLine("Respond with: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(json, Newtonsoft.Json.Formatting.Indented));
-        string message = Newtonsoft.Json.JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, Data = json });
+
+        if (!noResponse)
+            Console.WriteLine("Respond with: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(json, Formatting.Indented));
+        string message = Newtonsoft.Json.JsonConvert.SerializeObject(new IWebSocketResponse<dynamic>() { IsSuccess = true, TaskId = taskId, Data = json });
         Session.SendTextAsync(message);
     }
 
     public async Task RespondFailAsync(string taskId, CancellationToken token = default)
     {
-        if (!IsCertValid)
-        {
-            Console.WriteLine("Invalid Cert: Respond With Fail");
-            return;
-        }
         Console.WriteLine("Respond with: Fail");
 
-        string message = JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, IsFail = true });
+        string message = JsonConvert.SerializeObject(new IWebSocketResponse<dynamic>() { TaskId = taskId });
         Session.SendTextAsync(message);
     }
 }

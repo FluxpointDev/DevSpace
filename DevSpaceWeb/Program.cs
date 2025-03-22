@@ -2,6 +2,7 @@ using DevSpaceWeb.Data;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Services;
+using Docker.DotNet;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Caching.Memory;
@@ -22,8 +23,8 @@ public class Program
     public static string Version => Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
     public static string GetVersionText()
     {
-        if (Version.StartsWith("0."))
-            return Version + " Dev";
+        if (Version.StartsWith("1."))
+            return Version + " Beta";
         return Version + " Release";
     }
 
@@ -35,6 +36,18 @@ public class Program
     public static DirectoryStructureMain Directory;
 
     public static HttpClient Http = new HttpClient();
+
+    public static HttpClient AgentDiscoverHttp = new HttpClient(new HttpClientHandler
+    {
+        AllowAutoRedirect = false,
+        ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) =>
+        {
+            if (cert != null && cert.Subject == "CN=devspace")
+                return true;
+
+            return false;
+        }
+    });
 
     public static IServiceCollection Services;
 
@@ -52,6 +65,8 @@ public class Program
 
     public static string PublicIP { get; private set; }
 
+    public static DockerClient InternalDocker;
+
     public static async Task Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -59,19 +74,33 @@ public class Program
         IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
 
+        // TODO import portainer yml files
+        //string YmlText = "";
+        //var deserializer = new DeserializerBuilder().Build();
+        //var yamlObject = deserializer.Deserialize(YmlText);
+
+        //var serializer = new SerializerBuilder()
+        //    .JsonCompatible()
+        //    .Build();
+
+        //var json = serializer.Serialize(yamlObject);
+        //var JO = JObject.Parse(json);
+        //Console.WriteLine(JO["services"].First().Path.Replace("services.", ""));
+
         //WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
         Logger.RunLogger("Dev Space", LogSeverity.Debug);
+        Logger.LogMessage("Dev Space v" + GetVersionText(), LogSeverity.Info);
 
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
 
         Logger.LogMessage("Loaded config in: " + Program.Directory.Path, LogSeverity.Info);
+
+
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.CSharpLegacy));
 
         // Rcon support
         System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-
-
 
         Logger.LogMessage("Running connection test...", LogSeverity.Info);
 
@@ -102,6 +131,32 @@ public class Program
                 throw new Exception("Connection test failed");
             }
         }
+        if (Program.IsDevMode)
+        {
+            InternalDocker = new DockerClientConfiguration(new Uri("tcp://127.0.0.1:2375"), null).CreateClient();
+            try
+            {
+                DriveInfo CurrentDrive = DriveInfo.GetDrives().First();
+
+                string Used = Utils.SizeSuffix(CurrentDrive.TotalSize - CurrentDrive.TotalFreeSpace, 0);
+                string Total = Utils.SizeSuffix(CurrentDrive.TotalSize, 0);
+
+
+                await InternalDocker.System.PingAsync();
+                Console.WriteLine("PINGED");
+                var Version = await InternalDocker.System.GetSystemInfoAsync();
+                //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Version, Newtonsoft.Json.Formatting.Indented));
+                //var Procs = await InternalDocker.Containers.ListProcessesAsync("d4718c5b63aaab415034b1f1ef99ca24859b388fca474cdf8f461e387c78a192", new Docker.DotNet.Models.ContainerListProcessesParameters
+                //{
+                //    PsArgs = "-eo user,pid,ppid,thcount,c,%cpu,%mem,lstart,etime,comm,cmd --date-format %Y-%m-%dT%H:%M:%S"
+                //});
+                //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Newtonsoft.Json.JsonConvert.DeserializeObject(Data), Newtonsoft.Json.Formatting.Indented));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Failed " + ex.Message);
+            }
+        }
 
 
         _DB.Init(builder.Configuration);
@@ -118,7 +173,10 @@ public class Program
 
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
-            options.ForwardedHeaders = ForwardedHeaders.All;
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedPrefix | ForwardedHeaders.XForwardedProto;
+            options.ForwardLimit = 2;
+            options.KnownProxies.Clear();
+            options.KnownNetworks.Clear();
         });
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
@@ -165,7 +223,6 @@ public class Program
         app.UseAuthorization();
         app.UseSession();
         app.UseAntiforgery();
-
         if (_Data.Config.Instance.Features.SwaggerEnabled)
         {
             Logger.LogMessage("Swagger Enabled", LogSeverity.Info);

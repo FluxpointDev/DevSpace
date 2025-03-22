@@ -1,34 +1,35 @@
 ﻿namespace DevSpaceShared.WebSocket;
 
-public class IWebSocketResponseEvent<T> : IWebSocketEvent
+public class IWebSocketResponse<T> : IWebSocketEvent
 {
-    public IWebSocketResponseEvent() : base(EventType.TaskResponse)
+    public IWebSocketResponse() : base(EventType.TaskResponse)
     {
 
     }
 
-    public T Data { get; set; }
+    public bool IsSuccess { get; set; }
 
-    public bool IsFail { get; set; } = false;
+    public string TaskId { get; set; }
 
-    public string TaskId;
+    public T? Data { get; set; }
 }
 
-public class IWebSocketTaskEvent : IWebSocketEvent
+public class IWebSocketTask : IWebSocketEvent
 {
-    public IWebSocketTaskEvent(EventType type) : base(type)
+    public IWebSocketTask(EventType type) : base(type)
     {
 
     }
 
     public string TaskId;
 }
+
 public class IWebSocketEvent
 {
     public IWebSocketEvent(EventType type)
     {
-        this.type = type;
+        this.Type = type;
     }
 
-    public EventType type;
+    public EventType Type;
 }

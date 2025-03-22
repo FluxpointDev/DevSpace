@@ -1,8 +1,13 @@
-﻿using DevSpaceWeb.Data.Teams;
+﻿using DevSpaceShared.Data;
+using DevSpaceShared.Responses;
+using DevSpaceShared.WebSocket;
+using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.WebSocket;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using NetCoreServer;
+using Newtonsoft.Json;
 using System.Security.Authentication;
 
 namespace DevSpaceWeb.Data.Servers;
@@ -11,31 +16,70 @@ public class ServerData : ITeamResource
 {
     public ServerData() : base(ResourceType.Server) { }
 
+    public string AgentId { get; set; }
     public string AgentIp { get; set; }
     public string AgentKey { get; set; }
     public short AgentPort { get; internal set; }
 
     private ServerWebSocket WebSocket;
-    public ServerWebSocket GetWebSocket(bool create = true)
+
+    [BsonIgnore]
+    [JsonIgnore]
+    public bool IsConnected => WebSocket != null && WebSocket.Client != null && WebSocket.Client.IsConnected;
+
+    [BsonIgnore]
+    [JsonIgnore]
+    public ServerWebSocketErrorType? WebSocketError => WebSocket != null ? WebSocket.Error : ServerWebSocketErrorType.NoConnection;
+
+    public async Task StartWebSocket(bool reconnect = false)
     {
-        if (WebSocket == null && create)
-        {
-            WebSocket = new ServerWebSocket();
-            if (!Program.IsPreviewMode)
-                WebSocket.Run(this);
-        }
-        return WebSocket;
-    }
-    public void SetWebSocket(ServerWebSocket websocket)
-    {
-        WebSocket = websocket;
+        WebSocket = new ServerWebSocket();
+        await WebSocket.RunAsync(this, reconnect);
     }
 
-    public bool IsRunningDockerContainer()
+    public void SetWebSocket(ServerWebSocket socket)
     {
-        if (WebSocket != null && WebSocket.Client != null && WebSocket.Client.IsRunningDockerContainer)
-            return true;
-        return false;
+        WebSocket = socket;
+    }
+
+    public void RemoveWebSocket()
+    {
+        if (WebSocket != null)
+        {
+            if (WebSocket.Client != null)
+            {
+                WebSocket.Client.DisconnectAndStop();
+                WebSocket.Client.Dispose();
+            }
+
+            WebSocket = null;
+        }
+    }
+
+    public ServerWebSocket? GetWebSocket()
+    {
+        return WebSocket;
+    }
+
+    public async Task<SocketResponse<T?>> RunJsonAsync<T>(Radzen.NotificationService notification, IWebSocketTask json, Action<SocketResponse<T?>>? action = null, CancellationToken token = default) where T : class
+    {
+        if (WebSocket == null)
+            await StartWebSocket();
+
+        if (WebSocket.Error.HasValue || WebSocket.Client == null)
+            return new SocketResponse<T?> { Error = ClientError.Exception };
+
+        return await WebSocket.Client.RunJsonAsync<T>(notification, json, action, token);
+    }
+
+    public async Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
+    {
+        if (WebSocket == null)
+            await StartWebSocket();
+
+        if (WebSocket.Error.HasValue || WebSocket.Client == null)
+            return new SocketResponse<T?> { Error = ClientError.Exception };
+        return await WebSocket.Client.RecieveJsonAsync<T>(json, token);
     }
 
     public async Task UpdateAsync(UpdateDefinition<ServerData> update, Action action)
@@ -58,8 +102,7 @@ public class ServerData : ITeamResource
 
             _DB.Servers.Cache.TryRemove(Id, out _);
 
-            if (GetWebSocket() != null)
-                GetWebSocket().Client.Dispose();
+            RemoveWebSocket();
 
             action?.Invoke();
         }
@@ -67,38 +110,130 @@ public class ServerData : ITeamResource
 }
 public class ServerWebSocket
 {
-    public WebSocketClient Client;
-    public void Run(ServerData server)
+    public WebSocketClient? Client;
+    public ServerWebSocketErrorType? Error;
+    public DiscoverAgentInfo? Discover;
+
+    public async Task DiscoverAsync(ServerData server)
     {
-        ValidateCert ValidateCert = new ValidateCert();
-        SslContext context = new SslContext(SslProtocols.Tls12, (e, b, l, m) =>
+        Console.WriteLine("Discover");
+        HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + server.AgentIp + ":" + server.AgentPort + "/discover");
+        Req.Headers.Add("Connection", "Upgrade");
+        HttpResponseMessage? Response = null;
+        try
+        {
+            Response = await Program.AgentDiscoverHttp.SendAsync(Req);
+        }
+        catch (HttpRequestException he)
+        {
+            Console.WriteLine("Status: " + he.HttpRequestError.ToString());
+            switch (he.HttpRequestError)
+            {
+                case HttpRequestError.ConnectionError:
+                case HttpRequestError.NameResolutionError:
+                case HttpRequestError.SecureConnectionError:
+                    {
+                        Error = ServerWebSocketErrorType.NoConnection;
+                    }
+                    return;
+            }
+        }
+        catch { }
+        if (Response == null)
+        {
+            Error = ServerWebSocketErrorType.ServerError;
+            return;
+        }
+        Console.WriteLine("Error: " + Response.StatusCode.ToString());
+        if (!Response.IsSuccessStatusCode)
+        {
+            switch (Response.StatusCode)
+            {
+                case System.Net.HttpStatusCode.BadGateway:
+                case System.Net.HttpStatusCode.RequestTimeout:
+                case System.Net.HttpStatusCode.GatewayTimeout:
+                    Error = ServerWebSocketErrorType.NoConnection;
+                    break;
+                case System.Net.HttpStatusCode.BadRequest:
+                    Error = ServerWebSocketErrorType.AgentUnsupported;
+                    break;
+                case System.Net.HttpStatusCode.Unauthorized:
+                case System.Net.HttpStatusCode.Forbidden:
+                    Error = ServerWebSocketErrorType.AuthFailed;
+                    break;
+                default:
+                    Error = ServerWebSocketErrorType.AgentError;
+                    break;
+            }
+
+            return;
+        }
+        try
+        {
+            using (var responseContent = await Response.Content.ReadAsStreamAsync())
+                Discover = await System.Text.Json.JsonSerializer.DeserializeAsync<DiscoverAgentInfo>(responseContent);
+        }
+        catch
+        {
+            Error = ServerWebSocketErrorType.ServerError;
+        }
+
+        if (Discover == null)
+            Error = ServerWebSocketErrorType.ServerError;
+    }
+
+    public async Task RunAsync(ServerData server, bool reconnect = false)
+    {
+        await DiscoverAsync(server);
+
+        if (Error.HasValue && Error != ServerWebSocketErrorType.NoConnection)
+            return;
+
+        if (Discover == null)
+        {
+            if (reconnect)
+            {
+                Thread.Sleep(TimeSpan.FromSeconds(30));
+                await RunAsync(server, true);
+                return;
+            }
+            else
+                return;
+        }
+
+        if (Discover.Id != server.AgentId)
+        {
+            Error = ServerWebSocketErrorType.AgentError;
+            return;
+        }
+
+
+        SslContext context = new SslContext(SslProtocols.None, (e, b, l, m) =>
         {
             if (b != null)
             {
-                ValidateCert.Cert = b.GetCertHashString();
                 if (b.Subject == "CN=devspace")
                 {
-                    Logger.LogMessage($"Cert: {b.Subject} " + ValidateCert.Cert, LogSeverity.Debug);
                     return true;
                 }
             }
-
-            if (m == System.Net.Security.SslPolicyErrors.None)
-                return false;
             return false;
 
         });
-        context.ClientCertificateRequired = false;
 
         Logger.LogMessage($"Connecting to {server.AgentIp}:{server.AgentPort}", LogSeverity.Info);
         Client = new WebSocketClient(context, server.AgentIp, server.AgentPort)
         {
-            ValidateCert = ValidateCert,
             Key = server.AgentKey
         };
-        // Connect the client
+
         Logger.LogMessage("Client connecting...", LogSeverity.Debug);
         bool Connected = Client.ConnectAsync();
-        Logger.LogMessage("Is Connected: " + Connected, LogSeverity.Debug);
+        if (!Connected)
+            Error = ServerWebSocketErrorType.NoConnection;
     }
+}
+public enum ServerWebSocketErrorType
+{
+    NoConnection, AgentUnsupported, AuthFailed, AgentError, ServerError
 }

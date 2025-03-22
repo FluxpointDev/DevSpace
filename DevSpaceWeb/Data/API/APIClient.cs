@@ -45,19 +45,30 @@ public class APIClient
 
     public bool HasAccess(TeamMemberData member)
     {
-        if (OwnerId == member.UserId && member.HasAPIPermission(APIPermission.ViewOwnAPIs))
+        if (OwnerId == member.UserId && member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs))
             return true;
 
-        if (member.HasAPIPermission(APIPermission.ViewAllAPIs))
+        if (member.HasAPIPermission(Team, APIPermission.ViewAllAPIs))
             return true;
+        return false;
+    }
+
+    public bool CanGenerate(TeamMemberData member)
+    {
+        if (member.HasAPIPermission(Team, APIPermission.ManageOwnAPIs) && OwnerId == member.UserId)
+            return true;
+
+        if (member.UserId == Team.OwnerId)
+            return true;
+
         return false;
     }
 
     public bool CanManage(TeamMemberData member)
     {
-        if (member.HasAPIPermission(APIPermission.ManageOwnAPIs) && OwnerId == member.UserId)
+        if (member.HasAPIPermission(Team, APIPermission.ManageOwnAPIs) && OwnerId == member.UserId)
             return true;
-        if (member.HasAPIPermission(APIPermission.APIAdministrator))
+        if (member.HasAPIPermission(Team, APIPermission.APIAdministrator))
             return true;
         return false;
     }
@@ -82,7 +93,7 @@ public class APIClient
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
-                return member.HasTeamPermission(checkPermission);
+                return member.HasTeamPermission(Team, checkPermission);
         }
 
         return false;
@@ -108,7 +119,7 @@ public class APIClient
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
-                return member.HasAPIPermission(checkPermission);
+                return member.HasAPIPermission(Team, checkPermission);
         }
 
         return false;
@@ -137,7 +148,7 @@ public class APIClient
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
-                return member.HasLogPermission(log, checkPermission);
+                return member.HasLogPermission(Team, log, checkPermission);
         }
 
 
@@ -169,7 +180,7 @@ public class APIClient
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
-                return member.HasProjectPermission(project, checkPermission);
+                return member.HasProjectPermission(Team, project, checkPermission);
         }
         return false;
     }
@@ -197,7 +208,7 @@ public class APIClient
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
-                return member.HasServerPermission(server, checkPermission);
+                return member.HasServerPermission(Team, server, checkPermission);
 
 
 
@@ -228,7 +239,7 @@ public class APIClient
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
-                return member.HasConsolePermission(console, checkPermission);
+                return member.HasConsolePermission(Team, console, checkPermission);
 
         }
 
@@ -261,7 +272,7 @@ public class APIClient
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
-                return member.HasWebsitePermission(website, checkPermission);
+                return member.HasWebsitePermission(Team, website, checkPermission);
         }
 
         return false;
@@ -291,7 +302,7 @@ public class APIClient
                 return true;
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
-                return member.HasDockerPermission(server, checkPermission);
+                return member.HasDockerPermission(Team, server, checkPermission);
         }
 
         return false;

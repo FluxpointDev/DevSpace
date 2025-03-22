@@ -1,4 +1,5 @@
 ﻿using DevSpaceWeb.Data;
+using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
@@ -269,7 +270,7 @@ public class UploadController : Controller
         if (Member == null)
             return BadRequest("Failed to get member data");
 
-        if (!Member.HasTeamPermission(Data.Permissions.TeamPermission.ManageTeam))
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
             return BadRequest("You do not have Manage Team permission");
 
         if (Team.ResourceId == null)

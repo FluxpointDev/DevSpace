@@ -52,11 +52,36 @@
                                     Preview Mode is enabled, login as a test user.
                                 </RadzenAlert>
                             }
-                            @if (ConnectionShouldLink)
+                            @if (!string.IsNullOrEmpty(ConnectionLink))
                             {
-                                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                                    You need to login to your account to link a social connection.
-                                </RadzenAlert>                            
+                                @switch (ConnectionLink)
+                                {
+                                    case "PreviewMode":
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                            Social login is not available in preview mode.
+                                        </RadzenAlert>
+                                        break;
+                                    case "Disabled":
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                            Social login is disabled for this instance.
+                                        </RadzenAlert>
+                                        break;
+                                    case "Failed":
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                            Social login has failed.
+                                        </RadzenAlert>
+                                        break;
+                                    case "NotConnected":
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                            This social login has not been connected to your account, you will need to login first.
+                                        </RadzenAlert>
+                                        break;
+                                    case "EmailMissing":
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                            This social is not providing an email address.
+                                        </RadzenAlert>
+                                        break;
+                                }
                             }
                             @if (!_Data.Config.Auth.AllowInternalLogin)
                             {
@@ -230,6 +255,12 @@
                         Account registration has been disabled.
                     </RadzenAlert>
                 }
+                else if (!string.IsNullOrEmpty(ConnectionLink) && ConnectionLink == "Register")
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                        You need to create an account to connect your social login.
+                    </RadzenAlert>
+                }
                 <EditForm Model="@RegisterForm" OnValidSubmit="@RegisterAccount">
                     <DataAnnotationsValidator />
 
@@ -373,11 +404,11 @@
         case LoginPageType.AlreadyLoggedIn:
             {
                 <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                    You are already logged in
+                    You are already logged in, go to your account settings or use the sidebar.
                 </RadzenAlert>
 
-                <a href="/user/account"><RadzenButton Text="Account Settings" ButtonStyle="ButtonStyle.Secondary" Shade="Shade.Dark" /></a>
-                <a href="/logout"><RadzenButton Text="Logout" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" /></a>
+                <a href="/user/account"><RadzenButton Text="Account Settings" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Darker" /></a>
+                <a href="/logout"><RadzenButton Text="Logout" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" /></a>
             }
             break;
     }
@@ -415,7 +446,7 @@
     public bool FormDisabled { get; set; } = false;
 
     public string Token { get; set; }
-    public bool ConnectionShouldLink { get; set; }
+    public string ConnectionLink { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -438,6 +469,8 @@
             LoginForm.Email = "test@test.com";
             LoginForm.CurrentPassword = "@U8FXB5&^2mKWbn";
         }
+
+        ConnectionLink = query["link"];
 
         if (Path.StartsWith("register", StringComparison.OrdinalIgnoreCase))
         {
@@ -463,9 +496,6 @@
         }
         else
         {
-            if (HttpContext.HttpContext.Request.Query.ContainsKey("link"))
-                ConnectionShouldLink = true;
-
             if (!string.IsNullOrEmpty(Email))
             {
                 LoginForm.Email = Uri.UnescapeDataString(Email);
@@ -501,11 +531,12 @@
             return;
         }
         FormDisabled = true;
-        IdentityResult result = await UserManager.UserManager.CreateAsync(new AuthUser
+        var User = new AuthUser
             {
                 UserName = RegisterForm.Username.ToLower(),
                 Email = RegisterForm.Email
-            }, RegisterForm.Password);
+            };
+        IdentityResult result = await UserManager.UserManager.CreateAsync(User, RegisterForm.Password);
 
         if (result.Errors.Any())
         {
@@ -521,6 +552,7 @@
         }
         else
         {
+            _DB.Users.Add(User.Id, new PartialUserData(User));
             IsAccountCreated = true;
             Page = LoginPageType.Login;
         }

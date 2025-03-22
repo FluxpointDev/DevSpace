@@ -44,7 +44,8 @@ public class ImageBuilder
                     throw new CanvasException("provided file does not exist.");
                 }
                 break;
-        };
+        }
+        ;
 
         if (myCanvas == null)
             throw new CanvasException("failed to parse base.");

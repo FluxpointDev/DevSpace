@@ -1,13 +1,18 @@
 ﻿@using DevSpaceWeb.Data.API
 @inject DialogService DialogService
 
-<PageTitle>Team API Settings | @_Data.Config.Instance.Name</PageTitle>
+<PageTitle>Team API Client | @_Data.Config.Instance.Name</PageTitle>
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:robot"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">API Client@((!NoAccess && Client != null) ? " - " + Client.Name : "")</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">API Client</RadzenText>
     </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl)" Text="@Session.Selected.Team.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/api")" Text="API" />
+        <RadzenBreadCrumbItem Text="@((!NoAccess && Client != null ? Client.Name : ClientId))" />
+    </RadzenBreadCrumb>
     @if (Client == null)
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -54,11 +59,11 @@
         else
         {
             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Generated</RadzenText>
-            <RadzenText Text="@GeneratedUser" TextStyle="TextStyle.Body2"></RadzenText>
-            <RadzenText Text="@Utils.GetLocalDate(Session, Client.CreatedAt)" TextStyle="TextStyle.Body2"></RadzenText>
+            <RadzenText Text="@("By " + GeneratedUser)" TextStyle="TextStyle.Body2"></RadzenText>
+            <RadzenText Text="@("At " + Utils.GetLocalDate(Session, Client.CreatedAt))" TextStyle="TextStyle.Body2"></RadzenText>
         }
         <br />
-        <RadzenButton Click="@GenerateToken" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Generate Token" Disabled="@(!CanManage)" />
+        <RadzenButton Click="@GenerateToken" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Generate Token" Disabled="@(!CanGenerate)" />
     </div>
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -66,21 +71,21 @@
             <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
         </div>
         <br />
-        <RadzenText Text="The API client will inherit permissions from the owner user or custom permissions if set." TextStyle="TextStyle.Body1"></RadzenText>
+        <RadzenText Text="The API client will inherit permissions from the owner user or custom permissions if set." TextStyle="TextStyle.Body2"></RadzenText>
         <br />
         <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
             Only global administrators can set custom permissions.
         </RadzenAlert>
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Permission Type</RadzenText>
         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-            <RadzenSwitch Value="@Client.UseCustomPermissions" Disabled="@(!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))" ValueChanged="@ToggleCustomPermissions" Name="UseCustom" />
+            <RadzenSwitch Value="@Client.UseCustomPermissions" Disabled="@(!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" ValueChanged="@ToggleCustomPermissions" Name="UseCustom" />
             <RadzenLabel Text="Use Custom Permissions" Component="UseCustom" />
         </RadzenStack>
         <br />
         <br />
         @if (Client.UseCustomPermissions)
         {
-            <PermissionGrid IsDisabled="@(!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))" Permissions="@Permissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions"></PermissionGrid>
+            <PermissionGrid IsDisabled="@(!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Permissions="@Permissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions"></PermissionGrid>
         }
 
     </div>
@@ -110,6 +115,7 @@
 
     public APIClient? Client { get; set; }
     public bool NoAccess { get; set; }
+    public bool CanGenerate { get; set; }
     public bool CanManage { get; set; }
     public string OwnerUser { get; set; }
     public string? GeneratedUser { get; set; }
@@ -136,6 +142,7 @@
 
 
             NoAccess = !Client.HasAccess(Member);
+            CanGenerate = Client.CanGenerate(Member);
             CanManage = Client.CanManage(Member);
             Permissions = Client.CustomPermissions.Clone();
         }
@@ -192,7 +199,7 @@
 
     public async Task ToggleCustomPermissions(bool value)
     {
-        if (!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))
+        if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
             return;
 
         await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.UseCustomPermissions, value), () =>
@@ -212,7 +219,7 @@
 
     public async Task SavePermissions(PermissionsSet perms)
     {
-        if (!Member.HasTeamPermission(TeamPermission.GlobalAdministrator))
+        if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
             return;
 
         await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.CustomPermissions, perms), () =>
@@ -227,8 +234,8 @@
 
     public async Task GenerateToken()
     {
-        CanManage = Client!.CanManage(Member);
-        if (!CanManage)
+        CanGenerate = Client!.CanGenerate(Member);
+        if (!CanGenerate)
             return;
 
         var AuthUser = await Session.GetCurrentUserAsync();
@@ -238,6 +245,10 @@
             await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
             return;
         }
+
+        CanGenerate = Client!.CanGenerate(Member);
+        if (!CanGenerate)
+            return;
 
         string Token = _Data.GetRandomString(new Random().Next(25, 45));
         string Hash = Utils.Hasher.HashPassword(null, Token);

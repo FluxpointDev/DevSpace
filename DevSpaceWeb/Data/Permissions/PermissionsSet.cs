@@ -8,6 +8,7 @@ public class PermissionsSet
         APIPermissions = (APIPermission)ulong.MaxValue,
         ConsolePermissions = (ConsolePermission)ulong.MaxValue,
         DockerPermissions = (DockerPermission)ulong.MaxValue,
+        DockerContainerPermissions = (DockerContainerPermission)ulong.MaxValue,
         LogPermissions = (LogPermission)ulong.MaxValue,
         ProjectPermissions = (ProjectPermission)ulong.MaxValue,
         ServerPermissions = (ServerPermission)ulong.MaxValue,
@@ -21,6 +22,9 @@ public class PermissionsSet
 
         DockerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator)
         ? (DockerPermission)ulong.MaxValue : perms.DockerPermissions;
+
+        DockerContainerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator)
+        ? (DockerContainerPermission)ulong.MaxValue : perms.DockerContainerPermissions;
 
         LogPermissions |= perms.LogPermissions.HasFlag(LogPermission.LogAdministrator)
         ? (LogPermission)ulong.MaxValue : perms.LogPermissions;
@@ -49,13 +53,14 @@ public class PermissionsSet
     public WebsitePermission WebsitePermissions;
     public ConsolePermission ConsolePermissions;
     public DockerPermission DockerPermissions;
+    public DockerContainerPermission DockerContainerPermissions;
 
     public bool HasTeamPermission(TeamPermission checkPermission)
     {
         if (checkPermission != TeamPermission.GlobalAdministrator && TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
             return true;
 
-        if (checkPermission != TeamPermission.TeamAdministrator && TeamPermissions.HasFlag(TeamPermission.TeamAdministrator))
+        if (TeamPermissions.HasFlag(TeamPermission.TeamAdministrator))
             return true;
 
         if (TeamPermissions.HasFlag(checkPermission))
@@ -69,7 +74,7 @@ public class PermissionsSet
         if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
             return true;
 
-        if (checkPermission != APIPermission.APIAdministrator && APIPermissions.HasFlag(APIPermission.APIAdministrator))
+        if (APIPermissions.HasFlag(APIPermission.APIAdministrator))
             return true;
 
         if (APIPermissions.HasFlag(checkPermission))
@@ -83,7 +88,7 @@ public class PermissionsSet
         if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
             return true;
 
-        if (checkPermission != ServerPermission.ServerAdministrator && ServerPermissions.HasFlag(ServerPermission.ServerAdministrator))
+        if (ServerPermissions.HasFlag(ServerPermission.ServerAdministrator))
             return true;
 
         if (ServerPermissions.HasFlag(checkPermission))
@@ -100,10 +105,27 @@ public class PermissionsSet
         if (ServerPermissions.HasFlag(ServerPermission.ServerAdministrator))
             return true;
 
-        if (checkPermission != DockerPermission.DockerAdministrator)
+        if (DockerPermissions.HasFlag(DockerPermission.DockerAdministrator))
             return true;
 
         if (DockerPermissions.HasFlag(checkPermission))
+            return true;
+
+        return false;
+    }
+
+    public bool HasDockerContainerPermission(DockerContainerPermission checkPermission)
+    {
+        if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
+            return true;
+
+        if (ServerPermissions.HasFlag(ServerPermission.ServerAdministrator))
+            return true;
+
+        if (DockerPermissions.HasFlag(DockerPermission.DockerAdministrator))
+            return true;
+
+        if (DockerContainerPermissions.HasFlag(checkPermission))
             return true;
 
         return false;
@@ -114,7 +136,7 @@ public class PermissionsSet
         if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
             return true;
 
-        if (checkPermission != ConsolePermission.ConsoleAdministrator && ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator))
+        if (ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator))
             return true;
 
         if (ConsolePermissions.HasFlag(checkPermission))
@@ -128,7 +150,7 @@ public class PermissionsSet
         if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
             return true;
 
-        if (checkPermission != LogPermission.LogAdministrator && LogPermissions.HasFlag(LogPermission.LogAdministrator))
+        if (LogPermissions.HasFlag(LogPermission.LogAdministrator))
             return true;
 
         if (LogPermissions.HasFlag(checkPermission))
@@ -142,7 +164,7 @@ public class PermissionsSet
         if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
             return true;
 
-        if (checkPermission != ProjectPermission.ProjectAdministrator && ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator))
+        if (ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator))
             return true;
 
         if (ProjectPermissions.HasFlag(checkPermission))
@@ -156,7 +178,7 @@ public class PermissionsSet
         if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
             return true;
 
-        if (checkPermission != WebsitePermission.WebsiteAdministrator && WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator))
+        if (WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator))
             return true;
 
         if (WebsitePermissions.HasFlag(checkPermission))

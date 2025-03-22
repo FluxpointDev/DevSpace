@@ -16,6 +16,14 @@ public class PartialUserData
     public ObjectId Id { get; set; }
     public string? UserName { get; set; }
     public string? DisplayName { get; set; }
+
+    public string GetCurrentName()
+    {
+        if (!string.IsNullOrEmpty(DisplayName))
+            return DisplayName;
+
+        return UserName;
+    }
     public string? Email { get; set; }
 
     public Guid? AvatarId { get; set; }
@@ -32,6 +40,7 @@ public class PartialUserData
     public ObjectId? ManagedAccountTeamId { get; set; }
 
     public bool HasNotifications { get; set; }
+    public List<SessionTask> Tasks { get; set; } = new List<SessionTask>();
 
     public void Update(AuthUser user)
     {

@@ -7,13 +7,20 @@
 @inject ContextMenuService ContextMenuService
 @inject DialogService Dialog
 
+<PageTitle>Console Admins | @_Data.Config.Instance.Name</PageTitle>
+
 <div class="dash-box">
     <div class="dash-box-header dash-box-content">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account-supervisor"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">Rcon Admins</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">Rcon Connections</RadzenText>
     </div>
+    <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Text="Connections" />
+    </RadzenBreadCrumb>
 
-    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewConnections))
+    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConnections))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -34,17 +41,7 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="IP">
                     <Template>
-                        @if (Member.HasConsolePermission(Console, ConsolePermission.ViewIPs))
-                        {
-                            <RadzenTextMask Value="@context.Ip" IsIp="true"></RadzenTextMask>
-                        }
-                        else
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                @GetMask(context.Ip)
-                            </RadzenText>
-                        }
-
+                        <RadzenTextMask Value="@context.Ip" IsIp="true"></RadzenTextMask>
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
@@ -58,6 +55,7 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public TeamData Team => Session.Selected.Team.Data;
     public ConsoleData Console => Session.Selected.Console;
     public TeamMemberData Member => Session.Selected.Member;
 

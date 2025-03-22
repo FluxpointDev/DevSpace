@@ -22,7 +22,7 @@
         {
             case OverrideType.Roles:
                 {
-                    <RadzenButton @ref="@RoleButton" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Role Permission" Click="@(() => RolePopup.ToggleAsync(RoleButton.Element))" Disabled="@(UnsavedPermissions || IsDisabled || !Member.HasTeamPermission(TeamPermission.ViewRoles))" />
+                    <RadzenButton @ref="@RoleButton" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Role Permission" Click="@(() => RolePopup.ToggleAsync(RoleButton.Element))" Disabled="@(UnsavedPermissions || IsDisabled || !HasManagePermissions() || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles))" />
 
                     <Popup @ref="@RolePopup" Lazy="true" class="permission-popup">
                         <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
@@ -44,7 +44,7 @@
                 break;
             case OverrideType.Members:
                 {
-                    <RadzenButton @ref="@MemberButton" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Member Permission" Click="@(() => MemberPopup.ToggleAsync(MemberButton.Element))" Disabled="@(UnsavedPermissions || IsDisabled || !Member.HasTeamPermission(TeamPermission.ViewMembers))" />
+                    <RadzenButton @ref="@MemberButton" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Member Permission" Click="@(() => MemberPopup.ToggleAsync(MemberButton.Element))" Disabled="@(UnsavedPermissions || IsDisabled || !HasManagePermissions() || !Member.HasTeamPermission(Team, TeamPermission.ViewMembers))" />
 
                     <Popup @ref="@MemberPopup" Lazy="true" class="permission-popup">
                         <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
@@ -52,7 +52,7 @@
                             AllowFiltering="true" Data="@Team.CachedMembers.Values.Where(x => !MemberOverrides.Any(y => y.ObjectId.GetValueOrDefault() == x.UserId) && _DB.Users.ContainsKey(x.UserId) && CurrentRank > x.GetRank())" Style="width: 100%; height: 100%"
                             InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select member" }})" Disabled="@(UnsavedPermissions || IsDisabled)">
                                 <Template>
-                                    @((context as TeamMemberData).GetUserName())
+                                    @((context as TeamMemberData).GetUsername())
                                 </Template>
                             </RadzenListBox>
                         </RadzenStack>
@@ -69,7 +69,7 @@
                 break;
             case OverrideType.APIs:
                 {
-                    <RadzenButton @ref="@ApiButton" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add API Client Permission" Click="@(() => ApiPopup.ToggleAsync(ApiButton.Element))" Disabled="@(UnsavedPermissions || IsDisabled || (!Member.HasAPIPermission(APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(APIPermission.ViewAllAPIs)))" />
+                    <RadzenButton @ref="@ApiButton" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add API Client Permission" Click="@(() => ApiPopup.ToggleAsync(ApiButton.Element))" Disabled="@(UnsavedPermissions || IsDisabled || !HasManagePermissions() || (!Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(Team, APIPermission.ViewAllAPIs)))" />
 
                     <Popup @ref="@ApiPopup" Lazy="true" class="permission-popup">
                         <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
@@ -103,9 +103,18 @@
         {
             @if (!CanManageOverride())
             {
-                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                    You can't manage this permission override with your current access.
-                </RadzenAlert>
+                if (!HasManagePermissions())
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                        You do not have permission for Manage Permissions.
+                    </RadzenAlert>
+                }
+                else
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                        You can't manage this permission override with your current access.
+                    </RadzenAlert>
+                }
             }
             <div class="role-info">
                 <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-display-flex rz-mt-2 rz-my-0">@SelectedPermission.Name</RadzenText>
@@ -123,38 +132,47 @@
         }
         else
         {
-            switch (Override)
+            if (!HasManagePermissions())
             {
-                case OverrideType.Roles:
-                    {
-                        if (!Member.HasTeamPermission(TeamPermission.ViewRoles))
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                    You do not have permission for Manage Permissions.
+                </RadzenAlert>
+            }
+            else
+            {
+                switch (Override)
+                {
+                    case OverrideType.Roles:
                         {
-                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                You do not have View Roles permission and can't add role permissions.
-                            </RadzenAlert>
+                            if (!Member.HasTeamPermission(Team, TeamPermission.ViewRoles))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                    You do not have View Roles permission and can't add role permissions.
+                                </RadzenAlert>
+                            }
                         }
-                    }
-                    break;
-                case OverrideType.Members:
-                    {
-                        if (!Member.HasTeamPermission(TeamPermission.ViewMembers))
+                        break;
+                    case OverrideType.Members:
                         {
-                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                You do not have View Members permission and can't add member permissions.
-                            </RadzenAlert>
+                            if (!Member.HasTeamPermission(Team, TeamPermission.ViewMembers))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                    You do not have View Members permission and can't add member permissions.
+                                </RadzenAlert>
+                            }
                         }
-                    }
-                    break;
-                case OverrideType.APIs:
-                    {
-                        if (!Member.HasAPIPermission(APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(APIPermission.ViewAllAPIs))
+                        break;
+                    case OverrideType.APIs:
                         {
-                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                You do not have View APIs permission and can't add api permissions.
-                            </RadzenAlert>
+                            if (!Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(Team, APIPermission.ViewAllAPIs))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                    You do not have View APIs permission and can't add api permissions.
+                                </RadzenAlert>
+                            }
                         }
-                    }
-                    break;
+                        break;
+                }
             }
         }
     </RadzenColumn>
@@ -259,7 +277,7 @@
                 {
                     MemberOverrides = Resource.MemberPermissionOverrides.Select(x => Team.Members.TryGetValue(x.Key, out ObjectId memberId) && Team.CachedMembers.TryGetValue(memberId, out TeamMemberData member) ? new ResourcePermissionItem
                         {
-                            Name = member.GetUserName(),
+                            Name = member.GetUsername(),
                             ObjectId = x.Key
                         } : new ResourcePermissionItem { Name = "Unknown Member", Permissions = null });
 
@@ -315,7 +333,7 @@
                     {
                         if (Resource is ConsoleData console)
                         {
-                            if (Member.HasConsolePermission(console, ConsolePermission.ManagePermissions))
+                            if (Member.HasConsolePermission(Team, console, ConsolePermission.ManagePermissions))
                             {
                                 await console.UpdateAsync(new UpdateDefinitionBuilder<ConsoleData>().Set(x => x.DefaultPermissions, perms), () =>
                                 {
@@ -329,7 +347,7 @@
                         }
                         else if (Resource is ServerData server)
                         {
-                            if (Member.HasServerPermission(server, ServerPermission.ManagePermissions))
+                            if (Member.HasServerPermission(Team, server, ServerPermission.ManagePermissions))
                             {
                                 await server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>().Set(x => x.DefaultPermissions, perms), () =>
                             {
@@ -340,7 +358,7 @@
                             {
                                 LoadPermissions();
                             }
-                            
+
                         }
                     }
                     break;
@@ -354,7 +372,7 @@
                 case OverrideType.Members:
                     {
                         if (SelectedPermission != null && _DB.Members.Cache.TryGetValue(Team.Members[SelectedPermission.ObjectId.Value], out var member) && CurrentRank >= member.GetRank())
-                        Resource.AddMemberPermissionAsync(SelectedPermission.ObjectId.Value, perms);
+                            Resource.AddMemberPermissionAsync(SelectedPermission.ObjectId.Value, perms);
                     }
                     break;
                 case OverrideType.APIs:
@@ -417,42 +435,51 @@
         StateHasChanged();
     }
 
+    public bool HasManagePermissions()
+    {
+        if (Resource is ServerData sd)
+        {
+            if (Member.HasServerPermission(Team, sd, ServerPermission.ManagePermissions))
+                return true;
+        }
+        else if (Resource is ConsoleData cd)
+        {
+            if (Member.HasConsolePermission(Team, cd, ConsolePermission.ManagePermissions))
+                return true;
+        }
+        else if (Resource is ProjectData pd)
+        {
+            if (Member.HasProjectPermission(Team, pd, ProjectPermission.ManagePermissions))
+                return true;
+        }
+        else if (Resource is WebsiteData wd)
+        {
+            if (Member.HasWebsitePermission(Team, wd, WebsitePermission.ManagePermissions))
+                return true;
+        }
+        else if (Resource is LogData ld)
+        {
+            if (Member.HasLogPermission(Team, ld, LogPermission.ManagePermissions))
+                return true;
+        }
+        return false;
+    }
+
     public bool CanManageOverride()
     {
+        if (!HasManagePermissions())
+            return false;
+
         switch (Override)
         {
             case OverrideType.DefaultMembers:
                 {
-                    if (Resource is ServerData sd)
-                    {
-                        if (Member.HasServerPermission(sd, ServerPermission.ManagePermissions))
-                            return true;
-                    }
-                    else if (Resource is ConsoleData cd)
-                    {
-                        if (Member.HasConsolePermission(cd, ConsolePermission.ManagePermissions))
-                            return true;
-                    }
-                    else if (Resource is ProjectData pd)
-                    {
-                        if (Member.HasProjectPermission(pd, ProjectPermission.ManagePermissions))
-                            return true;
-                    }
-                    else if (Resource is WebsiteData wd)
-                    {
-                        if (Member.HasWebsitePermission(wd, WebsitePermission.ManagePermissions))
-                            return true;
-                    }
-                    else if (Resource is LogData ld)
-                    {
-                        if (Member.HasLogPermission(ld, LogPermission.ManagePermissions))
-                            return true;
-                    }
+                    return true;
                 }
                 break;
             case OverrideType.Roles:
                 {
-                    if (SelectedPermission != null && SelectedPermission.ObjectId.HasValue && Member.HasTeamPermission(TeamPermission.ViewRoles))
+                    if (SelectedPermission != null && SelectedPermission.ObjectId.HasValue && Member.HasTeamPermission(Team, TeamPermission.ViewRoles))
                     {
                         if (!_DB.Roles.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out var role))
                             return true;
@@ -465,7 +492,7 @@
                 break;
             case OverrideType.Members:
                 {
-                    if (SelectedPermission != null && SelectedPermission.ObjectId.HasValue && Member.HasTeamPermission(TeamPermission.ViewMembers))
+                    if (SelectedPermission != null && SelectedPermission.ObjectId.HasValue && Member.HasTeamPermission(Team, TeamPermission.ViewMembers))
                     {
                         if (!_DB.Users.TryGetValue(SelectedPermission.ObjectId.Value, out var user))
                             return true;
@@ -484,7 +511,7 @@
                 break;
             case OverrideType.APIs:
                 {
-                    if (!SelectedPermission.ObjectId.HasValue)
+                    if (SelectedPermission == null || !SelectedPermission.ObjectId.HasValue)
                         return false;
 
                     if (_DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out var api))

@@ -1,0 +1,252 @@
+﻿@using BlazorMonaco.Editor
+@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using Newtonsoft.Json.Linq
+@inject NavigationManager Nav
+@inject NotificationService Notifications
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:pencil-box"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Build Image</RadzenText>
+        @if (IsLoading)
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+        }
+    </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images")" Text="Images" />
+        <RadzenBreadCrumbItem Text="Build" />
+    </RadzenBreadCrumb>
+    <br />
+    <RadzenText TextStyle="TextStyle.Body2">
+        Build a docker image using the Dockerfile format <RadzenLink Path="https://docs.docker.com/reference/dockerfile/" Target="_blank">More Info</RadzenLink>
+    </RadzenText>
+
+    <br />
+    <h6>Names</h6>
+    <RadzenButton Click="@(() => NameInputs.Add(Guid.NewGuid().ToString(), ""))" Text="Add Name" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" />
+    <br />
+    <br />
+    @if (NameInputs.Any())
+    {
+        <RadzenText TextStyle="TextStyle.Body2">
+            Image names need to be all lowercase, 2-255 characters and optionally include special characters such as <code>.</code> <code>-</code> <code>_</code>
+        </RadzenText>
+    }
+    <RadzenStack>
+        @foreach (var i in NameInputs)
+        {
+            @RenderFormElement(i.Key, i.Value)
+        }
+    </RadzenStack>
+    <br />
+    <RadzenSelectBar @bind-Value="@SelectedType" TValue="CreateImageType" Disabled="@IsLoading">
+        <Items>
+            <RadzenSelectBarItem Icon="edit_square" Text="Editor" Value="CreateImageType.Editor" />
+            <RadzenSelectBarItem Icon="cloud_upload" Text="Upload" Value="CreateImageType.Upload" />
+            <RadzenSelectBarItem Icon="link" Text="Remote" Value="CreateImageType.Remote" />
+        </Items>
+    </RadzenSelectBar>
+    <br />
+    <br />
+    @switch (SelectedType)
+    {
+        case CreateImageType.Editor:
+            {
+                <StandaloneCodeEditor @ref="_editor" OnDidChangeModelContent="@(arg => IsValueSet = true)" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
+            }
+            break;
+        case CreateImageType.Upload:
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                    Image upload is not supported yet.
+                </RadzenAlert>
+
+
+                <RadzenUpload @ref="upload" Auto="false" Multiple="false" Url="upload/multiple" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
+                              Style="width: 100%" Disabled="true" />
+            }
+            break;
+        case CreateImageType.Remote:
+
+            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Supported url should be a Dockerfile, Tar archive or GitHub repo with .git appended.
+            </RadzenAlert>
+
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Remote Url</RadzenText>
+            <RadzenTextBox @oninput="@(arg => RemoteUrl = arg.Value as string)" Style="width: 100%" aria-label="Url TextBox" AutoCompleteType="AutoCompleteType.Url"
+                           autocapitalize="none" MaxLength="300" Disabled="@IsLoading" Placeholder="https://domain.com/image.tar.gz or https://github.com/user/project.git" />
+
+            <br />
+            <br />
+
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Dockerfile Name</RadzenText>
+            <RadzenTextBox Value="@DockerfileName" @oninput="@(arg => DockerfileName = arg.Value as string)" Style="width: 100%" aria-label="Dockerfile Name TextBox" AutoCompleteType="AutoCompleteType.Off"
+                           MaxLength="100" Disabled="@IsLoading" />
+            break;
+    }
+
+    @if (Failed)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+            Failed to create image
+        </RadzenAlert>
+    }
+
+
+    <br />
+    <br />
+    <RadzenButton Click="@BuildImage" Text="Build Image" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Disabled="@(IsInvalid() || IsLoading)" />
+</div>
+
+<style>
+    .monaco-editor, .monaco-diff-editor {
+        height: 400px !important;
+        padding-top: 10px;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public CreateImageType SelectedType { get; set; }
+
+    public string RemoteUrl { get; set; }
+    public string DockerfileName { get; set; } = "Dockerfile";
+
+    public bool IsValueSet = false;
+
+    public bool IsInvalid()
+    {
+        if (!NameInputs.Any())
+            return true;
+
+
+        foreach (var i in NameInputs)
+        {
+            if (!Utils.IsDockerImageNameValid(i.Value))
+                return true;
+        }
+
+        @switch (SelectedType)
+        {
+            case CreateImageType.Editor:
+                if (!IsValueSet)
+                    return true;
+                break;
+            case CreateImageType.Upload:
+                if (!upload.HasValue)
+                    return true;
+                return true;
+            case CreateImageType.Remote:
+                {
+                    if (string.IsNullOrEmpty(RemoteUrl) || !Uri.TryCreate(RemoteUrl, UriKind.Absolute, out var uri) || uri.IsFile || uri.IsLoopback)
+                        return true;
+
+                    if (string.IsNullOrEmpty(DockerfileName))
+                        return true;
+
+                    if (!(RemoteUrl.EndsWith("dockerfile", StringComparison.OrdinalIgnoreCase) || RemoteUrl.EndsWith(".tar.gz", StringComparison.OrdinalIgnoreCase) || RemoteUrl.EndsWith(".tar", StringComparison.OrdinalIgnoreCase) || RemoteUrl.EndsWith(".git", StringComparison.OrdinalIgnoreCase)))
+                        return true;
+                }
+                break;
+        }
+
+        return false;
+    }
+
+    Dictionary<string, string> NameInputs = new Dictionary<string, string>
+    {
+        { Guid.NewGuid().ToString(), "" }
+    };
+
+    public RenderFragment RenderFormElement(string id, string text) => builder =>
+    {
+        builder.OpenComponent(0, typeof(DockerNameInput));
+        builder.AddAttribute(1, "NameChanged", EventCallback.Factory.Create<string>(this, (value) =>
+        {
+            NameInputs[id] = value;
+        }));
+        builder.AddAttribute(2, "DeleteInput", EventCallback.Factory.Create(this, () =>
+        {
+            NameInputs.Remove(id);
+        }));
+        builder.AddComponentParameter(3, "Id", id);
+        builder.AddComponentParameter(4, "Name", text);
+        builder.CloseComponent();
+    };
+
+    private StandaloneCodeEditor _editor = null;
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+            {
+                AutomaticLayout = true,
+                Language = "dockerfile",
+                Theme = "vs-dark",
+                ScrollBeyondLastLine = false,
+                ColumnSelection = true,
+                Folding = false,
+            };
+    }
+
+    public bool IsLoading { get; set; }
+    public bool Failed { get; set; }
+
+    RadzenUpload upload;
+
+    public async Task BuildImage()
+    {
+        IsLoading = true;
+        if (_editor != null)
+            await _editor.UpdateOptions(new EditorUpdateOptions
+                {
+                    ReadOnly = true
+                });
+
+        CreateImageEvent Data = new CreateImageEvent
+            {
+                Labels = NameInputs,
+                Type = SelectedType
+            };
+
+        switch (SelectedType)
+        {
+            case CreateImageType.Editor:
+                Data.Content = await _editor.GetValue();
+                break;
+            case CreateImageType.Upload:
+                break;
+            case CreateImageType.Remote:
+                Data.DockerfileName = DockerfileName;
+                Data.RemoteUrl = RemoteUrl;
+                break;
+        }
+
+
+        var Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.CreateImage)
+            {
+                Data = JObject.FromObject(Data)
+            });
+        if (!Response.IsSuccess)
+        {
+            Failed = true;
+            IsLoading = false;
+            if (_editor != null)
+                await _editor.UpdateOptions(new EditorUpdateOptions
+                    {
+                        ReadOnly = false
+                    });
+            return;
+        }
+
+        Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images");
+    }
+}

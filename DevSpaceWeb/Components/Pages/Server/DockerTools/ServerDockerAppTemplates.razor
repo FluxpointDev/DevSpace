@@ -7,12 +7,22 @@
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:application-brackets"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">Docker App Templates</RadzenText>
-        <RadzenTextBox Placeholder="Search..." Style="max-width: 240px;" class="ml-4" />
+        <RadzenText TextStyle="TextStyle.H6">App Templates</RadzenText>
     </div>
-    <br />
-    <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/templates/custom")"><RadzenButton Variant="Variant.Filled" Text="Custom Templates" ButtonStyle="ButtonStyle.Info" /></a>
-    <br />
+
+    @if (!Member.HasDockerPermission(Team, Server, DockerPermission.UseAppTemplates))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for Use App Templates
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/templates/custom")"><RadzenButton Variant="Variant.Filled" Text="Custom Templates" ButtonStyle="ButtonStyle.Info" /></a>
+        <br />
+    }
+    
 </div>
 
 @code {
@@ -27,7 +37,7 @@
     {
         await DialogService.ShowDynamicFormAsync<SetupTemplateStackModel>("Setup Anyviz Cloud Adaptor", new SetupTemplateStackModel(), async (SetupTemplateStackModel data) =>
         {
-            if (!Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))
+            if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
                 return "You do not have permission for Docker Administrator";
 
             return null;

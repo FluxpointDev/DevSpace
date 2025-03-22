@@ -1,12 +1,16 @@
-﻿@using DevSpaceShared.Events.Docker
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
+@using DevSpaceWeb.Components.Dialogs.Docker
 @using Docker.DotNet.Models
 @using System.Linq.Dynamic.Core
 @using Newtonsoft.Json.Linq
 @using static DevSpaceWeb.Components.Pages.Server.DockerTools.ServerDockerContainers
-@inject DialogService DialogService
+@inject DialogService Dialog
 @inject ContextMenuService ContextMenuService
 @inject TooltipService tooltipService
+@inject NotificationService Notifications
+@inject NavigationManager Nav
 
 <PageTitle>Docker Images | @_Data.Config.Instance.Name</PageTitle>
 
@@ -14,112 +18,184 @@
     <div class="dash-box-content dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:folder-image"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Docker Images</RadzenText>
-        <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" />
+        @if ((IsLoading || IsActionRunning) && Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+        }
     </div>
 
-    <div class="dash-box-content">
-        <RadzenButton Variant="Variant.Outlined" Text="Export" Click="@(() => RunSelectedContainersAction(ControlImageType.Export))" Icon="folder_zip" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
-        <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+    @if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
+    {
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for View Images
+            </RadzenAlert>
+        </div>
+    }
+    else
+    {
 
-        <RadzenButton Variant="Variant.Filled" Text="Create Image" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateImage" />
-        <RadzenButton Variant="Variant.Filled" Text="Prune Images" Icon="delete_sweep" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@PruneImages" />
-        <RadzenButton Variant="Variant.Filled" Text="Refresh Images" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshImages" />
-    </div>
+        <div class="dash-box-content">
+            <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+                <RadzenCard @onclick="@PullImage" Style="cursor: pointer;" class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasServerPermission(Team, Server, ServerPermission.ManageServer) ? "" : " settings-item-disabled"))">
+                    <span class="iconify" data-icon="mdi:cloud-download"></span>
+                    <RadzenText TextStyle="TextStyle.H6">Pull</RadzenText>
+                </RadzenCard>
+                <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/build")">
+                    <RadzenCard Style="cursor: pointer;" class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasServerPermission(Team, Server, ServerPermission.ManageServer) ? "" : " settings-item-disabled"))">
+                        <span class="iconify" data-icon="mdi:pencil-box"></span>
+                        <RadzenText TextStyle="TextStyle.H6">Build</RadzenText>
+                    </RadzenCard>
+                </a>
+                <RadzenCard @onclick="@PruneImages" Style="cursor: pointer;" class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasServerPermission(Team, Server, ServerPermission.ManageServer) ? "" : " settings-item-disabled"))">
+                    <span class="iconify" data-icon="mdi:trash-can"></span>
+                    <RadzenText TextStyle="TextStyle.H6">Prune</RadzenText>
+                </RadzenCard>
+                <a href="https://hub.docker.com/search?type=image&q=" target="_blank">
+                    <RadzenCard Style="cursor: pointer;" class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasServerPermission(Team, Server, ServerPermission.ManageServer) ? "" : " settings-item-disabled"))">
+                        <span class="iconify" data-icon="mdi:search"></span>
+                        <RadzenText TextStyle="TextStyle.H6">Search</RadzenText>
+                    </RadzenCard>
+                </a>
+            </RadzenStack>
+            <br />
 
-    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
-    PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-    @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
-    PagingSummaryFormat="@(count + " image" + (count != 1 ? "s" : "") )" Density="Density.Compact"
-    AllowSorting="false"
-    AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
-    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-    GotoFirstPageOnSort="true"
-    LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
-        <Columns>
-            <RadzenDataGridColumn Width="36px" Sortable="false" Filterable="false" Frozen="true">
-                <HeaderTemplate>
-                    <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
-                    Value="@(selectedEmployees == null || selectedEmployees?.Any() != true ? false : !employees.All(i => selectedEmployees.Contains(i)) ? null : employees.Any(i => selectedEmployees.Contains(i)))"
-                    Change="@(args => selectedEmployees = args == true ? employees.ToList() : null)" />
-                </HeaderTemplate>
-                <Template Context="data">
-                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedEmployees != null && selectedEmployees.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                                    TValue="bool" Change="@(() => grid.SelectRow(data))" />
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Name" Width="280px" Frozen="true" Filterable="false">
-                <Template>
-                    @if (context.RepoTags.Any())
-                    {
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + context.ID)" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.RepoTags.First()</RadzenLink>
-                        @if (context.RepoTags.Count != 1)
+            <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) !important; margin-right: 4px !important;" />
+
+            <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshImages" Disabled="@IsLoading" />
+        </div>
+        <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" Data="@ImagesList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                        @bind-Value="@SelectedImages" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
+                        PagingSummaryFormat="@(Count + " image" + (Count != 1 ? "s" : "") )" Density="Density.Compact"
+                        AllowSorting="false" AllowFiltering="false"
+                        TItem="DockerImageInfo" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
+            <Columns>
+                <RadzenDataGridColumn Width="36px" Frozen="true">
+                    <HeaderTemplate>
+                        <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
+                                        Value="@(SelectedImages == null || SelectedImages?.Any() != true ? false : !ImagesList.All(i => SelectedImages.Contains(i)) ? null : ImagesList.Any(i => SelectedImages.Contains(i)))"
+                                        Change="@(args => SelectedImages = args == true ? (SelectedImages != null && SelectedImages.Any()) ? null : ImagesList.ToList() : null)" />
+                    </HeaderTemplate>
+                    <Template Context="data">
+                        <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedImages != null && SelectedImages.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                                        TValue="bool" Change="@(() => grid.SelectRow(data))" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Name" Width="280px" Frozen="true">
+                    <Template>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + context.ID)">@context.Name</RadzenLink>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Version" Width="120px">
+                    <Template>
+                        @context.Version
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Status" Width="180px">
+                    <Template>
+                        @if (context.ContainersCount == 0)
                         {
-                            <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Lighter" IsPill="@true" Text="@("+" + (context.RepoTags.Count - 1))" class="rz-ms-2" />
-                        }
-                    }
-                    else
-                    {
-                        @if (context.RepoDigests.Any())
-                        {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + context.ID)" TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">@context.RepoDigests.First().Split('@').First()</RadzenLink>
+                            <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Warning" Text="Unused" />
                         }
                         else
                         {
-                            <RadzenText TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, context.ID))">Unknown</RadzenText>
+                            <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="@(context.ContainersCount + " Container" + (context.ContainersCount != 1 ? "s" : ""))" />
                         }
-                    }
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Status" Width="140px">
-                <Template>
-                    @if (context.Containers == 0)
-                    {
-                        <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Warning" Text="Unused" />
-                    }
-                    else
-                    {
-                        if (!string.IsNullOrEmpty(context.ParentID))
+                        @if (context.IsLocal)
                         {
-                            <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="Local" />
+                            <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="Local" class="ml-2" />
+                        }
+                        @if (context.IsParent)
+
+                        {
+                            <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="Parent" class="ml-2" />
                         }
 
-                        <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="@(context.Containers + " Container" +  (context.Containers != 1 ? "s" : ""))" MouseEnter="@(args => ShowUptimeTooltip(args, string.Join(", ", context.ContainersList)))" />
-                    }
-                    
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Width="70px" Sortable="false" Filterable="false" Pickable="false">
-                <Template>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                        <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                    </RadzenStack>
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Size" Width="80px">
-                <Template>
-                    @Utils.SizeSuffix(context.Size)
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Created">
-                <Template>
-                    <RadzenText TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, $"{(int)(DateTime.Now - context.Created).TotalDays} Days ago") )">@context.Created.ToString("dd'/'MM'/'yyyy")</RadzenText>
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Actions" Width="70px" Sortable="false" Filterable="false" Pickable="false">
+                    <Template>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                            <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Size" Width="80px">
+                    <Template>
+                        @Utils.SizeSuffix(context.Size)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Created" Width="90px">
+                    <Template>
+                        <RadzenContent MouseEnter="@(args => ShowUptimeTooltip(args, $"{(int)(DateTime.Now - context.Created).TotalDays} Days ago"))">@context.Created.ToString("dd'/'MM'/'yyyy")</RadzenContent>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn>
+                    <Template>
+                        <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
+                            @if (!string.IsNullOrEmpty(context.Website))
+                            {
+                                <a href="@context.Website" target="_blank"><RadzenButton Text="Website" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" /></a>
+                            }
+                            @if (!string.IsNullOrEmpty(context.Source))
+                            {
+                                <a href="@context.Source" target="_blank"><RadzenButton Text="Source" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" /></a>
+                            }
+                        </RadzenStack>
+
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    }
 </div>
 
 <style>
     .dash-box-content .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
-    border-radius: 0px !important;
-    margin-right: -4px !important;
-    box-shadow: inset 0 0 0 var(--rz-border-width) #717376 !important;
+        border-radius: 0px !important;
+        margin-right: -4px !important;
+        box-shadow: inset 0 0 0 var(--rz-border-width) rgb(150,150,150) !important;
     }
 
     .dash-box-content .rz-button-sm .rzi {
-    font-size: 1.15rem !important;
-    width: 1.15rem !important;
-    height: 1.15rem !important;
+        font-size: 1.15rem !important;
+        width: 1.15rem !important;
+        height: 1.15rem !important;
+    }
+</style>
+
+<style>
+    .settings-item {
+        width: 120px;
+        height: 120px;
+    }
+
+        .settings-item .iconify {
+            width: 30px;
+            height: 30px;
+            margin-top: 16px;
+            color: var(--rz-info);
+        }
+
+        .settings-item .rz-text-h6 {
+            margin-top: 14px;
+            font-size: 1.1rem;
+            color: var(--rz-base-200) !important;
+        }
+
+    .rz-stack a {
+        text-decoration: none !important;
+    }
+
+    .settings-item:hover {
+        background-color: var(--rz-base-dark);
+        outline: solid 1px var(--rz-secondary-dark) !important;
+    }
+
+    .settings-item-disabled {
+        opacity: 0.6;
+        cursor: not-allowed !important;
     }
 </style>
 
@@ -129,64 +205,47 @@
 
     public TeamData Team => Session.Selected.Team.Data;
     public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
 
-    DockerResponse<ImageItem[]>? containers = null;
+    SocketResponse<DockerImageInfo[]?> ImagesResponse = null;
 
-    IQueryable<ImageItem> employees;
-    public int count = 0;
-    IList<ImageItem> selectedEmployees;
-    public bool AnySelected => selectedEmployees != null ? selectedEmployees.Any() : false;
-    RadzenDataGrid<ImageItem> grid;
-    public bool isLoading = false;
+    IQueryable<DockerImageInfo> ImagesList;
+    public int Count = 0;
+    IList<DockerImageInfo> SelectedImages;
+    public bool AnySelected => SelectedImages != null ? SelectedImages.Any() : false;
+    RadzenDataGrid<DockerImageInfo> grid;
+    public bool IsLoading = true;
+    public bool IsActionRunning { get; set; }
 
     public async Task LoadData(LoadDataArgs args)
     {
-        Logger.LogMessage("Loading Data", LogSeverity.Info);
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
+            return;
 
         if (Program.IsPreviewMode)
         {
-            employees = new List<ImageItem>
+            ImagesList = new List<DockerImageInfo>
             {
             }.AsQueryable();
-            count = 0;
+            Count = 0;
+            IsLoading = false;
         }
         else
         {
-            if (containers == null)
+            if (ImagesResponse == null)
             {
-                isLoading = true;
-                try
+                IsLoading = true;
+                await Server.RunJsonAsync<DockerImageInfo[]>(Notifications, new DockerEvent(DockerEventType.ListImages), async (response) =>
                 {
-                    containers = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ImageItem[]>>(new DockerEvent(DockerEventType.ListImages));
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
-                }
-                try
-                {
-                    DockerResponse<ContainerItem[]> list = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
-                    foreach(ImageItem i in containers.Data)
-                    {
-                        i.Containers = list.Data.Count(x => x.ImageID == i.ID);
-                        if (i.Containers != 0)
-                        {
-                            foreach(ContainerItem c in list.Data.Where(x => x.ImageID == i.ID))
-                            {
-                                i.ContainersList.Add(c.Name);
-                            }
-                        }
-                    }
-                }
-                catch {}
-                isLoading = false;
+                    ImagesResponse = response;
+                });
 
-
+                IsLoading = false;
             }
 
-            if (containers != null)
+            if (ImagesResponse != null && ImagesResponse.IsSuccess)
             {
-                IQueryable<ImageItem> query = containers.Data.AsQueryable();
+                IQueryable<DockerImageInfo> query = ImagesResponse.Data.AsQueryable();
 
                 if (!string.IsNullOrEmpty(args.Filter))
                     query = query.Where(args.Filter);
@@ -194,9 +253,11 @@
                 if (!string.IsNullOrEmpty(args.OrderBy))
                     query = query.OrderBy(args.OrderBy);
 
-                count = query.Count();
-                employees = query.Skip(args.Skip.Value).Take(args.Top.Value);
+                Count = query.Count();
+                ImagesList = query.OrderBy(x => x.Name).Skip(args.Skip.Value).Take(args.Top.Value);
             }
+            else
+                ImagesList = new List<DockerImageInfo>().AsQueryable();
         }
     }
 
@@ -205,30 +266,41 @@
         await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 
-    void RunSelectedContainersAction(ControlImageType type)
+    async Task RunSelectedContainersAction(ControlImageType type)
     {
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
             return;
         }
-        _ = Task.Run(async () =>
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+                        return;
+
+        if (type == ControlImageType.Export)
         {
-            await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlPlugin, imageType: type) { ResourceList = selectedEmployees.Select(x => x.ID).ToArray() });
-        });
-        selectedEmployees.Clear();
+            Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
+            return;
+        }
+        var Response = await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlImage, imageType: type) { ResourceList = SelectedImages.Select(x => x.ID).ToArray() });
+        if (Response.IsSuccess)
+        {
+            await RefreshImages();
+        }
+        SelectedImages.Clear();
     }
 
-    void ShowContextMenuWithManageItems(ImageItem item, MouseEventArgs args)
+    void ShowContextMenuWithManageItems(DockerImageInfo item, MouseEventArgs args)
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Export", Value = "export", Icon = "folder_zip" },
-                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete" },
-                                             }, x => MenuItemClick(x, item));
+                new ContextMenuItem(){ Text = "View", Value = "view", Icon = "panorama", Disabled = !Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages) },
+                new ContextMenuItem(){ Text = "Export", Value = "export", Icon = "folder_zip", Disabled = !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) },
+                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = item.ContainersCount != 0 || item.IsParent || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) },
+                new ContextMenuItem() { Text = "Force Remove", Value = "force_remove", Icon = "delete_forever", Disabled = item.IsParent || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) }
+                                                 }, x => MenuItemClick(x, item));
     }
 
-    void MenuItemClick(MenuItemEventArgs args, ImageItem item)
+    void MenuItemClick(MenuItemEventArgs args, DockerImageInfo item)
     {
         if (Program.IsPreviewMode)
         {
@@ -240,9 +312,58 @@
         {
             switch (args.Value.ToString())
             {
+                case "view":
+                if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
+                    return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + item.ID);
+                    break;
                 case "export":
+                    if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+                        return;
+
+                    Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
+                    // await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.Export) { ResourceList = new string[] { item.ID } }, (response) =>
+                    //     {
+                    //         InvokeAsync(RefreshImages);
+                    //     });
                     break;
                 case "remove":
+                    {
+                        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+                        return;
+
+                        IsActionRunning = true;
+                        await InvokeAsync(StateHasChanged);
+                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.Remove) { ResourceList = new string[] { item.ID } }, (response) =>
+                        {
+
+                        });
+                        IsActionRunning = false;
+                        await InvokeAsync(RefreshImages);
+                    }
+                    break;
+                case "force_remove":
+                    {
+                        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+                            return;
+
+                        bool Confirm = await Dialog.ShowConfirmAsync("Force Remove Image", "This will stop any running containers using this image.", "Confirm", ButtonStyle.Success);
+                        if (Confirm)
+                        {
+                            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+                                return;
+
+                            IsActionRunning = true;
+                            await InvokeAsync(StateHasChanged);
+                            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.ForceRemove) { ResourceList = new string[] { item.ID } }, (response) =>
+                            {
+
+                            });
+                            IsActionRunning = false;
+                            await InvokeAsync(RefreshImages);
+                        }
+                    }
                     break;
             }
         });
@@ -252,18 +373,29 @@
 
     void ShowUptimeTooltip(ElementReference elementReference, string uptime) => tooltipService.Open(elementReference, uptime, null);
 
-    public class ImageItem : ImagesListResponse
-    {
-        public List<string> ContainersList = new List<string>();
-    }
 
-    async Task CreateImage()
+    async Task PullImage()
     {
-        if (Program.IsPreviewMode)
-        {
-            Session.ShowPreviewModeNotice();
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
+
+        var Response = await Server.RecieveJsonAsync<RegistryLimitResponse>(new DockerEvent(DockerEventType.GetPullLimit));
+        RegistryLimitResponse? Limits = null;
+        if (Response.IsSuccess)
+            Limits = Response.Data;
+
+        var Result = await Dialog.OpenAsync<PullImageDialog>("Pull Docker Image", new Dictionary<string, object>
+        {
+            { "Limits", Limits }
+        });
+        if (Result == null)
+            return;
+
+        if ((bool)Result)
+        {
+            await RefreshImages();
         }
+
     }
 
     public async Task PruneImages()
@@ -274,7 +406,22 @@
             return;
         }
 
-        await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.PruneImages));
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+            return;
+
+        bool Result = await Dialog.ShowConfirmAsync("Prune Images", "Are you sure you want to prune unused images?", "Confirm", ButtonStyle.Warning);
+        if (Result)
+        {
+            IsActionRunning = true;
+            await InvokeAsync(StateHasChanged);
+            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.PruneImages), (rsponse) =>
+            {
+
+            });
+
+            IsActionRunning = false;
+            await InvokeAsync(RefreshImages);
+        }
     }
 
     public async Task RefreshImages()
@@ -284,5 +431,8 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+
+        ImagesResponse = null;
+        await grid.RefreshDataAsync();
     }
 }

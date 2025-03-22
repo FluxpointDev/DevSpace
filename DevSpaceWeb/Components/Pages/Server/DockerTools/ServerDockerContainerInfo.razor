@@ -1,6 +1,861 @@
-﻿<h6>ServerDockerContainerInfo</h6>
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using Docker.DotNet.Models
+@using Newtonsoft.Json.Linq
+@inject NotificationService Notifications
+
+@if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="ri:box-3-fill"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Container Info</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Text="@ContainerId" />
+        </RadzenBreadCrumb>
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Containers
+        </RadzenAlert>
+    </div>
+}
+else if (Container == null)
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="ri:box-3-fill"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Container Info</RadzenText>
+            @if (!Failed)
+            {
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+            }
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Text="@ContainerId" />
+        </RadzenBreadCrumb>
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Failed to get container info.
+            </RadzenAlert>
+        }
+    </div>
+}
+else
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="ri:box-3-fill"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Container Info</RadzenText>
+            @if (IsActionLoading)
+            {
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+            }
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Text="@Container.Name.Substring(1)" />
+        </RadzenBreadCrumb>
+        <br />
+        <div class="action-bar">
+            <RadzenButton Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
+            <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(Container.State.Paused || !Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Paused || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!CanManageContainer || IsActionLoading)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+        </div>
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:information"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Info</RadzenText>
+        </div>
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Name
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Container.Name.Substring(1)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        ID
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Container.ID
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Status
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @switch (Container.State.Status)
+                        {
+                            case "running":
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Running" IsPill="true" />
+                                break;
+                            case "created":
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Created" IsPill="true" />
+                                break;
+                            case "restarting":
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Restarting" IsPill="true" />
+                                break;
+                            case "removing":
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Removing" IsPill="true" />
+                                break;
+                            case "paused":
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Paused" IsPill="true" />
+                                break;
+                            case "exited":
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Exited" IsPill="true" />
+                                break;
+                            case "dead":
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" />
+                                break;
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Image
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + Container.Image)">@Container.Config.Image</RadzenLink>
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Created
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Utils.GetLocalDate(Session, Container.Created)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Restart Mode
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        <RadzenDropDown @bind-Value="@SelectedRestartMode" Data="@RestartModes" Disabled="@(IsActionLoading || !CanManageContainer)" Style="width: 100%; max-width: 400px;" />
+                        <RadzenButton Text="Update" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@UpdateRestartMode" Disabled="@(IsActionLoading || !CanManageContainer)" class="ml-2" />
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Restart Count
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        <RadzenNumeric Min="0" Max="10" @bind-Value="@RestartCount" Disabled="@(IsActionLoading || !CanManageContainer)" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "enter value" } })" Style="width: 100%; max-width: 400px;" />
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" class="mt-2">
+                        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId + "/logs")"><RadzenButton Icon="description" Variant="Variant.Text" Text="Logs" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewLogs)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId + "/stats")"><RadzenButton Icon="bar_chart_4_bars" Variant="Variant.Text" Text="Stats" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewStats)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId + "/changes")"><RadzenButton Icon="topic" Variant="Variant.Text" Text="Changes" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewChanges)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId + "/console")"><RadzenButton Icon="terminal" Variant="Variant.Text" Text="Console" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanUseConsole)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId + "/inspect")"><RadzenButton Icon="info" Variant="Variant.Text" Text="Inspect" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanInspect)" /></a>
+                    </RadzenStack>
+                </RadzenTableRow>
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:heart-pulse"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Health</RadzenText>
+        </div>
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Started
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @ParseDate(Container.State.StartedAt)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Stopped
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Container.State.FinishedAt != "01/01/0001 00:00:00")
+                        {
+                            @ParseDate(Container.State.FinishedAt)
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Error
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (!Container.State.Running)
+                        {
+                            @if (Container.State.OOMKilled)
+                            {
+                                @("Out of memory")
+                            }
+                            else if (Container.State.Paused)
+                            {
+                                @("Container paused")
+                            }
+                            else if (Container.State.ExitCode == 0)
+                            {
+                                @("Process finished")
+                            }
+                            else if (Container.State.ExitCode == 137)
+                            {
+                                @("Container stopped")
+                            }
+                            else if (string.IsNullOrEmpty(Container.State.Error))
+                            {
+                                @("Code " + Container.State.ExitCode)
+                            }
+                            else
+                            {
+                                @($"Code {Container.State.ExitCode} - {Container.State.Error}")
+                            }
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Checks
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Container.State.Health == null || Container.State.Health.Status == "none")
+                        {
+                            @("No health check setup")
+                        }
+                        else
+                        {
+                            @switch (Container.State.Health.Status)
+                            {
+                                case "healthy":
+                                    {
+                                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Healthy" IsPill="true" />
+
+                                    }
+                                    break;
+                                case "unhealthy":
+                                    {
+                                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Unhealthy" IsPill="true" />
+
+                                    }
+                                    break;
+                                case "starting":
+                                    {
+                                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Starting" IsPill="true" />
+
+                                    }
+                                    break;
+                            }
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+                @if (Container.State.Health != null)
+                {
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            Failures
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @Container.State.Health.FailingStreak
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            Log
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @if (!CanViewContainerHealthLogs)
+                            {
+                                @("You do not have permission for View Container Health Logs")
+                            }
+                            else if (Container.State.Health.Log != null && Container.State.Health.Log.Any())
+                            {
+                                @Container.State.Health.Log.Last().Output
+                            }
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+                }
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Details</RadzenText>
+        </div>
+        <br />
+        <RadzenTabs RenderMode="TabRenderMode.Server">
+            <Tabs>
+                <RadzenTabsItem Text="Info">
+                    @if (!CanViewContainerDetails)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            You do not have permission for View Container Details
+                        </RadzenText>
+                    }
+                    else
+                    {
+                    <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+                        <RadzenTableBody>
+                            <RadzenTableRow>
+                                <RadzenTableCell>
+                                    Command
+                                </RadzenTableCell>
+                                <RadzenTableCell>
+                                    @if (Container.Config.Cmd != null)
+                                    {
+                                        @string.Join(" ", Container.Config.Cmd)
+                                    }
+                                </RadzenTableCell>
+                            </RadzenTableRow>
+
+                            <RadzenTableRow>
+                                <RadzenTableCell>
+                                    Entrypoint
+                                </RadzenTableCell>
+                                <RadzenTableCell>
+                                    @if (Container.Config.Entrypoint != null)
+                                    {
+                                        @string.Join(" ", Container.Config.Entrypoint)
+                                    }
+                                </RadzenTableCell>
+                            </RadzenTableRow>
+
+                            <RadzenTableRow>
+                                <RadzenTableCell>
+                                    Working Directory
+                                </RadzenTableCell>
+                                <RadzenTableCell>
+                                    @Container.Config.WorkingDir
+                                </RadzenTableCell>
+                            </RadzenTableRow>
+
+                            <RadzenTableRow>
+                                <RadzenTableCell>
+                                    Platform
+                                </RadzenTableCell>
+                                <RadzenTableCell>
+                                    @Utils.FriendlyName(Container.Platform)
+                                </RadzenTableCell>
+                            </RadzenTableRow>
+
+                            <RadzenTableRow>
+                                <RadzenTableCell>
+                                    Network
+                                </RadzenTableCell>
+                                <RadzenTableCell>
+                                    @Container.HostConfig.NetworkMode
+                                </RadzenTableCell>
+                            </RadzenTableRow>
+
+                            <RadzenTableRow>
+                                <RadzenTableCell>
+                                    Ports
+                                </RadzenTableCell>
+                                <RadzenTableCell>
+                                    @foreach (var p in Container.HostConfig.PortBindings)
+                                    {
+                                        foreach (var i in p.Value)
+                                        {
+                                            if (string.IsNullOrEmpty(i.HostIP))
+                                            {
+                                                <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="@($"Host 0.0.0.0:{i.HostPort} to {p.Key}")" IsPill="true" />
+                                            }
+                                            else
+                                            {
+                                                <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="@($"Host {i.HostIP}:{i.HostPort} to {p.Key}")" IsPill="true" />
+                                            }
+
+                                        }
+
+                                    }
+                                </RadzenTableCell>
+                            </RadzenTableRow>
+
+                        </RadzenTableBody>
+                    </RadzenTable>
+                    @if (Container.HostConfig.PortBindings.Any(x => x.Value.Any(x => string.IsNullOrEmpty(x.HostIP) || x.HostIP == "0.0.0.0")))
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" Size="AlertSize.Small" AllowClose="false" Style="width: 100%;">
+                            Some ports are publicly open to the internet and will not be protected by the host firewall settings.
+                        </RadzenAlert>
+                    }
+                    }
+                </RadzenTabsItem>
+
+                <RadzenTabsItem Text="Labels">
+                    @if (!CanViewContainerDetails)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            You do not have permission for View Container Details
+                        </RadzenText>
+                    }
+                    else if (Container.Config.Labels != null)
+                    {
+                        <div class="dash-box-content">
+                        @foreach (var i in Container.Config.Labels)
+                        {
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                @i.Value
+                            </RadzenText>
+                            <br />
+                        }
+                        </div>
+                    }
+                </RadzenTabsItem>
+
+                <RadzenTabsItem Text="Environment">
+                    @if (!CanViewContainerEnvironment)
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            You do not have permission for View Container Environment
+                        </RadzenText>
+                    }
+                    else if (ShowEnvironment)
+                    {
+                        <div class="dash-box-content">
+                        
+                        @foreach (var i in ParseEnvironment(Container.Config.Env))
+                        {
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                @i.Value
+                            </RadzenText>
+                            <br />
+                        }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="dash-box-content">
+                        <RadzenText TextStyle="TextStyle.Body2">Environment is hidden by default</RadzenText>
+                        <RadzenButton Text="Show Environment" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@(() => ShowEnvironment = true)" />
+                        </div>
+                    }
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:storage"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Volumes</RadzenText>
+        </div>
+        <br />
+        @if (!CanViewContainerVolumes)
+        {
+            <RadzenText TextStyle="TextStyle.Body2">
+                You do not have permission for View Container Volumes
+            </RadzenText>
+        }
+        else
+        {
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableHeader>
+                <RadzenTableHeaderRow>
+                    <RadzenTableHeaderCell>
+                        Type
+                    </RadzenTableHeaderCell>
+                    <RadzenTableHeaderCell>
+                        Source
+                    </RadzenTableHeaderCell>
+                    <RadzenTableHeaderCell>
+                        Destination
+                    </RadzenTableHeaderCell>
+                    <RadzenTableHeaderCell>
+
+                    </RadzenTableHeaderCell>
+                </RadzenTableHeaderRow>
+            </RadzenTableHeader>
+            <RadzenTableBody>
+                @foreach (var v in Container.Mounts)
+                {
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            @switch (v.Type)
+                            {
+                                case "bind":
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenIcon Icon="directory_sync" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                Bind
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                    break;
+                                case "volume":
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenIcon Icon="folder" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                Volume
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                    break;
+                                case "tmpfs":
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenIcon Icon="folder_delete" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                Temp
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                    break;
+                                case "npipe":
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenIcon Icon="settings" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                Named Pipe
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                    break;
+                                case "cluster":
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenIcon Icon="cloud" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                Cluster
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                    break;
+                            }
+
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @if (v.Type == "volume")
+                            {
+                                <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + v.Name)">@v.Name</RadzenLink>
+                            }
+                            else
+                            {
+                                @v.Source
+                            }
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @v.Destination
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @if (v.RW)
+                            {
+                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read & Write" IsPill="true" />
+                            }
+                            else
+                            {
+                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read-only" IsPill="true" />
+                            }
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+                }
+            </RadzenTableBody>
+        </RadzenTable>
+        }
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:local-area-network"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Networks</RadzenText>
+        </div>
+        <br />
+        @if (!CanViewContainerNetworks)
+        {
+            <RadzenText TextStyle="TextStyle.Body2">
+                You do not have permission for View Container Networks
+            </RadzenText>
+        }
+        else
+        {
+        <RadzenDataGrid AllowRowSelectOnRowClick="false" Data="@Container.NetworkSettings.Networks"
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                        AllowSorting="false"
+                        AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
+            <Columns>
+                <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
+                    <Template>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/networks/" + context.Value.NetworkID)">@context.Key</RadzenLink>
+                        @if (IsNetworkSystem(context.Key))
+                        {
+                            <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="IP Address" Width="100px">
+                    <Template>
+                        @context.Value.IPAddress
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Gateway" Width="100px">
+                    <Template>
+                        @context.Value.Gateway
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="MAC Address" Width="160px">
+                    <Template>
+                        @context.Value.MacAddress
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn>
+                    <Template>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+        }
+    </div>
+}
+
+<style>
+    .action-bar .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
+        border-radius: 0px !important;
+        margin-right: -4px !important;
+        box-shadow: inset 0 0 0 var(--rz-border-width) rgb(150,150,150) !important;
+    }
+
+    .action-bar .rz-button-sm .rzi {
+        font-size: 1.15rem !important;
+        width: 1.15rem !important;
+        height: 1.15rem !important;
+    }
+</style>
 
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
     [Parameter]
     public string ContainerId { get; set; }
+
+    public ContainerInspectResponse Container { get; set; }
+    public bool Failed { get; set; }
+
+    public bool IsActionLoading { get; set; }
+
+    public bool ShowEnvironment { get; set; }
+
+    public string ParseDate(string timestamp)
+    {
+        if (string.IsNullOrEmpty(timestamp))
+            return timestamp;
+
+        if (DateTime.TryParse(timestamp, out DateTime date))
+            return Utils.GetLocalDate(Session, date, showTime: true);
+
+        return timestamp;
+    }
+
+    public List<KeyValuePair<string, string?>> ParseEnvironment(IList<string> variables)
+    {
+        List<KeyValuePair<string, string?>> List = new List<KeyValuePair<string, string?>>();
+        foreach (var i in variables)
+        {
+            string[] Split = i.Split('=');
+            if (Split.Length == 1)
+                List.Add(new KeyValuePair<string, string?>(Split[0], null));
+            else
+                List.Add(new KeyValuePair<string, string?>(Split[0], Split[1]));
+        }
+        return List;
+    }
+
+    public bool IsNetworkSystem(string name)
+    {
+        switch (name)
+        {
+            case "host":
+            case "bridge":
+            case "none":
+                return true;
+        }
+
+        return false;
+    }
+
+    public string SelectedRestartMode { get; set; } = "None";
+
+    public long RestartCount { get; set; } = 0;
+
+    string[] RestartModes = new string[]
+    {
+        "None",
+        "On Failure",
+        "Always",
+        "Unless Stopped"
+    };
+
+    public async Task UpdateRestartMode()
+    {
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+            return;
+
+        RestartPolicyKind Type = RestartPolicyKind.No;
+        switch (SelectedRestartMode)
+        {
+            case "On Failure":
+                Type = RestartPolicyKind.OnFailure;
+                break;
+            case "Always":
+                Type = RestartPolicyKind.Always;
+                break;
+            case "Unless Stopped":
+                Type = RestartPolicyKind.UnlessStopped;
+                break;
+        }
+        IsActionLoading = true;
+        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Update)
+        {
+            Data = JObject.FromObject(new ContainerUpdateParameters
+            {
+                RestartPolicy = new RestartPolicy
+                {
+                    Name = Type,
+                    MaximumRetryCount = RestartCount
+                }
+            })
+        });
+        IsActionLoading = false;
+    }
+
+    public bool CanManageContainer;
+    public bool CanControlContainer;
+    public bool CanViewLogs;
+    public bool CanInspect;
+    public bool CanViewStats;
+    public bool CanViewChanges;
+    public bool CanUseConsole;
+    public bool CanViewContainerDetails;
+    public bool CanViewContainerEnvironment;
+    public bool CanViewContainerVolumes;
+    public bool CanViewContainerNetworks;
+    public bool CanViewContainerHealthLogs;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        LoadPerms();
+    }
+
+    public void LoadPerms()
+    {
+        CanManageContainer = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers);
+        CanControlContainer = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers);
+        CanViewLogs = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs);
+        CanInspect = Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator);
+        CanViewStats = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats);
+        CanViewChanges = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges);
+        CanUseConsole = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.UseContainerConsole);
+        CanViewContainerDetails = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerDetails);
+        CanViewContainerEnvironment = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerEnvironment);
+        CanViewContainerVolumes = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerVolumes);
+        CanViewContainerNetworks = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerNetworks);
+        CanViewContainerHealthLogs = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerHealthLogs);
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+            return;
+
+        LoadPerms();
+
+        try
+        {
+            var Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
+            Failed = !Result.IsSuccess;
+            Container = Result.Data;
+
+            if (Result.IsSuccess)
+            {
+                RestartCount = Container.HostConfig.RestartPolicy.MaximumRetryCount;
+                switch (Container.HostConfig.RestartPolicy.Name)
+                {
+                    case RestartPolicyKind.Always:
+                        SelectedRestartMode = "Always";
+                        break;
+                    case RestartPolicyKind.OnFailure:
+                        SelectedRestartMode = "On Failure";
+                        break;
+                    case RestartPolicyKind.UnlessStopped:
+                        SelectedRestartMode = "Unless Stopped";
+                        break;
+                }
+            }
+            if (IsActionLoading)
+            {
+                IsActionLoading = false;
+                StateHasChanged();
+            }
+        }
+        catch (Exception ex)
+        {
+            Failed = true;
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+    }
+
+    async Task RunSelectedContainersAction(ControlContainerType type)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+        if (type == ControlContainerType.Remove || type == ControlContainerType.ForceRemove)
+        {
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                return;
+        }
+        else
+        {
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                return;
+        }
+        IsActionLoading = true;
+        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, type), async (res) =>
+        {
+            
+        });
+        await Task.Delay(new TimeSpan(0, 0, 1));
+        await InvokeAsync(OnParametersSetAsync);
+    }
 }

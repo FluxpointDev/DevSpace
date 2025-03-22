@@ -8,9 +8,9 @@ public enum EventType
     Ping,
     Pong,
     TaskResponse,
-    Command,
-    CommandWait,
-    CommandStream,
+    //Command,
+    //CommandWait,
+    //CommandStream,
     Docker,
-    FirewallInfo
+    //FirewallInfo
 }

@@ -1,6 +1,161 @@
-﻿<h6>ServerDockerStackInfo</h6>
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@inject NotificationService Notifications
+
+@if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
+{
+    <div class="dash-box">
+        <div class="dash-box-header dash-box-content">
+            <div class="dash-box-icon"><span class="iconify" data-icon="ri:stack-fill"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Stack Info</RadzenText>
+        </div>
+            <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks")" Text="Stacks" />
+            <RadzenBreadCrumbItem Text="@StackId" />
+        </RadzenBreadCrumb>
+        <br />
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Stacks
+        </RadzenAlert>
+    </div>
+}
+else
+{
+    <div class="dash-box">
+            <div class="dash-box-header dash-box-content">
+            <div class="dash-box-icon"><span class="iconify" data-icon="ri:stack-fill"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Stack Info</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks")" Text="Stacks" />
+            <RadzenBreadCrumbItem Text="@(Stack?.Name ?? StackId)" />
+        </RadzenBreadCrumb>
+        @if (Stack == null)
+        {
+            
+        }
+        else if (Stack.ControlType == DockerStackControl.Full)
+        {
+            <br />
+            <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+                <RadzenTableBody>
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            Name
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @Stack.Name
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            ID
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @Stack.Id
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            Compose
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId + "/edit")"><RadzenButton Icon="edit" Variant="Variant.Text" Text="Edit" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))" /></a>
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            Version
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @Stack.Version
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            Created
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @Utils.GetLocalDate(Session, Stack.CreatedAt)
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            Updated
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @if (Stack.UpdatedAt.HasValue)
+                            {
+                                @Utils.GetLocalDate(Session, Stack.UpdatedAt)
+                            }
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            Stacks
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="8px;">
+                                @foreach(var i in Stack.Containers)
+                                {
+                                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + i.Id)">@i.Name</RadzenLink>
+                                }
+                            </RadzenStack>
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+                </RadzenTableBody>
+            </RadzenTable>
+        }
+        else
+        {
+            <br />
+             <div class="dash-box-content">
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                This stack is managed by the System or Portainer, some features may be limited.
+                </RadzenAlert>
+            </div>
+        }
+    </div>
+
+}
 
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
     [Parameter]
     public string StackId { get; set; }
+
+    public DockerStackInfo? Stack { get; set; }
+    public bool IsLoading { get; set; } = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
+            return;
+
+        IsLoading = true;
+        try
+        {
+            var Result = await Server.RunJsonAsync<DockerStackInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.View));
+            Stack = Result.Data;
+            Console.WriteLine("Cont: " + Stack.ContainersCount);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+
+        IsLoading = false;
+    }
 }

@@ -1,4 +1,5 @@
-﻿@page "/teams/{team_id?}/{service?}/{service_id?}/{resource_type?}/{resource_data?}"
+﻿@page "/teams/{team_id?}/{service?}/{service_id?}/{resource_type?}/{resource_data?}/{resource_feature?}"
+@using DevSpaceWeb.Components.Pages.Console
 @using DevSpaceWeb.Components.Pages.Server.DockerTools
 @using DevSpaceWeb.Data.Consoles
 
@@ -9,7 +10,7 @@
 }
 else if (Member.Disabled != null)
 {
-    <PageTitle>Account Restricted | @_Data.Config.Instance.Name</PageTitle>
+    <PageTitle>Member Restricted | @_Data.Config.Instance.Name</PageTitle>
     <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
         Your account has been restricted from accessing this team.
     </RadzenAlert>
@@ -73,18 +74,12 @@ else
                 {
                     <ServerList></ServerList>
                 }
-                else if (Server == null || !Member.HasServerPermission(Server, ServerPermission.ViewServer))
+                else if (Server == null || !Member.HasServerPermission(Team, Server, ServerPermission.ViewServer))
                 {
                     <p>This server does not exist.</p>
                 }
                 else
                 {
-                    @if (Server.GetWebSocket() == null)
-                    {
-                        <ServerConnectionError></ServerConnectionError>
-                    }
-                    else
-                    {
                         switch (resource_type)
                         {
                             case null:
@@ -101,81 +96,102 @@ else
                             case "permissions":
                                 <ServerPermissions></ServerPermissions>
                                 break;
-                            case "databases":
+                            @* case "databases":
                                 <ServerDatabase></ServerDatabase>
+                                break; *@
+                            case "host":
+                                <ServerDockerHostInfo></ServerDockerHostInfo>
                                 break;
                             case "stacks":
-                                @if (!Member.HasDockerPermission(Server, DockerPermission.ViewContainers))
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You do not have permission for View Containers
-                                    </RadzenAlert>
-                                }
-                                else if (string.IsNullOrEmpty(resource_data))
+                                if (string.IsNullOrEmpty(resource_data))
                                 {
                                     <ServerDockerStacks></ServerDockerStacks>
                                 }
                                 else
                                 {
-                                    <ServerDockerStackInfo StackId="@resource_data"></ServerDockerStackInfo>
+                                    @if (resource_data == "build")
+                                    {
+                                    <ServerDockerStackBuild></ServerDockerStackBuild>
+                                }
+                                else
+                                {
+                                    switch (resource_feature)
+                                    {
+                                        case null:
+                                        case "":
+                                            <ServerDockerStackInfo StackId="@resource_data"></ServerDockerStackInfo>
+                                            break;
+                                        case "edit":
+                                            <ServerDockerStackEdit StackId="@resource_data"></ServerDockerStackEdit>
+                                            break;
+                                    }
+
+                                    }
                                 }
                                 break;
                             case "containers":
-                                @if (!Member.HasDockerPermission(Server, DockerPermission.ViewContainers))
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You do not have permission for View Containers
-                                    </RadzenAlert>
-                                }
-                                else if (string.IsNullOrEmpty(resource_data))
+                                if (string.IsNullOrEmpty(resource_data))
                                 {
                                     <ServerDockerContainers></ServerDockerContainers>
                                 }
                                 else
                                 {
-                                    <ServerDockerContainerInfo ContainerId="@resource_data"></ServerDockerContainerInfo>
+                                    switch (resource_feature)
+                                    {
+                                        case null:
+                                        case "":
+                                            <ServerDockerContainerInfo ContainerId="@resource_data"></ServerDockerContainerInfo>
+                                            break;
+                                        case "stats":
+                                            <ServerDockerContainerStats ContainerId="@resource_data"></ServerDockerContainerStats>
+                                            break;
+                                        case "logs":
+                                            <ServerDockerContainerLogs ContainerId="@resource_data"></ServerDockerContainerLogs>
+                                            break;
+                                        case "inspect":
+                                            <ServerDockerContainerInspect ContainerId="@resource_data"></ServerDockerContainerInspect>
+                                            break;
+                                        case "console":
+                                            <ServerDockerContainerConsole ContainerId="@resource_data"></ServerDockerContainerConsole>
+                                            break;
+                                        case "changes":
+                                            <ServerDockerContainerChanges ContainerId="@resource_data"></ServerDockerContainerChanges>
+                                            break;
+                                    }
+                                    
                                 }
                                 break;
                             case "plugins":
-                                @if (!Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You do not have permission for Docker Administrator
-                                    </RadzenAlert>
-                                }
-                                else if (string.IsNullOrEmpty(resource_data))
+                                if (string.IsNullOrEmpty(resource_data))
                                 {
                                     <ServerDockerPlugins></ServerDockerPlugins>
                                 }
                                 else
                                 {
-                                    <ServerDockerPluginInfo PluginInfo="@resource_data"></ServerDockerPluginInfo>
+                                    <ServerDockerPluginInfo PluginId="@resource_data"></ServerDockerPluginInfo>
                                 }
                                 break;
                             case "images":
-                                @if (!Member.HasDockerPermission(Server, DockerPermission.ViewImages))
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You do not have permission for View Images
-                                    </RadzenAlert>
-                                }
-                                else if (string.IsNullOrEmpty(resource_data))
+                                if (string.IsNullOrEmpty(resource_data))
                                 {
                                     <ServerDockerImages></ServerDockerImages>
+
                                 }
                                 else
                                 {
-                                    <ServerDockerImageInfo ImageId="@resource_data"></ServerDockerImageInfo>
+                                    @if (resource_data == "build")
+                                    {
+                                        <ServerDockerImageBuild></ServerDockerImageBuild>
+                                    }
+                                    else
+                                    {
+                                        <ServerDockerImageInfo ImageId="@resource_data"></ServerDockerImageInfo>
+                                    }
+                                    
                                 }
                                 break;
                             case "networks":
-                                @if (!Member.HasDockerPermission(Server, DockerPermission.ViewNetworks))
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You do not have permission for View Networks
-                                    </RadzenAlert>
-                                }
-                                else if (string.IsNullOrEmpty(resource_data))
+                                if (string.IsNullOrEmpty(resource_data))
                                 {
                                     <ServerDockerNetworks></ServerDockerNetworks>
                                 }
@@ -185,13 +201,7 @@ else
                                 }
                                 break;
                             case "volumes":
-                                @if (!Member.HasDockerPermission(Server, DockerPermission.ViewVolumes))
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You do not have permission for View Volumes
-                                    </RadzenAlert>
-                                }
-                                else if (string.IsNullOrEmpty(resource_data))
+                                if (string.IsNullOrEmpty(resource_data))
                                 {
                                     <ServerDockerVolumes></ServerDockerVolumes>
                                 }
@@ -201,26 +211,10 @@ else
                                 }
                                 break;
                             case "execute":
-                                @if (!Member.HasServerPermission(Server, ServerPermission.ServerAdministrator))
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You do not have permission for Server Administrator
-                                    </RadzenAlert>
-                                }
-                                else
-                                {
-                                    <ServerDockerExecute></ServerDockerExecute>
-                                }
-
+                                 <ServerDockerExecute></ServerDockerExecute>
                                 break;
                             case "registry":
-                                @if (!Member.HasDockerPermission(Server, DockerPermission.ViewRegistries))
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You do not have permission for View Registries
-                                    </RadzenAlert>
-                                }
-                                else if (string.IsNullOrEmpty(resource_data))
+                                if (string.IsNullOrEmpty(resource_data))
                                 {
                                     <ServerDockerRegistry></ServerDockerRegistry>
                                 }
@@ -229,14 +223,14 @@ else
                                     <ServerDockerRegistryInfo RegistryId="@resource_data"></ServerDockerRegistryInfo>
                                 }
                                 break;
-                            case "firewall":
+                            @* case "firewall":
                                 @if (!Member.HasServerPermission(Server, ServerPermission.ServerAdministrator))
                                 {
                                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
                                         You do not have permission for Server Administrator
                                     </RadzenAlert>
                                 }
-                                else if (Server.GetWebSocket().Client.IsRunningDockerContainer)
+                                else if (Server.IsRunningDockerContainer)
                                 {
                                     <ServerLimitedControlError></ServerLimitedControlError>
                                 }
@@ -245,15 +239,15 @@ else
                                     <ServerFirewall></ServerFirewall>
                                 }
 
-                                break;
-                            case "files":
+                                break; *@
+                            @* case "files":
                                 @if (!Member.HasServerPermission(Server, ServerPermission.ServerAdministrator))
                                 {
                                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
                                         You do not have permission for Server Administrator
                                     </RadzenAlert>
                                 }
-                                else if (Server.GetWebSocket().Client.IsRunningDockerContainer)
+                                else if (Server.IsRunningDockerContainer)
                                 {
                                     <ServerLimitedControlError></ServerLimitedControlError>
                                 }
@@ -262,15 +256,15 @@ else
                                     <ServerFiles></ServerFiles>
                                 }
 
-                                break;
-                            case "ssh":
+                                break; *@
+                            @* case "ssh":
                                 @if (!Member.HasServerPermission(Server, ServerPermission.ServerAdministrator))
                                 {
                                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
                                         You do not have permission for Server Administrator
                                     </RadzenAlert>
                                 }
-                                else if (Server.GetWebSocket().Client.IsRunningDockerContainer)
+                                else if (Server.IsRunningDockerContainer)
                                 {
                                     <ServerLimitedControlError></ServerLimitedControlError>
                                 }
@@ -279,8 +273,8 @@ else
                                     <ServerSSH></ServerSSH>
                                 }
 
-                                break;
-                            case "status":
+                                break; *@
+                            @* case "status":
                                 @if (!Member.HasServerPermission(Server, ServerPermission.ServerAdministrator))
                                 {
                                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -292,8 +286,8 @@ else
                                     <ServerStatus></ServerStatus>
                                 }
 
-                                break;
-                            case "webhooks":
+                                break; *@
+                            @* case "webhooks":
                                 @if (!Member.HasServerPermission(Server, ServerPermission.ServerAdministrator))
                                 {
                                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -305,8 +299,8 @@ else
                                     <ServerWebhooks></ServerWebhooks>
                                 }
 
-                                break;
-                            case "info":
+                                break; *@
+                            @* case "info":
                                 @if (!Member.HasServerPermission(Server, ServerPermission.ServerAdministrator))
                                 {
                                     <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -318,34 +312,20 @@ else
                                     <ServerSystemInfo></ServerSystemInfo>
                                 }
 
-                                break;
+                                break; *@
                             case "templates":
-                                @if (!Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))
-                                {
-                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                        You do not have permission for Docker Administrator
-                                    </RadzenAlert>
-                                }
-                                else if (string.IsNullOrEmpty(resource_data))
+                                if (string.IsNullOrEmpty(resource_data))
                                 {
                                     <ServerDockerAppTemplates></ServerDockerAppTemplates>
                                 }
                                 else if (resource_data.Equals("custom"))
                                 {
-                                    if (!Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))
-                                    {
-                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                            You do not have permission for Docker Administrator
-                                        </RadzenAlert>
-                                    }
-                                    else
-                                    {
-                                        <ServerDockerCustomTemplates></ServerDockerCustomTemplates>
-                                    }
+                                    <ServerDockerCustomTemplates></ServerDockerCustomTemplates>
+                                    
                                 }
                                 break;
                         }
-                    }
+                        
                 }
 
             }
@@ -354,15 +334,15 @@ else
             {
                 @if (string.IsNullOrEmpty(service_id))
                 {
-                    <DevSpaceWeb.Components.Pages.Console.ConsolesList></DevSpaceWeb.Components.Pages.Console.ConsolesList>
+                    <ConsolesList></ConsolesList>
                 }
-                else if (Console == null || !Member.HasConsolePermission(Console, ConsolePermission.ViewConsole))
+                else if (Console == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConsole))
                 {
                     <p>This console does not exist.</p>
                 }
                 else
                 {
-                    <DevSpaceWeb.Components.Pages.Console.ConsolePage Page="@resource_type"></DevSpaceWeb.Components.Pages.Console.ConsolePage>
+                    <ConsolePage Page="@resource_type"></ConsolePage>
                 }                    
             }
             break;
@@ -372,7 +352,7 @@ else
                 {
                     <ProjectsList></ProjectsList>
                 }
-                else if (Project == null || !Member.HasProjectPermission(Project, ProjectPermission.ViewProject))
+                else if (Project == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.ViewProject))
                 {
                     <p>This project does not exist.</p>
                 }
@@ -396,7 +376,7 @@ else
                 {
                     <LogsList></LogsList>
                 }
-                else if (Log == null || !Member.HasLogPermission(Log, LogPermission.ViewLog))
+                else if (Log == null || !Member.HasLogPermission(Team, Log, LogPermission.ViewLog))
                 {
                     <p>This log does not exist.</p>
                 }
@@ -421,7 +401,7 @@ else
                 {
                     <WebsitesList></WebsitesList>
                 }
-                else if (Website == null || !Member.HasWebsitePermission(Website, WebsitePermission.ViewWebsite))
+                else if (Website == null || !Member.HasWebsitePermission(Team, Website, WebsitePermission.ViewWebsite))
                 {
                     <p>This website does not exist.</p>
                 }
@@ -459,6 +439,9 @@ else
     [Parameter]
     public string resource_data { get; set; } = "";
 
+    [Parameter]
+    public string resource_feature { get; set; } = "";
+
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
@@ -486,7 +469,7 @@ else
             if (GotTeam != null && (Session.Selected.Team == null || Session.Selected.Team.Data.Id != GotTeam.Id))
             {
                 var Member = GotTeam.GetMember(Session);
-                if (Member != null)
+                if (Member != null && GotTeam.Id == Member.TeamId)
                 {
                     Session.Selected.Team = new SelectedTeamData(GotTeam)
                         {
@@ -501,6 +484,9 @@ else
 
             if (Session.Selected.Team != null)
             {
+                if (Member != null && Member.Disabled != null)
+                    return;
+
                 switch (service)
                 {
                     case "servers":
@@ -518,7 +504,7 @@ else
 
                                 if (GotServer != null && (Session.Selected.Server == null || Session.Selected.Server.Id != GotServer.Id))
                                 {
-                                    if (Member.HasServerPermission(GotServer, ServerPermission.ViewServer))
+                                    if (Member.TeamId == GotServer.TeamId && Member.HasServerPermission(Team, GotServer, ServerPermission.ViewServer))
                                         Session.Selected.Team.Server = new SelectedServerData(GotServer);
                                     else
                                         Session.Selected.Team.Server = null;
@@ -544,7 +530,7 @@ else
 
                                 if (GotConsole != null && (Session.Selected.Console == null || Session.Selected.Console.Id != GotConsole.Id))
                                 {
-                                    if (Member.HasConsolePermission(GotConsole, ConsolePermission.ViewConsole))
+                                    if (Member.TeamId == GotConsole.TeamId && Member.HasConsolePermission(Team, GotConsole, ConsolePermission.ViewConsole))
                                         Session.Selected.Team.Console = new SelectedConsoleData(GotConsole);
                                     else
                                         Session.Selected.Team.Console = null;
@@ -570,7 +556,7 @@ else
 
                                 if (GotProject != null && (Session.Selected.Project == null || Session.Selected.Project.Id != GotProject.Id))
                                 {
-                                    if (Member.HasProjectPermission(GotProject, ProjectPermission.ViewProject))
+                                    if (Member.TeamId == GotProject.TeamId && Member.HasProjectPermission(Team, GotProject, ProjectPermission.ViewProject))
                                         Session.Selected.Team.Project = new SelectedProjectData(GotProject);
                                     else
                                         Session.Selected.Team.Project = null;
@@ -595,11 +581,15 @@ else
 
                                 if (GotLog != null && (Session.Selected.Log == null || Session.Selected.Log.Id != GotLog.Id))
                                 {
-                                    if (Member.HasLogPermission(GotLog, LogPermission.ViewLog))
-                                        Session.Selected.Team.Log = new SelectedLogData(GotLog);
-                                    else
-                                        Session.Selected.Team.Log = null;
-                                    UpdateNav = true;
+
+                                    if (Member.TeamId == GotLog.TeamId && GotLog != null && (Session.Selected.Log == null || Session.Selected.Log.Id != GotLog.Id))
+                                    {
+                                        if (Member.HasLogPermission(Team, GotLog, LogPermission.ViewLog))
+                                            Session.Selected.Team.Log = new SelectedLogData(GotLog);
+                                        else
+                                            Session.Selected.Team.Log = null;
+                                        UpdateNav = true;
+                                    }
                                 }
                             }
                         }
@@ -619,7 +609,7 @@ else
 
                                 if (GotWebsite != null && (Session.Selected.Website == null || Session.Selected.Website.Id != GotWebsite.Id))
                                 {
-                                    if (Member.HasWebsitePermission(GotWebsite, WebsitePermission.ViewWebsite))
+                                    if (Member.TeamId == GotWebsite.TeamId && Member.HasWebsitePermission(Team, GotWebsite, WebsitePermission.ViewWebsite))
                                         Session.Selected.Team.Website = new SelectedWebsiteData(GotWebsite);
                                     else
                                         Session.Selected.Team.Website = null;

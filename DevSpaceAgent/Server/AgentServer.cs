@@ -1,6 +1,6 @@
 ﻿using DevSpaceAgent.Client;
 using DevSpaceAgent.Data;
-using DevSpaceShared.WebSocket;
+using DevSpaceShared.Data;
 using NetCoreServer;
 using System.Net;
 using System.Net.Sockets;
@@ -17,27 +17,166 @@ public class AgentSession : WssSession
     {
         AgentWebSocket = new AgentWebSocket { Session = this };
         Console.WriteLine($"WebSocket session with Id {Id} connected!");
-        AgentWebSocket.SendJsonAsync(new ValidateCertEvent()
-        {
-            CertHash = Program.Certificate.GetCertHashString(),
-            IsRunningDockerContainer = Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") == "true"
-        }, default, true);
 
+    }
+
+    protected override void OnReceivedRequestHeader(HttpRequest request)
+    {
+        if (request.Url == "/")
+        {
+            string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
+            if (!_Data.Config.AllowedIPs.Contains(Ip))
+            {
+                Close();
+                return;
+            }
+
+            string ClientKey = "";
+            long HeaderCount = request.Headers;
+            if (HeaderCount < 30)
+            {
+                int Count = 0;
+                while (Count != HeaderCount)
+                {
+                    (string, string) Header = request.Header(Count);
+                    if (Header.Item1 == "Authorization")
+                    {
+                        ClientKey = Header.Item2;
+                        break;
+                    }
+
+                    Count += 1;
+                }
+            }
+
+            if (string.IsNullOrEmpty(ClientKey) || ClientKey != _Data.Config.AgentKey)
+            {
+                Close();
+                return;
+            }
+
+            base.OnReceivedRequestHeader(request);
+        }
+
+    }
+
+    protected override void OnReceivedRequest(HttpRequest request)
+    {
+        string path = request.Url.Substring(1);
+        if (!string.IsNullOrEmpty(path))
+        {
+            if (request.Method != "GET")
+                SendResponseAsync(Response.MakeErrorResponse(400, "Unsupported HTTP method: " + request.Method));
+            else
+            {
+                bool IsWhitelisted = false;
+                string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
+
+                if (!_Data.Config.AllowedIPs.Any())
+                    IsWhitelisted = true;
+                else
+                    IsWhitelisted = _Data.Config.AllowedIPs.Contains(Ip);
+
+                if (!IsWhitelisted)
+                {
+                    Console.WriteLine("IP Blocked");
+                    SendResponseAsync(Response.MakeErrorResponse(401, "You are not authorized."));
+                    return;
+                }
+
+                switch (path)
+                {
+                    case "discover":
+
+                        SendJsonResponseAsync(new DiscoverAgentInfo
+                        {
+                            Id = _Data.Config.AgentId,
+                            Version = Program.Version
+                        });
+                        return;
+                    default:
+                        {
+                            string ClientKey = "";
+                            long HeaderCount = request.Headers;
+                            if (HeaderCount < 30)
+                            {
+                                int Count = 0;
+
+                                while (Count != HeaderCount)
+                                {
+                                    (string, string) Header = request.Header(Count);
+                                    if (Header.Item1 == "Authorization")
+                                    {
+                                        ClientKey = Header.Item2;
+                                        break;
+                                    }
+
+                                    Count += 1;
+                                }
+                            }
+
+                            if (string.IsNullOrEmpty(ClientKey) || ClientKey != _Data.Config.AgentKey)
+                            {
+                                SendResponseAsync(Response.MakeErrorResponse(401, "You are not authorized."));
+                                return;
+                            }
+
+                            switch (path)
+                            {
+                                case "setup":
+                                    if (_Data.Config.AllowedIPs.Add(Ip))
+                                        _Data.Config.Save();
+
+                                    SendResponseAsync(Response.MakeOkResponse());
+
+                                    return;
+                                default:
+                                    SendResponseAsync(Response.MakeErrorResponse(400, "Unknown request."));
+                                    return;
+                            }
+                        }
+                }
+            }
+            return;
+        }
+
+        base.OnReceivedRequest(request);
+    }
+
+    public void SendJsonResponseAsync(object data)
+    {
+        SendResponseAsync(Response.MakeGetResponse(Newtonsoft.Json.JsonConvert.SerializeObject(data), "application/json"));
     }
 
     public override bool OnWsConnecting(HttpRequest request, HttpResponse response)
     {
         Console.WriteLine("Connecting...");
-        long HeaderCount = request.Headers;
-        int Count = 0;
-        string ClientKey = "";
-        while (Count != HeaderCount)
-        {
-            (string, string) Header = request.Header(Count);
-            if (Header.Item1 == "Authorization")
-                ClientKey = Header.Item2;
 
-            Count += 1;
+        string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
+        if (!_Data.Config.AllowedIPs.Contains(Ip))
+        {
+            Console.WriteLine("IP Blocked");
+            this.Disconnect();
+
+            return false;
+        }
+
+        string ClientKey = "";
+        long HeaderCount = request.Headers;
+        if (HeaderCount < 30)
+        {
+            int Count = 0;
+            while (Count != HeaderCount)
+            {
+                (string, string) Header = request.Header(Count);
+                if (Header.Item1 == "Authorization")
+                {
+                    ClientKey = Header.Item2;
+                    break;
+                }
+
+                Count += 1;
+            }
         }
 
         if (ClientKey == _Data.Config.AgentKey)

@@ -1,7 +1,7 @@
 ﻿using DevSpaceShared.WebSocket;
 namespace DevSpaceShared.Events.Docker;
 
-public class ContainerEvent : IWebSocketTaskEvent
+public class ContainerEvent : IWebSocketTask
 {
     public ContainerEvent(EventType type, string containerId) : base(type)
     {

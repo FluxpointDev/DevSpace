@@ -8,7 +8,7 @@ using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
-using DevSpaceWeb.Models.Account;
+using DevSpaceWeb.Models.Validation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -59,7 +59,7 @@ public static class ServiceBuilder
         services.Configure<IdentityOptions>(options =>
         {
             options.User.RequireUniqueEmail = true;
-            options.User.AllowedUserNameCharacters = AccountRegisterModel.AllowedCharacters;
+            options.User.AllowedUserNameCharacters = string.Join("", UsernameValidationAttribute.AllowedCharacters);
             options.Password.RequiredLength = 8;
             options.Password.RequireNonAlphanumeric = false;
         });
@@ -74,7 +74,7 @@ public static class ServiceBuilder
             options.ExpireTimeSpan = TimeSpan.FromDays(30);
             options.LoginPath = "/login";
             options.LogoutPath = "/logout";
-            options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+            options.AccessDeniedPath = "/error?type=AccessDenied";
         });
     }
 
@@ -96,12 +96,9 @@ public static class ServiceBuilder
                         return RequireInstanceAdmin;
                     else
                         return !RequireInstanceAdmin;
-
-                    return true;
                 }
 
                 return false;
-                //or any other visibility strategy...
             });
             c.SwaggerDoc("client", new OpenApiInfo
             {

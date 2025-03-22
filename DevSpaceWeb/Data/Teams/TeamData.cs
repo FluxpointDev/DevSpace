@@ -98,11 +98,11 @@ public class TeamData : IResource
         return data;
     }
 
-    public async Task UpdateAsync(UpdateDefinition<TeamData> update, Action action)
+    public async Task UpdateAsync(UpdateDefinition<TeamData> update, Action action = null)
     {
         FilterDefinition<TeamData> filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Teams.Collection.UpdateOneAsync(filter, update);
-        if (Result.IsAcknowledged)
+        if (action != null && Result.IsAcknowledged)
             action?.Invoke();
     }
 
@@ -194,7 +194,7 @@ public class TeamData : IResource
     {
         lock (RolePositionLock)
         {
-            if (!member.HasTeamPermission(TeamPermission.ManageRoles))
+            if (!member.HasTeamPermission(this, TeamPermission.ManageRoles))
                 return;
 
             int CurrentPosition = role.GetPosition();

@@ -7,9 +7,15 @@
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:robot"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">@Team.Name API</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">Team API</RadzenText>
     </div>
-    @if (!Member.HasAPIPermission(APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(APIPermission.ViewAllAPIs))
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams")" Text="Teams" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl)" Text="@Session.Selected.Team.Data.Name" />
+        <RadzenBreadCrumbItem Text="API" />
+    </RadzenBreadCrumb>
+
+    @if (!Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(Team, APIPermission.ViewAllAPIs))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for View APIs
@@ -18,7 +24,7 @@
     else
     {
         <br />
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create API Client" Click="@CreateApi" Disabled="(!(Member.HasAPIPermission(APIPermission.ManageOwnAPIs) || Member.HasAPIPermission(APIPermission.APIAdministrator)))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create API Client" Click="@CreateApi" Disabled="(!(Member.HasAPIPermission(Team, APIPermission.CreateOwnAPIs)))" />
         <br />
         <br />
         <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
@@ -50,18 +56,17 @@
     private SessionProvider Session { get; set; }
 
     public TeamData Team => Session.Selected.Team.Data;
-
     public TeamMemberData Member => Session.Selected.Member;
 
     public async Task CreateApi()
     {
-        if (!(Member.HasAPIPermission(APIPermission.ManageOwnAPIs) || Member.HasAPIPermission(APIPermission.APIAdministrator)))
+        if (!(Member.HasAPIPermission(Team, APIPermission.CreateOwnAPIs)))
             return;
 
         await dialogService.ShowDynamicFormAsync<TeamCreateAPIModel>("Create API Client", new TeamCreateAPIModel() { }, async (TeamCreateAPIModel data) =>
         {
-            if (!(Member.HasAPIPermission(APIPermission.ManageOwnAPIs) || Member.HasAPIPermission(APIPermission.APIAdministrator)))
-                return "You do not have Manage API permissions.";
+            if (!(Member.HasAPIPermission(Team, APIPermission.CreateOwnAPIs)))
+                return "You do not have Create Own APIs permission.";
 
             APIClient client = new APIClient
                 {

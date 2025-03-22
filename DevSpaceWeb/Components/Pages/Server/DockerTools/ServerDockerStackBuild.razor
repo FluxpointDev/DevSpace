@@ -1,0 +1,209 @@
+﻿@using BlazorMonaco.Editor
+@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using Docker.DotNet.Models
+@using System.Linq.Dynamic.Core
+@using Newtonsoft.Json.Linq
+@using static DevSpaceWeb.Components.Pages.Server.DockerTools.ServerDockerContainers
+@inject DialogService DialogService
+@inject ContextMenuService ContextMenuService
+@inject TooltipService tooltipService
+@inject NavigationManager Nav
+@inject NotificationService Notifications
+
+<PageTitle>Docker Stacks Build | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="ri:stack-fill"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Docker Stack Build</RadzenText>
+    </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks")" Text="Stacks" />
+        <RadzenBreadCrumbItem Text="Build" />
+    </RadzenBreadCrumb>
+    <br />
+    @if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
+    {
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for Create Stacks
+            </RadzenAlert>
+        </div>
+    }
+    else
+    {
+        if (!IsBuilding)
+        {
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Name</RadzenText>
+        <RadzenTextBox @bind-Value="@StackName" Style="width: 100%" aria-label="Email TextBox" AutoCompleteType="AutoCompleteType.Off" autofocus
+                autocapitalize="none" MaxLength="100" />
+
+                        <RadzenText TextStyle="TextStyle.Body2">
+                    Stack name need to be all lowercase, 2-255 characters and optionally include special characters such as <code>.</code> <code>-</code> <code>_</code>
+                </RadzenText>
+        <br />
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Editor</RadzenText>
+        <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
+        <br />
+            <RadzenButton Text="Build Stack" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@BuildStack" Disabled="@IsBuilding" />
+        <br />
+            <br />
+        }
+        else if (Success)
+        {
+            <div><span class="iconify" data-icon="mdi:docker" style="color: var(--rz-success);"></span></div>
+            <h6>Stack Created</h6>
+            <p>Your containers are now running click the button to show the stack.</p>
+            <br />
+            <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId)"><RadzenButton Text="View Stack" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+            <br />
+        }
+        else if (Failed)
+        {
+            <div><span class="iconify" data-icon="mdi:docker" style="color: var(--rz-danger);"></span></div>
+            if (IsBuilding)
+            {
+                <h6>Build Failed</h6>
+                <p>No stack or containers have been created.</p>
+            }
+            else
+            {
+                <h6>Start Failed</h6>
+                <p>One or more of your containers failed to start.</p>
+                <br />
+                <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+            }
+            <br />
+        }
+        else if (!IsReady)
+        {
+            <div><span class="iconify" data-icon="mdi:docker" style="color: #0091E2;"></span></div>
+            <h6>Building Stack</h6>
+            <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+            <br />
+        }
+        else
+        {
+            <div><span class="iconify" data-icon="mdi:docker" style="color: #0091E2;"></span></div>
+            <h6>Starting Stack</h6>
+            <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+            <br />
+        }
+    }
+</div>
+
+<style>
+    .monaco-editor, .monaco-diff-editor {
+        height: 400px !important;
+    }
+
+    .dash-box-content .iconify--mdi {
+        width: 60px;
+        height: 60px;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+
+    public bool IsLoading = true;
+    public bool IsActionRunning { get; set; }
+
+    public string StackName { get; set; }
+    private StandaloneCodeEditor _editor = null;
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "yaml",
+            Theme = "vs-dark",
+            ScrollBeyondLastLine = false,
+            ColumnSelection = true,
+            Folding = false,
+        };
+    }
+
+    public bool IsBuilding { get; set; }
+    public bool IsReady { get; set; }
+    public bool Failed { get; set; }
+    public bool Success { get; set; }
+    public string StackId { get; set; }
+
+    public async Task BuildStack()
+    {
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
+            return;
+
+        if (string.IsNullOrEmpty(StackName))
+        {
+            Notifications.Notify(NotificationSeverity.Error, "Stack Name Error", "Stack name is empty.");
+            return;
+        }
+        if (!Utils.IsDockerImageNameValid(StackName))
+        {
+            Notifications.Notify(NotificationSeverity.Error, "Stack Name Error", "Name needs to be lowercase and with valid characters.");
+            return;
+        }
+
+        var Data = await _editor.GetValue();
+        if (string.IsNullOrEmpty(Data))
+        {
+            Notifications.Notify(NotificationSeverity.Error, "Compose Error", "Compose content is empty.");
+            return;
+        }
+
+        // IsBuilding = true;
+        // string Data = await _editor.GetValue();
+        // var res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.ControlStack, "9b4cf7213f804272af8d62045102cd38", stackType: ControlStackType.ReCreate)
+        //     {
+        //         Data = JObject.FromObject(new CreateStackEvent
+        //         {
+        //             Name = StackName,
+        //             DockerfileName = StackName,
+        //             Content = Data
+        //         })
+        //     });
+        //     Console.WriteLine($"Got: " + res.IsSuccess);
+
+        // return;
+        IsBuilding = true;
+        
+        var res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
+        {
+            Data = JObject.FromObject(new CreateStackEvent
+            {
+                Name = StackName,
+                DockerfileName = StackName,
+                Content = Data
+            })
+        }, async (res) =>
+        {
+            IsReady = true;
+            StateHasChanged();
+            StackId = res.Data.Id;
+            Console.WriteLine("Success: " + res.Data.Id);
+            var Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
+            if (Res.IsSuccess)
+                Success = true;
+            else
+                Failed = true;
+            StateHasChanged();
+        });
+        if (!res.IsSuccess)
+        {
+            Failed = true;
+            StateHasChanged();
+        }
+    }
+}

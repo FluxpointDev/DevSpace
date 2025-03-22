@@ -66,7 +66,7 @@ public static class _Data
         if (string.IsNullOrEmpty(Config.AdminKey))
         {
             SaveConfig = true;
-            Config.AdminKey = GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
+            Config.AdminKey = GetRandomString(new Random().Next(36, 56)) + Guid.NewGuid().ToString().Replace("-", "");
         }
 
         if (Config.Admin == null)

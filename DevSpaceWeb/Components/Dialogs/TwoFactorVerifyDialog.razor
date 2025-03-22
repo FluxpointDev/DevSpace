@@ -33,7 +33,7 @@
                                 <h6>Authenticator</h6>
                             </div>
 
-                            <div class="twofactor-item @(User.Mfa.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="(() => { if (User.Mfa.Passkeys.Any()) { AuthType = TwoFactorSelector.WebAuth; } })">
+                            <div class="twofactor-item @(User.Mfa.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="(() => { if (User.Mfa.Passkeys.Any()) { AuthType = TwoFactorSelector.WebAuth; VerifyPasskey(); } })">
                                 <span class="iconify" data-icon="mdi:key-chain"></span>
                                 <h6>Passkey, Webauth or Yubikey</h6>
                             </div>
@@ -80,7 +80,7 @@
                         <RadzenIcon Icon="Passkey" IconColor="@Colors.Info" Style="font-size: 2rem;" />
                     </RadzenStack>
                     <br />
-                    <RadzenButton Click="@VerifyPasskey" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                    <RadzenButton Click="@VerifyPasskey" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" Disabled="@IsVerifyingAuth" IsBusy="@IsVerifyingAuth" />
                 }
                 break;
             case TwoFactorSelector.EmailCode:
@@ -93,19 +93,19 @@
                         </RadzenText>
                         <RadzenIcon Icon="mail" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
                         <br />
-                        <RadzenButton Click="@SendEmail" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Text="Send" />
+                        <RadzenButton Click="@SendEmail" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Text="Send" Disabled="@IsVerifyingAuth" IsBusy="@IsVerifyingAuth" />
                     }
                     else
                     {
                         <RadzenText TextStyle="TextStyle.Body2">
-                            We have sent an email to your @(Session.CurrentUser.Email.Split('@').Last().Split('.').First()) account.
+                            We have sent an email to your @(Session.CurrentUser.Email.Split('@').Last().Split('.').First()) account, this code will expire in 5 minutes.
                         </RadzenText>
                         <RadzenIcon Icon="forward_to_inbox" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
                         <div>
-                            <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" Count="8" Gap="6px" aria-label="Email Code" autofocus />
+                            <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" @onpaste="@CheckPaste" Change="@(() => { if (CodeInput.Length == 8) VerifyEmail(); })" Count="8" Gap="6px" aria-label="Email Code" autofocus />
                         </div>
                         <br />
-                        <RadzenButton Click="@VerifyEmail" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                        <RadzenButton Click="@VerifyEmail" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" Disabled="@IsVerifyingAuth" IsBusy="@IsVerifyingAuth" />
                     }
 
                 }
@@ -118,10 +118,10 @@
                     </RadzenText>
                     <RadzenIcon Icon="screen_lock_portrait" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
                     <div>
-                        <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" Count="6" Gap="6px" aria-label="Auth Code" autofocus />
+                        <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" @onpaste="@CheckPaste" Change="@(() => { if (CodeInput.Length == 6) VerifyAuthenticator(); })" Count="6" Gap="6px" aria-label="Auth Code" autofocus />
                     </div>
                     <br />
-                    <RadzenButton Click="@VerifyAuthenticator" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                    <RadzenButton Click="@VerifyAuthenticator" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" Disabled="@IsVerifyingAuth" IsBusy="@IsVerifyingAuth" />
                 }
                 break;
             case TwoFactorSelector.RecoveryCode:
@@ -131,9 +131,9 @@
                         Enter your account recovery code that you have previously downloaded.
                     </RadzenText>
                     <RadzenIcon Icon="key" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
-                    <RadzenTextBox @bind-Value="CodeInput" Style="width: 100%" aria-label="Email Code TextBox" autofocus />
+                    <RadzenTextBox @bind-Value="CodeInput" MaxLength="60" Style="width: 100%" aria-label="Recovery Code TextBox" autofocus />
                     <br />
-                    <RadzenButton Click="@VerifyRecoveryCode" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                    <RadzenButton Click="@VerifyRecoveryCode" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" Disabled="@IsVerifyingAuth" IsBusy="@IsVerifyingAuth" />
                 }
                 break;
         }
@@ -147,7 +147,43 @@
     </RadzenStack>
 </RadzenStack>
 
+<style>
+    .twofactor-item .iconify {
+        color: #0bba83 !important;
+        width: 32px;
+        height: 32px;
+        float: left;
+        margin-right: 10px;
+    }
 
+    .twofactor-item {
+        display: block !important;
+        height: 52px;
+        margin-bottom: 6px;
+        background-color: #272731 !important;
+        border-radius: 16px;
+        padding: 6px;
+        padding-left: 10px;
+        padding-right: 10px;
+        padding-top: 8px;
+        cursor: pointer;
+    }
+
+        .twofactor-item h4 {
+            margin-top: 0px !important;
+        }
+
+        .twofactor-item p {
+            margin-top: -14px !important;
+        }
+
+    .twofactor-item-disabled {
+        opacity: 0.5;
+        background-color: rgba(39,40,49,0.4) !important;
+        color: rgb(130,129,129) !important;
+        cursor: default !important;
+    }
+</style>
 
 @code {
     [CascadingParameter]
@@ -171,6 +207,7 @@
     }
 
     public bool IsEmailSent;
+    public bool IsVerifyingAuth;
 
     public async Task SendEmail()
     {
@@ -180,6 +217,7 @@
             return;
         }
 
+        IsVerifyingAuth = true;
         User = await Session.GetCurrentUserAsync();
         if (User == null)
         {
@@ -191,7 +229,7 @@
         if (string.IsNullOrEmpty(VerifyCache))
         {
             string Code = Email.RandomCodeGenerator();
-            Cache.Set("2fa-verify-" + User.Id.ToString(), Code, new TimeSpan(0, 2, 0));
+            Cache.Set("2fa-verify-" + User.Id.ToString(), Code, new TimeSpan(0, 5, 0));
             await Email.SendAccessCode(User, "2FA Verification", Code);
             if (LogUsage)
             {
@@ -201,6 +239,8 @@
             }
         }
         IsEmailSent = true;
+        IsVerifyingAuth = false;
+        StateHasChanged();
     }
 
     public async Task VerifyEmail()
@@ -210,7 +250,7 @@
             Session.ShowPreviewModeNotice();
             return;
         }
-
+        IsVerifyingAuth = true;
         User = await Session.GetCurrentUserAsync();
         if (User == null)
         {
@@ -220,9 +260,14 @@
 
         string? VerifyCache = Cache.Get<string>("2fa-verify-" + User.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache) || !VerifyCache.Equals(CodeInput))
+        {
             await dialogService.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
+            IsVerifyingAuth = false;
+            StateHasChanged();
+        }
         else
         {
+            Cache.Remove("2fa-verify-" + User.Id.ToString());
             if (LogUsage)
             {
                 User = await Session.GetCurrentUserAsync();
@@ -239,6 +284,13 @@
 
     }
 
+    public void CheckPaste()
+    {
+        if (string.IsNullOrEmpty(CodeInput))
+        {
+            dialogService.ShowInfoAsync("Paste Failed", $"Your pasted text contains invalid characters or blank spaces at the end.");
+        }
+    }
 
     public async Task VerifyAuthenticator()
     {
@@ -253,8 +305,7 @@
             return;
         }
 
-        
-
+        IsVerifyingAuth = true;
         User = await Session.GetCurrentUserAsync();
         if (User == null)
         {
@@ -272,7 +323,12 @@
             dialogService.Close(true);
         }
         else
+        {
             await dialogService.ShowInfoAsync("Authenticator Failed", $"Failed to verify authenticator code.");
+            IsVerifyingAuth = false;
+            StateHasChanged();
+        }
+        
     }
 
     public async Task VerifyPasskey()
@@ -282,7 +338,7 @@
             Session.ShowPreviewModeNotice();
             return;
         }
-
+        IsVerifyingAuth = true;
         User = await Session.GetCurrentUserAsync();
         if (User == null)
         {
@@ -295,7 +351,7 @@
             return;
         }
 
-        
+
 
         bool DetectPasskeyAllow = false;
         try
@@ -306,6 +362,8 @@
         if (!DetectPasskeyAllow)
         {
             await dialogService.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
+            IsVerifyingAuth = false;
+            StateHasChanged();
             return;
         }
 
@@ -313,7 +371,13 @@
         if (Result)
             dialogService.Close(true);
         else
+        {
             await dialogService.ShowInfoAsync("Passkey Failed", $"Failed to verify your passkey.");
+            IsVerifyingAuth = false;
+            StateHasChanged();
+
+        }
+
     }
 
     public async Task VerifyRecoveryCode()
@@ -323,6 +387,7 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+        IsVerifyingAuth = true;
         User = await Session.GetCurrentUserAsync();
         if (User == null)
         {
@@ -332,7 +397,7 @@
         if (string.IsNullOrEmpty(User.Mfa.RecoveryCode))
             return;
 
-        
+
 
         PasswordVerificationResult Result = Utils.Hasher.VerifyHashedPassword(User, User.Mfa.RecoveryCode, CodeInput);
         if (Result.HasFlag(PasswordVerificationResult.Success))
@@ -346,6 +411,11 @@
             dialogService.Close(true);
         }
         else
+        {
             await dialogService.ShowInfoAsync("Recovery Code Failed", $"Failed to verify your recovery code.");
+            IsVerifyingAuth = false;
+            StateHasChanged();
+        }
+        
     }
 }

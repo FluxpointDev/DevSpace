@@ -3,7 +3,6 @@ using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Fido2;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
@@ -16,11 +15,10 @@ public class AuthLoginController : AuthControllerContext
 {
     public AuthLoginController(
         UserManager<AuthUser> userManager,
-        SignInManager<AuthUser> signInManager,
-        GoogleHandler auth,
-        Fido2Service fido2Service, IMemoryCache cache) : base(userManager, signInManager, fido2Service)
+        SignInManager<AuthUser> signInManager, Fido2Service fido2Service, IMemoryCache cache) : base(userManager, signInManager, fido2Service)
     {
         Cache = cache;
+
         //User.SetToken(new IdentityUserToken<Guid>(), "test");
     }
 
@@ -133,18 +131,21 @@ public class AuthLoginController : AuthControllerContext
     [Route("/auth/external/callback"), HttpGet, HttpPost]
     public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null)
     {
-        if (Program.IsPreviewMode)
-            return BadRequest("Preview mode is enabled.");
-
-        if (!_Data.Config.Auth.AllowExternalLogin)
-            return Unauthorized("External login has been disabled on this instance.");
+        if (string.IsNullOrEmpty(returnUrl) || !returnUrl.StartsWith('/'))
+            returnUrl = "/";
 
         bool AlreadyAuthed = false;
         if (Request.HttpContext.User.Identity != null && Request.HttpContext.User.Identity.IsAuthenticated)
+        {
+            returnUrl = "/user/account";
             AlreadyAuthed = true;
+        }
 
-        if (string.IsNullOrEmpty(returnUrl))
-            returnUrl = "/";
+        if (Program.IsPreviewMode)
+            return Redirect(returnUrl + "?link=PreviewMode");
+
+        if (!_Data.Config.Auth.AllowExternalLogin)
+            return Redirect(returnUrl + "?link=Disabled");
 
         ExternalLoginInfo? info = await _signInManager.GetExternalLoginInfoAsync();
         if (info == null)
@@ -152,7 +153,7 @@ public class AuthLoginController : AuthControllerContext
             if (AlreadyAuthed)
                 return Redirect(returnUrl);
 
-            return Redirect("/login");
+            return Redirect(returnUrl + "?link=Failed");
         }
 
         //foreach (var item in info.AuthenticationProperties.Items)
@@ -171,12 +172,13 @@ public class AuthLoginController : AuthControllerContext
 
         string? Email = info.Principal.FindFirstValue(ClaimTypes.Email);
         string? Name = info.Principal.FindFirstValue(ClaimTypes.Name);
-        string? Id = info.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
-        //Console.WriteLine($"Got: {Email} - {Name}");
+        if (string.IsNullOrEmpty(Name))
+            Name = info.Principal.FindFirstValue(ClaimTypes.Name);
+
+        //string? Id = info.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+
         if (string.IsNullOrEmpty(Email))
-            return BadRequest("Email is missing from provider " + info.ProviderDisplayName);
-        if (string.IsNullOrEmpty(Id))
-            return BadRequest("User Id is missing from provider " + info.ProviderDisplayName);
+            return Redirect(returnUrl + "?link=EmailMissing");
 
         bool RememberMe = false;
         string? RequestId = null;
@@ -185,21 +187,27 @@ public class AuthLoginController : AuthControllerContext
         info.AuthenticationProperties.Items.TryGetValue("RequestId", out RequestId);
         UserSessionJson? SessionJson = null;
         if (!AlreadyAuthed && (string.IsNullOrEmpty(RequestId) || !Cache.TryGetValue("login-" + RequestId, out SessionJson)))
-            return BadRequest("Request is invalid or expired");
+            return Redirect(returnUrl + "?link=Failed");
 
         AuthUser? AuthUser = await _userManager.FindByEmailAsync(Email);
         if (AuthUser == null)
-            return Redirect("/register?email=" + Email);
+        {
+            if (AlreadyAuthed)
+                return Redirect("/user/account?link=NotEmailMatch");
+            else
+                return Redirect("/register?link=Register&email=" + Uri.EscapeDataString(Email) + "&username=" + (!string.IsNullOrEmpty(Name) ? Uri.EscapeDataString(Name.Replace(" ", "_")) : ""));
+        }
+
 
         if (AlreadyAuthed && !Email.Equals(Request.HttpContext.User.FindFirstValue(ClaimTypes.Email), StringComparison.OrdinalIgnoreCase))
-            return BadRequest("Email does not match the logged in user.");
+            return Redirect("/user/account?link=NotEmailMatch");
 
         if (!AuthUser.Logins.Any(x => x.LoginProvider == info.LoginProvider))
         {
             if (AlreadyAuthed)
                 await _userManager.AddLoginAsync(AuthUser, info);
             else
-                return Redirect("/login?link&email=" + Email);
+                return Redirect(returnUrl + "?link=NotConnected=" + Email);
         }
 
         if (!AlreadyAuthed)

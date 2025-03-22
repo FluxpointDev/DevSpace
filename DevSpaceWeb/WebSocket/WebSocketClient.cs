@@ -1,22 +1,20 @@
-﻿using DevSpaceShared.WebSocket;
+﻿using DevSpaceShared.Responses;
+using DevSpaceShared.WebSocket;
 using NetCoreServer;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Radzen;
 using System.Collections.Concurrent;
 using System.Net.Sockets;
 using System.Text;
 
 namespace DevSpaceWeb.WebSocket;
 
-public class ValidateCert
-{
-    public string Cert;
-}
 public class WebSocketBase
 {
-    public bool FirstCertVaid;
-    public bool IsCertValid;
+    [JsonIgnore]
     public WebSocketClient Client;
+    [JsonIgnore]
     public ConcurrentDictionary<string, TaskCompletionSource<JToken>> TaskCollection = new ConcurrentDictionary<string, TaskCompletionSource<JToken>>();
 }
 public class WebSocketClient : WssClient
@@ -24,8 +22,6 @@ public class WebSocketClient : WssClient
     public WebSocketClient(SslContext context, string address, int port) : base(context, address, port) { }
 
     public WebSocketBase WebSocket = new WebSocketBase();
-    public ValidateCert ValidateCert;
-    public bool IsRunningDockerContainer;
     public string Key;
     public void DisconnectAndStop()
     {
@@ -38,12 +34,10 @@ public class WebSocketClient : WssClient
     public override void OnWsConnecting(NetCoreServer.HttpRequest request)
     {
         request.SetBegin("GET", "/");
-        request.SetHeader("Host", "localhost");
-        request.SetHeader("Origin", "http://127.0.0.1");
         request.SetHeader("Upgrade", "websocket");
         request.SetHeader("Connection", "Upgrade");
         request.SetHeader("Sec-WebSocket-Key", Convert.ToBase64String(WsNonce));
-        request.SetHeader("Sec-WebSocket-Protocol", "chat");
+        request.SetHeader("Sec-WebSocket-Protocol", "devspace");
         request.SetHeader("Sec-WebSocket-Version", "13");
         request.SetHeader("Authorization", Key);
         request.SetBody();
@@ -54,12 +48,12 @@ public class WebSocketClient : WssClient
     public override void OnWsConnected(NetCoreServer.HttpResponse response)
     {
         WebSocket = new WebSocketBase { Client = this };
-        Logger.LogMessage("WebSocket", $"Chat WebSocket client connected a new session with Id {Id}", LogSeverity.Info);
+        Logger.LogMessage("WebSocket", $"WebSocket client connected a new session with Id {Id}", LogSeverity.Info);
     }
 
     public override void OnWsDisconnected()
     {
-        Logger.LogMessage("WebSocket", $"Chat WebSocket client disconnected a session with Id {Id}", LogSeverity.Info);
+        //Logger.LogMessage("WebSocket", $"WebSocket client disconnected a session with Id {Id}", LogSeverity.Info);
     }
 
     public override void OnWsReceived(byte[] buffer, long offset, long size)
@@ -71,19 +65,18 @@ public class WebSocketClient : WssClient
 
     protected override void OnDisconnected()
     {
-        Logger.LogMessage("WebSocket", $"Chat WebSocket client disconnected a session with Id {Id}", LogSeverity.Info);
+        Logger.LogMessage("WebSocket", $"WebSocket client disconnected a session with Id {Id}", LogSeverity.Info);
         base.OnDisconnected();
-        // Wait for a while...
-        //Thread.Sleep(TimeSpan.FromSeconds(15));
+        Thread.Sleep(TimeSpan.FromSeconds(15));
 
-        // Try to connect again
-        //if (!_stop)
-        //    ConnectAsync();
+        Logger.LogMessage("WebSocket", $"Reconnecting to {Address}", LogSeverity.Info);
+        if (!_stop)
+            ConnectAsync();
     }
 
     protected override void OnError(SocketError error)
     {
-        Logger.LogMessage("WebSocket", $"Chat WebSocket client caught an error with code {error}", LogSeverity.Warn);
+        Logger.LogMessage("WebSocket", $"WebSocket client caught an error with code {error}", LogSeverity.Warn);
     }
 
     private bool _stop;
@@ -92,63 +85,25 @@ public class WebSocketClient : WssClient
     {
         JToken payload = JsonConvert.DeserializeObject<JToken>(json);
 
-        EventType EventType = payload!["type"]!.ToObject<EventType>();
+        EventType EventType = payload!["Type"]!.ToObject<EventType>();
 
         Logger.LogMessage("WebSocket", "Event: " + EventType.ToString(), LogSeverity.Info);
 
         try
         {
-            //if (Client.Config.Debug.LogWebSocketFull)
-            //{
-            //    switch (payload["type"].ToString())
-            //    {
-            //        case "Ready":
-            //        case "UserUpdate":
-            //        case "ChannelStartTyping":
-            //        case "ChannelStopTyping":
-            //            break;
-            //        default:
-            //            Client.Logger.LogJson("WebSocket Response Json", json);
-            //            break;
-            //    }
-
-            //}
-
             switch (EventType)
             {
-                case EventType.ValidateCert:
-                    {
-                        ValidateCertEvent @event = payload.ToObject<ValidateCertEvent>()!;
-                        Logger.LogMessage("WebSocket", "Client Validate Cert: " + @event.CertHash, LogSeverity.Info);
-                        Logger.LogMessage("WebSocket", "With " + WebSocket.Client.ValidateCert.Cert, LogSeverity.Info);
-                        if (WebSocket.Client.ValidateCert.Cert == @event.CertHash)
-                        {
-                            if (WebSocket.FirstCertVaid)
-                            {
-                                Console.WriteLine("Validated: " + WebSocket.IsCertValid);
-                                WebSocket.IsCertValid = true;
-                            }
-                            else
-                            {
-                                WebSocket.FirstCertVaid = true;
-                                IsRunningDockerContainer = @event.IsRunningDockerContainer;
-                                WebSocket.Client.SendTextAsync(json);
-                            }
-
-
-                        }
-                    }
-                    break;
                 case EventType.TaskResponse:
                     {
-                        IWebSocketResponseEvent<dynamic> @event = payload.ToObject<IWebSocketResponseEvent<dynamic>>()!;
-                        Logger.LogMessage("WebSocket", "Got Response: " + @event.TaskId, LogSeverity.Info);
+                        IWebSocketResponse<dynamic> @event = payload.ToObject<IWebSocketResponse<dynamic>>()!;
                         if (WebSocket.TaskCollection.TryGetValue(@event.TaskId, out TaskCompletionSource<JToken>? task))
                         {
-                            if (@event.IsFail)
-                                task.SetCanceled();
+                            Logger.LogMessage("WebSocket", "Got Response: " + @event.TaskId, LogSeverity.Info);
+                            //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(payload, Formatting.Indented));
+                            if (@event.IsSuccess)
+                                task.SetResult(payload["Data"]);
                             else
-                                task.SetResult(payload);
+                                task.SetCanceled();
                         }
                     }
                     break;
@@ -163,37 +118,69 @@ public class WebSocketClient : WssClient
         }
     }
 
-    public async Task<T?> RecieveJsonAsync<T>(IWebSocketTaskEvent json, CancellationToken token = default) where T : class
+    public async Task<SocketResponse<T?>> RunJsonAsync<T>(Radzen.NotificationService notification, IWebSocketTask json, Action<SocketResponse<T?>>? action = null, CancellationToken token = default) where T : class
     {
-        if (!WebSocket.IsCertValid)
+        var Result = await RecieveJsonAsync<T>(json, token);
+        if (Result.IsSuccess)
         {
-            Logger.LogMessage("WebSocket", "Invalid Cert: " + json.type.ToString(), LogSeverity.Warn);
-            return null;
+            if (action != null)
+                action.Invoke(Result);
+        }
+        else
+        {
+            switch (Result.Error)
+            {
+                case ClientError.Timeout:
+                    Result.Message = "Request timed out.";
+                    break;
+                case ClientError.JsonError:
+                    Result.Message = "Failed to parse data.";
+                    break;
+                case ClientError.CertError:
+                    Result.Message = "Failed server validation.";
+                    break;
+                case ClientError.AuthError:
+                    Result.Message = "Failed server authentication.";
+                    break;
+            }
+            if (string.IsNullOrEmpty(Result.Message))
+                Result.Message = "Failed to send request.";
+
+            notification.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Warning,
+                Duration = 40000,
+                Summary = "Error",
+                Detail = Result.Message
+
+            });
         }
 
+        return Result;
+    }
 
-
+    public async Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
+    {
         json.TaskId = Guid.NewGuid().ToString();
-        string message = JsonConvert.SerializeObject(json);
-
         TaskCompletionSource<JToken> tcs = new TaskCompletionSource<JToken>();
         WebSocket.TaskCollection.TryAdd(json.TaskId, tcs);
+        string message = JsonConvert.SerializeObject(json);
         SendTextAsync(message);
 
-        JToken result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 30), token);
+        JToken result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 10), token);
+        WebSocket.TaskCollection.TryRemove(json.TaskId, out _);
         if (result == null)
         {
-            return null;
+            return new SocketResponse<T?> { Error = ClientError.Timeout };
         }
-        Logger.LogMessage("WebSocket", "Task Success: " + tcs.Task.IsCompletedSuccessfully, LogSeverity.Info);
 
-        IWebSocketResponseEvent<T>? Response = result.ToObject<IWebSocketResponseEvent<T>>();
+        SocketResponse<T?>? Response = result.ToObject<SocketResponse<T?>>();
 
-        if (Response.IsFail)
-            return null;
+        if (Response == null)
+            return new SocketResponse<T?> { Error = ClientError.JsonError };
 
 
-        return Response.Data;
+        return Response;
     }
 }
 

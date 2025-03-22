@@ -67,6 +67,8 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public TeamData? Team => Session.Selected.Team?.Data;
+
     [Parameter]
     public bool IsMobile { get; set; }
 
@@ -187,7 +189,7 @@
                             if (m.TeamId != s.TeamId)
                                 continue;
 
-                            if (m.HasServerPermission(s, ServerPermission.ViewServer))
+                            if (m.HasServerPermission(Team, s, ServerPermission.ViewServer))
                                 items.Add(new SearchItem { Name = s.Name, Type = "server", Team = s.Team, Path = "/teams/" + m.Team.GetVanityUrlOrId() + "/servers/" + s.GetVanityUrlOrId() });
                         }
                     }
@@ -201,7 +203,7 @@
                             if (m.TeamId != c.TeamId)
                                 continue;
 
-                            if (m.HasConsolePermission(c, ConsolePermission.ViewConsole))
+                            if (m.HasConsolePermission(Team, c, ConsolePermission.ViewConsole))
                                 items.Add(new SearchItem { Name = c.Name, Type = "console", Team = c.Team, Path = "/teams/" + m.Team.GetVanityUrlOrId() + "/consoles/" + c.GetVanityUrlOrId() });
                         }
                     }

@@ -35,7 +35,7 @@ public class ConfigInstance
     public string Email;
     public bool HasIcon;
     public int IconVersion;
-    public string PublicDomain;
+    public string PublicDomain = "example.com";
 
     public string GetPublicUrl()
     {

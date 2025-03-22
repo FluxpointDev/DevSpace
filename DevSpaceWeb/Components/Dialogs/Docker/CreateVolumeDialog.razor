@@ -1,0 +1,124 @@
+﻿@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@using Newtonsoft.Json.Linq
+@using global::Docker.DotNet.Models
+
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+
+<PageTitle>Create Docker Volume | @_Data.Config.Instance.Name</PageTitle>
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Failed to create docker volume
+            </RadzenAlert>
+        }
+
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Name</RadzenText>
+        <RadzenTextBox MaxLength="100" Value="@VolumeNameInput" @oninput="@(arg => VolumeNameInput = arg.Value as string)" />
+
+        <br />
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">Driver Configuration</RadzenText>
+
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Driver</RadzenText>
+        <RadzenDropDown TValue="string" Value="@("local")" Data="@Drivers" />
+
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Driver Options</RadzenText>
+        <RadzenButton Click="@(() => DriverOptionsInputs.Add(Guid.NewGuid().ToString(), new Tuple<string, string>("", "")))" Text="Add Option" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" Style="width: 120px !important;" />
+        <br />
+        <br />
+        <RadzenStack>
+            @foreach (var i in DriverOptionsInputs)
+            {
+                @DockerNameValueInput.RenderElement(this, DriverOptionsInputs, "Option", i.Key, i.Value, IsLoading)
+            }
+        </RadzenStack>
+
+        <br />
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">Labels</RadzenText>
+        <RadzenButton Click="@(() => LabelInputs.Add(Guid.NewGuid().ToString(), new Tuple<string, string>("", "")))" Text="Add Label" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" Style="width: 120px !important;" />
+        <br />
+        <br />
+        <RadzenStack>
+            @foreach (var i in LabelInputs)
+            {
+                @DockerNameValueInput.RenderElement(this, LabelInputs, "Label", i.Key, i.Value, IsLoading)
+            }
+        </RadzenStack>
+
+        @* <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Driver Type</RadzenText>
+        <RadzenSelectBar @bind-Value="@VolumeDriverType" TValue="string">
+            <Items>
+                <RadzenSelectBarItem Text="Default" Value="@("default")" />
+                <RadzenSelectBarItem Text="NFS" Value="@("nfs")" />
+                <RadzenSelectBarItem Text="CIFS" Value="@("cifs")" />
+            </Items>
+        </RadzenSelectBar> *@
+
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@IsLoading" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Create Volume" Style="width: 120px" Disabled="@(IsLoading || string.IsNullOrEmpty(VolumeNameInput))" IsBusy="@IsLoading" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    IEnumerable<string> Drivers = new List<string>()
+    {
+        "local"
+    };
+
+    public string? VolumeNameInput { get; set; }
+    public string VolumeDriverType { get; set; } = "default";
+
+    public bool Failed = false;
+    public bool IsLoading = false;
+
+    Dictionary<string, Tuple<string, string>> DriverOptionsInputs = new Dictionary<string, Tuple<string, string>>();
+
+    Dictionary<string, Tuple<string, string>> LabelInputs = new Dictionary<string, Tuple<string, string>>();
+
+    async Task Submit()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+        IsLoading = true;
+        var Response = await Server.RecieveJsonAsync<VolumeResponse>(new DockerEvent(DockerEventType.CreateVolume)
+        {
+            Data = JObject.FromObject(new VolumesCreateParameters
+            {
+                Name = VolumeNameInput,
+                Driver = VolumeDriverType,
+                DriverOpts = DriverOptionsInputs.Values.ToDictionary(x => x.Item1, x => x.Item2),
+                Labels = LabelInputs.Values.ToDictionary(x => x.Item1, x => x.Item2)
+            })
+        });
+        if (!Response.IsSuccess)
+        {
+            Failed = true;
+            IsLoading = false;
+            return;
+        }
+        dialogService.Close(true);
+    }
+}

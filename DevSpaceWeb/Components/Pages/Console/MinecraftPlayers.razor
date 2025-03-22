@@ -6,13 +6,20 @@
 @inject ContextMenuService ContextMenuService
 @inject DialogService Dialog
 
+<PageTitle>Console Players | @_Data.Config.Instance.Name</PageTitle>
+
 <div class="dash-box">
     <div class="dash-box-header dash-box-content">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:account"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Players</RadzenText>
     </div>
+    <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Text="Players" />
+    </RadzenBreadCrumb>
     <br />
-    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewPlayers))
+    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPlayers))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -49,6 +56,7 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public TeamData Team => Session.Selected.Team.Data;
     public ConsoleData Console => Session.Selected.Console;
     public TeamMemberData Member => Session.Selected.Member;
 
@@ -128,7 +136,7 @@
             {
                 case "ban":
                     {
-                        if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+                        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                         {
                             await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
                             return;
@@ -142,7 +150,7 @@
 
                         await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
-                            if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+                            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                                 return "You do not have permission for Ban Players";
 
                             if (!rcon.IsConnected)
@@ -156,7 +164,7 @@
                     break;
                 case "kick":
                     {
-                        if (!Member.HasConsolePermission(Console, ConsolePermission.KickPlayers))
+                        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.KickPlayers))
                         {
                             await Dialog.ShowPermissionErrorAsync(ConsolePermission.KickPlayers);
                             return;
@@ -170,7 +178,7 @@
 
                         await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
-                            if (!Member.HasConsolePermission(Console, ConsolePermission.KickPlayers))
+                            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.KickPlayers))
                                 return "You do not have permission for Kick Players";
 
                             if (!rcon.IsConnected)
@@ -184,7 +192,7 @@
                     break;
                 case "message":
                     {
-                        if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
+                        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                         {
                             await Dialog.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
                             return;
@@ -198,7 +206,7 @@
 
                         await Dialog.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
                         {
-                            if (!Member.HasConsolePermission(Console, ConsolePermission.MessagePlayers))
+                            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                                 return "You do not have permission for Message Players";
 
                             if (!rcon.IsConnected)

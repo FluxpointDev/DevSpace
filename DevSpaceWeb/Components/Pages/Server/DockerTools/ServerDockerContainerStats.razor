@@ -1,0 +1,190 @@
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using Docker.DotNet.Models
+@using Newtonsoft.Json.Linq
+@inject NotificationService Notifications
+
+@if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lightning-bolt"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Container Stats</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
+            <RadzenBreadCrumbItem Text="Stats" />
+        </RadzenBreadCrumb>
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Containers Stats
+        </RadzenAlert>
+    </div>
+}
+else if (Container == null)
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lightning-bolt"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Container Stats</RadzenText>
+            @if (!Failed)
+            {
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+            }
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
+            <RadzenBreadCrumbItem Text="Stats" />
+        </RadzenBreadCrumb>
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Failed to get container stats.
+            </RadzenAlert>
+        }
+    </div>
+}
+else if (Container.IsNotRunning)
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lightning-bolt"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Container Stats</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@Container.ContainerName" />
+            <RadzenBreadCrumbItem Text="Stats" />
+        </RadzenBreadCrumb>
+        <br />
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            This container is not running.
+        </RadzenAlert>
+    </div>
+}
+else
+{
+    <div class="dash-box">
+        <div class="dash-box-header dash-box-content">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lightning-bolt"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Container Stats</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@Container.ContainerName" />
+            <RadzenBreadCrumbItem Text="Stats" />
+        </RadzenBreadCrumb>
+        <br />
+        <RadzenDataGrid Data="@Container.Data.Processes"
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                        AllowSorting="false" AllowFiltering="false">
+            <Columns>
+                <RadzenDataGridColumn Title="User" Width="120px">
+                    <Template>
+                        @context[0]
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Title="Process ID" Width="90px">
+                    <Template>
+                        @context[1]
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Title="Parent ID" Width="90px">
+                    <Template>
+                        @context[2]
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Title="Threads" Width="70px">
+                    <Template>
+                        @context[3]
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Title="Total CPU" Width="90px">
+                    <Template>
+                        @(context[4] + "%")
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Title="Current CPU" Width="100px">
+                    <Template>
+                        @(context[5] + "%")
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Title="Current Memory" Width="120px">
+                    <Template>
+                        @(context[6] + "%")
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Start Time" Width="120px">
+                    <Template>
+                        @context[7]
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Elapsed Time" Width="100px">
+                    <Template>
+                        @context[8]
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Title="Name" Width="100px">
+                    <Template>
+                        @context[9]
+                    </Template>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn Title="Command" Width="1000px">
+                    <Template>
+                        @context[10]
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+
+    </div>
+}
+
+<style>
+    .rz-cell-data {
+        white-space: pre !important;
+        text-overflow: unset !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    [Parameter]
+    public string ContainerId { get; set; }
+
+    public DockerContainerProcesses? Container { get; set; }
+    public bool Failed { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
+            return;
+
+        try
+        {
+            var Result = await Server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
+            Failed = !Result.IsSuccess;
+            Container = Result.Data;
+        }
+        catch (Exception ex)
+        {
+            Failed = true;
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+    }
+}

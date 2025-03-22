@@ -42,7 +42,10 @@ public class TeamRoleData
 
     public bool CanManage(TeamMemberData currentMember)
     {
-        if (Team.OwnerId == currentMember.UserId)
+        if (TeamId != currentMember.TeamId)
+            return false;
+
+        if (Team != null && Team.OwnerId == currentMember.UserId)
             return true;
 
         if (currentMember.GetRank() > GetPosition())
@@ -50,24 +53,36 @@ public class TeamRoleData
         return false;
     }
 
-    public bool HasTeamPermission(TeamPermission checkPermission)
+    public bool HasTeamPermission(TeamData? team, TeamPermission checkPermission)
     {
+        if (team == null || team.Id != TeamId)
+            return false;
+
         if (Permissions.HasTeamPermission(checkPermission))
             return true;
 
         return false;
     }
 
-    public bool HasAPIPermission(APIPermission checkPermission)
+    public bool HasAPIPermission(TeamData? team, APIPermission checkPermission)
     {
+        if (team == null || team.Id != TeamId)
+            return false;
+
+        if (Permissions.HasAPIPermission(APIPermission.APIAdministrator))
+            return true;
+
         if (Permissions.HasAPIPermission(checkPermission))
             return true;
 
         return false;
     }
 
-    public bool HasLogPermission(LogData log, LogPermission checkPermission)
+    public bool HasLogPermission(TeamData? team, LogData log, LogPermission checkPermission)
     {
+        if (team == null || team.Id != TeamId)
+            return false;
+
         if (log != null && log.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasLogPermission(checkPermission))
             return true;
 
@@ -77,8 +92,11 @@ public class TeamRoleData
         return false;
     }
 
-    public bool HasProjectPermission(ProjectData project, ProjectPermission checkPermission)
+    public bool HasProjectPermission(TeamData? team, ProjectData project, ProjectPermission checkPermission)
     {
+        if (team == null || team.Id != TeamId)
+            return false;
+
         if (project != null && project.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasProjectPermission(checkPermission))
             return true;
 
@@ -88,8 +106,11 @@ public class TeamRoleData
         return false;
     }
 
-    public bool HasServerPermission(ServerData server, ServerPermission checkPermission)
+    public bool HasServerPermission(TeamData? team, ServerData server, ServerPermission checkPermission)
     {
+        if (team == null || team.Id != TeamId)
+            return false;
+
         if (server != null && server.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasServerPermission(checkPermission))
             return true;
 
@@ -99,8 +120,11 @@ public class TeamRoleData
         return false;
     }
 
-    public bool HasConsolePermission(ConsoleData console, ConsolePermission checkPermission)
+    public bool HasConsolePermission(TeamData? team, ConsoleData console, ConsolePermission checkPermission)
     {
+        if (team == null || team.Id != TeamId)
+            return false;
+
         if (console != null && console.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasConsolePermission(checkPermission))
             return true;
 
@@ -110,8 +134,11 @@ public class TeamRoleData
         return false;
     }
 
-    public bool HasWebsitePermission(WebsiteData website, WebsitePermission checkPermission)
+    public bool HasWebsitePermission(TeamData? team, WebsiteData website, WebsitePermission checkPermission)
     {
+        if (team == null || team.Id != TeamId)
+            return false;
+
         if (website != null && website.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasWebsitePermission(checkPermission))
             return true;
 
@@ -121,12 +148,29 @@ public class TeamRoleData
         return false;
     }
 
-    public bool HasDockerPermission(ServerData server, DockerPermission checkPermission)
+    public bool HasDockerPermission(TeamData? team, ServerData server, DockerPermission checkPermission)
     {
+        if (team == null || team.Id != TeamId)
+            return false;
+
         if (server != null && server.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasDockerPermission(checkPermission))
             return true;
 
         if (Permissions.HasDockerPermission(checkPermission))
+            return true;
+
+        return false;
+    }
+
+    public bool HasDockerContainerPermission(TeamData? team, ServerData server, DockerContainerPermission checkPermission)
+    {
+        if (team == null || team.Id != TeamId)
+            return false;
+
+        if (server != null && server.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasDockerContainerPermission(checkPermission))
+            return true;
+
+        if (Permissions.HasDockerContainerPermission(checkPermission))
             return true;
 
         return false;

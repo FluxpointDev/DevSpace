@@ -157,14 +157,7 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 Current IP
                             </RadzenText>
-                            @if (Http.HttpContext == null)
-                            {
-                                <RadzenSkeleton></RadzenSkeleton>
-                            }
-                            else
-                            {
-                                <RadzenTextMask Value="@Utils.GetUserIpAddress(Http.HttpContext)" IsIp="true"></RadzenTextMask>
-                            }
+                            <RadzenTextMask Value="@CurrentIp" IsIp="true"></RadzenTextMask>
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -177,7 +170,7 @@
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
                                 Current Region
                             </RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">@Country</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">@CurrentCountry</RadzenText>
                         </div>
                     </RadzenStack>
                 </RadzenColumn>
@@ -569,7 +562,7 @@
                 <br />
                 <br />
                 <RadzenButton Text="Register" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@RegisterAuthenticator" Disabled="@(!AuthUser.EmailConfirmed)" />
-                <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.AuthenticatorDevices.Any())" />
+                @* <RadzenButton Text="Test" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@TestPasskey" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.AuthenticatorDevices.Any())" /> *@
                 <RadzenButton Text="Remove All" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@RemoveAllAuthenticators" Disabled="@(!AuthUser.EmailConfirmed || !AuthUser.Mfa.AuthenticatorDevices.Any())" />
             </div>
             <br />
@@ -641,13 +634,15 @@
 
     public AuthUser? AuthUser { get; set; }
 
-    public string Country { get; set; }
+    public string CurrentCountry { get; set; }
+    public string CurrentIp { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         _DB.SessionUpdated += SessionChangedEvent;
         AuthUser = await Session.GetCurrentUserAsync();
-        Country = await JS.InvokeAsync<string>("window.Auth.getCountry");
+        CurrentCountry = await Session.GetCountryAsync();
+        CurrentIp = Utils.GetUserIpAddress(Http.HttpContext);
         //var Meta = await Fido2Service._metadata.GetEntryAsync(AuthUser.PasskeyTokens.First().AaGuid);
         //Console.WriteLine("Meta: " + Meta.MetadataStatement.Description);
     }
@@ -742,7 +737,7 @@
             }
 
             AuthUser = await Session.GetCurrentUserAsync();
-            AuthUser.Account.Sessions = AuthUser.Account.Sessions.Where(x => x.Key != Session.CurrentSessionId).ToDictionary();
+            AuthUser.Account.Sessions = AuthUser.Account.Sessions.Where(x => x.Key == Session.CurrentSessionId).ToDictionary();
             await UserManager.UpdateAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
             StateHasChanged();

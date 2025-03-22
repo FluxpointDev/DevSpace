@@ -11,24 +11,38 @@
 <div class="dash-box">
     <div class="dash-box-content dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:table"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">Docker Registry</RadzenText>
-        <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" />
+        <RadzenText TextStyle="TextStyle.H6">Docker Registries</RadzenText>
+        @if (IsLoading && Member.HasDockerPermission(Team, Server, DockerPermission.ViewRegistries))
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+        }
     </div>
+
+    @if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewRegistries))
+    {
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for View Registries
+            </RadzenAlert>
+        </div>
+    }
+    else
+    {
 
     <div class="dash-box-content">
-        <RadzenButton Variant="Variant.Filled" Text="Create Registry" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateRegistry" />
-        <RadzenButton Variant="Variant.Filled" Text="Refresh Registry" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshRegistry" />
+        <RadzenButton Variant="Variant.Filled" Text="Create Registry (Not Available Yet)" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateRegistry" Disabled="true" />
+        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshRegistry" />
     </div>
 
-    <RadzenDataGrid @ref="@grid" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
-    PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-    @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
-    PagingSummaryFormat="@(count + " " + (count != 1 ? "registries" : "registry") )" Density="Density.Compact"
-    AllowSorting="false"
-    AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
-    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-    GotoFirstPageOnSort="true"
-    LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
+    <RadzenDataGrid @ref="@grid" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@IsLoading"
+                    PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                    @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
+                    PagingSummaryFormat="@(count + " " + (count != 1 ? "registries" : "registry") )" Density="Density.Compact"
+                    AllowSorting="false"
+                    AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    GotoFirstPageOnSort="true" TItem="DockerRegistry" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))"
+                    LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
         <Columns>
             <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
                 <Template>
@@ -36,57 +50,57 @@
                     {
                         case DockerRegistryType.DockerHub:
                             {
-                                <span class="iconify" data-icon="mdi:docker"></span>
+                                <span class="iconify mr-2" data-icon="mdi:docker"></span>
                             }
                             break;
                         case DockerRegistryType.Custom:
                             {
-                                <span class="iconify" data-icon="mdi:box"></span>
+                                <span class="iconify mr-2" data-icon="mdi:box"></span>
                             }
                             break;
                         case DockerRegistryType.AWS:
                             {
-                                <span class="iconify" data-icon="mdi:aws"></span>
+                                <span class="iconify mr-2" data-icon="mdi:aws"></span>
                             }
                             break;
                         case DockerRegistryType.Azure:
                             {
-                                <span class="iconify" data-icon="mdi:microsoft-azure"></span>
+                                <span class="iconify mr-2" data-icon="mdi:microsoft-azure"></span>
                             }
                             break;
                         case DockerRegistryType.GitHub:
                             {
-                                <span class="iconify" data-icon="mdi:github"></span>
+                                <span class="iconify mr-2" data-icon="mdi:github"></span>
                             }
                             break;
                         case DockerRegistryType.GitLab:
                             {
-                                <span class="iconify" data-icon="mdi:gitlab"></span>
+                                <span class="iconify mr-2" data-icon="mdi:gitlab"></span>
                             }
                             break;
                         case DockerRegistryType.ProGet:
                             {
-                                <span class="iconify" data-icon="ri:box-3-fill"></span>
+                                <span class="iconify mr-2" data-icon="ri:box-3-fill"></span>
                             }
                             break;
                         case DockerRegistryType.Quay:
                             {
-                                <span class="iconify" data-icon="mdi:cards-diamond"></span>
+                                <span class="iconify mr-2" data-icon="mdi:cards-diamond"></span>
                             }
                             break;
                     }
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/registry/" + context.Id)" Text="@context.Name" />
+                    @context.Name
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Width="100px">
                 <Template>
                     @if (context.IsEnabled)
                     {
-                        <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
+                        <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Success" Text="Enabled" />
                     }
                     else
                     {
-                        <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Warning" Text="Disabled" />
+                        <RadzenBadge Shade="Shade.Darker" IsPill="true" BadgeStyle="BadgeStyle.Warning" Text="Disabled" />
                     }
                 </Template>
             </RadzenDataGridColumn>
@@ -99,14 +113,15 @@
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
+    }
 </div>
 
 <style>
 
     .dash-box-content .rz-button-sm .rzi {
-    font-size: 1.15rem !important;
-    width: 1.15rem !important;
-    height: 1.15rem !important;
+        font-size: 1.15rem !important;
+        width: 1.15rem !important;
+        height: 1.15rem !important;
     }
 </style>
 
@@ -114,28 +129,34 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
     IQueryable<DockerRegistry> employees;
     public int count = 0;
     IList<DockerRegistry> selectedEmployees;
     public bool AnySelected => selectedEmployees != null ? selectedEmployees.Any() : false;
     RadzenDataGrid<DockerRegistry> grid;
-    public bool isLoading = false;
+    public bool IsLoading = true;
 
     public async Task LoadData(LoadDataArgs args)
     {
-        Logger.LogMessage("Loading Data", LogSeverity.Info);
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewRegistries))
+            return;
 
         if (Program.IsPreviewMode)
         {
             employees = new List<DockerRegistry>
             {
-                new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }                
+                new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }
             }.AsQueryable();
             count = 1;
+            IsLoading = false;
         }
         else
         {
-
+            IsLoading = true;
             IQueryable<DockerRegistry> query = new DockerRegistry[]
             {
                 new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }
@@ -149,7 +170,7 @@
 
             count = query.Count();
             employees = query.Skip(args.Skip.Value).Take(args.Top.Value);
-
+            IsLoading = false;
         }
     }
 
@@ -162,10 +183,10 @@
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Enable", Value = "enable", Icon = "power_settings_new", Disabled = item.IsEnabled },
-                new ContextMenuItem(){ Text = "Disable", Value = "disable", Icon = "stop", Disabled = item.IsDefault || !item.IsEnabled },
-                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = item.IsDefault },
-                                             }, x => MenuItemClick(x, item));
+                new ContextMenuItem(){ Text = "Enable", Value = "enable", Icon = "power_settings_new", Disabled = item.IsEnabled || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageRegistries) },
+                new ContextMenuItem(){ Text = "Disable", Value = "disable", Icon = "stop", Disabled = item.IsDefault || !item.IsEnabled || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageRegistries) },
+                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = item.IsDefault || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageRegistries) },
+                                                 }, x => MenuItemClick(x, item));
     }
 
     void MenuItemClick(MenuItemEventArgs args, DockerRegistry item)
@@ -175,6 +196,9 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageRegistries))
+            return;
 
         _ = Task.Run(async () =>
         {
@@ -229,5 +253,8 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageRegistries))
+            return;
     }
 }

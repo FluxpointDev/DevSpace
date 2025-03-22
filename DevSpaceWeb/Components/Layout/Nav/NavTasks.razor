@@ -1,0 +1,96 @@
+﻿<RadzenButton id="buttonTasks" @ref="@TaskButton" class="rz-button-icon-only" Click="@(() => TaskPopup.ToggleAsync(TaskButton.Element))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text">
+    @if (Session.CurrentUser.Tasks.Any())
+    {
+        <RadzenIcon Icon="bolt" IconColor="var(--rz-header-color)" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+        <RadzenBadge Variant="Variant.Filled" BadgeStyle="BadgeStyle.Info" />
+    }
+    else
+    {
+        <RadzenIcon Icon="bolt" IconColor="var(--rz-header-color)"></RadzenIcon>
+    }
+</RadzenButton>
+
+<Popup id="popupTasks" @ref="@TaskPopup" class="rz-popup popup-tasks" Lazy="true" AutoFocusFirstElement="false">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
+        <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Tasks</RadzenText>
+        <RadzenButton Variant="Variant.Text" Size="ButtonSize.Small" Click="@ClearTasks" Text="Clear All" ButtonStyle="ButtonStyle.Info" Disabled="@(!Session.CurrentUser.Tasks.Any())" />
+    </RadzenStack>
+    <RadzenDataList @ref="@dataList" Density="Density.Compact" Data="@Session.CurrentUser.Tasks" PageSize="5" class="@((Session.CurrentUser.Tasks.Count() > 3) ? "mt-1 pr-3" : "mt-1")"
+    Style="flex: 1; --rz-datalist-padding: 2px 0; --rz-datalist-item-margin-inline: 0; overflow: auto;"
+    AllowPaging="true" PagerHorizontalAlign="HorizontalAlign.Center" ShowEmptyMessage="true">
+        <Template Context="item">
+            <RadzenStack Gap="8px" Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Center">
+                <RadzenIcon Icon="@item.Icon" Style="width: 32px; height: 32px;" AlternateText="" />
+                <div>
+                    <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-caption-color);">@item.Text</RadzenText>
+                    <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                </div>
+                
+                <div style="flex-grow: 1 !important;"></div>
+                @if (!string.IsNullOrEmpty(item.ButtonText))
+                {
+                    @if (!string.IsNullOrEmpty(item.ButtonLink))
+                    {
+                        <a href="@item.ButtonLink"><RadzenButton Text="@item.ButtonText" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Shade="Shade.Dark" /></a>
+                    }
+                    else
+                    {
+                        <RadzenButton Text="@item.ButtonText" Click="@(() => item.ButtonTask.Invoke())" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Light" Shade="Shade.Dark" />
+                    }
+                }
+            </RadzenStack>
+        </Template>
+        <EmptyTemplate>
+            <p class="pl-2 pb-2">You have no tasks.</p>
+        </EmptyTemplate>
+    </RadzenDataList>
+</Popup>
+
+<style>
+    #popupTasks {
+    width: 300px;
+    margin-top: 2px;
+    height: 364px;
+    }
+
+        #popupTasks .rz-progressbar-indeterminate {
+            height: 6px !important;
+        }
+
+    .popup-tasks .rz-datalist-content {
+        height: 322px;
+        overflow: auto !important;
+    }
+
+    #buttonTasks .rz-badge {
+        width: 14px;
+        height: 14px;
+        position: absolute;
+        margin-left: 20px;
+        margin-top: 20px;
+        border-radius: 90px;
+    }
+
+    #popupTasks a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public Popup TaskPopup { get; set; }
+    public RadzenButton TaskButton { get; set; }
+
+    public bool IsFirstOpen { get; set; } = true;
+
+    public RadzenDataList<SessionTask> dataList;
+
+    public async Task ClearTasks()
+    {
+        Session.CurrentUser.Tasks.Clear();
+    }
+}

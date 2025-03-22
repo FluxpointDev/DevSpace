@@ -1,6 +1,139 @@
-﻿<h6>ServerDockerVolumeInfo</h6>
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@inject NotificationService Notifications
+
+@if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:storage"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Volume Info</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes")" Text="Stacks" />
+            <RadzenBreadCrumbItem Text="@VolumeId" />
+        </RadzenBreadCrumb>
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Volumes
+        </RadzenAlert>
+    </div>
+}
+else if (Volume == null)
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:storage"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Volume Info</RadzenText>
+            @if (!Failed)
+            {
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+            }
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes")" Text="Stacks" />
+            <RadzenBreadCrumbItem Text="@VolumeId" />
+        </RadzenBreadCrumb>
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Failed to get volume info.
+            </RadzenAlert>
+        }
+    </div>
+}
+else
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:storage"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Volume Info</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes")" Text="Stacks" />
+            <RadzenBreadCrumbItem Text="@Volume.Name" />
+        </RadzenBreadCrumb>
+        <br />
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Name
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Volume.Name
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Created At
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Volume.CreatedAt
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Driver
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Volume.Driver
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Scope
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Volume.Scope
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Mount Point
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Volume.MountPoint
+                    </RadzenTableCell>
+                </RadzenTableRow>
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+}
 
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
     [Parameter]
     public string VolumeId { get; set; }
+
+    public DockerVolumeInfo? Volume { get; set; }
+    public bool Failed { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
+            return;
+
+        try
+        {
+            var Result = await Server.RunJsonAsync<DockerVolumeInfo>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: ControlVolumeType.View));
+            Failed = !Result.IsSuccess;
+            Volume = Result.Data;
+
+        }
+        catch (Exception ex)
+        {
+            Failed = true;
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+    }
 }

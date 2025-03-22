@@ -1,0 +1,186 @@
+﻿@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@using Newtonsoft.Json.Linq
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+
+<PageTitle>Pull Docker Image | @_Data.Config.Instance.Name</PageTitle>
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Failed to create network.
+            </RadzenAlert>
+        }
+
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Name</RadzenText>
+        <RadzenTextBox MaxLength="100" Value="@NetworkNameInput" @oninput="@(arg => NetworkNameInput = arg.Value as string)" Disabled="@IsLoading" Placeholder="my-network" />
+
+        <br />
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">Driver Configuration</RadzenText>
+
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Driver</RadzenText>
+        <RadzenDropDown TValue="string" @bind-Value="@NetworkDriverInput" Data="@NetworkDrivers" Disabled="@IsLoading" />
+
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Driver Options</RadzenText>
+        <RadzenButton Click="@(() => DriverOptionsInputs.Add(Guid.NewGuid().ToString(), new Tuple<string, string>("", "")))" Text="Add Option" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" Style="width: 120px !important;" />
+        <br />
+        <br />
+        <RadzenStack>
+            @foreach (var i in DriverOptionsInputs)
+            {
+                @DockerNameValueInput.RenderElement(this, DriverOptionsInputs, "Option", i.Key, i.Value, IsLoading)
+            }
+        </RadzenStack>
+        <br />
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">IPv4 Network</RadzenText>
+
+        <RadzenRow Gap="10px" RowGap="10px">
+            <RadzenColumn SizeMD="6" SizeSM="12">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Subnet</RadzenText>
+                <RadzenTextBox MaxLength="100" @bind-Value="@IPv4Subnet" Disabled="@IsLoading" Style="width: 100%;" Placeholder="172.20.0.0/16" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="6" SizeSM="12">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Gateway</RadzenText>
+                <RadzenTextBox MaxLength="100" @bind-Value="@IPv4Gateway" Disabled="@IsLoading" Style="width: 100%;" Placeholder="172.20.0.1" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="6" SizeSM="12">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">IP Range</RadzenText>
+                <RadzenTextBox MaxLength="100" @bind-Value="@IPv4Range" Disabled="@IsLoading" Style="width: 100%;" Placeholder="172.20.10.128/25" />
+            </RadzenColumn>
+        </RadzenRow>
+
+        <br />
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">IPv6 Network</RadzenText>
+
+        <RadzenRow Gap="10px" RowGap="10px">
+            <RadzenColumn SizeMD="6" SizeSM="12">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Subnet</RadzenText>
+                <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Subnet" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::/48" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="6" SizeSM="12">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Gateway</RadzenText>
+                <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Gateway" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::1" />
+            </RadzenColumn>
+            <RadzenColumn SizeMD="6" SizeSM="12">
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">IP Range</RadzenText>
+                <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Range" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::/64" />
+            </RadzenColumn>
+        </RadzenRow>
+
+        <br />
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">Labels</RadzenText>
+        <RadzenButton Click="@(() => LabelInputs.Add(Guid.NewGuid().ToString(), new Tuple<string, string>("", "")))" Text="Add Label" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" Style="width: 120px !important;" />
+        <br />
+        <br />
+        <RadzenStack>
+            @foreach (var i in LabelInputs)
+            {
+                @DockerNameValueInput.RenderElement(this, LabelInputs, "Label", i.Key, i.Value, IsLoading)
+            }
+        </RadzenStack>
+        <br />
+        <br />
+
+        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">Advanced</RadzenText>
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+            <RadzenSwitch @bind-Value="@IsIsolated" Disabled="@IsLoading" Name="Isolated" />
+            <RadzenLabel Text="Isolated Network" Component="Isolated" />
+        </RadzenStack>
+
+        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+            <RadzenSwitch @bind-Value="@IsManualAttach" Disabled="@IsLoading" Name="Manual" />
+            <RadzenLabel Text="Manual container attachment" Component="Manual" />
+        </RadzenStack>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@IsLoading" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Create Network" Style="width: 140px" Disabled="@(IsLoading || string.IsNullOrEmpty(NetworkNameInput))" IsBusy="@IsLoading" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public bool Failed = false;
+    public bool IsLoading = false;
+
+    public string NetworkNameInput { get; set; }
+
+    public string NetworkDriverInput { get; set; } = "bridge";
+
+    public string IPv4Subnet { get; set; }
+    public string IPv4Gateway { get; set; }
+    public string IPv4Range { get; set; }
+
+    public string IPv6Subnet { get; set; }
+    public string IPv6Gateway { get; set; }
+    public string IPv6Range { get; set; }
+
+    public bool IsIsolated { get; set; }
+    public bool IsManualAttach { get; set; }
+
+    public List<string> NetworkDrivers = new List<string>()
+    {
+        "bridge",
+        "ipvlan",
+        "macvlan",
+        "overlay"
+    };
+
+    Dictionary<string, Tuple<string, string>> DriverOptionsInputs = new Dictionary<string, Tuple<string, string>>();
+
+    Dictionary<string, Tuple<string, string>> LabelInputs = new Dictionary<string, Tuple<string, string>>();
+
+    async Task Submit()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+        IsLoading = true;
+        var Response = await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.CreateNetwork)
+        {
+            Data = JObject.FromObject(new CreateNetworkEvent
+            {
+                Name = NetworkNameInput,
+                DriverOptions = DriverOptionsInputs.Values.ToDictionary(x => x.Item1, x => x.Item2),
+                DriverType = NetworkDriverInput,
+                IsIsolated = IsIsolated,
+                IsManualAttach = IsManualAttach,
+                Labels = LabelInputs.Values.ToDictionary(x => x.Item1, x => x.Item2),
+                IPv4Subnet = IPv4Subnet,
+                IPv4Gateway = IPv4Gateway,
+                IPv4Range = IPv4Range,
+                IPv6Subnet = IPv6Subnet,
+                IPv6Gateway = IPv6Gateway,
+                IPv6Range = IPv6Range
+            })
+        });
+        if (!Response.IsSuccess)
+        {
+            Failed = true;
+            IsLoading = false;
+            return;
+        }
+        dialogService.Close(true);
+    }
+}

@@ -5,13 +5,20 @@
 @using System.Text
 @inject DialogService Dialog
 
+<PageTitle>Console Bans | @_Data.Config.Instance.Name</PageTitle>
+
 <div class="dash-box">
     <div class="dash-box-header dash-box-content">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:court-hammer"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Bans</RadzenText>
     </div>
+    <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Text="Bans" />
+    </RadzenBreadCrumb>
 
-    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewBans))
+    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ViewBans))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -30,7 +37,7 @@
                     <Template>
                         @if (context.ipguid.Contains('.'))
                         {
-                            @if (Member.HasConsolePermission(Console, ConsolePermission.ViewIPs))
+                            @if (Member.HasConsolePermission(Team, Console, ConsolePermission.ViewIPs))
                             {
                                 <RadzenTextMask Value="@context.ipguid" IsIp="true"></RadzenTextMask>
                             }
@@ -73,6 +80,7 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
+    public TeamData Team => Session.Selected.Team.Data;
     public ConsoleData Console => Session.Selected.Console;
     public TeamMemberData Member => Session.Selected.Member;
 
@@ -146,7 +154,7 @@
 
     public async Task UnbanPlayer(Ban ban)
     {
-        if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
         {
             await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
             return;
@@ -161,7 +169,7 @@
         bool Confirm = await Dialog.ShowConfirmAsync($"Unban {ban.ipguid}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
-            if (!Member.HasConsolePermission(Console, ConsolePermission.BanPlayers))
+            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
             {
                 await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
                 return;

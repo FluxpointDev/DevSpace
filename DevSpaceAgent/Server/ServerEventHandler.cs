@@ -1,11 +1,8 @@
-﻿using CliWrap;
-using CliWrap.Buffered;
-using CliWrap.EventStream;
-using DevSpaceAgent.Server;
-using DevSpaceShared;
+﻿using DevSpaceAgent.Server;
 using DevSpaceShared.Events.Docker;
 using DevSpaceShared.Responses;
 using DevSpaceShared.WebSocket;
+using Docker.DotNet;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
@@ -22,7 +19,7 @@ public static class ServerEventHandler
         if (payload == null)
             return;
 
-        EventType EventType = payload!["type"]!.ToObject<EventType>();
+        EventType EventType = payload!["Type"]!.ToObject<EventType>();
 
         Console.WriteLine("Event: " + EventType.ToString());
 
@@ -30,227 +27,235 @@ public static class ServerEventHandler
         {
             switch (EventType)
             {
-                case EventType.ValidateCert:
-                    {
-                        ValidateCertEvent @event = payload.ToObject<ValidateCertEvent>()!;
-                        Console.WriteLine("Server Validate Cert: " + @event.CertHash);
-                        if (Program.Certificate.GetCertHashString() == @event.CertHash)
-                        {
-                            Console.WriteLine("Validated");
-                            ws.IsCertValid = true;
-                            ws.SendJsonAsync(new ValidateCertEvent { CertHash = @event.CertHash });
-                        }
-                    }
-                    break;
                 case EventType.Pong:
                     {
                         Console.WriteLine("PONG");
                     }
                     break;
-                case EventType.Command:
-                    {
-                        DevSpaceShared.WebSocket.CommandEvent @event = payload.ToObject<DevSpaceShared.WebSocket.CommandEvent>()!;
-                        string[] Split = @event.Command.Trim().Split(' ');
-                        if (string.IsNullOrEmpty(Split[0]))
-                            return;
+                //case EventType.Command:
+                //    {
+                //        DevSpaceShared.WebSocket.CommandEvent @event = payload.ToObject<DevSpaceShared.WebSocket.CommandEvent>()!;
+                //        string[] Split = @event.Command.Trim().Split(' ');
+                //        if (string.IsNullOrEmpty(Split[0]))
+                //            return;
 
-                        Command cmd = Cli.Wrap(Split[0]);
-                        if (Split.Length > 1)
-                            cmd = cmd.WithArguments(string.Join(' ', Split.Skip(1)));
+                //        Command cmd = Cli.Wrap(Split[0]);
+                //        if (Split.Length > 1)
+                //            cmd = cmd.WithArguments(string.Join(' ', Split.Skip(1)));
 
-                        _ = cmd.ExecuteAsync();
-                    }
-                    break;
+                //        _ = cmd.ExecuteAsync();
+                //    }
+                //    break;
                 case EventType.Docker:
                     {
                         DockerEvent @event = payload.ToObject<DockerEvent>()!;
-                        DockerResponse<object?> response = new DockerResponse<object?>();
+                        SocketResponse<object?> response = new SocketResponse<object?>();
                         if (Program.DockerFailed)
                         {
-                            response.Error = DockerError.NotInstalled;
+                            response.DockerError = DockerError.NotInstalled;
                         }
                         else
                         {
                             try
                             {
                                 response.Data = await DockerHandler.Run(@event);
+                                response.IsSuccess = true;
+                            }
+                            catch (DockerApiException de)
+                            {
+                                Console.WriteLine(de);
+                                response.Message = de.Message;
+                                response.DockerError = DockerError.Exception;
                             }
                             catch (Exception ex)
                             {
                                 Console.WriteLine(ex);
-                                response.Data = ex.Message;
-                                response.Error = DockerError.Failed;
+                                response.Message = ex.Message;
+                                response.Error = ClientError.Exception;
                             }
                         }
 
-                        await ws.RespondAsync(@event.TaskId, response);
+                        bool NoResponse = false;
+                        switch (@event.DockerType)
+                        {
+                            case DockerEventType.ListContainers:
+                            case DockerEventType.ListImages:
+                            case DockerEventType.ListNetworks:
+                            case DockerEventType.ListPlugins:
+                            case DockerEventType.ListStacks:
+                            case DockerEventType.ListVolumes:
+                                NoResponse = true;
+                                break;
+                        }
+
+                        await ws.RespondAsync(@event.TaskId, response, NoResponse);
                     }
 
                     break;
-                case EventType.CommandWait:
-                    {
-                        DevSpaceShared.WebSocket.CommandEvent @event = payload.ToObject<DevSpaceShared.WebSocket.CommandEvent>()!;
+                    //case EventType.CommandWait:
+                    //    {
+                    //DevSpaceShared.WebSocket.CommandEvent @event = payload.ToObject<DevSpaceShared.WebSocket.CommandEvent>()!;
 
-                        string[] Split = @event.Command.Trim().Split(' ');
-                        if (string.IsNullOrEmpty(Split[0]))
-                            return;
+                    //string[] Split = @event.Command.Trim().Split(' ');
+                    //if (string.IsNullOrEmpty(Split[0]))
+                    //    return;
 
-                        Command cmd = Cli.Wrap(Split[0]).WithWorkingDirectory(Program.CurrentDirectory + "Data");
-                        if (Split.Length > 1)
-                        {
-                            cmd = cmd.WithArguments(string.Join(' ', Split.Skip(1)));
-                        }
+                    //Command cmd = Cli.Wrap(Split[0]).WithWorkingDirectory(Program.CurrentDirectory + "Data");
+                    //if (Split.Length > 1)
+                    //{
+                    //    cmd = cmd.WithArguments(string.Join(' ', Split.Skip(1)));
+                    //}
 
-                        Console.WriteLine("Command: " + cmd.Arguments);
+                    //Console.WriteLine("Command: " + cmd.Arguments);
 
-                        Console.WriteLine("Send Response: " + @event.TaskId);
-                        BufferedCommandResult? res = await cmd.ExecuteBufferedAsync();
-                        Console.WriteLine("Send Response 2");
-                        if (res.IsSuccess)
-                            await ws.RespondAsync(@event.TaskId, new CommandResponse() { Output = res.StandardOutput });
-                        else
-                            await ws.RespondFailAsync(@event.TaskId);
-                    }
-                    break;
-                case EventType.CommandStream:
-                    {
-                        CommandStreamEvent @event = payload.ToObject<CommandStreamEvent>()!;
-                        string[] Split = @event.Command.Trim().Split(' ');
-                        if (string.IsNullOrEmpty(Split[0]))
-                            return;
+                    //Console.WriteLine("Send Response: " + @event.TaskId);
+                    //BufferedCommandResult? res = await cmd.ExecuteBufferedAsync();
+                    //Console.WriteLine("Send Response 2");
+                    //if (res.IsSuccess)
+                    //    await ws.RespondAsync(@event.TaskId, new CommandResponse() { Output = res.StandardOutput });
+                    //else
+                    //    await ws.RespondFailAsync(@event.TaskId);
+                    //    }
+                    //    break;
+                    //case EventType.CommandStream:
+                    //    {
+                    //CommandStreamEvent @event = payload.ToObject<CommandStreamEvent>()!;
+                    //string[] Split = @event.Command.Trim().Split(' ');
+                    //if (string.IsNullOrEmpty(Split[0]))
+                    //    return;
 
-                        Command cmd = Cli.Wrap(Split[0]);
-                        if (Split.Length > 1)
-                            cmd = cmd.WithArguments(string.Join(' ', Split.Skip(1)));
+                    //Command cmd = Cli.Wrap(Split[0]);
+                    //if (Split.Length > 1)
+                    //    cmd = cmd.WithArguments(string.Join(' ', Split.Skip(1)));
 
-                        Console.WriteLine("Stream Start");
-                        await foreach (CliWrap.EventStream.CommandEvent cmdEvent in cmd.ListenAsync())
-                        {
-                            switch (cmdEvent)
-                            {
-                                case StartedCommandEvent started:
-                                    Console.WriteLine($"Process started; ID: {started.ProcessId}");
-                                    break;
-                                case StandardOutputCommandEvent stdOut:
-                                    ws.SendJsonAsync(new CommandStreamEvent
-                                    {
-                                        Stream = new List<string>
-                                        {
-                                            stdOut.Text
-                                        }
-                                    });
-                                    Console.WriteLine($"Out> {stdOut.Text}");
-                                    break;
-                                case StandardErrorCommandEvent stdErr:
-                                    Console.WriteLine($"Err> {stdErr.Text}");
-                                    ws.SendJsonAsync(new CommandStreamEvent
-                                    {
-                                        Stream = new List<string>
-                                        {
-                                            stdErr.Text
-                                        }
-                                    });
-                                    break;
-                                case ExitedCommandEvent exited:
-                                    Console.WriteLine($"Process exited; Code: {exited.ExitCode}");
-                                    break;
-                            }
-                        }
-                        Console.WriteLine("Stream Done");
-                    }
-                    break;
-                case EventType.FirewallInfo:
-                    {
-                        IWebSocketTaskEvent @event = payload.ToObject<IWebSocketTaskEvent>()!;
+                    //Console.WriteLine("Stream Start");
+                    //await foreach (CliWrap.EventStream.CommandEvent cmdEvent in cmd.ListenAsync())
+                    //{
+                    //    switch (cmdEvent)
+                    //    {
+                    //        case StartedCommandEvent started:
+                    //            Console.WriteLine($"Process started; ID: {started.ProcessId}");
+                    //            break;
+                    //        case StandardOutputCommandEvent stdOut:
+                    //            ws.SendJsonAsync(new CommandStreamEvent
+                    //            {
+                    //                Stream = new List<string>
+                    //                {
+                    //                    stdOut.Text
+                    //                }
+                    //            });
+                    //            Console.WriteLine($"Out> {stdOut.Text}");
+                    //            break;
+                    //        case StandardErrorCommandEvent stdErr:
+                    //            Console.WriteLine($"Err> {stdErr.Text}");
+                    //            ws.SendJsonAsync(new CommandStreamEvent
+                    //            {
+                    //                Stream = new List<string>
+                    //                {
+                    //                    stdErr.Text
+                    //                }
+                    //            });
+                    //            break;
+                    //        case ExitedCommandEvent exited:
+                    //            Console.WriteLine($"Process exited; Code: {exited.ExitCode}");
+                    //            break;
+                    //    }
+                    //}
+                    //Console.WriteLine("Stream Done");
+                    //}
+                    //break;
+                    //case EventType.FirewallInfo:
+                    //    {
+                    //        IWebSocketTask @event = payload.ToObject<IWebSocketTask>()!;
 
-                        Command cmd = Cli.Wrap("sudo").WithArguments("ufw status verbose");
-                        BufferedCommandResult? res = await cmd.ExecuteBufferedAsync();
+                    //        Command cmd = Cli.Wrap("sudo").WithArguments("ufw status verbose");
+                    //        BufferedCommandResult? res = await cmd.ExecuteBufferedAsync();
 
-                        string[] lines = res.StandardOutput.SplitNewlines();
+                    //        string[] lines = res.StandardOutput.SplitNewlines();
 
-                        FirewallResponse response = new FirewallResponse();
-                        if (lines[0] != "Status: active")
-                        {
-                            // Firewall not enabled
-                        }
-                        else
-                        {
-                            string Logging = string.Empty;
-                            string Default = string.Empty;
-                            string NewProfiles = string.Empty;
-                            List<string> Rules = new List<string>();
-                            bool RulesAfter = false;
-                            foreach (string i in lines)
-                            {
-                                Console.WriteLine("Line: " + i);
-                                if (i.StartsWith("Logging: "))
-                                {
-                                    Logging = i.Replace("Logging: ", "");
-                                }
-                                else if (i.StartsWith("Default: "))
-                                {
-                                    Default = i.Replace("Default: ", "");
-                                }
-                                else if (i.StartsWith("New profiles: "))
-                                {
-                                    NewProfiles = i.Replace("New profiles: ", "");
-                                }
-                                else if (i.StartsWith("--"))
-                                {
-                                    RulesAfter = true;
-                                }
-                                else if (RulesAfter)
-                                {
-                                    Rules.Add(i);
-                                }
-                            }
+                    //        FirewallResponse response = new FirewallResponse();
+                    //        if (lines[0] != "Status: active")
+                    //        {
+                    //            // Firewall not enabled
+                    //        }
+                    //        else
+                    //        {
+                    //            string Logging = string.Empty;
+                    //            string Default = string.Empty;
+                    //            string NewProfiles = string.Empty;
+                    //            List<string> Rules = new List<string>();
+                    //            bool RulesAfter = false;
+                    //            foreach (string i in lines)
+                    //            {
+                    //                Console.WriteLine("Line: " + i);
+                    //                if (i.StartsWith("Logging: "))
+                    //                {
+                    //                    Logging = i.Replace("Logging: ", "");
+                    //                }
+                    //                else if (i.StartsWith("Default: "))
+                    //                {
+                    //                    Default = i.Replace("Default: ", "");
+                    //                }
+                    //                else if (i.StartsWith("New profiles: "))
+                    //                {
+                    //                    NewProfiles = i.Replace("New profiles: ", "");
+                    //                }
+                    //                else if (i.StartsWith("--"))
+                    //                {
+                    //                    RulesAfter = true;
+                    //                }
+                    //                else if (RulesAfter)
+                    //                {
+                    //                    Rules.Add(i);
+                    //                }
+                    //            }
 
-                            response.IsLoggingEnabled = Logging.StartsWith("on");
-                            Logging = Logging.Replace("on", "").Replace("off", "").Replace(" (", "").Replace(")", "");
-                            response.LoggingMode = Logging;
+                    //            response.IsLoggingEnabled = Logging.StartsWith("on");
+                    //            Logging = Logging.Replace("on", "").Replace("off", "").Replace(" (", "").Replace(")", "");
+                    //            response.LoggingMode = Logging;
 
-                            string[] Defaults = Default.Split(", ");
-                            foreach (string i in Defaults)
-                            {
-                                if (i.EndsWith("(incoming)"))
-                                    response.Default.Incoming = i.Replace(" (incoming)", "");
-                                else if (i.EndsWith("(outgoing)"))
-                                    response.Default.Outgoing = i.Replace(" (outgoing)", "");
-                                else if (i.EndsWith("(routed)"))
-                                    response.Default.Routed = i.Replace(" (routed)", "");
-                            }
+                    //            string[] Defaults = Default.Split(", ");
+                    //            foreach (string i in Defaults)
+                    //            {
+                    //                if (i.EndsWith("(incoming)"))
+                    //                    response.Default.Incoming = i.Replace(" (incoming)", "");
+                    //                else if (i.EndsWith("(outgoing)"))
+                    //                    response.Default.Outgoing = i.Replace(" (outgoing)", "");
+                    //                else if (i.EndsWith("(routed)"))
+                    //                    response.Default.Routed = i.Replace(" (routed)", "");
+                    //            }
 
-                            foreach (string i in Rules)
-                            {
-                                string[] rulesLines = i.Split("  ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                                Console.WriteLine("Rule: " + string.Join(" | ", rulesLines));
-                                string To = rulesLines[0].Trim();
-                                string Type = rulesLines[1].Trim();
-                                string From = rulesLines[2].Trim();
-                                string Comment = string.Join("  ", rulesLines.Skip(3)).Trim();
-                                if (Comment.Length > 3)
-                                    Comment = Comment.Substring(2);
-                                response.Rules.Add(new FirewallRuleResponse
-                                {
-                                    Action = Type,
-                                    To = To,
-                                    From = From,
-                                    Comment = Comment
-                                });
-                            }
-                        }
-
-
-                        if (res.IsSuccess)
-                        {
-                            await ws.RespondAsync(@event.TaskId, response);
-                        }
-                        else
-                            await ws.RespondFailAsync(@event.TaskId);
+                    //            foreach (string i in Rules)
+                    //            {
+                    //                string[] rulesLines = i.Split("  ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    //                Console.WriteLine("Rule: " + string.Join(" | ", rulesLines));
+                    //                string To = rulesLines[0].Trim();
+                    //                string Type = rulesLines[1].Trim();
+                    //                string From = rulesLines[2].Trim();
+                    //                string Comment = string.Join("  ", rulesLines.Skip(3)).Trim();
+                    //                if (Comment.Length > 3)
+                    //                    Comment = Comment.Substring(2);
+                    //                response.Rules.Add(new FirewallRuleResponse
+                    //                {
+                    //                    Action = Type,
+                    //                    To = To,
+                    //                    From = From,
+                    //                    Comment = Comment
+                    //                });
+                    //            }
+                    //        }
 
 
-                    }
-                    break;
+                    //        if (res.IsSuccess)
+                    //        {
+                    //            await ws.RespondAsync(@event.TaskId, response);
+                    //        }
+                    //        else
+                    //            await ws.RespondFailAsync(@event.TaskId);
+
+
+                    //    }
+                    //    break;
                     //case EventType.SystemInfo:
                     //    {
                     //        IWebSocketTaskEvent @event = payload.ToObject<IWebSocketTaskEvent>()!;

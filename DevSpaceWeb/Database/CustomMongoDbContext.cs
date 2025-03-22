@@ -1,8 +1,8 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDbGenericRepository;
 using MongoDbGenericRepository.Attributes;
 using MongoDbGenericRepository.Utils;
-using MongoDbGenericRepository;
 using System.Reflection;
 
 namespace AspNetCore.Identity.MongoDbCore;
@@ -120,7 +120,7 @@ public class CustomMongoDbContext : IMongoDbContext
     //     The new value of the GuidRepresentation
     public virtual void SetGuidRepresentation(GuidRepresentation guidRepresentation)
     {
-        
+
     }
 
     //

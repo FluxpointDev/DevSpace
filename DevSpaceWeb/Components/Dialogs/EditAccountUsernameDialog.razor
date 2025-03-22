@@ -14,9 +14,6 @@
             <RadzenText TextStyle="TextStyle.Body2">
                 Username must be unique and is visible to everyone in your teams.
             </RadzenText>
-            <RadzenText TextStyle="TextStyle.Body2">
-                Display name can be set to anything and is visible to everyone in your teams.
-            </RadzenText>
             <br />
 
             <RadzenLabel Text="Username" class="rz-my-0"></RadzenLabel>
@@ -24,10 +21,6 @@
             autocapitalize="none" MaxLength="32" />
             <ValidationMessage For="() => AccountForm.Username" style="color: var(--rz-danger);" />
 
-            <RadzenLabel Text="Display Name" class="rz-my-0"></RadzenLabel>
-            <RadzenTextBox @bind-Value="@AccountForm.DisplayName" Style="width: 100%" aria-label="Display Name TextBox" AutoCompleteType="AutoCompleteType.Off"
-            autocapitalize="none" MaxLength="32" />
-            <ValidationMessage For="() => AccountForm.DisplayName" style="color: var(--rz-danger);" />
         </RadzenStack>
         <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
             <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
@@ -41,6 +34,11 @@
     private SessionProvider Session { get; set; }
 
     public AccountEditModel AccountForm = new AccountEditModel();
+
+    protected override void OnInitialized()
+    {
+        AccountForm.Username = Session.CurrentUser.UserName;
+    }
 
     async Task Submit()
     {
@@ -57,24 +55,18 @@
             return;
         }
 
-        if (!user.UserName.Equals(AccountForm.Username, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(AccountForm.Username) && !user.UserName.Equals(AccountForm.Username, StringComparison.OrdinalIgnoreCase))
         {
             IdentityResult Result = await UserManager.SetUserNameAsync(user, AccountForm.Username);
             if (Result.Succeeded)
             {
                 Session.CurrentUser.UserName = AccountForm.Username;
-                Session.TriggerChange();
-                _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
-                dialogService.Close(true);
+                user.UserName = AccountForm.Username;
             }
         }
-
-        if (!user.DisplayName.Equals(AccountForm.DisplayName, StringComparison.OrdinalIgnoreCase))
-        {
-            user.DisplayName = AccountForm.DisplayName;
-            Session.CurrentUser.DisplayName = AccountForm.DisplayName;
-            await UserManager.UpdateAsync(user);
-        }
-        user.UpdatePartial();
+        Session.TriggerChange();
+        _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+        
+        dialogService.Close(true);
     }
 }

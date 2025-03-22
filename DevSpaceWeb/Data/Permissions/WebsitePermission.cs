@@ -8,5 +8,6 @@ public enum WebsitePermission : ulong
     ManagePermissions = 1L << 2,
     ManageWebsite = 1L << 3,
     WebsiteAdministrator = 1L << 4,
-    ManageResource = 1L << 5,
+    CreateWebsiteResource = 1L << 5,
+    DeleteWebsiteResource = 1L << 6,
 }

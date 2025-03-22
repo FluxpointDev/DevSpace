@@ -7,10 +7,14 @@
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">@Team.Name Roles</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">Team Roles</RadzenText>
     </div>
-
-    @if (!Member.HasTeamPermission(TeamPermission.ViewRoles))
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams")" Text="Teams" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl)" Text="@Session.Selected.Team.Data.Name" />
+        <RadzenBreadCrumbItem Text="Roles" />
+    </RadzenBreadCrumb>
+    @if (!Member.HasTeamPermission(Team, TeamPermission.ViewRoles))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for View Roles
@@ -19,8 +23,8 @@
     else
     {
         <br />
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(!Member.HasTeamPermission(TeamPermission.ManageRoles))" />
-        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" Disabled="(!Member.HasTeamPermission(TeamPermission.ManageRoles))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" Disabled="(!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
         <br />
         <br />
         <RadzenStack Orientation="Orientation.Vertical" Gap="20px">
@@ -28,7 +32,7 @@
             {
                 <div>
                     <p>@i.Name (@i.GetPosition())</p>
-                    <RadzenButton Text="Delete" Click="@(() => DeleteRole(i))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageRoles) || i.GetPosition() >= Member.GetRank())"
+                    <RadzenButton Text="Delete" Click="@(() => DeleteRole(i))" Disabled="@(!Member.HasTeamPermission(Team, TeamPermission.ManageRoles) || i.GetPosition() >= Member.GetRank())"
                     ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Medium" Shade="Shade.Dark" />
                 </div>
 
@@ -47,7 +51,7 @@
 
     public async Task CreateRole()
     {
-        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
             return;
@@ -55,7 +59,7 @@
 
         await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), async (TeamRoleModel data) =>
         {
-            if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+            if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
                 return "You do not have permission for Manage Roles";
 
             if (data.Name.Equals("Default"))
@@ -92,7 +96,7 @@
 
     public async Task DeleteRole(TeamRoleData role)
     {
-        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
             return;
 
         if (role.GetPosition() >= Member.GetRank())
@@ -101,7 +105,7 @@
         bool Confirm = await DialogService.ShowConfirmAsync("Delete Role", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
-            if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+            if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
                 return;
 
             if (role.GetPosition() >= Member.GetRank())
@@ -116,7 +120,7 @@
 
     public async Task UpdateRolePositions()
     {
-        if (!Member.HasTeamPermission(TeamPermission.ManageRoles))
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
             return;

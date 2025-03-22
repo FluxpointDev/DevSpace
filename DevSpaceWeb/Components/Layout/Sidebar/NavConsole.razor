@@ -1,11 +1,9 @@
 ﻿@using DevSpaceWeb.Data.Consoles
-<div class="nav-list nav-list-sub nav-server">
-    <div class="nav-list-header" @onclick="@(() => IsOpen = !IsOpen)">
+<div class="nav-list nav-list-sub">
+    <div class="nav-list-header">
         <span class="iconify" data-icon="mdi:console"></span>
         <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Console.Name</h5>
     </div>
-    @if (IsOpen)
-    {
         <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:home"></span>
@@ -34,17 +32,15 @@
         {
             case ConsoleType.Battleye:
                 {
-                    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/admins")" Match="NavLinkMatch.All">
+                    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/connections")" Match="NavLinkMatch.All">
                         <Template>
-                            <span class="iconify" data-icon="mdi:account-supervisor"></span>
-                            <p>Admins</p>
+                            <span class="iconify" data-icon="mdi:lightning-bolt"></span>
+                            <p>Connections</p>
                         </Template>
                     </RadzenPanelMenuItem>
                 }
                 break;
         }
-
-    }
 </div>
 
 @code {

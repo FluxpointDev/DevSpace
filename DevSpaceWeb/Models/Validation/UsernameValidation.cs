@@ -1,20 +1,21 @@
-﻿using DevSpaceWeb.Models.Defaults;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace DevSpaceWeb.Models.Validation;
 
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public class UsernameValidationAttribute : ValidationAttribute
 {
-    public char[] AllowableValues { get; set; } = UsernameModel.AllowedCharacters.ToCharArray();
+    public static char[] AllowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._".ToCharArray();
 
     public override bool IsValid(object value)
     {
         string actualValue = value as string;
+        if (string.IsNullOrEmpty(actualValue))
+            return true;
 
         foreach (char c in actualValue)
         {
-            if (!AllowableValues.Contains(c))
+            if (!AllowedCharacters.Contains(c))
                 return false;
         }
         return true;

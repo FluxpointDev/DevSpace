@@ -32,6 +32,26 @@ Object.defineProperty(window.Utils, 'testWebSocket', {
     }
 });
 
+Object.defineProperty(window.Utils, 'scrollLogsUp', {
+    configurable: false,
+    writable: false,
+    value: function (url) {
+        var element = document.getElementById('gridLogs').lastChild;
+        element.scroll({ top: 0, behavior: 'smooth' });
+    }
+
+});
+
+Object.defineProperty(window.Utils, 'scrollLogsDown', {
+    configurable: false,
+    writable: false,
+    value: function (url) {
+        var element = document.getElementById('gridLogs').lastChild;
+        element.scroll({ top: 99999, behavior: 'smooth' });
+    }
+
+});
+
 Object.defineProperty(window.Utils, 'loadQR', {
     configurable: false,
     writable: false,

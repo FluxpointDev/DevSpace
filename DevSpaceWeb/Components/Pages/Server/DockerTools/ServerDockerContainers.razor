@@ -1,4 +1,5 @@
 ﻿@using System.Net.WebSockets
+@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using DevSpaceShared.WebSocket
@@ -6,6 +7,8 @@
 @using System.Linq.Dynamic.Core
 @inject ContextMenuService ContextMenuService
 @inject TooltipService tooltipService
+@inject NavigationManager Nav
+@inject NotificationService Notifications
 
 <PageTitle>Docker Containers | @_Data.Config.Instance.Name</PageTitle>
 
@@ -13,122 +16,139 @@
     <div class="dash-box-header dash-box-content">
         <div class="dash-box-icon"><span class="iconify" data-icon="ri:box-3-fill"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Containers</RadzenText>
-        <RadzenTextBox Placeholder="Search..." @oninput=@(args => SetNameFilter(args.Value.ToString())) Style="max-width: 240px;" class="ml-4" />
+        @if ((IsLoading || IsActionRunning) && Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+        }
     </div>
-    <div class="dash-box-content">
-        <RadzenButton Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.ControlContainers))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
-        <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.ControlContainers))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.ControlContainers))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.ControlContainers))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.ControlContainers))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.ControlContainers))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
-        <RadzenButton Variant="Variant.Filled" Text="Create Container" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerPermission(Server, DockerPermission.DockerAdministrator))" />
-        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@isLoading" />
+
+    @if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+    {
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for View Containers
+            </RadzenAlert>
+        </div>
+    }
+    else
+    {
+    <div class="dash-box-content action-bar">
+        <RadzenButton Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
+        <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected || IsActionRunning || !CanManageContainer)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+        <RadzenButton Variant="Variant.Filled" Text="Create Container (Not Available Yet)" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(true || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" />
+        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@IsLoading" />
     </div>
-    <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" Data="@containersList" LoadData="@LoadData" Count="@count" IsLoading="@isLoading"
-    PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-    @bind-Value="@selectedContainers" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
-    PagingSummaryFormat="@(count + " container" + (count != 1 ? "s" : "") + $" - {countDead} down" )" Density="Density.Compact"
-    AllowSorting="false"
-    AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
-    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-    GotoFirstPageOnSort="true"
-    LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
+    <RadzenDataGrid @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
+                    Density="Density.Compact" AllowRowSelectOnRowClick="false"
+                    PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                    @bind-Value="@SelectedContainers" SelectionMode="DataGridSelectionMode.Multiple"
+                    ShowPagingSummary="true" PagingSummaryFormat="@(Count + " container" + (Count != 1 ? "s" : "") + $" - {CountDead} down" )"
+                    AllowSorting="false" AllowFiltering="false"
+                    TItem="DockerContainerInfo" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
         <Columns>
-            <RadzenDataGridColumn Width="36px" Sortable="false" Filterable="false" Frozen="true">
+            <RadzenDataGridColumn Width="36px" Frozen="true">
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
-                    Value="@(selectedContainers == null || selectedContainers?.Any() != true ? false : !containersList.All(i => selectedContainers.Contains(i)) ? null : containersList.Any(i => selectedContainers.Contains(i)))"
-                                    Change="@(args => selectedContainers = (args == true && containersList != null) ? containersList.ToList() : null)" />
+                                    Value="@(SelectedContainers == null || SelectedContainers?.Any() != true ? false : !ContainersList.All(i => SelectedContainers.Contains(i)) ? null : ContainersList.Any(i => SelectedContainers.Contains(i)))"
+                                    Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList.ToList() : null)" />
                 </HeaderTemplate>
                 <Template Context="data">
-                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(selectedContainers != null && selectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                    TValue="bool" />
+                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedContainers != null && SelectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                                    TValue="bool" Change="@(() => Grid.SelectRow(data))" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Name" Property="@nameof(ContainerItem.Name)" Width="160px" Frozen="true" Filterable="false">
+            <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true">
                 <Template>
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + context.ID)" Text="@context.GetName()" />
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + context.Id)" Text="@context.Name" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Status" Property="@nameof(ContainerItem.State)" FilterMode="FilterMode.CheckBoxList" Width="100px">
+            <RadzenDataGridColumn Title="Status" Width="100px">
                 <Template>
                     @switch (context.State)
                     {
                         case "running":
                             @if (context.Status.EndsWith("(healthy)"))
                             {
-                                <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Success" Text="Healthy" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Healthy" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             }
                             else if (context.Status.EndsWith("(unhealthy)"))
                             {
-                                <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Warning" Text="Unhealthy" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Unhealthy" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             }
                             else
                             {
-                                <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Success" Text="Running" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Running" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             }
                             break;
                         case "created":
-                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Secondary" Text="Created" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Created" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                         case "restarting":
-                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Warning" Text="Restarting" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Restarting" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                         case "removing":
-                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Secondary" Text="Removing" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Removing" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                         case "paused":
-                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Paused" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Paused" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                         case "exited":
-                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Danger" Text="Exited" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Exited" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                         case "dead":
-                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" MouseEnter="@(args => ShowUptimeTooltip(args, context.Status) )" />
                             break;
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Width="100px" Sortable="false" Filterable="false" Pickable="false">
+            <RadzenDataGridColumn Title="Actions" Width="100px">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                        <RadzenButton Click=@(args => ShowContextMenuWithControlsItems(context, args)) Icon="power_settings_new" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerPermission(Server, DockerPermission.ControlContainers))" />
+                        <RadzenButton Click=@(args => ShowContextMenuWithControlsItems(context, args)) Icon="power_settings_new" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!CanControlContainer || IsActionRunning)" />
                         <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Stack" Width="160px">
                 <Template>
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + context.ID)" Text="Test" />
+                    @if (!string.IsNullOrEmpty(context.StackId))
+                    {
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + context.StackId)" Text="@context.StackName" />
+                    }
+
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Image" Width="240px" Property="@nameof(ContainerListResponse.Image)">
+            <RadzenDataGridColumn Title="Image" Width="280px">
                 <Template>
-                    <RadzenLink Path="@("https://hub.docker.com/r/" + context.Image.Split(":").First())" Target="_blank" Text="@context.Image.Split(":").First()" MouseEnter="@(args => ShowUptimeTooltip(args, context.GetImageExtra()) )" />
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + context.ImageId)" Text="@context.ImageName" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Created" Property="@nameof(ContainerListResponse.Created)">
+            <RadzenDataGridColumn Title="Created">
                 <Template>
-                    <RadzenText TextStyle="TextStyle.Body2" MouseEnter="@(args => ShowUptimeTooltip(args, $"{(int)(DateTime.Now - context.Created).TotalDays} Days ago") )">@context.Created.ToString("dd'/'MM'/'yyyy")</RadzenText>
+                    @Utils.GetLocalDate(Session, context.CreatedAt)
                 </Template>
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
+    }
 </div>
 
 <style>
-    .dash-box-content .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
-    border-radius: 0px !important;
-    margin-right: -4px !important;
-    box-shadow: inset 0 0 0 var(--rz-border-width) #717376 !important;
+    .action-bar .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
+        border-radius: 0px !important;
+        margin-right: -4px !important;
+        box-shadow: inset 0 0 0 var(--rz-border-width) rgb(150,150,150) !important;
     }
 
-    .dash-box-content .rz-button-sm .rzi {
-    font-size: 1.15rem !important;
-    width: 1.15rem !important;
-    height: 1.15rem !important;
+    .action-bar .rz-button-sm .rzi {
+        font-size: 1.15rem !important;
+        width: 1.15rem !important;
+        height: 1.15rem !important;
     }
 </style>
 
@@ -140,75 +160,97 @@
     public TeamData Team => Session.Selected.Team.Data;
     public ServerData Server => Session.Selected.Server;
 
-    DockerResponse<ContainerItem[]>? containersResponse = new DockerResponse<ContainerItem[]>();
+    public bool CanManageContainer;
+    public bool CanControlContainer;
+    public bool CanViewLogs;
+    public bool CanInspect;
+    public bool CanViewStats;
+    public bool CanViewChanges;
+    public bool CanUseConsole;
 
-    IQueryable<ContainerItem> containersList;
-    public int count = 0;
-    public int countDead = 0;
-    IList<ContainerItem> selectedContainers;
-    public bool AnySelected => selectedContainers != null ? selectedContainers.Any() : false;
-    RadzenDataGrid<ContainerItem> grid;
-    public bool isLoading = false;
+    protected override void OnAfterRender(bool firstRender)
+    {
+        LoadPerms();
+    }
 
+    public void LoadPerms()
+    {
+        CanManageContainer = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers);
+        CanControlContainer = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers);
+        CanViewLogs = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs);
+        CanInspect = Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator);
+        CanViewStats = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats);
+        CanViewChanges = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges);
+        CanUseConsole = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.UseContainerConsole);
+    }
 
+    SocketResponse<DockerContainerInfo[]?>? ContainersResponse = null;
+
+    IQueryable<DockerContainerInfo> ContainersList;
+    public int Count = 0;
+    public int CountDead = 0;
+    IList<DockerContainerInfo> SelectedContainers;
+    public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
+    RadzenDataGrid<DockerContainerInfo> Grid;
+    public bool IsLoading = true;
+    public bool IsActionRunning { get; set; }
     public async Task SetNameFilter(string text)
     {
-        await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
+        await Grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 
     public async Task LoadData(LoadDataArgs args)
     {
-        Logger.LogMessage("Loading Data", LogSeverity.Info);
+        LoadPerms();
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+            return;
 
         if (Program.IsPreviewMode)
         {
-            containersList = new List<ContainerItem>
+            ContainersList = new List<DockerContainerInfo>
              {
-                 new ContainerItem 
+                 new DockerContainerInfo
                  {
-                     Names = new List<string> { "/my-api" }, State = "running", Status = "test (healthy)", 
-                     Created = DateTime.UtcNow,
-                     Labels = new Dictionary<string, string>(),
-                     Mounts = new List<MountPoint>(),
-                     NetworkSettings = new SummaryNetworkSettings(),
-                     Ports = new List<Port>(),
-                     Image = "test:latest"
+                     Name = "my-api",
+                     State = "running",
+                     Status = "Up 14 hours",
+                     CreatedAt = DateTime.UtcNow,
+                     ImageName = "test:latest"
                  },
-                 new ContainerItem
+                 new DockerContainerInfo
                  {
-                     Names = new List<string> { "/discord-bot" }, State = "dead", Status = "test",
-                     Created = DateTime.UtcNow,
-                     Labels = new Dictionary<string, string>(),
-                     Mounts = new List<MountPoint>(),
-                     NetworkSettings = new SummaryNetworkSettings(),
-                     Ports = new List<Port>(),
-                     Image = "test:latest"
+                     Name = "discord-bot",
+                     State = "exited",
+                     Status = "Exited (137) 1 week ago",
+                     CreatedAt = DateTime.UtcNow,
+                     ImageName = "test:latest"
                  },
              }.AsQueryable();
-            count = 2;
-            countDead = 1;
+            Count = 2;
+            CountDead = 1;
+            IsLoading = false;
         }
         else
         {
-            if (containersResponse == null)
+            if (ContainersResponse == null)
             {
-                isLoading = true;
+                IsLoading = true;
                 try
                 {
-                    containersResponse = await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<ContainerItem[]>>(new DockerEvent(DockerEventType.ListContainers));
+                    ContainersResponse = await Server.RecieveJsonAsync<DockerContainerInfo[]>(new DockerEvent(DockerEventType.ListContainers));
                 }
                 catch (Exception ex)
                 {
                     Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
                 }
-                isLoading = false;
+                IsLoading = false;
 
 
             }
 
-            if (containersResponse != null)
+            if (ContainersResponse != null && ContainersResponse.IsSuccess)
             {
-                IQueryable<ContainerItem> query = containersResponse.Data.AsQueryable();
+                IQueryable<DockerContainerInfo> query = ContainersResponse.Data.AsQueryable();
 
                 if (!string.IsNullOrEmpty(args.Filter))
                     query = query.Where(args.Filter);
@@ -216,40 +258,43 @@
                 if (!string.IsNullOrEmpty(args.OrderBy))
                     query = query.OrderBy(args.OrderBy);
 
-                count = query.Count();
-                countDead = query.Count(x => x.IsDead());
-                containersList = query.Skip(args.Skip.Value).Take(args.Top.Value);
+                Count = query.Count();
+                CountDead = query.Count(x => !x.IsOnline());
+                ContainersList = query.OrderBy(x => x.Name).Skip(args.Skip.Value).Take(args.Top.Value);
             }
         }
     }
 
-    void ShowContextMenuWithControlsItems(ContainerItem item, MouseEventArgs args)
+    void ShowContextMenuWithControlsItems(DockerContainerInfo item, MouseEventArgs args)
     {
+        LoadPerms();
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Start", Value = "start", Icon = "power_settings_new", IconColor = Colors.SuccessDark },
-                new ContextMenuItem(){ Text = "Stop", Value = "stop", Icon = "stop", IconColor = Colors.DangerDark },
-                new ContextMenuItem(){ Text = "Restart", Value = "restart", Icon = "restart_alt", IconColor = Colors.WarningDark },
-                new ContextMenuItem(){ Text = "Kill", Value = "kill", Icon = "bolt", IconColor = Colors.InfoDark },
-                new ContextMenuItem(){ Text = "Pause", Value = "pause", Icon = "pause", IconColor = Colors.InfoDark },
-                new ContextMenuItem(){ Text = "Resume", Value = "resume", Icon = "play_arrow", IconColor = Colors.InfoDark },
-                         }, x => MenuItemClick(x, item));
+                new ContextMenuItem(){ Text = "Start", Value = "start", Icon = "power_settings_new", IconColor = Colors.SuccessDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem(){ Text = "Stop", Value = "stop", Icon = "stop", IconColor = Colors.DangerDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem(){ Text = "Restart", Value = "restart", Icon = "restart_alt", IconColor = Colors.WarningDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem(){ Text = "Kill", Value = "kill", Icon = "bolt", IconColor = Colors.InfoDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem(){ Text = "Pause", Value = "pause", Icon = "pause", IconColor = Colors.InfoDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem(){ Text = "Resume", Value = "resume", Icon = "play_arrow", IconColor = Colors.InfoDark, Disabled = IsActionRunning || !CanControlContainer },
+                                 }, x => MenuItemClick(x, item));
     }
 
-    void ShowContextMenuWithManageItems(ContainerItem item, MouseEventArgs args)
+    void ShowContextMenuWithManageItems(DockerContainerInfo item, MouseEventArgs args)
     {
+        LoadPerms();
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Config", Value = "config", Icon = "settings" },
-                new ContextMenuItem(){ Text = "Permissions", Value = "permissions", Icon = "shield_lock" },
-                new ContextMenuItem(){ Text = "Logs", Value = "logs", Icon = "subject" },
-                new ContextMenuItem(){ Text = "Inspect", Value = "inspect", Icon = "search" },
-                new ContextMenuItem(){ Text = "Stats", Value = "stats", Icon = "monitoring" },
-                new ContextMenuItem(){ Text = "Execute", Value = "execute", Icon = "terminal" },
-                                     }, x => MenuItemClick(x, item));
+                // new ContextMenuItem(){ Text = "Config", Value = "config", Icon = "settings" },
+                // new ContextMenuItem(){ Text = "Permissions", Value = "permissions", Icon = "shield_lock" }, 
+                new ContextMenuItem() { Text = "View", Value = "view", Icon = "deployed_code" },
+                new ContextMenuItem(){ Text = "Logs", Value = "logs", Icon = "description", Disabled = !CanViewLogs },
+                new ContextMenuItem(){ Text = "Stats", Value = "stats", Icon = "bar_chart_4_bars", Disabled = !CanViewStats },
+                new ContextMenuItem(){ Text = "Changes", Value = "changes", Icon = "topic", Disabled = !CanViewChanges },
+                new ContextMenuItem(){ Text = "Inspect", Value = "inspect", Icon = "info", Disabled = !CanInspect },
+                                             }, x => MenuItemClick(x, item));
     }
 
-    void MenuItemClick(MenuItemEventArgs args, ContainerItem item)
+    void MenuItemClick(MenuItemEventArgs args, DockerContainerInfo item)
     {
         if (Program.IsPreviewMode)
         {
@@ -262,22 +307,94 @@
             switch (args.Value.ToString())
             {
                 case "start":
-                    await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Start));
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Start));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
                     break;
                 case "stop":
-                    await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Stop));
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Stop));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
                     break;
                 case "restart":
-                    await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Restart));
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Restart));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
                     break;
                 case "kill":
-                    await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Kill));
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Kill));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
                     break;
                 case "pause":
-                    await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.Pause));
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Pause));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
                     break;
                 case "resume":
-                    await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, item.ID, ControlContainerType.UnPause));
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.UnPause));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
+                    break;
+                case "view":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+                        return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + item.Id);
+                    break;
+                case "logs":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs))
+                        return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + item.Id + "/logs");
+                    break;
+                case "inspect":
+                    if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+                        return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + item.Id + "/inspect");
+                    break;
+                case "stats":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
+                        return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + item.Id + "/stats");
+                    break;
+                case "changes":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges))
+                        return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + item.Id + "/changes");
                     break;
             }
         });
@@ -293,31 +410,31 @@
             return;
         }
 
+        if (type == ControlContainerType.Remove || type == ControlContainerType.ForceRemove)
+        {
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                return;
+        }
+        else
+        {
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                return;            
+        }
+
         _ = Task.Run(async () =>
         {
-            await Server.GetWebSocket().Client.RecieveJsonAsync<DockerResponse<object>>(new DockerEvent(DockerEventType.ControlContainer, null, type) { ResourceList = selectedContainers.Select(x => x.ID).ToArray() });
+            IsActionRunning = true;
+            await InvokeAsync(StateHasChanged);
+            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, null, type) { ResourceList = SelectedContainers.Select(x => x.Id).ToArray() });
+            IsActionRunning = false;
+            SelectedContainers.Clear();
+            await InvokeAsync(RefreshContainers);
         });
-        selectedContainers.Clear();
+        
     }
 
     void ShowUptimeTooltip(ElementReference elementReference, string uptime) => tooltipService.Open(elementReference, uptime, null);
 
-    public class ContainerItem : ContainerListResponse
-    {
-        public string Name => Names.First().Substring(1);
-
-        public bool IsOnline()
-        {
-            @switch (State)
-            {
-                case "running":
-                case "restarting":
-                    return true;
-            }
-
-            return false;
-        }
-    }
 
     public async Task RefreshContainers()
     {
@@ -326,7 +443,10 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+            return;
 
-        await grid.RefreshDataAsync();
+        ContainersResponse = null;
+        await Grid.RefreshDataAsync();
     }
 }

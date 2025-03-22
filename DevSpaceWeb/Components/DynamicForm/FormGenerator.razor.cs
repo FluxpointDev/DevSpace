@@ -17,5 +17,5 @@ public class FormGeneratorComponent : OwningComponentBase
             FormItems = DataContext.GetType().GetProperties().Select(x => new DynamicFormItem(DataContext, x));
     }
 
-    
+
 }

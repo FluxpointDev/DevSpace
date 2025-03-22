@@ -1,6 +1,215 @@
-﻿<h6>ServerDockerPluginInfo</h6>
+﻿@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using Docker.DotNet.Models
+@inject NotificationService Notifications
+
+@if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewPlugins))
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:power-plug"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Plugin Info</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/plugins")" Text="Plugins" />
+            <RadzenBreadCrumbItem Text="@PluginId" />
+        </RadzenBreadCrumb>
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Plugins
+        </RadzenAlert>
+    </div>
+}
+else if (Plugin == null)
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:power-plug"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Plugin Info</RadzenText>
+            @if (!Failed)
+            {
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+            }
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/plugins")" Text="Plugins" />
+            <RadzenBreadCrumbItem Text="@PluginId" />
+        </RadzenBreadCrumb>
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Failed to get plugin info.
+            </RadzenAlert>
+        }
+    </div>
+}
+else
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:power-plug"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Plugin Info</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/plugins")" Text="Plugins" />
+            <RadzenBreadCrumbItem Text="@Plugin.Name.Split(':').First()" />
+        </RadzenBreadCrumb>
+        <br />
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Name
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Plugin.Name.Split(':').First()
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Version
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Plugin.Name.Split(':').Last()
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        ID
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Plugin.ID
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Description
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Plugin.Config.Description
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Docker Version
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Plugin.Config.DockerVersion
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Links
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Plugin.PluginReference.StartsWith("docker.io"))
+                        {
+                            <a href="@("https://hub.docker.com/r/" + Plugin.Name.Split(':').First())" target="_blank"><RadzenButton Text="Plugin" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" /></a>
+                        }
+                        else
+                        {
+                            <a href="@("https://" + Plugin.PluginReference.Split(':').First())" target="_blank"><RadzenButton Text="Plugin" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" /></a>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Docs
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (!string.IsNullOrEmpty(Plugin.Config.Documentation) && Plugin.Config.Documentation != "-")
+                        {
+                            <a href="@Plugin.Config.Documentation" target="_blank"><RadzenButton Icon="book" Text="Docs" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" /></a>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Work Directory
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Plugin.Config.WorkDir
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Entrypoint
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Plugin.Config.Entrypoint != null)
+                        {
+                            @(string.Join(" ", Plugin.Config.Entrypoint))
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Network
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Plugin.Config.Network.Type
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Capabilities</RadzenText>
+        </div>
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
+            <RadzenTableBody>
+                @foreach (var i in Plugin.Config.Linux.Capabilities)
+                {
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            @i
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+                }
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+}
 
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
     [Parameter]
-    public string PluginInfo { get; set; }
+    public string PluginId { get; set; }
+
+    public Plugin? Plugin { get; set; }
+    public bool Failed { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        try
+        {
+            var Result = await Server.RunJsonAsync<Plugin>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Inspect));
+            Failed = !Result.IsSuccess;
+            Plugin = Result.Data;
+        }
+        catch (Exception ex)
+        {
+            Failed = true;
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+    }
 }

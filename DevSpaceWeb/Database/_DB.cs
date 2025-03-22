@@ -91,9 +91,6 @@ public static class _DB
         if (string.IsNullOrEmpty(Configure.Host))
             throw new ArgumentException("Database host not configured in appsettings.json");
 
-        if (!IPAddress.TryParse(Configure.Host, out _))
-            throw new ArgumentException("Database host is invalid in appsettings.json");
-
         if (Configure.Port == 0)
             throw new ArgumentException("Database port not configured in appsettings.json");
 
@@ -102,9 +99,6 @@ public static class _DB
 
         if (string.IsNullOrEmpty(Configure.User))
             throw new ArgumentException("Database user not configured in appsettings.json");
-
-        if (string.IsNullOrEmpty(Configure.Password))
-            throw new ArgumentException("Database password not configured in appsettings.json");
 
         _DB.Client = new MongoDB.Driver.MongoClient(Configure.GetConnectionString());
 
@@ -247,7 +241,7 @@ public static class _DB
         {
             try
             {
-                await Members.Find(Builders<TeamMemberData>.Filter.Empty).ForEachAsync(x =>
+                await Members.Find(Builders<TeamMemberData>.Filter.Empty).ForEachAsync(async x =>
                 {
                     // Fix joined date for old members data
                     if (x.JoinedAt != x.Id.CreationTime)
@@ -256,7 +250,16 @@ public static class _DB
                     if (Members.Cache.TryAdd(x.Id, x))
                     {
                         if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))
+                        {
+                            // Fix invalid team members
+                            if (!team.Members.Any())
+                            {
+                                team.Members.Add(x.UserId, x.Id);
+                                await team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, team.Members));
+                            }
+
                             team.CachedMembers.Add(x.Id, x);
+                        }
                     }
                 });
                 Logger.LogMessage("Database", "- Members: " + Members.Cache.Keys.Count, LogSeverity.Info);
@@ -353,7 +356,9 @@ public static class _DB
                 await Servers.Find(Builders<ServerData>.Filter.Empty).ForEachAsync(x =>
                 {
                     Servers.Cache.TryAdd(x.Id, x);
-                    x.GetWebSocket();
+                    bool IsDev = Program.IsDevMode || Program.IsPreviewMode;
+                    if (!IsDev || x.OwnerId.ToString() == "6757b63be964c430187491bb")
+                        x.StartWebSocket(true);
                 });
                 Logger.LogMessage("Database", "- Servers: " + Servers.Cache.Keys.Count, LogSeverity.Info);
             }

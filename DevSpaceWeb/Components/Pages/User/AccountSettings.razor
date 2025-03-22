@@ -1,4 +1,6 @@
 ﻿@page "/user/account"
+@using System.Collections.Specialized
+@inject NavigationManager Nav
 
 <PageTitle>Account Settings | @_Data.Config.Instance.Name</PageTitle>
 <div class="dash-box dash-box-content">
@@ -6,6 +8,38 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
         <RadzenText TextStyle="TextStyle.H6">My Account</RadzenText>
     </div>
+
+    @if (!string.IsNullOrEmpty(ConnectionLink))
+    {
+        @switch (ConnectionLink)
+        {
+            case "PreviewMode":
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                    Can't connect social account, not available in preview mode.
+                </RadzenAlert>
+                break;
+            case "Disabled":
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                    Can't connect social account, social registration is disabled.
+                </RadzenAlert>
+                break;
+            case "Failed":
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                    Can't connect social account, service has failed.
+                </RadzenAlert>
+                break;
+            case "EmailMissing":
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                    Can't connect social account, service not providing an email address.
+                </RadzenAlert>
+                break;
+            case "NotEmailMatch":
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                    Can't connect social account, email address does not match.
+                </RadzenAlert>
+                break;
+        }
+    }
     <br />
 
     <RadzenTabs>
@@ -91,5 +125,13 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    
+    public string ConnectionLink { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        NameValueCollection query = Nav.ParseQuery();
+        ConnectionLink = query["link"];
+
+        Console.WriteLine($"Connection: " + ConnectionLink);
+    }
 }

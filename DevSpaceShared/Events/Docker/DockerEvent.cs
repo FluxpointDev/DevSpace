@@ -1,12 +1,13 @@
 ﻿using DevSpaceShared.WebSocket;
+using Newtonsoft.Json.Linq;
 
 namespace DevSpaceShared.Events.Docker;
 
-public class DockerEvent : IWebSocketTaskEvent
+public class DockerEvent : IWebSocketTask
 {
     public DockerEvent(DockerEventType type, string? resourceId = null, ControlContainerType? containerType = null,
         ControlPluginType? pluginType = null, ControlImageType? imageType = null, ControlStackType? stackType = null,
-        ControlNetworkType? networkType = null, ControlVolumeType? volumeType = null) : base(EventType.Docker)
+        ControlNetworkType? networkType = null, ControlVolumeType? volumeType = null, ControlCustomTemplateType? customTemplateType = null) : base(EventType.Docker)
     {
         DockerType = type;
         ResourceId = resourceId;
@@ -16,6 +17,7 @@ public class DockerEvent : IWebSocketTaskEvent
         StackType = stackType;
         NetworkType = networkType;
         VolumeType = volumeType;
+        CustomTemplateType = customTemplateType;
     }
 
     public string? ResourceId { get; set; }
@@ -35,39 +37,46 @@ public class DockerEvent : IWebSocketTaskEvent
 
     public ControlVolumeType? VolumeType { get; set; }
 
-    public object? Data { get; set; }
+    public ControlCustomTemplateType? CustomTemplateType { get; set; }
+
+    public JObject? Data { get; set; }
 }
 public enum DockerEventType
 {
-    ListContainers, GetContainer, InspectContainer, CreateContainer, UpdateContainer, ControlContainer,
-    ListImages, ControlImage, SearchImages, PruneImages,
+    ListContainers, CreateContainer, ControlContainer,
+    ListImages, ControlImage, SearchImages, PruneImages, GetPullLimit, PullImage, CreateImage,
     ListPlugins, ControlPlugin,
-    ListStacks, ControlStack,
-    ListNetworks, ControlNetwork,
-    ListVolumes, ControlVolume,
-    SystemInfo
+    ListStacks, ControlStack, CreateStack,
+    ListNetworks, ControlNetwork, CreateNetwork,
+    ListVolumes, ControlVolume, CreateVolume,
+    SystemInfo, HostInfo,
+    ListCustomTemplates, CreateCustomTemplate, ControlCustomTemplate, ImportPortainerTemplates
 }
 public enum ControlContainerType
 {
-    Kill, Start, Stop, Pause, UnPause, Restart, Remove
+    View, Inspect, Update, Kill, Start, Stop, Pause, UnPause, Restart, Remove, ForceRemove, Changes, Logs, Processes
 }
 public enum ControlPluginType
 {
-    Enable, Disable, Remove, InstallCheck, InstallFull, Update
+    View, Inspect, Enable, Disable, Remove, ForceRemove, InstallCheck, InstallFull, Update
 }
 public enum ControlImageType
 {
-    Export, Remove, RemoveForce, Inspect
+    View, Inspect, Layers, Export, Remove, ForceRemove
 }
 public enum ControlStackType
 {
-    Remove
+    View, Inspect, Start, Stop, Remove, Restart, Pause, Resume, ReCreate, ComposeInfo
 }
 public enum ControlNetworkType
 {
-    Remove
+    View, Inspect, Remove, LeaveNetwork
 }
 public enum ControlVolumeType
 {
-    Remove
+    View, Inspect, Remove, ForceRemove
+}
+public enum ControlCustomTemplateType
+{
+    ViewInfo, ViewFull, Inspect, ComposeInfo, EditInfo, EditCompose, Delete
 }

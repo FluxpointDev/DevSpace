@@ -1,0 +1,182 @@
+﻿@using BlazorMonaco.Editor
+@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceShared.WebSocket
+@using Docker.DotNet.Models
+@using System.Linq.Dynamic.Core
+@using Newtonsoft.Json.Linq
+@using static DevSpaceWeb.Components.Pages.Server.DockerTools.ServerDockerContainers
+@inject DialogService DialogService
+@inject ContextMenuService ContextMenuService
+@inject TooltipService tooltipService
+@inject NavigationManager Nav
+@inject NotificationService Notifications
+
+<PageTitle>Docker Stack Edit | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:pencil"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Docker Stack Edit</RadzenText>
+    </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks")" Text="Stacks" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId)" Text="@(!string.IsNullOrEmpty(StackName) ? StackName : StackId)" />
+        <RadzenBreadCrumbItem Text="Edit" />
+    </RadzenBreadCrumb>
+    <br />
+    @if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
+    {
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for Manage Stacks
+            </RadzenAlert>
+        </div>
+    }
+    else
+    {
+        if (!IsBuilding)
+        {
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Name</RadzenText>
+        <RadzenTextBox @bind-Value="@StackName" Style="width: 100%" aria-label="Stack Name TextBox" AutoCompleteType="AutoCompleteType.Off" autofocus
+                autocapitalize="none" MaxLength="100" ReadOnly="true" />
+        <br />
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Editor</RadzenText>
+            @if (GotCompose)
+            {
+                <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
+            }
+            
+        <br />
+            <RadzenButton Text="Recreate Stack" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@BuildStack" Disabled="@IsBuilding" />
+        <br />
+            <br />
+        }
+        else if (Success)
+        {
+            <div><span class="iconify" data-icon="mdi:docker" style="color: var(--rz-success);"></span></div>
+            <h6>Stack Created</h6>
+            <p>Your containers are now running click the button to show the stack.</p>
+            <br />
+            <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId)"><RadzenButton Text="View Stack" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+            <br />
+        }
+        else if (Failed)
+        {
+            <div><span class="iconify" data-icon="mdi:docker" style="color: var(--rz-danger);"></span></div>
+            if (IsBuilding)
+            {
+                <h6>Build Failed</h6>
+                <p>No stack or containers have been created.</p>
+            }
+            else
+            {
+                <h6>Start Failed</h6>
+                <p>One or more of your containers failed to start.</p>
+                <br />
+                <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+            }
+            <br />
+        }
+        else if (!IsReady)
+        {
+            <div><span class="iconify" data-icon="mdi:docker" style="color: #0091E2;"></span></div>
+            <h6>Building Stack</h6>
+            <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+            <br />
+        }
+        else
+        {
+            <div><span class="iconify" data-icon="mdi:docker" style="color: #0091E2;"></span></div>
+            <h6>Starting Stack</h6>
+            <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+            <br />
+        }
+    }
+</div>
+
+<style>
+    .monaco-editor, .monaco-diff-editor {
+        height: 400px !important;
+    }
+
+    .dash-box-content .iconify--mdi {
+        width: 60px;
+        height: 60px;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    [Parameter]
+    public string StackId { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+
+    public bool IsLoading = true;
+    public bool IsActionRunning { get; set; }
+
+    public string StackName { get; set; }
+    public string Compose { get; set; }
+    public bool GotCompose { get; set; }
+    private StandaloneCodeEditor _editor = null;
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "yaml",
+            Theme = "vs-dark",
+            ScrollBeyondLastLine = false,
+            ColumnSelection = true,
+            Folding = false,
+            Value = Compose
+        };
+    }
+
+    public bool IsBuilding { get; set; }
+    public bool IsReady { get; set; }
+    public bool Failed { get; set; }
+    public bool Success { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
+            return;
+
+        await Server.RunJsonAsync<DockerStackComposeInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ComposeInfo), async (res) =>
+        {
+            StackName = res.Data.Name;
+            Compose = res.Data.Content;
+            GotCompose = true;
+        });
+
+    }
+
+    public async Task BuildStack()
+    {
+
+        IsBuilding = true;
+        string Data = await _editor.GetValue();
+        var res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ReCreate)
+            {
+                Data = JObject.FromObject(new CreateStackEvent
+                {
+                    Name = StackName,
+                    DockerfileName = StackName,
+                    Content = Data
+                })
+            });
+            Failed = !res.IsSuccess;
+            Success = res.IsSuccess;
+        return;
+    }
+}

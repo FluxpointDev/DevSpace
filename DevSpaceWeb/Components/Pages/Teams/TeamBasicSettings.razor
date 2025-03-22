@@ -1,12 +1,19 @@
 ﻿@using DevSpaceWeb.Models.Teams
 @using Microsoft.AspNetCore.Components.Forms
+<PageTitle>Team Settings | @_Data.Config.Instance.Name</PageTitle>
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">@Team.Name Basic Settings</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">Team Settings</RadzenText>
     </div>
-    @if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams")" Text="Teams" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl)" Text="@Session.Selected.Team.Data.Name" />
+        <RadzenBreadCrumbItem Text="Settings" />
+    </RadzenBreadCrumb>
+
+    @if (!Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for Manage Team
@@ -51,7 +58,7 @@
 
     public async Task<string?> UpdateTeamSettings(TeamBasicModel model)
     {
-        if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
             return "You do not have Manage Team permissions.";
 
         string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
@@ -70,8 +77,10 @@
                 {
                     if (!string.IsNullOrEmpty(Team.VanityUrl))
                     {
+                        Session.Selected.Team.VanityUrl = Team.Id.ToString();
                         _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
                         Team.VanityUrl = string.Empty;
+                        StateHasChanged();
                     }
                 }
                 else
@@ -81,9 +90,10 @@
                         _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
                         _DB.TeamsVanityCache.TryAdd(VanityUrl, Team);
                         Team.VanityUrl = VanityUrl;
+                        Session.Selected.Team.VanityUrl = VanityUrl;
+                        StateHasChanged();
                     }
                 }
-                Session.Selected.Team.VanityUrl = Team.GetVanityUrlOrId();
             }
             Session.TriggerNavMenuChange();
         });
@@ -97,7 +107,7 @@
 
     public async Task ChangeIcon()
     {
-        if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
             return;
@@ -117,7 +127,7 @@
         if (!Team.HasIcon)
             return;
 
-        if (!Member.HasTeamPermission(TeamPermission.ManageTeam))
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
             return;

@@ -131,7 +131,7 @@ public static class WebSocketExtensions
     {
         if (!bypassCertCheck && !ws.IsCertValid)
         {
-            Console.WriteLine("Invalid Cert: " + json.type.ToString());
+            Console.WriteLine("Invalid Cert: " + json.Type.ToString());
             return;
         }
         string message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
@@ -162,7 +162,7 @@ public static class WebSocketExtensions
         }
         Console.WriteLine("Respond with: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(json, Newtonsoft.Json.Formatting.Indented));
 
-        string message = Newtonsoft.Json.JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, Data = json });
+        string message = Newtonsoft.Json.JsonConvert.SerializeObject(new IWebSocketResponse<dynamic> { IsSuccess = true, TaskId = taskId, Data = json });
         byte[] bytes = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
@@ -177,7 +177,7 @@ public static class WebSocketExtensions
         }
         Console.WriteLine("Respond with: Fail");
 
-        string message = JsonConvert.SerializeObject(new IWebSocketResponseEvent<dynamic> { TaskId = taskId, IsFail = true });
+        string message = JsonConvert.SerializeObject(new IWebSocketResponse<dynamic> { TaskId = taskId });
         byte[] bytes = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
@@ -197,7 +197,7 @@ public static class WebSocketExtensions
 
     public static async Task SendJsonAsync(this WebSocketBase<ClientWebSocket> ws, IWebSocketEvent json, CancellationToken token = default)
     {
-        if (json.type != EventType.ValidateCert && !ws.IsCertValid)
+        if (json.Type != EventType.ValidateCert && !ws.IsCertValid)
         {
             Console.WriteLine("Invalid Cert: " + json.GetType().Name);
             return;

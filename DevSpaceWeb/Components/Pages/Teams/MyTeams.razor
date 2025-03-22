@@ -12,7 +12,7 @@
     </div>
     <br />
     <div style="display: flex; align-items: flex-start;">
-        @foreach (TeamData i in _DB.Teams.Cache.Values.Where(x => x.Members.ContainsKey(Session.CurrentUser.Id)))
+        @foreach (TeamData i in _DB.Teams.Cache.Values.Where(x => Session.CurrentUser != null &&x.Members.ContainsKey(Session.CurrentUser.Id)).OrderBy(x => x.Name))
         {
             <a href="teams/@i.GetVanityUrlOrId()" style="color: cornflowerblue">
                 <div Class="team-item">
@@ -96,12 +96,15 @@
                 await _DB.Members.CreateAsync(Member);
 
 
-                await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members), () =>
-            {
-                _DB.Members.Cache.TryAdd(Member.Id, Member);
-                Team.Members.Add(Member.UserId, Member.Id);
-                Team.CachedMembers.Add(Member.Id, Member);
-            });
+                await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, new Dictionary<ObjectId, ObjectId>
+                {
+                    { Member.UserId, Member.Id }
+                }), () =>
+                {
+                    _DB.Members.Cache.TryAdd(Member.Id, Member);
+                    Team.Members.Add(Member.UserId, Member.Id);
+                    Team.CachedMembers.Add(Member.Id, Member);
+                });
 
 
                 if (!string.IsNullOrEmpty(VanityUrl))

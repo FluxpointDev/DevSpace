@@ -1,11 +1,19 @@
 ﻿@using DevSpaceWeb.Data.Consoles
 
+<PageTitle>Console Permissions | @_Data.Config.Instance.Name</PageTitle>
+
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
     </div>
-    @if (!Member.HasConsolePermission(Console, ConsolePermission.ViewPermissions))
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Text="Permissions" />
+    </RadzenBreadCrumb>
+
+    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPermissions))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for View Permissions

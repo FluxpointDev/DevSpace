@@ -12,6 +12,33 @@ namespace DevSpaceWeb;
 
 public static class Utils
 {
+    public static bool IsDockerImageNameValid(string? input)
+    {
+        if (string.IsNullOrEmpty(input))
+            return false;
+
+        if (input.Length < 2)
+            return false;
+
+        if (input.Length > 255)
+            return false;
+
+        foreach (var i in input)
+        {
+            if (!(char.IsLower(i) ||
+            char.IsDigit(i) ||
+            i == ':' ||
+            i == '/' ||
+            i == '.' ||
+            i == '_' ||
+            i == '-'))
+                return false;
+        }
+
+        return true;
+
+    }
+
     public static string? FormatVanityUrl(string? vanityUrl)
     {
         if (string.IsNullOrEmpty(vanityUrl))
@@ -110,13 +137,32 @@ public static class Utils
             mag += 1;
             adjustedSize /= 1024;
         }
-        decimalPlaces = 0;
-        if (mag > 2)
-            decimalPlaces = 2;
+        //decimalPlaces = 0;
+        //if (mag > 2)
+        //    decimalPlaces = 2;
 
         return string.Format("{0:n" + decimalPlaces + "} {1}",
             adjustedSize,
             SizeSuffixes[mag]);
+    }
+
+    private const long OneKb = 1024;
+    private const long OneMb = OneKb * 1024;
+    private const long OneGb = OneMb * 1024;
+    private const long OneTb = OneGb * 1024;
+
+    public static string ToPrettySize(long value, int decimalPlaces = 0)
+    {
+        var asTb = Math.Round((double)value / OneTb, decimalPlaces);
+        var asGb = Math.Round((double)value / OneGb, decimalPlaces);
+        var asMb = Math.Round((double)value / OneMb, decimalPlaces);
+        var asKb = Math.Round((double)value / OneKb, decimalPlaces);
+        string chosenValue = asTb > 1 ? string.Format("{0} TB", asTb)
+            : asGb > 1 ? string.Format("{0} GB", asGb)
+            : asMb > 1 ? string.Format("{0} MB", asMb)
+            : asKb > 1 ? string.Format("{0} KB", asKb)
+            : string.Format("{0}B", Math.Round((double)value, decimalPlaces));
+        return chosenValue;
     }
 
     public static CultureInfo GetCultureFromTwoLetterCountryCode(string twoLetterISOCountryCode)
@@ -255,7 +301,7 @@ public static class Utils
         return AllowedChars[(int)result];
     }
 
-    public static string GetLocalDate(SessionProvider session, DateTime? date, bool isMini = true)
+    public static string GetLocalDate(SessionProvider session, DateTime? date, bool isMini = true, bool showTime = false)
     {
         if (!date.HasValue)
             return "";
@@ -276,25 +322,25 @@ public static class Utils
         switch (session.UserDateFormat)
         {
             case DateFormatLang.DMY_Dash:
-                return MessageOffset.ToString("dd-MM-yyyy");
+                return MessageOffset.ToString("dd-MM-yyyy") + (showTime ? " " + MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture) : "");
             case DateFormatLang.DMY_Dot:
-                return MessageOffset.ToString("dd.MM.yyyy");
+                return MessageOffset.ToString("dd.MM.yyyy") + (showTime ? " " + MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture) : "");
             case DateFormatLang.DMY_Slash:
-                return MessageOffset.ToString("dd/MM/yyyy");
+                return MessageOffset.ToString("dd/MM/yyyy") + (showTime ? " " + MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture) : "");
             case DateFormatLang.MDY_Dash:
-                return MessageOffset.ToString("MM-dd-yyyy");
+                return MessageOffset.ToString("MM-dd-yyyy") + (showTime ? " " + MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture) : "");
             case DateFormatLang.MDY_Dot:
-                return MessageOffset.ToString("MM.dd.yyyy");
+                return MessageOffset.ToString("MM.dd.yyyy") + (showTime ? " " + MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture) : "");
             case DateFormatLang.MDY_Slash:
-                return MessageOffset.ToString("MM/dd/yyyy");
+                return MessageOffset.ToString("MM/dd/yyyy") + (showTime ? " " + MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture) : "");
             case DateFormatLang.YMD_Dash:
-                return MessageOffset.ToString("yyyy-MM-dd");
+                return MessageOffset.ToString("yyyy-MM-dd") + (showTime ? " " + MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture) : "");
             case DateFormatLang.YMD_Dot:
-                return MessageOffset.ToString("yyyy.MM.dd");
+                return MessageOffset.ToString("yyyy.MM.dd") + (showTime ? " " + MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture) : "");
             case DateFormatLang.YMD_Slash:
-                return MessageOffset.ToString("yyyy/MM/dd");
+                return MessageOffset.ToString("yyyy/MM/dd") + (showTime ? " " + MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture) : "");
         }
-        return MessageOffset.ToString("dd/MM/yyyy");
+        return MessageOffset.ToString("dd/MM/yyyy") + (showTime ? " " + MessageOffset.ToString("%h:mm tt", CultureInfo.InvariantCulture) : "");
     }
 
     public static DateFormatLang GetDateFormat(string lang)
@@ -439,23 +485,23 @@ public enum DateFormatLang
 {
 
     Automatic,
-    [Display(Description = "31/12/2024")]
+    [Display(Description = "Day/Month/Year ( 31/12/2024 )")]
     DMY_Slash,
-    [Display(Description = "12/31/2024")]
+    [Display(Description = "Month/Day/Year ( 12/31/2024 )")]
     MDY_Slash,
-    [Display(Description = "2024/31/12")]
+    [Display(Description = "Year/Month/Day ( 2024/12/31 )")]
     YMD_Slash,
-    [Display(Description = "31-12-2024")]
+    [Display(Description = "Day-Month-Year ( 31-12-2024 )")]
     DMY_Dash,
-    [Display(Description = "12-31-2024")]
+    [Display(Description = "Month-Day-Year ( 12-31-2024 )")]
     MDY_Dash,
-    [Display(Description = "2024-12-31")]
+    [Display(Description = "Year-Month-Day ( 2024-12-31 )")]
     YMD_Dash,
-    [Display(Description = "31.12.2024")]
+    [Display(Description = "Day.Month.Year ( 31.12.2024 )")]
     DMY_Dot,
-    [Display(Description = "12.31.2024")]
+    [Display(Description = "Month.Day.Year ( 12.31.2024 )")]
     MDY_Dot,
-    [Display(Description = "2024.12.31")]
+    [Display(Description = "Year.Month.Day ( 2024.12.31 )")]
     YMD_Dot,
     //[Display(Description = "31. 12. 2024")]
     //DMYSpace_Dot,

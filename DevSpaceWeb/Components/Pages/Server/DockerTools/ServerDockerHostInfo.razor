@@ -1,0 +1,301 @@
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@inject NotificationService Notifications
+
+@if (!Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo))
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:information"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Host Info</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl)" Text="@Session.Selected.Team.Server.Data.Name" />
+            <RadzenBreadCrumbItem Text="Host" />
+        </RadzenBreadCrumb>
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Host Info
+        </RadzenAlert>
+    </div>
+}
+else if (Host == null)
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:information"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Host Info</RadzenText>
+        @if (!Failed)
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+        }
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl)" Text="@Session.Selected.Team.Server.Data.Name" />
+            <RadzenBreadCrumbItem Text="Host" />
+        </RadzenBreadCrumb>
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Failed to get host info.
+            </RadzenAlert>
+        }
+    </div>
+}
+else
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:information"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Host Info</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl)" Text="@Session.Selected.Team.Server.Data.Name" />
+            <RadzenBreadCrumbItem Text="Host" />
+        </RadzenBreadCrumb>
+        <br />
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Hostname
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.Hostname
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        IP
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        <RadzenTextMask Value="@Server.AgentIp" IsIp="true"></RadzenTextMask>
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Uptime
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.GetUptimeText()
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        OS
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.OperatingSystem
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Kernal
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.KernelVersion
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Dev Space Version
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Program.GetVersionText()
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Agent Version
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @($"{Host.AgentVersion} (.NET {Host.AgentNET})")
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Warnings
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @(string.Join("\n\n", Host.Warnings))
+                    </RadzenTableCell>
+                </RadzenTableRow>
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:server"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">System</RadzenText>
+        </div>
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        System Driver
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.SystemDriver
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        CPU
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.CpuCount
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Memory
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Utils.ToPrettySize(Host.RamTotal)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Storage
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @($"{Utils.SizeSuffix(Host.StorageTotalSize - Host.StorageFreeSize, 0)} / {Utils.SizeSuffix(Host.StorageTotalSize, 0)} ({100 * (Host.StorageTotalSize - Host.StorageFreeSize) / Host.StorageTotalSize}%)")
+                    </RadzenTableCell>
+                </RadzenTableRow>
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:docker"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Docker</RadzenText>
+        </div>
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Docker Version
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.Docker.DockerVersion
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        API Version
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.Docker.APIVersion
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Root Directory
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.RootDirectory
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Storage Driver
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.StorageDriver
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Logging Driver
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.LoggingDriver
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Log Plugins
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @string.Join(", ", Host.LogPlugins)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Volume Plugins
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @string.Join(", ", Host.VolumePlugins)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Network Plugins
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @string.Join(", ", Host.NetworkPlugins)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Auth Plugins
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @string.Join(", ", Host.AuthPlugins)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+}
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public SystemInfoFullResponse? Host { get; set; }
+    public bool Failed { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo))
+            return;
+
+        try
+        {
+            var Result = await Server.RunJsonAsync<SystemInfoFullResponse>(Notifications, new DockerEvent(DockerEventType.HostInfo));
+            Failed = !Result.IsSuccess;
+            Host = Result.Data;
+
+        }
+        catch (Exception ex)
+        {
+            Failed = true;
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+    }
+}

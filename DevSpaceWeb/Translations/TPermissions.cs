@@ -43,4 +43,12 @@ public class TPermissions
 
     public string view_all_apis = "View All APIs";
     public string view_all_apis_description = "View all API clients in the team.";
+
+
+
+
+
+
+
+
 }

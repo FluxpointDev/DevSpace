@@ -1,6 +1,405 @@
-﻿<h6>ServerDockerImageInfo</h6>
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using Docker.DotNet.Models
+@inject NotificationService Notifications
+
+@if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:folder-image"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Image Info</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images")" Text="Images" />
+            <RadzenBreadCrumbItem Text="@ImageId" />
+        </RadzenBreadCrumb>
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Images
+        </RadzenAlert>
+    </div>
+}
+else if (Image == null)
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:folder-image"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Image Info</RadzenText>
+            @if (!Failed)
+            {
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+            }
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images")" Text="Images" />
+            <RadzenBreadCrumbItem Text="@ImageId" />
+        </RadzenBreadCrumb>
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Failed to get image info.
+            </RadzenAlert>
+        }
+    </div>
+}
+else
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:folder-image"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Image Info</RadzenText>
+        </div>
+        <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images")" Text="Images" />
+            <RadzenBreadCrumbItem Text="@GetName()" />
+        </RadzenBreadCrumb>
+        <br />
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Name
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @GetName()
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Version
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.Version
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        ID
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.ID
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Comment
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.Comment
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Created
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Utils.GetLocalDate(Session, Image.Created)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Size
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Utils.SizeSuffix(Image.Size)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Docker
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (!string.IsNullOrEmpty(Image.DockerVersion))
+                        {
+                            @("Version " + Image.DockerVersion)
+
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        OS
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.Os, @Image.Architecture
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Driver
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.Driver
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Parent
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (!string.IsNullOrEmpty(Image.Parent))
+                        {
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + Image.Parent)">@Image.Parent</RadzenLink>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:tag"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Tags</RadzenText>
+        </div>
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                @foreach (var i in Image.RepoTags)
+                {
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            @i
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+                }
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:tag"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Dockerfile</RadzenText>
+        </div>
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Command
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.Config.Command
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Entrypoint
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.Config.Entrypoint
+
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Working Directory
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.Config.WorkingDirectory
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Ports
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
+                            @if (Image.Config.ExposedPorts != null)
+                            {
+                                @foreach (var i in Image.Config.ExposedPorts)
+                                {
+                                    <RadzenBadge IsPill="true" BadgeStyle="BadgeStyle.Base" Shade="Shade.Dark" Text="@i" />
+                                }
+                            }
+                        </RadzenStack>
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:tag"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Environment</RadzenText>
+        </div>
+        <br />
+        @if (ShowEnvironment)
+        {
+            @foreach (var i in ParseEnvironment(Image.Config.Environment))
+            {
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @i.Value
+                </RadzenText>
+                <br />
+            }
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Body2">Environment is hidden by default</RadzenText>
+            <RadzenButton Text="Show Environment" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@(() => ShowEnvironment = true)" />
+
+        }
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:tag"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Labels</RadzenText>
+        </div>
+        <br />
+        @if (Image.Config.Labels != null)
+        {
+            @foreach (var i in Image.Config.Labels)
+            {
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @i.Value
+                </RadzenText>
+                <br />
+            }
+        }
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:tag"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Layers</RadzenText>
+        </div>
+        <br />
+        @if (ShowLayers)
+        {
+            <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
+                <RadzenTableHeader>
+                    <RadzenTableHeaderRow>
+                        <RadzenTableHeaderCell Style="width: 60px !important;">
+                            Order
+                        </RadzenTableHeaderCell>
+                        <RadzenTableHeaderCell Style="width: 100px !important;">
+                            Size
+                        </RadzenTableHeaderCell>
+                        <RadzenTableHeaderCell>
+                            Data
+                        </RadzenTableHeaderCell>
+                    </RadzenTableHeaderRow>
+                </RadzenTableHeader>
+                <RadzenTableBody>
+                    @if (Layers != null)
+                    {
+                        @for (var i = 0; i < Layers.Count(); i++)
+                        {
+                            var col = i;
+                            <RadzenTableRow>
+                                <RadzenTableCell>
+                                    @col
+                                </RadzenTableCell>
+                                <RadzenTableCell>
+                                    @Utils.SizeSuffix(Layers[col].Size)
+                                </RadzenTableCell>
+                                <RadzenTableCell>
+                                    @Layers[col].CreatedBy
+                                </RadzenTableCell>
+                            </RadzenTableRow>
+                        }
+                    }
+                </RadzenTableBody>
+            </RadzenTable>
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Body2">Layers is hidden by default</RadzenText>
+            <RadzenButton Text="Show Layers" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@(() => ShowLayers = true)" />
+
+        }
+    </div>
+}
 
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
     [Parameter]
     public string ImageId { get; set; }
+
+    DockerImageInfo? Image { get; set; }
+    public bool Failed { get; set; }
+
+    List<ImageHistoryResponse> Layers { get; set; }
+
+    public bool ShowEnvironment { get; set; }
+    public bool ShowLayers { get; set; }
+
+    public List<KeyValuePair<string, string?>> ParseEnvironment(IList<string> variables)
+    {
+        List<KeyValuePair<string, string?>> List = new List<KeyValuePair<string, string?>>();
+        foreach (var i in variables)
+        {
+            string[] Split = i.Split('=');
+            if (Split.Length == 1)
+                List.Add(new KeyValuePair<string, string?>(Split[0], null));
+            else
+                List.Add(new KeyValuePair<string, string?>(Split[0], Split[1]));
+        }
+        return List;
+    }
+
+    public string GetName()
+    {
+        string Name = "Unknown";
+        if (Image.RepoTags.Any())
+            Name = Image.RepoTags.First().Split(':').First();
+        else if (Image.RepoDigests.Any())
+            Name = Image.RepoDigests.First().Split('@').First();
+
+        return Name;
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
+            return;
+
+        try
+        {
+            var Result = await Server.RunJsonAsync<DockerImageInfo>(Notifications, new DockerEvent(DockerEventType.ControlImage, ImageId, imageType: ControlImageType.View));
+            Failed = !Result.IsSuccess;
+            Image = Result.Data;
+            if (Result.IsSuccess)
+            {
+                await Server.RunJsonAsync<List<ImageHistoryResponse>>(Notifications, new DockerEvent(DockerEventType.ControlImage, ImageId, imageType: ControlImageType.Layers), (reseponse) =>
+                {
+                    reseponse.Data.Reverse();
+                    Layers = reseponse.Data;
+                });
+            }
+            else
+            {
+                Layers = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Failed = true;
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+    }
 }

@@ -1,0 +1,94 @@
+﻿@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+
+<PageTitle>Pull Docker Image | @_Data.Config.Instance.Name</PageTitle>
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+
+        @if (Limits == null)
+        {
+            <RadzenText TextStyle="TextStyle.Body2">
+                @("Failed to get pull limit")
+            </RadzenText>
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Body2">
+                @($"You have {Limits.CurrentLimit}/{Limits.MaxLimit} pulls remaining.")
+            </RadzenText>
+        }
+
+
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Failed to pull image from docker hub
+            </RadzenAlert>
+        }
+
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Registry</RadzenText>
+        <RadzenDropDown TValue="string" Value="@("Docker Hub (Anonymous)")" Data="@Registries" />
+
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Image</RadzenText>
+        <RadzenFormField Variant="Variant.Outlined" Style="width: 100%;">
+            <Start>
+                docker.io: 
+            </Start>
+            <ChildContent>
+                <RadzenTextBox MaxLength="100" Value="@ImageNameInput" @oninput="@(arg => ImageNameInput = arg.Value as string)" />
+            </ChildContent>
+        </RadzenFormField>
+
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@IsLoading" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Pull Image" Style="width: 120px" Disabled="@(IsLoading || string.IsNullOrEmpty(ImageNameInput))" IsBusy="@IsLoading" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    [Parameter]
+    public RegistryLimitResponse? Limits { get; set; }
+
+    IEnumerable<string> Registries = new List<string>()
+    {
+        "Docker Hub (Anonymous)"
+    };
+
+    public string? ImageNameInput { get; set; }
+
+    public bool Failed = false;
+    public bool IsLoading = false;
+
+    async Task Submit()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+        IsLoading = true;
+        var Response = await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.PullImage, ImageNameInput));
+        if (!Response.IsSuccess)
+        {
+            Failed = true;
+            IsLoading = false;
+            return;
+        }
+        dialogService.Close(true);
+    }
+}
