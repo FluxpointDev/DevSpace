@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Radzen;
 using System.Collections.Concurrent;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -19,7 +20,7 @@ public class WebSocketBase
 }
 public class WebSocketClient : WssClient
 {
-    public WebSocketClient(SslContext context, string address, int port) : base(context, address, port) { }
+    public WebSocketClient(SslContext context, IPAddress address, int port) : base(context, address, port) { }
 
     public WebSocketBase WebSocket = new WebSocketBase();
     public string Key;

@@ -66,7 +66,7 @@ public static class _Data
         if (string.IsNullOrEmpty(Config.AdminKey))
         {
             SaveConfig = true;
-            Config.AdminKey = GetRandomString(new Random().Next(36, 56)) + Guid.NewGuid().ToString().Replace("-", "");
+            Config.AdminKey = GetRandomString(new Random().Next(30, 50)) + Guid.NewGuid().ToString().Replace("-", "");
         }
 
         if (Config.Admin == null)
@@ -87,7 +87,7 @@ public static class _Data
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
         "abcdefghijklmnopqrstuvwxyz" +
         "0123456789" +
-        "!&*-_?";
+        "!#$&'()*+,/:;=?@[]";
 
         if (length < 0)
             throw new ArgumentException("length must not be negative", "length");

@@ -8,6 +8,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using NetCoreServer;
 using Newtonsoft.Json;
+using System.Net;
 using System.Security.Authentication;
 
 namespace DevSpaceWeb.Data.Servers;
@@ -46,6 +47,7 @@ public class ServerData : ITeamResource
     {
         if (WebSocket != null)
         {
+            WebSocket.StopReconnect = true;
             if (WebSocket.Client != null)
             {
                 WebSocket.Client.DisconnectAndStop();
@@ -113,7 +115,7 @@ public class ServerWebSocket
     public WebSocketClient? Client;
     public ServerWebSocketErrorType? Error;
     public DiscoverAgentInfo? Discover;
-
+    public bool StopReconnect;
     public async Task DiscoverAsync(ServerData server)
     {
         Console.WriteLine("Discover");
@@ -191,22 +193,21 @@ public class ServerWebSocket
 
         if (Discover == null)
         {
-            if (reconnect)
+            if (!StopReconnect && reconnect)
             {
                 Thread.Sleep(TimeSpan.FromSeconds(30));
                 await RunAsync(server, true);
-                return;
             }
-            else
-                return;
+            return;
         }
 
         if (Discover.Id != server.AgentId)
         {
             Error = ServerWebSocketErrorType.AgentError;
+
             return;
         }
-
+        Error = null;
 
         SslContext context = new SslContext(SslProtocols.None, (e, b, l, m) =>
         {
@@ -221,8 +222,26 @@ public class ServerWebSocket
 
         });
 
+        IPAddress? address = null;
+        if (!IPAddress.TryParse(server.AgentIp, out address))
+        {
+            IPHostEntry Host = Dns.GetHostEntry(server.AgentIp);
+            address = Host.AddressList.FirstOrDefault();
+        }
+
+        if (address == null)
+        {
+            Error = ServerWebSocketErrorType.NoConnection;
+            if (!StopReconnect && reconnect)
+            {
+                Thread.Sleep(TimeSpan.FromSeconds(30));
+                await RunAsync(server, true);
+            }
+            return;
+        }
+
         Logger.LogMessage($"Connecting to {server.AgentIp}:{server.AgentPort}", LogSeverity.Info);
-        Client = new WebSocketClient(context, server.AgentIp, server.AgentPort)
+        Client = new WebSocketClient(context, address, server.AgentPort)
         {
             Key = server.AgentKey
         };

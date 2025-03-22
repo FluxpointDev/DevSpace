@@ -158,7 +158,7 @@ public class EmailService
 
     public string RandomCodeGenerator()
     {
-        string[] page = new string[8];
+        string[] page = new string[6];
         Random rnd = new Random();
         for (int i = 0; i < page.Length; ++i)
         {

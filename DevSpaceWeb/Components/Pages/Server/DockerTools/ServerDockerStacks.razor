@@ -35,10 +35,13 @@
     {
 
     <div class="dash-box-content">
-        <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlStackType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+        <RadzenStack Gap="2px;" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+                <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlStackType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) !important; margin-right: 4px !important;" />
 
-            <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/build")"><RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))" /></a>
-        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshStacks" Disabled="@IsLoading" />
+                <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/build")"><RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))" /></a>
+                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshStacks" Disabled="@IsLoading" />
+        </RadzenStack>
+        
     </div>
 
     <RadzenDataGrid @ref="@Grid" AllowRowSelectOnRowClick="false" Data="@StacksList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"

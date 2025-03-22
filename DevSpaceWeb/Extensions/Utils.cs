@@ -271,7 +271,7 @@ public static class Utils
         return newText.ToString();
     }
 
-    private static readonly char[] AllowedChars = "23456789BCDFGHJKMNPQRTVWXY".ToCharArray();
+    private static readonly char[] AllowedChars = "23456789BCDFGHJKMNPQRTVWXY_-.<>+=!?$*[]()%".ToCharArray();
     private static char GetRandomRecoveryCodeChar()
     {
         // Based on RandomNumberGenerator implementation of GetInt32

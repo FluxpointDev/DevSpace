@@ -297,7 +297,7 @@
 
                                 <RadzenLabel Text="Email Code" class="rz-my-0" Style="display: block;"></RadzenLabel>
                                 <div>
-                                    <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@InputEmailCode" Count="8" aria-label="Email Code" autofocus />
+                                    <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@InputEmailCode" Count="6" aria-label="Email Code" autofocus />
                                 </div>
 
                             }
@@ -457,7 +457,7 @@
             HttpResponseMessage Res = await Program.Http.SendAsync(Message);
             if (!Res.IsSuccessStatusCode)
             {
-                SmtpErrorMessage = "Failed to connect with status " + Res.StatusCode;
+                SmtpErrorMessage = "Invalid Fluxpoint email token.";
                 SetupStep = SetupStepType.Smtp;
                 return;
             }
@@ -578,7 +578,7 @@
         {
             SentEmailAddress = AdminAccount.Email;
             SentEmailCode = Email.RandomCodeGenerator();
-            Console.WriteLine(SentEmailCode);
+            Console.WriteLine("Admin email code :) " + SentEmailCode);
             bool EmailSuccess = await Email.SendAccessCode(User, "Admin setup confirmation", SentEmailCode);
             if (!EmailSuccess)
             {

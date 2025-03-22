@@ -52,6 +52,22 @@
         if (model.Port == 0)
             return "Server port is required.";
 
+        if (string.IsNullOrEmpty(model.Ip))
+            return "Server ip is required.";
+
+        if (Uri.CheckHostName(model.Ip) != UriHostNameType.Unknown)
+            return "Server ip has invalid format.";
+
+        IPAddress? address = null;
+        if (!IPAddress.TryParse(model.Ip, out address))
+        {
+            var Host = Dns.GetHostEntry(model.Ip);
+            address = Host.AddressList.FirstOrDefault();
+        }
+
+        if (address == null)
+            return "Server ip is invalid.";
+
         ServerWebSocket Client = new ServerWebSocket();
         var TempServer = new ServerData
         {

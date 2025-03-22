@@ -123,10 +123,26 @@
             if (!Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))
                 return "You do not have permission for Create Console Resources";
 
-            if (!IPAddress.TryParse(data.Ip, out _))
+                if (string.IsNullOrEmpty(data.Ip))
+                    return "Console ip is required.";
+
+            if (Uri.CheckHostName(data.Ip) != UriHostNameType.Unknown)
+                return "Console ip has invalid format.";
 
             if (data.Port == 0)
-                return "Failed to parse port";
+                return "Console port is required.";
+
+
+            IPAddress? address = null;
+            if (!IPAddress.TryParse(data.Ip, out address))
+            {
+                var Host = Dns.GetHostEntry(data.Ip);
+                address = Host.AddressList.FirstOrDefault();
+            }
+
+            if (address == null)
+                return "Console ip invalid.";
+
 
             ConsoleData NewConsole = new ConsoleData
             {
@@ -149,7 +165,7 @@
                 case ConsoleType.Battleye:
                     {
                         RCon rcon = new RCon();
-                        rcon.Connect(IPAddress.Parse(data.Ip), data.Port, data.Password);
+                        rcon.Connect(address, data.Port, data.Password);
                         if (!rcon.IsConnected)
                             return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
 

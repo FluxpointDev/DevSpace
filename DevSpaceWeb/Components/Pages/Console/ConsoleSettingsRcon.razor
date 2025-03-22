@@ -54,21 +54,31 @@
         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConnection))
             return "You do not have Manage Connection permissions.";
 
+        if (string.IsNullOrEmpty(model.Ip))
+            return "Console ip is required.";
 
-        if (!IPAddress.TryParse(model.Ip, out _))
-            return "Invalid IP address.";
-        
-
+        if (Uri.CheckHostName(model.Ip) != UriHostNameType.Unknown)
+            return "Console ip has invalid format.";
 
         if (model.Port == 0)
             return "Console port is required.";
+
+        IPAddress? address = null;
+        if (!IPAddress.TryParse(model.Ip, out address))
+        {
+            var Host = Dns.GetHostEntry(model.Ip);
+            address = Host.AddressList.FirstOrDefault();
+        }
+
+        if (address == null)
+            return "Console ip invalid.";
 
         switch (Console.Type)
         {
             case ConsoleType.Battleye:
                 {
                     RCon rcon = new RCon();
-                    rcon.Connect(IPAddress.Parse(model.Ip), model.Port, model.Password);
+                    rcon.Connect(address, model.Port, model.Password);
                     if (!rcon.IsConnected)
                         return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
 
@@ -113,7 +123,10 @@
                 case ConsoleType.Battleye:
                     {
                         RCon rcon = new RCon();
-                        rcon.Connect(IPAddress.Parse(model.Ip), model.Port, model.Password);
+
+
+
+                        rcon.Connect(address, model.Port, model.Password);
                         _Data.BattleyeRcons.Remove(Console.Id);
                         _Data.BattleyeRcons.TryAdd(Console.Id, rcon);
                     }
