@@ -5,12 +5,11 @@
  *  Some rights reserved. See license.txt, authors.txt.    *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-namespace BattleNET
+namespace BattleNET;
+
+public enum BattlEyeCommandResult
 {
-    public enum BattlEyeCommandResult
-    {
-        Success,
-        Error,
-        NotConnected,
-    }
+    Success,
+    Error,
+    NotConnected,
 }

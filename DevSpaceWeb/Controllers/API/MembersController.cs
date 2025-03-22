@@ -26,7 +26,7 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<MemberJson[]>))]
     public async Task<IActionResult> GetMembers([FromRoute] string teamId = "")
     {
-        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
+        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out TeamData? Team))
             return BadRequest("Could not find team.");
 
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out var perm))
@@ -43,7 +43,7 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetMember([FromRoute] string teamId = "", [FromRoute] string userId = "")
     {
-        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team) || !(Client.IsInstanceAdmin || Team.Id == Client.TeamId.GetValueOrDefault()))
+        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out TeamData? Team) || !(Client.IsInstanceAdmin || Team.Id == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find team.");
 
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !Team.Members.TryGetValue(obj2, out ObjectId memberObj) || !Team.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
@@ -64,7 +64,7 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> EnableMember([FromRoute] string teamId = "", [FromRoute] string userId = "")
     {
-        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team) || !(Client.IsInstanceAdmin || Team.Id == Client.TeamId.GetValueOrDefault()))
+        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out TeamData? Team) || !(Client.IsInstanceAdmin || Team.Id == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find team.");
 
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !Team.Members.TryGetValue(obj2, out ObjectId memberObj) || !Team.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
@@ -103,7 +103,7 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> DisableMember([FromRoute] string teamId = "", [FromRoute] string userId = "")
     {
-        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team) || !(Client.IsInstanceAdmin || Team.Id == Client.TeamId.GetValueOrDefault()))
+        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out TeamData? Team) || !(Client.IsInstanceAdmin || Team.Id == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find team.");
 
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !Team.Members.TryGetValue(obj2, out ObjectId memberObj) || !Team.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
@@ -148,7 +148,7 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> RemoveMember([FromRoute] string teamId = "", [FromRoute] string userId = "")
     {
-        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team) || !(Client.IsInstanceAdmin || Team.Id == Client.TeamId.GetValueOrDefault()))
+        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out TeamData? Team) || !(Client.IsInstanceAdmin || Team.Id == Client.TeamId.GetValueOrDefault()))
             return BadRequest("Could not find team.");
 
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !Team.Members.TryGetValue(obj2, out ObjectId memberObj) || !Team.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))

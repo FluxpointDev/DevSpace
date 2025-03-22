@@ -3,14 +3,9 @@
 public enum EventType
 {
     Invalid,
-    // Sent from the server to client and back to server to validate the certificate hash
-    ValidateCert,
+    UNUSED,
     Ping,
     Pong,
     TaskResponse,
-    //Command,
-    //CommandWait,
-    //CommandStream,
     Docker,
-    //FirewallInfo
 }

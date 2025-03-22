@@ -117,36 +117,21 @@ public static class WebSocketExtensions
 
     public static async Task SendStringAsync(this WebSocketBase<System.Net.WebSockets.WebSocket> ws, string message, CancellationToken token = default)
     {
-        if (!ws.IsCertValid)
-        {
-            Console.WriteLine("Invalid Cert: " + message);
-            return;
-        }
         byte[] bytes = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
     }
 
-    public static async Task SendJsonAsync(this WebSocketBase<System.Net.WebSockets.WebSocket> ws, IWebSocketEvent json, CancellationToken token = default, bool bypassCertCheck = false)
+    public static async Task SendJsonAsync(this WebSocketBase<System.Net.WebSockets.WebSocket> ws, IWebSocketEvent json, CancellationToken token = default)
     {
-        if (!bypassCertCheck && !ws.IsCertValid)
-        {
-            Console.WriteLine("Invalid Cert: " + json.Type.ToString());
-            return;
-        }
         string message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
         byte[] bytes = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
     }
 
-    public static async Task SendJsonAsync(this System.Net.WebSockets.WebSocket ws, IWebSocketEvent json, CancellationToken token = default, bool bypassCertCheck = false)
+    public static async Task SendJsonAsync(this System.Net.WebSockets.WebSocket ws, IWebSocketEvent json, CancellationToken token = default)
     {
-        //if (!bypassCertCheck && !ws.IsCertValid)
-        //{
-        //    Console.WriteLine("Invalid Cert: " + json.type.ToString());
-        //    return;
-        //}
         string message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
         byte[] bytes = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
@@ -155,11 +140,6 @@ public static class WebSocketExtensions
 
     public static async Task RespondAsync(this WebSocketBase<System.Net.WebSockets.WebSocket> ws, string taskId, object json, CancellationToken token = default)
     {
-        if (!ws.IsCertValid)
-        {
-            Console.WriteLine("Invalid Cert: " + json.GetType().Name);
-            return;
-        }
         Console.WriteLine("Respond with: \n" + Newtonsoft.Json.JsonConvert.SerializeObject(json, Newtonsoft.Json.Formatting.Indented));
 
         string message = Newtonsoft.Json.JsonConvert.SerializeObject(new IWebSocketResponse<dynamic> { IsSuccess = true, TaskId = taskId, Data = json });
@@ -170,11 +150,6 @@ public static class WebSocketExtensions
 
     public static async Task RespondFailAsync(this WebSocketBase<System.Net.WebSockets.WebSocket> ws, string taskId, CancellationToken token = default)
     {
-        if (!ws.IsCertValid)
-        {
-            Console.WriteLine("Invalid Cert: Respond With Fail");
-            return;
-        }
         Console.WriteLine("Respond with: Fail");
 
         string message = JsonConvert.SerializeObject(new IWebSocketResponse<dynamic> { TaskId = taskId });
@@ -185,11 +160,6 @@ public static class WebSocketExtensions
 
     public static async Task SendStringAsync(this WebSocketBase<ClientWebSocket> ws, string message, CancellationToken token = default)
     {
-        if (!ws.IsCertValid)
-        {
-            Console.WriteLine("Invalid Cert: " + message);
-            return;
-        }
         byte[] bytes = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
         await ws.Socket.SendAsync(arraySegment, WebSocketMessageType.Text, true, token);
@@ -197,11 +167,6 @@ public static class WebSocketExtensions
 
     public static async Task SendJsonAsync(this WebSocketBase<ClientWebSocket> ws, IWebSocketEvent json, CancellationToken token = default)
     {
-        if (json.Type != EventType.ValidateCert && !ws.IsCertValid)
-        {
-            Console.WriteLine("Invalid Cert: " + json.GetType().Name);
-            return;
-        }
         string message = Newtonsoft.Json.JsonConvert.SerializeObject(json);
         byte[] bytes = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);

@@ -79,7 +79,6 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
-
         //controller.User = User;
     }
 }

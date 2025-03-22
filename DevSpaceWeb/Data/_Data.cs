@@ -91,10 +91,13 @@ public static class _Data
 
         if (length < 0)
             throw new ArgumentException("length must not be negative", "length");
-        if (length > int.MaxValue / 8) // 250 million chars ought to be enough for anybody
+
+        if (length > int.MaxValue / 8)
             throw new ArgumentException("length is too big", "length");
+
         if (characterSet == null)
             throw new ArgumentNullException("characterSet");
+
         char[] characterArray = characterSet.Distinct().ToArray();
         if (characterArray.Length == 0)
             throw new ArgumentException("characterSet must not be empty", "characterSet");

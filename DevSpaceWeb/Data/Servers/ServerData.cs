@@ -69,7 +69,7 @@ public class ServerData : ITeamResource
         if (WebSocket.Error.HasValue || WebSocket.Client == null)
             return new SocketResponse<T?> { Error = ClientError.Exception };
 
-        return await WebSocket.Client.RunJsonAsync<T>(notification, json, action, token);
+        return await WebSocket.Client.RunJsonAsync(notification, json, action, token);
     }
 
     public async Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class

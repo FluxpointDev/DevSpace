@@ -1,14 +1,13 @@
-﻿namespace DaRT
-{
-    public class Location
-    {
-        public String location = "";
-        //public Image flag = null;
+﻿namespace DaRT;
 
-        public Location(String location)
-        {
-            this.location = location;
-            //this.flag = flag;
-        }
+public class Location
+{
+    public String location = "";
+    //public Image flag = null;
+
+    public Location(String location)
+    {
+        this.location = location;
+        //this.flag = flag;
     }
 }

@@ -172,11 +172,10 @@ public static class _Data
             Config.CertKey = GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
             try
             {
-                ECDsa ecdsa = ECDsa.Create(); // generate asymmetric key pair
+                ECDsa ecdsa = ECDsa.Create();
                 CertificateRequest req = new CertificateRequest("cn=devspace", ecdsa, HashAlgorithmName.SHA256);
                 Program.Certificate = req.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.UtcNow.AddYears(5));
 
-                // Create PFX (PKCS #12) with private key
                 File.WriteAllBytes(Program.CurrentDirectory + "Data/Cert.pfx", Program.Certificate.Export(X509ContentType.Pfx, Config.CertKey));
             }
             catch (Exception ex)
@@ -190,6 +189,9 @@ public static class _Data
             Program.Certificate = new X509Certificate2(Program.CurrentDirectory + "Data/Cert.pfx", Config.CertKey, X509KeyStorageFlags.PersistKeySet);
             Console.WriteLine("[Config] Loaded Certificate");
         }
+
+        if (Program.Certificate == null)
+            throw new Exception("Failed to load certificate.");
 
         if (string.IsNullOrEmpty(Config.AgentId))
         {
@@ -220,10 +222,13 @@ public static class _Data
 
         if (length < 0)
             throw new ArgumentException("length must not be negative", "length");
-        if (length > int.MaxValue / 8) // 250 million chars ought to be enough for anybody
+
+        if (length > int.MaxValue / 8)
             throw new ArgumentException("length is too big", "length");
+
         if (characterSet == null)
             throw new ArgumentNullException("characterSet");
+
         char[] characterArray = characterSet.Distinct().ToArray();
         if (characterArray.Length == 0)
             throw new ArgumentException("characterSet must not be empty", "characterSet");

@@ -5,12 +5,11 @@
  *  Some rights reserved. See license.txt, authors.txt.    *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-namespace BattleNET
+namespace BattleNET;
+
+enum BattlEyePacketType
 {
-    enum BattlEyePacketType
-    {
-        Login,
-        Command,
-        Acknowledge
-    }
+    Login,
+    Command,
+    Acknowledge
 }

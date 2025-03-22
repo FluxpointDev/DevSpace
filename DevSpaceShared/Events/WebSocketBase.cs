@@ -7,7 +7,6 @@ namespace DevSpaceShared.WebSocket;
 public class WebSocketBase<T> where T : System.Net.WebSockets.WebSocket
 {
     public string Id;
-    public bool IsCertValid;
     public T Socket;
     public ConcurrentDictionary<string, TaskCompletionSource<JToken>> TaskCollection = new ConcurrentDictionary<string, TaskCompletionSource<JToken>>();
     public WebSocketState State => Socket.State;

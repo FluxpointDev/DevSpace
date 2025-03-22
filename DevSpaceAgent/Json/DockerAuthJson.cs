@@ -1,7 +1,6 @@
-﻿namespace DevSpaceAgent.Json
+﻿namespace DevSpaceAgent.Json;
+
+public class DockerAuthJson
 {
-    public class DockerAuthJson
-    {
-        public string token { get; set; }
-    }
+    public string token { get; set; }
 }

@@ -1,8 +1,7 @@
-﻿namespace DevSpaceShared.Responses
+﻿namespace DevSpaceShared.Responses;
+
+public class RegistryLimitResponse
 {
-    public class RegistryLimitResponse
-    {
-        public int MaxLimit { get; set; }
-        public int CurrentLimit { get; set; }
-    }
+    public int MaxLimit { get; set; }
+    public int CurrentLimit { get; set; }
 }

@@ -7,30 +7,29 @@
 
 using DaRT;
 
-namespace BattleNET
+namespace BattleNET;
+
+public delegate void BattlEyeMessageEventHandler(BattlEyeMessageEventArgs args);
+
+public class BattlEyeMessageEventArgs : EventArgs
 {
-    public delegate void BattlEyeMessageEventHandler(BattlEyeMessageEventArgs args);
-
-    public class BattlEyeMessageEventArgs : EventArgs
+    public BattlEyeMessageEventArgs(string message, int id)
     {
-        public BattlEyeMessageEventArgs(string message, int id)
-        {
-            Message = message;
-            Id = id;
-            TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
-            DateTime cstTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, cstZone);
+        Message = message;
+        Id = id;
+        TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
+        DateTime cstTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, cstZone);
 
-            var formattedTime = Convert.ToDateTime((cstTime.ToShortDateString() + " " + cstTime.Hour + ":" + cstTime.Minute));
+        var formattedTime = Convert.ToDateTime((cstTime.ToShortDateString() + " " + cstTime.Hour + ":" + cstTime.Minute));
 
-            Time = (formattedTime.ToString() + " ").Replace(":00 ", " ");
-        }
-
-        public string Message { get; }
-        public string FilteredMessage { get; set; }
-
-        public string Time;
-
-        public LogType Type { get; set; } = LogType.Debug;
-        public int Id { get; }
+        Time = (formattedTime.ToString() + " ").Replace(":00 ", " ");
     }
+
+    public string Message { get; }
+    public string FilteredMessage { get; set; }
+
+    public string Time;
+
+    public LogType Type { get; set; } = LogType.Debug;
+    public int Id { get; }
 }

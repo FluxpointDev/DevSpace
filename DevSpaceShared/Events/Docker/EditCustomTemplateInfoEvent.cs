@@ -1,7 +1,6 @@
-﻿namespace DevSpaceShared.Events.Docker
-{
-    public class EditCustomTemplateInfoEvent
-    {
+﻿namespace DevSpaceShared.Events.Docker;
 
-    }
+public class EditCustomTemplateInfoEvent
+{
+
 }

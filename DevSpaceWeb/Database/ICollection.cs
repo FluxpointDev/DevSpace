@@ -20,7 +20,7 @@ public class ICollection<T>
 
 
 
-    public IFindFluent<T, T> Find(FilterDefinition<T> filter, FindOptions? options = null) => Collection.Find<T>(filter, options);
+    public IFindFluent<T, T> Find(FilterDefinition<T> filter, FindOptions? options = null) => Collection.Find(filter, options);
 
 }
 

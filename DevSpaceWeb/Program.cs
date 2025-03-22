@@ -21,6 +21,7 @@ public class Program
     /// Version of DevSpaceWeb.
     /// </summary>
     public static string Version => Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
+
     public static string GetVersionText()
     {
         if (Version.StartsWith("1."))

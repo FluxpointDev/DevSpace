@@ -131,13 +131,6 @@ public class AuditLog
         return this;
     }
 
-    //public AuditLog SetTarget(AuditLogTargetType type, ObjectId? target)
-    //{
-    //    TargetType = type;
-    //    TargetId = target;
-    //    return this;
-    //}
-
     public AuditLog SetPermissions(PermissionsSet perms)
     {
         Permissions = perms;

@@ -7,17 +7,16 @@
 
 using System.ComponentModel;
 
-namespace BattleNET
+namespace BattleNET;
+
+public enum BattlEyeDisconnectionType
 {
-    public enum BattlEyeDisconnectionType
-    {
-        [Description("Disconnected!")]
-        Manual,
+    [Description("Disconnected!")]
+    Manual,
 
-        [Description("Disconnected! (Connection timeout)")]
-        ConnectionLost,
+    [Description("Disconnected! (Connection timeout)")]
+    ConnectionLost,
 
-        [Description("Disconnected! (Socket Exception)")]
-        SocketException,
-    }
+    [Description("Disconnected! (Socket Exception)")]
+    SocketException,
 }

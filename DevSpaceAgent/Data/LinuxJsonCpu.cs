@@ -1,8 +1,7 @@
-﻿namespace DevSpaceAgent.Data
+﻿namespace DevSpaceAgent.Data;
+
+internal class LinuxJsonCpu
 {
-    internal class LinuxJsonCpu
-    {
-        public LinuxJson[] lscpu;
-    }
+    public LinuxJson[] lscpu;
 }
 

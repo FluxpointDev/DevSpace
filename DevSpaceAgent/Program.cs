@@ -97,8 +97,8 @@ public class Program
             DockerFailed = true;
         }
 
-        //if (DockerFailed)
-        //    Console.WriteLine("[Docker] Failed to connect to socket!");
+        if (DockerFailed)
+            Console.WriteLine("[Docker] Failed to connect to socket!");
 
         try
         {
@@ -122,7 +122,6 @@ public class Program
         context.CertificateValidationCallback = (x, s, t, b) => { return true; };
         AgentServer server = new AgentServer(context, IPAddress.Any, 5555);
 
-        //HttpsServer Http = new HttpsServer();
         if (!server.Start())
             throw new Exception("Failed to start websocket server.");
 

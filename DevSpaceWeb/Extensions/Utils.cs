@@ -205,7 +205,7 @@ public static class Utils
         if (String.IsNullOrEmpty(text))
             return String.Empty;
 
-        using (SHA256Managed sha = new System.Security.Cryptography.SHA256Managed())
+        using (SHA256Managed sha = new SHA256Managed())
         {
             byte[] textData = System.Text.Encoding.UTF8.GetBytes(text);
             byte[] hash = sha.ComputeHash(textData);
@@ -483,7 +483,6 @@ public static class Utils
 }
 public enum DateFormatLang
 {
-
     Automatic,
     [Display(Description = "Day/Month/Year ( 31/12/2024 )")]
     DMY_Slash,
@@ -502,10 +501,5 @@ public enum DateFormatLang
     [Display(Description = "Month.Day.Year ( 12.31.2024 )")]
     MDY_Dot,
     [Display(Description = "Year.Month.Day ( 2024.12.31 )")]
-    YMD_Dot,
-    //[Display(Description = "31. 12. 2024")]
-    //DMYSpace_Dot,
-    //[Display(Description = "12. 31. 2024")]
-    //MDYSpace_Dot,
-
+    YMD_Dot
 }

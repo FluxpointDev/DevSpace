@@ -1,20 +1,19 @@
-﻿namespace DevSpaceShared.Data
+﻿namespace DevSpaceShared.Data;
+
+public class DockerPluginInfo
 {
-    public class DockerPluginInfo
+    public static DockerPluginInfo Create(bool inspect)
     {
-        public static DockerPluginInfo Create(bool inspect)
+        DockerPluginInfo Info = new DockerPluginInfo
         {
-            DockerPluginInfo Info = new DockerPluginInfo
-            {
 
-            };
+        };
 
-            if (inspect)
-            {
+        if (inspect)
+        {
 
-            }
-
-            return Info;
         }
+
+        return Info;
     }
 }

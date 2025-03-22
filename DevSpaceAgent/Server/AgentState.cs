@@ -1,8 +1,7 @@
-﻿namespace DevSpaceAgent.Server
+﻿namespace DevSpaceAgent.Server;
+
+public class AgentState
 {
-    public class AgentState
-    {
-        public int MaxPullLimit = 100;
-        public int CurrentPullLimit = 100;
-    }
+    public int MaxPullLimit = 100;
+    public int CurrentPullLimit = 100;
 }

@@ -100,7 +100,7 @@ public static class _DB
         if (string.IsNullOrEmpty(Configure.User))
             throw new ArgumentException("Database user not configured in appsettings.json");
 
-        _DB.Client = new MongoDB.Driver.MongoClient(Configure.GetConnectionString());
+        _DB.Client = new MongoClient(Configure.GetConnectionString());
 
         Run = Client.GetDatabase(Configure.Name);
         Teams = new ICacheCollection<TeamData>("teams");

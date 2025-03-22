@@ -1,6 +1,5 @@
-﻿namespace DevSpaceShared.Events.Docker
+﻿namespace DevSpaceShared.Events.Docker;
+
+public class CreateCustomTemplateEvent
 {
-    public class CreateCustomTemplateEvent
-    {
-    }
 }
