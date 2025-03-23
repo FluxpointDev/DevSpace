@@ -29,10 +29,11 @@ public static class ServiceBuilder
 {
     public static void Build(WebApplicationBuilder builder, IServiceCollection services)
     {
+        HealthCheckService HealthService = new HealthCheckService();
         // Add HTTP access
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();
-        services.AddSingleton(new HealthCheckService());
+        services.AddSingleton(HealthService);
         services.AddHealthChecks()
             .AddCheck<DatabaseHealthCheck>("Database")
             .AddCheck<EmailHealthCheck>("Email");
@@ -50,7 +51,7 @@ public static class ServiceBuilder
         AddFido2(services);
         AddIdentity(services);
         AddMongoDb(services);
-        AddEmail(services);
+        AddEmail(services, HealthService);
         AddProviders(services);
 
         if (_Data.Config.Instance.Features.SwaggerEnabled)
@@ -413,10 +414,10 @@ public static class ServiceBuilder
 
     }
 
-    public static void AddEmail(IServiceCollection services)
+    public static void AddEmail(IServiceCollection services, HealthCheckService health)
     {
         services.AddTransient<IEmailSender<AuthUser>, EmailSender>()
-            .AddSingleton(new EmailService());
+            .AddSingleton(new EmailService(health));
     }
 
 
