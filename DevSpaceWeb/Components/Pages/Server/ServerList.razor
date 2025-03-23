@@ -144,14 +144,20 @@
                 if (string.IsNullOrEmpty(data.Ip))
                     return "Server ip is required.";
 
-                if (Uri.CheckHostName(data.Ip) != UriHostNameType.Unknown)
+                if (Uri.CheckHostName(data.Ip) == UriHostNameType.Unknown)
                     return "Server ip has invalid format.";
 
                 IPAddress? address = null;
                 if (!IPAddress.TryParse(data.Ip, out address))
                 {
-                    var Host = Dns.GetHostEntry(data.Ip);
-                    address = Host.AddressList.FirstOrDefault();
+                    IPHostEntry? Host = null;
+                    try
+                    {
+                        Host = Dns.GetHostEntry(data.Ip);
+                    }
+                    catch { }
+                    if (Host != null)
+                        address = Host.AddressList.FirstOrDefault();
                 }
 
                 if (address == null)

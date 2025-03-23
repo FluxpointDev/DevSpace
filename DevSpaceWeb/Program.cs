@@ -76,6 +76,7 @@ public class Program
         IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
 
+
         // TODO import portainer yml files
         //string YmlText = "";
         //var deserializer = new DeserializerBuilder().Build();

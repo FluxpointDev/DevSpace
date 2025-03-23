@@ -225,8 +225,14 @@ public class ServerWebSocket
         IPAddress? address = null;
         if (!IPAddress.TryParse(server.AgentIp, out address))
         {
-            IPHostEntry Host = Dns.GetHostEntry(server.AgentIp);
-            address = Host.AddressList.FirstOrDefault();
+            IPHostEntry? Host = null;
+            try
+            {
+                Host = Dns.GetHostEntry(server.AgentIp);
+            }
+            catch { }
+            if (Host != null)
+                address = Host.AddressList.FirstOrDefault();
         }
 
         if (address == null)
