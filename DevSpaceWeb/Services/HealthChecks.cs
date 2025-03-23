@@ -22,7 +22,7 @@ public class DatabaseHealthCheck : IHealthCheck
         if (_DB.HasException)
             return HealthCheckResult.Degraded("Database failed to load data.");
 
-        if (_DB.IsConnected)
+        if (!_DB.IsConnected)
             return HealthCheckResult.Degraded("Database failed to connect during startup.");
 
         if (!HealthService.IsDatabaseOnline)
@@ -113,6 +113,8 @@ public class HealthCheckService
     public static Task WriteResponse(HttpContext context, HealthReport healthReport)
     {
         context.Response.ContentType = "application/json; charset=utf-8";
+        if (healthReport.Status != HealthStatus.Healthy)
+            context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
 
         var options = new JsonWriterOptions { Indented = true };
 
