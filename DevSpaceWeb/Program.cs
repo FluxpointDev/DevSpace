@@ -44,7 +44,7 @@ public class Program
         AllowAutoRedirect = false,
         ServerCertificateCustomValidationCallback = (httpRequestMessage, cert, cetChain, policyErrors) =>
         {
-            if (cert != null && cert.Subject == "CN=devspace")
+            if (cert != null || (cert != null && cert.Subject == "CN=devspace"))
                 return true;
 
             return false;

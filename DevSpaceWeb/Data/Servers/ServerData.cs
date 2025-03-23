@@ -217,6 +217,7 @@ public class ServerWebSocket
                 {
                     return true;
                 }
+                return true;
             }
             return false;
 
