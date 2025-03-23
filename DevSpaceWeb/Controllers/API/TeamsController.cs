@@ -37,7 +37,7 @@ public class TeamsController : APIController
     public async Task<IActionResult> GetTeam([FromRoute] string teamId = "")
     {
         if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team) || !(Client.IsInstanceAdmin || Team.Id == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find team.");
+            return NotFound("Could not find team.");
 
         return Ok(new TeamJson(Team, Client.HasTeamPermission(Team, TeamPermission.ViewPermissions)));
     }

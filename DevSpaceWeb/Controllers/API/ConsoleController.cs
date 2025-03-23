@@ -26,7 +26,7 @@ public class ConsoleController : APIController
     public async Task<IActionResult> GetServers([FromRoute] string teamId = "")
     {
         if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
-            return BadRequest("Could not find team.");
+            return NotFound("Could not find team.");
 
         return Ok(_DB.Consoles.Cache.Values.Where(x => (Client.IsInstanceAdmin || x.TeamId == Client.TeamId.GetValueOrDefault()) && Client.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)).Select(x => new ConsoleJson(x)));
     }
@@ -38,7 +38,7 @@ public class ConsoleController : APIController
     public async Task<IActionResult> GetServer([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole, out var perm))
             return PermissionFailed(perm);
@@ -53,7 +53,7 @@ public class ConsoleController : APIController
     public async Task<IActionResult> GetPlayers([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ViewPlayers, out var perm))
             return PermissionFailed(perm);
@@ -63,7 +63,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Battleye:
                 {
                     if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     var Players = rcon.GetPlayers();
                     return Ok(Players.Select(x => x.name));
@@ -71,7 +71,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Minecraft:
                 {
                     if (!_Data.MinecraftRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     string ListCommand = await rcon.ExecuteCmd("list");
                     try
@@ -98,7 +98,7 @@ public class ConsoleController : APIController
                 }
         }
 
-        return BadRequest("Failed to get players list");
+        return Conflict("Failed to get players list");
     }
 
     [HttpGet("/api/consoles/{consoleId?}/battleye/players")]
@@ -108,7 +108,7 @@ public class ConsoleController : APIController
     public async Task<IActionResult> GetPlayersBattleye([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ViewPlayers, out var perm))
             return PermissionFailed(perm);
@@ -117,7 +117,7 @@ public class ConsoleController : APIController
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-            return BadRequest("Rcon connection is unavailable or server is offline.");
+            return Conflict("Rcon connection is unavailable or server is offline.");
 
         bool ShowIp = Client.HasConsolePermission(server.Team, server, ConsolePermission.ViewIPs);
 
@@ -132,7 +132,7 @@ public class ConsoleController : APIController
     public async Task<IActionResult> ExecuteCommand([FromRoute] string consoleId = "", [FromBody, Required] ConsoleCommandJson? command = null)
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.UseConsoleCommands, out var perm))
             return PermissionFailed(perm);
@@ -145,15 +145,15 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Battleye:
                 {
                     if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     rcon.ExecuteCommand(command.command);
-                    return Ok();
+                    return Ok("");
                 }
             case Data.Consoles.ConsoleType.Minecraft:
                 {
                     if (!_Data.MinecraftRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     string Command = await rcon.ExecuteCmd(command.command);
                     if (Command.Contains("unknown command", StringComparison.OrdinalIgnoreCase))
@@ -163,17 +163,17 @@ public class ConsoleController : APIController
                 }
         }
 
-        return BadRequest("Failed to send command");
+        return Conflict("Failed to send command");
     }
 
     [HttpPost("/api/consoles/{consoleId?}/message/global")]
     [SwaggerOperation("Send a global message.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> MessageGlobal([FromRoute] string consoleId = "", [FromBody, Required] ConsoleMessageJson? message = null)
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.MessageGlobal, out var perm))
             return PermissionFailed(perm);
@@ -186,7 +186,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Battleye:
                 {
                     if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     rcon.SayGlobal(message.message);
                     return Ok();
@@ -194,24 +194,24 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Minecraft:
                 {
                     if (!_Data.MinecraftRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     await rcon.ExecuteCmd("say " + message);
                     return Ok();
                 }
         }
 
-        return BadRequest("Failed to global message");
+        return Conflict("Failed to global message");
     }
 
     [HttpPost("/api/consoles/{consoleId?}/message/player")]
     [SwaggerOperation("Send a message to a player.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> MessagePlayer([FromRoute] string consoleId = "", [FromBody, Required] ConsoleMessagePlayerJson? json = null)
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.MessagePlayers, out var perm))
             return PermissionFailed(perm);
@@ -227,7 +227,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Battleye:
                 {
                     if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     if (!int.TryParse(json.player, out int number))
                         return BadRequest("Invalid player number.");
@@ -238,24 +238,24 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Minecraft:
                 {
                     if (!_Data.MinecraftRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     await rcon.ExecuteCmd($"tell {json.player} {json.message}");
                     return Ok();
                 }
         }
 
-        return BadRequest("Failed to message player");
+        return Conflict("Failed to message player");
     }
 
     [HttpPut("/api/consoles/{consoleId?}/players/kick")]
     [SwaggerOperation("Kick a player on the server.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> KickPlayer([FromRoute] string consoleId = "", [FromBody, Required] ConsoleReasonPlayerJson? json = null)
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.KickPlayers, out var perm))
             return PermissionFailed(perm);
@@ -268,7 +268,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Battleye:
                 {
                     if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     if (!int.TryParse(json.player, out int number))
                         return BadRequest("Invalid player number.");
@@ -279,7 +279,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Minecraft:
                 {
                     if (!_Data.MinecraftRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     await rcon.ExecuteCmd($"kick {json.player} {json.reason}");
 
@@ -288,17 +288,17 @@ public class ConsoleController : APIController
                 }
         }
 
-        return BadRequest("Failed to kick player");
+        return Conflict("Failed to kick player");
     }
 
     [HttpPut("/api/consoles/{consoleId?}/players/ban")]
     [SwaggerOperation("Ban a player on the server.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> BanPlayer([FromRoute] string consoleId = "", [FromBody, Required] ConsoleReasonPlayerJson? json = null)
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.BanPlayers, out var perm))
             return PermissionFailed(perm);
@@ -311,7 +311,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Battleye:
                 {
                     if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     if (!int.TryParse(json.player, out int number))
                         return BadRequest("Invalid player number.");
@@ -322,7 +322,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Minecraft:
                 {
                     if (!_Data.MinecraftRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     await rcon.ExecuteCmd($"ban {json.player} {json.reason}");
 
@@ -331,17 +331,17 @@ public class ConsoleController : APIController
                 }
         }
 
-        return BadRequest("Failed to ban player");
+        return Conflict("Failed to ban player");
     }
 
     [HttpPost("/api/consoles/{consoleId?}/server/restart")]
     [SwaggerOperation("Restart the server.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> RestartServer([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
@@ -351,7 +351,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Battleye:
                 {
                     if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     rcon.RestartServer();
                     return Ok();
@@ -359,7 +359,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Minecraft:
                 {
                     if (!_Data.MinecraftRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     var Result = await rcon.ExecuteCmd("restart");
                     if (Result.Contains("unknown command", StringComparison.OrdinalIgnoreCase))
@@ -369,17 +369,17 @@ public class ConsoleController : APIController
                 }
         }
 
-        return BadRequest("Failed to restart server");
+        return Conflict("Failed to restart server");
     }
 
     [HttpPost("/api/consoles/{consoleId?}/server/shutdown")]
     [SwaggerOperation("Shutdown the server.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ShutdownServer([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
@@ -390,7 +390,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Battleye:
                 {
                     if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     rcon.ShutdownServer();
                     return Ok();
@@ -398,7 +398,7 @@ public class ConsoleController : APIController
             case Data.Consoles.ConsoleType.Minecraft:
                 {
                     if (!_Data.MinecraftRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-                        return BadRequest("Rcon connection is unavailable or server is offline.");
+                        return Conflict("Rcon connection is unavailable or server is offline.");
 
                     var Result = await rcon.ExecuteCmd("stop");
                     if (Result.Contains("unknown command", StringComparison.OrdinalIgnoreCase))
@@ -408,17 +408,17 @@ public class ConsoleController : APIController
                 }
         }
 
-        return BadRequest("Failed to shutdown server");
+        return Conflict("Failed to shutdown server");
     }
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/lock")]
     [SwaggerOperation("Lock the server.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> LockServer([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
@@ -427,7 +427,7 @@ public class ConsoleController : APIController
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-            return BadRequest("Rcon connection is unavailable or server is offline.");
+            return Conflict("Rcon connection is unavailable or server is offline.");
 
         rcon.LockServer();
         return Ok();
@@ -435,12 +435,12 @@ public class ConsoleController : APIController
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/unlock")]
     [SwaggerOperation("Unlock the server.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> UnlockServer([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
@@ -449,7 +449,7 @@ public class ConsoleController : APIController
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-            return BadRequest("Rcon connection is unavailable or server is offline.");
+            return Conflict("Rcon connection is unavailable or server is offline.");
 
         rcon.UnlockServer();
         return Ok();
@@ -457,12 +457,12 @@ public class ConsoleController : APIController
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/reload/config")]
     [SwaggerOperation("Reload the config.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ReloadConfig([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
@@ -471,7 +471,7 @@ public class ConsoleController : APIController
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-            return BadRequest("Rcon connection is unavailable or server is offline.");
+            return Conflict("Rcon connection is unavailable or server is offline.");
 
         rcon.ReloadConfig();
         return Ok();
@@ -479,12 +479,12 @@ public class ConsoleController : APIController
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/reload/events")]
     [SwaggerOperation("Reload the events.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ReloadEvents([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
@@ -493,7 +493,7 @@ public class ConsoleController : APIController
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-            return BadRequest("Rcon connection is unavailable or server is offline.");
+            return Conflict("Rcon connection is unavailable or server is offline.");
 
         rcon.ReloadEvents();
         return Ok();
@@ -501,12 +501,12 @@ public class ConsoleController : APIController
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/reload/scripts")]
     [SwaggerOperation("Reload the scripts.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ReloadScripts([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
@@ -515,7 +515,7 @@ public class ConsoleController : APIController
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-            return BadRequest("Rcon connection is unavailable or server is offline.");
+            return Conflict("Rcon connection is unavailable or server is offline.");
 
         rcon.ReloadScripts();
         return Ok();
@@ -523,12 +523,12 @@ public class ConsoleController : APIController
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/reload/bans")]
     [SwaggerOperation("Reload the bans.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ReloadBans([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
@@ -537,7 +537,7 @@ public class ConsoleController : APIController
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-            return BadRequest("Rcon connection is unavailable or server is offline.");
+            return Conflict("Rcon connection is unavailable or server is offline.");
 
         rcon.ReloadBans();
         return Ok();
@@ -545,12 +545,12 @@ public class ConsoleController : APIController
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/reassign")]
     [SwaggerOperation("Reload the config.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> Reassign([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out var perm))
             return PermissionFailed(perm);
@@ -559,20 +559,20 @@ public class ConsoleController : APIController
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-            return BadRequest("Rcon connection is unavailable or server is offline.");
+            return Conflict("Rcon connection is unavailable or server is offline.");
 
         rcon.Reassign();
         return Ok();
     }
 
-    [HttpGet("/api/consoles/{consoleId?}/battleye/admins")]
-    [SwaggerOperation("Get a list of admins.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [HttpGet("/api/consoles/{consoleId?}/battleye/connection")]
+    [SwaggerOperation("Get a list of rcon connections.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ConsoleAdminJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> Admins([FromRoute] string consoleId = "")
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find console.");
+            return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ViewConnections, out var perm))
             return PermissionFailed(perm);
@@ -581,7 +581,7 @@ public class ConsoleController : APIController
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
-            return BadRequest("Rcon connection is unavailable or server is offline.");
+            return Conflict("Rcon connection is unavailable or server is offline.");
 
         bool ShowIp = Client.HasConsolePermission(server.Team, server, ConsolePermission.ViewIPs);
 

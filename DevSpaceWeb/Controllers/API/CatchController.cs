@@ -7,7 +7,7 @@ public class CatchController : APIController
     [Route("/api/{*all}")]
     public IActionResult CatchAll()
     {
-        return NotFound();
+        return NotFound("This API endpoint does not exist.");
     }
 
     [HttpGet("/api/teapot")]
@@ -23,7 +23,7 @@ public class CatchController : APIController
         switch (code)
         {
             case 200:
-                return Ok("This is a success");
+                return Ok("This is a success :)");
             case 400:
                 return BadRequest();
             case 404:

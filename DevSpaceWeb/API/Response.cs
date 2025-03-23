@@ -22,7 +22,7 @@ public class Response
 
     public string message { get; set; } = "";
 }
-public class ResponseData<T>
+public class ResponseData<T> where T : class
 {
     public bool success { get; set; } = true;
 
@@ -30,6 +30,7 @@ public class ResponseData<T>
     public int code { get; set; } = 200;
 
     public string message { get; set; } = "";
+
     public T? data { get; set; }
 }
 public class ResponseSuccess

@@ -26,14 +26,14 @@ public class UsersController : APIController
     public async Task<IActionResult> GetUser([FromRoute] string userId = "")
     {
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj))
-            return BadRequest("Could not find user.");
+            return NotFound("Could not find user.");
 
         if (!(Client.IsInstanceAdmin || (_DB.Teams.Cache.TryGetValue(Client.TeamId.GetValueOrDefault(), out TeamData Team) && Team.Members.ContainsKey(obj))))
-            return BadRequest("Could not find user.");
+            return NotFound("Could not find user.");
 
         AuthUser? user = await _DB.Run.GetCollection<AuthUser>("users").Find(new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, obj)).FirstOrDefaultAsync();
         if (user == null)
-            return BadRequest("Could not find user.");
+            return NotFound("Could not find user.");
 
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out var perm))
             return PermissionFailed(perm);

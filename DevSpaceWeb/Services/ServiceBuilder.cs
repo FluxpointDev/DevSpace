@@ -129,7 +129,7 @@ public static class ServiceBuilder
             {
                 Url = string.IsNullOrEmpty(_Data.Config.Instance.PublicDomain) ? "http://localhost" : $"https://{_Data.Config.Instance.PublicDomain}"
             });
-            c.EnableAnnotations(enableAnnotationsForInheritance: false, enableAnnotationsForPolymorphism: false);
+            c.EnableAnnotations(enableAnnotationsForInheritance: true, enableAnnotationsForPolymorphism: false);
             c.AddSecurityDefinition("key", new OpenApiSecurityScheme
             {
                 Type = SecuritySchemeType.ApiKey,

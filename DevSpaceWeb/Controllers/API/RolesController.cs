@@ -24,7 +24,7 @@ public class RolesController : APIController
     public async Task<IActionResult> GetRoles([FromRoute] string teamId = "")
     {
         if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
-            return BadRequest("Could not find team.");
+            return NotFound("Could not find team.");
 
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out var perm))
             return PermissionFailed(perm);
@@ -40,7 +40,7 @@ public class RolesController : APIController
     public async Task<IActionResult> GetRole([FromRoute] string roleId = "")
     {
         if (string.IsNullOrEmpty(roleId) || !ObjectId.TryParse(roleId, out ObjectId obj) || !_DB.Roles.Cache.TryGetValue(obj, out Data.Teams.TeamRoleData? Role) || !(Client.IsInstanceAdmin || Role.TeamId == Client.TeamId.GetValueOrDefault()))
-            return BadRequest("Could not find role.");
+            return NotFound("Could not find role.");
 
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out var perm))
             return PermissionFailed(perm);

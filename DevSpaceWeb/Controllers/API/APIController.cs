@@ -67,6 +67,14 @@ public class APIController : ControllerBase
     }
 
     [NonAction]
+    public JsonResult Conflict(string error = "The request failed due to a server issue.")
+    {
+        Response.ContentType = "application/json";
+        Response.StatusCode = 409;
+        return new JsonResult(new Response(409, error));
+    }
+
+    [NonAction]
     public JsonResult Unauthorized(string error = "You need to be authorized to use this API.")
     {
         Response.ContentType = "application/json";

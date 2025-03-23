@@ -45,15 +45,15 @@ public class PermissionsSet
         ? (WebsitePermission)ulong.MaxValue : perms.WebsitePermissions;
     }
 
-    public TeamPermission TeamPermissions;
-    public APIPermission APIPermissions;
-    public LogPermission LogPermissions;
-    public ProjectPermission ProjectPermissions;
-    public ServerPermission ServerPermissions;
-    public WebsitePermission WebsitePermissions;
-    public ConsolePermission ConsolePermissions;
-    public DockerPermission DockerPermissions;
-    public DockerContainerPermission DockerContainerPermissions;
+    public TeamPermission TeamPermissions { get; set; }
+    public APIPermission APIPermissions { get; set; }
+    public LogPermission LogPermissions { get; set; }
+    public ProjectPermission ProjectPermissions { get; set; }
+    public ServerPermission ServerPermissions { get; set; }
+    public WebsitePermission WebsitePermissions { get; set; }
+    public ConsolePermission ConsolePermissions { get; set; }
+    public DockerPermission DockerPermissions { get; set; }
+    public DockerContainerPermission DockerContainerPermissions { get; set; }
 
     public bool HasTeamPermission(TeamPermission checkPermission)
     {

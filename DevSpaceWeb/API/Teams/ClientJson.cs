@@ -20,13 +20,13 @@ public class ClientJson
             custom_permissions = data.CustomPermissions;
     }
 
-    public string id;
-    public string name;
-    public string owner_id;
-    public string team_id;
-    public bool is_disabled;
-    public DateTime created_at;
-    public DateTime? token_generated_at;
-    public bool use_custom_permissions;
-    public PermissionsSet? custom_permissions;
+    public string id { get; set; }
+    public string name { get; set; }
+    public string owner_id { get; set; }
+    public string team_id { get; set; }
+    public bool is_disabled { get; set; }
+    public DateTime created_at { get; set; }
+    public DateTime? token_generated_at { get; set; }
+    public bool use_custom_permissions { get; set; }
+    public PermissionsSet? custom_permissions { get; set; }
 }
