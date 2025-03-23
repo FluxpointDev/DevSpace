@@ -88,7 +88,7 @@
         TempServer.AgentId = Client.Discover.Id;
 
         HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + TempServer.AgentIp + ":" + TempServer.AgentPort + "/setup");
-        Req.Headers.Add("Authorization", TempServer.AgentKey);
+        Req.Headers.TryAddWithoutValidation("Authorization", TempServer.AgentKey);
         HttpResponseMessage DiscoverResponse = await Program.AgentDiscoverHttp.SendAsync(Req);
         if (!DiscoverResponse.IsSuccessStatusCode)
         {
