@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
-namespace DevSpaceWeb.Controllers;
+namespace DevSpaceWeb.Controllers.Misc;
 public class TestController : Controller
 {
     [HttpGet("/api/test/websocket")]

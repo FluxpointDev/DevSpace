@@ -32,6 +32,10 @@ public static class ServiceBuilder
         // Add HTTP access
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();
+        services.AddSingleton(new HealthCheckService());
+        services.AddHealthChecks()
+            .AddCheck<DatabaseHealthCheck>("Database")
+            .AddCheck<EmailHealthCheck>("Email");
         services.AddMemoryCache();
         services.AddDistributedMemoryCache();
         services.AddRadzenComponents();
@@ -149,6 +153,8 @@ public static class ServiceBuilder
             c.OperationFilter<SwaggerCheckAuthFilter>();
         });
     }
+
+
 
     public static void AddProviders(IServiceCollection services)
     {

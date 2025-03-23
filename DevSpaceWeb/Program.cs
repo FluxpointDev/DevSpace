@@ -4,6 +4,7 @@ using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Services;
 using Docker.DotNet;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
@@ -219,6 +220,10 @@ public class Program
             }
         });
 
+        app.MapHealthChecks("/api/health", new HealthCheckOptions
+        {
+            ResponseWriter = HealthCheckService.WriteResponse
+        });
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
@@ -265,4 +270,6 @@ public class Program
         app.MapControllers();
         app.Run();
     }
+
+
 }

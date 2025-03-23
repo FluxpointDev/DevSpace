@@ -8,12 +8,32 @@ namespace DevSpaceWeb.Services;
 
 public class EmailService
 {
+    public EmailService(HealthCheckService health)
+    {
+        HealthService = health;
+    }
+    public HealthCheckService HealthService;
+
     private HttpClient? ManagedEmailSystem;
     public async Task<SmtpClient> CreateSmtpAsync()
     {
         SmtpClient Client = new SmtpClient();
-        await Client.ConnectAsync(_Data.Config.Email.SmtpHost, _Data.Config.Email.SmtpPort);
-        await Client.AuthenticateAsync(_Data.Config.Email.SmtpUser, _Data.Config.Email.SmtpPassword);
+        try
+        {
+            await Client.ConnectAsync(_Data.Config.Email.SmtpHost, _Data.Config.Email.SmtpPort);
+            await Client.AuthenticateAsync(_Data.Config.Email.SmtpUser, _Data.Config.Email.SmtpPassword);
+        }
+        catch
+        {
+            if (HealthService.EmailDownCount != 3)
+                HealthService.EmailDownCount += 1;
+
+            throw;
+        }
+
+        if (HealthService.EmailDownCount != 0)
+            HealthService.EmailDownCount = 0;
+
         return Client;
 
     }
@@ -99,6 +119,17 @@ public class EmailService
             message.Headers.Add("Authorization", _Data.Config.Email.ManagedEmailToken);
             HttpResponseMessage Res = await ManagedEmailSystem.SendAsync(message);
 
+            if (Res.IsSuccessStatusCode)
+            {
+                if (HealthService.EmailFailCount != 0)
+                    HealthService.EmailFailCount = 0;
+            }
+            else
+            {
+                if (HealthService.EmailFailCount != 3)
+                    HealthService.EmailFailCount += 1;
+            }
+
             return Res.IsSuccessStatusCode;
         }
         else
@@ -111,22 +142,39 @@ public class EmailService
             {
                 using (SmtpClient smtp = await CreateSmtpAsync())
                 {
-                    if (template == null)
+                    try
                     {
-                        MimeMessage message = new MimeMessage();
-                        message.From.Add(new MailboxAddress(_Data.Config.Instance.Name, _Data.Config.Email.SenderEmailAddress));
-                        message.To.Add(new MailboxAddress(user.UserName, user.Email));
-                        message.Subject = "Test Email";
-                        message.Body = new TextPart("html")
+                        if (template == null)
                         {
-                            Text = body
-                        };
+                            MimeMessage message = new MimeMessage();
+                            message.From.Add(new MailboxAddress(_Data.Config.Instance.Name, _Data.Config.Email.SenderEmailAddress));
+                            message.To.Add(new MailboxAddress(user.UserName, user.Email));
+                            message.Subject = "Test Email";
+                            message.Body = new TextPart("html")
+                            {
+                                Text = body
+                            };
 
-                        await smtp.SendAsync(message);
+                            await smtp.SendAsync(message);
+                        }
+                        else
+                            await SendTemplate(smtp, user, template, other_email, action, code, reason, ip, country, team_name);
+
+                        await smtp.DisconnectAsync(true);
+
+                        if (HealthService.EmailFailCount != 0)
+                            HealthService.EmailFailCount = 0;
+
                     }
-                    else
-                        await SendTemplate(smtp, user, template, other_email, action, code, reason, ip, country, team_name);
-                    await smtp.DisconnectAsync(true);
+                    catch
+                    {
+                        if (HealthService.EmailFailCount != 3)
+                            HealthService.EmailFailCount += 1;
+
+                        return false;
+                    }
+
+
                 }
                 return true;
             }
