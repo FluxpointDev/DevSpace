@@ -374,7 +374,12 @@ public static class DockerStacks
                     Info.Containers.Add(new DockerContainerInfo
                     {
                         Id = c.ID,
-                        Name = c.Names != null && c.Names.Any() ? c.Names.First().Substring(1) : c.ID
+                        Name = c.Names != null && c.Names.Any() ? c.Names.First().Substring(1) : c.ID,
+                        State = c.State,
+                        Status = c.Status,
+                        CreatedAt = c.Created,
+                        ImageId = c.ImageID,
+                        ImageName = c.Image
                     });
                 }
 
