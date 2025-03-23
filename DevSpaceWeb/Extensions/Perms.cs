@@ -11,7 +11,7 @@ public static class Perms
     {
         foreach (ConsolePermission value in GetUniqueFlags(flags))
         {
-            if (!Client.HasConsolePermission(console, value))
+            if (!Client.HasConsolePermission(console.Team, console, value))
             {
                 perm = value;
                 return true;
@@ -25,7 +25,7 @@ public static class Perms
     {
         foreach (TeamPermission value in GetUniqueFlags(flags))
         {
-            if (!Client.HasTeamPermission(value))
+            if (!Client.HasTeamPermission(Client.Team, value))
             {
                 perm = value;
                 return true;
@@ -39,7 +39,7 @@ public static class Perms
     {
         foreach (ServerPermission value in GetUniqueFlags(flags))
         {
-            if (!Client.HasServerPermission(server, value))
+            if (!Client.HasServerPermission(server.Team, server, value))
             {
                 perm = value;
                 return true;

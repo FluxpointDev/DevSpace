@@ -25,7 +25,7 @@ public class ServersController : APIController
         if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
             return BadRequest("Could not find team.");
 
-        return Ok(_DB.Servers.Cache.Values.Where(x => (Client.IsInstanceAdmin || x.TeamId == Client.TeamId.GetValueOrDefault()) && Client.HasServerPermission(x, ServerPermission.ViewServer)).Select(x => new ServerJson(x)));
+        return Ok(_DB.Servers.Cache.Values.Where(x => (Client.IsInstanceAdmin || x.TeamId == Client.TeamId.GetValueOrDefault()) && Client.HasServerPermission(Team, x, ServerPermission.ViewServer)).Select(x => new ServerJson(x)));
     }
 
     [HttpGet("/api/servers/{serverId?}")]

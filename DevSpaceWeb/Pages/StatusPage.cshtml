@@ -1,0 +1,165 @@
+﻿@page "/status"
+@using DevSpaceWeb.Data
+@using Microsoft.Extensions.Diagnostics.HealthChecks
+@model DevSpaceWeb.Pages.StatusPageModel
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Status Page</title>
+</head>
+<body>
+    <div class="box">
+        <div class="box-brand">
+            <img src="@(_Data.Config.Instance.GetIconOrDefault())" />
+            <h2>Dev Space</h2>
+        </div>
+        
+        <h2>Status Page</h2>
+        <p>Uptime of all Dev Space services.</p>
+
+        @switch (Model.Report.Status)
+        {
+            case HealthStatus.Healthy:
+                <div class="box-main online-status">
+                    <h3>All Systems Online!</h3>
+                </div>
+                break;
+            case HealthStatus.Unhealthy:
+                <div class="box-main warning-status">
+                    <h3>Some Services Offline!</h3>
+                </div>
+                break;
+            case HealthStatus.Degraded:
+                <div class="box-main down-status">
+                    <h3>Major Services Offline!</h3>
+                </div>
+                break;
+        }
+
+        @foreach (var e in Model.Report.Entries)
+        {
+            <div class="box-status">
+                @switch (e.Value.Status)
+                {
+                    case HealthStatus.Healthy:
+                        <div class="box-uptime online-status">
+                            <h4>Online</h4>
+                        </div>
+                        break;
+                    case HealthStatus.Unhealthy:
+                        <div class="box-uptime warning-status">
+                            <h4>Issues</h4>
+                        </div>
+                        break;
+                    case HealthStatus.Degraded:
+                        <div class="box-uptime down-status">
+                            <h4>Down</h4>
+                        </div>
+                        break;
+                }
+
+                <div class="box-status-title">
+                    <h4>@e.Key</h4>
+                    <p>@(e.Value.Description ?? "​")</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <style>
+        html {
+            background-color: #181818;
+            height: 100vh !important;
+            color: #eaebec;
+        }
+
+        .box {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            padding-left: 16px;
+            padding-right: 16px;
+            background-color: #212121 !important;
+            border: 1px solid rgba(47,48,49,0.8) !important;
+            padding-bottom: 12px;
+            border-radius: 8px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .box-status {
+            background-color: #272727 !important;
+        }
+
+        html {
+            line-height: 20px;
+        }
+
+        .box-brand {
+            text-align: center;
+        }
+
+            .box-brand h2 {
+                display: inline-block;
+            }
+
+        .box-main {
+            border-radius: 2px;
+            padding: 1px;
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        .box-status {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding-left: 10px;
+            padding-right: 10px;
+            border-radius: 8px;
+        }
+
+        .box-uptime {
+            border-radius: 8px;
+            float: left;
+            margin-top: 24px;
+            padding: 6px;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .box-status-title {
+            margin-left: 20px;
+            display: inline-block;
+            line-height: 10px;
+        }
+
+        .box-uptime h4 {
+            margin: 0px;
+        }
+
+        .online-status {
+            background-color: #008470;
+            color: #008470;
+        }
+
+        .warning-status {
+            background-color: #d6920e;
+            color: #d6920e;
+        }
+
+        .down-status {
+            background-color: #b90d41;
+            color: #b90d41;
+        }
+
+        .box-main h3, .box-uptime h4 {
+            color: #eaebec !important;
+        }
+    </style>
+</body>
+</html>
+
+
+@{
+}

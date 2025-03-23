@@ -28,7 +28,7 @@ public class ConsoleController : APIController
         if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
             return BadRequest("Could not find team.");
 
-        return Ok(_DB.Consoles.Cache.Values.Where(x => (Client.IsInstanceAdmin || x.TeamId == Client.TeamId.GetValueOrDefault()) && Client.HasConsolePermission(x, ConsolePermission.ViewConsole)).Select(x => new ConsoleJson(x)));
+        return Ok(_DB.Consoles.Cache.Values.Where(x => (Client.IsInstanceAdmin || x.TeamId == Client.TeamId.GetValueOrDefault()) && Client.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)).Select(x => new ConsoleJson(x)));
     }
 
     [HttpGet("/api/consoles/{consoleId?}")]
@@ -119,7 +119,7 @@ public class ConsoleController : APIController
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
             return BadRequest("Rcon connection is unavailable or server is offline.");
 
-        bool ShowIp = Client.HasConsolePermission(server, ConsolePermission.ViewIPs);
+        bool ShowIp = Client.HasConsolePermission(server.Team, server, ConsolePermission.ViewIPs);
 
         var Players = rcon.GetPlayers();
         return Ok(Players.Select(x => new ConsolePlayerJson(x, ShowIp)));
@@ -583,7 +583,7 @@ public class ConsoleController : APIController
         if (!_Data.BattleyeRcons.TryGetValue(server.Id, out var rcon) || !rcon.IsConnected)
             return BadRequest("Rcon connection is unavailable or server is offline.");
 
-        bool ShowIp = Client.HasConsolePermission(server, ConsolePermission.ViewIPs);
+        bool ShowIp = Client.HasConsolePermission(server.Team, server, ConsolePermission.ViewIPs);
 
         var Admins = rcon.GetAdmins();
         return Ok(Admins.Select(x => new ConsoleAdminJson(x, ShowIp)));

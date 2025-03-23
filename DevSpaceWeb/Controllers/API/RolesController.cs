@@ -29,7 +29,7 @@ public class RolesController : APIController
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out var perm))
             return PermissionFailed(perm);
 
-        bool HasViewPerms = Client.HasTeamPermission(TeamPermission.ViewPermissions);
+        bool HasViewPerms = Client.HasTeamPermission(Team, TeamPermission.ViewPermissions);
 
         return Ok(Team.CachedRoles.Values.Select(x => new RoleJson(x, HasViewPerms)).OrderBy(x => x.position));
     }
@@ -45,7 +45,7 @@ public class RolesController : APIController
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out var perm))
             return PermissionFailed(perm);
 
-        bool HasViewPerms = Client.HasTeamPermission(TeamPermission.ViewPermissions);
+        bool HasViewPerms = Client.HasTeamPermission(Role.Team, TeamPermission.ViewPermissions);
 
         return Ok(new RoleJson(Role, HasViewPerms));
     }

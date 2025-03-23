@@ -39,7 +39,14 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Member" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Body2">Builderb</RadzenText>
+                        @if (_DB.Users.TryGetValue(context.ActionUserId.GetValueOrDefault(), out var user))
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2">@user.UserName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="User" IsPill="true" class="ml-1" /></RadzenText>
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2">Unknown</RadzenText>
+                        }
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Category" Property="@nameof(AuditLog.CategoryType)" Width="120px"

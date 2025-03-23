@@ -32,7 +32,7 @@ public class MembersController : APIController
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out var perm))
             return PermissionFailed(perm);
 
-        bool ViewPerms = Client.HasTeamPermission(TeamPermission.ViewPermissions);
+        bool ViewPerms = Client.HasTeamPermission(Team, TeamPermission.ViewPermissions);
 
         return Ok(Team.CachedMembers.Values.Select(x => new MemberJson(x, ViewPerms)));
     }
@@ -54,7 +54,7 @@ public class MembersController : APIController
 
 
 
-        return Ok(new MemberJson(member, Client.HasTeamPermission(TeamPermission.ViewPermissions)));
+        return Ok(new MemberJson(member, Client.HasTeamPermission(Team, TeamPermission.ViewPermissions)));
     }
 
     [HttpPatch("/api/teams/{teamId}/members/{userId?}/enable")]

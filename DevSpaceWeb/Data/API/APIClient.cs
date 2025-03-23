@@ -45,6 +45,9 @@ public class APIClient
 
     public bool HasAccess(TeamMemberData member)
     {
+        if (TeamId != member.TeamId)
+            return false;
+
         if (OwnerId == member.UserId && member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs))
             return true;
 
@@ -55,6 +58,9 @@ public class APIClient
 
     public bool CanGenerate(TeamMemberData member)
     {
+        if (TeamId != member.TeamId)
+            return false;
+
         if (member.HasAPIPermission(Team, APIPermission.ManageOwnAPIs) && OwnerId == member.UserId)
             return true;
 
@@ -66,20 +72,23 @@ public class APIClient
 
     public bool CanManage(TeamMemberData member)
     {
+        if (TeamId != member.TeamId)
+            return false;
+
         if (member.HasAPIPermission(Team, APIPermission.ManageOwnAPIs) && OwnerId == member.UserId)
             return true;
+
         if (member.HasAPIPermission(Team, APIPermission.APIAdministrator))
             return true;
         return false;
     }
 
-    public bool HasTeamPermission(TeamPermission checkPermission)
+    public bool HasTeamPermission(TeamData? SelectedTeam, TeamPermission checkPermission)
     {
-        if (IsInstanceAdmin)
-            return true;
-
-        TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
+            return false;
+
+        if (TeamId != SelectedTeam.Id)
             return false;
 
         if (UseCustomPermissions)
@@ -99,13 +108,12 @@ public class APIClient
         return false;
     }
 
-    public bool HasAPIPermission(APIPermission checkPermission)
+    public bool HasAPIPermission(TeamData? SelectedTeam, APIPermission checkPermission)
     {
-        if (IsInstanceAdmin)
-            return true;
-
-        TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
+            return false;
+
+        if (TeamId != SelectedTeam.Id)
             return false;
 
         if (CustomPermissions != null)
@@ -125,13 +133,12 @@ public class APIClient
         return false;
     }
 
-    public bool HasLogPermission(LogData log, LogPermission checkPermission)
+    public bool HasLogPermission(TeamData? SelectedTeam, LogData log, LogPermission checkPermission)
     {
-        if (IsInstanceAdmin)
-            return true;
-
-        TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
+            return false;
+
+        if (TeamId != SelectedTeam.Id)
             return false;
 
         if (log != null && log.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasLogPermission(checkPermission))
@@ -157,13 +164,12 @@ public class APIClient
         return false;
     }
 
-    public bool HasProjectPermission(ProjectData project, ProjectPermission checkPermission)
+    public bool HasProjectPermission(TeamData? SelectedTeam, ProjectData project, ProjectPermission checkPermission)
     {
-        if (IsInstanceAdmin)
-            return true;
-
-        TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
+            return false;
+
+        if (TeamId != SelectedTeam.Id)
             return false;
 
         if (project != null && project.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasProjectPermission(checkPermission))
@@ -185,13 +191,12 @@ public class APIClient
         return false;
     }
 
-    public bool HasServerPermission(ServerData server, ServerPermission checkPermission)
+    public bool HasServerPermission(TeamData? SelectedTeam, ServerData server, ServerPermission checkPermission)
     {
-        if (IsInstanceAdmin)
-            return true;
-
-        TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
+            return false;
+
+        if (TeamId != SelectedTeam.Id)
             return false;
 
         if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasServerPermission(checkPermission))
@@ -216,13 +221,12 @@ public class APIClient
         return false;
     }
 
-    public bool HasConsolePermission(ConsoleData console, ConsolePermission checkPermission)
+    public bool HasConsolePermission(TeamData? SelectedTeam, ConsoleData console, ConsolePermission checkPermission)
     {
-        if (IsInstanceAdmin)
-            return true;
-
-        TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
+            return false;
+
+        if (TeamId != SelectedTeam.Id)
             return false;
 
         if (console != null && console.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasConsolePermission(checkPermission))
@@ -249,13 +253,12 @@ public class APIClient
         return false;
     }
 
-    public bool HasWebsitePermission(WebsiteData website, WebsitePermission checkPermission)
+    public bool HasWebsitePermission(TeamData? SelectedTeam, WebsiteData website, WebsitePermission checkPermission)
     {
-        if (IsInstanceAdmin)
-            return true;
-
-        TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
+            return false;
+
+        if (TeamId != SelectedTeam.Id)
             return false;
 
         if (website != null && website.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasWebsitePermission(checkPermission))
@@ -278,13 +281,12 @@ public class APIClient
         return false;
     }
 
-    public bool HasDockerPermission(ServerData server, DockerPermission checkPermission)
+    public bool HasDockerPermission(TeamData? SelectedTeam, ServerData server, DockerPermission checkPermission)
     {
-        if (IsInstanceAdmin)
-            return true;
-
-        TeamData? SelectedTeam = Team;
         if (SelectedTeam == null)
+            return false;
+
+        if (TeamId != SelectedTeam.Id)
             return false;
 
         if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasDockerPermission(checkPermission))
@@ -307,6 +309,36 @@ public class APIClient
 
         return false;
     }
+
+    public bool HasDockerContainerPermission(TeamData? SelectedTeam, ServerData server, DockerContainerPermission checkPermission)
+    {
+        if (SelectedTeam == null)
+            return false;
+
+        if (TeamId != SelectedTeam.Id)
+            return false;
+
+        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasDockerContainerPermission(checkPermission))
+            return true;
+
+
+        if (CustomPermissions != null)
+        {
+            if (CustomPermissions.HasDockerContainerPermission(checkPermission))
+                return true;
+        }
+        else
+        {
+            if (SelectedTeam.DefaultPermissions.HasDockerContainerPermission(checkPermission))
+                return true;
+
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+                return member.HasDockerContainerPermission(Team, server, checkPermission);
+        }
+
+        return false;
+    }
+
 
     public async Task UpdateAsync(UpdateDefinition<APIClient> update, Action action)
     {

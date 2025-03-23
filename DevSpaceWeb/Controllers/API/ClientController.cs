@@ -28,10 +28,10 @@ public class ClientController : APIController
         if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
             return BadRequest("Could not find team.");
 
-        if (!Client.HasAPIPermission(APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(APIPermission.ViewAllAPIs))
+        if (!Client.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(Team, APIPermission.ViewAllAPIs))
             return PermissionFailed(APIPermission.ViewOwnAPIs);
 
-        return Ok(_DB.API.Cache.Values.Where(x => x.TeamId.ToString() == teamId && (Client.HasAPIPermission(APIPermission.ViewAllAPIs) || Client.OwnerId == x.OwnerId)).Select(x => new ClientJson(x)));
+        return Ok(_DB.API.Cache.Values.Where(x => x.TeamId.ToString() == teamId && (Client.HasAPIPermission(Team, APIPermission.ViewAllAPIs) || Client.OwnerId == x.OwnerId)).Select(x => new ClientJson(x)));
     }
 
     [HttpGet("/api/clients/{clientId}")]
@@ -40,19 +40,21 @@ public class ClientController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetClient([FromRoute] string clientId = "")
     {
-        if (!Client.HasAPIPermission(APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(APIPermission.ViewAllAPIs))
+        if (!_DB.Teams.Cache.TryGetValue(Client.TeamId.Value, out Data.Teams.TeamData? Team))
+            return BadRequest("Could not find team.");
+
+        if (!Client.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(Team, APIPermission.ViewAllAPIs))
             return PermissionFailed(APIPermission.ViewOwnAPIs);
 
         if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out var client))
             return BadRequest("Could not find client.");
 
-        if (client.TeamId.HasValue && !_DB.Teams.Cache.TryGetValue(client.TeamId.Value, out Data.Teams.TeamData? Team))
-            return BadRequest("Could not find team.");
+
 
         if (!Client.IsInstanceAdmin && Client.TeamId != client.TeamId)
             return BadRequest("Could not find client.");
 
-        if (client.Id != obj && !(Client.HasAPIPermission(APIPermission.ViewAllAPIs) || Client.OwnerId == client.OwnerId))
+        if (client.Id != obj && !(Client.HasAPIPermission(Team, APIPermission.ViewAllAPIs) || Client.OwnerId == client.OwnerId))
             return BadRequest("Could not find client.");
 
         return Ok(new ClientJson(client));
@@ -77,7 +79,7 @@ public class ClientController : APIController
         if (!_DB.Teams.Cache.TryGetValue(Client.TeamId.Value, out var team))
             return NotFound("Could not find team for the client.");
 
-        return Ok(new TeamJson(team, Client.HasTeamPermission(TeamPermission.ViewPermissions)));
+        return Ok(new TeamJson(team, Client.HasTeamPermission(team, TeamPermission.ViewPermissions)));
     }
 
     [HttpGet("/api/clients/@me/owner")]
