@@ -91,39 +91,30 @@ public static class ServiceBuilder
             {
                 ControllerActionDescriptor actionDescriptor = (ControllerActionDescriptor)description.ActionDescriptor;
 
-                if (actionDescriptor.ControllerTypeInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any()
-                       || actionDescriptor.MethodInfo.GetCustomAttributes<ShowInSwaggerAttribute>().Any())
+                if (actionDescriptor.ControllerTypeInfo.GetCustomAttribute<ShowInSwaggerAttribute>() != null
+                       || actionDescriptor.MethodInfo.GetCustomAttribute<ShowInSwaggerAttribute>() != null)
                 {
-                    bool RequireInstanceAdmin = actionDescriptor.ControllerTypeInfo.GetCustomAttributes<RequireInstanceAdmin>().Any()
-                       || actionDescriptor.MethodInfo.GetCustomAttributes<RequireInstanceAdmin>().Any();
-
-                    if (_ == "instance")
-                        return RequireInstanceAdmin;
-                    else
-                        return !RequireInstanceAdmin;
+                    return true;
                 }
 
                 return false;
             });
-            c.SwaggerDoc("client", new OpenApiInfo
+            OpenApiInfo Info = new OpenApiInfo
             {
                 Title = "Dev Space API",
                 Version = "v1",
                 Description = "API server for this Dev Space instance.",
                 //TermsOfService = new Uri("https://fluxpoint.dev/terms"),
-                //Contact = new OpenApiContact
-                //{
-                //    Email = "support@fluxpoint.dev",
-                //    Name = "Fluxpoint Support",
-                //    Url = new Uri("https://discord.gg/fluxpoint")
-                //}
-            });
-            c.SwaggerDoc("instance", new OpenApiInfo
+            };
+            if (!string.IsNullOrEmpty(_Data.Config.Instance.Email))
             {
-                Title = "Dev Space Instance API",
-                Version = "v1",
-                Description = "These endpoints are only available for the instance admin"
-            });
+                Info.Contact = new OpenApiContact
+                {
+                    Email = _Data.Config.Instance.Email,
+                    Name = "Support Email"
+                };
+            }
+            c.SwaggerDoc("client", Info);
 
             c.AddServer(new OpenApiServer
             {
@@ -142,14 +133,12 @@ public static class ServiceBuilder
                 {
                     new OpenApiSecurityScheme
                     {
-                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "key" },
-
+                        Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "key" }
                     },
                     new string[] {  }
                 }
             });
             c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-
 
             c.OperationFilter<SwaggerCheckAuthFilter>();
         });

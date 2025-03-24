@@ -11,21 +11,19 @@ using System.Data;
 namespace DevSpaceWeb.Controllers.API;
 
 [ShowInSwagger]
+[SwaggerTag("Requires permission View Servers")]
 [IsAuthenticated]
 [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized", typeof(ResponseUnauthorized))]
 [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
 [SwaggerResponse(StatusCodes.Status400BadRequest, "Bad Request", typeof(ResponseBadRequest))]
 public class ServersController : APIController
 {
-    [HttpGet("/api/teams/{teamId?}/servers")]
+    [HttpGet("/api/servers")]
     [SwaggerOperation("Get a list of servers.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ServerJson[]>))]
-    public async Task<IActionResult> GetServers([FromRoute] string teamId = "")
+    public async Task<IActionResult> GetServers()
     {
-        if (string.IsNullOrEmpty(teamId) || !ObjectId.TryParse(teamId, out ObjectId obj) || !_DB.Teams.Cache.TryGetValue(obj, out Data.Teams.TeamData? Team))
-            return NotFound("Could not find team.");
-
-        return Ok(_DB.Servers.Cache.Values.Where(x => (Client.IsInstanceAdmin || x.TeamId == Client.TeamId.GetValueOrDefault()) && Client.HasServerPermission(Team, x, ServerPermission.ViewServer)).Select(x => new ServerJson(x)));
+        return Ok(_DB.Servers.Cache.Values.Where(x => (x.TeamId == Client.TeamId) && Client.HasServerPermission(CurrentTeam, x, ServerPermission.ViewServer)).Select(x => new ServerJson(x)));
     }
 
     [HttpGet("/api/servers/{serverId?}")]
@@ -34,7 +32,7 @@ public class ServersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetServer([FromRoute] string serverId = "")
     {
-        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(Client.IsInstanceAdmin || server.TeamId == Client.TeamId.GetValueOrDefault()))
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
 
         if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))

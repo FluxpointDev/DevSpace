@@ -243,25 +243,25 @@ public class Program
                 Logger.LogMessage("Swagger UI Enabled", LogSeverity.Info);
                 app.UseSwaggerUI(c =>
                 {
-                    c.ShowCommonExtensions();
-                    c.DocumentTitle = "Dev Space Endpoints";
-                    c.SupportedSubmitMethods(SubmitMethod.Get, SubmitMethod.Post);
+                    c.DocumentTitle = "Dev Space API";
                     c.ConfigObject = new ConfigObject
                     {
                         Urls = new List<UrlDescriptor>
                         {
-                            new UrlDescriptor() { Url = "/swagger/client/swagger.json", Name = "Client API" },
-                            new UrlDescriptor() { Url = "/swagger/instance/swagger.json", Name = "Instance API" },
+                            new UrlDescriptor() { Url = "/swagger/client/swagger.json", Name = "Client API" }
                         },
-                        //DefaultModelExpandDepth = 2,
                         DefaultModelRendering = ModelRendering.Example,
                         DefaultModelsExpandDepth = -1,
-                        DisplayOperationId = false
+                        Filter = ""
                     };
-                    //c.EnableFilter();
+                    c.JsonSerializerOptions = new System.Text.Json.JsonSerializerOptions
+                    {
+                        IncludeFields = true
+                    };
                 });
+                app.MapSwagger();
             }
-            app.MapSwagger();
+
         }
 
         //new InfoTest().Run();

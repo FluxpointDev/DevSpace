@@ -12,7 +12,7 @@ public class MemberJson
         team_id = data.TeamId.ToString();
         joined_at = data.JoinedAt;
         is_disabled = data.Disabled != null;
-        roles = data.Roles.Select(x => x.ToString()).ToArray();
+        roles = data.GetCachedRoles().Select(x => new RoleJson(x, viewPerms)).ToArray();
         nickname = data.NickName;
         if (viewPerms)
             permissions = data.CalculatePermissions(null);
@@ -22,7 +22,7 @@ public class MemberJson
     public string user_id { get; set; }
     public string team_id { get; set; }
     public bool is_disabled { get; set; }
-    public string[] roles { get; set; }
+    public RoleJson[] roles { get; set; }
     public string? nickname { get; set; }
     public PermissionsSet? permissions { get; set; }
     public DateTime joined_at { get; set; }

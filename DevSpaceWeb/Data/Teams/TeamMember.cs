@@ -114,23 +114,10 @@ public class TeamMemberData
         if (CurrentTeam.OwnerId == UserId)
             return true;
 
-        if (CurrentTeam.DefaultPermissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
+        if (HasTeamPermission(CurrentTeam, TeamPermission.GlobalAdministrator))
             return true;
 
-        var Permissions = new PermissionsSet
-        {
-            TeamPermissions = CurrentTeam.DefaultPermissions.TeamPermissions,
-        };
-
-        foreach (var i in Roles)
-        {
-            if (CurrentTeam.CachedRoles.TryGetValue(i, out var role))
-            {
-                Permissions.TeamPermissions |= role.Permissions.TeamPermissions;
-            }
-        }
-
-        return Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator);
+        return false;
     }
 
     public bool HasTeamPermission(TeamData team, TeamPermission checkPermission)

@@ -74,7 +74,7 @@
                     <Popup @ref="@ApiPopup" Lazy="true" class="permission-popup">
                         <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
                             <RadzenListBox TValue="APIClient" ValueChanged="@((el) => {  AddOverride(el); })" AllowVirtualization="true"
-                            AllowFiltering="true" Data="@_DB.API.Cache.Values.Where(x => x.HasAccess(Member) && !ApiOverrides.Any(y => y.ObjectId.GetValueOrDefault() == x.Id))" Style="width: 100%; height: 100%"
+                            AllowFiltering="true" Data="@_DB.API.Cache.Values.Where(x => x.HasAccess(Member, false) && !ApiOverrides.Any(y => y.ObjectId.GetValueOrDefault() == x.Id))" Style="width: 100%; height: 100%"
                             InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select api client" }})" Disabled="@(UnsavedPermissions || IsDisabled)">
                                 <Template>
                                     @((context as APIClient).Name)
@@ -377,7 +377,7 @@
                     break;
                 case OverrideType.APIs:
                     {
-                        if (SelectedPermission != null && _DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out var client) && client.CanManage(Member))
+                        if (SelectedPermission != null && _DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out var client) && client.CanManage(Member, false))
                             Resource.AddApiPermissionAsync(SelectedPermission.ObjectId.Value, perms);
                     }
                     break;
@@ -424,7 +424,7 @@
                     if (data is not APIClient client)
                         return;
 
-                    if (client.CanManage(Member))
+                    if (client.CanManage(Member, false))
                         Resource.AddApiPermissionAsync(client.Id, new PermissionsSet());
 
                     await ApiPopup.CloseAsync();
@@ -516,7 +516,7 @@
 
                     if (_DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out var api))
                     {
-                        if (api.HasAccess(Member))
+                        if (api.HasAccess(Member, false))
                             return true;
                     }
                     else

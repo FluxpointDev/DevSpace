@@ -3,19 +3,13 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace DevSpaceWeb.Extensions;
 
-[AttributeUsage(AttributeTargets.All, Inherited = true, AllowMultiple = false)]
-public class RequireInstanceAdmin : Attribute
-{
-
-}
-
 //[AttributeUsage(AttributeTargets.All, Inherited = true, AllowMultiple = false)]
 //public class SwaggerNoAuthAttribute : Attribute
 //{
 
 //}
 
-[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 public class ShowInSwaggerAttribute : Attribute
 {
 }

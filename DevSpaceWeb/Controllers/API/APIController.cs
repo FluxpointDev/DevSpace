@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.API;
 using DevSpaceWeb.Data.API;
+using DevSpaceWeb.Data.Teams;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
 using System.Collections;
@@ -9,6 +10,8 @@ namespace DevSpaceWeb.Controllers.API;
 public class APIController : ControllerBase
 {
     public APIClient Client = null!;
+    public TeamData CurrentTeam = null!;
+    public TeamMemberData CurrentOwner = null!;
 
     [NonAction]
     public JsonResult Ok()
@@ -91,14 +94,6 @@ public class APIController : ControllerBase
     }
 
     [NonAction]
-    public JsonResult Forbid(string error = "You do not have permission.")
-    {
-        Response.ContentType = "application/json";
-        Response.StatusCode = 403;
-        return new JsonResult(new Response(403, error));
-    }
-
-    [NonAction]
     public JsonResult Forbidden(string error = "You do not have permission.")
     {
         Response.ContentType = "application/json";
@@ -118,8 +113,8 @@ public class APIController : ControllerBase
     public JsonResult PermissionFailed(Enum flag)
     {
         Response.ContentType = "application/json";
-        Response.StatusCode = 400;
-        return new JsonResult(new Response(400, $"Client does not have {Utils.FriendlyName(flag.ToString())} permission."));
+        Response.StatusCode = 403;
+        return new JsonResult(new Response(403, $"Client does not have {Utils.FriendlyName(flag.ToString())} permission."));
     }
 
     [NonAction]

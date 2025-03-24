@@ -68,24 +68,28 @@
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lock"></span></div>
-            <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
+            <RadzenText TextStyle="TextStyle.H6">Allowed Permissions</RadzenText>
         </div>
         <br />
-        <RadzenText Text="The API client will inherit permissions from the owner user or custom permissions if set." TextStyle="TextStyle.Body2"></RadzenText>
+        <RadzenText Text="The API client will inherit permissions from the owner user but need to be allowed first." TextStyle="TextStyle.Body1"></RadzenText>
         <br />
         <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-            Only global administrators can set custom permissions.
+            Only global administrators can change permission type.
         </RadzenAlert>
+        <br />
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Permission Type</RadzenText>
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-            <RadzenSwitch Value="@Client.UseCustomPermissions" Disabled="@(!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" ValueChanged="@ToggleCustomPermissions" Name="UseCustom" />
-            <RadzenLabel Text="Use Custom Permissions" Component="UseCustom" />
-        </RadzenStack>
+        <RadzenDropDown Value="@(Client.UseCustomPermissions ? "Custom Permissions" : "Owner Permissions")" TValue="string" Data="PermissionTypes" Style="width: 100%; max-width: 400px;" Change="((arg) => ChangePermissionType(arg as string))" Disabled="@(DisableChangeType || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" />
         <br />
         <br />
+        <br />
+
         @if (Client.UseCustomPermissions)
         {
-            <PermissionGrid IsDisabled="@(!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Permissions="@Permissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions"></PermissionGrid>
+            <PermissionGrid IsDisabled="@(!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Permissions="@CustomPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
+        }
+        else
+        {
+            <PermissionGrid IsDisabled="@(!Client.CanManage(Member, false))" Permissions="@AllowedPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
         }
 
     </div>
@@ -111,15 +115,22 @@
 
     public TeamMemberData Member => Session.Selected.Member;
 
-
-
     public APIClient? Client { get; set; }
     public bool NoAccess { get; set; }
     public bool CanGenerate { get; set; }
     public bool CanManage { get; set; }
     public string OwnerUser { get; set; }
     public string? GeneratedUser { get; set; }
-    public PermissionsSet? Permissions;
+
+    public bool DisableChangeType { get; set; }
+    public PermissionsSet? AllowedPermissions;
+    public PermissionsSet? CustomPermissions;
+
+    public string[] PermissionTypes = new string[]
+    {
+        "Owner Permissions",
+        "Custom Permissions"
+    };
 
     protected override async Task OnParametersSetAsync()
     {
@@ -141,32 +152,55 @@
                 GeneratedUser = "Unknown?";
 
 
-            NoAccess = !Client.HasAccess(Member);
+            NoAccess = !Client.HasAccess(Member, false);
             CanGenerate = Client.CanGenerate(Member);
-            CanManage = Client.CanManage(Member);
-            Permissions = Client.CustomPermissions.Clone();
+            CanManage = Client.CanManage(Member, false);
+
+            LoadPermissions();
         }
+    }
+
+    public async Task ChangePermissionType(string value)
+    {
+        if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+            return;
+
+        bool UseCustomPermissions = value == "Custom Permissions";
+
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.UseCustomPermissions, UseCustomPermissions), () =>
+        {
+            Client.UseCustomPermissions = UseCustomPermissions;
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientSettingsChanged)
+                .SetTarget(Client)
+                .AddProperty("Use Custom Permissions", value.ToString()));
+        });
     }
 
     public async Task Delete()
     {
-        CanManage = Client.CanManage(Member);
+        CanManage = Client.CanManage(Member, false);
         if (!CanManage)
             return;
 
         bool Confirm = await DialogService.ShowConfirmAsync("Delete API Client", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
-            await Client.DeleteAsync(Member, () =>
+            var Result = await Client.DeleteAsync(() =>
             {
                 Client = null;
             });
+            if (Result.IsAcknowledged)
+            {
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.APIClientDeleted)
+                .SetTarget(Team)
+                .AddProperty("Name", Client.Name));
+            }
         }
     }
 
     public async Task ChangeOwner(PartialUserData user)
     {
-        CanManage = Client.CanManage(Member);
+        CanManage = Client.CanManage(Member, false);
         if (!CanManage)
             return;
 
@@ -197,39 +231,40 @@
         }
     }
 
-    public async Task ToggleCustomPermissions(bool value)
-    {
-        if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
-            return;
-
-        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.UseCustomPermissions, value), () =>
-        {
-            Client.UseCustomPermissions = value;
-            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientSettingsChanged)
-                .SetTarget(Client)
-                .AddProperty("Use Custom Permissions", value.ToString()));
-        });
-
-    }
-
     public void LoadPermissions()
     {
-        Permissions = Client.CustomPermissions.Clone();
+        AllowedPermissions = Client.AllowedPermissions.Clone();
+        CustomPermissions = Client.CustomPermissions.Clone();
     }
 
     public async Task SavePermissions(PermissionsSet perms)
     {
-        if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
-            return;
-
-        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.CustomPermissions, perms), () =>
+        if (Client.UseCustomPermissions)
         {
-            Client.CustomPermissions = perms;
-            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Permission, AuditLogEventType.APIClientPermissionsChanged)
-                .SetTarget(Client)
-                .SetPermissions(perms));
-        });
+            if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                return;
 
+            await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.CustomPermissions, perms), () =>
+            {
+                Client.CustomPermissions = perms;
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Permission, AuditLogEventType.APIClientPermissionsChanged)
+                    .SetTarget(Client)
+                    .SetPermissions(perms));
+            });
+        }
+        else
+        {
+            if (!Client.CanManage(Member, false))
+                return;
+
+            await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.AllowedPermissions, perms), () =>
+            {
+                Client.AllowedPermissions = perms;
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Permission, AuditLogEventType.APIClientPermissionsChanged)
+                    .SetTarget(Client)
+                    .SetPermissions(perms));
+            });
+        }
     }
 
     public async Task GenerateToken()
@@ -273,9 +308,10 @@
 
     public async Task ToggleClientDisable()
     {
-        CanManage = Client!.CanManage(Member);
+        CanManage = Client!.CanManage(Member, false);
         if (!CanManage)
             return;
+
         await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.IsDisabled, !Client.IsDisabled), () =>
         {
             if (Client.IsDisabled)

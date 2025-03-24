@@ -13,6 +13,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace DevSpaceWeb.Controllers.API;
 
 [ShowInSwagger]
+[SwaggerTag("Requires permission View Members")]
 [IsAuthenticated]
 [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized", typeof(ResponseUnauthorized))]
 [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
@@ -28,7 +29,7 @@ public class UsersController : APIController
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj))
             return NotFound("Could not find user.");
 
-        if (!(Client.IsInstanceAdmin || (_DB.Teams.Cache.TryGetValue(Client.TeamId.GetValueOrDefault(), out TeamData Team) && Team.Members.ContainsKey(obj))))
+        if (!((_DB.Teams.Cache.TryGetValue(Client.TeamId, out TeamData Team) && Team.Members.ContainsKey(obj))))
             return NotFound("Could not find user.");
 
         AuthUser? user = await _DB.Run.GetCollection<AuthUser>("users").Find(new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, obj)).FirstOrDefaultAsync();

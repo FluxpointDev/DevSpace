@@ -79,6 +79,32 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
-        //controller.User = User;
+        controller.CurrentTeam = controller.Client.Team!;
+
+        if (controller.CurrentTeam == null)
+        {
+            filterContext.Result = controller.CustomStatus(403, "Team has been deleted for this client.");
+            return;
+        }
+
+        if (!_DB.Users.TryGetValue(controller.Client.OwnerId, out var user))
+        {
+            filterContext.Result = controller.CustomStatus(403, "Owner has been deleted for this client.");
+            return;
+        }
+
+        controller.CurrentOwner = controller.CurrentTeam.GetMember(user!)!;
+
+        if (controller.CurrentOwner == null)
+        {
+            filterContext.Result = controller.CustomStatus(403, "Owner has been removed from the team for this client.");
+            return;
+        }
+
+        if (controller.CurrentOwner.Disabled != null)
+        {
+            filterContext.Result = controller.CustomStatus(403, "Owner has been disabled in the team for this client.");
+            return;
+        }
     }
 }

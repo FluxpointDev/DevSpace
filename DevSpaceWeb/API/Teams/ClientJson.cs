@@ -10,8 +10,7 @@ public class ClientJson
         id = data.Id.ToString();
         name = data.Name;
         owner_id = data.OwnerId.ToString();
-        if (data.TeamId.HasValue)
-            team_id = data.TeamId.Value.ToString();
+        team_id = data.TeamId.ToString();
         is_disabled = data.IsDisabled;
         created_at = data.CreatedAt;
         token_generated_at = data.GeneratedAt;
