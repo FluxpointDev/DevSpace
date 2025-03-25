@@ -14,11 +14,11 @@ public class UserJson
             avatar_url = data.GetAvatarOrDefault();
     }
 
-    public string id { get; set; }
-    public string username { get; set; }
-    public string? displayname { get; set; }
-    public string? avatar_url { get; set; }
-    public string? background_url { get; set; }
-    public bool is_managed { get; set; }
-    public DateTime created_at { get; set; }
+    public string id;
+    public string username;
+    public string? displayname;
+    public string? avatar_url;
+    public string? background_url;
+    public bool is_managed;
+    public DateTime created_at;
 }

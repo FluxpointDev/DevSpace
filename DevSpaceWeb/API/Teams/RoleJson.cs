@@ -17,11 +17,11 @@ public class RoleJson
             permissions = data.Permissions;
     }
 
-    public string id { get; set; }
-    public string team_id { get; set; }
-    public string name { get; set; }
-    public string description { get; set; }
-    public int position { get; set; }
-    public PermissionsSet? permissions { get; set; }
-    public DateTime created_at { get; set; }
+    public string id;
+    public string team_id;
+    public string name;
+    public string description;
+    public int position;
+    public PermissionsSet? permissions;
+    public DateTime created_at;
 }

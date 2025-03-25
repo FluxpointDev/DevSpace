@@ -2,6 +2,6 @@
 
 public class ConsoleMessagePlayerJson
 {
-    public string player { get; set; }
-    public string message { get; set; }
+    public string player;
+    public string message;
 }

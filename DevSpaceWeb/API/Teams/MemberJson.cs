@@ -18,12 +18,12 @@ public class MemberJson
             permissions = data.CalculatePermissions(null);
     }
 
-    public string id { get; set; }
-    public string user_id { get; set; }
-    public string team_id { get; set; }
-    public bool is_disabled { get; set; }
-    public RoleJson[] roles { get; set; }
-    public string? nickname { get; set; }
-    public PermissionsSet? permissions { get; set; }
-    public DateTime joined_at { get; set; }
+    public string id;
+    public string user_id;
+    public string team_id;
+    public bool is_disabled;
+    public RoleJson[] roles;
+    public string? nickname;
+    public PermissionsSet? permissions;
+    public DateTime joined_at;
 }

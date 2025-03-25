@@ -33,10 +33,12 @@ public static class ServiceBuilder
         // Add HTTP access
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();
-        services.AddSingleton(HealthService);
-        services.AddHealthChecks()
-            .AddCheck<DatabaseHealthCheck>("Database")
-            .AddCheck<EmailHealthCheck>("Email");
+
+        services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
+        {
+            options.JsonSerializerOptions.IncludeFields = true;
+        });
+
         services.AddMemoryCache();
         services.AddDistributedMemoryCache();
         services.AddRadzenComponents();
@@ -48,6 +50,7 @@ public static class ServiceBuilder
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
+        AddHealth(services, HealthService);
         AddFido2(services);
         AddIdentity(services);
         AddMongoDb(services);
@@ -57,6 +60,14 @@ public static class ServiceBuilder
         if (_Data.Config.Instance.Features.SwaggerEnabled)
             AddSwagger(services);
 
+    }
+
+    public static void AddHealth(IServiceCollection services, HealthCheckService health)
+    {
+        services.AddSingleton(health);
+        services.AddHealthChecks()
+            .AddCheck<DatabaseHealthCheck>("Database")
+            .AddCheck<EmailHealthCheck>("Email");
     }
 
     public static void AddIdentity(IServiceCollection services)
@@ -139,8 +150,8 @@ public static class ServiceBuilder
                 }
             });
             c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
-
             c.OperationFilter<SwaggerCheckAuthFilter>();
+            c.SchemaFilter<SwaggerFieldSchemaFilter>();
         });
     }
 

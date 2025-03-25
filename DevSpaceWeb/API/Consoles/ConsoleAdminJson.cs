@@ -11,6 +11,6 @@ public class ConsoleAdminJson
             ip = admin.Ip;
     }
 
-    public int id { get; set; }
-    public string? ip { get; set; }
+    public int id;
+    public string? ip;
 }

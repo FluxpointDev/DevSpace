@@ -115,6 +115,7 @@ public static class PermissionsData
             {
                 new PermissionItem<DockerPermission>(DockerPermission.ViewPermissions, "View Permissions", "View permissions for the containers."),
                 new PermissionItem<DockerPermission>(DockerPermission.ManagePermissions, "Manage Permissions", "Manage permissions for the containers."),
+                new PermissionItem<DockerPermission>(DockerPermission.UseAPIs, "Use APIs", $"Allows users to manage and control docker features from the API."),
                 new PermissionItem<DockerPermission>(DockerPermission.ViewImages, "View Images", "View docker images for the system."),
                 new PermissionItem<DockerPermission>(DockerPermission.ViewVolumes, "View Volumes", "View docker volumes."),
                 new PermissionItem<DockerPermission>(DockerPermission.ManageVolumes, "Manage Volumes", "Create and delete docker volumes."),

@@ -168,7 +168,15 @@ public class WebSocketClient : WssClient
         string message = JsonConvert.SerializeObject(json);
         SendTextAsync(message);
 
-        JToken result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 10), token);
+        JToken result = null!;
+        try
+        {
+            result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 10), token);
+        }
+        catch
+        {
+            return new SocketResponse<T?> { Error = ClientError.Timeout };
+        }
         WebSocket.TaskCollection.TryRemove(json.TaskId, out _);
         if (result == null)
         {

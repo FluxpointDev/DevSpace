@@ -48,6 +48,34 @@ public static class Perms
         perm = null;
         return false;
     }
+
+    public static bool CheckFailedDockerPermissions(this APIClient Client, ServerData server, DockerPermission flags, out DockerPermission? perm)
+    {
+        foreach (DockerPermission value in GetUniqueFlags(flags))
+        {
+            if (!Client.HasDockerPermission(server.Team, server, value))
+            {
+                perm = value;
+                return true;
+            }
+        }
+        perm = null;
+        return false;
+    }
+
+    public static bool CheckFailedDockerContainerPermissions(this APIClient Client, ServerData server, DockerContainerPermission flags, out DockerContainerPermission? perm)
+    {
+        foreach (DockerContainerPermission value in GetUniqueFlags(flags))
+        {
+            if (!Client.HasDockerContainerPermission(server.Team, server, value))
+            {
+                perm = value;
+                return true;
+            }
+        }
+        perm = null;
+        return false;
+    }
     public static IEnumerable<T> GetUniqueFlags<T>(T flags) where T : Enum
     {
         ulong flag = 1;

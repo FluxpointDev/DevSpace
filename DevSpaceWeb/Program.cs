@@ -173,7 +173,6 @@ public class Program
         // Add services to the container.
         ServiceBuilder.Build(builder, builder.Services);
 
-
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedPrefix | ForwardedHeaders.XForwardedProto;
@@ -200,7 +199,6 @@ public class Program
         //    //app.UseExceptionHandler("/Error");
         //}
         app.UseForwardedHeaders();
-
         // Use both wwwroot and public folder for website access :)
         app.UseStaticFiles();
         app.UseStaticFiles(new StaticFileOptions
@@ -253,10 +251,6 @@ public class Program
                         DefaultModelRendering = ModelRendering.Example,
                         DefaultModelsExpandDepth = -1,
                         Filter = ""
-                    };
-                    c.JsonSerializerOptions = new System.Text.Json.JsonSerializerOptions
-                    {
-                        IncludeFields = true
                     };
                 });
                 app.MapSwagger();

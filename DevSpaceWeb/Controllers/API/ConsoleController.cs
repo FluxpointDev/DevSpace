@@ -24,16 +24,16 @@ public class ConsoleController : APIController
     [HttpGet("/api/consoles")]
     [SwaggerOperation("Get a list of consoles.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ConsoleJson[]>))]
-    public async Task<IActionResult> GetConsoles()
+    public async Task<IActionResult> GetConsoles([FromQuery] bool showIp = false)
     {
-        return Ok(_DB.Consoles.Cache.Values.Where(x => (x.TeamId == Client.TeamId) && Client.HasConsolePermission(CurrentTeam, x, ConsolePermission.ViewConsole)).Select(x => new ConsoleJson(x)));
+        return Ok(_DB.Consoles.Cache.Values.Where(x => (x.TeamId == Client.TeamId) && Client.HasConsolePermission(CurrentTeam, x, ConsolePermission.ViewConsole)).Select(x => new ConsoleJson(x, showIp && Client.HasConsolePermission(CurrentTeam, x, ConsolePermission.ConsoleAdministrator))));
     }
 
     [HttpGet("/api/consoles/{consoleId?}")]
     [SwaggerOperation("Get a console.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ConsoleJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
-    public async Task<IActionResult> GetConsole([FromRoute] string consoleId = "")
+    public async Task<IActionResult> GetConsole([FromRoute] string consoleId = "", [FromQuery] bool showIp = false)
     {
         if (string.IsNullOrEmpty(consoleId) || !ObjectId.TryParse(consoleId, out ObjectId obj) || !_DB.Consoles.Cache.TryGetValue(obj, out Data.Consoles.ConsoleData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find console.");
@@ -41,7 +41,13 @@ public class ConsoleController : APIController
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole, out var perm))
             return PermissionFailed(perm);
 
-        return Ok(new ConsoleJson(server));
+        if (showIp)
+        {
+            if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ConsoleAdministrator, out perm))
+                return PermissionFailed(perm);
+        }
+
+        return Ok(new ConsoleJson(server, showIp));
     }
 
     [HttpGet("/api/consoles/{consoleId?}/server/players")]

@@ -5,9 +5,10 @@ namespace DevSpaceWeb.API.Consoles;
 
 public class ConsoleJson
 {
-    public ConsoleJson(ConsoleData data)
+    public ConsoleJson(ConsoleData data, bool showIp)
     {
-        ip = data.Ip;
+        if (showIp)
+            ip = data.Ip;
         port = data.Port;
         type = data.Type;
         switch (data.Type)
@@ -28,9 +29,9 @@ public class ConsoleJson
         created_at = data.CreatedAt;
     }
 
-    public string ip { get; set; }
-    public int port { get; set; }
-    public ConsoleType type { get; set; }
-    public bool is_online { get; set; }
-    public DateTime created_at { get; set; }
+    public int port;
+    public ConsoleType type;
+    public bool is_online;
+    public DateTime created_at;
+    public string ip;
 }

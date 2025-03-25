@@ -19,12 +19,12 @@ public class TeamJson
         roles = data.CachedRoles.Values.Select(x => x.Id.ToString()).ToArray();
     }
 
-    public string id { get; set; }
-    public string name { get; set; }
-    public DateTime created_at { get; set; }
-    public string owner_id { get; set; }
-    public string vanity_url { get; set; }
-    public string icon_url { get; set; }
-    public PermissionsSet? default_permissions { get; set; }
-    public string[] roles { get; set; }
+    public string id;
+    public string name;
+    public DateTime created_at;
+    public string owner_id;
+    public string vanity_url;
+    public string icon_url;
+    public PermissionsSet? default_permissions;
+    public string[] roles;
 }

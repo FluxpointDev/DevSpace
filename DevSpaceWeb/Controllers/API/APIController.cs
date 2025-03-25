@@ -114,7 +114,7 @@ public class APIController : ControllerBase
     {
         Response.ContentType = "application/json";
         Response.StatusCode = 403;
-        return new JsonResult(new Response(403, $"Client does not have {Utils.FriendlyName(flag.ToString())} permission."));
+        return new JsonResult(new Response(403, $"Client does not have permission {Utils.FriendlyName(flag.GetType().Name.Replace("Permission", ""))} - {Utils.FriendlyName(flag.ToString())}"));
     }
 
     [NonAction]

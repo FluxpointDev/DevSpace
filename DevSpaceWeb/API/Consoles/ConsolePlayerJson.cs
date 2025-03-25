@@ -17,12 +17,12 @@ public class ConsolePlayerJson
         comment = player.comment;
     }
 
-    public int number { get; set; }
-    public string? ip { get; set; }
-    public string ping { get; set; }
-    public string guid { get; set; }
-    public string name { get; set; }
-    public string status { get; set; }
-    public string location { get; set; }
-    public string comment { get; set; }
+    public int number;
+    public string? ip;
+    public string ping;
+    public string guid;
+    public string name;
+    public string status;
+    public string location;
+    public string comment;
 }
