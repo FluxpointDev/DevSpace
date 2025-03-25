@@ -42,7 +42,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/host")]
-    [SwaggerOperation("Get server system info.", "")]
+    [SwaggerOperation("Get server host details.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ServerHostJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetServerHost([FromRoute] string serverId = "")
