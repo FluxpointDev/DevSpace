@@ -171,7 +171,7 @@ public class WebSocketClient : WssClient
         JToken result = null!;
         try
         {
-            result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 10), token);
+            result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 30), token);
         }
         catch
         {

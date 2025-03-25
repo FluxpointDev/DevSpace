@@ -75,11 +75,11 @@
                     <HeaderTemplate>
                         <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
                                         Value="@(SelectedImages == null || SelectedImages?.Any() != true ? false : !ImagesList.All(i => SelectedImages.Contains(i)) ? null : ImagesList.Any(i => SelectedImages.Contains(i)))"
-                                        Change="@(args => SelectedImages = args == true ? (SelectedImages != null && SelectedImages.Any()) ? null : ImagesList.ToList() : null)" />
+                                        Change="@(args => SelectedImages = args == true ? (SelectedImages != null && SelectedImages.Any()) ? null : ImagesList.ToList() : null)" Disabled="@IsActionRunning" />
                     </HeaderTemplate>
                     <Template Context="data">
                         <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedImages != null && SelectedImages.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                                        TValue="bool" Change="@(() => grid.SelectRow(data))" />
+                                        TValue="bool" Change="@(() => grid.SelectRow(data))" Disabled="@IsActionRunning" />
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Name" Width="280px" Frozen="true">
@@ -274,17 +274,16 @@
             return;
         }
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
-                        return;
+            return;
 
         if (type == ControlImageType.Export)
         {
             Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
             return;
         }
-        var Response = await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlImage, imageType: type) { ResourceList = SelectedImages.Select(x => x.ID).ToArray() });
-        if (Response.IsSuccess)
+        foreach(var i in SelectedImages)
         {
-            await RefreshImages();
+            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, i.ID, imageType: type));
         }
         SelectedImages.Clear();
     }

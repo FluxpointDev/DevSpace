@@ -1,9 +1,14 @@
 ﻿@using DevSpaceWeb.Data.Consoles
+@inject ContextMenuService ContextMenuService
+@inject NavigationManager Nav
+
 <div class="nav-list nav-list-sub">
+    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
     <div class="nav-list-header">
-        <span class="iconify" data-icon="mdi:console"></span>
+            <span class="iconify" data-icon="mdi:console" style="color: #a5a5a5 !important;"></span>
         <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Console.Name</h5>
     </div>
+    </RadzenLink>
         <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:home"></span>
@@ -50,5 +55,28 @@
     [Parameter]
     public bool StateChange { get; set; }
 
-    public bool IsOpen { get; set; } = true;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ConsoleData Console => Session.Selected.Console;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole) },
+                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPermissions) },
+         }, OnMenuItemClick);
+
+    void OnMenuItemClick(MenuItemEventArgs arg)
+    {
+        switch (arg.Text)
+        {
+            case "Settings":
+                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Console.VanityUrl + "/settings");
+                break;
+            case "Permissions":
+                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Console.VanityUrl + "/permissions");
+                break;
+        }
+        ContextMenuService.Close();
+    }
+
+
 }

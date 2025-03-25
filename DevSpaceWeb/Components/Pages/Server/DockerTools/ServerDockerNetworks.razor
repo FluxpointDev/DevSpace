@@ -53,11 +53,11 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                                     Value="@(SelectedNetworks == null || SelectedNetworks?.Any() != true ? false : !NetworksList.All(i => SelectedNetworks.Contains(i)) ? null : NetworksList.Any(i => SelectedNetworks.Contains(i)))"
-                                    Change="@(args => SelectedNetworks = args == true ? (SelectedNetworks != null && SelectedNetworks.Any()) ? null : NetworksList.Where(x => !this.IsNetworkSystem(x)).ToList() : null)" />
+                                        Change="@(args => SelectedNetworks = args == true ? (SelectedNetworks != null && SelectedNetworks.Any()) ? null : NetworksList.Where(x => !this.IsNetworkSystem(x)).ToList() : null)" Disabled="@IsActionRunning" />
                 </HeaderTemplate>
                 <Template Context="data">
-                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedNetworks != null && SelectedNetworks.Contains(data))" Disabled="@(this.IsNetworkSystem(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                                    TValue="bool" Change="@(() => Grid.SelectRow(data))" />
+                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedNetworks != null && SelectedNetworks.Contains(data))" Disabled="@(this.IsNetworkSystem(data) || IsActionRunning)" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                                        TValue="bool" Change="@(() => Grid.SelectRow(data))" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true">
@@ -222,8 +222,10 @@
             IsActionRunning = true;
             await InvokeAsync(StateHasChanged);
 
-            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, networkType: type) { ResourceList = SelectedNetworks.Select(x => x.Id).ToArray() });
-        
+            foreach(var i in SelectedNetworks)
+            {
+                await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, i.Id, networkType: type));
+            }
             IsActionRunning = false;
             SelectedNetworks.Clear();
             await InvokeAsync(RefreshNetworks);

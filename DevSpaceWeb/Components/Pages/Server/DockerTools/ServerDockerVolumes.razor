@@ -51,16 +51,24 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                                     Value="@(SelectedVolumes == null || SelectedVolumes?.Any() != true ? false : !VolumesList.All(i => SelectedVolumes.Contains(i)) ? null : VolumesList.Any(i => SelectedVolumes.Contains(i)))"
-                                    Change="@(args => SelectedVolumes = args == true ? (SelectedVolumes != null && SelectedVolumes.Any()) ? null : VolumesList.ToList() : null)" />
+                                        Change="@(args => SelectedVolumes = args == true ? (SelectedVolumes != null && SelectedVolumes.Any()) ? null : VolumesList.ToList() : null)" Disabled="@IsActionRunning" />
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedVolumes != null && SelectedVolumes.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                                    TValue="bool" Change="@(() => Grid.SelectRow(data))" />
+                                        TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsActionRunning" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true">
                 <Template>
-                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                    @if (context.Containers != null && context.Containers.Any() && context.Containers.First().Value == "registry")
+                    {
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + context.Name)">docker_registry</RadzenLink>
+                    }
+                    else
+                    {
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                    }
+                        
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Status" Width="140px">
@@ -209,8 +217,10 @@
             IsActionRunning = true;
             await InvokeAsync(StateHasChanged);
 
-            await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlVolume, volumeType: type) { ResourceList = SelectedVolumes.Select(x => x.Name).ToArray() });
-
+            foreach(var i in SelectedVolumes)
+            {
+                await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, i.Name, volumeType: type));
+            }
             IsActionRunning = false;
             SelectedVolumes.Clear();
             await InvokeAsync(RefreshVolume);
@@ -253,7 +263,7 @@
 
                         IsActionRunning = true;
                         await InvokeAsync(StateHasChanged);
-                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, volumeType: ControlVolumeType.Remove) { ResourceList = new string[] { item.Name } }, (response) =>
+                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, item.Name, volumeType: ControlVolumeType.Remove), (response) =>
                         {
                             
                         });

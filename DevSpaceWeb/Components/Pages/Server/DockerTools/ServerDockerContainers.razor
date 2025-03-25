@@ -57,11 +57,11 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                                     Value="@(SelectedContainers == null || SelectedContainers?.Any() != true ? false : !ContainersList.All(i => SelectedContainers.Contains(i)) ? null : ContainersList.Any(i => SelectedContainers.Contains(i)))"
-                                    Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList.ToList() : null)" />
+                                    Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList.ToList() : null)" Disabled="@IsActionRunning" />
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedContainers != null && SelectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                                    TValue="bool" Change="@(() => Grid.SelectRow(data))" />
+                                        TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsActionRunning" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true">
@@ -278,6 +278,7 @@
                 new ContextMenuItem(){ Text = "Kill", Value = "kill", Icon = "bolt", IconColor = Colors.InfoDark, Disabled = IsActionRunning || !CanControlContainer },
                 new ContextMenuItem(){ Text = "Pause", Value = "pause", Icon = "pause", IconColor = Colors.InfoDark, Disabled = IsActionRunning || !CanControlContainer },
                 new ContextMenuItem(){ Text = "Resume", Value = "resume", Icon = "play_arrow", IconColor = Colors.InfoDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem() { Text = "Remove", Value = "remove", Icon = "delete", IconColor = Colors.Danger, Disabled = IsActionRunning || !CanManageContainer }
                                  }, x => MenuItemClick(x, item));
     }
 
@@ -292,7 +293,7 @@
                 new ContextMenuItem(){ Text = "Logs", Value = "logs", Icon = "description", Disabled = !CanViewLogs },
                 new ContextMenuItem(){ Text = "Stats", Value = "stats", Icon = "bar_chart_4_bars", Disabled = !CanViewStats },
                 new ContextMenuItem(){ Text = "Changes", Value = "changes", Icon = "topic", Disabled = !CanViewChanges },
-                new ContextMenuItem(){ Text = "Inspect", Value = "inspect", Icon = "info", Disabled = !CanInspect },
+                new ContextMenuItem(){ Text = "Inspect", Value = "inspect", Icon = "info", Disabled = !CanInspect }
                                              }, x => MenuItemClick(x, item));
     }
 
@@ -398,6 +399,16 @@
 
                     Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + item.Id + "/changes");
                     break;
+                case "remove":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Remove));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
+                    break;
             }
         });
 
@@ -427,7 +438,11 @@
         {
             IsActionRunning = true;
             await InvokeAsync(StateHasChanged);
-            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, null, type) { ResourceList = SelectedContainers.Select(x => x.Id).ToArray() });
+            foreach (var i in SelectedContainers)
+            {
+                await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, i.Id, type));
+            }
+
             IsActionRunning = false;
             SelectedContainers.Clear();
             await InvokeAsync(RefreshContainers);

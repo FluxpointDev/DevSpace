@@ -55,11 +55,11 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                                     Value="@(SelectedStacks == null || SelectedStacks?.Any() != true ? false : !StacksList.All(i => SelectedStacks.Contains(i)) ? null : StacksList.Any(i => SelectedStacks.Contains(i)))"
-                                    Change="@(args => SelectedStacks = args == true ? (SelectedStacks != null && SelectedStacks.Any()) ? null : StacksList.ToList() : null)" />
+                                        Change="@(args => SelectedStacks = args == true ? (SelectedStacks != null && SelectedStacks.Any()) ? null : StacksList.ToList() : null)" Disabled="@IsActionRunning" />
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedStacks != null && SelectedStacks.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                                    TValue="bool" Change="@(() => Grid.SelectRow(data))" />
+                                        TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsActionRunning" />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true">
@@ -245,7 +245,10 @@
         {
             IsActionRunning = true;
             await InvokeAsync(StateHasChanged);
-            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, stackType: type) { ResourceList = SelectedStacks.Where(x => x.ControlType == DockerStackControl.Full).Select(x => x.Id).ToArray() });
+            foreach(var i in SelectedStacks)
+            {
+                await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, i.Id, stackType: type));                
+            }
             IsActionRunning = false;
             SelectedStacks.Clear();
             await InvokeAsync(RefreshStacks);
