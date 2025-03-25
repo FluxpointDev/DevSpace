@@ -69,6 +69,8 @@ public class Program
 
     public static DockerClient InternalDocker;
 
+    public static bool LimitMode = false;
+
     public static async Task Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -99,11 +101,14 @@ public class Program
 
         Logger.LogMessage("Loaded config in: " + Program.Directory.Path, LogSeverity.Info);
 
-
+        // Guid support for mongodb
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.CSharpLegacy));
 
-        // Rcon support
-        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+        if (!LimitMode)
+        {
+            // Rcon support
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+        }
 
         Logger.LogMessage("Running connection test...", LogSeverity.Info);
 
@@ -182,7 +187,10 @@ public class Program
         });
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
-        builder.Services.AddRazorPages();
+
+        if (!LimitMode)
+            builder.Services.AddRazorPages();
+
         builder.Services.AddControllers(opt =>
         {
             opt.RequireHttpsPermanent = true;
@@ -199,6 +207,7 @@ public class Program
         //    //app.UseExceptionHandler("/Error");
         //}
         app.UseForwardedHeaders();
+
         // Use both wwwroot and public folder for website access :)
         app.UseStaticFiles();
         app.UseStaticFiles(new StaticFileOptions
@@ -261,7 +270,9 @@ public class Program
         //new InfoTest().Run();
         app.MapRazorComponents<Components.App>()
             .AddInteractiveServerRenderMode();
-        app.MapRazorPages();
+        if (!LimitMode)
+            app.MapRazorPages();
+
         app.MapControllers();
         app.Run();
     }

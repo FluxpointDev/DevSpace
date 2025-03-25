@@ -315,6 +315,9 @@ public static class _DB
 
         Task TemplateTask = Task.Run(async () =>
         {
+            if (Program.LimitMode)
+                return;
+
             try
             {
                 await EmailTemplates.Find(Builders<EmailTemplateData>.Filter.Empty).ForEachAsync(x =>
@@ -333,6 +336,9 @@ public static class _DB
 
         Task LogTask = Task.Run(async () =>
         {
+            if (Program.LimitMode)
+                return;
+
             try
             {
                 await Logs.Find(Builders<LogData>.Filter.Empty).ForEachAsync(x =>
@@ -372,6 +378,8 @@ public static class _DB
 
         Task WebsiteTask = Task.Run(async () =>
         {
+            if (Program.LimitMode)
+                return;
             try
             {
                 await Websites.Find(Builders<WebsiteData>.Filter.Empty).ForEachAsync(x =>
@@ -390,6 +398,8 @@ public static class _DB
 
         Task ProjectTask = Task.Run(async () =>
         {
+            if (Program.LimitMode)
+                return;
             try
             {
                 await Projects.Find(Builders<ProjectData>.Filter.Empty).ForEachAsync(x =>
@@ -408,6 +418,8 @@ public static class _DB
 
         Task ConsoleTask = Task.Run(async () =>
         {
+            if (Program.LimitMode)
+                return;
             try
             {
                 await Consoles.Find(Builders<ConsoleData>.Filter.Empty).ForEachAsync(x =>
