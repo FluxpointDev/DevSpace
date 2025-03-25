@@ -251,11 +251,11 @@ public class DockerController : APIController
         return Ok();
     }
 
-    [HttpPatch("/api/servers/{serverId?}/containers/{containerId?}/logs")]
+    [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/logs")]
     [SwaggerOperation("Get server container logs.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
-    public async Task<IActionResult> ContainerLogs([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery] int limit = 100, [FromQuery] bool showTimestamp = false)
+    public async Task<IActionResult> ContainerLogs([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery] int limit = 100, [FromQuery] bool split = false, [FromQuery] bool showTimestamp = false)
     {
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
@@ -289,10 +289,13 @@ public class DockerController : APIController
         if (!Response.IsSuccess)
             return Conflict("Failed to get container logs, " + Response.Message);
 
-        return Ok(Response.Data.Logs.Split(
-                new string[] { "\r\n", "\r", "\n" },
-                StringSplitOptions.RemoveEmptyEntries
-            ));
+        if (split)
+            return Ok(Response.Data.Logs.Split(
+                    new string[] { "\r\n", "\r", "\n" },
+                    StringSplitOptions.RemoveEmptyEntries
+                ));
+        else
+            return Ok(new[] { Response.Data.Logs });
     }
 
     [HttpDelete("/api/servers/{serverId?}/containers/{containerId?}/remove")]

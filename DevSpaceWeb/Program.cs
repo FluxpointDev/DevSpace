@@ -77,7 +77,19 @@ public class Program
         ShowDemoLink = builder.Configuration.GetValue<bool>("ShowDemoLink");
         IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
+        LimitMode = Environment.GetEnvironmentVariable("LimitMode") == "true";
+        string? LogMode = Environment.GetEnvironmentVariable("LogMode");
 
+        LogSeverity DefaultLogMode = LogSeverity.Error;
+        if (IsDevMode)
+            DefaultLogMode = LogSeverity.Debug;
+        else
+        {
+            if (!string.IsNullOrEmpty(LogMode))
+            {
+                Enum.TryParse(LogMode, out DefaultLogMode);
+            }
+        }
 
         // TODO import portainer yml files
         //string YmlText = "";
@@ -93,7 +105,7 @@ public class Program
         //Console.WriteLine(JO["services"].First().Path.Replace("services.", ""));
 
         //WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
-        Logger.RunLogger("Dev Space", LogSeverity.Debug);
+        Logger.RunLogger("Dev Space", DefaultLogMode);
         Logger.LogMessage("Dev Space v" + GetVersionText(), LogSeverity.Info);
 
         if (!_Data.LoadConfig())
