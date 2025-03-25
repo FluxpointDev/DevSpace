@@ -143,6 +143,34 @@ public class DockerController : APIController
         return Ok(new StackJson(Response.Data));
     }
 
+    [HttpDelete("/api/servers/{serverId?}/stacks/{stackId?}/remove")]
+    [SwaggerOperation("Delete a server stack.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> RemoveStack([FromRoute] string serverId = "", [FromRoute] string stackId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(stackId))
+            return BadRequest("Stack id parameter is missing from path.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewStacks | DockerContainerPermission.ManageStacks, out var dockerContainerPerm))
+            return PermissionFailed(dockerContainerPerm);
+
+        var Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, stackId, stackType: ControlStackType.Remove));
+        if (!Response.IsSuccess)
+            return Conflict("Failed to remove stack, " + Response.Message);
+
+        return Ok();
+    }
+
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}")]
     [SwaggerOperation("Get server container info.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<StackJson>))]
@@ -178,7 +206,7 @@ public class DockerController : APIController
     [SwaggerOperation("Control server container state.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
-    [ListParameterSwaggerAttribute("type", ["start", "stop", "restart", "pause", "unpause", "kill"])]
+    [ListParameterSwagger("type", ["start", "stop", "restart", "pause", "unpause", "kill"])]
     public async Task<IActionResult> ControlContainer([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery][Required] string? type = null)
     {
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
@@ -218,6 +246,34 @@ public class DockerController : APIController
         var Response = await server.RecieveJsonAsync<ContainerInspectResponse>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: control));
         if (!Response.IsSuccess)
             return Conflict("Failed to control container, " + Response.Message);
+
+        return Ok();
+    }
+
+    [HttpDelete("/api/servers/{serverId?}/containers/{containerId?}/remove")]
+    [SwaggerOperation("Delete a server container.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> RemoveContainer([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery] bool force = false)
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(containerId))
+            return BadRequest("Container id parameter is missing from path.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ManageContainers, out var dockerContainerPerm))
+            return PermissionFailed(dockerContainerPerm);
+
+        var Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: force ? ControlContainerType.ForceRemove : ControlContainerType.Remove));
+        if (!Response.IsSuccess)
+            return Conflict("Failed to remove container, " + Response.Message);
 
         return Ok();
     }
