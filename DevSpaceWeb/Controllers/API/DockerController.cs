@@ -9,6 +9,7 @@ using DevSpaceWeb.Extensions;
 using Docker.DotNet.Models;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using Newtonsoft.Json.Linq;
 using Swashbuckle.AspNetCore.Annotations;
 using System.ComponentModel.DataAnnotations;
 
@@ -248,6 +249,50 @@ public class DockerController : APIController
             return Conflict("Failed to control container, " + Response.Message);
 
         return Ok();
+    }
+
+    [HttpPatch("/api/servers/{serverId?}/containers/{containerId?}/logs")]
+    [SwaggerOperation("Get server container logs.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> ContainerLogs([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery] int limit = 100, [FromQuery] bool showTimestamp = false)
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(containerId))
+            return BadRequest("Container id parameter is missing from path.");
+
+        if (limit < 1)
+            return BadRequest("Log limit needs to 1 or more.");
+
+        if (limit > 1000)
+            return BadRequest("Log limit can only be a max of 1000.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ViewContainerLogs, out var dockerContainerPerm))
+            return PermissionFailed(dockerContainerPerm);
+
+        var Response = await server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Logs)
+        {
+            Data = JObject.FromObject(new ContainerLogsEvent
+            {
+                Limit = limit,
+                ShowTimestamp = showTimestamp
+            })
+        });
+        if (!Response.IsSuccess)
+            return Conflict("Failed to get container logs, " + Response.Message);
+
+        return Ok(Response.Data.Logs.Split(
+                new string[] { "\r\n", "\r", "\n" },
+                StringSplitOptions.RemoveEmptyEntries
+            ));
     }
 
     [HttpDelete("/api/servers/{serverId?}/containers/{containerId?}/remove")]
