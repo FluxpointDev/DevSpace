@@ -1,5 +1,7 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using Microsoft.OpenApi.Any;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Reflection;
 
 namespace DevSpaceWeb.Extensions;
 
@@ -12,6 +14,20 @@ namespace DevSpaceWeb.Extensions;
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
 public class ShowInSwaggerAttribute : Attribute
 {
+
+}
+
+[AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
+public class ListParameterSwaggerAttribute : Attribute
+{
+    public ListParameterSwaggerAttribute(string name, string[] list)
+    {
+        Name = name;
+        List = list;
+    }
+
+    public string Name;
+    public string[] List;
 }
 
 //[AttributeUsage(AttributeTargets.All, Inherited = true, AllowMultiple = false)]
@@ -132,6 +148,13 @@ public class SwaggerCheckAuthFilter : IOperationFilter
         //        new OpenApiString("webp")
         //    };
         //}
+
+        ListParameterSwaggerAttribute? List = context.MethodInfo.GetCustomAttribute<ListParameterSwaggerAttribute>();
+        if (List != null)
+        {
+            OpenApiParameter? Parameter = operation.Parameters.FirstOrDefault(x => x.Name == List.Name);
+            Parameter.Schema.Enum = List.List.Select(x => new OpenApiString(x)).ToArray();
+        }
 
         //SwaggerRequestBodyAttribute? body = context.MethodInfo.GetCustomAttribute<SwaggerRequestBodyAttribute>(false);
         //if (body != null)
