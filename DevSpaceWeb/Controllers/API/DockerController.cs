@@ -278,8 +278,6 @@ public class DockerController : APIController
         return Ok();
     }
 
-
-
     [HttpGet("/api/servers/{serverId?}/images")]
     [SwaggerOperation("Get server images list.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ImageJson[]>))]
@@ -301,6 +299,35 @@ public class DockerController : APIController
             return Conflict("Failed to get images data, " + Response.Message);
 
         return Ok(Response.Data.Select(x => new ImageJson(x)));
+    }
+
+    [HttpGet("/api/servers/{serverId?}/images/{imageId?}")]
+    [SwaggerOperation("Get a server image.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ImageJson>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetImage([FromRoute] string serverId = "", [FromRoute] string imageId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(imageId))
+            return BadRequest("Image id parameter is missing in path.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewImages, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        var Response = await server.RecieveJsonAsync<DockerImageInfo>(new DockerEvent(DockerEventType.ControlImage, imageId, imageType: ControlImageType.View));
+
+        if (!Response.IsSuccess)
+            return Conflict("Failed to get image data, " + Response.Message);
+
+        if (Response.Data == null)
+            return NotFound("Image does not exist.");
+
+        return Ok(new ImageJson(Response.Data));
     }
 
     [HttpGet("/api/servers/{serverId?}/volumes")]
@@ -326,6 +353,35 @@ public class DockerController : APIController
         return Ok(Response.Data.Select(x => new VolumeJson(x)));
     }
 
+    [HttpGet("/api/servers/{serverId?}/volumes/{volumeId?}")]
+    [SwaggerOperation("Get a server volume.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<VolumeJson>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetVolume([FromRoute] string serverId = "", [FromRoute] string volumeId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(volumeId))
+            return BadRequest("Volume id parameter is missing in route.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewVolumes, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        var Response = await server.RecieveJsonAsync<DockerVolumeInfo>(new DockerEvent(DockerEventType.ControlVolume, volumeId, volumeType: ControlVolumeType.View));
+
+        if (!Response.IsSuccess)
+            return Conflict("Failed to get volume data, " + Response.Message);
+
+        if (Response.Data == null)
+            return NotFound("Volume does not exist.");
+
+        return Ok(new VolumeJson(Response.Data));
+    }
+
     [HttpGet("/api/servers/{serverId?}/networks")]
     [SwaggerOperation("Get server networks list.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<NetworkJson[]>))]
@@ -349,6 +405,35 @@ public class DockerController : APIController
         return Ok(Response.Data.Select(x => new NetworkJson(x)));
     }
 
+    [HttpGet("/api/servers/{serverId?}/networks/{networkId?}")]
+    [SwaggerOperation("Get a server network.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<NetworkJson>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetNetwork([FromRoute] string serverId = "", [FromRoute] string networkId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(networkId))
+            return BadRequest("Network id parameter is missing in path.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewNetworks, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        var Response = await server.RecieveJsonAsync<DockerNetworkInfo>(new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.View));
+
+        if (!Response.IsSuccess)
+            return Conflict("Failed to get network data, " + Response.Message);
+
+        if (Response.Data == null)
+            return NotFound("Network does not exist.");
+
+        return Ok(new NetworkJson(Response.Data));
+    }
+
     [HttpGet("/api/servers/{serverId?}/plugins")]
     [SwaggerOperation("Get server plugins list.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<PluginJson[]>))]
@@ -370,5 +455,34 @@ public class DockerController : APIController
             return Conflict("Failed to get plugins data, " + Response.Message);
 
         return Ok(Response.Data.Select(x => new PluginJson(x)));
+    }
+
+    [HttpGet("/api/servers/{serverId?}/plugins/{pluginId?}")]
+    [SwaggerOperation("Get a server plugins.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<PluginJson>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetPlugin([FromRoute] string serverId = "", [FromRoute] string pluginId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(pluginId))
+            return BadRequest("Plugin id parameter is missing in route.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewPlugins, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        var Response = await server.RecieveJsonAsync<Plugin>(new DockerEvent(DockerEventType.ControlPlugin, pluginId, pluginType: ControlPluginType.Inspect));
+
+        if (!Response.IsSuccess)
+            return Conflict("Failed to get plugin data, " + Response.Message);
+
+        if (Response.Data == null)
+            return NotFound("Plugin does not exist.");
+
+        return Ok(new PluginJson(Response.Data));
     }
 }

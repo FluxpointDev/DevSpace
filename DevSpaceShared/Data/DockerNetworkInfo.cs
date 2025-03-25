@@ -6,8 +6,6 @@ namespace DevSpaceShared.Data
     {
         public static DockerNetworkInfo Create(NetworkResponse network, bool inspect)
         {
-            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(network, Newtonsoft.Json.Formatting.Indented));
-
             DockerNetworkInfo Info = new DockerNetworkInfo
             {
                 Id = network.ID,
