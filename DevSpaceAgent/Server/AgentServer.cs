@@ -25,7 +25,11 @@ public class AgentSession : WssSession
         if (request.Url == "/")
         {
             string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
-            if (!_Data.Config.AllowedIPs.Contains(Ip))
+            bool IsLocal = false;
+            if (Ip == "127.0.0.1" || Ip == "localhost")
+                IsLocal = true;
+
+            if (!IsLocal && !_Data.Config.AllowedIPs.Contains(Ip))
             {
                 Close();
                 return;
@@ -71,8 +75,13 @@ public class AgentSession : WssSession
             {
                 bool IsWhitelisted = false;
                 string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
+                bool IsLocal = false;
+                if (Ip == "127.0.0.1" || Ip == "localhost")
+                    IsLocal = true;
 
-                if (!_Data.Config.AllowedIPs.Any())
+                if (IsLocal)
+                    IsWhitelisted = true;
+                else if (!_Data.Config.AllowedIPs.Any())
                     IsWhitelisted = true;
                 else
                     IsWhitelisted = _Data.Config.AllowedIPs.Contains(Ip);
@@ -153,7 +162,11 @@ public class AgentSession : WssSession
         Console.WriteLine("Connecting...");
 
         string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
-        if (!_Data.Config.AllowedIPs.Contains(Ip))
+        bool IsLocal = false;
+        if (Ip == "127.0.0.1" || Ip == "localhost")
+            IsLocal = true;
+
+        if (!IsLocal && !_Data.Config.AllowedIPs.Contains(Ip))
         {
             Console.WriteLine("IP Blocked");
             this.Disconnect();
