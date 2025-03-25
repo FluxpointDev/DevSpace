@@ -129,7 +129,7 @@
     public ServerData Server => Session.Selected.Server;
     public TeamMemberData Member => Session.Selected.Member;
 
-    SocketResponse<List<DockerVolumeInfo>>? VolumesResponse = null;
+    SocketResponse<DockerVolumeInfo[]>? VolumesResponse = null;
 
     IQueryable<DockerVolumeInfo> VolumesList;
     public int Count = 0;
@@ -159,7 +159,7 @@
                 IsLoading = true;
                 try
                 {
-                    VolumesResponse = await Server.RecieveJsonAsync<List<DockerVolumeInfo>>(new DockerEvent(DockerEventType.ListVolumes));
+                    VolumesResponse = await Server.RecieveJsonAsync<DockerVolumeInfo[]>(new DockerEvent(DockerEventType.ListVolumes));
                 }
                 catch (Exception ex)
                 {

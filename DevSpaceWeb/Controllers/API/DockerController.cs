@@ -277,4 +277,98 @@ public class DockerController : APIController
 
         return Ok();
     }
+
+
+
+    [HttpGet("/api/servers/{serverId?}/images")]
+    [SwaggerOperation("Get server images list.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ImageJson[]>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetImages([FromRoute] string serverId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewImages, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        var Response = await server.RecieveJsonAsync<DockerImageInfo[]>(new DockerEvent(DockerEventType.ListImages));
+
+        if (!Response.IsSuccess)
+            return Conflict("Failed to get images data, " + Response.Message);
+
+        return Ok(Response.Data.Select(x => new ImageJson(x)));
+    }
+
+    [HttpGet("/api/servers/{serverId?}/volumes")]
+    [SwaggerOperation("Get server volumes list.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<VolumeJson[]>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetVolumes([FromRoute] string serverId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewVolumes, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        var Response = await server.RecieveJsonAsync<DockerVolumeInfo[]>(new DockerEvent(DockerEventType.ListVolumes));
+
+        if (!Response.IsSuccess)
+            return Conflict("Failed to get volumes data, " + Response.Message);
+
+        return Ok(Response.Data.Select(x => new VolumeJson(x)));
+    }
+
+    [HttpGet("/api/servers/{serverId?}/networks")]
+    [SwaggerOperation("Get server networks list.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<NetworkJson[]>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetNetworks([FromRoute] string serverId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewNetworks, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        var Response = await server.RecieveJsonAsync<DockerNetworkInfo[]>(new DockerEvent(DockerEventType.ListNetworks));
+
+        if (!Response.IsSuccess)
+            return Conflict("Failed to get networks data, " + Response.Message);
+
+        return Ok(Response.Data.Select(x => new NetworkJson(x)));
+    }
+
+    [HttpGet("/api/servers/{serverId?}/plugins")]
+    [SwaggerOperation("Get server plugins list.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<PluginJson[]>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetPlugins([FromRoute] string serverId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+            return PermissionFailed(perm);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewPlugins, out var dockerPerm))
+            return PermissionFailed(dockerPerm);
+
+        var Response = await server.RecieveJsonAsync<Plugin[]>(new DockerEvent(DockerEventType.ListPlugins));
+
+        if (!Response.IsSuccess)
+            return Conflict("Failed to get plugins data, " + Response.Message);
+
+        return Ok(Response.Data.Select(x => new PluginJson(x)));
+    }
 }

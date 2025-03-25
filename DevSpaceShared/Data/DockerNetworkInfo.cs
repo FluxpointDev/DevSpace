@@ -46,7 +46,6 @@ namespace DevSpaceShared.Data
         public IDictionary<string, string> Labels { get; set; }
         public IDictionary<string, string> Options { get; set; }
         public DockerNetworkIPAM IPAM { get; set; }
-
         public Dictionary<string, string> Containers { get; set; } = new Dictionary<string, string>();
         public IDictionary<string, EndpointResource> ContainersList = new Dictionary<string, EndpointResource>();
         public int ContainersCount { get; set; }
