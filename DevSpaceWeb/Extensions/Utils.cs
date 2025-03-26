@@ -116,8 +116,8 @@ public static class Utils
     }
 
     private static readonly string[] SizeSuffixes =
-                   { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
-    public static string SizeSuffix(Int64 value, int decimalPlaces = 1)
+                   { "B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+    public static string SizeSuffix(Int64 value, int decimalPlaces = 0)
     {
         if (decimalPlaces < 0) { throw new ArgumentOutOfRangeException("decimalPlaces"); }
         if (value < 0) { return "-" + SizeSuffix(-value, decimalPlaces); }
@@ -137,9 +137,9 @@ public static class Utils
             mag += 1;
             adjustedSize /= 1024;
         }
-        //decimalPlaces = 0;
-        //if (mag > 2)
-        //    decimalPlaces = 2;
+
+        if (mag > 2)
+            decimalPlaces = 2;
 
         return string.Format("{0:n" + decimalPlaces + "} {1}",
             adjustedSize,
