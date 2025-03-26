@@ -281,11 +281,16 @@
             Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
             return;
         }
+        IsActionRunning = true;
+        await InvokeAsync(StateHasChanged);
+
         foreach(var i in SelectedImages)
         {
             await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, i.ID, imageType: type));
         }
         SelectedImages.Clear();
+        IsActionRunning = false;
+        await InvokeAsync(RefreshImages);
     }
 
     void ShowContextMenuWithManageItems(DockerImageInfo item, MouseEventArgs args)
