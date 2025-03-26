@@ -1,4 +1,5 @@
-﻿@using DevSpaceShared.Data
+﻿@using BlazorMonaco.Editor
+@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using Docker.DotNet.Models
@@ -284,41 +285,51 @@ else
         <br />
         @if (ShowLayers)
         {
-            <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
-                <RadzenTableHeader>
-                    <RadzenTableHeaderRow>
-                        <RadzenTableHeaderCell Style="width: 60px !important;">
-                            Order
-                        </RadzenTableHeaderCell>
-                        <RadzenTableHeaderCell Style="width: 100px !important;">
-                            Size
-                        </RadzenTableHeaderCell>
-                        <RadzenTableHeaderCell>
-                            Data
-                        </RadzenTableHeaderCell>
-                    </RadzenTableHeaderRow>
-                </RadzenTableHeader>
-                <RadzenTableBody>
-                    @if (Layers != null)
-                    {
-                        @for (var i = 0; i < Layers.Count(); i++)
-                        {
-                            var col = i;
-                            <RadzenTableRow>
-                                <RadzenTableCell>
-                                    @col
-                                </RadzenTableCell>
-                                <RadzenTableCell>
-                                    @Utils.SizeSuffix(Layers[col].Size)
-                                </RadzenTableCell>
-                                <RadzenTableCell>
-                                    @Layers[col].CreatedBy
-                                </RadzenTableCell>
-                            </RadzenTableRow>
-                        }
-                    }
-                </RadzenTableBody>
-            </RadzenTable>
+            <RadzenTabs RenderMode="TabRenderMode.Server">
+            <Tabs>
+                <RadzenTabsItem Text="List">
+                        <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false" class="table-properties">
+                            <RadzenTableHeader>
+                                <RadzenTableHeaderRow>
+                                    <RadzenTableHeaderCell Style="width: 60px !important;">
+                                        Order
+                                    </RadzenTableHeaderCell>
+                                    <RadzenTableHeaderCell Style="width: 100px !important;">
+                                        Size
+                                    </RadzenTableHeaderCell>
+                                    <RadzenTableHeaderCell>
+                                        Data
+                                    </RadzenTableHeaderCell>
+                                </RadzenTableHeaderRow>
+                            </RadzenTableHeader>
+                            <RadzenTableBody>
+                                @if (Layers != null)
+                                {
+                                    @for (var i = 0; i < Layers.Count(); i++)
+                                    {
+                                        var col = i;
+                                        <RadzenTableRow>
+                                            <RadzenTableCell>
+                                                @col
+                                            </RadzenTableCell>
+                                            <RadzenTableCell>
+                                                @Utils.SizeSuffix(Layers[col].Size)
+                                            </RadzenTableCell>
+                                            <RadzenTableCell>
+                                                @Layers[col].CreatedBy
+                                            </RadzenTableCell>
+                                        </RadzenTableRow>
+                                    }
+                                }
+                            </RadzenTableBody>
+                        </RadzenTable>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="File">
+                        <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@SetLayerFile" />
+                </RadzenTabsItem>
+            </Tabs>
+            </RadzenTabs>
+            
         }
         else
         {
@@ -328,6 +339,12 @@ else
         }
     </div>
 }
+
+<style>
+    .monaco-editor, .monaco-diff-editor {
+        height: 400px !important;
+    }
+</style>
 
 @code {
     [CascadingParameter]
@@ -343,7 +360,7 @@ else
     DockerImageInfo? Image { get; set; }
     public bool Failed { get; set; }
 
-    List<ImageHistoryResponse> Layers { get; set; }
+    List<ImageHistoryResponse>? Layers { get; set; }
 
     public bool ShowEnvironment { get; set; }
     public bool ShowLayers { get; set; }
@@ -401,5 +418,32 @@ else
             Failed = true;
             Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
         }
+    }
+
+    private StandaloneCodeEditor _editor = null;
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "dockerfile",
+            Theme = "vs-dark",
+            ScrollBeyondLastLine = false,
+            ColumnSelection = true,
+            Folding = false,
+            ReadOnly = true,
+            WordWrap = "on"
+        };
+
+    }
+
+    public async Task SetLayerFile()
+    {
+        if (Layers != null)
+        {
+            var Model = await _editor.GetModel();
+            await Model.SetValue(string.Join("\n\n", Layers.Select(x => x.CreatedBy)));
+        }        
     }
 }
