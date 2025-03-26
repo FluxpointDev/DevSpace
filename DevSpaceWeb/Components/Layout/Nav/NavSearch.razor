@@ -1,6 +1,6 @@
 ﻿@inject IJSRuntime JS
 
-<RadzenFormField @ref="@SearchBox" Variant="Variant.Outlined" placeholder="a">
+<RadzenFormField @ref="@SearchBox" Variant="Variant.Outlined" @attributes="@(new Dictionary<string, object> { { "placeholder", "Test" } })">
     <Start>
         <RadzenIcon Icon="search" />
     </Start>
@@ -62,6 +62,12 @@
     margin-block: 0px !important;
     }
 </style>
+
+<script>
+    function setSearchPlaceholder() {
+        document.getElementById('inputSearch').placeholder = "Search"
+    }
+</script>
 
 @code {
     [CascadingParameter]
@@ -161,6 +167,12 @@
 
             return session.CurrentUser.UserName;
         }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await JS.InvokeAsync<object>("setSearchPlaceholder");
     }
 
     async Task LoadData(SessionProvider session, LoadDataArgs args, string searchText)
