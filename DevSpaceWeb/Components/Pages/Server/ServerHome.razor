@@ -485,23 +485,21 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (Server != null)
+        if (_DB.Users.TryGetValue(Server.OwnerId, out var user))
+            OwnerUser = user.UserName;
+        else
+            OwnerUser = "Unknown?";
+
+        if (!Member.HasServerPermission(Team, Server, ServerPermission.ViewServer))
+            return;
+
+        var Response = await Server.RecieveJsonAsync<SystemInfoResponse>(new DockerEvent(DockerEventType.SystemInfo));
+        if (Response.IsSuccess)
         {
-            if (_DB.Users.TryGetValue(Server.OwnerId, out var user))
-                OwnerUser = user.UserName;
-            else
-                OwnerUser = "Unknown?";
-
-            if (!Member.HasServerPermission(Team, Server, ServerPermission.ViewServer))
-                return;
-
-            var Response = await Server.RecieveJsonAsync<SystemInfoResponse>(new DockerEvent(DockerEventType.SystemInfo));
-            if (Response.IsSuccess)
-            {
-                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Response.Data, Newtonsoft.Json.Formatting.Indented));
-                Data = Response.Data;
-                StateHasChanged();
-            }
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Response.Data, Newtonsoft.Json.Formatting.Indented));
+            Data = Response.Data;
+            StateHasChanged();
         }
+
     }
 }

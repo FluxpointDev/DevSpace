@@ -58,6 +58,7 @@ public class SelectedConsoleData
     public string Id { get; private set; }
     public ConsoleData Data { get; private set; }
     public string VanityUrl { get; set; }
+    public bool IsVisible { get; set; } = true;
 }
 public class SelectedServerData
 {
@@ -72,6 +73,7 @@ public class SelectedServerData
     public string Id { get; private set; }
     public ServerData Data { get; private set; }
     public string VanityUrl { get; set; }
+    public bool IsVisible { get; set; } = true;
 }
 public class SelectedWebsiteData
 {
@@ -86,6 +88,7 @@ public class SelectedWebsiteData
     public string Id { get; private set; }
     public WebsiteData Data { get; private set; }
     public string VanityUrl { get; set; }
+    public bool IsVisible { get; set; } = true;
 }
 public class SelectedProjectData
 {
@@ -100,6 +103,7 @@ public class SelectedProjectData
     public string Id { get; private set; }
     public ProjectData Data { get; private set; }
     public string VanityUrl { get; set; }
+    public bool IsVisible { get; set; } = true;
 }
 public class SelectedLogData
 {
@@ -114,4 +118,5 @@ public class SelectedLogData
     public string Id { get; private set; }
     public LogData Data { get; private set; }
     public string VanityUrl { get; set; }
+    public bool IsVisible { get; set; } = true;
 }

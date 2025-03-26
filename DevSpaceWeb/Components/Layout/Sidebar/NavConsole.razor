@@ -60,6 +60,7 @@
     public TeamMemberData Member => Session.Selected.Member;
 
     void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Close", Icon = "close"  },
                 new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole) },
                 new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPermissions) },
          }, OnMenuItemClick);
@@ -68,6 +69,10 @@
     {
         switch (arg.Text)
         {
+            case "Close":
+                Session.Selected.Team.Console.IsVisible = false;
+                Session.TriggerNavMenuChange();
+                break;
             case "Settings":
                 Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Console.VanityUrl + "/settings");
                 break;

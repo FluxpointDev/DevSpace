@@ -502,7 +502,7 @@ else
                                     }
                                 }
 
-                                if (GotServer != null && (Session.Selected.Server == null || Session.Selected.Server.Id != GotServer.Id))
+                                if (GotServer != null && (Session.Selected.Server == null || !Session.Selected.Team.Server.IsVisible || Session.Selected.Server.Id != GotServer.Id))
                                 {
                                     if (Member.TeamId == GotServer.TeamId && Member.HasServerPermission(Team, GotServer, ServerPermission.ViewServer))
                                         Session.Selected.Team.Server = new SelectedServerData(GotServer);
@@ -511,6 +511,9 @@ else
 
                                     UpdateNav = true;
                                 }
+
+                                System.Console.WriteLine($"Server Change: {Session.Selected.Team.Server?.IsVisible} - {service_id}");
+
                             }
                         }
                         break;
@@ -528,7 +531,7 @@ else
                                 }
 
 
-                                if (GotConsole != null && (Session.Selected.Console == null || Session.Selected.Console.Id != GotConsole.Id))
+                                if (GotConsole != null && (Session.Selected.Console == null || !Session.Selected.Team.Console.IsVisible || Session.Selected.Console.Id != GotConsole.Id))
                                 {
                                     if (Member.TeamId == GotConsole.TeamId && Member.HasConsolePermission(Team, GotConsole, ConsolePermission.ViewConsole))
                                         Session.Selected.Team.Console = new SelectedConsoleData(GotConsole);
@@ -554,7 +557,7 @@ else
                                 }
 
 
-                                if (GotProject != null && (Session.Selected.Project == null || Session.Selected.Project.Id != GotProject.Id))
+                                if (GotProject != null && (Session.Selected.Project == null || !Session.Selected.Team.Project.IsVisible || Session.Selected.Project.Id != GotProject.Id))
                                 {
                                     if (Member.TeamId == GotProject.TeamId && Member.HasProjectPermission(Team, GotProject, ProjectPermission.ViewProject))
                                         Session.Selected.Team.Project = new SelectedProjectData(GotProject);
@@ -582,7 +585,7 @@ else
                                 if (GotLog != null && (Session.Selected.Log == null || Session.Selected.Log.Id != GotLog.Id))
                                 {
 
-                                    if (Member.TeamId == GotLog.TeamId && GotLog != null && (Session.Selected.Log == null || Session.Selected.Log.Id != GotLog.Id))
+                                    if (Member.TeamId == GotLog.TeamId && GotLog != null && (Session.Selected.Log == null || !Session.Selected.Team.Log.IsVisible || Session.Selected.Log.Id != GotLog.Id))
                                     {
                                         if (Member.HasLogPermission(Team, GotLog, LogPermission.ViewLog))
                                             Session.Selected.Team.Log = new SelectedLogData(GotLog);
@@ -607,7 +610,7 @@ else
                                     }
                                 }
 
-                                if (GotWebsite != null && (Session.Selected.Website == null || Session.Selected.Website.Id != GotWebsite.Id))
+                                if (GotWebsite != null && (Session.Selected.Website == null || !Session.Selected.Team.Website.IsVisible || Session.Selected.Website.Id != GotWebsite.Id))
                                 {
                                     if (Member.TeamId == GotWebsite.TeamId && Member.HasWebsitePermission(Team, GotWebsite, WebsitePermission.ViewWebsite))
                                         Session.Selected.Team.Website = new SelectedWebsiteData(GotWebsite);
@@ -627,6 +630,7 @@ else
 
             if (UpdateNav)
             {
+                System.Console.WriteLine("Update Nav");
                 Session.TriggerNavMenuChange();
             }
         }
