@@ -121,7 +121,7 @@ public static class Utils
     {
         if (decimalPlaces < 0) { throw new ArgumentOutOfRangeException("decimalPlaces"); }
         if (value < 0) { return "-" + SizeSuffix(-value, decimalPlaces); }
-        if (value == 0) { return string.Format("{0:n" + decimalPlaces + "} bytes", 0); }
+        if (value == 0) { return string.Format("{0:n" + decimalPlaces + "} B", 0); }
 
         // mag is 0 for bytes, 1 for KB, 2, for MB, etc.
         int mag = (int)Math.Log(value, 1024);
