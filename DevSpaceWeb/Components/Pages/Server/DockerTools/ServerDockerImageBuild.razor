@@ -54,7 +54,7 @@
     {
         case CreateImageType.Editor:
             {
-                <StandaloneCodeEditor @ref="_editor" OnDidChangeModelContent="@(arg => IsValueSet = true)" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
+                <StandaloneCodeEditor @ref="_editor" OnDidChangeModelContent="@(arg => IsValueSet = true)" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@LoadEditor" />
             }
             break;
         case CreateImageType.Upload:
@@ -161,6 +161,12 @@
         return false;
     }
 
+    public async Task LoadEditor()
+    {
+        var Model = await _editor.GetModel();
+        await Model.SetValue("");
+    }
+
     Dictionary<string, string> NameInputs = new Dictionary<string, string>
     {
         { Guid.NewGuid().ToString(), "" }
@@ -194,6 +200,7 @@
                 ScrollBeyondLastLine = false,
                 ColumnSelection = true,
                 Folding = false,
+                Value = ""
             };
     }
 

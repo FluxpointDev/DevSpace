@@ -230,12 +230,16 @@
         {
             string Code = Email.RandomCodeGenerator();
             Cache.Set("2fa-verify-" + User.Id.ToString(), Code, new TimeSpan(0, 5, 0));
-            await Email.SendAccessCode(User, "2FA Verification", Code);
+            bool IsEmailSent = await Email.SendAccessCode(User, "2FA Verification", Code);
             if (LogUsage)
             {
                 User = await Session.GetCurrentUserAsync();
                 User.Mfa.EmailCodeLastSentAt = DateTime.UtcNow;
                 await UserManager.UpdateAsync(User);
+            }
+            if (!IsEmailSent)
+            {
+                await dialogService.ShowInfoAsync("Email Error", "Failed to send email.");                
             }
         }
         IsEmailSent = true;

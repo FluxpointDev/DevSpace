@@ -152,6 +152,8 @@
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
             return;
 
+        Compose = "";
+
         await Server.RunJsonAsync<DockerStackComposeInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ComposeInfo), async (res) =>
         {
             StackName = res.Data.Name;

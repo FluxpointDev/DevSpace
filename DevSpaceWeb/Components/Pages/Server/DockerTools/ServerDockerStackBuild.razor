@@ -34,8 +34,6 @@
     }
     else
     {
-        if (!IsBuilding)
-        {
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Name</RadzenText>
         <RadzenTextBox @bind-Value="@StackName" Style="width: 100%" aria-label="Email TextBox" AutoCompleteType="AutoCompleteType.Off" autofocus
                 autocapitalize="none" MaxLength="100" />
@@ -43,16 +41,14 @@
                         <RadzenText TextStyle="TextStyle.Body2">
                     Stack name need to be all lowercase, 2-255 characters and optionally include special characters such as <code>.</code> <code>-</code> <code>_</code>
                 </RadzenText>
-        <br />
-        <br />
-        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Editor</RadzenText>
-        <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
-        <br />
-            <RadzenButton Text="Build Stack" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@BuildStack" Disabled="@IsBuilding" />
-        <br />
             <br />
-        }
-        else if (Success)
+            <br />
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Editor</RadzenText>
+            <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@LoadEditor" />
+            <br />
+        <RadzenButton Text="Build Stack" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@BuildStack" Disabled="@(IsBuilding || Success || StartFailed)" />
+            <br />
+        if (Success)
         {
             <div><span class="iconify" data-icon="mdi:docker" style="color: var(--rz-success);"></span></div>
             <h6>Stack Created</h6>
@@ -61,37 +57,28 @@
             <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId)"><RadzenButton Text="View Stack" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
             <br />
         }
-        else if (Failed)
+        else if (BuildFailed)
         {
             <div><span class="iconify" data-icon="mdi:docker" style="color: var(--rz-danger);"></span></div>
-            if (IsBuilding)
-            {
-                <h6>Build Failed</h6>
-                <p>No stack or containers have been created.</p>
-            }
-            else
-            {
-                <h6>Start Failed</h6>
-                <p>One or more of your containers failed to start.</p>
-                <br />
-                <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
-            }
-            <br />
+            <h6>Build Failed</h6>
+            <p>No stack or containers have been created.</p>
         }
-        else if (!IsReady)
+        else if (StartFailed)
+        {
+            <div><span class="iconify" data-icon="mdi:docker" style="color: var(--rz-danger);"></span></div>
+            <h6>Start Failed</h6>
+            <p>One or more of your containers failed to start.</p>
+            <br />
+            <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+        }
+        else if (IsBuilding)
         {
             <div><span class="iconify" data-icon="mdi:docker" style="color: #0091E2;"></span></div>
             <h6>Building Stack</h6>
             <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
             <br />
         }
-        else
-        {
-            <div><span class="iconify" data-icon="mdi:docker" style="color: #0091E2;"></span></div>
-            <h6>Starting Stack</h6>
-            <RadzenProgressBarCircular Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
-            <br />
-        }
+        <br />
     }
 </div>
 
@@ -114,10 +101,6 @@
     public ServerData Server => Session.Selected.Server;
     public TeamMemberData Member => Session.Selected.Member;
 
-
-    public bool IsLoading = true;
-    public bool IsActionRunning { get; set; }
-
     public string StackName { get; set; }
     private StandaloneCodeEditor _editor = null;
 
@@ -131,12 +114,20 @@
             ScrollBeyondLastLine = false,
             ColumnSelection = true,
             Folding = false,
+            Value = ""
         };
+    }
+
+    public async Task LoadEditor()
+    {
+        var Model = await _editor.GetModel();
+        await Model.SetValue("");
     }
 
     public bool IsBuilding { get; set; }
     public bool IsReady { get; set; }
-    public bool Failed { get; set; }
+    public bool BuildFailed { get; set; }
+    public bool StartFailed { get; set; }
     public bool Success { get; set; }
     public string StackId { get; set; }
 
@@ -163,7 +154,7 @@
             return;
         }
         IsBuilding = true;
-        
+
         var res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
         {
             Data = JObject.FromObject(new CreateStackEvent
@@ -177,17 +168,19 @@
             IsReady = true;
             StateHasChanged();
             StackId = res.Data.Id;
-            Console.WriteLine("Success: " + res.Data.Id);
             var Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
             if (Res.IsSuccess)
                 Success = true;
             else
-                Failed = true;
+            {
+                StartFailed = true;
+            }
             StateHasChanged();
         });
         if (!res.IsSuccess)
         {
-            Failed = true;
+            BuildFailed = true;
+            IsBuilding = false;
             StateHasChanged();
         }
     }
