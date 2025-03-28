@@ -29,7 +29,7 @@
         <br />
         <RadzenLabel Text="Team Icon" class="rz-my-0"></RadzenLabel>
         <RadzenUpload id="ddUpload" @ref="IconUploader" ChooseText="Click here or drop to upload files" Auto="false" Multiple="false" Url="@("/upload/icon?teamId=" + Team.Id)" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
-        Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" />
+                      Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" Disabled="@IsUploadDisabled" />
         <br />
         <br />
         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save Icon" Click="@ChangeIcon" ButtonType="ButtonType.Submit" />
@@ -104,6 +104,7 @@
     }
 
     public RadzenUpload IconUploader { get; set; }
+    public bool IsUploadDisabled { get; set; }
 
     public async Task ChangeIcon()
     {
@@ -112,6 +113,8 @@
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
             return;
         }
+
+        IsUploadDisabled = true;
 
         await IconUploader.Upload();
 
@@ -137,8 +140,20 @@
         {
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.IconRemoved)
             .SetTarget(Team));
-            File.Delete(Team.Icon.Path("webp"));
-            File.Delete(Team.Icon.Path("png"));
+            try
+            {
+                if (File.Exists(Team.Icon.Path("webp")))
+                    File.Delete(Team.Icon.Path("webp"));
+            }
+            catch { }
+
+            try
+            {
+                if (File.Exists(Team.Icon.Path("png")))
+                    File.Delete(Team.Icon.Path("png"));
+            }
+            catch { }
+
             Team.IconId = null;
             Session.TriggerNavMenuChange();
         });

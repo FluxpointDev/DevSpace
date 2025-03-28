@@ -71,11 +71,19 @@
             var Result = await UserManager.UpdateAsync(user);
             if (Result.Succeeded)
             {
-                if (File.Exists(user.Avatar.Path("webp")))
-                    File.Delete(user.Avatar.Path("webp"));
+                try
+                {
+                    if (File.Exists(user.Avatar.Path("webp")))
+                        File.Delete(user.Avatar.Path("webp"));
+                }
+                catch { }
 
-                if (File.Exists(user.Avatar.Path("png")))
-                    File.Delete(user.Avatar.Path("png"));
+                try
+                {
+                    if (File.Exists(user.Avatar.Path("png")))
+                        File.Delete(user.Avatar.Path("png"));
+                }
+                catch {}
 
                 Session.CurrentUser.AvatarId = null;
 
@@ -83,11 +91,9 @@
             }
 
             dialogService.Close(true);
-            
         }
         else
         {
-
             await uploadDD.Upload();
         }
     }
