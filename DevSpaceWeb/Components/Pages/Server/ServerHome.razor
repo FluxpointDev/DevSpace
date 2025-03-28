@@ -20,27 +20,29 @@
     <RadzenRow Gap="10px" RowGap="10px">
         <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
             <h6>System</h6>
-            <RadzenStack Orientation="Orientation.Horizontal">
-                <span class="iconify settings-icon" style="color: var();" data-icon="mdi:information"></span>
-                <div>
-                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
-                        Version
-                    </RadzenText>
-                    @if (Data != null)
-                    {
-                        <RadzenText TextStyle="TextStyle.Body2">
-                            @Data.OperatingSystem
-                        </RadzenText>
-                    }
-                    else
-                    {
-                        <RadzenSkeleton></RadzenSkeleton>
-                    }
+            
+            <RadzenRow Gap="10px" RowGap="10px" class="mt-4">
+                <RadzenColumn SizeSM="12">
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <span class="iconify settings-icon" style="color: var();" data-icon="mdi:information"></span>
+                        <div>
+                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                                Version
+                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @Data.OperatingSystem
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
 
-                </div>
-            </RadzenStack>
-            <br />
-            <RadzenRow Gap="10px" RowGap="10px">
+                        </div>
+                    </RadzenStack>
+                </RadzenColumn>
                 <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
                     <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                         <div>
@@ -174,7 +176,7 @@
                             @if (Data != null)
                             {
                                 <RadzenText TextStyle="TextStyle.Body2">
-                                    @($"v {Data.AgentVersion} (.NET {Data.AgentNET})")
+                                    @($"v{Data.AgentVersion} (.NET {Data.AgentNET})")
                                 </RadzenText>
                             }
                             else
@@ -186,30 +188,39 @@
                     </RadzenStack>
                 </RadzenColumn>
             </RadzenRow>
+            @if (Data != null && !string.IsNullOrEmpty(Program.LatestAgentVersion) && Program.LatestAgentVersion != Data.AgentVersion)
+            {
+                <a target="_blank" href="https://docs.fluxpoint.dev/devspace/guides/agent-guides/install-dev-space-agent#update-dev-space-agent">
+                    <RadzenAlert AlertStyle="AlertStyle.Success" class="mt-4" Icon="download" Size="AlertSize.Small" AllowClose="false" Variant="Variant.Filled" Shade="Shade.Darker">
+                        <strong>@("v" + Program.LatestAgentVersion)</strong> agent is available to install on this server.
+                    </RadzenAlert>
+                </a>
+            }
         </RadzenColumn>
         <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
             <h6>Docker</h6>
-            <RadzenStack Orientation="Orientation.Horizontal">
-                <span class="iconify settings-icon" style="color: var();" data-icon="mdi:docker"></span>
-                <div>
-                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
-                        Version
-                    </RadzenText>
-                    @if (Data != null)
-                    {
-                        <RadzenText TextStyle="TextStyle.Body2">
-                            @Data.Docker.DockerVersion
-                        </RadzenText>
-                    }
-                    else
-                    {
-                        <RadzenSkeleton></RadzenSkeleton>
-                    }
+            <RadzenRow Gap="10px" RowGap="10px" class="mt-4">
+                <RadzenColumn SizeSM="12">
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <span class="iconify settings-icon" style="color: var();" data-icon="mdi:docker"></span>
+                        <div>
+                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                                Version
+                            </RadzenText>
+                            @if (Data != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @Data.Docker.DockerVersion
+                                </RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenSkeleton></RadzenSkeleton>
+                            }
 
-                </div>
-            </RadzenStack>
-            <br />
-            <RadzenRow Gap="10px" RowGap="10px">
+                        </div>
+                    </RadzenStack>
+                </RadzenColumn>
                 <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
                     <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks")">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
