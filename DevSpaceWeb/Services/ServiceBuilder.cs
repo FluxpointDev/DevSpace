@@ -33,7 +33,7 @@ public static class ServiceBuilder
         // Add HTTP access
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();
-
+        services.AddSingleton(new BackgroundTasks());
         services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
         {
             options.JsonSerializerOptions.IncludeFields = true;
