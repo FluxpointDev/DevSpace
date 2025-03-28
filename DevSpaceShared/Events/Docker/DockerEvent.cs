@@ -50,7 +50,8 @@ public enum DockerEventType
     ListNetworks, ControlNetwork, CreateNetwork,
     ListVolumes, ControlVolume, CreateVolume,
     SystemInfo, HostInfo,
-    ListCustomTemplates, CreateCustomTemplate, ControlCustomTemplate, ImportPortainerTemplates
+    ListCustomTemplates, CreateCustomTemplate, ControlCustomTemplate, ImportPortainerTemplates,
+    Events
 }
 public enum ControlContainerType
 {

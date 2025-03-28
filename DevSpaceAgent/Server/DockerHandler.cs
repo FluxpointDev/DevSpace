@@ -1,8 +1,10 @@
 ﻿using DevSpaceAgent.Docker;
+using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using DevSpaceShared.Responses;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using System.Text;
 
 namespace DevSpaceAgent.Server;
 public static class DockerHandler
@@ -192,6 +194,40 @@ public static class DockerHandler
                 return await DockerSystem.GetSystemInfoAsync(Client);
             case DockerEventType.HostInfo:
                 return await DockerSystem.GetHostInfoAsync(Client);
+            case DockerEventType.Events:
+                DockerEventFilterEvent? Filter = null;
+                if (@event.Data != null)
+                    Filter = @event.Data.ToObject<DockerEventFilterEvent>();
+
+                ContainerEventsParameters Params = new ContainerEventsParameters
+                {
+                    Until = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds().ToString()
+                };
+
+                if (Filter != null)
+                {
+                    Params.Filters = new Dictionary<string, IDictionary<string, bool>>
+                    {
+                        { Filter.FilterType, new Dictionary<string, bool> { { Filter.FilterId, true } } }
+                    };
+                }
+
+                var Stream = await Program.DockerClient.System.MonitorEventsAsync(Params, CancellationToken.None);
+                List<DockerEventInfo> List = new List<DockerEventInfo>();
+                using (var reader = new StreamReader(Stream, Encoding.UTF8, true))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string? Line = await reader.ReadLineAsync();
+                        if (!string.IsNullOrEmpty(Line))
+                        {
+                            DockerEventInfo? Info = Newtonsoft.Json.JsonConvert.DeserializeObject<DockerEventInfo>(Line);
+                            if (Info != null)
+                                List.Add(Info);
+                        }
+                    }
+                }
+                return List;
         }
         return null;
     }

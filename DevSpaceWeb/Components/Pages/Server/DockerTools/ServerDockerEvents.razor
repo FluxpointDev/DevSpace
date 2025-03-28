@@ -1,0 +1,162 @@
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using System.Linq.Dynamic.Core
+@using DevSpaceWeb.Components.Dialogs.Docker
+@inject NotificationService Notifications
+@inject DialogService Dialog
+
+<div class="dash-box">
+    <div class="dash-box-content dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="ri:stack-fill"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Docker Events</RadzenText>
+        @if (IsLoading && Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+        }
+    </div>
+
+    @if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+    {
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for Docker Administrator
+            </RadzenAlert>
+        </div>
+    }
+    else
+    {
+        <div class="dash-box-content">
+            <RadzenText TextStyle="TextStyle.Body1">
+                This will show recent docker events
+            </RadzenText>
+        </div>
+        <RadzenDataGrid @ref="@Grid" AllowRowSelectOnRowClick="false" Data="@EventsList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                        PagingSummaryFormat="@(Count + " events" + (Count != 1 ? "s" : "") )" Density="Density.Compact"
+                        AllowSorting="false" AllowFiltering="false"
+                        TItem="DockerEventInfo">
+            <Columns>
+                <RadzenDataGridColumn Title="Date" Width="100px">
+                    <Template>
+                        @Utils.GetLocalDate(Session, DateTimeOffset.FromUnixTimeSeconds(context.Time).DateTime)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Type" Width="100px">
+                    <Template>
+                        @context.Type
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Name" Width="100px">
+                    <Template>
+                        @if (context.Actor != null && context.Actor.Attributes != null && context.Actor.Attributes.TryGetValue("name", out object name))
+                        {
+                            @(name as string)
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Action" Width="100px">
+                    <Template>
+                        @context.Action
+                    </Template>
+                </RadzenDataGridColumn>
+                    
+                    <RadzenDataGridColumn Title="Details" Width="100px">
+                    <Template>
+                        @if (context.Actor != null)
+                        {
+                            <RadzenButton Variant="Variant.Filled" Text="More Details" Click="@(() => OpenMoreDetails(context))" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    }
+</div>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData Team => Session.Selected.Team.Data;
+    public ServerData Server => Session.Selected.Server;
+    public TeamMemberData Member => Session.Selected.Member;
+
+    public bool IsLoading { get; set; } = true;
+
+    SocketResponse<List<DockerEventInfo>>? EventsResponse = null;
+
+    IQueryable<DockerEventInfo> EventsList;
+    public int Count = 0;
+    RadzenDataGrid<DockerEventInfo> Grid;
+
+    public async Task LoadData(LoadDataArgs args)
+    {
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+            return;
+
+        if (Program.IsPreviewMode)
+        {
+            EventsList = new List<DockerEventInfo>().AsQueryable();
+            Count = 0;
+            IsLoading = false;
+        }
+        else
+        {
+            if (EventsResponse == null)
+            {
+                IsLoading = true;
+                try
+                {
+                    EventsResponse = await Server.RunJsonAsync<List<DockerEventInfo>>(Notifications, new DockerEvent(DockerEventType.Events));
+                    if (EventsResponse.Data != null)
+                        EventsResponse.Data = EventsResponse.Data.Where(x => !x.Action.StartsWith("exec_")).OrderByDescending(x => x.Time).ToList();
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+                }
+
+                IsLoading = false;
+            }
+
+            if (EventsResponse != null && EventsResponse.IsSuccess)
+            {
+                IQueryable<DockerEventInfo> query = EventsResponse.Data.AsQueryable();
+
+                if (!string.IsNullOrEmpty(args.Filter))
+                    query = query.Where(args.Filter);
+
+                if (!string.IsNullOrEmpty(args.OrderBy))
+                    query = query.OrderBy(args.OrderBy);
+
+                Count = query.Count();
+                EventsList = query.Skip(args.Skip.Value).Take(args.Top.Value);
+            }
+        }
+    }
+
+    public async Task OpenMoreDetails(DockerEventInfo evnt)
+    {
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+            return;
+
+        string Name = evnt.Type;
+        if (evnt.Actor.Attributes != null && evnt.Actor.Attributes.TryGetValue("name", out object name))
+        {
+            Name = name as string;
+        }
+
+        await Dialog.OpenAsync<DockerEventsDetailsDialog>($"Event {Name}", new Dictionary<string, object>()
+        {
+            { "Event", evnt.Actor }
+        }, new DialogOptions
+        {
+            CloseDialogOnOverlayClick = true,
+            CloseDialogOnEsc = true
+        });
+
+
+    }
+}
