@@ -23,7 +23,7 @@
         </div>
 
         <RadzenUpload id="ddUpload" @ref="uploadDD" ChooseText="Click here or drop to upload file" Auto="false" Multiple="false" Url="/upload/avatar" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
-        Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" />
+                      Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" Disabled="@IsUploadDisabled" />
 
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
@@ -39,6 +39,7 @@
     public bool RemoveAvatar { get; set; }
 
     RadzenUpload uploadDD;
+    public bool IsUploadDisabled { get; set; }
 
     async Task Submit()
     {
@@ -55,7 +56,7 @@
             return;
         }
 
-        uploadDD.Disabled = true;
+        IsUploadDisabled = true;
 
         if (RemoveAvatar)
         {
@@ -70,13 +71,19 @@
             var Result = await UserManager.UpdateAsync(user);
             if (Result.Succeeded)
             {
-                File.Delete(user.Avatar.Path("webp"));
-                File.Delete(user.Avatar.Path("png"));
+                if (File.Exists(user.Avatar.Path("webp")))
+                    File.Delete(user.Avatar.Path("webp"));
+
+                if (File.Exists(user.Avatar.Path("png")))
+                    File.Delete(user.Avatar.Path("png"));
+
                 Session.CurrentUser.AvatarId = null;
+
+                user.UpdatePartial();
             }
-            user.UpdatePartial();
 
             dialogService.Close(true);
+            
         }
         else
         {

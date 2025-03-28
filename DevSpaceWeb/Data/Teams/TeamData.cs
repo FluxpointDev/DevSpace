@@ -98,12 +98,13 @@ public class TeamData : IResource
         return data;
     }
 
-    public async Task UpdateAsync(UpdateDefinition<TeamData> update, Action action = null)
+    public async Task<UpdateResult> UpdateAsync(UpdateDefinition<TeamData> update, Action action = null)
     {
         FilterDefinition<TeamData> filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Teams.Collection.UpdateOneAsync(filter, update);
         if (action != null && Result.IsAcknowledged)
             action?.Invoke();
+        return Result;
     }
 
     [JsonIgnore]

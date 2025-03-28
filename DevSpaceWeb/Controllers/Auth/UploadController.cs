@@ -28,7 +28,7 @@ public class UploadController : Controller
             return BadRequest("Preview mode is enabled.");
 
         if (!User.Identity.IsAuthenticated)
-            return Unauthorized("No logged in");
+            return Unauthorized("Not logged in");
 
         if (!Request.Form.Files.Any())
             return BadRequest("No file");
@@ -56,15 +56,14 @@ public class UploadController : Controller
         if (AuthUser.ResourceId == null)
         {
             AuthUser.ResourceId = CheckResourceId();
-            try
-            {
-                await _userManager.UpdateAsync(AuthUser);
-            }
-            catch
-            {
-                AuthUser.ResourceId = null;
-                throw;
-            }
+            IdentityResult UpdateResult = await _userManager.UpdateAsync(AuthUser);
+            if (!UpdateResult.Succeeded)
+                return BadRequest("Failed to update user.");
+
+            AuthUser.UpdatePartial();
+
+            Directory.CreateDirectory(Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString());
+
         }
 
         Guid ImageId = Guid.NewGuid();
@@ -113,7 +112,10 @@ public class UploadController : Controller
             {
                 if (System.IO.File.Exists(AuthUser.Avatar.Path("webp")))
                     System.IO.File.Delete(AuthUser.Avatar.Path("webp"));
-
+            }
+            catch { }
+            try
+            {
                 if (System.IO.File.Exists(AuthUser.Avatar.Path("png")))
                     System.IO.File.Delete(AuthUser.Avatar.Path("png"));
             }
@@ -121,8 +123,11 @@ public class UploadController : Controller
         }
 
         AuthUser.AvatarId = ImageId;
+        IdentityResult UpdateResultAvatar = await _userManager.UpdateAsync(AuthUser);
+        if (!UpdateResultAvatar.Succeeded)
+            return BadRequest("Failed to update user.");
+
         AuthUser.UpdatePartial();
-        await _userManager.UpdateAsync(AuthUser);
         _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
         return Ok();
     }
@@ -134,7 +139,7 @@ public class UploadController : Controller
             return BadRequest("Preview mode is enabled.");
 
         if (!User.Identity.IsAuthenticated)
-            return Unauthorized("No logged in");
+            return Unauthorized("Not logged in");
 
         if (!Request.Form.Files.Any())
             return BadRequest("No file");
@@ -162,15 +167,13 @@ public class UploadController : Controller
         if (AuthUser.ResourceId == null)
         {
             AuthUser.ResourceId = CheckResourceId();
-            try
-            {
-                await _userManager.UpdateAsync(AuthUser);
-            }
-            catch
-            {
-                AuthUser.ResourceId = null;
-                throw;
-            }
+            IdentityResult UpdateResult = await _userManager.UpdateAsync(AuthUser);
+            if (!UpdateResult.Succeeded)
+                return BadRequest("Failed to update user.");
+
+            AuthUser.UpdatePartial();
+
+            Directory.CreateDirectory(Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString());
         }
 
         Guid ImageId = Guid.NewGuid();
@@ -217,7 +220,10 @@ public class UploadController : Controller
         }
 
         AuthUser.BackgroundId = ImageId;
-        await _userManager.UpdateAsync(AuthUser);
+        IdentityResult UpdateResultBackground = await _userManager.UpdateAsync(AuthUser);
+        if (!UpdateResultBackground.Succeeded)
+            return BadRequest("Failed to update user.");
+
         AuthUser.UpdatePartial();
         _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
         return Ok();
@@ -230,7 +236,7 @@ public class UploadController : Controller
             return BadRequest("Preview mode is enabled.");
 
         if (!User.Identity.IsAuthenticated)
-            return Unauthorized("No logged in");
+            return Unauthorized("Not logged in");
 
         if (!Request.Form.Files.Any())
             return BadRequest("No file");
@@ -260,13 +266,10 @@ public class UploadController : Controller
             return BadRequest("Invalid user account");
 
         _DB.Teams.Cache.TryGetValue(ObjectId.Parse(TeamId), out TeamData? Team);
-        if (Team == null)
+        if (Team == null || !Team.Members.ContainsKey(AuthUser.Id))
             return BadRequest("Could not find team by id");
 
-        if (!Team.Members.ContainsKey(AuthUser.Id))
-            return BadRequest("You do not belong to this team");
-
-        TeamMemberData Member = Team.GetMember(AuthUser);
+        TeamMemberData? Member = Team.GetMember(AuthUser);
         if (Member == null)
             return BadRequest("Failed to get member data");
 
@@ -276,11 +279,13 @@ public class UploadController : Controller
         if (Team.ResourceId == null)
         {
             Guid GeneratedId = CheckResourceId();
-            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.ResourceId, GeneratedId), () =>
-            {
-                Team.ResourceId = GeneratedId;
-            });
+            var UpdateResult = await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.ResourceId, GeneratedId));
+            if (!UpdateResult.IsAcknowledged)
+                return BadRequest("Failed to update team resource.");
 
+            Team.ResourceId = GeneratedId;
+
+            Directory.CreateDirectory(Program.Directory.Public.Files.Path + GeneratedId.ToString());
         }
 
         Guid ImageId = Guid.NewGuid();
@@ -322,28 +327,32 @@ public class UploadController : Controller
             }
         }
 
-        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, ImageId), () =>
-        {
-            _ = _DB.AuditLogs.CreateAsync(new AuditLog(AuthUser.Id, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconChanged)
+        UpdateResult UpdateResultIcon = await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, ImageId));
+        if (!UpdateResultIcon.IsAcknowledged)
+            return BadRequest("Failed to update team icon.");
+
+        _ = _DB.AuditLogs.CreateAsync(new AuditLog(AuthUser.Id, Team.Id, AuditLogCategoryType.Setting, AuditLogEventType.IconChanged)
                 .SetTarget(Team));
 
-            if (Team.IconId != null)
+        if (Team.IconId != null)
+        {
+            try
             {
-                try
-                {
-                    if (System.IO.File.Exists(Team.Icon.Path("webp")))
-                        System.IO.File.Delete(Team.Icon.Path("webp"));
-
-                    if (System.IO.File.Exists(Team.Icon.Path("png")))
-                        System.IO.File.Delete(Team.Icon.Path("png"));
-                }
-                catch { }
+                if (System.IO.File.Exists(Team.Icon.Path("webp")))
+                    System.IO.File.Delete(Team.Icon.Path("webp"));
             }
+            catch { }
+
+            try
+            {
+                if (System.IO.File.Exists(Team.Icon.Path("png")))
+                    System.IO.File.Delete(Team.Icon.Path("png"));
+            }
+            catch { }
+        }
 
 
-            Team.IconId = ImageId;
-        });
-
+        Team.IconId = ImageId;
 
         return Ok();
     }
@@ -354,8 +363,6 @@ public class UploadController : Controller
 
         if (Directory.Exists(Program.Directory.Public.Files.Path + ResourceId.ToString()))
             return CheckResourceId();
-
-        Directory.CreateDirectory(Program.Directory.Public.Files.Path + ResourceId.ToString());
 
         return ResourceId;
     }
