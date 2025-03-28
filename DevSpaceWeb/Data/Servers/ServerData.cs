@@ -118,7 +118,6 @@ public class ServerWebSocket
     public bool StopReconnect;
     public async Task DiscoverAsync(ServerData server)
     {
-        Console.WriteLine("Discover");
         HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + server.AgentIp + ":" + server.AgentPort + "/discover");
         Req.Headers.Add("Connection", "Upgrade");
         HttpResponseMessage? Response = null;
@@ -128,7 +127,6 @@ public class ServerWebSocket
         }
         catch (HttpRequestException he)
         {
-            Console.WriteLine("Status: " + he.HttpRequestError.ToString());
             switch (he.HttpRequestError)
             {
                 case HttpRequestError.ConnectionError:
@@ -146,7 +144,6 @@ public class ServerWebSocket
             Error = ServerWebSocketErrorType.ServerError;
             return;
         }
-        Console.WriteLine("Error: " + Response.StatusCode.ToString());
         if (!Response.IsSuccessStatusCode)
         {
             switch (Response.StatusCode)

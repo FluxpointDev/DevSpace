@@ -125,7 +125,7 @@ public static class _DB
             BsonDocument result = await Run.RunCommandAsync<BsonDocument>(new BsonDocument("ping", 1));
             Logger.LogMessage("Database", "Pinged your deployment. You successfully connected to MongoDB!", LogSeverity.Info);
         }
-        catch (Exception ex) { Console.WriteLine(ex); return false; }
+        catch { return false; }
 
         Logger.LogMessage("Database", "Loading...", LogSeverity.Info);
         try

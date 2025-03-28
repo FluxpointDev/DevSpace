@@ -121,7 +121,7 @@ public class TeamData : IResource
             int Position = 1;
             foreach (var i in RolePositions.OrderBy(x => x.Value))
             {
-                Console.WriteLine($"Set Position: {i.Key} - {Position}");
+                Logger.LogMessage($"Set Position: {i.Key} - {Position}", LogSeverity.Debug);
                 UpdatedPositions.Add(i.Key, Position);
                 Position += 1;
             }
@@ -163,7 +163,7 @@ public class TeamData : IResource
                 if (i.Id == role.Id)
                     continue;
 
-                Console.WriteLine($"Set Position: {i.Name} - {Position}");
+                Logger.LogMessage($"Set Position: {i.Name} - {Position}", LogSeverity.Debug);
                 UpdatedPositions.Add(i.Id, Position);
                 Position += 1;
             }

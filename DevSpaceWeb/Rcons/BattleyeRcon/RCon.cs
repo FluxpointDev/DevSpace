@@ -689,7 +689,7 @@ public class RCon
                     String[] items = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
                     if (message.EndsWith(" connected"))
                     {
-                        Console.WriteLine("Add Player");
+                        Logger.LogMessage("Add Player", LogSeverity.Debug);
 
                         int Number = int.Parse(items[1].Substring(1));
                         string Name = items[2];
@@ -704,7 +704,7 @@ public class RCon
                     }
                     else if (message.EndsWith(" disconnected"))
                     {
-                        Console.WriteLine("Remove Player");
+                        Logger.LogMessage("Remove Player", LogSeverity.Debug);
                         try
                         {
                             CachedPlayers.Remove(CachedPlayers.First(x => x.number == int.Parse(items[1].Substring(1))));

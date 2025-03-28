@@ -166,7 +166,7 @@ public class Program
 
 
                 await InternalDocker.System.PingAsync();
-                Console.WriteLine("PINGED");
+                Console.WriteLine("PINGED DOCKER");
                 var Version = await InternalDocker.System.GetSystemInfoAsync();
                 //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Version, Newtonsoft.Json.Formatting.Indented));
                 //var Procs = await InternalDocker.Containers.ListProcessesAsync("d4718c5b63aaab415034b1f1ef99ca24859b388fca474cdf8f461e387c78a192", new Docker.DotNet.Models.ContainerListProcessesParameters
