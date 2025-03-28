@@ -16,19 +16,20 @@
     <RadzenRow Gap="10px" RowGap="10px">
         <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
             <h6>Security</h6>
-            <RadzenStack Orientation="Orientation.Horizontal">
-                <span class="iconify settings-icon" style="color: var(--rz-success);" data-icon="mdi:check-circle"></span>
-                <div>
-                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
-                        Account Secure
-                    </RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        Recommended to setup 2FA.
-                    </RadzenText>
-                </div>
-            </RadzenStack>
-            <br />
-            <RadzenRow Gap="10px" RowGap="10px">
+            <RadzenRow Gap="10px" RowGap="10px" class="mt-4">
+                <RadzenColumn SizeSM="12">
+                    <RadzenStack Orientation="Orientation.Horizontal">
+                        <span class="iconify settings-icon" style="color: var(--rz-success);" data-icon="mdi:check-circle"></span>
+                        <div>
+                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                                Account Secure
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                Recommended to setup 2FA.
+                            </RadzenText>
+                        </div>
+                    </RadzenStack>
+                </RadzenColumn>
                 <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
                     <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
 
@@ -192,52 +193,53 @@
         </RadzenColumn>
         <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
             <h6>2FA Status</h6>
-            <RadzenStack Orientation="Orientation.Horizontal">
+            <RadzenRow Gap="10px" RowGap="10px" class="mt-4">
+                <RadzenColumn SizeSM="12">
+                    <RadzenStack Orientation="Orientation.Horizontal">
 
-                @if (AuthUser == null || !AuthUser.EmailConfirmed)
-                {
-                    <span class="iconify settings-icon" style="color: var(--rz-danger);" data-icon="mdi:cross-circle"></span>
-                    <div>
-                        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
-                            Account not Verified
-                        </RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2">
-                            You need to confirm your email address to setup 2FA.
-                        </RadzenText>
-                    </div>
+                        @if (AuthUser == null || !AuthUser.EmailConfirmed)
+                        {
+                            <span class="iconify settings-icon" style="color: var(--rz-danger);" data-icon="mdi:cross-circle"></span>
+                            <div>
+                                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                                    Account not Verified
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    You need to confirm your email address to setup 2FA.
+                                </RadzenText>
+                            </div>
 
-                }
-                else if (!AuthUser.Mfa.IsTwoFactorEnabled)
-                {
-                    <span class="iconify settings-icon" style="color: var(--rz-warning);" data-icon="mdi:minus-circle"></span>
-                    <div>
-                        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
-                            Email-Only
-                        </RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2">
-                            Verification using email codes.
-                        </RadzenText>
-                    </div>
+                        }
+                        else if (!AuthUser.Mfa.IsTwoFactorEnabled)
+                        {
+                            <span class="iconify settings-icon" style="color: var(--rz-warning);" data-icon="mdi:minus-circle"></span>
+                            <div>
+                                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                                    Email-Only
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    Verification using email codes.
+                                </RadzenText>
+                            </div>
 
-                }
-                else
-                {
-                    <span class="iconify settings-icon" style="color: var(--rz-success);" data-icon="mdi:check-circle"></span>
-                    <div>
-                        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
-                            Enabled
-                        </RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2">
-                            Email codes have been disabled.
-                        </RadzenText>
+                        }
+                        else
+                        {
+                            <span class="iconify settings-icon" style="color: var(--rz-success);" data-icon="mdi:check-circle"></span>
+                            <div>
+                                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                                    Enabled
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    Email codes have been disabled.
+                                </RadzenText>
 
-                    </div>
-                    <RadzenButton Text="Disable 2FA" Style="max-height: 36px; margin-left: 10px;" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@Disable2FA" />
+                            </div>
+                            <RadzenButton Text="Disable 2FA" Style="max-height: 36px; margin-left: 10px;" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@Disable2FA" />
 
-                }
-            </RadzenStack>
-            <br />
-            <RadzenRow Gap="10px" RowGap="10px">
+                        }
+                    </RadzenStack>
+                </RadzenColumn>
                 <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
                     <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                         <div>
