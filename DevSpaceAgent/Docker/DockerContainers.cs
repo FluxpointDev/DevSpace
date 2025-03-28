@@ -169,6 +169,15 @@ public static class DockerContainers
                     }
 
                 }
+            case ControlContainerType.Rename:
+                {
+                    CreateContainerEvent Data = @event.Data.ToObject<CreateContainerEvent>();
+                    await Program.DockerClient.Containers.RenameContainerAsync(@event.ResourceId, new ContainerRenameParameters
+                    {
+                        NewName = Data.Name
+                    }, CancellationToken.None);
+                }
+                break;
         }
 
         return null;

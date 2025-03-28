@@ -1,8 +1,10 @@
 ﻿@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
+@using DevSpaceWeb.Models.Docker
 @using Docker.DotNet.Models
 @using Newtonsoft.Json.Linq
 @inject NotificationService Notifications
+@inject DialogService Dialog
 
 @if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
 {
@@ -69,7 +71,7 @@ else
                 <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Paused || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!CanManageContainer || IsActionLoading)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
             </RadzenStack>
-            
+
         </div>
     </div>
 
@@ -85,7 +87,10 @@ else
                         Name
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Container.Name.Substring(1)
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
+                            <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@Container.Name.Substring(1)</RadzenText>
+                            <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@UpdateName" Disabled="@(IsActionLoading || !CanManageContainer)" />
+                        </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -154,8 +159,8 @@ else
                     </RadzenTableCell>
                     <RadzenTableCell>
                         <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
-                        <RadzenDropDown @bind-Value="@SelectedRestartMode" Data="@RestartModes" Disabled="@(IsActionLoading || !CanManageContainer)" Style="width: 100%; max-width: 200px;" />
-                        <RadzenButton Text="Update" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@UpdateRestartMode" Disabled="@(IsActionLoading || !CanManageContainer)" />
+                            <RadzenDropDown @bind-Value="@SelectedRestartMode" Data="@RestartModes" Disabled="@(IsActionLoading || !CanManageContainer)" Style="width: 100%; max-width: 200px;" />
+                            <RadzenButton Text="Update" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@UpdateRestartMode" Disabled="@(IsActionLoading || !CanManageContainer)" />
                         </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
@@ -328,91 +333,91 @@ else
                     }
                     else
                     {
-                    <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
-                        <RadzenTableBody>
-                            <RadzenTableRow>
-                                <RadzenTableCell>
-                                    Command
-                                </RadzenTableCell>
-                                <RadzenTableCell>
-                                    @if (Container.Config.Cmd != null)
-                                    {
-                                        @string.Join(" ", Container.Config.Cmd)
-                                    }
-                                </RadzenTableCell>
-                            </RadzenTableRow>
-
-                            <RadzenTableRow>
-                                <RadzenTableCell>
-                                    Entrypoint
-                                </RadzenTableCell>
-                                <RadzenTableCell>
-                                    @if (Container.Config.Entrypoint != null)
-                                    {
-                                        @string.Join(" ", Container.Config.Entrypoint)
-                                    }
-                                </RadzenTableCell>
-                            </RadzenTableRow>
-
-                            <RadzenTableRow>
-                                <RadzenTableCell>
-                                    Working Directory
-                                </RadzenTableCell>
-                                <RadzenTableCell>
-                                    @Container.Config.WorkingDir
-                                </RadzenTableCell>
-                            </RadzenTableRow>
-
-                            <RadzenTableRow>
-                                <RadzenTableCell>
-                                    Platform
-                                </RadzenTableCell>
-                                <RadzenTableCell>
-                                    @Utils.FriendlyName(Container.Platform)
-                                </RadzenTableCell>
-                            </RadzenTableRow>
-
-                            <RadzenTableRow>
-                                <RadzenTableCell>
-                                    Network
-                                </RadzenTableCell>
-                                <RadzenTableCell>
-                                    @Container.HostConfig.NetworkMode
-                                </RadzenTableCell>
-                            </RadzenTableRow>
-
-                            <RadzenTableRow>
-                                <RadzenTableCell>
-                                    Ports
-                                </RadzenTableCell>
-                                <RadzenTableCell>
-                                    @foreach (var p in Container.HostConfig.PortBindings)
-                                    {
-                                        foreach (var i in p.Value)
+                        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+                            <RadzenTableBody>
+                                <RadzenTableRow>
+                                    <RadzenTableCell>
+                                        Command
+                                    </RadzenTableCell>
+                                    <RadzenTableCell>
+                                        @if (Container.Config.Cmd != null)
                                         {
-                                            if (string.IsNullOrEmpty(i.HostIP))
+                                            @string.Join(" ", Container.Config.Cmd)
+                                        }
+                                    </RadzenTableCell>
+                                </RadzenTableRow>
+
+                                <RadzenTableRow>
+                                    <RadzenTableCell>
+                                        Entrypoint
+                                    </RadzenTableCell>
+                                    <RadzenTableCell>
+                                        @if (Container.Config.Entrypoint != null)
+                                        {
+                                            @string.Join(" ", Container.Config.Entrypoint)
+                                        }
+                                    </RadzenTableCell>
+                                </RadzenTableRow>
+
+                                <RadzenTableRow>
+                                    <RadzenTableCell>
+                                        Working Directory
+                                    </RadzenTableCell>
+                                    <RadzenTableCell>
+                                        @Container.Config.WorkingDir
+                                    </RadzenTableCell>
+                                </RadzenTableRow>
+
+                                <RadzenTableRow>
+                                    <RadzenTableCell>
+                                        Platform
+                                    </RadzenTableCell>
+                                    <RadzenTableCell>
+                                        @Utils.FriendlyName(Container.Platform)
+                                    </RadzenTableCell>
+                                </RadzenTableRow>
+
+                                <RadzenTableRow>
+                                    <RadzenTableCell>
+                                        Network
+                                    </RadzenTableCell>
+                                    <RadzenTableCell>
+                                        @Container.HostConfig.NetworkMode
+                                    </RadzenTableCell>
+                                </RadzenTableRow>
+
+                                <RadzenTableRow>
+                                    <RadzenTableCell>
+                                        Ports
+                                    </RadzenTableCell>
+                                    <RadzenTableCell>
+                                        @foreach (var p in Container.HostConfig.PortBindings)
+                                        {
+                                            foreach (var i in p.Value)
                                             {
-                                                <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="@($"Host 0.0.0.0:{i.HostPort} to {p.Key}")" IsPill="true" />
-                                            }
-                                            else
-                                            {
-                                                <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="@($"Host {i.HostIP}:{i.HostPort} to {p.Key}")" IsPill="true" />
+                                                if (string.IsNullOrEmpty(i.HostIP))
+                                                {
+                                                    <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="@($"Host 0.0.0.0:{i.HostPort} to {p.Key}")" IsPill="true" />
+                                                }
+                                                else
+                                                {
+                                                    <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="@($"Host {i.HostIP}:{i.HostPort} to {p.Key}")" IsPill="true" />
+                                                }
+
                                             }
 
                                         }
+                                    </RadzenTableCell>
+                                </RadzenTableRow>
 
-                                    }
-                                </RadzenTableCell>
-                            </RadzenTableRow>
-
-                        </RadzenTableBody>
-                    </RadzenTable>
-                    @if (Container.HostConfig.PortBindings.Any(x => x.Value.Any(x => string.IsNullOrEmpty(x.HostIP) || x.HostIP == "0.0.0.0")))
-                    {
-                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" Size="AlertSize.Small" AllowClose="false" Style="width: 100%;">
-                            Some ports are publicly open to the internet and will not be protected by the host firewall settings.
-                        </RadzenAlert>
-                    }
+                            </RadzenTableBody>
+                        </RadzenTable>
+                        @if (Container.HostConfig.PortBindings.Any(x => x.Value.Any(x => string.IsNullOrEmpty(x.HostIP) || x.HostIP == "0.0.0.0")))
+                        {
+                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" Size="AlertSize.Small" AllowClose="false" Style="width: 100%;">
+                                Some ports are publicly open to the internet and will not be protected by the host firewall settings.
+                            </RadzenAlert>
+                        }
                     }
                 </RadzenTabsItem>
 
@@ -426,14 +431,14 @@ else
                     else if (Container.Config.Labels != null)
                     {
                         <div class="dash-box-content">
-                        @foreach (var i in Container.Config.Labels)
-                        {
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                @i.Value
-                            </RadzenText>
-                            <br />
-                        }
+                            @foreach (var i in Container.Config.Labels)
+                            {
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @i.Value
+                                </RadzenText>
+                                <br />
+                            }
                         </div>
                     }
                 </RadzenTabsItem>
@@ -448,22 +453,22 @@ else
                     else if (ShowEnvironment)
                     {
                         <div class="dash-box-content">
-                        
-                        @foreach (var i in ParseEnvironment(Container.Config.Env))
-                        {
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                @i.Value
-                            </RadzenText>
-                            <br />
-                        }
+
+                            @foreach (var i in ParseEnvironment(Container.Config.Env))
+                            {
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @i.Value
+                                </RadzenText>
+                                <br />
+                            }
                         </div>
                     }
                     else
                     {
                         <div class="dash-box-content">
-                        <RadzenText TextStyle="TextStyle.Body2">Environment is hidden by default</RadzenText>
-                        <RadzenButton Text="Show Environment" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@(() => ShowEnvironment = true)" />
+                            <RadzenText TextStyle="TextStyle.Body2">Environment is hidden by default</RadzenText>
+                            <RadzenButton Text="Show Environment" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@(() => ShowEnvironment = true)" />
                         </div>
                     }
                 </RadzenTabsItem>
@@ -485,110 +490,110 @@ else
         }
         else
         {
-        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
-            <RadzenTableHeader>
-                <RadzenTableHeaderRow>
-                    <RadzenTableHeaderCell>
-                        Type
-                    </RadzenTableHeaderCell>
-                    <RadzenTableHeaderCell>
-                        Source
-                    </RadzenTableHeaderCell>
-                    <RadzenTableHeaderCell>
-                        Destination
-                    </RadzenTableHeaderCell>
-                    <RadzenTableHeaderCell>
+            <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+                <RadzenTableHeader>
+                    <RadzenTableHeaderRow>
+                        <RadzenTableHeaderCell>
+                            Type
+                        </RadzenTableHeaderCell>
+                        <RadzenTableHeaderCell>
+                            Source
+                        </RadzenTableHeaderCell>
+                        <RadzenTableHeaderCell>
+                            Destination
+                        </RadzenTableHeaderCell>
+                        <RadzenTableHeaderCell>
 
-                    </RadzenTableHeaderCell>
-                </RadzenTableHeaderRow>
-            </RadzenTableHeader>
-            <RadzenTableBody>
-                @foreach (var v in Container.Mounts)
-                {
-                    <RadzenTableRow>
-                        <RadzenTableCell>
-                            @switch (v.Type)
-                            {
-                                case "bind":
-                                    {
-                                        <RadzenStack Orientation="Orientation.Horizontal">
-                                            <RadzenIcon Icon="directory_sync" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
-                                            <RadzenText TextStyle="TextStyle.Body2">
-                                                Bind
-                                            </RadzenText>
-                                        </RadzenStack>
-                                    }
-                                    break;
-                                case "volume":
-                                    {
-                                        <RadzenStack Orientation="Orientation.Horizontal">
-                                            <RadzenIcon Icon="folder" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
-                                            <RadzenText TextStyle="TextStyle.Body2">
-                                                Volume
-                                            </RadzenText>
-                                        </RadzenStack>
-                                    }
-                                    break;
-                                case "tmpfs":
-                                    {
-                                        <RadzenStack Orientation="Orientation.Horizontal">
-                                            <RadzenIcon Icon="folder_delete" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
-                                            <RadzenText TextStyle="TextStyle.Body2">
-                                                Temp
-                                            </RadzenText>
-                                        </RadzenStack>
-                                    }
-                                    break;
-                                case "npipe":
-                                    {
-                                        <RadzenStack Orientation="Orientation.Horizontal">
-                                            <RadzenIcon Icon="settings" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
-                                            <RadzenText TextStyle="TextStyle.Body2">
-                                                Named Pipe
-                                            </RadzenText>
-                                        </RadzenStack>
-                                    }
-                                    break;
-                                case "cluster":
-                                    {
-                                        <RadzenStack Orientation="Orientation.Horizontal">
-                                            <RadzenIcon Icon="cloud" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
-                                            <RadzenText TextStyle="TextStyle.Body2">
-                                                Cluster
-                                            </RadzenText>
-                                        </RadzenStack>
-                                    }
-                                    break;
-                            }
+                        </RadzenTableHeaderCell>
+                    </RadzenTableHeaderRow>
+                </RadzenTableHeader>
+                <RadzenTableBody>
+                    @foreach (var v in Container.Mounts)
+                    {
+                        <RadzenTableRow>
+                            <RadzenTableCell>
+                                @switch (v.Type)
+                                {
+                                    case "bind":
+                                        {
+                                            <RadzenStack Orientation="Orientation.Horizontal">
+                                                <RadzenIcon Icon="directory_sync" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                                <RadzenText TextStyle="TextStyle.Body2">
+                                                    Bind
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        }
+                                        break;
+                                    case "volume":
+                                        {
+                                            <RadzenStack Orientation="Orientation.Horizontal">
+                                                <RadzenIcon Icon="folder" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                                <RadzenText TextStyle="TextStyle.Body2">
+                                                    Volume
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        }
+                                        break;
+                                    case "tmpfs":
+                                        {
+                                            <RadzenStack Orientation="Orientation.Horizontal">
+                                                <RadzenIcon Icon="folder_delete" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                                <RadzenText TextStyle="TextStyle.Body2">
+                                                    Temp
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        }
+                                        break;
+                                    case "npipe":
+                                        {
+                                            <RadzenStack Orientation="Orientation.Horizontal">
+                                                <RadzenIcon Icon="settings" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                                <RadzenText TextStyle="TextStyle.Body2">
+                                                    Named Pipe
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        }
+                                        break;
+                                    case "cluster":
+                                        {
+                                            <RadzenStack Orientation="Orientation.Horizontal">
+                                                <RadzenIcon Icon="cloud" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                                <RadzenText TextStyle="TextStyle.Body2">
+                                                    Cluster
+                                                </RadzenText>
+                                            </RadzenStack>
+                                        }
+                                        break;
+                                }
 
-                        </RadzenTableCell>
-                        <RadzenTableCell>
-                            @if (v.Type == "volume")
-                            {
-                                <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + v.Name)">@v.Name</RadzenLink>
-                            }
-                            else
-                            {
-                                @v.Source
-                            }
-                        </RadzenTableCell>
-                        <RadzenTableCell>
-                            @v.Destination
-                        </RadzenTableCell>
-                        <RadzenTableCell>
-                            @if (v.RW)
-                            {
-                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read & Write" IsPill="true" />
-                            }
-                            else
-                            {
-                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read-only" IsPill="true" />
-                            }
-                        </RadzenTableCell>
-                    </RadzenTableRow>
-                }
-            </RadzenTableBody>
-        </RadzenTable>
+                            </RadzenTableCell>
+                            <RadzenTableCell>
+                                @if (v.Type == "volume")
+                                {
+                                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + v.Name)">@v.Name</RadzenLink>
+                                }
+                                else
+                                {
+                                    @v.Source
+                                }
+                            </RadzenTableCell>
+                            <RadzenTableCell>
+                                @v.Destination
+                            </RadzenTableCell>
+                            <RadzenTableCell>
+                                @if (v.RW)
+                                {
+                                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read & Write" IsPill="true" />
+                                }
+                                else
+                                {
+                                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read-only" IsPill="true" />
+                                }
+                            </RadzenTableCell>
+                        </RadzenTableRow>
+                    }
+                </RadzenTableBody>
+            </RadzenTable>
         }
     </div>
 
@@ -606,43 +611,43 @@ else
         }
         else
         {
-        <RadzenDataGrid AllowRowSelectOnRowClick="false" Data="@Container.NetworkSettings.Networks"
-                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-                        AllowSorting="false"
-                        AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
-                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                        LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
-            <Columns>
-                <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
-                    <Template>
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/networks/" + context.Value.NetworkID)">@context.Key</RadzenLink>
-                        @if (IsNetworkSystem(context.Key))
-                        {
-                            <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
-                        }
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="IP Address" Width="100px">
-                    <Template>
-                        @context.Value.IPAddress
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Gateway" Width="100px">
-                    <Template>
-                        @context.Value.Gateway
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="MAC Address" Width="160px">
-                    <Template>
-                        @context.Value.MacAddress
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn>
-                    <Template>
-                    </Template>
-                </RadzenDataGridColumn>
-            </Columns>
-        </RadzenDataGrid>
+            <RadzenDataGrid AllowRowSelectOnRowClick="false" Data="@Container.NetworkSettings.Networks"
+                            PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                            AllowSorting="false"
+                            AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
+                <Columns>
+                    <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
+                        <Template>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/networks/" + context.Value.NetworkID)">@context.Key</RadzenLink>
+                            @if (IsNetworkSystem(context.Key))
+                            {
+                                <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="IP Address" Width="100px">
+                        <Template>
+                            @context.Value.IPAddress
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Gateway" Width="100px">
+                        <Template>
+                            @context.Value.Gateway
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="MAC Address" Width="160px">
+                        <Template>
+                            @context.Value.MacAddress
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn>
+                        <Template>
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
         }
     </div>
 }
@@ -728,6 +733,32 @@ else
         "Always",
         "Unless Stopped"
     };
+
+    public async Task UpdateName()
+    {
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+            return;
+
+        await Dialog.ShowDynamicFormAsync<ContainerRenameModel>("Rename Container", new ContainerRenameModel { Name = Container.Name.Substring(1) }, async (ContainerRenameModel data) =>
+        {
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                return "You do not have permission for Manage Containers";
+
+            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Rename)
+            {
+                Data = JObject.FromObject(new CreateContainerEvent
+                {
+                    Name = data.Name
+                })
+            });
+            if (!Result.IsSuccess)
+                return "Failed to rename container";
+
+            Container.Name = "/" + data.Name;
+
+            return null;
+        });
+    }
 
     public async Task UpdateRestartMode()
     {
@@ -858,7 +889,7 @@ else
         IsActionLoading = true;
         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, type), async (res) =>
         {
-            
+
         });
         await Task.Delay(new TimeSpan(0, 0, 1));
         await InvokeAsync(OnParametersSetAsync);

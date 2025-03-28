@@ -54,7 +54,7 @@ public enum DockerEventType
 }
 public enum ControlContainerType
 {
-    View, Inspect, Update, Kill, Start, Stop, Pause, UnPause, Restart, Remove, ForceRemove, Changes, Logs, Processes
+    View, Inspect, Update, Kill, Start, Stop, Pause, UnPause, Restart, Remove, ForceRemove, Changes, Logs, Processes, Rename
 }
 public enum ControlPluginType
 {
