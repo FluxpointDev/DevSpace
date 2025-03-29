@@ -86,12 +86,19 @@ public static class DockerStacks
                         Version = long.Parse(Version2.Substring(1));
                     }
                     catch { }
+
+                    if (Directory.Exists("/var/lib/docker/volumes/portainer_data/_data/compose/" + Id))
+                    {
+                        CreatedAt = Directory.GetCreationTimeUtc("/var/lib/docker/volumes/portainer_data/_data/compose/" + Id);
+                        if (Version != 1 && Directory.Exists("/var/lib/docker/volumes/portainer_data/_data/compose/" + Id + "/v" + Version))
+                            UpdatedAt = Directory.GetLastWriteTimeUtc("/var/lib/docker/volumes/portainer_data/_data/compose/" + Id + "/v" + Version);
+                    }
                 }
 
                 if (Type == DockerStackControl.System && !string.IsNullOrEmpty(configFile) && configFile.EndsWith(".yml", StringComparison.OrdinalIgnoreCase))
                 {
-                    CreatedAt = null;
-                    UpdatedAt = c.Created;
+                    CreatedAt = c.Created;
+
                 }
 
                 if (!string.IsNullOrEmpty(DataPath) && DataPath.StartsWith("/app/Data/Stacks/"))
@@ -381,17 +388,175 @@ public static class DockerStacks
                         ImageId = c.ImageID,
                         ImageName = c.Image
                     });
+
+                    foreach (var i in c.NetworkSettings.Networks)
+                    {
+                        if (!Info.Networks.Any(x => x.Id != i.Value.NetworkID))
+                        {
+                            Info.Networks.Add(DockerContainerNetwork.Create(i.Key, i.Value));
+                        }
+                    }
+
+                    foreach (var i in c.Mounts)
+                    {
+                        if (!Info.Volumes.Any(x => x.Name == i.Name))
+                        {
+                            Info.Volumes.Add(i);
+                        }
+                    }
                 }
 
             }
             catch { }
             return Info;
         }
-
-        return new DockerStackInfo
+        else
         {
-            ControlType = DockerStackControl.System
-        };
+            DockerStackInfo Info = new DockerStackInfo
+            {
+                Id = id,
+                ControlType = DockerStackControl.System,
+            };
+
+
+            if (int.TryParse(id, out _))
+            {
+                Info.ControlType = DockerStackControl.Portainer;
+                var Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                {
+                    All = true
+                });
+
+                foreach (var c in Containers)
+                {
+                    string? DataPath = null;
+                    if (c.Labels != null)
+                    {
+                        if (c.Labels.TryGetValue("com.docker.compose.project.config_files", out string confFile))
+                            DataPath = confFile;
+                        if (string.IsNullOrEmpty(DataPath) && c.Labels.TryGetValue("com.docker.compose.project.working_dir", out string workDir))
+                            DataPath = workDir;
+                    }
+
+                    if (string.IsNullOrEmpty(DataPath) || !DataPath.StartsWith("/data/compose/" + id))
+                        continue;
+
+                    if (string.IsNullOrEmpty(Info.Name) && c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project", out string name))
+                        Info.Name = name;
+
+                    if (Info.Version == 0)
+                    {
+                        try
+                        {
+                            string Version = DataPath.Split('/', StringSplitOptions.RemoveEmptyEntries)[3].Substring(1);
+                            if (long.TryParse(Version, out long version))
+                                Info.Version = version;
+                        }
+                        catch { }
+                    }
+
+
+                    if (Info.CreatedAt == null && Directory.Exists("/var/lib/docker/volumes/portainer_data/_data/compose/" + id))
+                    {
+                        Info.CreatedAt = Directory.GetCreationTimeUtc("/var/lib/docker/volumes/portainer_data/_data/compose/" + id);
+                        if (Info.Version != 1 && Directory.Exists("/var/lib/docker/volumes/portainer_data/_data/compose/" + id + "/v" + Info.Version))
+                            Info.UpdatedAt = Directory.GetLastWriteTimeUtc("/var/lib/docker/volumes/portainer_data/_data/compose/" + id + "/v" + Info.Version);
+                    }
+
+                    switch (c.State)
+                    {
+                        case "running":
+                        case "restarting":
+                            Info.IsRunning = true;
+                            break;
+                    }
+
+                    Info.ContainersCount += 1;
+                    Info.Containers.Add(new DockerContainerInfo
+                    {
+                        Id = c.ID,
+                        Name = c.Names != null && c.Names.Any() ? c.Names.First().Substring(1) : c.ID,
+                        State = c.State,
+                        Status = c.Status,
+                        CreatedAt = c.Created,
+                        ImageId = c.ImageID,
+                        ImageName = c.Image
+                    });
+
+                    foreach (var i in c.NetworkSettings.Networks)
+                    {
+                        if (!Info.Networks.Any(x => x.Id != i.Value.NetworkID))
+                        {
+                            Info.Networks.Add(DockerContainerNetwork.Create(i.Key, i.Value));
+                        }
+                    }
+
+                    foreach (var i in c.Mounts)
+                    {
+                        if (!Info.Volumes.Any(x => x.Name == i.Name))
+                        {
+                            Info.Volumes.Add(i);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                var Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                {
+                    All = true,
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
+                        { { "label", new Dictionary<string, bool> { { $"com.docker.compose.project={id}", true } } } }
+                });
+
+                foreach (var c in Containers)
+                {
+                    if (string.IsNullOrEmpty(Info.Name) && c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project", out string name))
+                        Info.Name = name;
+
+                    if (Info.CreatedAt == null || c.Created < Info.CreatedAt)
+                        Info.CreatedAt = c.Created;
+
+                    switch (c.State)
+                    {
+                        case "running":
+                        case "restarting":
+                            Info.IsRunning = true;
+                            break;
+                    }
+
+                    Info.ContainersCount += 1;
+                    Info.Containers.Add(new DockerContainerInfo
+                    {
+                        Id = c.ID,
+                        Name = c.Names != null && c.Names.Any() ? c.Names.First().Substring(1) : c.ID,
+                        State = c.State,
+                        Status = c.Status,
+                        CreatedAt = c.Created,
+                        ImageId = c.ImageID,
+                        ImageName = c.Image,
+                    });
+
+                    foreach (var i in c.NetworkSettings.Networks)
+                    {
+                        if (!Info.Networks.Any(x => x.Id != i.Value.NetworkID))
+                        {
+                            Info.Networks.Add(DockerContainerNetwork.Create(i.Key, i.Value));
+                        }
+                    }
+
+                    foreach (var i in c.Mounts)
+                    {
+                        if (!Info.Volumes.Any(x => x.Name == i.Name))
+                        {
+                            Info.Volumes.Add(i);
+                        }
+                    }
+                }
+            }
+
+            return Info;
+        }
     }
 
     public static async Task<DockerStackComposeInfo> StackCompose(DockerClient client, string id)

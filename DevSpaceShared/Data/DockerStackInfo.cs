@@ -1,4 +1,6 @@
 ﻿
+using Docker.DotNet.Models;
+
 namespace DevSpaceShared.Data;
 
 public class DockerStackInfo
@@ -11,6 +13,8 @@ public class DockerStackInfo
     public DockerStackType Type { get; set; }
     public DockerStackControl ControlType { get; set; }
     public HashSet<DockerContainerInfo> Containers { get; set; } = new HashSet<DockerContainerInfo>();
+    public HashSet<MountPoint> Volumes { get; set; } = new HashSet<MountPoint>();
+    public HashSet<DockerContainerNetwork> Networks { get; set; } = new HashSet<DockerContainerNetwork>();
     public int ContainersCount { get; set; }
     public bool IsRunning { get; set; } = false;
 }

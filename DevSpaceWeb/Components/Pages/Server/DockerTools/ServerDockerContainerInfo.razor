@@ -278,7 +278,6 @@ else
                                 case "starting":
                                     {
                                         <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Starting" IsPill="true" />
-
                                     }
                                     break;
                             }
@@ -490,110 +489,102 @@ else
         }
         else
         {
-            <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
-                <RadzenTableHeader>
-                    <RadzenTableHeaderRow>
-                        <RadzenTableHeaderCell>
-                            Type
-                        </RadzenTableHeaderCell>
-                        <RadzenTableHeaderCell>
-                            Source
-                        </RadzenTableHeaderCell>
-                        <RadzenTableHeaderCell>
-                            Destination
-                        </RadzenTableHeaderCell>
-                        <RadzenTableHeaderCell>
+            <RadzenDataGrid AllowRowSelectOnRowClick="false" Data="@Container.Mounts" AllowPaging="true" PageSize="15"
+                            PagerHorizontalAlign="HorizontalAlign.Center" GridLines="DataGridGridLines.Horizontal"
+                            AllowSorting="false"
+                            AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                            FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                            LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
+                <Columns>
+                    <RadzenDataGridColumn Title="Type" Width="100px">
+                        <Template>
+                            @switch (context.Type)
+                            {
+                                case "bind":
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenIcon Icon="directory_sync" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                Bind
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                    break;
+                                case "volume":
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenIcon Icon="folder" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                Volume
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                    break;
+                                case "tmpfs":
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenIcon Icon="folder_delete" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                Temp
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                    break;
+                                case "npipe":
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenIcon Icon="settings" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                Named Pipe
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                    break;
+                                case "cluster":
+                                    {
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            <RadzenIcon Icon="cloud" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                Cluster
+                                            </RadzenText>
+                                        </RadzenStack>
+                                    }
+                                    break;
+                            }
 
-                        </RadzenTableHeaderCell>
-                    </RadzenTableHeaderRow>
-                </RadzenTableHeader>
-                <RadzenTableBody>
-                    @foreach (var v in Container.Mounts)
-                    {
-                        <RadzenTableRow>
-                            <RadzenTableCell>
-                                @switch (v.Type)
-                                {
-                                    case "bind":
-                                        {
-                                            <RadzenStack Orientation="Orientation.Horizontal">
-                                                <RadzenIcon Icon="directory_sync" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
-                                                <RadzenText TextStyle="TextStyle.Body2">
-                                                    Bind
-                                                </RadzenText>
-                                            </RadzenStack>
-                                        }
-                                        break;
-                                    case "volume":
-                                        {
-                                            <RadzenStack Orientation="Orientation.Horizontal">
-                                                <RadzenIcon Icon="folder" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
-                                                <RadzenText TextStyle="TextStyle.Body2">
-                                                    Volume
-                                                </RadzenText>
-                                            </RadzenStack>
-                                        }
-                                        break;
-                                    case "tmpfs":
-                                        {
-                                            <RadzenStack Orientation="Orientation.Horizontal">
-                                                <RadzenIcon Icon="folder_delete" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
-                                                <RadzenText TextStyle="TextStyle.Body2">
-                                                    Temp
-                                                </RadzenText>
-                                            </RadzenStack>
-                                        }
-                                        break;
-                                    case "npipe":
-                                        {
-                                            <RadzenStack Orientation="Orientation.Horizontal">
-                                                <RadzenIcon Icon="settings" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
-                                                <RadzenText TextStyle="TextStyle.Body2">
-                                                    Named Pipe
-                                                </RadzenText>
-                                            </RadzenStack>
-                                        }
-                                        break;
-                                    case "cluster":
-                                        {
-                                            <RadzenStack Orientation="Orientation.Horizontal">
-                                                <RadzenIcon Icon="cloud" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
-                                                <RadzenText TextStyle="TextStyle.Body2">
-                                                    Cluster
-                                                </RadzenText>
-                                            </RadzenStack>
-                                        }
-                                        break;
-                                }
-
-                            </RadzenTableCell>
-                            <RadzenTableCell>
-                                @if (v.Type == "volume")
-                                {
-                                    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + v.Name)">@v.Name</RadzenLink>
-                                }
-                                else
-                                {
-                                    @v.Source
-                                }
-                            </RadzenTableCell>
-                            <RadzenTableCell>
-                                @v.Destination
-                            </RadzenTableCell>
-                            <RadzenTableCell>
-                                @if (v.RW)
-                                {
-                                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read & Write" IsPill="true" />
-                                }
-                                else
-                                {
-                                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read-only" IsPill="true" />
-                                }
-                            </RadzenTableCell>
-                        </RadzenTableRow>
-                    }
-                </RadzenTableBody>
-            </RadzenTable>
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Source" Width="300px">
+                        <Template>
+                            @if (context.Type == "volume")
+                            {
+                                <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                            }
+                            else
+                            {
+                                @context.Source
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Destination" Width="300px">
+                        <Template>
+                            @context.Destination
+                        </Template>
+                    </RadzenDataGridColumn>
+                    <RadzenDataGridColumn>
+                        <Template>
+                            @if (context.RW)
+                            {
+                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read & Write" IsPill="true" />
+                            }
+                            else
+                            {
+                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read-only" IsPill="true" />
+                            }
+                        </Template>
+                    </RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
         }
     </div>
 

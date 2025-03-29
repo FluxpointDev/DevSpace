@@ -32,6 +32,15 @@ namespace DevSpaceShared.Data
             return Info;
         }
 
+        public static DockerNetworkInfo Create(string name, EndpointSettings network)
+        {
+            return new DockerNetworkInfo
+            {
+                Name = name,
+                Id = network.NetworkID
+            };
+        }
+
         public string Id { get; set; }
         public string Name { get; set; }
         public string Driver { get; set; }
