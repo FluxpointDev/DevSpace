@@ -205,7 +205,10 @@ public static class DockerStacks
                 .KeepVolumes()
                 .KeepOnDispose()
                 .FromFile(Dir + "docker-compose.yml")
-                .Build()) { }
+                .Build())
+            {
+
+            }
             ;
         }
         catch
@@ -642,10 +645,15 @@ public static class DockerStacks
                         ComposeFilePath = new List<string> { File },
                         ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                         StopOnDispose = false,
+                        RemoveOrphans = true,
                         KeepContainers = false,
                         KeepVolumes = true
                     }))
                     {
+                        foreach (var i in svc.Containers)
+                        {
+                            i.Remove(true);
+                        }
                         svc.Remove(true);
                     }
                 }
