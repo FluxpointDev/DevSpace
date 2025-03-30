@@ -123,7 +123,7 @@ public class WebSocketClient : WssClient
 
     public async Task<SocketResponse<T?>> RunJsonAsync<T>(NotificationService notification, IWebSocketTask json, Action<SocketResponse<T?>>? action = null, CancellationToken token = default) where T : class
     {
-        var Result = await RecieveJsonAsync<T>(json, token);
+        SocketResponse<T?> Result = await RecieveJsonAsync<T>(json, token);
         if (Result.IsSuccess)
         {
             action?.Invoke(Result);

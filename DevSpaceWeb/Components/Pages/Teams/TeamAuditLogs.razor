@@ -39,7 +39,7 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Member" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
                     <Template>
-                        @if (_DB.Users.TryGetValue(context.ActionUserId.GetValueOrDefault(), out var user))
+                        @if (_DB.Users.TryGetValue(context.ActionUserId.GetValueOrDefault(), out PartialUserData? user))
                         {
                             <RadzenText TextStyle="TextStyle.Body2">@user.UserName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="User" IsPill="true" class="ml-1" /></RadzenText>
                         }
@@ -106,7 +106,7 @@
                             @switch (context.TargetType)
                             {
                                 case AuditLogTargetType.Server:
-                                    if (_DB.Servers.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ServerData server))
+                                    if (_DB.Servers.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ServerData? server))
                                     {
                                         <RadzenText TextStyle="TextStyle.Body2">@server.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Server" IsPill="true" class="ml-1" /></RadzenText>
                                     }
@@ -116,7 +116,7 @@
                                     }
                                     break;
                                 case AuditLogTargetType.Log:
-                                    if (_DB.Logs.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out LogData log))
+                                    if (_DB.Logs.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out LogData? log))
                                     {
                                         <RadzenText TextStyle="TextStyle.Body2">@log.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Log" IsPill="true" class="ml-1" /></RadzenText>
                                     }
@@ -126,7 +126,7 @@
                                     }
                                     break;
                                 case AuditLogTargetType.Project:
-                                    if (_DB.Projects.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ProjectData project))
+                                    if (_DB.Projects.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ProjectData? project))
                                     {
                                         <RadzenText TextStyle="TextStyle.Body2">@project.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Project" IsPill="true" class="ml-1" /></RadzenText>
                                     }
@@ -136,7 +136,7 @@
                                     }
                                     break;
                                 case AuditLogTargetType.Role:
-                                    if (_DB.Roles.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out TeamRoleData role))
+                                    if (_DB.Roles.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out TeamRoleData? role))
                                     {
                                         <RadzenText TextStyle="TextStyle.Body2">@role.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Role" IsPill="true" class="ml-1" /></RadzenText>
                                     }
@@ -146,7 +146,7 @@
                                     }
                                     break;
                                 case AuditLogTargetType.Member:
-                                    if (_DB.Users.TryGetValue(context.TargetId.GetValueOrDefault(), out var user))
+                                    if (_DB.Users.TryGetValue(context.TargetId.GetValueOrDefault(), out PartialUserData? user))
                                     {
                                         <RadzenText TextStyle="TextStyle.Body2">@user.UserName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="User" IsPill="true" class="ml-1" /></RadzenText>
                                     }
@@ -156,7 +156,7 @@
                                     }
                                     break;
                                 case AuditLogTargetType.Website:
-                                    if (_DB.Websites.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out WebsiteData website))
+                                    if (_DB.Websites.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out WebsiteData? website))
                                     {
                                         <RadzenText TextStyle="TextStyle.Body2">@website.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Website" IsPill="true" class="ml-1" /></RadzenText>
                                     }
@@ -166,7 +166,7 @@
                                     }
                                     break;
                                     case AuditLogTargetType.Console:
-                                    if (_DB.Consoles.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ConsoleData console))
+                                    if (_DB.Consoles.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ConsoleData? console))
                                     {
                                         <RadzenText TextStyle="TextStyle.Body2">@console.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Console" IsPill="true" class="ml-1" /></RadzenText>
                                     }
@@ -176,7 +176,7 @@
                                     }
                                     break;
                                 case AuditLogTargetType.API:
-                                    if (_DB.API.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out APIClient client))
+                                    if (_DB.API.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out APIClient? client))
                                     {
                                         <RadzenText TextStyle="TextStyle.Body2">@client.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="API Client" IsPill="true" class="ml-1" /></RadzenText>
                                     }

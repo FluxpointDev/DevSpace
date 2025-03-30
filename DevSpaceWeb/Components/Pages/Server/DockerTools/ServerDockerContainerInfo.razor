@@ -471,6 +471,8 @@ else
                         </div>
                     }
                 </RadzenTabsItem>
+
+                
             </Tabs>
         </RadzenTabs>
     </div>
@@ -661,9 +663,9 @@ else
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ServerData Server => Session.Selected.Server;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
     public string ContainerId { get; set; }
@@ -885,4 +887,23 @@ else
         await Task.Delay(new TimeSpan(0, 0, 1));
         await InvokeAsync(OnParametersSetAsync);
     }
+
+    class DataItem
+    {
+        public string Severity;
+        public ulong Count;
+    }
+
+    DataItem[] revenue = new DataItem[] {
+        new DataItem
+        {
+            Severity = "High",
+            Count = 2
+        },
+        new DataItem
+        {
+            Severity = "Low",
+            Count = 5
+        }
+    };
 }

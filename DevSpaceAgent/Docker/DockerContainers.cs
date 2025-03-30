@@ -11,7 +11,7 @@ public static class DockerContainers
     {
         try
         {
-            var Containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
+            IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
             {
                 Size = true,
                 All = true
@@ -79,7 +79,7 @@ public static class DockerContainers
             case ControlContainerType.Inspect:
                 return await client.Containers.InspectContainerAsync(id);
             case ControlContainerType.Changes:
-                var Result = await client.Containers.InspectChangesAsync(id);
+                IList<ContainerFileSystemChangeResponse> Result = await client.Containers.InspectChangesAsync(id);
                 return new DockerContainerChanges
                 {
                     ContainerName = Program.ContainerCache.GetValueOrDefault(id, id),
@@ -128,7 +128,7 @@ public static class DockerContainers
                     DockerContainerLogs Logs = new DockerContainerLogs();
                     Logs.ContainerName = Program.ContainerCache.GetValueOrDefault(id, id);
 
-                    var Stream = await Program.DockerClient.Containers.GetContainerLogsAsync(id, false, new ContainerLogsParameters
+                    MultiplexedStream Stream = await Program.DockerClient.Containers.GetContainerLogsAsync(id, false, new ContainerLogsParameters
                     {
                         Tail = Data.Limit.ToString(),
                         Timestamps = Data.ShowTimestamp,
@@ -148,7 +148,7 @@ public static class DockerContainers
                 {
                     try
                     {
-                        var Response = await Program.DockerClient.Containers.ListProcessesAsync(id, new ContainerListProcessesParameters
+                        ContainerProcessesResponse Response = await Program.DockerClient.Containers.ListProcessesAsync(id, new ContainerListProcessesParameters
                         {
                             PsArgs = "-eo user,pid,ppid,thcount,c,%cpu,%mem,lstart,etime,comm,cmd --date-format %Y-%m-%dT%H:%M:%S"
                         });

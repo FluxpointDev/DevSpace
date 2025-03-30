@@ -1,6 +1,13 @@
 ﻿<h6>ServerRegistryInfo</h6>
 
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; }
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ServerData? Server => Session.Selected.Server;
+
     [Parameter]
     public string RegistryId { get; set; }
 }

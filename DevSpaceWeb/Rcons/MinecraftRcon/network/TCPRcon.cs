@@ -349,9 +349,9 @@ public class TCPRcon : Queue<RconPacket>
         catch (Exception ee)
         {
             AbortTCP = true;
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
-            var ex = ee;
+            Exception? ex = ee;
             do
             {
                 sb.AppendLine(ex.Message);
@@ -517,7 +517,7 @@ public class TCPRconAsync : Queue<RconPacket>
         StateTCP = TCPState.IDLE;
         StateRCon = RConState.IDLE;
 
-        var cli = await Connect();
+        TcpClient? cli = await Connect();
         if (cli == null)
             return false;
 
@@ -735,11 +735,11 @@ public class TCPRconAsync : Queue<RconPacket>
 
                 }
 
-                var NextSend = FetchNextCommand();
+                Task NextSend = FetchNextCommand();
 
                 if (cli.Available > 0)
                 {
-                    var resp = await FetchNextPacket();
+                    RconPacket resp = await FetchNextPacket();
 
                     if (resp.IsBadPacket)
                     {
@@ -779,9 +779,9 @@ public class TCPRconAsync : Queue<RconPacket>
         catch (Exception ee)
         {
             AbortTCP = true;
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
 
-            var ex = ee;
+            Exception? ex = ee;
             do
             {
                 sb.AppendLine(ex.Message);
@@ -823,8 +823,8 @@ public class TCPRconAsync : Queue<RconPacket>
 
     public async Task<string> ExecuteCmd(string Cmd)
     {
-        var sw = new System.Diagnostics.Stopwatch();
-        var ts = TimeSpan.FromSeconds(5);
+        System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
+        TimeSpan ts = TimeSpan.FromSeconds(5);
 
         sw.Restart();
 

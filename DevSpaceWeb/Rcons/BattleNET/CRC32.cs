@@ -76,10 +76,10 @@ internal class CRC32 : HashAlgorithm
         if (polynomial == DefaultPolynomial && _defaultTable != null)
             return _defaultTable;
 
-        var createTable = new UInt32[256];
+        uint[] createTable = new UInt32[256];
         for (int i = 0; i < 256; i++)
         {
-            var entry = (UInt32)i;
+            uint entry = (UInt32)i;
             for (int j = 0; j < 8; j++)
                 if ((entry & 1) == 1)
                     entry = (entry >> 1) ^ polynomial;

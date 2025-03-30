@@ -73,7 +73,7 @@ public class Program
 
             _ = Task.Run(async () =>
             {
-                foreach (var c in await DockerClient.Containers.ListContainersAsync(new ContainersListParameters
+                foreach (ContainerListResponse? c in await DockerClient.Containers.ListContainersAsync(new ContainersListParameters
                 {
                     All = true
                 }))

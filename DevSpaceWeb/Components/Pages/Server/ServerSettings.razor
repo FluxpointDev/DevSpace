@@ -86,9 +86,9 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ServerData Server => Session.Selected.Server;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ServerData? Server => Session.Selected.Server;
 
     public string OwnerUser { get; set; }
 
@@ -96,7 +96,7 @@
     {
         if (Server != null)
         {
-            if (_DB.Users.TryGetValue(Server.OwnerId, out var user))
+            if (_DB.Users.TryGetValue(Server.OwnerId, out PartialUserData? user))
                 OwnerUser = user.UserName;
             else
                 OwnerUser = "Unknown?";

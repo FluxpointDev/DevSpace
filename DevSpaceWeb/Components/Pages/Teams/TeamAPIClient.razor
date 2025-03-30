@@ -134,19 +134,19 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!string.IsNullOrEmpty(ClientId) && ObjectId.TryParse(ClientId, out var id) && _DB.API.Cache.TryGetValue(id, out var client))
+        if (!string.IsNullOrEmpty(ClientId) && ObjectId.TryParse(ClientId, out ObjectId id) && _DB.API.Cache.TryGetValue(id, out var client))
             Client = client;
         else
             Client = null;
 
         if (Client != null)
         {
-            if (_DB.Users.TryGetValue(Client.OwnerId, out var user))
+            if (_DB.Users.TryGetValue(Client.OwnerId, out PartialUserData? user))
                 OwnerUser = user.UserName;
             else
                 OwnerUser = "Unknown?";
 
-            if (Client.GeneratedBy.HasValue && _DB.Users.TryGetValue(Client.GeneratedBy.Value, out var user2))
+            if (Client.GeneratedBy.HasValue && _DB.Users.TryGetValue(Client.GeneratedBy.Value, out PartialUserData? user2))
                 GeneratedUser = user2.UserName;
             else
                 GeneratedUser = "Unknown?";

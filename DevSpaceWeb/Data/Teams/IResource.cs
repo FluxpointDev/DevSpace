@@ -70,7 +70,7 @@ public class ITeamResource : IResource
         {
             Dictionary<ObjectId, PermissionsSet> Permissions = new Dictionary<ObjectId, PermissionsSet>();
             Permissions.Add(roleId, perms);
-            foreach (var i in RolePermissionOverrides)
+            foreach (KeyValuePair<ObjectId, PermissionsSet> i in RolePermissionOverrides)
             {
                 if (roleId != i.Key)
                     Permissions.Add(i.Key, i.Value);
@@ -139,7 +139,7 @@ public class ITeamResource : IResource
         lock (RolePermissionsLock)
         {
             Dictionary<ObjectId, PermissionsSet> Permissions = new Dictionary<ObjectId, PermissionsSet>();
-            foreach (var i in RolePermissionOverrides)
+            foreach (KeyValuePair<ObjectId, PermissionsSet> i in RolePermissionOverrides)
             {
                 if (roleId != i.Key)
                     Permissions.Add(i.Key, i.Value);
@@ -212,7 +212,7 @@ public class ITeamResource : IResource
         {
             Dictionary<ObjectId, PermissionsSet> Permissions = new Dictionary<ObjectId, PermissionsSet>();
             Permissions.Add(memberId, perms);
-            foreach (var i in MemberPermissionOverrides)
+            foreach (KeyValuePair<ObjectId, PermissionsSet> i in MemberPermissionOverrides)
             {
                 if (memberId != i.Key)
                     Permissions.Add(i.Key, i.Value);
@@ -281,7 +281,7 @@ public class ITeamResource : IResource
         lock (MemberPermissionsLock)
         {
             Dictionary<ObjectId, PermissionsSet> Permissions = new Dictionary<ObjectId, PermissionsSet>();
-            foreach (var i in MemberPermissionOverrides)
+            foreach (KeyValuePair<ObjectId, PermissionsSet> i in MemberPermissionOverrides)
             {
                 if (memberId != i.Key)
                     Permissions.Add(i.Key, i.Value);
@@ -352,7 +352,7 @@ public class ITeamResource : IResource
         {
             Dictionary<ObjectId, PermissionsSet> Permissions = new Dictionary<ObjectId, PermissionsSet>();
             Permissions.Add(apiId, perms);
-            foreach (var i in ApiPermissionOverrides)
+            foreach (KeyValuePair<ObjectId, PermissionsSet> i in ApiPermissionOverrides)
             {
                 if (apiId != i.Key)
                     Permissions.Add(i.Key, i.Value);
@@ -421,7 +421,7 @@ public class ITeamResource : IResource
         lock (MemberPermissionsLock)
         {
             Dictionary<ObjectId, PermissionsSet> Permissions = new Dictionary<ObjectId, PermissionsSet>();
-            foreach (var i in ApiPermissionOverrides)
+            foreach (KeyValuePair<ObjectId, PermissionsSet> i in ApiPermissionOverrides)
             {
                 if (apiId != i.Key)
                     Permissions.Add(i.Key, i.Value);

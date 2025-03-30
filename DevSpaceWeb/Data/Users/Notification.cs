@@ -17,7 +17,7 @@ public class Notification
     {
         if (TeamId.HasValue)
         {
-            if (_DB.Teams.Cache.TryGetValue(TeamId.Value, out var team))
+            if (_DB.Teams.Cache.TryGetValue(TeamId.Value, out Teams.TeamData? team))
                 return team.GetIconOrDefault();
         }
         return null;
@@ -28,7 +28,7 @@ public class Notification
         switch (Type)
         {
             case NotificationType.InvitedToTeam:
-                if (TeamId.HasValue && _DB.Teams.Cache.TryGetValue(TeamId.Value, out var team))
+                if (TeamId.HasValue && _DB.Teams.Cache.TryGetValue(TeamId.Value, out Teams.TeamData? team))
                     return $"You have been invited to join the {team.Name} team.";
                 return "Invalid invite.";
         }

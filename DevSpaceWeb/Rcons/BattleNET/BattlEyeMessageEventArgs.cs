@@ -20,7 +20,7 @@ public class BattlEyeMessageEventArgs : EventArgs
         TimeZoneInfo cstZone = TimeZoneInfo.FindSystemTimeZoneById("GMT Standard Time");
         DateTime cstTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, cstZone);
 
-        var formattedTime = Convert.ToDateTime((cstTime.ToShortDateString() + " " + cstTime.Hour + ":" + cstTime.Minute));
+        DateTime formattedTime = Convert.ToDateTime((cstTime.ToShortDateString() + " " + cstTime.Hour + ":" + cstTime.Minute));
 
         Time = (formattedTime.ToString() + " ").Replace(":00 ", " ");
     }

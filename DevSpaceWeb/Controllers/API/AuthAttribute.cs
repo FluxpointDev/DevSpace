@@ -1,6 +1,8 @@
-﻿using DevSpaceWeb.Data;
+﻿using DevSpaceWeb.API;
+using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Database;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using MongoDB.Bson;
 
@@ -22,7 +24,13 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
 
     public override void OnActionExecuting(ActionExecutingContext filterContext)
     {
-        APIController controller = filterContext.Controller as APIController;
+        APIController? controller = filterContext.Controller as APIController;
+        if (controller == null)
+        {
+            filterContext.Result = new JsonResult(new Response(500, "Controller failed to load."));
+            return;
+        }
+
         if (!_Data.Config.Instance.Features.APIEnabled)
         {
             filterContext.Result = controller.CustomStatus(401, "API access has been disabled on this instance.");
@@ -65,7 +73,7 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
-        var Validate = Utils.Hasher.VerifyHashedPassword(null, controller.Client.TokenHash, Auth);
+        Microsoft.AspNetCore.Identity.PasswordVerificationResult Validate = Utils.Hasher.VerifyHashedPassword(null, controller.Client.TokenHash, Auth);
 
         if (Validate == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
         {
@@ -87,7 +95,7 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
-        if (!_DB.Users.TryGetValue(controller.Client.OwnerId, out var user))
+        if (!_DB.Users.TryGetValue(controller.Client.OwnerId, out PartialUserData? user))
         {
             filterContext.Result = controller.CustomStatus(403, "Owner has been deleted for this client.");
             return;

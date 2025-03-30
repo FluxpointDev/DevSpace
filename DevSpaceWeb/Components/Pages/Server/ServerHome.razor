@@ -485,9 +485,9 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public TeamMemberData Member => Session.Selected.Member;
-    public TeamData Team => Session.Selected.Team.Data;
-    public ServerData Server => Session.Selected.Server;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ServerData? Server => Session.Selected.Server;
 
     public string OwnerUser { get; set; }
 
@@ -496,7 +496,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_DB.Users.TryGetValue(Server.OwnerId, out var user))
+        if (_DB.Users.TryGetValue(Server.OwnerId, out PartialUserData? user))
             OwnerUser = user.UserName;
         else
             OwnerUser = "Unknown?";

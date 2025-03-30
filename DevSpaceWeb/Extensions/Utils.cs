@@ -23,7 +23,7 @@ public static class Utils
         if (input.Length > 255)
             return false;
 
-        foreach (var i in input)
+        foreach (char i in input)
         {
             if (!(char.IsLower(i) ||
             char.IsDigit(i) ||
@@ -153,10 +153,10 @@ public static class Utils
 
     public static string ToPrettySize(long value, int decimalPlaces = 0)
     {
-        var asTb = Math.Round((double)value / OneTb, decimalPlaces);
-        var asGb = Math.Round((double)value / OneGb, decimalPlaces);
-        var asMb = Math.Round((double)value / OneMb, decimalPlaces);
-        var asKb = Math.Round((double)value / OneKb, decimalPlaces);
+        double asTb = Math.Round((double)value / OneTb, decimalPlaces);
+        double asGb = Math.Round((double)value / OneGb, decimalPlaces);
+        double asMb = Math.Round((double)value / OneMb, decimalPlaces);
+        double asKb = Math.Round((double)value / OneKb, decimalPlaces);
         string chosenValue = asTb > 1 ? string.Format("{0} TB", asTb)
             : asGb > 1 ? string.Format("{0} GB", asGb)
             : asMb > 1 ? string.Format("{0} MB", asMb)

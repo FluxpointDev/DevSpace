@@ -37,14 +37,14 @@ public static class DockerCustomTemplates
 
     public static async Task<DockerCustomTemplate?> GetTemplateInfoAsync(string id)
     {
-        if (Program.CustomTemplates.TryGetValue(id, out DockerCustomTemplate template))
+        if (Program.CustomTemplates.TryGetValue(id, out DockerCustomTemplate? template))
             return template;
         return null;
     }
 
     public static async Task<DockerCustomTemplateData?> GetTemplateAsync(string id)
     {
-        if (Program.CustomTemplates.TryGetValue(id, out DockerCustomTemplate template))
+        if (Program.CustomTemplates.TryGetValue(id, out DockerCustomTemplate? template))
         {
             string Compose = File.ReadAllText(Program.CurrentDirectory + "Data/Templates/" + id + "/docker-compose.yml");
             return new DockerCustomTemplateData
@@ -63,22 +63,22 @@ public static class DockerCustomTemplates
 
     public static async Task ImportPortainerTemplatesAsync()
     {
-        foreach (var i in Directory.GetDirectories("/var/lib/docker/volumes/portainer_data/_data/custom_templates"))
+        foreach (string i in Directory.GetDirectories("/var/lib/docker/volumes/portainer_data/_data/custom_templates"))
         {
             if (File.Exists(i + "/docker-compose.yml"))
             {
                 string Data = File.ReadAllText(i + "/docker-compose.yml");
                 string Id = Guid.NewGuid().ToString().Replace("-", "");
 
-                var deserializer = new DeserializerBuilder().Build();
-                var yamlObject = deserializer.Deserialize(Data);
+                IDeserializer deserializer = new DeserializerBuilder().Build();
+                object? yamlObject = deserializer.Deserialize(Data);
 
-                var serializer = new SerializerBuilder()
+                ISerializer serializer = new SerializerBuilder()
                     .JsonCompatible()
                     .Build();
 
-                var json = serializer.Serialize(yamlObject);
-                var JO = JObject.Parse(json);
+                string json = serializer.Serialize(yamlObject);
+                JObject JO = JObject.Parse(json);
                 string? Name = null;
                 try
                 {
@@ -102,7 +102,7 @@ public static class DockerCustomTemplates
 
     public static async Task EditTemplateAsync(string id, EditCustomTemplateInfoEvent data)
     {
-        if (Program.CustomTemplates.TryGetValue(id, out var template))
+        if (Program.CustomTemplates.TryGetValue(id, out DockerCustomTemplate? template))
         {
             Program.SaveTemplates();
         }

@@ -252,7 +252,7 @@
                 break;
             case OverrideType.Roles:
                 {
-                    RoleOverrides = Resource.RolePermissionOverrides.Select(x => Team.CachedRoles.TryGetValue(x.Key, out TeamRoleData role) ? new ResourcePermissionItem
+                    RoleOverrides = Resource.RolePermissionOverrides.Select(x => Team.CachedRoles.TryGetValue(x.Key, out TeamRoleData? role) ? new ResourcePermissionItem
                         {
                             Name = role.Name,
                             ObjectId = x.Key,
@@ -261,7 +261,7 @@
                     if (SelectedPermission == null || !SelectedPermission.ObjectId.HasValue)
                         return;
 
-                    if (Resource.RolePermissionOverrides.TryGetValue(SelectedPermission.ObjectId.Value, out var permission) && Team.CachedRoles.TryGetValue(SelectedPermission.ObjectId.Value, out var role))
+                    if (Resource.RolePermissionOverrides.TryGetValue(SelectedPermission.ObjectId.Value, out PermissionsSet? permission) && Team.CachedRoles.TryGetValue(SelectedPermission.ObjectId.Value, out TeamRoleData? role))
                     {
                         SelectedPermission.Name = $"{role.Name} Role Permission";
                         SelectedPermission.Description = role.Description;
@@ -275,7 +275,7 @@
                 break;
             case OverrideType.Members:
                 {
-                    MemberOverrides = Resource.MemberPermissionOverrides.Select(x => Team.Members.TryGetValue(x.Key, out ObjectId memberId) && Team.CachedMembers.TryGetValue(memberId, out TeamMemberData member) ? new ResourcePermissionItem
+                    MemberOverrides = Resource.MemberPermissionOverrides.Select(x => Team.Members.TryGetValue(x.Key, out ObjectId memberId) && Team.CachedMembers.TryGetValue(memberId, out TeamMemberData? member) ? new ResourcePermissionItem
                         {
                             Name = member.GetUsername(),
                             ObjectId = x.Key
@@ -284,7 +284,7 @@
                     if (SelectedPermission == null || !SelectedPermission.ObjectId.HasValue)
                         return;
 
-                    if (Resource.MemberPermissionOverrides.TryGetValue(SelectedPermission.ObjectId.Value, out var permission) && _DB.Users.TryGetValue(SelectedPermission.ObjectId.Value, out var user))
+                    if (Resource.MemberPermissionOverrides.TryGetValue(SelectedPermission.ObjectId.Value, out PermissionsSet? permission) && _DB.Users.TryGetValue(SelectedPermission.ObjectId.Value, out PartialUserData? user))
                     {
                         SelectedPermission.Name = $"{user.UserName} Member Permission";
                         SelectedPermission.Description = "";
@@ -298,7 +298,7 @@
                 break;
             case OverrideType.APIs:
                 {
-                    ApiOverrides = Resource.ApiPermissionOverrides.Select(x => _DB.API.Cache.TryGetValue(x.Key, out var api) ? new ResourcePermissionItem
+                    ApiOverrides = Resource.ApiPermissionOverrides.Select(x => _DB.API.Cache.TryGetValue(x.Key, out APIClient? api) ? new ResourcePermissionItem
                         {
                             Name = api.Name,
                             ObjectId = x.Key
@@ -307,7 +307,7 @@
                     if (SelectedPermission == null || !SelectedPermission.ObjectId.HasValue)
                         return;
 
-                    if (Resource.ApiPermissionOverrides.TryGetValue(SelectedPermission.ObjectId.Value, out var permission) && _DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out var client))
+                    if (Resource.ApiPermissionOverrides.TryGetValue(SelectedPermission.ObjectId.Value, out PermissionsSet? permission) && _DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out APIClient? client))
                     {
                         SelectedPermission.Name = $"{client.Name} API Permission";
                         SelectedPermission.Description = "";
@@ -481,7 +481,7 @@
                 {
                     if (SelectedPermission != null && SelectedPermission.ObjectId.HasValue && Member.HasTeamPermission(Team, TeamPermission.ViewRoles))
                     {
-                        if (!_DB.Roles.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out var role))
+                        if (!_DB.Roles.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out TeamRoleData? role))
                             return true;
 
                         if (role.CanManage(Member))
@@ -494,7 +494,7 @@
                 {
                     if (SelectedPermission != null && SelectedPermission.ObjectId.HasValue && Member.HasTeamPermission(Team, TeamPermission.ViewMembers))
                     {
-                        if (!_DB.Users.TryGetValue(SelectedPermission.ObjectId.Value, out var user))
+                        if (!_DB.Users.TryGetValue(SelectedPermission.ObjectId.Value, out PartialUserData? user))
                             return true;
 
                         var SelectedMember = Team.GetMember(user);
@@ -514,7 +514,7 @@
                     if (SelectedPermission == null || !SelectedPermission.ObjectId.HasValue)
                         return false;
 
-                    if (_DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out var api))
+                    if (_DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out APIClient? api))
                     {
                         if (api.HasAccess(Member, false))
                             return true;

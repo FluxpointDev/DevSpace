@@ -70,7 +70,7 @@ public class DockerNetworkIPAM
 
         if (ipam.Config != null)
         {
-            foreach (var i in ipam.Config)
+            foreach (IPAMConfig? i in ipam.Config)
             {
                 if (i.Gateway.Contains(':'))
                 {

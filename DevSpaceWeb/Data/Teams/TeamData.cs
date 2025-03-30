@@ -120,7 +120,7 @@ public class TeamData : IResource
         {
             Dictionary<ObjectId, int> UpdatedPositions = new Dictionary<ObjectId, int>();
             int Position = 1;
-            foreach (var i in RolePositions.OrderBy(x => x.Value))
+            foreach (KeyValuePair<ObjectId, int> i in RolePositions.OrderBy(x => x.Value))
             {
                 Logger.LogMessage($"Set Position: {i.Key} - {Position}", LogSeverity.Debug);
                 UpdatedPositions.Add(i.Key, Position);
@@ -159,7 +159,7 @@ public class TeamData : IResource
         {
             Dictionary<ObjectId, int> UpdatedPositions = new Dictionary<ObjectId, int>();
             int Position = 0;
-            foreach (var i in CachedRoles.Values.OrderBy(x => x.GetPosition()))
+            foreach (TeamRoleData? i in CachedRoles.Values.OrderBy(x => x.GetPosition()))
             {
                 if (i.Id == role.Id)
                     continue;
@@ -217,7 +217,7 @@ public class TeamData : IResource
             ObjectId? NextRoleId = null;
             bool CheckNextRole = false;
 
-            foreach (var i in member.Team.CachedRoles.Values.OrderBy(x => x.GetPosition()))
+            foreach (TeamRoleData? i in member.Team.CachedRoles.Values.OrderBy(x => x.GetPosition()))
             {
                 // Check current next role to move down
                 if (i.Id != role.Id && CheckNextRole && !NextRoleId.HasValue)

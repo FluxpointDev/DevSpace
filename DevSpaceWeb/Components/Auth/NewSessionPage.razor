@@ -39,7 +39,9 @@
 
     public async Task Check2FA()
     {
-        AuthUser User = await Session.GetCurrentUserAsync();
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
 
         bool Result = false;
         if (Program.IsDevMode)
@@ -49,14 +51,19 @@
 
         if (Result)
         {
+            if (Http.HttpContext == null)
+                return;
 
             User = await Session.GetCurrentUserAsync();
+            if (User == null)
+                return;
+
             string Ip = Utils.GetUserIpAddress(Http.HttpContext);
 
-            string SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
+            string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
             if (!string.IsNullOrEmpty(SessionId))
             {
-                if (User.Account.Sessions.TryGetValue(SessionId, out UserSession session))
+                if (User.Account.Sessions.TryGetValue(SessionId, out UserSession? session))
                 {
                     session.LastLoginAt = DateTime.UtcNow;
                     session.AuthorizedIps.Add(Utils.GetStringSha256Hash(Ip));

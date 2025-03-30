@@ -43,7 +43,7 @@ public class ClientController : APIController
         if (!Client.HasAPIPermission(CurrentTeam, APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(CurrentTeam, APIPermission.ViewAllAPIs))
             return PermissionFailed(APIPermission.ViewOwnAPIs);
 
-        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out var client))
+        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out APIClient? client))
             return NotFound("Could not find client.");
 
         if (Client.TeamId != client.TeamId)
@@ -92,7 +92,7 @@ public class ClientController : APIController
         if (!Client.HasAPIPermission(CurrentTeam, APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(CurrentTeam, APIPermission.ViewAllAPIs))
             return PermissionFailed(APIPermission.ViewOwnAPIs);
 
-        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out var client))
+        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out APIClient? client))
             return NotFound("Could not find API client.");
 
         if (Client.TeamId != client.TeamId)
@@ -123,7 +123,7 @@ public class ClientController : APIController
         if (!Client.HasAPIPermission(CurrentTeam, APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(CurrentTeam, APIPermission.ViewAllAPIs))
             return PermissionFailed(APIPermission.ViewOwnAPIs);
 
-        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out var client))
+        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out APIClient? client))
             return NotFound("Could not find API client.");
 
         if (Client.TeamId != client.TeamId)
@@ -151,7 +151,7 @@ public class ClientController : APIController
         if (!Client.HasAPIPermission(CurrentTeam, APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(CurrentTeam, APIPermission.ViewAllAPIs))
             return PermissionFailed(APIPermission.ViewOwnAPIs);
 
-        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out var client))
+        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out APIClient? client))
             return NotFound("Could not find API client.");
 
         if (Client.TeamId != client.TeamId)
@@ -182,7 +182,7 @@ public class ClientController : APIController
         if (!Client.HasAPIPermission(CurrentTeam, APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(CurrentTeam, APIPermission.ViewAllAPIs))
             return PermissionFailed(APIPermission.ViewOwnAPIs);
 
-        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out var client))
+        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out APIClient? client))
             return NotFound("Could not find API client.");
 
         if (Client.TeamId != client.TeamId)

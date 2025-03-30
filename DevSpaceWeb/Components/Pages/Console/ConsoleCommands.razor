@@ -1,5 +1,6 @@
 ﻿@using DaRT
 @using DevSpaceWeb.Data.Consoles
+@using LibMCRcon.RCon
 @inject DialogService Dialog
 
 <PageTitle>Console Commands | @_Data.Config.Instance.Name</PageTitle>
@@ -78,7 +79,7 @@
                     {
                         case ConsoleType.Battleye:
                             {
-                                if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                                 {
                                     await Dialog.ShowInfoAsync("Failed to Send Command", "Could not connect to server.");
                                     return;
@@ -88,7 +89,7 @@
                             break;
                         case ConsoleType.Minecraft:
                             {
-                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
                                 {
                                     await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
@@ -115,7 +116,7 @@
                     {
                         case ConsoleType.Battleye:
                             {
-                                if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                                 {
                                     await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
@@ -126,7 +127,7 @@
                             break;
                         case ConsoleType.Minecraft:
                             {
-                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
                                 {
                                     await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
@@ -153,7 +154,7 @@
                     {
                         case ConsoleType.Battleye:
                             {
-                                if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                                 {
                                     await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
@@ -164,7 +165,7 @@
                             break;
                         case ConsoleType.Minecraft:
                             {
-                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
                                 {
                                     await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;

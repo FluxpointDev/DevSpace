@@ -111,9 +111,9 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ServerData Server => Session.Selected.Server;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ServerData? Server => Session.Selected.Server;
 
     public CreateImageType SelectedType { get; set; }
 
@@ -146,7 +146,7 @@
                 return true;
             case CreateImageType.Remote:
                 {
-                    if (string.IsNullOrEmpty(RemoteUrl) || !Uri.TryCreate(RemoteUrl, UriKind.Absolute, out var uri) || uri.IsFile || uri.IsLoopback)
+                    if (string.IsNullOrEmpty(RemoteUrl) || !Uri.TryCreate(RemoteUrl, UriKind.Absolute, out Uri? uri) || uri.IsFile || uri.IsLoopback)
                         return true;
 
                     if (string.IsNullOrEmpty(DockerfileName))

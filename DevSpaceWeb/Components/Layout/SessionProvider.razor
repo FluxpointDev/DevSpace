@@ -339,7 +339,7 @@
                 }
                 CurrentSessionId = SessionId;
 
-                bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession session);
+                bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession? session);
                 if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
                 {
                     if (_DB.Users.Keys.Count() == 1 && User.Account.Sessions.Count() == 1 && !session.AuthorizedIps.Any())
@@ -411,7 +411,7 @@
                     }
                     CurrentSessionId = SessionId;
 
-                    bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession session);
+                    bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession? session);
                     if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
                     {
                         if (_DB.Users.Keys.Count() == 1 && User.Account.Sessions.Count() == 1 && !session.AuthorizedIps.Any())

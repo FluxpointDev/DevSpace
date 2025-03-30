@@ -27,7 +27,7 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<MemberJson[]>))]
     public async Task<IActionResult> GetMembers()
     {
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out var perm))
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out TeamPermission? perm))
             return PermissionFailed(perm);
 
         bool ViewPerms = Client.HasTeamPermission(CurrentTeam, TeamPermission.ViewPermissions);
@@ -44,7 +44,7 @@ public class MembersController : APIController
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
             return NotFound("Could not find member.");
 
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out var perm))
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out TeamPermission? perm))
             return PermissionFailed(perm);
 
         return Ok(new MemberJson(member, Client.HasTeamPermission(CurrentTeam, TeamPermission.ViewPermissions)));
@@ -60,7 +60,7 @@ public class MembersController : APIController
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
             return NotFound("Could not find member.");
 
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out var perm))
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
             return PermissionFailed(perm);
 
         if (member.GetRank() >= Client.GetRank())
@@ -96,7 +96,7 @@ public class MembersController : APIController
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
             return NotFound("Could not find member.");
 
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out var perm))
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
             return PermissionFailed(perm);
 
         if (member.GetRank() >= Client.GetRank())
@@ -138,7 +138,7 @@ public class MembersController : APIController
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
             return NotFound("Could not find member.");
 
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out var perm))
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
             return PermissionFailed(perm);
 
         if (member.GetRank() >= Client.GetRank())

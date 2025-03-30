@@ -116,16 +116,16 @@ public class HealthCheckService
         if (healthReport.Status != HealthStatus.Healthy)
             context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
 
-        var options = new JsonWriterOptions { Indented = true };
+        JsonWriterOptions options = new JsonWriterOptions { Indented = true };
 
-        using var memoryStream = new MemoryStream();
-        using (var jsonWriter = new Utf8JsonWriter(memoryStream, options))
+        using MemoryStream memoryStream = new MemoryStream();
+        using (Utf8JsonWriter jsonWriter = new Utf8JsonWriter(memoryStream, options))
         {
             jsonWriter.WriteStartObject();
             jsonWriter.WriteString("status", healthReport.Status.ToString());
             jsonWriter.WriteStartObject("results");
 
-            foreach (var healthReportEntry in healthReport.Entries)
+            foreach (KeyValuePair<string, HealthReportEntry> healthReportEntry in healthReport.Entries)
             {
                 jsonWriter.WriteStartObject(healthReportEntry.Key);
                 jsonWriter.WriteString("status",
@@ -134,7 +134,7 @@ public class HealthCheckService
                     healthReportEntry.Value.Description);
                 jsonWriter.WriteStartObject("data");
 
-                foreach (var item in healthReportEntry.Value.Data)
+                foreach (KeyValuePair<string, object> item in healthReportEntry.Value.Data)
                 {
                     jsonWriter.WritePropertyName(item.Key);
 

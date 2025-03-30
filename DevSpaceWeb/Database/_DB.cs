@@ -194,7 +194,7 @@ public static class _DB
                 try
                 {
                     // Migrate/Fix roles and role positions
-                    foreach (var i in Teams.Cache.Values)
+                    foreach (TeamData i in Teams.Cache.Values)
                     {
                         if (i.CachedRoles.Count != 0 && i.RolePositions.Count == 0)
                         {
@@ -210,7 +210,7 @@ public static class _DB
 
                             int Position = 0;
                             Dictionary<ObjectId, int> UpdatedPositions = new Dictionary<ObjectId, int>();
-                            foreach (var r in i.CachedRoles.Values.OrderBy(x => x.Position.GetValueOrDefault()))
+                            foreach (TeamRoleData? r in i.CachedRoles.Values.OrderBy(x => x.Position.GetValueOrDefault()))
                             {
 
                                 UpdatedPositions.Add(r.Id, Position);

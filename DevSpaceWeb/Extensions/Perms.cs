@@ -79,7 +79,7 @@ public static class Perms
     public static IEnumerable<T> GetUniqueFlags<T>(T flags) where T : Enum
     {
         ulong flag = 1;
-        foreach (var value in Enum.GetValues(flags.GetType()).Cast<T>())
+        foreach (T value in Enum.GetValues(flags.GetType()).Cast<T>())
         {
             ulong bits = Convert.ToUInt64(value);
             while (flag < bits)

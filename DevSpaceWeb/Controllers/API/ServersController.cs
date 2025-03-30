@@ -35,7 +35,7 @@ public class ServersController : APIController
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
         if (showIp)

@@ -36,7 +36,7 @@ public class UsersController : APIController
         if (user == null)
             return NotFound("Could not find user.");
 
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out var perm))
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out TeamPermission? perm))
             return PermissionFailed(perm);
 
         return Ok(new UserJson(user));

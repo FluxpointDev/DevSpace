@@ -279,7 +279,7 @@ public class UploadController : Controller
         if (Team.ResourceId == null)
         {
             Guid GeneratedId = CheckResourceId();
-            var UpdateResult = await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.ResourceId, GeneratedId));
+            UpdateResult UpdateResult = await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.ResourceId, GeneratedId));
             if (!UpdateResult.IsAcknowledged)
                 return BadRequest("Failed to update team resource.");
 

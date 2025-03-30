@@ -16,7 +16,7 @@ public static class DockerVolumes
             All = true
         });
 
-        foreach (var i in Volumes.Volumes)
+        foreach (VolumeResponse? i in Volumes.Volumes)
         {
             DockerVolumeInfo Volume = DockerVolumeInfo.Create(i, false);
             foreach (ContainerListResponse? c in Containers.Where(x => x.Mounts.Any(x => x.Name == i.Name)))
@@ -43,7 +43,7 @@ public static class DockerVolumes
         switch (@event.VolumeType)
         {
             case ControlVolumeType.View:
-                var Volume = await client.Volumes.InspectAsync(id);
+                VolumeResponse Volume = await client.Volumes.InspectAsync(id);
                 return DockerVolumeInfo.Create(Volume, true);
             case ControlVolumeType.Remove:
             case ControlVolumeType.ForceRemove:

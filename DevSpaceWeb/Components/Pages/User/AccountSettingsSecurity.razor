@@ -667,7 +667,7 @@
     public async Task EditSession(string id)
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser != null && AuthUser.Account.Sessions.TryGetValue(id, out UserSession session))
+        if (AuthUser != null && AuthUser.Account.Sessions.TryGetValue(id, out UserSession? session))
         {
             if (AuthUser.Mfa.IsTwoFactorEnabled)
             {
@@ -682,7 +682,7 @@
             await DialogService.ShowDynamicFormAsync<AccountItemEditModel>("Edit Session", new AccountItemEditModel { Name = session.Name }, async (AccountItemEditModel data) =>
             {
                 AuthUser = await Session.GetCurrentUserAsync();
-                if (AuthUser != null && AuthUser.Account.Sessions.TryGetValue(id, out UserSession session))
+                if (AuthUser != null && AuthUser.Account.Sessions.TryGetValue(id, out UserSession? session))
                 {
                     session.Name = data.Name;
                     await UserManager.UpdateAsync(AuthUser);

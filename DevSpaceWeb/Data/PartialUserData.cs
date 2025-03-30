@@ -67,8 +67,8 @@ public class PartialUserData
         Notification notification = new Notification { Type = type, TeamId = team?.Id, UserId = Id };
         await _DB.Notifications.CreateAsync(notification);
         HasNotifications = true;
-        var filter = new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, Id);
-        var update = new UpdateDefinitionBuilder<AuthUser>().Set(x => x.Account.HasNotifications, true);
+        FilterDefinition<AuthUser> filter = new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, Id);
+        UpdateDefinition<AuthUser> update = new UpdateDefinitionBuilder<AuthUser>().Set(x => x.Account.HasNotifications, true);
         _DB.Run.GetCollection<AuthUser>("users").UpdateOneAsync(filter, update);
 
         NotificationTriggered?.Invoke(notification);
@@ -79,8 +79,8 @@ public class PartialUserData
         HasNotifications = false;
         FilterDefinition<Notification> filter = Builders<Notification>.Filter.Eq(r => r.UserId, Id);
         await _DB.Notifications.Collection.DeleteManyAsync(filter);
-        var filterUser = new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, Id);
-        var update = new UpdateDefinitionBuilder<AuthUser>().Set(x => x.Account.HasNotifications, false);
+        FilterDefinition<AuthUser> filterUser = new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, Id);
+        UpdateDefinition<AuthUser> update = new UpdateDefinitionBuilder<AuthUser>().Set(x => x.Account.HasNotifications, false);
         _DB.Run.GetCollection<AuthUser>("users").UpdateOneAsync(filterUser, update);
     }
 }

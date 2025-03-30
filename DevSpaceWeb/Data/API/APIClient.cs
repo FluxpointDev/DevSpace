@@ -387,7 +387,7 @@ public class APIClient
         if (TeamId != CurrentTeam.Id)
             return new PermissionsSet();
 
-        if (resource != null && resource.ApiPermissionOverrides.TryGetValue(Id, out var overrideSet))
+        if (resource != null && resource.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet? overrideSet))
         {
             if (overrideSet.TeamPermissions == TeamPermission.GlobalAdministrator)
                 return PermissionsSet.MaxPermissions;
@@ -402,55 +402,55 @@ public class APIClient
         }
         else
         {
-            foreach (var i in Enum.GetValues<TeamPermission>())
+            foreach (TeamPermission i in Enum.GetValues<TeamPermission>())
             {
                 if (HasTeamPermission(Team, i))
                     Permissions.TeamPermissions |= i;
             }
 
-            foreach (var i in Enum.GetValues<APIPermission>())
+            foreach (APIPermission i in Enum.GetValues<APIPermission>())
             {
                 if (HasAPIPermission(Team, i))
                     Permissions.APIPermissions |= i;
             }
 
-            foreach (var i in Enum.GetValues<LogPermission>())
+            foreach (LogPermission i in Enum.GetValues<LogPermission>())
             {
                 if (HasLogPermission(Team, resource as LogData, i))
                     Permissions.LogPermissions |= i;
             }
 
-            foreach (var i in Enum.GetValues<ProjectPermission>())
+            foreach (ProjectPermission i in Enum.GetValues<ProjectPermission>())
             {
                 if (HasProjectPermission(Team, resource as ProjectData, i))
                     Permissions.ProjectPermissions |= i;
             }
 
-            foreach (var i in Enum.GetValues<ServerPermission>())
+            foreach (ServerPermission i in Enum.GetValues<ServerPermission>())
             {
                 if (HasServerPermission(Team, resource as ServerData, i))
                     Permissions.ServerPermissions |= i;
             }
 
-            foreach (var i in Enum.GetValues<ConsolePermission>())
+            foreach (ConsolePermission i in Enum.GetValues<ConsolePermission>())
             {
                 if (HasConsolePermission(Team, resource as ConsoleData, i))
                     Permissions.ConsolePermissions |= i;
             }
 
-            foreach (var i in Enum.GetValues<WebsitePermission>())
+            foreach (WebsitePermission i in Enum.GetValues<WebsitePermission>())
             {
                 if (HasWebsitePermission(Team, resource as WebsiteData, i))
                     Permissions.WebsitePermissions |= i;
             }
 
-            foreach (var i in Enum.GetValues<DockerPermission>())
+            foreach (DockerPermission i in Enum.GetValues<DockerPermission>())
             {
                 if (HasDockerPermission(Team, resource as ServerData, i))
                     Permissions.DockerPermissions |= i;
             }
 
-            foreach (var i in Enum.GetValues<DockerContainerPermission>())
+            foreach (DockerContainerPermission i in Enum.GetValues<DockerContainerPermission>())
             {
                 if (HasDockerContainerPermission(Team, resource as ServerData, i))
                     Permissions.DockerContainerPermissions |= i;

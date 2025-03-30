@@ -2,6 +2,7 @@
 @using System.Linq.Dynamic.Core
 @using DevSpaceWeb.Data.Consoles
 @using DevSpaceWeb.Models.Consoles
+@using LibMCRcon.RCon
 @using Newtonsoft.Json.Linq
 @using System.Text
 @inject DialogService Dialog
@@ -104,7 +105,7 @@
 
     async Task LoadData(LoadDataArgs args)
     {
-        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc))
+        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc))
         {
             if (rc.IsConnected)
             {
@@ -189,7 +190,7 @@
             return;
         }
 
-        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rcon) || !rcon.IsConnected)
+        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
         {
             await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
             return;

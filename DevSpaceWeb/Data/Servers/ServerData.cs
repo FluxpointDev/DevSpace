@@ -169,7 +169,7 @@ public class ServerWebSocket
         }
         try
         {
-            using (var responseContent = await Response.Content.ReadAsStreamAsync())
+            using (Stream responseContent = await Response.Content.ReadAsStreamAsync())
                 Discover = await System.Text.Json.JsonSerializer.DeserializeAsync<DiscoverAgentInfo>(responseContent);
         }
         catch

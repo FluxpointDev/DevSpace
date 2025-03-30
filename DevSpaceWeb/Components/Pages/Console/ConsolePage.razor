@@ -1,6 +1,7 @@
 ﻿@using BattleNET
 @using DaRT
 @using DevSpaceWeb.Data.Consoles
+@using LibMCRcon.RCon
 @inject DialogService Dialog
 
 <PageTitle>@Console.Name | @_Data.Config.Instance.Name</PageTitle>
@@ -23,7 +24,7 @@
             {
                 case ConsoleType.Battleye:
                     {
-                        if (_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon rcon))
+                        if (_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rcon))
                         {
                             switch (rcon.BEResult)
                             {
@@ -46,7 +47,7 @@
                     break;
                 case ConsoleType.Minecraft:
                     {
-                        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out var rcon))
+                        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon))
                         {
                             switch (rcon.IsConnected)
                             {
@@ -202,7 +203,7 @@
     @if (Console.Type == ConsoleType.Battleye)
     {
         <RadzenSidebar @bind-Expanded="@LogSidebarExpanded" class="rz-right-sidebar" Style="@("width: " + (LogSidebarExpanded ? "340px" : "0px") + " !important; grid-area: rz-right-sidebar")">
-            @if (Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConsoleLogs) && _Data.BattleyeRcons.TryGetValue(Console.Id, out RCon rcon))
+            @if (Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConsoleLogs) && _Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rcon))
             {
                 <div>
                     <div class="dash-box-header dash-box-content">
@@ -303,7 +304,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
             await Dialog.ShowInfoAsync("Failed to Lock Server", "Could not connect to server.");
             return;
@@ -320,7 +321,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
             await Dialog.ShowInfoAsync("Failed to Unlock Server", "Could not connect to server.");
             return;
@@ -341,7 +342,7 @@
         {
             case ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                     {
                         await Dialog.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
                         return;
@@ -352,7 +353,7 @@
                 break;
             case ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
                     {
                         await Dialog.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
                         return;
@@ -383,7 +384,7 @@
         {
             case ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                     {
                         await Dialog.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
                         return;
@@ -394,7 +395,7 @@
                 break;
             case ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
                     {
                         await Dialog.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
                         return;
@@ -414,7 +415,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
             await Dialog.ShowInfoAsync("Failed to Reload Config", "Could not connect to server.");
             return;
@@ -431,7 +432,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
             await Dialog.ShowInfoAsync("Failed to Reload Events", "Could not connect to server.");
             return;
@@ -447,7 +448,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
             await Dialog.ShowInfoAsync("Failed to Reload Scripts", "Could not connect to server.");
             return;
@@ -464,7 +465,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
             await Dialog.ShowInfoAsync("Failed to Reload Bans", "Could not connect to server.");
             return;
@@ -481,7 +482,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
             await Dialog.ShowInfoAsync("Failed to Reassign", "Could not connect to server.");
             return;

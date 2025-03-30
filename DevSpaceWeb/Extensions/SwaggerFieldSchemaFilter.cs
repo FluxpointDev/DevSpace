@@ -34,25 +34,25 @@ public class SwaggerFieldSchemaFilter : ISchemaFilter
         }
 
         // This needs to be lazily evaluated, or it will cause infinite recursion
-        var generatorOptions = _provider.GetRequiredService<SchemaGeneratorOptions>();
+        SchemaGeneratorOptions generatorOptions = _provider.GetRequiredService<SchemaGeneratorOptions>();
 
-        var type = context.Type;
-        var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+        Type type = context.Type;
+        FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
 
-        foreach (var field in fields)
+        foreach (FieldInfo field in fields)
         {
             if (field.IsInitOnly && _jsonOptions.IgnoreReadOnlyFields)
             {
                 continue;
             }
 
-            var fieldType = field.FieldType;
+            Type fieldType = field.FieldType;
             if (schema.Properties.ContainsKey(field.Name))
             {
                 continue;
             }
 
-            var name = _jsonOptions.PropertyNamingPolicy?.ConvertName(field.Name) ?? field.Name;
+            string name = _jsonOptions.PropertyNamingPolicy?.ConvertName(field.Name) ?? field.Name;
             schema.Properties[name] = context.SchemaGenerator.GenerateSchema(fieldType, context.SchemaRepository);
 
             if (generatorOptions.NonNullableReferenceTypesAsRequired && field.IsNonNullableReferenceType())

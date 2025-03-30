@@ -142,10 +142,10 @@ public class RconPacket
         bool FullRead(byte[] Buffer, int TotalBytes)
         {
 
-            var idx = 0;
-            var count = TotalBytes;
+            int idx = 0;
+            int count = TotalBytes;
 
-            var rx = NS.Read(Buffer, idx, TotalBytes);
+            int rx = NS.Read(Buffer, idx, TotalBytes);
 
             while (rx < count)
             {
@@ -232,10 +232,10 @@ public class RconPacket
         async Task<bool> FullReadAsync(byte[] Buffer, int TotalBytes)
         {
 
-            var idx = 0;
-            var count = TotalBytes;
+            int idx = 0;
+            int count = TotalBytes;
 
-            var rx = await NS.ReadAsync(Buffer, idx, TotalBytes);
+            int rx = await NS.ReadAsync(Buffer, idx, TotalBytes);
 
             while (rx < count)
             {

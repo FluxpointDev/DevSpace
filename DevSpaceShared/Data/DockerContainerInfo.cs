@@ -19,8 +19,8 @@ public class DockerContainerInfo
 
         if (data.Labels != null)
         {
-            string Id = null;
-            if (data.Labels.TryGetValue("com.docker.compose.project", out string label))
+            string? Id = null;
+            if (data.Labels.TryGetValue("com.docker.compose.project", out string? label))
             {
                 Info.StackName = label;
                 Id = label;
@@ -28,10 +28,10 @@ public class DockerContainerInfo
 
             string? DataPath = null;
 
-            if (data.Labels.TryGetValue("com.docker.compose.project.config_files", out string configFile))
+            if (data.Labels.TryGetValue("com.docker.compose.project.config_files", out string? configFile))
                 DataPath = configFile;
 
-            if (data.Labels.TryGetValue("com.docker.compose.project.working_dir", out string workDir))
+            if (data.Labels.TryGetValue("com.docker.compose.project.working_dir", out string? workDir))
                 DataPath = workDir;
 
             if (!string.IsNullOrEmpty(DataPath))

@@ -49,7 +49,7 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Name" Width="100px">
                     <Template>
-                        @if (context.Actor != null && context.Actor.Attributes != null && context.Actor.Attributes.TryGetValue("name", out object name))
+                        @if (context.Actor != null && context.Actor.Attributes != null && context.Actor.Attributes.TryGetValue("name", out object? name))
                         {
                             @(name as string)
                         }
@@ -80,8 +80,8 @@
     private SessionProvider Session { get; set; }
 
     public TeamData? Team => Session.Selected.Team?.Data;
-    public ServerData? Server => Session.Selected.Server;
     public TeamMemberData? Member => Session.Selected.Member;
+    public ServerData? Server => Session.Selected.Server;
 
     public bool IsLoading { get; set; } = true;
 

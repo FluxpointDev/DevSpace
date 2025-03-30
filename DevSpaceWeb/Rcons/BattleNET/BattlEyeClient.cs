@@ -54,7 +54,7 @@ public class BattlEyeClient
         _packetQueue = new SortedDictionary<int, string[]>();
         _keepRunning = true;
 
-        var remoteEp = new IPEndPoint(_loginCredentials.Host, _loginCredentials.Port);
+        IPEndPoint remoteEp = new IPEndPoint(_loginCredentials.Host, _loginCredentials.Port);
         _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
         {
             ReceiveBufferSize = int.MaxValue,
@@ -68,7 +68,7 @@ public class BattlEyeClient
             if (SendLoginPacket(_loginCredentials.Password) == BattlEyeCommandResult.Error)
                 return BattlEyeConnectionResult.ConnectionFailed;
 
-            var bytesReceived = new Byte[4096];
+            byte[] bytesReceived = new Byte[4096];
 
             _socket.Receive(bytesReceived, bytesReceived.Length, 0);
 
@@ -168,7 +168,7 @@ public class BattlEyeClient
             if (!_socket.Connected)
                 return 256;
 
-            var packet = ConstructPacket(BattlEyePacketType.Command, packetID, command);
+            byte[] packet = ConstructPacket(BattlEyePacketType.Command, packetID, command);
 
             _packetSent = DateTime.Now;
 
@@ -251,13 +251,13 @@ public class BattlEyeClient
 
         }
 
-        var count = Helpers.Bytes2String(new[] { (byte)sequenceNumber });
+        string count = Helpers.Bytes2String(new[] { (byte)sequenceNumber });
 
-        var byteArray = new CRC32().ComputeHash(Helpers.String2Bytes(type + ((packetType != BattlEyePacketType.Command) ? "" : count) + command));
+        byte[] byteArray = new CRC32().ComputeHash(Helpers.String2Bytes(type + ((packetType != BattlEyePacketType.Command) ? "" : count) + command));
 
-        var hash = new string(Helpers.Hex2Ascii(BitConverter.ToString(byteArray).Replace("-", "")).ToCharArray().Reverse().ToArray());
+        string hash = new string(Helpers.Hex2Ascii(BitConverter.ToString(byteArray).Replace("-", "")).ToCharArray().Reverse().ToArray());
 
-        var packet = "BE" + hash + type + ((packetType != BattlEyePacketType.Command) ? "" : count) + command;
+        string packet = "BE" + hash + type + ((packetType != BattlEyePacketType.Command) ? "" : count) + command;
 
 
         return Helpers.String2Bytes(packet);
@@ -295,7 +295,7 @@ public class BattlEyeClient
 
     private async void Receive()
     {
-        var state = new StateObject { WorkSocket = _socket };
+        StateObject state = new StateObject { WorkSocket = _socket };
 
         _disconnectionType = null;
 

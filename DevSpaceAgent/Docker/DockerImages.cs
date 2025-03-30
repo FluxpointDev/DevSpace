@@ -41,7 +41,7 @@ public static class DockerImages
             }
         }
 
-        foreach (var i in Response)
+        foreach (DockerImageInfo i in Response)
         {
             if (ParentMap.Contains(i.ID))
                 i.IsParent = true;
@@ -165,7 +165,7 @@ public static class DockerImages
                 break;
             case ControlImageType.View:
                 {
-                    var Image = await client.Images.InspectImageAsync(id);
+                    ImageInspectResponse Image = await client.Images.InspectImageAsync(id);
 
                     return DockerImageInfo.Create(Image);
                 }

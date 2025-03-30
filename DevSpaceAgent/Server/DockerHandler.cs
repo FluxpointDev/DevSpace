@@ -36,7 +36,7 @@ public static class DockerHandler
                                 await DockerStacks.ControlStack(Client, @event.ResourceId, @event.StackType.Value);
                             else
                             {
-                                foreach (var i in @event.ResourceList)
+                                foreach (string i in @event.ResourceList)
                                 {
                                     await DockerStacks.ControlStack(Client, i, @event.StackType.Value);
                                 }
@@ -48,7 +48,7 @@ public static class DockerHandler
                                 await DockerStacks.RemoveStack(Client, @event.ResourceId);
                             else
                             {
-                                foreach (var i in @event.ResourceList)
+                                foreach (string i in @event.ResourceList)
                                 {
                                     await DockerStacks.RemoveStack(Client, i);
                                 }
@@ -76,7 +76,7 @@ public static class DockerHandler
                     return await DockerContainers.ControlContainerAsync(Client, @event, @event.ResourceId);
                 else
                 {
-                    foreach (var i in @event.ResourceList)
+                    foreach (string i in @event.ResourceList)
                     {
                         await DockerContainers.ControlContainerAsync(Client, @event, i);
                     }
@@ -93,7 +93,7 @@ public static class DockerHandler
                     return await DockerImages.ControlImageAsync(Client, @event, @event.ResourceId);
                 else
                 {
-                    foreach (var i in @event.ResourceList)
+                    foreach (string i in @event.ResourceList)
                     {
                         await DockerImages.ControlImageAsync(Client, @event, i);
                     }
@@ -131,7 +131,7 @@ public static class DockerHandler
                     return await DockerPlugins.ControlPluginAsync(Client, @event, @event.ResourceId);
                 else
                 {
-                    foreach (var i in @event.ResourceList)
+                    foreach (string i in @event.ResourceList)
                     {
                         await DockerPlugins.ControlPluginAsync(Client, @event, i);
                     }
@@ -148,7 +148,7 @@ public static class DockerHandler
                     return await DockerNetworks.ControlNetworkAsync(Client, @event, @event.ResourceId);
                 else
                 {
-                    foreach (var i in @event.ResourceList)
+                    foreach (string i in @event.ResourceList)
                     {
                         await DockerNetworks.ControlNetworkAsync(Client, @event, i);
                     }
@@ -169,7 +169,7 @@ public static class DockerHandler
                     return await DockerVolumes.ControlVolumeAsync(Client, @event, @event.ResourceId);
                 else
                 {
-                    foreach (var i in @event.ResourceList)
+                    foreach (string i in @event.ResourceList)
                     {
                         await DockerVolumes.ControlVolumeAsync(Client, @event, i);
                     }
@@ -212,9 +212,9 @@ public static class DockerHandler
                     };
                 }
 
-                var Stream = await Program.DockerClient.System.MonitorEventsAsync(Params, CancellationToken.None);
+                Stream Stream = await Program.DockerClient.System.MonitorEventsAsync(Params, CancellationToken.None);
                 List<DockerEventInfo> List = new List<DockerEventInfo>();
-                using (var reader = new StreamReader(Stream, Encoding.UTF8, true))
+                using (StreamReader reader = new StreamReader(Stream, Encoding.UTF8, true))
                 {
                     while (!reader.EndOfStream)
                     {

@@ -15,13 +15,13 @@ public class ConsoleJson
         {
             case ConsoleType.Battleye:
                 {
-                    if (_Data.BattleyeRcons.TryGetValue(data.Id, out var rcon) && rcon.IsConnected)
+                    if (_Data.BattleyeRcons.TryGetValue(data.Id, out DaRT.RCon? rcon) && rcon.IsConnected)
                         is_online = true;
                 }
                 break;
             case ConsoleType.Minecraft:
                 {
-                    if (_Data.MinecraftRcons.TryGetValue(data.Id, out var rcon) && rcon.IsConnected)
+                    if (_Data.MinecraftRcons.TryGetValue(data.Id, out LibMCRcon.RCon.TCPRconAsync? rcon) && rcon.IsConnected)
                         is_online = true;
                 }
                 break;

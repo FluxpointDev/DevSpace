@@ -34,7 +34,7 @@ public class ConsoleData : ITeamResource
 
     public List<DaRT.Player> RconPlayers()
     {
-        if (_Data.BattleyeRcons.TryGetValue(Id, out var rcon))
+        if (_Data.BattleyeRcons.TryGetValue(Id, out DaRT.RCon? rcon))
         {
             return rcon.CachedPlayers;
         }
@@ -44,7 +44,7 @@ public class ConsoleData : ITeamResource
 
     public RconStatusType RconStatus()
     {
-        if (_Data.BattleyeRcons.TryGetValue(Id, out var rcon))
+        if (_Data.BattleyeRcons.TryGetValue(Id, out DaRT.RCon? rcon))
         {
             if (rcon.IsError)
                 return RconStatusType.Error;
@@ -86,7 +86,7 @@ public class ConsoleData : ITeamResource
             {
                 case ConsoleType.Battleye:
                     {
-                        if (_Data.BattleyeRcons.TryGetValue(Id, out var rcon))
+                        if (_Data.BattleyeRcons.TryGetValue(Id, out DaRT.RCon? rcon))
                         {
                             _Data.BattleyeRcons.Remove(Id);
                             rcon.Disconnect();
@@ -95,7 +95,7 @@ public class ConsoleData : ITeamResource
                     break;
                 case ConsoleType.Minecraft:
                     {
-                        if (_Data.MinecraftRcons.TryGetValue(Id, out var rcon))
+                        if (_Data.MinecraftRcons.TryGetValue(Id, out LibMCRcon.RCon.TCPRconAsync? rcon))
                         {
                             _Data.MinecraftRcons.Remove(Id);
                             rcon.StopComms();

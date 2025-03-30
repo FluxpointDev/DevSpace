@@ -40,8 +40,8 @@ public static class DockerSystem
     public static async Task<SystemInfoFullResponse> GetHostInfoAsync(DockerClient client)
     {
         global::Docker.DotNet.Models.SystemInfoResponse Info = await client.System.GetSystemInfoAsync();
-        var Version = await client.System.GetVersionAsync();
-        var Drives = DriveInfo.GetDrives();
+        VersionResponse Version = await client.System.GetVersionAsync();
+        DriveInfo[] Drives = DriveInfo.GetDrives();
         DriveInfo CurrentDrive = Drives.First();
 
         return new SystemInfoFullResponse

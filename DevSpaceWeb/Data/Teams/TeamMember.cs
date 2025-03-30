@@ -27,7 +27,7 @@ public class TeamMemberData
 
     public string GetUsername()
     {
-        if (_DB.Users.TryGetValue(UserId, out var user))
+        if (_DB.Users.TryGetValue(UserId, out PartialUserData? user))
             return user.UserName!;
 
         return "Unknown User";
@@ -38,7 +38,7 @@ public class TeamMemberData
         if (!string.IsNullOrEmpty(NickName))
             return NickName;
 
-        if (_DB.Users.TryGetValue(UserId, out var user))
+        if (_DB.Users.TryGetValue(UserId, out PartialUserData? user))
             return user.GetCurrentName();
 
         return "Unknown User";
@@ -47,7 +47,7 @@ public class TeamMemberData
     public string GetCurrentAvatar()
     {
 
-        if (_DB.Users.TryGetValue(UserId, out var user))
+        if (_DB.Users.TryGetValue(UserId, out PartialUserData? user))
         {
             if (AvatarId.HasValue && Team != null)
                 return _Data.Config.Instance.GetPublicUrl() + "/public/files/" + Team.ResourceId.ToString() + "/Avatar_" + AvatarId.ToString() + ".webp";
@@ -523,9 +523,9 @@ public class TeamMemberData
                 Permissions.AddFrom(perms);
             }
 
-            foreach (var i in Roles)
+            foreach (ObjectId i in Roles)
             {
-                if (selectedTeam.CachedRoles.TryGetValue(i, out var role))
+                if (selectedTeam.CachedRoles.TryGetValue(i, out TeamRoleData? role))
                 {
                     if (role.Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
                     {

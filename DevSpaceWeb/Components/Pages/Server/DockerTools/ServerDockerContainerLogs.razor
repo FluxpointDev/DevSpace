@@ -27,77 +27,77 @@
 }
 else
 {
-<div class="dash-box">
-    <div class="dash-box-header dash-box-content">
-        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">Container Logs</RadzenText>
-        @if (!Failed && string.IsNullOrEmpty(ContainerName))
+    <div class="dash-box">
+        <div class="dash-box-header dash-box-content">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Container Logs</RadzenText>
+            @if (!Failed && string.IsNullOrEmpty(ContainerName))
+            {
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+            }
+        </div>
+        <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@(string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName)" />
+            <RadzenBreadCrumbItem Text="Logs" />
+        </RadzenBreadCrumb>
+        @if (Failed)
         {
-            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Failed to get container logs.
+            </RadzenAlert>
         }
-    </div>
-    <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@(string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName)" />
-        <RadzenBreadCrumbItem Text="Logs" />
-    </RadzenBreadCrumb>
-    @if (Failed)
-    {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
-            Failed to get container logs.
-        </RadzenAlert>
-    }
-    <br />
-    <RadzenDataGrid id="gridLogs" @ref="@Grid" AllowPaging="false" AllowSorting="false" IsLoading="false"
-                    Data="@Messages" AllowVirtualization="true" VirtualizationOverscanCount="3"
-                    GridLines="DataGridGridLines.Vertical" Density="Density.Compact"
-                    PageSize="10" Style="height: 600px">
-        <HeaderTemplate>
-            <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" JustifyContent="JustifyContent.SpaceAround" Wrap="FlexWrap.NoWrap" class="pd-1">
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                    <RadzenSwitch Value="@AutoRefresh" Disabled="@(RefreshTimer == null)" TValue="bool" ValueChanged="@((arg) => { AutoRefresh = arg; if (AutoRefresh) { RefreshTimer.Start(); } else { RefreshTimer.Stop(); } })" />
-                    <RadzenLabel Text="Auto Refresh" />
-                </RadzenStack>
-                <RadzenButton Icon="refresh" Click="@(() => OnParametersSetAsync())" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Size="ButtonSize.Medium" Disabled="@(RefreshTimer == null || AutoRefresh)" class="rz-border-radius-10" />
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                    <RadzenLabel Text="Lines" />
-                    <RadzenNumeric ShowUpDown="false" Value="@Limit" Min="1" Max="9999" TValue="int" ValueChanged="@((value) => { Limit = value; OnParametersSetAsync(); })"></RadzenNumeric>
-                </RadzenStack>
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                    <RadzenLabel Text="Show Timestamp" />
-                    <RadzenCheckBox Value="@ShowTimestamp" TValue="bool" ValueChanged="@((value) => { ShowTimestamp = value; OnParametersSetAsync(); })"></RadzenCheckBox>
-                </RadzenStack>
-                <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                    <RadzenLabel Text="Show Line Number" />
-                    <RadzenCheckBox @bind-Value="@ShowLineNumbers"></RadzenCheckBox>
-                </RadzenStack>
-                <RadzenStack Orientation="Orientation.Horizontal" Gap="0px">
+        <br />
+        <RadzenDataGrid id="gridLogs" @ref="@Grid" AllowPaging="false" AllowSorting="false" IsLoading="false"
+                        Data="@Messages" AllowVirtualization="true" VirtualizationOverscanCount="3"
+                        GridLines="DataGridGridLines.Vertical" Density="Density.Compact"
+                        PageSize="10" Style="height: 600px">
+            <HeaderTemplate>
+                <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" JustifyContent="JustifyContent.SpaceAround" Wrap="FlexWrap.NoWrap" class="pd-1">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                        <RadzenLabel Text="Auto Scroll" />
-                        <RadzenCheckBox @bind-Value="@AutoScroll"></RadzenCheckBox>
+                        <RadzenSwitch Value="@AutoRefresh" Disabled="@(RefreshTimer == null)" TValue="bool" ValueChanged="@((arg) => { AutoRefresh = arg; if (AutoRefresh) { RefreshTimer.Start(); } else { RefreshTimer.Stop(); } })" />
+                        <RadzenLabel Text="Auto Refresh" />
                     </RadzenStack>
-                    <RadzenButton Icon="arrow_upward" Click="@(() => JS.InvokeVoidAsync("Utils.scrollLogsUp"))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Medium" class="rz-border-radius-10 ml-2" />
-                    <RadzenButton Icon="arrow_downward" Click="@(() => JS.InvokeVoidAsync("Utils.scrollLogsDown"))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Medium" class="rz-border-radius-10" />
+                    <RadzenButton Icon="refresh" Click="@(() => OnParametersSetAsync())" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Size="ButtonSize.Medium" Disabled="@(RefreshTimer == null || AutoRefresh)" class="rz-border-radius-10" />
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenLabel Text="Lines" />
+                        <RadzenNumeric ShowUpDown="false" Value="@Limit" Min="1" Max="9999" TValue="int" ValueChanged="@((value) => { Limit = value; OnParametersSetAsync(); })"></RadzenNumeric>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenLabel Text="Show Timestamp" />
+                        <RadzenCheckBox Value="@ShowTimestamp" TValue="bool" ValueChanged="@((value) => { ShowTimestamp = value; OnParametersSetAsync(); })"></RadzenCheckBox>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenLabel Text="Show Line Number" />
+                        <RadzenCheckBox @bind-Value="@ShowLineNumbers"></RadzenCheckBox>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Horizontal" Gap="0px">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                            <RadzenLabel Text="Auto Scroll" />
+                            <RadzenCheckBox @bind-Value="@AutoScroll"></RadzenCheckBox>
+                        </RadzenStack>
+                        <RadzenButton Icon="arrow_upward" Click="@(() => JS.InvokeVoidAsync("Utils.scrollLogsUp"))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Medium" class="rz-border-radius-10 ml-2" />
+                        <RadzenButton Icon="arrow_downward" Click="@(() => JS.InvokeVoidAsync("Utils.scrollLogsDown"))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Medium" class="rz-border-radius-10" />
+                    </RadzenStack>
+
                 </RadzenStack>
-                
-                </RadzenStack>
-            
-        </HeaderTemplate>
-        <Columns>
+
+            </HeaderTemplate>
+            <Columns>
                 <RadzenDataGridColumn Width="48px" Visible="@ShowLineNumbers">
                     <Template>
-                    <strong><RadzenText TextStyle="TextStyle.Body2">@(Messages.IndexOf(context) + 1)</RadzenText></strong>
-                </Template>
+                        <strong><RadzenText TextStyle="TextStyle.Body2">@(Messages.IndexOf(context) + 1)</RadzenText></strong>
+                    </Template>
                 </RadzenDataGridColumn>
-            
-            <RadzenDataGridColumn>
-                <Template>
-                    <RadzenText class="ml-1" TextStyle="TextStyle.Body2">@context.Text</RadzenText>
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
-</div>
+
+                <RadzenDataGridColumn>
+                    <Template>
+                        <RadzenText class="ml-1" TextStyle="TextStyle.Body2">@context.Text</RadzenText>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
 }
 
 
@@ -120,9 +120,9 @@ else
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ServerData Server => Session.Selected.Server;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
     public string ContainerId { get; set; }

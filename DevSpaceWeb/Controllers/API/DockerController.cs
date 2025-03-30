@@ -32,10 +32,10 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        var Response = await server.RecieveJsonAsync<DevSpaceShared.Responses.SystemInfoResponse>(new DockerEvent(DockerEventType.SystemInfo));
+        SocketResponse<DevSpaceShared.Responses.SystemInfoResponse?> Response = await server.RecieveJsonAsync<DevSpaceShared.Responses.SystemInfoResponse>(new DockerEvent(DockerEventType.SystemInfo));
         if (!Response.IsSuccess)
             return Conflict("Failed to get server data, " + Response.Message);
 
@@ -51,10 +51,10 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer | ServerPermission.ViewHostInfo, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer | ServerPermission.ViewHostInfo, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        var Response = await server.RecieveJsonAsync<SystemInfoFullResponse>(new DockerEvent(DockerEventType.HostInfo));
+        SocketResponse<SystemInfoFullResponse?> Response = await server.RecieveJsonAsync<SystemInfoFullResponse>(new DockerEvent(DockerEventType.HostInfo));
         if (!Response.IsSuccess)
             return Conflict("Failed to get server data, " + Response.Message);
 
@@ -70,16 +70,16 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewStacks, out var dockerContainerPerm))
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewStacks, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm);
 
-        var Response = await server.RecieveJsonAsync<List<DockerStackInfo>>(new DockerEvent(DockerEventType.ListStacks));
+        SocketResponse<List<DockerStackInfo>?> Response = await server.RecieveJsonAsync<List<DockerStackInfo>>(new DockerEvent(DockerEventType.ListStacks));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get stacks data, " + Response.Message);
@@ -96,16 +96,16 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers, out var dockerContainerPerm))
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm);
 
-        var Response = await server.RecieveJsonAsync<List<DockerContainerInfo>>(new DockerEvent(DockerEventType.ListContainers));
+        SocketResponse<List<DockerContainerInfo>?> Response = await server.RecieveJsonAsync<List<DockerContainerInfo>>(new DockerEvent(DockerEventType.ListContainers));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get containers data, " + Response.Message);
@@ -125,16 +125,16 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(stackId))
             return BadRequest("Stack id parameter is missing from path.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers, out var dockerContainerPerm))
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm);
 
-        var Response = await server.RecieveJsonAsync<DockerStackInfo>(new DockerEvent(DockerEventType.ControlStack, stackId, stackType: ControlStackType.View));
+        SocketResponse<DockerStackInfo?> Response = await server.RecieveJsonAsync<DockerStackInfo>(new DockerEvent(DockerEventType.ControlStack, stackId, stackType: ControlStackType.View));
         if (!Response.IsSuccess)
             return Conflict("Failed to get stack data, " + Response.Message);
 
@@ -156,16 +156,16 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(stackId))
             return BadRequest("Stack id parameter is missing from path.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewStacks | DockerContainerPermission.ManageStacks, out var dockerContainerPerm))
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewStacks | DockerContainerPermission.ManageStacks, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm);
 
-        var Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, stackId, stackType: ControlStackType.Remove));
+        SocketResponse<object?> Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, stackId, stackType: ControlStackType.Remove));
         if (!Response.IsSuccess)
             return Conflict("Failed to remove stack, " + Response.Message);
 
@@ -184,16 +184,16 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(containerId))
             return BadRequest("Container id parameter is missing from path.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers, out var dockerContainerPerm))
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm);
 
-        var Response = await server.RecieveJsonAsync<ContainerInspectResponse>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Inspect));
+        SocketResponse<ContainerInspectResponse?> Response = await server.RecieveJsonAsync<ContainerInspectResponse>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Inspect));
         if (!Response.IsSuccess)
             return Conflict("Failed to get container data, " + Response.Message);
 
@@ -235,16 +235,16 @@ public class DockerController : APIController
                 return BadRequest("Invalid control type parameter.");
         }
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ControlContainers, out var dockerContainerPerm))
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ControlContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm);
 
-        var Response = await server.RecieveJsonAsync<ContainerInspectResponse>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: control));
+        SocketResponse<ContainerInspectResponse?> Response = await server.RecieveJsonAsync<ContainerInspectResponse>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: control));
         if (!Response.IsSuccess)
             return Conflict("Failed to control container, " + Response.Message);
 
@@ -269,16 +269,16 @@ public class DockerController : APIController
         if (limit > 1000)
             return BadRequest("Log limit can only be a max of 1000.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ViewContainerLogs, out var dockerContainerPerm))
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ViewContainerLogs, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm);
 
-        var Response = await server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Logs)
+        SocketResponse<DockerContainerLogs?> Response = await server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Logs)
         {
             Data = JObject.FromObject(new ContainerLogsEvent
             {
@@ -310,16 +310,16 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(containerId))
             return BadRequest("Container id parameter is missing from path.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ManageContainers, out var dockerContainerPerm))
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ManageContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm);
 
-        var Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: force ? ControlContainerType.ForceRemove : ControlContainerType.Remove));
+        SocketResponse<object?> Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: force ? ControlContainerType.ForceRemove : ControlContainerType.Remove));
         if (!Response.IsSuccess)
             return Conflict("Failed to remove container, " + Response.Message);
 
@@ -335,13 +335,13 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewImages, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewImages, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        var Response = await server.RecieveJsonAsync<DockerImageInfo[]>(new DockerEvent(DockerEventType.ListImages));
+        SocketResponse<DockerImageInfo[]?> Response = await server.RecieveJsonAsync<DockerImageInfo[]>(new DockerEvent(DockerEventType.ListImages));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get images data, " + Response.Message);
@@ -361,13 +361,13 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(imageId))
             return BadRequest("Image id parameter is missing in path.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewImages, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewImages, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        var Response = await server.RecieveJsonAsync<DockerImageInfo>(new DockerEvent(DockerEventType.ControlImage, imageId, imageType: ControlImageType.View));
+        SocketResponse<DockerImageInfo?> Response = await server.RecieveJsonAsync<DockerImageInfo>(new DockerEvent(DockerEventType.ControlImage, imageId, imageType: ControlImageType.View));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get image data, " + Response.Message);
@@ -387,13 +387,13 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewVolumes, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewVolumes, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        var Response = await server.RecieveJsonAsync<DockerVolumeInfo[]>(new DockerEvent(DockerEventType.ListVolumes));
+        SocketResponse<DockerVolumeInfo[]?> Response = await server.RecieveJsonAsync<DockerVolumeInfo[]>(new DockerEvent(DockerEventType.ListVolumes));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get volumes data, " + Response.Message);
@@ -413,13 +413,13 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(volumeId))
             return BadRequest("Volume id parameter is missing in route.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewVolumes, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewVolumes, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        var Response = await server.RecieveJsonAsync<DockerVolumeInfo>(new DockerEvent(DockerEventType.ControlVolume, volumeId, volumeType: ControlVolumeType.View));
+        SocketResponse<DockerVolumeInfo?> Response = await server.RecieveJsonAsync<DockerVolumeInfo>(new DockerEvent(DockerEventType.ControlVolume, volumeId, volumeType: ControlVolumeType.View));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get volume data, " + Response.Message);
@@ -439,13 +439,13 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewNetworks, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewNetworks, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        var Response = await server.RecieveJsonAsync<DockerNetworkInfo[]>(new DockerEvent(DockerEventType.ListNetworks));
+        SocketResponse<DockerNetworkInfo[]?> Response = await server.RecieveJsonAsync<DockerNetworkInfo[]>(new DockerEvent(DockerEventType.ListNetworks));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get networks data, " + Response.Message);
@@ -465,13 +465,13 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(networkId))
             return BadRequest("Network id parameter is missing in path.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewNetworks, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewNetworks, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        var Response = await server.RecieveJsonAsync<DockerNetworkInfo>(new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.View));
+        SocketResponse<DockerNetworkInfo?> Response = await server.RecieveJsonAsync<DockerNetworkInfo>(new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.View));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get network data, " + Response.Message);
@@ -491,13 +491,13 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewPlugins, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewPlugins, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        var Response = await server.RecieveJsonAsync<Plugin[]>(new DockerEvent(DockerEventType.ListPlugins));
+        SocketResponse<Plugin[]?> Response = await server.RecieveJsonAsync<Plugin[]>(new DockerEvent(DockerEventType.ListPlugins));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get plugins data, " + Response.Message);
@@ -517,13 +517,13 @@ public class DockerController : APIController
         if (string.IsNullOrEmpty(pluginId))
             return BadRequest("Plugin id parameter is missing in route.");
 
-        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out var perm))
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewPlugins, out var dockerPerm))
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewPlugins, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm);
 
-        var Response = await server.RecieveJsonAsync<Plugin>(new DockerEvent(DockerEventType.ControlPlugin, pluginId, pluginType: ControlPluginType.Inspect));
+        SocketResponse<Plugin?> Response = await server.RecieveJsonAsync<Plugin>(new DockerEvent(DockerEventType.ControlPlugin, pluginId, pluginType: ControlPluginType.Inspect));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get plugin data, " + Response.Message);

@@ -16,7 +16,7 @@ public static class DockerNetworks
             All = true
         });
 
-        foreach (var i in Networks)
+        foreach (NetworkResponse i in Networks)
         {
             DockerNetworkInfo Network = DockerNetworkInfo.Create(i, false);
 
@@ -38,7 +38,7 @@ public static class DockerNetworks
         switch (@event.NetworkType)
         {
             case ControlNetworkType.View:
-                var Network = await client.Networks.InspectNetworkAsync(id);
+                NetworkResponse Network = await client.Networks.InspectNetworkAsync(id);
                 return DockerNetworkInfo.Create(Network, true);
             case ControlNetworkType.Remove:
                 await client.Networks.DeleteNetworkAsync(id);

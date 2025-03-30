@@ -16,9 +16,9 @@ internal class Helpers
 {
     public static string Hex2Ascii(string hexString)
     {
-        var j = 0;
-        var tmp = new byte[(hexString.Length) / 2];
-        for (var i = 0; i <= hexString.Length - 2; i += 2)
+        int j = 0;
+        byte[] tmp = new byte[(hexString.Length) / 2];
+        for (int i = 0; i <= hexString.Length - 2; i += 2)
         {
             tmp[j] = (byte)Convert.ToChar(Int32.Parse(hexString.Substring(i, 2), NumberStyles.HexNumber));
 
@@ -45,7 +45,7 @@ internal class Helpers
     public static string StringValueOf(Enum value)
     {
         FieldInfo fi = value.GetType().GetField(value.ToString());
-        var attributes =
+        DescriptionAttribute[] attributes =
             (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
         if (attributes.Length > 0)
         {

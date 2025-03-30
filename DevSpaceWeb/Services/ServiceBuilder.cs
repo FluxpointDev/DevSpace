@@ -266,21 +266,21 @@ public static class ServiceBuilder
                 {
                     if (context.AccessToken is { })
                     {
-                        var EmailClaim = context.Identity.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
+                        Claim? EmailClaim = context.Identity.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
                         if (EmailClaim != null)
                             context.Identity.RemoveClaim(EmailClaim);
 
-                        using var request = new HttpRequestMessage(HttpMethod.Get, GitHubAuthenticationDefaults.UserEmailsEndpoint);
+                        using HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, GitHubAuthenticationDefaults.UserEmailsEndpoint);
                         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", context.AccessToken);
 
-                        using var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+                        using HttpResponseMessage response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
                         if (!response.IsSuccessStatusCode)
                         {
                             throw new HttpRequestException("An error occurred while retrieving the email address associated to the user profile.");
                         }
 
-                        using var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                        using JsonDocument payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
 
                         context.Identity.AddClaim(new Claim(ClaimTypes.Email, (from address in payload.RootElement.EnumerateArray()
                                                                                where address.GetProperty("primary").GetBoolean()
@@ -319,20 +319,20 @@ public static class ServiceBuilder
                 opt.Events.OnCreatingTicket = async context =>
                 {
 
-                    using (var request = new HttpRequestMessage(HttpMethod.Get, SlackAuthenticationDefaults.UserInformationEndpoint))
+                    using (HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, SlackAuthenticationDefaults.UserInformationEndpoint))
                     {
                         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                         request.Headers.Add("Authorization", "Bearer " + context.AccessToken);
-                        using var response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
+                        using HttpResponseMessage response = await context.Backchannel.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, context.HttpContext.RequestAborted);
                         {
                             if (!response.IsSuccessStatusCode)
                             {
                                 throw new HttpRequestException("An error occurred while retrieving the user profile.");
                             }
 
-                            using (var payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted)))
+                            using (JsonDocument payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted)))
                             {
-                                var IdClaim = context.Identity.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
+                                Claim? IdClaim = context.Identity.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
                                 if (IdClaim != null)
                                     context.Identity.RemoveClaim(IdClaim);
 
