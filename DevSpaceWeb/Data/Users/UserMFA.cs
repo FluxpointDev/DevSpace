@@ -16,7 +16,7 @@ public class UserMfa
 
     public bool HasAny2FA()
     {
-        if (AuthenticatorDevices.Any() || Passkeys.Any())
+        if (AuthenticatorDevices.Count != 0 || Passkeys.Count != 0)
             return true;
         return false;
     }

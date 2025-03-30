@@ -10,7 +10,7 @@
         <RadzenText TextStyle="TextStyle.H6">App Templates</RadzenText>
     </div>
 
-    @if (!Member.HasDockerPermission(Team, Server, DockerPermission.UseAppTemplates))
+    @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.UseAppTemplates))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for Use App Templates
@@ -29,15 +29,15 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public TeamMemberData Member => Session.Selected.Member;
-    public TeamData Team => Session.Selected.Team.Data;
-    public ServerData Server => Session.Selected.Server;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ServerData? Server => Session.Selected.Server;
 
     public async Task SetupTemplate()
     {
         await DialogService.ShowDynamicFormAsync<SetupTemplateStackModel>("Setup Anyviz Cloud Adaptor", new SetupTemplateStackModel(), async (SetupTemplateStackModel data) =>
         {
-            if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+            if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
                 return "You do not have permission for Docker Administrator";
 
             return null;

@@ -48,7 +48,7 @@ public class LinkPageModel : PageModel
                 if (LinkData.Static.RequireRoles)
                 {
                     RequireRoles = true;
-                    if (Member != null && Member.Roles.Any())
+                    if (Member != null && Member.Roles.Count != 0)
                         HasRoles = true;
 
                 }

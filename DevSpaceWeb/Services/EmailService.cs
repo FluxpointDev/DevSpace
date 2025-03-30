@@ -221,17 +221,17 @@ public class EmailService
 
     public class SendMailJson
     {
-        public string name { get; set; }
-        public string email { get; set; }
-        public string email_other { get; set; }
-        public string code { get; set; }
-        public string instance_name { get; set; }
-        public string instance_icon { get; set; }
-        public string team_name { get; set; }
-        public string reason { get; set; }
-        public string url { get; set; }
-        public string ip { get; set; }
-        public string country { get; set; }
+        public string? name { get; set; }
+        public string? email { get; set; }
+        public string? email_other { get; set; }
+        public string? code { get; set; }
+        public string? instance_name { get; set; }
+        public string? instance_icon { get; set; }
+        public string? team_name { get; set; }
+        public string? reason { get; set; }
+        public string? url { get; set; }
+        public string? ip { get; set; }
+        public string? country { get; set; }
         public EmailTemplateType type { get; set; }
     }
 }

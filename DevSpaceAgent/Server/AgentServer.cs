@@ -81,7 +81,7 @@ public class AgentSession : WssSession
 
                 if (IsLocal)
                     IsWhitelisted = true;
-                else if (!_Data.Config.AllowedIPs.Any())
+                else if (_Data.Config.AllowedIPs.Count == 0)
                     IsWhitelisted = true;
                 else
                     IsWhitelisted = _Data.Config.AllowedIPs.Contains(Ip);

@@ -84,9 +84,11 @@ public class WebSocketClient : WssClient
 
     private async Task WebSocketMessage(WebSocketBase WebSocket, string json)
     {
-        JToken payload = JsonConvert.DeserializeObject<JToken>(json);
+        JToken? payload = JsonConvert.DeserializeObject<JToken>(json);
+        if (payload == null)
+            return;
 
-        EventType EventType = payload!["Type"]!.ToObject<EventType>();
+        EventType EventType = payload["Type"]!.ToObject<EventType>();
 
         Logger.LogMessage("WebSocket", "Event: " + EventType.ToString(), LogSeverity.Info);
 
@@ -124,8 +126,7 @@ public class WebSocketClient : WssClient
         var Result = await RecieveJsonAsync<T>(json, token);
         if (Result.IsSuccess)
         {
-            if (action != null)
-                action.Invoke(Result);
+            action?.Invoke(Result);
         }
         else
         {

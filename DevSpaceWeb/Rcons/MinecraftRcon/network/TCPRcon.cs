@@ -494,7 +494,7 @@ public class TCPRconAsync : Queue<RconPacket>
     /// Clones the current connection allowing another session to the rcon server.
     /// </summary>
     /// <returns>Return TCPRcon with the same host,port, and password.</returns>
-    public async Task<TCPRconAsync> CopyConnection()
+    public async Task<TCPRconAsync?> CopyConnection()
     {
 
         TCPRconAsync r = new TCPRconAsync(RConHost, RConPort, RConPass);
@@ -518,7 +518,8 @@ public class TCPRconAsync : Queue<RconPacket>
         StateRCon = RConState.IDLE;
 
         var cli = await Connect();
-
+        if (cli == null)
+            return false;
 
         if (StateTCP == TCPState.CONNECTED)
             if (StateRCon == RConState.READY)
@@ -559,7 +560,7 @@ public class TCPRconAsync : Queue<RconPacket>
     /// </summary>
     public bool IsReadyForCommands { get { return StateTCP == TCPState.CONNECTED && StateRCon == RConState.READY; } }
 
-    private async Task<TcpClient> Connect()
+    private async Task<TcpClient?> Connect()
     {
         Random r = new Random();
         TcpClient cli = new TcpClient();

@@ -38,6 +38,6 @@ public class BackgroundTasks
 }
 public class VersionCheck
 {
-    public string WebVersion { get; set; }
-    public string AgentVersion { get; set; }
+    public string? WebVersion { get; set; }
+    public string? AgentVersion { get; set; }
 }

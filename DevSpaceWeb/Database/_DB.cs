@@ -196,7 +196,7 @@ public static class _DB
                     // Migrate/Fix roles and role positions
                     foreach (var i in Teams.Cache.Values)
                     {
-                        if (i.CachedRoles.Any() && !i.RolePositions.Any())
+                        if (i.CachedRoles.Count != 0 && i.RolePositions.Count == 0)
                         {
                             Logger.LogMessage("Database", "- Roles: Migrating " + i.Name, LogSeverity.Info);
 
@@ -252,7 +252,7 @@ public static class _DB
                         if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))
                         {
                             // Fix invalid team members
-                            if (!team.Members.Any())
+                            if (team.Members.Count == 0)
                             {
                                 team.Members.Add(x.UserId, x.Id);
                                 await team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, team.Members));

@@ -10,13 +10,13 @@
     <div class="dash-box-content dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="ri:stack-fill"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Docker Events</RadzenText>
-        @if (IsLoading && Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+        @if (IsLoading && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
         {
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
     </div>
 
-    @if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+    @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -79,13 +79,13 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; }
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ServerData Server => Session.Selected.Server;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ServerData? Server => Session.Selected.Server;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     public bool IsLoading { get; set; } = true;
 
-    SocketResponse<List<DockerEventInfo>>? EventsResponse = null;
+    SocketResponse<List<DockerEventInfo>?>? EventsResponse = null;
 
     IQueryable<DockerEventInfo> EventsList;
     public int Count = 0;
@@ -93,7 +93,7 @@
 
     public async Task LoadData(LoadDataArgs args)
     {
-        if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+        if (Member == null || Server == null || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
             return;
 
         if (Program.IsPreviewMode)
@@ -121,7 +121,7 @@
                 IsLoading = false;
             }
 
-            if (EventsResponse != null && EventsResponse.IsSuccess)
+            if (EventsResponse != null && EventsResponse.IsSuccess && EventsResponse.Data != null)
             {
                 IQueryable<DockerEventInfo> query = EventsResponse.Data.AsQueryable();
 
@@ -139,11 +139,11 @@
 
     public async Task OpenMoreDetails(DockerEventInfo evnt)
     {
-        if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+        if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
             return;
 
-        string Name = evnt.Type;
-        if (evnt.Actor.Attributes != null && evnt.Actor.Attributes.TryGetValue("name", out object name))
+        string? Name = evnt.Type;
+        if (evnt.Actor.Attributes != null && evnt.Actor.Attributes.TryGetValue("name", out object? name))
         {
             Name = name as string;
         }

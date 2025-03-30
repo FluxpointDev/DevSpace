@@ -21,10 +21,10 @@ public class Program
     /// <summary>
     /// Version of DevSpaceWeb.
     /// </summary>
-    public static string Version => Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
+    public static string Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
 
-    public static string LatestWebVersion;
-    public static string LatestAgentVersion;
+    public static string? LatestWebVersion;
+    public static string? LatestAgentVersion;
 
     public static string GetVersionText()
     {
