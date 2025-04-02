@@ -168,6 +168,37 @@ public class Program
                 await InternalDocker.System.PingAsync();
                 Console.WriteLine("PINGED DOCKER");
 
+                //await InternalDocker.Images.CreateImageAsync(new ImagesCreateParameters
+                //{
+                //    FromImage = "docker.io/aquasec/trivy",
+                //    Tag = "latest"
+                //}, null, new Progress<JSONMessage>());
+
+                //await InternalDocker.Containers.CreateContainerAsync(new Docker.DotNet.Models.CreateContainerParameters
+                //{
+                //    Cmd = new List<string>
+                //    {
+                //        "filesystem",
+                //        "/root/mount/",
+                //        "--skip-files",
+                //        "-q",
+                //        "--no-progress",
+                //        "--format",
+                //        "json",
+                //        "--security-checks",
+                //        "vuln"
+                //    },
+                //    Image = "docker.io/aquasec/trivy",
+                //    Name = "security-scan-" + Guid.NewGuid().ToString().Replace("-", ""),
+                //    HostConfig = new HostConfig
+                //    {
+                //        Binds = new List<string>
+                //        {
+                //            "/var/trivy:/root/.cache:rw",
+                //            "/root/services/devspace_agent:/root/mount/root/services/devspace_agent:ro"
+                //        }
+                //    }
+                //});
 
                 //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Version, Newtonsoft.Json.Formatting.Indented));
                 //var Procs = await InternalDocker.Containers.ListProcessesAsync("d4718c5b63aaab415034b1f1ef99ca24859b388fca474cdf8f461e387c78a192", new Docker.DotNet.Models.ContainerListProcessesParameters

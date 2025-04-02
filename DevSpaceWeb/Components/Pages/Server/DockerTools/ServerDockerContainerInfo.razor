@@ -3,6 +3,7 @@
 @using DevSpaceWeb.Models.Docker
 @using Docker.DotNet.Models
 @using Newtonsoft.Json.Linq
+@using System.Text
 @inject NotificationService Notifications
 @inject DialogService Dialog
 
@@ -472,7 +473,188 @@ else
                     }
                 </RadzenTabsItem>
 
-                
+                <RadzenTabsItem Text="Security">
+                    <RadzenRow Gap="10px">
+                        <RadzenColumn SizeMD="6" SizeSM="12">
+                            <div class="security-bar mt-2">
+                                @if (SecurityResults == null)
+                                {
+                                    <div><span class="iconify" data-icon="mdi:security"></span></div>
+                                }
+                                else if (SecurityHasIssues)
+                                {
+                                    <div class="security-bar-bad"><span class="iconify" data-icon="mdi:security"></span></div>
+                                }
+                                else
+                                {
+                                    <div class="security-bar-ok"><span class="iconify" data-icon="mdi:security"></span></div>                                    
+                                }
+                                <div>
+                                    <h6>Security Report</h6>
+                                    @if (SecurityScanRunning)
+                                    {
+                                        <RadzenProgressBar Value="100" ShowValue="false" Mode="ProgressBarMode.Indeterminate" />
+                                    }
+                                    else if (SecurityResults == null)
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body1">
+                                            Run a scan on this container.
+                                        </RadzenText>
+                                    }
+                                    else if (SecurityHasIssues)
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body1">
+                                            Found some issues!
+                                        </RadzenText>
+                                    }
+                                    else
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body1">
+                                            No issues found
+                                        </RadzenText>
+                                    }
+                                </div>
+                                <RadzenButton ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Disabled="@(!CanManageContainer || SecurityScanRunning || SecurityResults != null)" Click="@RunSecurityScan">Scan</RadzenButton>
+                            </div>
+                            <div class="security-notice mt-2">
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    This tool uses <a href="https://trivy.dev" target="_blank">Trivy</a> an open source scanner, it will download a database of known vulnerabilities, configuration issues and bad packages/libraries that should be updated.
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    Click Scan to run on all your mounted and binded volumes for this container.
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    Click a file to see a list of vulnerabilities with that associated file or package list.
+                                </RadzenText>
+                            </div>
+                        </RadzenColumn>
+                        <RadzenColumn SizeMD="6" SizeSM="12">
+                            @if (!CanManageContainer)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    You do not have permission for Manage Containers
+                                </RadzenText>
+                            }
+                            @if (SecurityHasIssues && SecurityCounts.Any())
+                            {
+                                <RadzenStack Style="width: 100%; max-width: 200px; max-height: 200px;" class="ml-4">
+                                    <RadzenChart>
+                                    <RadzenPieSeries Data="@SecurityCounts" CategoryProperty="Severity" ValueProperty="Count" TItem="SecurityResultsCount">
+                                        <RadzenSeriesDataLabels Visible="true" />
+                                    </RadzenPieSeries>
+                                </RadzenChart>
+                                </RadzenStack>
+                            }
+                        </RadzenColumn>
+                    </RadzenRow>
+                    @if (SecurityHasIssues)
+                    {
+                    <RadzenRow class="security-details">
+                        <RadzenColumn SizeMD="6" SizeSM="12">
+                                <RadzenText TextStyle="TextStyle.Subtitle1" class="ml-2">
+                                    Files
+                                </RadzenText>
+                                <RadzenDataGrid AllowFiltering="false" Density="Density.Compact" AllowPaging="true" PageSize="10" AllowSorting="false" Data="@SecurityResults" @bind-Value="@SelectedOrders" TItem="SecurityResult">
+                                    <Columns>
+                                    <RadzenDataGridColumn Title="Severity" Width="70px">
+                                        <Template>
+                                            @context.CurrentSeverity
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn Title="Type" Width="100px">
+                                        <Template>
+                                            @context.Type
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn Title="Target">
+                                        <Template>
+                                            @context.Target
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        </RadzenColumn>
+                        <RadzenColumn SizeMD="6" SizeSM="12">
+                            <RadzenText TextStyle="TextStyle.Subtitle1" class="ml-2">
+                                Vulnerabilities
+                            </RadzenText>
+                            <RadzenDataGrid AllowFiltering="false" Density="Density.Compact" AllowPaging="true" PageSize="10" AllowSorting="false" Data="@Vulnerabilities">
+                                <Template>
+                                    <div class="security-vulnerability">
+                                        @if (context.DataSource != null)
+                                            {
+
+                                                <a href="@context.DataSource.GetUrl(context)" target="_blank"><RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark">Source</RadzenButton></a>
+                                            }
+                                            <RadzenText TextStyle="TextStyle.Subtitle2" class="ml-2">
+                                            @context.VulnerabilityID
+                                        </RadzenText>
+                                        @if (context.DataSource != null)
+                                        {
+                                            <RadzenText TextStyle="TextStyle.Subtitle2" class="ml-2" Style="color: var(--rz-text-tertiary-color);">
+                                            @context.DataSource.Name
+                                                </RadzenText>
+                                            }
+                                            else
+                                            {
+                                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="ml-2" Style="color: var(--rz-text-tertiary-color);">
+                                                        No Source
+                                                    </RadzenText>
+                                            }
+
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            @context.Description
+                                        </RadzenText>
+                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                            @if (context.Status == "fixed")
+                                            {
+                                                <RadzenText TextStyle="TextStyle.Body2">
+                                                    @context.Status in @context.FixedVersion
+                                                </RadzenText>
+                                            }
+                                            else
+                                            {
+                                                <RadzenText TextStyle="TextStyle.Body2">
+                                                    @context.Status
+                                                </RadzenText>
+                                            }
+
+                                            @if (context.PublishedDate.HasValue)
+                                            {
+                                                <RadzenText TextStyle="TextStyle.Body2">
+                                                    @Utils.GetLocalDate(Session, context.PublishedDate.Value)
+                                                </RadzenText>
+                                            }
+                                        </RadzenStack>
+                                    </div>
+                                </Template>
+                                <Columns>
+                                    <RadzenDataGridColumn Title="Severity" Width="70px">
+                                        <Template>
+                                            @context.Severity
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn Title="Name">
+                                        <Template>
+                                            @context.PkgName
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn Title="Version" Width="70px">
+                                        <Template>
+                                            @context.InstalledVersion
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                    <RadzenDataGridColumn Title="Info">
+                                        <Template>
+                                            @context.Title
+                                        </Template>
+                                    </RadzenDataGridColumn>
+                                </Columns>
+                            </RadzenDataGrid>
+                        </RadzenColumn>
+                    </RadzenRow>
+                    }
+                </RadzenTabsItem>
             </Tabs>
         </RadzenTabs>
     </div>
@@ -657,6 +839,101 @@ else
         width: 1.15rem !important;
         height: 1.15rem !important;
     }
+
+    .rz-series-item-0 {
+        fill: #e94861 !important;
+    }
+
+    .rz-series-item-1 {
+        fill: var(--rz-series-3) !important;
+    }
+
+    .rz-series-item-2 {
+        fill: var(--rz-series-5) !important;
+    }
+
+    .rz-series-item-3 {
+        fill: var(--rz-series-8) !important;
+    }
+
+    .rz-state-highlight {
+        background-color: var(--rz-grid-selected-background-color) !important;
+    }
+
+    .security-bar .iconify {
+        width: 40px;
+        height: 30px;
+        display: inline-block;
+        margin-top: -30px;
+        margin-right: 6px;
+        margin-bottom: 6px;
+    }
+
+    .security-bar div {
+        display: inline-block;
+    }
+
+    .security-bar .rz-button {
+        float: right;
+        margin-top: 8px;
+        margin-right: 10px;
+    }
+
+    .security-notice {
+        background-color: rgba(43,44,54,0.8);
+        width: 100% !important;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+
+    .security-vulnerability {
+        padding: 6px;
+        padding-left: 10px;
+        padding-right: 10px;
+        background-color: rgba(52,53,63,0.8) !important;
+        text-wrap: wrap;
+    }
+
+        .security-vulnerability > .rz-text-body2 {
+            margin-left: 6px;
+            margin-right: 100px;
+        }
+
+        .security-vulnerability div .rz-text-body2 {
+            font-weight: 600;
+            color: var(--rz-text-tertiary-color);
+            margin-left: 10px;
+        }
+
+            .security-vulnerability div .rz-text-body2:first-child {
+                color: var(--rz-info) !important;
+            }
+
+        .security-vulnerability .rz-button {
+            float: right;
+            margin-top: 6px;
+            margin-right: 6px;
+        }
+
+    .rz-expanded-row-content td {
+        padding: 4px !important;
+        padding-top: 0px !important;
+    }
+
+    .rz-progressbar {
+    width: 100%;
+}
+.security-bar-bad .iconify {
+    color: var(--rz-warning-dark) !important;
+}
+.security-bar-ok .iconify {
+    color: var(--rz-success) !important;
+}
+.rz-legend {
+    margin-right: -30px !important;
+}
+
 </style>
 
 @code {
@@ -888,22 +1165,218 @@ else
         await InvokeAsync(OnParametersSetAsync);
     }
 
-    class DataItem
+    public class SecurityResultsCount
     {
-        public string Severity;
-        public ulong Count;
+        public string Severity { get; set; }
+        public ulong Count { get; set; }
     }
 
-    DataItem[] revenue = new DataItem[] {
-        new DataItem
-        {
-            Severity = "High",
-            Count = 2
-        },
-        new DataItem
-        {
-            Severity = "Low",
-            Count = 5
-        }
+    SecurityResultsCount[] SecurityCounts = new SecurityResultsCount[] {
+        // new SecurityResultsCount
+        // {
+        //     Severity = "Critical",
+        //     Count = 0
+        // },
+        // new SecurityResultsCount
+        // {
+        //     Severity = "High",
+        //     Count = 2
+        // },
+        // new SecurityResultsCount
+        // {
+        //     Severity = "Medium",
+        //     Count = 0
+        // },
+        // new SecurityResultsCount
+        // {
+        //     Severity = "Low",
+        //     Count = 5
+        // },
     };
+
+    public async Task RunSecurityScan()
+    {
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+            return;
+
+        SecurityScanRunning = true;
+        try
+        {
+            var Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Scan));
+            if (Result.IsSuccess && Result.Data != null)
+            {
+                await Task.Delay(new TimeSpan(0, 0, 15));
+                var ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
+                    {
+                        Data = JObject.FromObject(new CreateContainerResponse
+                        {
+                            ID = Result.Data.ID
+                        })
+                    });
+
+                if (ScanResult.Data != null && ScanResult.Data.IsComplete.HasValue && !ScanResult.Data.IsComplete.Value)
+                {
+                    await Task.Delay(new TimeSpan(0, 0, 15));
+                    ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
+                    {
+                        Data = JObject.FromObject(new CreateContainerResponse
+                        {
+                            ID = Result.Data.ID
+                        })
+                    });
+                }
+
+                if (ScanResult.Data != null && ScanResult.Data.IsComplete.HasValue && !ScanResult.Data.IsComplete.Value)
+                {
+                    await Task.Delay(new TimeSpan(0, 0, 30));
+                    ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
+                    {
+                        Data = JObject.FromObject(new CreateContainerResponse
+                        {
+                            ID = Result.Data.ID
+                        })
+                    });
+                }
+
+                if (ScanResult.IsSuccess && ScanResult.Data != null && ScanResult.Data.IsComplete.HasValue && ScanResult.Data.IsComplete == true)
+                {
+                    string[] lines = ScanResult.Data.Logs.Split(
+                    new string[] { "\r\n", "\r", "\n" },
+                    StringSplitOptions.RemoveEmptyEntries
+                    );
+                    if (lines.Any())
+                    {
+                        StringBuilder builder = new StringBuilder();
+                        foreach(var i in lines)
+                        {
+                            if (builder.Length != 0 || i.StartsWith("{"))
+                                builder.Append(i);
+                        }
+
+                        if (builder.Length != 0)
+                        {
+                            SecurityReport? Report = Newtonsoft.Json.JsonConvert.DeserializeObject<SecurityReport>(builder.ToString());
+                            if (Report != null)
+                            {
+                                if (Report.Results == null)
+                                {
+                                    SecurityResults = new SecurityResult[0];
+                                    SecurityHasIssues = false;
+                                }
+                                else
+                                {
+                                    SecurityResults = Report.Results.Where(x => x.Vulnerabilities != null && x.Vulnerabilities.Any()).ToArray();
+                                    SecurityCounts = new SecurityResultsCount[]
+                                        {
+                                        new SecurityResultsCount
+                                        {
+                                            Severity = "Critical",
+                                            Count = 0
+                                        },
+                                        new SecurityResultsCount
+                                        {
+                                            Severity = "High",
+                                            Count = 0
+                                        },
+                                        new SecurityResultsCount
+                                        {
+                                            Severity = "Medium",
+                                            Count = 0
+                                        },
+                                        new SecurityResultsCount
+                                        {
+                                            Severity = "Low",
+                                            Count = 0
+                                        },
+                                        };
+                                    if (SecurityResults.Any())
+                                    {
+                                        SecurityHasIssues = true;
+                                        foreach (var i in SecurityResults)
+                                        {
+                                            foreach (var v in i.Vulnerabilities)
+                                            {
+                                                if (string.IsNullOrEmpty(i.CurrentSeverity))
+                                                    i.CurrentSeverity = v.Severity;
+                                                else
+                                                {
+                                                    switch (i.CurrentSeverity)
+                                                    {
+                                                        case "LOW":
+                                                            {
+                                                                if (v.Severity != "LOW")
+                                                                    i.CurrentSeverity = v.Severity;
+                                                            }
+                                                            break;
+                                                        case "MEDIUM":
+                                                            {
+                                                                if (v.Severity == "HIGH" || v.Severity == "CRITICAL")
+                                                                    i.CurrentSeverity = v.Severity;
+                                                            }
+                                                            break;
+                                                        case "HIGH":
+                                                            {
+                                                                if (v.Severity == "CRITICAL")
+                                                                    i.CurrentSeverity = v.Severity;
+                                                            }
+                                                            break;
+                                                    }
+                                                }
+
+                                                switch (v.Severity)
+                                                {
+                                                    case "LOW":
+                                                        {
+                                                            SecurityCounts[3].Count += 1;
+                                                        }
+                                                        break;
+                                                    case "MEDIUM":
+                                                        {
+                                                            SecurityCounts[2].Count += 1;
+                                                        }
+                                                        break;
+                                                    case "HIGH":
+                                                        {
+                                                            SecurityCounts[1].Count += 1;
+                                                        }
+                                                        break;
+                                                    case "CRITICAL":
+                                                        {
+                                                            SecurityCounts[0].Count += 1;
+                                                        }
+                                                        break;
+                                                }
+                                            }
+                                        }
+
+                                        }
+                                        else
+                                        {
+                                            SecurityHasIssues = false;
+                                        }
+                                    }
+                                }
+                            }
+                        
+                    }
+                }
+            
+            }
+        }
+        catch
+        {
+
+        }
+        SecurityScanRunning = false;
+        //SecurityReport
+    }
+
+    private IList<SecurityResult>? _selected;
+    IList<SecurityResult> SelectedOrders { get { return _selected; } set { if (value.Any()) { _selected = value; Vulnerabilities = _selected.First().Vulnerabilities; } else { _selected = null; Vulnerabilities = new SecurityVulnerability[0]; } } }
+
+    SecurityVulnerability[] Vulnerabilities { get; set; } = new SecurityVulnerability[0];
+
+    public bool SecurityScanRunning { get; set; }
+    SecurityResult[]? SecurityResults { get; set; }
+    public bool SecurityHasIssues { get; set; }
 }

@@ -178,6 +178,108 @@ public static class DockerContainers
                     }, CancellationToken.None);
                 }
                 break;
+            case ControlContainerType.Scan:
+                {
+                    var CurrentContainer = await Program.DockerClient.Containers.InspectContainerAsync(id);
+                    if (!CurrentContainer.Mounts.Any() || !CurrentContainer.Mounts.Any(x => x.Type == "bind" || x.Type == "volume"))
+                        return new CreateContainerResponse()
+                        {
+                            ID = id,
+                        };
+
+                    await Program.DockerClient.Images.CreateImageAsync(new ImagesCreateParameters
+                    {
+                        FromImage = "docker.io/aquasec/trivy",
+                        Tag = "latest"
+                    }, null, new Progress<JSONMessage>());
+
+                    var Binds = new List<string>
+                    {
+                        "/var/trivy:/root/.cache:rw"
+                    };
+
+                    foreach (var i in CurrentContainer.Mounts)
+                    {
+                        if (i.Type == "volume")
+                        {
+                            Binds.Add($"{i.Name}:/root/mount/{i.Name}:ro");
+                        }
+                        else if (i.Type == "bind")
+                        {
+                            Binds.Add($"{i.Source}:/root/mount{i.Source}:ro");
+                        }
+                    }
+
+                    CreateContainerResponse Container = await Program.DockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
+                    {
+                        Cmd = new List<string>
+                        {
+                            "filesystem",
+                            "/root/mount/",
+                            "--skip-files",
+                            "-q",
+                            "--no-progress",
+                            "--format",
+                            "json",
+                            "--scanners",
+                            "vuln"
+                        },
+                        Image = "docker.io/aquasec/trivy",
+                        Name = "security-scan-" + Guid.NewGuid().ToString().Replace("-", ""),
+                        HostConfig = new HostConfig
+                        {
+                            Binds = Binds
+                        }
+                    });
+
+                    _ = Task.Run(async () =>
+                    {
+                        await Task.Delay(new TimeSpan(0, 5, 0));
+                        await Program.DockerClient.Containers.RemoveContainerAsync(Container.ID, new ContainerRemoveParameters
+                        {
+                            Force = true,
+                        });
+                    });
+                    await Program.DockerClient.Containers.StartContainerAsync(Container.ID, new ContainerStartParameters
+                    {
+
+                    });
+
+                    return new CreateContainerResponse()
+                    {
+                        ID = Container.ID,
+                    };
+                }
+                break;
+            case ControlContainerType.ScanReport:
+                {
+                    CreateContainerResponse Container = @event.Data.ToObject<CreateContainerResponse>();
+                    var GetContainer = await Program.DockerClient.Containers.InspectContainerAsync(Container.ID);
+                    if (GetContainer == null || GetContainer.State.ExitCode != 0)
+                        return new SecurityData { IsComplete = false };
+
+                    MultiplexedStream Stream = await Program.DockerClient.Containers.GetContainerLogsAsync(Container.ID, false, new ContainerLogsParameters
+                    {
+                        Tail = "all",
+                        Timestamps = false,
+                        ShowStdout = true,
+                        ShowStderr = false
+                    }, CancellationToken.None);
+
+                    (string stdout, string stderr) DataStream = await Stream.ReadOutputToEndAsync(CancellationToken.None);
+
+                    try
+                    {
+                        await Program.DockerClient.Containers.RemoveContainerAsync(Container.ID, new ContainerRemoveParameters
+                        {
+                            Force = true
+                        });
+                    }
+                    catch { }
+
+                    return new SecurityData { IsComplete = true, Logs = DataStream.stdout };
+                }
+                break;
         }
 
         return null;
