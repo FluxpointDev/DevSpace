@@ -154,6 +154,7 @@ public class Program
                 throw new Exception("Connection test failed");
             }
         }
+
         if (Program.IsDevMode)
         {
             InternalDocker = new DockerClientConfiguration(new Uri("tcp://127.0.0.1:2375"), null).CreateClient();
@@ -236,7 +237,10 @@ public class Program
             .AddInteractiveServerComponents();
 
         if (!LimitMode)
-            builder.Services.AddRazorPages();
+        {
+            //builder.Services.AddRazorPages();
+            builder.Services.AddMvcCore().AddRazorPages();
+        }
 
         builder.Services.AddControllers(opt =>
         {
@@ -314,11 +318,13 @@ public class Program
 
         }
 
-        //new InfoTest().Run();
+
         app.MapRazorComponents<Components.App>()
             .AddInteractiveServerRenderMode();
         if (!LimitMode)
+        {
             app.MapRazorPages();
+        }
 
         app.MapControllers();
         app.Run();
