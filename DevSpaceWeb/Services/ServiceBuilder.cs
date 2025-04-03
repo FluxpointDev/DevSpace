@@ -29,7 +29,7 @@ public static class ServiceBuilder
 {
     public static void Build(WebApplicationBuilder builder, IServiceCollection services)
     {
-        AddPages(services);
+
         HealthCheckService HealthService = new HealthCheckService();
 
         // Add HTTP access
@@ -53,6 +53,7 @@ public static class ServiceBuilder
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
+        AddPages(services);
         AddHealth(services, HealthService);
         AddFido2(services);
         AddIdentity(services);
@@ -66,13 +67,25 @@ public static class ServiceBuilder
 
     public static void AddPages(IServiceCollection services)
     {
+        //services.AddControllers(opt =>
+        //{
+        //    opt.RequireHttpsPermanent = true;
+        //    opt.Filters.Add<ControllerExceptionFilter>();
+        //});
+
         services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        var MvcBuilder = services.AddMvcCore(opt =>
+        {
+            opt.RequireHttpsPermanent = true;
+            opt.Filters.Add<ControllerExceptionFilter>();
+        }).AddAuthorization().AddCors();
 
         if (!Program.LimitMode)
         {
             //builder.Services.AddRazorPages();
-            services.AddMvcCore().AddRazorPages();
+            MvcBuilder.AddRazorPages();
         }
     }
 

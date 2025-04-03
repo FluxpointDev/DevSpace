@@ -1,6 +1,5 @@
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Database;
-using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Services;
 using Docker.DotNet;
 using Microsoft.AspNetCore.Components.Web;
@@ -222,10 +221,6 @@ public class Program
             _DB.IsConnected = await _DB.StartAsync();
         });
 
-
-        // Add services to the container.
-        ServiceBuilder.Build(builder, builder.Services);
-
         builder.Services.Configure<ForwardedHeadersOptions>(options =>
         {
             options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedPrefix | ForwardedHeaders.XForwardedProto;
@@ -235,11 +230,9 @@ public class Program
         });
 
 
-        builder.Services.AddControllers(opt =>
-        {
-            opt.RequireHttpsPermanent = true;
-            opt.Filters.Add<ControllerExceptionFilter>();
-        });
+        // Add services to the container.
+        ServiceBuilder.Build(builder, builder.Services);
+
         Services = builder.Services;
 
         WebApplication app = builder.Build();
