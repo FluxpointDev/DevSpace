@@ -53,7 +53,7 @@ public static class ServiceBuilder
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
-        AddPages(services);
+
         AddHealth(services, HealthService);
         AddFido2(services);
         AddIdentity(services);
@@ -63,6 +63,8 @@ public static class ServiceBuilder
 
         if (_Data.Config.Instance.Features.SwaggerEnabled)
             AddSwagger(services);
+
+        AddPages(services);
     }
 
     public static void AddPages(IServiceCollection services)
@@ -80,7 +82,7 @@ public static class ServiceBuilder
         {
             opt.RequireHttpsPermanent = true;
             opt.Filters.Add<ControllerExceptionFilter>();
-        }).AddAuthorization().AddCors();
+        }).AddAuthorization().AddCors().AddApiExplorer();
 
         if (!Program.LimitMode)
         {
