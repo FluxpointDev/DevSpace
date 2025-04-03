@@ -29,10 +29,13 @@ public static class ServiceBuilder
 {
     public static void Build(WebApplicationBuilder builder, IServiceCollection services)
     {
+        AddPages(services);
         HealthCheckService HealthService = new HealthCheckService();
+
         // Add HTTP access
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();
+
         services.AddSingleton(new BackgroundTasks());
         services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
         {
@@ -59,7 +62,18 @@ public static class ServiceBuilder
 
         if (_Data.Config.Instance.Features.SwaggerEnabled)
             AddSwagger(services);
+    }
 
+    public static void AddPages(IServiceCollection services)
+    {
+        services.AddRazorComponents()
+            .AddInteractiveServerComponents();
+
+        if (!Program.LimitMode)
+        {
+            //builder.Services.AddRazorPages();
+            services.AddMvcCore().AddRazorPages();
+        }
     }
 
     public static void AddHealth(IServiceCollection services, HealthCheckService health)

@@ -233,14 +233,7 @@ public class Program
             options.KnownProxies.Clear();
             options.KnownNetworks.Clear();
         });
-        builder.Services.AddRazorComponents()
-            .AddInteractiveServerComponents();
 
-        if (!LimitMode)
-        {
-            //builder.Services.AddRazorPages();
-            builder.Services.AddMvcCore().AddRazorPages();
-        }
 
         builder.Services.AddControllers(opt =>
         {
@@ -321,10 +314,9 @@ public class Program
 
         app.MapRazorComponents<Components.App>()
             .AddInteractiveServerRenderMode();
+
         if (!LimitMode)
-        {
             app.MapRazorPages();
-        }
 
         app.MapControllers();
         app.Run();
