@@ -61,12 +61,9 @@ public class Program
     /// Program is running in development
     /// </summary>
     public static bool IsDevMode { get; private set; }
-
     public static bool IsPreviewMode { get; set; } = false;
     public static bool ShowDemoLink { get; set; } = false;
-
-    public static Regex IpRegex = new Regex(@"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", RegexOptions.Compiled | RegexOptions.Multiline);
-
+    public static Regex IpRegex { get; set; } = new Regex(@"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", RegexOptions.Compiled | RegexOptions.Multiline);
     public static string PublicIP { get; private set; }
 
     public static DockerClient InternalDocker;
@@ -107,6 +104,8 @@ public class Program
         //Console.WriteLine(JO["services"].First().Path.Replace("services.", ""));
 
         //WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
+
+
         Logger.RunLogger("Dev Space", DefaultLogMode);
         Logger.LogMessage("Dev Space v" + GetVersionText(), LogSeverity.Info);
 
@@ -118,11 +117,8 @@ public class Program
         // Guid support for mongodb
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.CSharpLegacy));
 
-        if (!LimitMode)
-        {
-            // Rcon support
-            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
-        }
+        // Rcon support
+        System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
         Logger.LogMessage("Running connection test...", LogSeverity.Info);
 
@@ -236,7 +232,6 @@ public class Program
         Services = builder.Services;
 
         WebApplication app = builder.Build();
-
 
         // Configure the HTTP request pipeline.
         //if (!app.Environment.IsDevelopment())

@@ -75,8 +75,14 @@ public static class ServiceBuilder
         //    opt.Filters.Add<ControllerExceptionFilter>();
         //});
 
-        services.AddRazorComponents()
-            .AddInteractiveServerComponents();
+        services.AddRazorComponents(opt =>
+        {
+            opt.DetailedErrors = Program.IsDevMode;
+        }).AddInteractiveServerComponents(opt =>
+            {
+                opt.DetailedErrors = Program.IsDevMode;
+            });
+
 
         var MvcBuilder = services.AddMvcCore(opt =>
         {
