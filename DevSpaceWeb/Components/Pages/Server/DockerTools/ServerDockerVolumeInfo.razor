@@ -116,6 +116,45 @@ else
             </RadzenTableBody>
         </RadzenTable>
     </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="ri:box-3-fill"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Containers</RadzenText>
+        </div>
+        <br />
+        <RadzenDataGrid Data="@Volume.ContainersList"
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                        ShowPagingSummary="true"
+                        PagingSummaryFormat="@(Volume.ContainersCount + " " + (Volume.ContainersCount != 1 ? "containers" : "container"))" Density="Density.Default"
+                        AllowSorting="false" AllowFiltering="false">
+            <Columns>
+                <RadzenDataGridColumn Title="Name" Width="200px">
+                    <Template>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + context.Key)" Text="@context.Value.Name" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Width="120px">
+                    <Template>
+                        @if (context.Value.ReadWrite)
+                        {
+                            <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read & Write" IsPill="true" />
+                        }
+                        else
+                        {
+                            <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="Read-Only" IsPill="true" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Destination">
+                    <Template>
+                        @context.Value.Mounted
+                    </Template>
+                </RadzenDataGridColumn>
+
+            </Columns>
+        </RadzenDataGrid>
+    </div>
 }
 
 @code {

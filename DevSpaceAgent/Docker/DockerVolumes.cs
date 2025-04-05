@@ -44,7 +44,27 @@ public static class DockerVolumes
         {
             case ControlVolumeType.View:
                 VolumeResponse Volume = await client.Volumes.InspectAsync(id);
-                return DockerVolumeInfo.Create(Volume, true);
+                DockerVolumeInfo Data = DockerVolumeInfo.Create(Volume, true);
+
+                IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
+                {
+                    Size = true,
+                    All = true,
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
+                                {
+                                    { "volume", new Dictionary<string, bool>
+                                    {
+                                        { id, true }
+                                    }
+                                    }
+                                }
+                });
+
+                Data.ContainersCount = containers.Count;
+                if (Data.ContainersCount != 0)
+                    Data.ContainersList = containers.ToDictionary(x => x.ID, x => DockerMountContainer.Create(x.Mounts.First(x => x.Name == id), x));
+
+                return Data;
             case ControlVolumeType.Remove:
             case ControlVolumeType.ForceRemove:
                 await client.Volumes.RemoveAsync(id, @event.VolumeType == ControlVolumeType.ForceRemove);

@@ -29,5 +29,6 @@ public class DockerVolumeInfo
     public string? Scope { get; set; }
     public string? MountPoint { get; set; }
     public Dictionary<string, string> Containers { get; set; } = new Dictionary<string, string>();
+    public Dictionary<string, DockerMountContainer> ContainersList { get; set; } = new Dictionary<string, DockerMountContainer>();
     public int ContainersCount { get; set; }
 }
