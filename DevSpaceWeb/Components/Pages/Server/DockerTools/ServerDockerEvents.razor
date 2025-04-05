@@ -10,17 +10,17 @@
     <div class="dash-box-content dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="ri:stack-fill"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Docker Events</RadzenText>
-        @if (IsLoading && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+        @if (IsLoading && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.ViewEvents))
         {
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
     </div>
 
-    @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+    @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewEvents))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                You do not have permission for Docker Administrator
+                You do not have permission for View Events
             </RadzenAlert>
         </div>
     }
@@ -129,7 +129,7 @@
 
     public async Task LoadData(LoadDataArgs args)
     {
-        if (Member == null || Server == null || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+        if (Member == null || Server == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewEvents))
             return;
 
         if (Program.IsPreviewMode)
@@ -175,7 +175,7 @@
 
     public async Task OpenMoreDetails(DockerEventInfo evnt)
     {
-        if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+        if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewEvents))
             return;
 
         string? Name = evnt.Type;
@@ -192,7 +192,5 @@
             CloseDialogOnOverlayClick = true,
             CloseDialogOnEsc = true
         });
-
-
     }
 }
