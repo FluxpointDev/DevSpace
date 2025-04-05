@@ -12,10 +12,10 @@ public enum ConsolePermission : ulong
     /// <summary> Manage permissions for this resource </summary>
     ManagePermissions = 1L << 2,
 
-    /// <summary> Manage the console properties </summary>
+    /// <summary> Manage all console settings for the team.s </summary>
     ManageConsole = 1L << 3,
 
-    /// <summary> All permissions </summary>
+    /// <summary> Create and manage all console resources in the team. </summary>
     ConsoleAdministrator = 1L << 4,
 
     /// <summary> Create this resource </summary>

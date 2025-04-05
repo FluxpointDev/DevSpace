@@ -64,7 +64,7 @@ public static class PermissionsData
     {
         return
         [
-            new PermissionItem<ServerPermission>(ServerPermission.DeleteServerResource, plural ? "Delete Server Resources" : "Delete Server Resource", plural ? "Delete servers for the team." : "Delete this resource."),
+            new PermissionItem<ServerPermission>(ServerPermission.DeleteServerResource, plural ? "Delete Server Resources" : "Delete Server Resource", plural ? "Delete server resources for the team." : "Delete this resource."),
             new PermissionItem<ServerPermission>(ServerPermission.ManageServer, "Manage Server" + (plural ? "s" : ""), plural ? "Change all server settings." : "Change settings for this server."),
             new PermissionItem<ServerPermission>(ServerPermission.ViewPermissions, "View Permissions", "View permissions for the server."),
             new PermissionItem<ServerPermission>(ServerPermission.ManagePermissions, "Manage Permissions", "Change permissions for all servers the team owns."),
@@ -113,19 +113,27 @@ public static class PermissionsData
     {
         return
             [
-                new PermissionItem<DockerPermission>(DockerPermission.ViewPermissions, "View Permissions", "View permissions for the containers."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManagePermissions, "Manage Permissions", "Manage permissions for the containers."),
+                new PermissionItem<DockerPermission>(DockerPermission.ViewEvents, "View Events", "View realtime docker events for all containers, images, networks, volumes and plugins."),
                 new PermissionItem<DockerPermission>(DockerPermission.UseAPIs, "Use APIs", $"Allows users to manage and control docker features from the API."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewImages, "View Images", "View docker images for the system."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewVolumes, "View Volumes", "View docker volumes."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageVolumes, "Manage Volumes", "Create and delete docker volumes."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewNetworks, "View Networks", "View current docker networks."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewRegistries, "View Registry", "View current docker registries."),
-                new PermissionItem<DockerPermission>(DockerPermission.ViewPlugins, "View Plugins", "View docker plugins."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManagePlugins, "Manage Plugins", "Create, remove and manage docker plugins."),
-                new PermissionItem<DockerPermission>(DockerPermission.UseAppTemplates, "Use App Templates", "View and use premade docker templates to create containers."),
+
+                new PermissionItem<DockerPermission>(DockerPermission.ViewImages, "View Images", "View all docker images for the server."),
+                new PermissionItem<DockerPermission>(DockerPermission.ManageImages, "Manage Images", "Create, import and manage docker images on the server."),
+
+                new PermissionItem<DockerPermission>(DockerPermission.ViewVolumes, "View Volumes", "View all docker volumes for the server."),
+                new PermissionItem<DockerPermission>(DockerPermission.ManageVolumes, "Manage Volumes", "Create or delete docker volumes on the server."),
+
+                new PermissionItem<DockerPermission>(DockerPermission.ViewNetworks, "View Networks", "View all docker networks for the server."),
+                new PermissionItem<DockerPermission>(DockerPermission.ManageNetworks, "Manage Networks", "Create, delete or modify docker networks on the server."),
+
+                new PermissionItem<DockerPermission>(DockerPermission.ViewRegistries, "View Registry", "View all docker registries for the server."),
+                new PermissionItem<DockerPermission>(DockerPermission.ManageRegistries, "Manage Registry", "Create, delete or remove docker registries for the server."),
+
+                new PermissionItem<DockerPermission>(DockerPermission.ViewPlugins, "View Plugins", "View all docker plugins for the server."),
+                new PermissionItem<DockerPermission>(DockerPermission.ManagePlugins, "Manage Plugins", "Install, remove and manage docker plugins."),
+
+                new PermissionItem<DockerPermission>(DockerPermission.UseAppTemplates, "Use App Templates", "View a list of premade docker templates to use for stacks and containers."),
                 new PermissionItem<DockerPermission>(DockerPermission.UseCustomTemplates, "Use Custom Templates", "View and use custom docker templates made by other team members."),
-                new PermissionItem<DockerPermission>(DockerPermission.ManageCustomTemplates, "Manage Custom Templates", "Create and delete custom docker templates for other team members to use."),
+                new PermissionItem<DockerPermission>(DockerPermission.ManageCustomTemplates, "Manage Custom Templates", "Create, delete or modify custom docker templates for other team members to use."),
 
             ];
     }
@@ -134,20 +142,22 @@ public static class PermissionsData
     {
         return
         [
-            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ControlStacks, "Control Stacks", "Start, stop, restart, pause and kill containers."),
+            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ControlStacks, "Control Stacks", "Start, stop, restart, pause and kill containers in a stack."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.CreateStacks, "Create Stacks", "Create stacks for the server."),
-            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ManageStacks, "Manage Stacks", "Delete or change stack settings."),
+            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ManageStacks, "Manage Stacks", "Delete or change stacks."),
+
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ControlContainers, "Control Container" + (plural ? "s" : ""), "Start, stop, restart, pause and kill containers."),
-            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ManageContainers, "Manage Containers", "Delete containers or change container settings such as restart mode."),
+            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.CreateContainers, "Create Containers", "Manually create containers for the server."),
+            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ManageContainers, "Manage Containers", "Delete and change container settings such as name and restart mode."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerLogs, "View Container Logs", "View live container logs."),
-            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerStats, "View Container Stats", "View container stats."),
-            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerDetails, "View Container Details", "View extra container details."),
+            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerStats, "View Container Stats", "View container stats for cpu, ram, io, network and processes."),
+            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerDetails, "View Container Details", "View extra container details including command, arguments, directory and ports."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerHealthLogs, "View Container Health Logs", "View container health log messages."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerChanges, "View Container Changes", "View file system changes in the containers."),
-            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerEnvironment, "View Container Environment", "View environment variables for containers."),
+            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerEnvironment, "View Container Environment", "View sensitive container environment variables."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerVolumes, "View Container Volumes", "View container volumes list."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerNetworks, "View Container Networks", "View container networks list."),
-            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.UseContainerConsole, "Use Container Console", "View and execute shell commands in the container."),
+            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.UseContainerConsole, "Use Container Console", "Execute shell commands in the container."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerFiles, "View Container Files", "View files inside the containers."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ManageContainerFiles, "Manage Container Files", "Create and modify files inside the containers."),
         ];
@@ -157,10 +167,10 @@ public static class PermissionsData
     {
         return
             [
-                new PermissionItem<ConsolePermission>(ConsolePermission.DeleteConsoleResource, "Delete Resource", "Delete all console resources for the team."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.DeleteConsoleResource, "Delete Resource", "Delete console resources from the team."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ManageConsole, "Manage Console" + (plural ? "s" : ""), "Manage all console settings for the team."),
-                new PermissionItem<ConsolePermission>(ConsolePermission.ViewPermissions, "View Permissions", "View permissions for the console"),
-                new PermissionItem<ConsolePermission>(ConsolePermission.ManagePermissions, "Manage Permissions", "Change permissions for all consoles the team owns"),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ViewPermissions, "View Permissions", "View permissions for all console resources."),
+                new PermissionItem<ConsolePermission>(ConsolePermission.ManagePermissions, "Manage Permissions", "Change permissions for all console resources."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.UseConsoleCommands, "Use Console Commands", "Execute console commands on the server."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewPlayers, "View Players", "View all players on the server."),
                 new PermissionItem<ConsolePermission>(ConsolePermission.KickPlayers, "Kick Players", "Kick players from the server."),
