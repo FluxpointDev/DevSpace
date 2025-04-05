@@ -2,5 +2,5 @@
 
 public class ConsoleMessageJson
 {
-    public string message;
+    public string? message;
 }

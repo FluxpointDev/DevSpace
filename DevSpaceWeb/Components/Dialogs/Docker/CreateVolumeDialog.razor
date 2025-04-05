@@ -74,11 +74,11 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ServerData Server => Session.Selected.Server;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ServerData? Server => Session.Selected.Server;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     IEnumerable<string> Drivers = new List<string>()
     {
@@ -102,6 +102,9 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+        if (Server == null)
+            return;
+
         IsLoading = true;
         var Response = await Server.RecieveJsonAsync<VolumeResponse>(new DockerEvent(DockerEventType.CreateVolume)
         {

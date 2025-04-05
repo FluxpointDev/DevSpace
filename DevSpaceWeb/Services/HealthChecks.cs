@@ -58,13 +58,12 @@ public class EmailHealthCheck : IHealthCheck
 
 public class HealthCheckService
 {
-    public System.Timers.Timer timer;
+    public System.Timers.Timer timer = new System.Timers.Timer(new TimeSpan(0, 5, 0));
     public HealthCheckService()
     {
         if (!Program.IsDevMode)
         {
             Logger.LogMessage("Starting health check service", LogSeverity.Debug);
-            timer = new System.Timers.Timer(new TimeSpan(0, 5, 0));
             timer.Elapsed += new ElapsedEventHandler(RunChecks);
             timer.Start();
         }

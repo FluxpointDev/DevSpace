@@ -14,7 +14,7 @@ internal class CRC32 : HashAlgorithm
 {
     public const UInt32 DefaultPolynomial = 0xedb88320;
     public const UInt32 DefaultSeed = 0xffffffff;
-    private static UInt32[] _defaultTable;
+    private static UInt32[]? _defaultTable;
 
     private readonly UInt32 _seed;
     private readonly UInt32[] _table;
@@ -107,12 +107,12 @@ internal class CRC32 : HashAlgorithm
 
     private byte[] UInt32ToBigEndianBytes(UInt32 x)
     {
-        return new[]
-                   {
+        return
+                   [
                        (byte) ((x >> 24) & 0xff),
                        (byte) ((x >> 16) & 0xff),
                        (byte) ((x >> 8) & 0xff),
                        (byte) (x & 0xff)
-                   };
+                   ];
     }
 }

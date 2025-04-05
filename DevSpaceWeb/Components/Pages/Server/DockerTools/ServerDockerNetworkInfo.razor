@@ -3,7 +3,7 @@
 @using DevSpaceShared.Responses
 @inject NotificationService Notifications
 
-@if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
+@if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -11,7 +11,7 @@
             <RadzenText TextStyle="TextStyle.H6">Network Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/networks")" Text="Networks" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks")" Text="Networks" />
             <RadzenBreadCrumbItem Text="@NetworkId" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -31,7 +31,7 @@ else if (Network == null)
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/networks")" Text="Networks" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks")" Text="Networks" />
             <RadzenBreadCrumbItem Text="@NetworkId" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -50,7 +50,7 @@ else
             <RadzenText TextStyle="TextStyle.H6">Network Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/networks")" Text="Networks" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks")" Text="Networks" />
             <RadzenBreadCrumbItem Text="@Network.Name" />
         </RadzenBreadCrumb>
         <br />
@@ -134,7 +134,7 @@ else
                         Driver
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Network.IPAM.Driver
+                        @Network.IPAM?.Driver
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -143,7 +143,7 @@ else
                         IPv4 Subnet
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Network.IPAM.IPv4Subnet
+                        @Network.IPAM?.IPv4Subnet
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -152,7 +152,7 @@ else
                         IPv4 Gateway
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Network.IPAM.IPv4Gateway
+                        @Network.IPAM?.IPv4Gateway
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -161,7 +161,7 @@ else
                         IPv4 Range
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Network.IPAM.IPv4Range
+                        @Network.IPAM?.IPv4Range
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -170,7 +170,7 @@ else
                         IPv6 Subnet
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Network.IPAM.IPv6Subnet
+                        @Network.IPAM?.IPv6Subnet
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -179,7 +179,7 @@ else
                         IPv6 Gateway
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Network.IPAM.IPv6Gateway
+                        @Network.IPAM?.IPv6Gateway
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -188,14 +188,14 @@ else
                         IPv6 Range
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Network.IPAM.IPv6Range
+                        @Network.IPAM?.IPv6Range
                     </RadzenTableCell>
                 </RadzenTableRow>
             </RadzenTableBody>
         </RadzenTable>
     </div>
 
-    @if (Network.Options.Any())
+    @if (Network.Options != null && Network.Options.Any())
     {
         <div class="dash-box dash-box-content">
             <div class="dash-box-header">
@@ -226,13 +226,16 @@ else
             <RadzenText TextStyle="TextStyle.H6">Labels</RadzenText>
         </div>
         <br />
-        @foreach (var i in Network.Labels)
+        @if (Network.Labels != null)
         {
-            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-            <RadzenText TextStyle="TextStyle.Body2">
-                @i.Value
-            </RadzenText>
-            <br />
+            foreach (var i in Network.Labels)
+            {
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @i.Value
+                </RadzenText>
+                <br />
+            }
         }
     </div>
 
@@ -249,7 +252,7 @@ else
             <Columns>
                 <RadzenDataGridColumn Title="Name" Width="160px">
                     <Template>
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + context.Key)" Text="@context.Value.Name" />
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + context.Key)" Text="@context.Value.Name" />
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="IPv4 Address" Width="100px">
@@ -279,14 +282,14 @@ else
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
-    public string NetworkId { get; set; }
+    public required string NetworkId { get; set; }
 
     DockerNetworkInfo? Network { get; set; }
     public bool Failed { get; set; }
@@ -294,6 +297,9 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
             return;
 
@@ -313,12 +319,15 @@ else
 
     public async Task LeaveNetwork(string id)
     {
+        if (Member == null || Server == null)
+            return;
+
         IsActionLoading = true;
         await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.LeaveNetwork) { ResourceList = new string[] { id } }, (response) =>
         {
             
         });
         IsActionLoading = false;
-        InvokeAsync(OnParametersSetAsync);
+        await InvokeAsync(OnParametersSetAsync);
     }
 }

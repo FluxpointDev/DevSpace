@@ -14,13 +14,13 @@
                 <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" ItemRender="@((x) => RenderItem(x))"
                 LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
                     <Template>
-                        @if (Program.IsPreviewMode || Team.OwnerId == Member.UserId || (context as TeamRoleData).GetPosition() < CurrentRank)
+                        @if (Program.IsPreviewMode || Team.OwnerId == Member.UserId || (context as TeamRoleData)!.GetPosition() < CurrentRank)
                         {
-                            @((context as TeamRoleData).Name)
+                            @((context as TeamRoleData)!.Name)
                         }
                         else
                         {
-                            <span class="iconify" data-icon="mdi:lock"></span> @((context as TeamRoleData).Name)
+                            <span class="iconify" data-icon="mdi:lock"></span> @((context as TeamRoleData)!.Name)
                         }
 
                     </Template>
@@ -41,7 +41,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     [Parameter]
     public TeamData Team { get; set; }
@@ -60,7 +60,7 @@
     public ListBoxItemRenderEventArgs<TeamRoleData> RenderItem(ListBoxItemRenderEventArgs<TeamRoleData> data)
     {
         if (!Program.IsPreviewMode && Team.OwnerId != Member.UserId)
-            data.Disabled = (data.Item as TeamRoleData).GetPosition() >= CurrentRank;
+            data.Disabled = (data.Item as TeamRoleData)!.GetPosition() >= CurrentRank;
         return data;
     }
 

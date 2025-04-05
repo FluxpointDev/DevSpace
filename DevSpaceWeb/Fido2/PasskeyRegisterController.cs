@@ -11,8 +11,8 @@ namespace DevSpaceWeb.Fido2;
 
 public class CustomAuthenticatorAttestationRawResponse
 {
-    public string name { get; set; }
-    public AuthenticatorAttestationRawResponse data { get; set; }
+    public string? name { get; set; }
+    public AuthenticatorAttestationRawResponse? data { get; set; }
 }
 
 public class PasskeyRegisterController : AuthControllerContext
@@ -35,7 +35,7 @@ public class PasskeyRegisterController : AuthControllerContext
     [HttpPost("/auth/passkey/register/makeCredentialOptions")]
     public async Task<JsonResult> MakeCredentialOptions()
     {
-        string RequestId = Request.Headers["RequestId"];
+        string? RequestId = Request.Headers["RequestId"];
         if (string.IsNullOrEmpty(RequestId))
             return Json(new Fido2Error("Failed to verify request id."));
 
@@ -98,7 +98,7 @@ public class PasskeyRegisterController : AuthControllerContext
     [HttpPost("/auth/passkey/register/makeCredential")]
     public async Task<JsonResult> MakeCredential([FromBody] CustomAuthenticatorAttestationRawResponse attestationResponse)
     {
-        string RequestId = Request.Headers["RequestId"];
+        string? RequestId = Request.Headers["RequestId"];
         if (string.IsNullOrEmpty(RequestId))
             return Json(new Fido2Error("Failed to verify request id."));
 

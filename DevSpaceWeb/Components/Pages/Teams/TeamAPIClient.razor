@@ -9,8 +9,8 @@
         <RadzenText TextStyle="TextStyle.H6">API Client</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl)" Text="@Session.Selected.Team.Data.Name" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/api")" Text="API" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" Text="@Session.Selected.Team?.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/api")" Text="API" />
         <RadzenBreadCrumbItem Text="@((!NoAccess && Client != null ? Client.Name : ClientId))" />
     </RadzenBreadCrumb>
     @if (Client == null)
@@ -85,11 +85,11 @@
 
         @if (Client.UseCustomPermissions)
         {
-            <PermissionGrid IsDisabled="@(!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Permissions="@CustomPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
+            <PermissionGrid IsDisabled="@(Member == null ||!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Permissions="@CustomPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
         }
         else
         {
-            <PermissionGrid IsDisabled="@(!Client.CanManage(Member, false))" Permissions="@AllowedPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
+            <PermissionGrid IsDisabled="@(Member == null || !Client.CanManage(Member, false))" Permissions="@AllowedPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
         }
 
     </div>
@@ -109,17 +109,16 @@
     public string? ClientId { get; set; }
 
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     public APIClient? Client { get; set; }
     public bool NoAccess { get; set; }
     public bool CanGenerate { get; set; }
     public bool CanManage { get; set; }
-    public string OwnerUser { get; set; }
+    public string? OwnerUser { get; set; }
     public string? GeneratedUser { get; set; }
 
     public bool DisableChangeType { get; set; }
@@ -162,6 +161,9 @@
 
     public async Task ChangePermissionType(string value)
     {
+        if (Member == null || Client == null)
+            return;
+
         if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
             return;
 
@@ -178,6 +180,9 @@
 
     public async Task Delete()
     {
+        if (Member == null || Client == null || Team == null)
+            return;
+
         CanManage = Client.CanManage(Member, false);
         if (!CanManage)
             return;
@@ -200,6 +205,9 @@
 
     public async Task ChangeOwner(PartialUserData user)
     {
+        if (Member == null || Client == null)
+            return;
+
         CanManage = Client.CanManage(Member, false);
         if (!CanManage)
             return;
@@ -233,12 +241,18 @@
 
     public void LoadPermissions()
     {
+        if (Client == null)
+            return;
+
         AllowedPermissions = Client.AllowedPermissions.Clone();
         CustomPermissions = Client.CustomPermissions.Clone();
     }
 
     public async Task SavePermissions(PermissionsSet perms)
     {
+        if (Member == null || Client == null)
+            return;
+
         if (Client.UseCustomPermissions)
         {
             if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
@@ -269,6 +283,9 @@
 
     public async Task GenerateToken()
     {
+        if (Member == null || Client == null)
+            return;
+
         CanGenerate = Client!.CanGenerate(Member);
         if (!CanGenerate)
             return;
@@ -288,6 +305,9 @@
         string Token = "DSA-" + _Data.GetRandomString(new Random().Next(30, 50));
         string Hash = Utils.Hasher.HashPassword(null, Token);
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
         .Set(x => x.TokenHash, Hash).Set(x => x.GeneratedAt, DateTime.UtcNow).Set(x => x.GeneratedBy, AuthUser.Id), async () =>
         {
@@ -300,14 +320,17 @@
                 .SetTarget(Client));
 
             StateHasChanged();
-            await DialogService.ShowInfoAsync("API Token", Client.Id.ToString() + "." + Token);
+            _ = DialogService.ShowInfoAsync("API Token", Client.Id.ToString() + "." + Token);
         });
 
-        
+
     }
 
     public async Task ToggleClientDisable()
     {
+        if (Member == null || Client == null)
+            return;
+
         CanManage = Client!.CanManage(Member, false);
         if (!CanManage)
             return;
@@ -320,7 +343,7 @@
                 .SetTarget(Client));
 
                 Client.IsDisabled = false;
-                DialogService.ShowInfoAsync("API Client", "This client has been enabled.");
+                _ = DialogService.ShowInfoAsync("API Client", "This client has been enabled.");
             }
             else
             {
@@ -328,7 +351,7 @@
                 .SetTarget(Client));
 
                 Client.IsDisabled = true;
-                DialogService.ShowInfoAsync("API Client", "This client has been disabled.");
+                _  = DialogService.ShowInfoAsync("API Client", "This client has been disabled.");
             }
         });
         

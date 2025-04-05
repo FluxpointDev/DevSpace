@@ -9,7 +9,7 @@
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
-        @if (!Session.Selected.Member.IsGlobalAdministrator(Team))
+        @if (Session.Selected.Member == null || !Session.Selected.Member.IsGlobalAdministrator(Team))
         {
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false" Size="AlertSize.Small">
                 Some resources may not be listed with your current access.
@@ -20,7 +20,7 @@
             <RadzenStack Gap="6px" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:server"></span> Servers</RadzenText>
 
-                @foreach (var i in _DB.Servers.Cache.Values.Where(x => Session.Selected.Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && Member.HasServerPermission(Team, x, ServerPermission.ViewServer)))
+                @foreach (var i in _DB.Servers.Cache.Values.Where(x => Session.Selected.Member != null && Session.Selected.Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && Member.HasServerPermission(Team, x, ServerPermission.ViewServer)))
                 {
                     <a>
                         <div class="server-item">
@@ -33,7 +33,7 @@
             <RadzenStack Gap="6px" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:docker"></span> Docker</RadzenText>
 
-                @foreach (var i in _DB.Servers.Cache.Values.Where(x => Session.Selected.Member.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewContainers) && Member.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewContainers)))
+                @foreach (var i in _DB.Servers.Cache.Values.Where(x => Session.Selected.Member != null && Session.Selected.Member.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewContainers) && Member.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewContainers)))
                 {
                     <a>
                         <div class="server-item">
@@ -46,7 +46,7 @@
             <RadzenStack Gap="6px" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:web"></span> Websites</RadzenText>
 
-                @foreach (var i in _DB.Websites.Cache.Values.Where(x => Session.Selected.Member.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite) && Member.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite)))
+                @foreach (var i in _DB.Websites.Cache.Values.Where(x => Session.Selected.Member != null && Session.Selected.Member.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite) && Member.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite)))
                 {
                     <a>
                         <div class="server-item">
@@ -59,7 +59,7 @@
             <RadzenStack Gap="6px" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:lightbulb"></span> Projects</RadzenText>
 
-                @foreach (var i in _DB.Projects.Cache.Values.Where(x => Session.Selected.Member.HasProjectPermission(Team, x, ProjectPermission.ViewProject) && Member.HasProjectPermission(Team, x, ProjectPermission.ViewProject)))
+                @foreach (var i in _DB.Projects.Cache.Values.Where(x => Session.Selected.Member != null && Session.Selected.Member.HasProjectPermission(Team, x, ProjectPermission.ViewProject) && Member.HasProjectPermission(Team, x, ProjectPermission.ViewProject)))
                 {
                     <a>
                         <div class="server-item">
@@ -72,7 +72,7 @@
             <RadzenStack Gap="6px" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:warning"></span> Logs</RadzenText>
 
-                @foreach (var i in _DB.Logs.Cache.Values.Where(x => Session.Selected.Member.HasLogPermission(Team, x, LogPermission.ViewLog) && Member.HasLogPermission(Team, x, LogPermission.ViewLog)))
+                @foreach (var i in _DB.Logs.Cache.Values.Where(x => Session.Selected.Member != null && Session.Selected.Member.HasLogPermission(Team, x, LogPermission.ViewLog) && Member.HasLogPermission(Team, x, LogPermission.ViewLog)))
                 {
                     <a>
                         <div class="server-item">
@@ -85,7 +85,7 @@
             <RadzenStack Gap="6px" class="permission-grid-box">
                 <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05"><span class="iconify" data-icon="mdi:console"></span> Consoles</RadzenText>
 
-                @foreach (var i in _DB.Consoles.Cache.Values.Where(x => Session.Selected.Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole) && Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)))
+                @foreach (var i in _DB.Consoles.Cache.Values.Where(x => Session.Selected.Member != null && Session.Selected.Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole) && Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)))
                 {
                     <a>
                         <div class="server-item">
@@ -149,7 +149,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Member.Team;
 

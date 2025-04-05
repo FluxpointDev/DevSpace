@@ -24,7 +24,7 @@ public static class _Data
             catch
             {
                 Logger.LogMessage("Failed to write data to the program path: " + Program.Directory.Path, LogSeverity.Error);
-                System.Environment.Exit(1);
+                Environment.Exit(1);
             }
 
         }
@@ -45,9 +45,8 @@ public static class _Data
                     {
                         NullValueHandling = NullValueHandling.Ignore
                     };
-                    config = (Config)serializer.Deserialize(reader, typeof(Config));
+                    config = (Config?)serializer.Deserialize(reader, typeof(Config));
                 }
-                config.Save();
             }
             catch (Exception ex)
             {

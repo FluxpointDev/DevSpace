@@ -6,7 +6,7 @@
 @using System.Text
 @inject NotificationService Notifications
 
-@if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+@if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -14,8 +14,8 @@
             <RadzenText TextStyle="TextStyle.H6">Container Inspect</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
             <RadzenBreadCrumbItem Text="Inspect" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -35,8 +35,8 @@ else
             }
         </div>
         <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@(string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName)" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@(string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName)" />
             <RadzenBreadCrumbItem Text="Inspect" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -66,7 +66,7 @@ else
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -77,7 +77,7 @@ else
 
     public string? InspectData { get; set; }
     public bool GotInspect { get; set; }
-    public string ContainerName { get; set; }
+    public string? ContainerName { get; set; }
     public bool Failed { get; set; }
 
     private StandaloneCodeEditor _editor = null;
@@ -98,6 +98,9 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
             return;
 
@@ -105,7 +108,7 @@ else
         {
             var Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
             Failed = !Result.IsSuccess;
-            if (Failed)
+            if (Failed || Result.Data == null)
                 return;
 
             ContainerName = Result.Data.Name.Substring(1);

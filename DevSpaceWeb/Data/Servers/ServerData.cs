@@ -68,7 +68,7 @@ public class ServerData : ITeamResource
         if (WebSocket == null)
             await StartWebSocket();
 
-        if (WebSocket.Error.HasValue || WebSocket.Client == null)
+        if (WebSocket == null || WebSocket.Error.HasValue || WebSocket.Client == null)
             return new SocketResponse<T?> { Error = ClientError.Exception };
 
         return await WebSocket.Client.RunJsonAsync(notification, json, action, token);
@@ -79,7 +79,7 @@ public class ServerData : ITeamResource
         if (WebSocket == null)
             await StartWebSocket();
 
-        if (WebSocket.Error.HasValue || WebSocket.Client == null)
+        if (WebSocket == null || WebSocket.Error.HasValue || WebSocket.Client == null)
             return new SocketResponse<T?> { Error = ClientError.Exception };
         return await WebSocket.Client.RecieveJsonAsync<T>(json, token);
     }
@@ -148,16 +148,16 @@ public class ServerWebSocket
         {
             switch (Response.StatusCode)
             {
-                case System.Net.HttpStatusCode.BadGateway:
-                case System.Net.HttpStatusCode.RequestTimeout:
-                case System.Net.HttpStatusCode.GatewayTimeout:
+                case HttpStatusCode.BadGateway:
+                case HttpStatusCode.RequestTimeout:
+                case HttpStatusCode.GatewayTimeout:
                     Error = ServerWebSocketErrorType.NoConnection;
                     break;
-                case System.Net.HttpStatusCode.BadRequest:
+                case HttpStatusCode.BadRequest:
                     Error = ServerWebSocketErrorType.AgentUnsupported;
                     break;
-                case System.Net.HttpStatusCode.Unauthorized:
-                case System.Net.HttpStatusCode.Forbidden:
+                case HttpStatusCode.Unauthorized:
+                case HttpStatusCode.Forbidden:
                     Error = ServerWebSocketErrorType.AuthFailed;
                     break;
                 default:

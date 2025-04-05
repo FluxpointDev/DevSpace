@@ -12,12 +12,12 @@
         <RadzenText TextStyle="TextStyle.H6">Rcon Settings</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl)" Text="@Session.Selected.Team?.Console?.Data.Name" />
         <RadzenBreadCrumbItem Text="Rcon" />
     </RadzenBreadCrumb>
 
-    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConnection))
+    @if (Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConnection))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for Manage Connection
@@ -32,11 +32,11 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ConsoleData Console => Session.Selected.Console;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ConsoleData? Console => Session.Selected.Console;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,7 +51,7 @@
 
     public async Task<string?> UpdateRconSettings(ModifyRconModel model)
     {
-        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConnection))
+        if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConnection))
             return "You do not have Manage Connection permissions.";
 
         if (string.IsNullOrEmpty(model.Ip))

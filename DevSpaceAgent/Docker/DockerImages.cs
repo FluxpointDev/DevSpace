@@ -169,7 +169,6 @@ public static class DockerImages
 
                     return DockerImageInfo.Create(Image);
                 }
-                break;
             case ControlImageType.Layers:
                 return await client.Images.GetImageHistoryAsync(id);
         }

@@ -16,7 +16,7 @@ namespace DevSpaceWeb.Data.API;
 public class APIClient
 {
     public ObjectId Id { get; set; }
-    public string Name { get; set; }
+    public required string Name { get; set; }
     public ObjectId OwnerId { get; set; }
     public ObjectId TeamId { get; set; }
     public bool IsDisabled { get; set; }
@@ -44,6 +44,9 @@ public class APIClient
 
     public bool HasAccess(TeamMemberData member, bool checkAllowedPermissions)
     {
+        if (Team == null)
+            return false;
+
         if (TeamId != member.TeamId)
             return false;
 
@@ -63,6 +66,9 @@ public class APIClient
 
     public bool CanGenerate(TeamMemberData member)
     {
+        if (Team == null)
+            return false;
+
         if (TeamId != member.TeamId)
             return false;
 
@@ -77,6 +83,9 @@ public class APIClient
 
     public bool CanManage(TeamMemberData member, bool checkAllowedPermissions)
     {
+        if (Team == null)
+            return false;
+
         if (TeamId != member.TeamId)
             return false;
 
@@ -143,7 +152,7 @@ public class APIClient
             if (SelectedTeam.DefaultPermissions.HasAPIPermission(checkPermission))
                 return true;
 
-            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasAPIPermission(Team, checkPermission);
         }
 
@@ -158,7 +167,7 @@ public class APIClient
         if (TeamId != SelectedTeam.Id)
             return false;
 
-        if (log != null && log.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasLogPermission(checkPermission))
+        if (log != null && log.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasLogPermission(checkPermission))
             return true;
 
         if (UseCustomPermissions)
@@ -174,7 +183,7 @@ public class APIClient
             if (SelectedTeam.DefaultPermissions.HasLogPermission(checkPermission))
                 return true;
 
-            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasLogPermission(Team, log, checkPermission);
         }
 
@@ -192,7 +201,7 @@ public class APIClient
         if (TeamId != SelectedTeam.Id)
             return false;
 
-        if (project != null && project.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasProjectPermission(checkPermission))
+        if (project != null && project.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasProjectPermission(checkPermission))
             return true;
 
         if (UseCustomPermissions)
@@ -208,7 +217,7 @@ public class APIClient
             if (SelectedTeam.DefaultPermissions.HasProjectPermission(checkPermission))
                 return true;
 
-            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasProjectPermission(Team, project, checkPermission);
         }
         return false;
@@ -222,7 +231,7 @@ public class APIClient
         if (TeamId != SelectedTeam.Id)
             return false;
 
-        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasServerPermission(checkPermission))
+        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasServerPermission(checkPermission))
             return true;
 
         if (UseCustomPermissions)
@@ -238,7 +247,7 @@ public class APIClient
             if (SelectedTeam.DefaultPermissions.HasServerPermission(checkPermission))
                 return true;
 
-            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasServerPermission(Team, server, checkPermission);
 
 
@@ -255,7 +264,7 @@ public class APIClient
         if (TeamId != SelectedTeam.Id)
             return false;
 
-        if (console != null && console.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasConsolePermission(checkPermission))
+        if (console != null && console.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasConsolePermission(checkPermission))
             return true;
 
         if (UseCustomPermissions)
@@ -271,7 +280,7 @@ public class APIClient
             if (SelectedTeam.DefaultPermissions.HasConsolePermission(checkPermission))
                 return true;
 
-            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasConsolePermission(Team, console, checkPermission);
 
         }
@@ -290,7 +299,7 @@ public class APIClient
         if (TeamId != SelectedTeam.Id)
             return false;
 
-        if (website != null && website.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasWebsitePermission(checkPermission))
+        if (website != null && website.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasWebsitePermission(checkPermission))
             return true;
 
         if (UseCustomPermissions)
@@ -306,7 +315,7 @@ public class APIClient
             if (SelectedTeam.DefaultPermissions.HasWebsitePermission(checkPermission))
                 return true;
 
-            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasWebsitePermission(Team, website, checkPermission);
         }
 
@@ -321,7 +330,7 @@ public class APIClient
         if (TeamId != SelectedTeam.Id)
             return false;
 
-        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasDockerPermission(checkPermission))
+        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasDockerPermission(checkPermission))
             return true;
 
 
@@ -338,7 +347,7 @@ public class APIClient
             if (SelectedTeam.DefaultPermissions.HasDockerPermission(checkPermission))
                 return true;
 
-            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasDockerPermission(Team, server, checkPermission);
         }
 
@@ -353,7 +362,7 @@ public class APIClient
         if (TeamId != SelectedTeam.Id)
             return false;
 
-        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet perms) && perms.HasDockerContainerPermission(checkPermission))
+        if (server != null && server.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasDockerContainerPermission(checkPermission))
             return true;
 
 
@@ -370,7 +379,7 @@ public class APIClient
             if (SelectedTeam.DefaultPermissions.HasDockerContainerPermission(checkPermission))
                 return true;
 
-            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasDockerContainerPermission(Team, server, checkPermission);
         }
 
@@ -380,7 +389,7 @@ public class APIClient
     public PermissionsSet CalculatePermissions(ITeamResource? resource)
     {
         PermissionsSet Permissions = new PermissionsSet();
-        TeamData CurrentTeam = Team;
+        TeamData? CurrentTeam = Team;
         if (CurrentTeam == null)
             return new PermissionsSet();
 

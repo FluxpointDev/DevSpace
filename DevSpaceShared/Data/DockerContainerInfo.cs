@@ -53,12 +53,12 @@ public class DockerContainerInfo
         return Info;
     }
 
-    public string Id { get; set; }
-    public string Name { get; set; }
+    public required string Id { get; set; }
+    public required string Name { get; set; }
     public string ImageId { get; set; }
     public string ImageName { get; set; }
-    public string StackId { get; set; }
-    public string StackName { get; set; }
+    public string? StackId { get; set; }
+    public string? StackName { get; set; }
     public string State { get; set; }
     public string Status { get; set; }
     public DateTime CreatedAt { get; set; }

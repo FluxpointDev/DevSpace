@@ -55,11 +55,11 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ServerData Server => Session.Selected.Server;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ServerData? Server => Session.Selected.Server;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     [Parameter]
     public RegistryLimitResponse? Limits { get; set; }
@@ -81,6 +81,9 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+        if (Server == null)
+            return;
+
         IsLoading = true;
         var Response = await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.PullImage, ImageNameInput));
         if (!Response.IsSuccess)

@@ -2,5 +2,5 @@
 
 public class SetupTemplateStackModel
 {
-    public string Name;
+    public string? Name;
 }

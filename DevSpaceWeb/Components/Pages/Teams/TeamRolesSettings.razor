@@ -11,10 +11,10 @@
     </div>
     <RadzenBreadCrumb class="mt-2">
         <RadzenBreadCrumbItem Path="@("/teams")" Text="Teams" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl)" Text="@Session.Selected.Team.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" Text="@Session.Selected.Team?.Data.Name" />
         <RadzenBreadCrumbItem Text="Roles" />
     </RadzenBreadCrumb>
-    @if (!Member.HasTeamPermission(Team, TeamPermission.ViewRoles))
+    @if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for View Roles
@@ -23,19 +23,22 @@
     else
     {
         <br />
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
-        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" Disabled="(!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
         <br />
         <br />
         <RadzenStack Orientation="Orientation.Vertical" Gap="20px">
-            @foreach(TeamRoleData i in Team.CachedRoles.Values.OrderByDescending(x => x.GetPosition()))
+            @if (Team != null)
             {
-                <div>
-                    <p>@i.Name (@i.GetPosition())</p>
-                    <RadzenButton Text="Delete" Click="@(() => DeleteRole(i))" Disabled="@(!Member.HasTeamPermission(Team, TeamPermission.ManageRoles) || i.GetPosition() >= Member.GetRank())"
-                    ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Medium" Shade="Shade.Dark" />
-                </div>
+                foreach (TeamRoleData i in Team.CachedRoles.Values.OrderByDescending(x => x.GetPosition()))
+                {
+                    <div>
+                        <p>@i.Name (@i.GetPosition())</p>
+                        <RadzenButton Text="Delete" Click="@(() => DeleteRole(i))" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles) || i.GetPosition() >= Member.GetRank())"
+                                      ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Medium" Shade="Shade.Dark" />
+                    </div>
 
+                }
             }
         </RadzenStack>
     }
@@ -43,15 +46,14 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     public async Task CreateRole()
     {
-        if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
             return;
@@ -62,22 +64,25 @@
             if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
                 return "You do not have permission for Manage Roles";
 
+            if (string.IsNullOrEmpty(data.Name))
+                return "Role name can't be empty.";
+
             if (data.Name.Equals("Default"))
                 return "You can't name the role default";
 
 
             foreach (TeamRoleData r in Team.CachedRoles.Values)
             {
-                if (r.Name.Equals(data.Name, StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrEmpty(r.Name) && r.Name.Equals(data.Name, StringComparison.OrdinalIgnoreCase))
                     return "A role with this name already exists.";
             }
 
             TeamRoleData role = new TeamRoleData
-                {
-                    TeamId = Team.Id,
-                    Name = data.Name,
-                    Description = data.Description
-                };
+            {
+                TeamId = Team.Id,
+                Name = data.Name,
+                Description = data.Description
+            };
 
             try
             {
@@ -96,6 +101,9 @@
 
     public async Task DeleteRole(TeamRoleData role)
     {
+        if (Member == null || Team == null)
+            return;
+
         if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
             return;
 
@@ -120,7 +128,7 @@
 
     public async Task UpdateRolePositions()
     {
-        if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
             return;

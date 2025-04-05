@@ -25,8 +25,11 @@ public static class DockerContainers
         return null;
     }
 
-    public static async Task<ContainerListResponse?> GetContainerAsync(DockerClient client, string id)
+    public static async Task<ContainerListResponse?> GetContainerAsync(DockerClient client, string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Container id is missing.");
+
         IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
         {
             Size = true,
@@ -60,12 +63,20 @@ public static class DockerContainers
 
     public static async Task<CreateContainerResponse> CreateContainerAsync(DockerClient client, DockerEvent @event)
     {
-        return await client.Containers.CreateContainerAsync(@event.Data.ToObject<CreateContainerParameters>());
+        CreateContainerParameters? Data = @event.Data?.ToObject<CreateContainerParameters>();
+        if (Data == null)
+            throw new Exception("Failed to parse container creation options.");
+
+        return await client.Containers.CreateContainerAsync(Data);
     }
 
     public static async Task<ContainerUpdateResponse> UpdateContainerAsync(DockerClient client, DockerEvent @event)
     {
-        return await client.Containers.UpdateContainerAsync(@event.ResourceId, @event.Data.ToObject<ContainerUpdateParameters>());
+        ContainerUpdateParameters? Data = @event.Data?.ToObject<ContainerUpdateParameters>();
+        if (Data == null)
+            throw new Exception("Failed to parse container update options.");
+
+        return await client.Containers.UpdateContainerAsync(@event.ResourceId, Data);
     }
 
     public static async Task<object?> ControlContainerAsync(DockerClient client, DockerEvent @event, string id)
@@ -73,9 +84,9 @@ public static class DockerContainers
         switch (@event.ContainerType)
         {
             case ControlContainerType.View:
-                return await DockerContainers.GetContainerAsync(client, @event.ResourceId);
+                return await GetContainerAsync(client, @event.ResourceId);
             case ControlContainerType.Update:
-                return await DockerContainers.UpdateContainerAsync(client, @event);
+                return await UpdateContainerAsync(client, @event);
             case ControlContainerType.Inspect:
                 return await client.Containers.InspectContainerAsync(id);
             case ControlContainerType.Changes:
@@ -124,11 +135,14 @@ public static class DockerContainers
                 break;
             case ControlContainerType.Logs:
                 {
-                    ContainerLogsEvent Data = @event.Data.ToObject<ContainerLogsEvent>();
+                    ContainerLogsEvent? Data = @event.Data?.ToObject<ContainerLogsEvent>();
+                    if (Data == null)
+                        throw new Exception("Failed to parse container log options.");
+
                     DockerContainerLogs Logs = new DockerContainerLogs();
                     Logs.ContainerName = Program.ContainerCache.GetValueOrDefault(id, id);
 
-                    MultiplexedStream Stream = await Program.DockerClient.Containers.GetContainerLogsAsync(id, false, new ContainerLogsParameters
+                    MultiplexedStream Stream = await client.Containers.GetContainerLogsAsync(id, false, new ContainerLogsParameters
                     {
                         Tail = Data.Limit.ToString(),
                         Timestamps = Data.ShowTimestamp,
@@ -148,7 +162,7 @@ public static class DockerContainers
                 {
                     try
                     {
-                        ContainerProcessesResponse Response = await Program.DockerClient.Containers.ListProcessesAsync(id, new ContainerListProcessesParameters
+                        ContainerProcessesResponse Response = await client.Containers.ListProcessesAsync(id, new ContainerListProcessesParameters
                         {
                             PsArgs = "-eo user,pid,ppid,thcount,c,%cpu,%mem,lstart,etime,comm,cmd --date-format %Y-%m-%dT%H:%M:%S"
                         });
@@ -171,8 +185,11 @@ public static class DockerContainers
                 }
             case ControlContainerType.Rename:
                 {
-                    CreateContainerEvent Data = @event.Data.ToObject<CreateContainerEvent>();
-                    await Program.DockerClient.Containers.RenameContainerAsync(@event.ResourceId, new ContainerRenameParameters
+                    CreateContainerEvent? Data = @event.Data?.ToObject<CreateContainerEvent>();
+                    if (Data == null)
+                        throw new Exception("Failed to parse container rename options.");
+
+                    await client.Containers.RenameContainerAsync(@event.ResourceId, new ContainerRenameParameters
                     {
                         NewName = Data.Name
                     }, CancellationToken.None);
@@ -180,14 +197,14 @@ public static class DockerContainers
                 break;
             case ControlContainerType.Scan:
                 {
-                    var CurrentContainer = await Program.DockerClient.Containers.InspectContainerAsync(id);
+                    var CurrentContainer = await client.Containers.InspectContainerAsync(id);
                     if (!CurrentContainer.Mounts.Any() || !CurrentContainer.Mounts.Any(x => x.Type == "bind" || x.Type == "volume"))
                         return new CreateContainerResponse()
                         {
                             ID = id,
                         };
 
-                    await Program.DockerClient.Images.CreateImageAsync(new ImagesCreateParameters
+                    await client.Images.CreateImageAsync(new ImagesCreateParameters
                     {
                         FromImage = "docker.io/aquasec/trivy",
                         Tag = "latest"
@@ -210,7 +227,7 @@ public static class DockerContainers
                         }
                     }
 
-                    CreateContainerResponse Container = await Program.DockerClient.Containers.CreateContainerAsync(new CreateContainerParameters
+                    CreateContainerResponse Container = await client.Containers.CreateContainerAsync(new CreateContainerParameters
                     {
                         Cmd = new List<string>
                         {
@@ -235,12 +252,12 @@ public static class DockerContainers
                     _ = Task.Run(async () =>
                     {
                         await Task.Delay(new TimeSpan(0, 5, 0));
-                        await Program.DockerClient.Containers.RemoveContainerAsync(Container.ID, new ContainerRemoveParameters
+                        await client.Containers.RemoveContainerAsync(Container.ID, new ContainerRemoveParameters
                         {
                             Force = true,
                         });
                     });
-                    await Program.DockerClient.Containers.StartContainerAsync(Container.ID, new ContainerStartParameters
+                    await client.Containers.StartContainerAsync(Container.ID, new ContainerStartParameters
                     {
 
                     });
@@ -250,15 +267,17 @@ public static class DockerContainers
                         ID = Container.ID,
                     };
                 }
-                break;
             case ControlContainerType.ScanReport:
                 {
-                    CreateContainerResponse Container = @event.Data.ToObject<CreateContainerResponse>();
-                    var GetContainer = await Program.DockerClient.Containers.InspectContainerAsync(Container.ID);
+                    CreateContainerResponse? Container = @event.Data?.ToObject<CreateContainerResponse>();
+                    if (Container == null)
+                        throw new Exception("Failed to parse container scan options.");
+
+                    var GetContainer = await client.Containers.InspectContainerAsync(Container.ID);
                     if (GetContainer == null || GetContainer.State.ExitCode != 0)
                         return new SecurityData { IsComplete = false };
 
-                    MultiplexedStream Stream = await Program.DockerClient.Containers.GetContainerLogsAsync(Container.ID, false, new ContainerLogsParameters
+                    MultiplexedStream Stream = await client.Containers.GetContainerLogsAsync(Container.ID, false, new ContainerLogsParameters
                     {
                         Tail = "all",
                         Timestamps = false,
@@ -270,7 +289,7 @@ public static class DockerContainers
 
                     try
                     {
-                        await Program.DockerClient.Containers.RemoveContainerAsync(Container.ID, new ContainerRemoveParameters
+                        await client.Containers.RemoveContainerAsync(Container.ID, new ContainerRemoveParameters
                         {
                             Force = true
                         });
@@ -279,7 +298,6 @@ public static class DockerContainers
 
                     return new SecurityData { IsComplete = true, Logs = DataStream.stdout };
                 }
-                break;
         }
 
         return null;

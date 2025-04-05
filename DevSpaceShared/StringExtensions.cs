@@ -1,8 +1,11 @@
 ﻿namespace DevSpaceShared;
 public static class StringExtensions
 {
-    public static string[] SplitNewlines(this string input)
+    public static string[] SplitNewlines(this string? input, bool trim = false)
     {
-        return input.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+        if (string.IsNullOrEmpty(input))
+            return Array.Empty<string>();
+
+        return input.Split(["\r\n", "\r", "\n"], trim ? StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries : StringSplitOptions.RemoveEmptyEntries);
     }
 }

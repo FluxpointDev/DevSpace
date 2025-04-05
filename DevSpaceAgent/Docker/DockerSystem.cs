@@ -7,7 +7,7 @@ namespace DevSpaceAgent.Docker;
 public static class DockerSystem
 {
     private static readonly string[] SizeSuffixes =
-               { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+               ["bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
     public static string SizeSuffix(Int64 value, int decimalPlaces = 1)
     {
         if (decimalPlaces < 0) { throw new ArgumentOutOfRangeException("decimalPlaces"); }

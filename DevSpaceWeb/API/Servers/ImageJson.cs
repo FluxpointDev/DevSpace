@@ -29,7 +29,7 @@ public class ImageJson
     public string id { get; set; }
     public string name { get; set; }
 
-    public string version { get; set; }
+    public string? version { get; set; }
 
     public DateTime created_at { get; set; }
 
@@ -51,13 +51,13 @@ public class ImageJson
 
     public string? docker_version { get; set; }
 
-    public string operating_system { get; set; }
+    public string? operating_system { get; set; }
 
-    public string operating_system_version { get; set; }
+    public string? operating_system_version { get; set; }
 
-    public string architecture { get; set; }
+    public string? architecture { get; set; }
 
-    public string comment { get; set; }
+    public string? comment { get; set; }
 
-    public string driver { get; set; }
+    public string? driver { get; set; }
 }

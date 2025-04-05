@@ -54,10 +54,8 @@ public class AuthUser : MongoIdentityUser<ObjectId>
 
     public void UpdatePartial()
     {
-        if (_DB.Users.TryGetValue(Id, out PartialUserData ud))
+        if (_DB.Users.TryGetValue(Id, out PartialUserData? ud))
             ud.Update(this);
-        else
-            _DB.Users.Add(Id, ud);
     }
 }
 

@@ -32,27 +32,27 @@ namespace DevSpaceShared.Data
             return Info;
         }
 
-        public static DockerNetworkInfo Create(string name, EndpointSettings network)
-        {
-            return new DockerNetworkInfo
-            {
-                Name = name,
-                Id = network.NetworkID
-            };
-        }
+        //public static DockerNetworkInfo Create(string name, EndpointSettings network)
+        //{
+        //    return new DockerNetworkInfo
+        //    {
+        //        Name = name,
+        //        Id = network.NetworkID
+        //    };
+        //}
 
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Driver { get; set; }
+        public required string Id { get; set; }
+        public required string Name { get; set; }
+        public string? Driver { get; set; }
         public bool IsInternal { get; set; }
         public bool IsAttachable { get; set; }
-        public string Scope { get; set; }
+        public string? Scope { get; set; }
         public bool Ingress { get; set; }
         public bool ConfigOnly { get; set; }
         public DateTime Created { get; set; }
-        public IDictionary<string, string> Labels { get; set; }
-        public IDictionary<string, string> Options { get; set; }
-        public DockerNetworkIPAM IPAM { get; set; }
+        public IDictionary<string, string>? Labels { get; set; }
+        public IDictionary<string, string>? Options { get; set; }
+        public DockerNetworkIPAM? IPAM { get; set; }
         public Dictionary<string, string> Containers { get; set; } = new Dictionary<string, string>();
         public IDictionary<string, EndpointResource> ContainersList = new Dictionary<string, EndpointResource>();
         public int ContainersCount { get; set; }
@@ -89,19 +89,19 @@ public class DockerNetworkIPAM
         return Info;
     }
 
-    public string Driver { get; set; }
+    public string? Driver { get; set; }
 
     public IDictionary<string, string>? Options { get; set; }
 
-    public string IPv4Subnet { get; set; }
+    public string? IPv4Subnet { get; set; }
 
-    public string IPv4Gateway { get; set; }
+    public string? IPv4Gateway { get; set; }
 
-    public string IPv4Range { get; set; }
+    public string? IPv4Range { get; set; }
 
-    public string IPv6Subnet { get; set; }
+    public string? IPv6Subnet { get; set; }
 
-    public string IPv6Gateway { get; set; }
+    public string? IPv6Gateway { get; set; }
 
-    public string IPv6Range { get; set; }
+    public string? IPv6Range { get; set; }
 }

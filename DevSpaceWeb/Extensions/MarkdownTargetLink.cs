@@ -28,9 +28,9 @@ public class TargetLinkExtension : IMarkdownExtension
         return false;
     }
 
-    private void TryAddTarget(string url, MarkdownObject obj)
+    private void TryAddTarget(string? url, MarkdownObject obj)
     {
-        if (url != null && Uri.TryCreate(url, UriKind.Absolute, out _))
+        if (string.IsNullOrEmpty(url) && Uri.TryCreate(url, UriKind.Absolute, out _))
         {
             obj.GetAttributes().AddPropertyIfNotExist("target", "_blank");
         }

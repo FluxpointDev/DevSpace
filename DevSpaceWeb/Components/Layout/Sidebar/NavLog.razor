@@ -1,10 +1,10 @@
 ﻿<div class="nav-list nav-list-sub">
     <div class="nav-list-header">
         <span class="iconify" data-icon="mdi:warning"></span>
-        <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Log.Name</h5>
+        <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Log?.Name</h5>
     </div>
     <RadzenPanelMenu>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/logs/" + Session.Selected.Team.Log.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/logs/" + Session.Selected.Team?.Log?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
             <span class="iconify" data-icon="mdi:home"></span>
             <p>Home</p>
@@ -15,10 +15,8 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     [Parameter]
     public bool StateChange { get; set; }
-
-    public bool IsOpen { get; set; } = true;
 }

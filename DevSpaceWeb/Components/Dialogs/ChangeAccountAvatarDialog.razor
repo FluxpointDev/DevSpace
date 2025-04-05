@@ -34,7 +34,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public bool RemoveAvatar { get; set; }
 
@@ -102,6 +102,9 @@
     {
         dialogService.Close(true);
         AuthUser? user = await Session.GetCurrentUserAsync();
+        if (user == null)
+            return;
+
         Session.CurrentUser.ResourceId = user.ResourceId;
         Session.CurrentUser.AvatarId = user.AvatarId;
     }

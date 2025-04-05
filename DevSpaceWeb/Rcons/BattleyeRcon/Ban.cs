@@ -7,7 +7,7 @@ public class Ban
     private string _guid;
     private string _ip;
     private int _duration;
-    private string _reason;
+    private string? _reason;
     private bool _online;
 
     public int ID
@@ -34,7 +34,7 @@ public class Ban
         get { return _duration; }
         set { _duration = value; }
     }
-    public string Reason
+    public string? Reason
     {
         get { return _reason; }
         set { _reason = value; }
@@ -45,12 +45,12 @@ public class Ban
         set { _online = value; }
     }
 
-    public String number = "";
-    public String ipguid = "";
-    public String time = "";
-    public String reason = "";
+    public string number = "";
+    public string ipguid = "";
+    public string time = "";
+    public string? reason = "";
 
-    public Ban(String number, String ipguid, String time, String reason)
+    public Ban(string number, string ipguid, string time, string? reason)
     {
         this.number = number;
         this.ipguid = ipguid;
@@ -58,7 +58,7 @@ public class Ban
         this.reason = reason;
     }
 
-    public Ban(string guid, int duration, string reason)
+    public Ban(string guid, int duration, string? reason)
     {
         _guid = guid;
         _duration = duration;

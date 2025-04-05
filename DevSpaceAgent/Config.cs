@@ -4,9 +4,9 @@ namespace DevSpaceAgent;
 
 public class Config
 {
-    public string CertKey;
-    public string AgentId;
-    public string AgentKey;
+    public string? CertKey;
+    public string? AgentId;
+    public string? AgentKey;
     public HashSet<string> AllowedIPs = new HashSet<string>();
     public void Save()
     {

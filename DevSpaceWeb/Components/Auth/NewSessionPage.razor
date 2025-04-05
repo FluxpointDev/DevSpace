@@ -27,14 +27,15 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public string AccountUsername { get; set; }
+    public string? AccountUsername { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         var User = await Session.GetCurrentUserAsync();
-        AccountUsername = User.UserName;
+        if (User != null)
+            AccountUsername = User.UserName;
     }
 
     public async Task Check2FA()

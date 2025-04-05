@@ -286,12 +286,12 @@ public class DockerController : APIController
                 ShowTimestamp = showTimestamp
             })
         });
-        if (!Response.IsSuccess)
+        if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get container logs, " + Response.Message);
 
         if (split)
             return Ok(Response.Data.Logs.Split(
-                    new string[] { "\r\n", "\r", "\n" },
+                    ["\r\n", "\r", "\n"],
                     StringSplitOptions.RemoveEmptyEntries
                 ));
         else

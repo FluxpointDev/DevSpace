@@ -20,15 +20,19 @@ public class Program
     /// <summary>
     /// Version of DevSpaceWeb.
     /// </summary>
-    public static string Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
+    public static string? Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
 
     public static string? LatestWebVersion;
     public static string? LatestAgentVersion;
 
     public static string GetVersionText()
     {
+        if (string.IsNullOrEmpty(Version))
+            return "Unknown";
+
         if (Version.StartsWith("1."))
             return Version + " Beta";
+
         return Version + " Release";
     }
 
@@ -37,7 +41,7 @@ public class Program
     /// <summary>
     /// Current directory of the running program
     /// </summary>
-    public static DirectoryStructureMain Directory;
+    public static DirectoryStructureMain Directory = null!;
 
     public static HttpClient Http = new HttpClient();
 
@@ -53,7 +57,7 @@ public class Program
         }
     });
 
-    public static IServiceCollection Services;
+    public static IServiceCollection? Services;
 
     public static MemoryCache Cache = new MemoryCache(new MemoryCacheOptions());
 
@@ -64,9 +68,9 @@ public class Program
     public static bool IsPreviewMode { get; set; } = false;
     public static bool ShowDemoLink { get; set; } = false;
     public static Regex IpRegex { get; set; } = new Regex(@"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", RegexOptions.Compiled | RegexOptions.Multiline);
-    public static string PublicIP { get; private set; }
+    public static string? PublicIP { get; private set; }
 
-    public static DockerClient InternalDocker;
+    public static DockerClient? InternalDocker;
 
     public static bool LimitMode = false;
 
@@ -112,7 +116,7 @@ public class Program
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
 
-        Logger.LogMessage("Loaded config in: " + Program.Directory.Path, LogSeverity.Info);
+        Logger.LogMessage("Loaded config in: " + Directory.Path, LogSeverity.Info);
 
         // Guid support for mongodb
         BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.CSharpLegacy));
@@ -150,7 +154,7 @@ public class Program
             }
         }
 
-        if (Program.IsDevMode)
+        if (IsDevMode)
         {
             InternalDocker = new DockerClientConfiguration(new Uri("tcp://127.0.0.1:2375"), null).CreateClient();
             try
@@ -244,12 +248,12 @@ public class Program
         app.UseStaticFiles();
         app.UseStaticFiles(new StaticFileOptions
         {
-            FileProvider = new PhysicalFileProvider(Program.Directory.Public.Path),
+            FileProvider = new PhysicalFileProvider(Directory.Public.Path),
             RequestPath = "/public",
             OnPrepareResponse = async ctx =>
             {
                 Logger.LogMessage("Got Response", LogSeverity.Debug);
-                if (!(_Data.Config.Instance.Features.AllowUnauthenticatedPublicFolderAccess || (ctx.Context.User.Identity != null || ctx.Context.User.Identity.IsAuthenticated)))
+                if (!(_Data.Config.Instance.Features.AllowUnauthenticatedPublicFolderAccess || (ctx.Context.User.Identity != null && ctx.Context.User.Identity.IsAuthenticated)))
                 {
                     ctx.Context.Response.Clear();
                     ctx.Context.Response.StatusCode = 400;

@@ -116,7 +116,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public DatabaseType Database { get; set; } = DatabaseType.Teams;
 
@@ -205,7 +205,7 @@
             FilterDefinition<T> filter = Builders<T>.Filter.And(filters);
             try
             {
-                employees = await _DB.Client.GetDatabase(_DB.Configure.Name).GetCollection<T>(CollectionName).Find(x => true).Skip(args.Skip).Limit(args.Top).ToListAsync();
+                employees = await _DB.Client.GetDatabase(_DB.Configure!.Name).GetCollection<T>(CollectionName).Find(x => true).Skip(args.Skip).Limit(args.Top).ToListAsync();
             }
             catch (Exception ex)
             {
@@ -214,9 +214,9 @@
 
             try
             {
-                Count = await _DB.Client.GetDatabase(_DB.Configure.Name).GetCollection<T>(CollectionName).CountDocumentsAsync(filter, new CountOptions());
+                Count = await _DB.Client.GetDatabase(_DB.Configure!.Name).GetCollection<T>(CollectionName).CountDocumentsAsync(filter, new CountOptions());
 
-                employees = await _DB.Client.GetDatabase(_DB.Configure.Name).GetCollection<T>(CollectionName).Find(filter).Skip(args.Skip.GetValueOrDefault()).Limit(args.Top.GetValueOrDefault()).ToListAsync();
+                employees = await _DB.Client.GetDatabase(_DB.Configure!.Name).GetCollection<T>(CollectionName).Find(filter).Skip(args.Skip.GetValueOrDefault()).Limit(args.Top.GetValueOrDefault()).ToListAsync();
             }
             catch (Exception ex)
             {

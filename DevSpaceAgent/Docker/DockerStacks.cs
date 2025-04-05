@@ -22,7 +22,7 @@ public static class DockerStacks
 
         foreach (ContainerListResponse? c in containers)
         {
-            if (!c.Labels.TryGetValue("com.docker.compose.project", out string label))
+            if (c.Labels == null || !c.Labels.TryGetValue("com.docker.compose.project", out string? label))
                 continue;
 
             bool IsRunning = false;
@@ -67,7 +67,7 @@ public static class DockerStacks
                 if (c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project.config_files", out configFile))
                     DataPath = configFile;
 
-                if (string.IsNullOrEmpty(DataPath) && c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project.working_dir", out string workDir))
+                if (string.IsNullOrEmpty(DataPath) && c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project.working_dir", out string? workDir))
                     DataPath = workDir;
 
 
@@ -171,12 +171,15 @@ public static class DockerStacks
         return Stacks;
     }
 
-    public static async Task<DockerStackCreate> CreateStack(DockerClient client, CreateStackEvent compose)
+    public static async Task<DockerStackCreate> CreateStackAsync(DockerClient client, CreateStackEvent? compose)
     {
+        if (compose == null)
+            throw new Exception("Failed to parse stack creation options.");
+
         if (string.IsNullOrEmpty(compose.Name))
             throw new Exception("Stack needs a name.");
 
-        if (Program.Stacks.Any(x => x.Value.Name.Equals(compose.Name, StringComparison.OrdinalIgnoreCase)))
+        if (Program.Stacks.Any(x => !string.IsNullOrEmpty(x.Value.Name) && x.Value.Name.Equals(compose.Name, StringComparison.OrdinalIgnoreCase)))
             throw new Exception("Stack name already exists.");
 
         Console.WriteLine("Create Stack");
@@ -418,6 +421,7 @@ public static class DockerStacks
             DockerStackInfo Info = new DockerStackInfo
             {
                 Id = id,
+                Name = ":)",
                 ControlType = DockerStackControl.System,
             };
 

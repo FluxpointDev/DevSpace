@@ -9,7 +9,7 @@ namespace DevSpaceWeb;
 public class Config
 {
     public bool IsFullySetup = false;
-    public string AdminKey;
+    public string? AdminKey;
     public ConfigAdmin Admin = new ConfigAdmin();
     public ConfigAuth Auth = new ConfigAuth();
     public ConfigInstance Instance = new ConfigInstance();
@@ -31,8 +31,8 @@ public class Config
 public class ConfigInstance
 {
     public string Name = "Dev Space Self-hosted";
-    public string Description;
-    public string Email;
+    public string? Description;
+    public string? Email;
     public bool HasIcon;
     public int IconVersion;
     public string PublicDomain = "example.com";
@@ -86,13 +86,13 @@ public class ConfigAuth
 
 public class ConfigEmail
 {
-    public string SenderEmailAddress;
-    public string SmtpHost;
+    public string? SenderEmailAddress;
+    public string? SmtpHost;
     public int SmtpPort;
-    public string SmtpUser;
-    public string SmtpPassword;
+    public string? SmtpUser;
+    public string? SmtpPassword;
     public ConfigEmailType Type;
-    public string ManagedEmailToken;
+    public string? ManagedEmailToken;
 
     public void RemoveActiveEmailTemplate(EmailTemplateType type)
     {
@@ -109,7 +109,7 @@ public class ConfigEmail
         _Data.Config.Save();
     }
 
-    public string GetActiveEmailTemplateName(EmailTemplateType type)
+    public string? GetActiveEmailTemplateName(EmailTemplateType type)
     {
         if (ActiveEmailTemplates.TryGetValue(type, out ObjectId tempId) && _DB.EmailTemplates.Cache.TryGetValue(tempId, out EmailTemplateData? template))
             return template.Name;
@@ -145,8 +145,8 @@ public class ConfigProviders
 }
 public class ConfigProvider
 {
-    public string ClientId;
-    public string ClientSecret;
+    public string? ClientId;
+    public string? ClientSecret;
     public bool IsDisabled;
     public bool IsConfigured()
     {
@@ -158,8 +158,8 @@ public class ConfigProvider
 }
 public class ConfigProviderTwitter
 {
-    public string ConsumerKey;
-    public string ConsumerSecret;
+    public string? ConsumerKey;
+    public string? ConsumerSecret;
     public bool IsDisabled;
     public bool IsConfigured()
     {

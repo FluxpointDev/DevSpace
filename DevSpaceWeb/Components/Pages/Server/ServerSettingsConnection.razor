@@ -9,10 +9,10 @@
         <RadzenText TextStyle="TextStyle.H6">Server Connection</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl)" Text="@Session.Selected.Team.Server.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
         <RadzenBreadCrumbItem Text="Connection" />
     </RadzenBreadCrumb>
-    @if (!Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection))
+    @if (Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for Manage Connection
@@ -27,7 +27,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -46,7 +46,7 @@
 
     public async Task<string?> UpdateSettings(ModifyServerConnectionModel model)
     {
-        if (!Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection))
+        if (Server == null || Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection))
             return "You do not have Manage Connection permissions.";
 
         if (model.Port == 0)
@@ -77,6 +77,7 @@
         ServerWebSocket Client = new ServerWebSocket();
         var TempServer = new ServerData
         {
+            Name = ":)",
             AgentIp = model.Ip,
             AgentPort = model.Port,
             AgentKey = model.AgentKey

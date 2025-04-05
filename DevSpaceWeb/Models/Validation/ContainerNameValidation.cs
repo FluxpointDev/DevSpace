@@ -5,9 +5,9 @@ namespace DevSpaceWeb.Models.Validation;
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public class ContainerNameValidationAttribute : ValidationAttribute
 {
-    public override bool IsValid(object value)
+    public override bool IsValid(object? value)
     {
-        string actualValue = value as string;
+        string? actualValue = value as string;
         return Validate(actualValue);
     }
 

@@ -12,7 +12,9 @@ public static class DockerHandler
     public static async Task<object?> Run(DockerEvent @event)
     {
         Console.WriteLine($"Run Docker Event {@event.DockerType.ToString()}");
-        DockerClient Client = Program.DockerClient;
+        DockerClient Client = Program.DockerClient!;
+
+
         switch (@event.DockerType)
         {
             // Stacks
@@ -20,7 +22,7 @@ public static class DockerHandler
             case DockerEventType.ListStacks:
                 return await DockerStacks.ListStacksAsync(Client);
             case DockerEventType.CreateStack:
-                return await DockerStacks.CreateStack(Client, @event.Data.ToObject<CreateStackEvent>());
+                return await DockerStacks.CreateStackAsync(Client, @event.Data.ToObject<CreateStackEvent>());
             case DockerEventType.ControlStack:
                 {
                     switch (@event.StackType)
@@ -178,14 +180,14 @@ public static class DockerHandler
 
             // Custom Templates
             case DockerEventType.ListCustomTemplates:
-                return DockerCustomTemplates.ListTemplatesAsync();
+                return DockerCustomTemplates.ListTemplates();
             case DockerEventType.CreateCustomTemplate:
-                await DockerCustomTemplates.CreateTemplateAsync(@event.Data.ToObject<CreateCustomTemplateEvent>());
+                DockerCustomTemplates.CreateTemplate(@event.Data.ToObject<CreateCustomTemplateEvent>());
                 break;
             case DockerEventType.ControlCustomTemplate:
-                return await DockerCustomTemplates.ControlTemplateAsync(@event);
+                return DockerCustomTemplates.ControlTemplate(@event);
             case DockerEventType.ImportPortainerTemplates:
-                await DockerCustomTemplates.ImportPortainerTemplatesAsync();
+                DockerCustomTemplates.ImportPortainerTemplates();
                 break;
 
             // Other

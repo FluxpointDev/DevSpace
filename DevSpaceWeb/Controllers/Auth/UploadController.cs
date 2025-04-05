@@ -27,7 +27,7 @@ public class UploadController : Controller
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
-        if (!User.Identity.IsAuthenticated)
+        if (User == null || !User.Identity.IsAuthenticated)
             return Unauthorized("Not logged in");
 
         if (!Request.Form.Files.Any())
@@ -138,7 +138,7 @@ public class UploadController : Controller
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
-        if (!User.Identity.IsAuthenticated)
+        if (User == null || !User.Identity.IsAuthenticated)
             return Unauthorized("Not logged in");
 
         if (!Request.Form.Files.Any())
@@ -235,7 +235,7 @@ public class UploadController : Controller
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
-        if (!User.Identity.IsAuthenticated)
+        if (User == null || !User.Identity.IsAuthenticated)
             return Unauthorized("Not logged in");
 
         if (!Request.Form.Files.Any())
@@ -244,7 +244,7 @@ public class UploadController : Controller
         if (Request.Form.Files.Count != 1)
             return BadRequest("Too many files");
 
-        string TeamId = Request.Query["teamId"];
+        string? TeamId = Request.Query["teamId"];
         if (string.IsNullOrEmpty(TeamId))
             return BadRequest("Team id is missing");
 

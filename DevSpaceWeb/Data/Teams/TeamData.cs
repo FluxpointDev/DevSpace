@@ -88,17 +88,17 @@ public class TeamData : IResource
 
     public VanityUrlData GetVanityUrlData()
     {
-        if (_DB.TeamVanityUrls.Cache.TryGetValue(Id, out VanityUrlData data))
+        if (_DB.TeamVanityUrls.Cache.TryGetValue(Id, out VanityUrlData? data))
             return data;
         data = new VanityUrlData
         {
             Id = Id
         };
-        _DB.TeamVanityUrls.CreateAsync(data);
+        _ = _DB.TeamVanityUrls.CreateAsync(data);
         return data;
     }
 
-    public async Task<UpdateResult> UpdateAsync(UpdateDefinition<TeamData> update, Action action = null)
+    public async Task<UpdateResult> UpdateAsync(UpdateDefinition<TeamData> update, Action? action = null)
     {
         FilterDefinition<TeamData> filter = Builders<TeamData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Teams.Collection.UpdateOneAsync(filter, update);
@@ -216,6 +216,9 @@ public class TeamData : IResource
             bool CheckLastRole = true;
             ObjectId? NextRoleId = null;
             bool CheckNextRole = false;
+
+            if (member.Team == null)
+                return;
 
             foreach (TeamRoleData? i in member.Team.CachedRoles.Values.OrderBy(x => x.GetPosition()))
             {

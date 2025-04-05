@@ -174,7 +174,7 @@ public class BattlEyeClient
 
             if (log)
             {
-                _packetQueue.Add(packetID, new[] { command, _packetSent.ToString(CultureInfo.InvariantCulture) });
+                _packetQueue.Add(packetID, [command, _packetSent.ToString(CultureInfo.InvariantCulture)]);
             }
             else
             {
@@ -208,7 +208,7 @@ public class BattlEyeClient
 
             _packetSent = DateTime.Now;
 
-            _packetQueue.Add(packetID, new[] { Helpers.StringValueOf(command) + parameters, _packetSent.ToString(CultureInfo.InvariantCulture) });
+            _packetQueue.Add(packetID, [Helpers.StringValueOf(command) + parameters, _packetSent.ToString(CultureInfo.InvariantCulture)]);
         }
         catch
         {
@@ -240,7 +240,7 @@ public class BattlEyeClient
                 type = Helpers.Hex2Ascii("FF02");
                 break;
             default:
-                return new byte[] { };
+                return [];
         }
 
 
@@ -251,7 +251,7 @@ public class BattlEyeClient
 
         }
 
-        string count = Helpers.Bytes2String(new[] { (byte)sequenceNumber });
+        string count = Helpers.Bytes2String([(byte)sequenceNumber]);
 
         byte[] byteArray = new CRC32().ComputeHash(Helpers.String2Bytes(type + ((packetType != BattlEyePacketType.Command) ? "" : count) + command));
 
@@ -380,7 +380,7 @@ public class BattlEyeClient
 
             if (state.Buffer[7] == 0x02)
             {
-                SendAcknowledgePacket(Helpers.Bytes2String(new[] { state.Buffer[8] }));
+                SendAcknowledgePacket(Helpers.Bytes2String([state.Buffer[8]]));
                 OnBattlEyeMessage(Helpers.Bytes2String(state.Buffer, 9, bytesRead - 9), 256);
             }
             else if (state.Buffer[7] == 0x01)
@@ -458,7 +458,7 @@ public class BattlEyeClient
 
 public class StateObject
 {
-    public Socket WorkSocket;
+    public Socket? WorkSocket;
     public const int BufferSize = 2048;
     public byte[] Buffer = new byte[BufferSize];
     public StringBuilder Message = new StringBuilder();

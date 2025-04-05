@@ -30,7 +30,7 @@ public class PasskeyAuthController : AuthControllerContext
     [HttpPost("/auth/passkey/confirm/assertionOptions")]
     public async Task<ActionResult> AssertionOptionsPost()
     {
-        string RequestId = Request.Headers["RequestId"];
+        string? RequestId = Request.Headers["RequestId"];
         if (string.IsNullOrEmpty(RequestId))
             return Json(new Fido2Error("Failed to verify request id."));
 
@@ -89,7 +89,7 @@ public class PasskeyAuthController : AuthControllerContext
     [HttpPost("/auth/passkey/confirm/makeAssertion")]
     public async Task<JsonResult> MakeAssertion([FromBody] AuthenticatorAssertionRawResponse clientResponse)
     {
-        string RequestId = Request.Headers["RequestId"];
+        string? RequestId = Request.Headers["RequestId"];
         if (string.IsNullOrEmpty(RequestId))
             return Json(new Fido2Error("Failed to verify request id."));
 
@@ -97,12 +97,15 @@ public class PasskeyAuthController : AuthControllerContext
         {
             // 1. Get the assertion options we sent the client
             string? jsonOptions = HttpContext.Session.GetString("fido2.assertionOptions");
+            if (string.IsNullOrEmpty(jsonOptions))
+                return Json(new Fido2Error("Invalid assertion options."));
+
             AssertionOptions options = AssertionOptions.FromJson(jsonOptions);
             HttpContext.Session.Remove("fido2.assertionOptions");
 
             AuthUser? identityUser = await GetCurrentUserAsync();
             if (identityUser == null)
-                throw new ArgumentException("User not found");
+                return Json(new Fido2Error("User data failed."));
 
             AuthRequest? Data = Cache.Get<AuthRequest>("passkey-" + RequestId);
             if (Data == null || Data.UserId != identityUser.Id)
@@ -111,7 +114,7 @@ public class PasskeyAuthController : AuthControllerContext
             // 2. Get registered credential from database
             FidoStoredCredential? creds = await identityUser.Mfa.GetPasskeyByIdAsync(clientResponse.Id);
             if (creds == null)
-                throw new Exception("Unknown credentials");
+                return Json(new Fido2Error("Unknown credentials."));
 
 
             // 4. Create callback to check if userhandle owns the credentialId
@@ -122,9 +125,7 @@ public class PasskeyAuthController : AuthControllerContext
             };
 
             if (creds.PublicKey == null)
-            {
-                throw new InvalidOperationException($"No public key");
-            }
+                return Json(new Fido2Error("No public key."));
 
             // 5. Make the assertion
             VerifyAssertionResult res = await _fido2Service._lib.MakeAssertionAsync(
@@ -136,6 +137,9 @@ public class PasskeyAuthController : AuthControllerContext
                 if (Data.LogRequest)
                 {
                     identityUser = await GetCurrentUserAsync();
+                    if (identityUser == null)
+                        return Json(new Fido2Error("User data failed."));
+
                     FidoStoredCredential? passkeyUsed = await identityUser.Mfa.GetPasskeyByIdAsync(res.CredentialId);
                     if (passkeyUsed != null)
                     {

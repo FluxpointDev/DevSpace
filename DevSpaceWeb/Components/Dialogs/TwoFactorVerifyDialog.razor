@@ -187,13 +187,13 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     [Parameter] public bool LogUsage { get; set; }
 
-    public AuthUser User { get; set; }
+    public AuthUser? User { get; set; }
 
-    public string CodeInput { get; set; }
+    public string? CodeInput { get; set; }
     public TwoFactorSelector AuthType = TwoFactorSelector.Menu;
     public enum TwoFactorSelector
     {
@@ -234,6 +234,9 @@
             if (LogUsage)
             {
                 User = await Session.GetCurrentUserAsync();
+                if (User == null)
+                    return;
+
                 User.Mfa.EmailCodeLastSentAt = DateTime.UtcNow;
                 await UserManager.UpdateAsync(User);
             }

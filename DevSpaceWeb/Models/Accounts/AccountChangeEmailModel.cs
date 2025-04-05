@@ -4,5 +4,5 @@ namespace DevSpaceWeb.Models.Account;
 
 public class AccountChangeEmailModel : EmailModel
 {
-    public string Code { get; set; }
+    public string? Code { get; set; }
 }

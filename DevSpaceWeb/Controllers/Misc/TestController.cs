@@ -6,7 +6,7 @@ public class TestController : Controller
     [HttpGet("/api/test/websocket")]
     public async Task<IActionResult> TestWebsocket()
     {
-        string Connection = Request.Headers["Connection"];
+        string? Connection = Request.Headers["Connection"];
         return Connection == "close" ? StatusCode(412) : Ok();
     }
 

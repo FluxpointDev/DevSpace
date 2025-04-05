@@ -29,7 +29,7 @@ public class UsersController : APIController
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj))
             return NotFound("Could not find user.");
 
-        if (!((_DB.Teams.Cache.TryGetValue(Client.TeamId, out TeamData Team) && Team.Members.ContainsKey(obj))))
+        if (!((_DB.Teams.Cache.TryGetValue(Client.TeamId, out TeamData? Team) && Team.Members.ContainsKey(obj))))
             return NotFound("Could not find user.");
 
         AuthUser? user = await _DB.Run.GetCollection<AuthUser>("users").Find(new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, obj)).FirstOrDefaultAsync();

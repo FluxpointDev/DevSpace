@@ -3,7 +3,7 @@
 @using Docker.DotNet.Models
 @inject NotificationService Notifications
 
-@if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewPlugins))
+@if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewPlugins))
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -11,7 +11,7 @@
             <RadzenText TextStyle="TextStyle.H6">Plugin Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/plugins")" Text="Plugins" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/plugins")" Text="Plugins" />
             <RadzenBreadCrumbItem Text="@PluginId" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -31,7 +31,7 @@ else if (Plugin == null)
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/plugins")" Text="Plugins" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/plugins")" Text="Plugins" />
             <RadzenBreadCrumbItem Text="@PluginId" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -50,7 +50,7 @@ else
             <RadzenText TextStyle="TextStyle.H6">Plugin Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/plugins")" Text="Plugins" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/plugins")" Text="Plugins" />
             <RadzenBreadCrumbItem Text="@Plugin.Name.Split(':').First()" />
         </RadzenBreadCrumb>
         <br />
@@ -186,20 +186,23 @@ else
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
-    public string PluginId { get; set; }
+    public required string PluginId { get; set; }
 
     public Plugin? Plugin { get; set; }
     public bool Failed { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Member == null || Server == null)
+            return;
+
         try
         {
             var Result = await Server.RunJsonAsync<Plugin>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Inspect));

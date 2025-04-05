@@ -24,7 +24,7 @@ public class MCHelper
             }
             catch (Exception ee)
             {
-                list_players = new string[] { };
+                list_players = [];
 
             }
 
@@ -32,7 +32,7 @@ public class MCHelper
         }
         else
         {
-            list_players = new string[] { };
+            list_players = [];
         }
 
 

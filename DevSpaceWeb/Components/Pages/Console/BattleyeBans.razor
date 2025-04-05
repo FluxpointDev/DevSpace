@@ -13,12 +13,12 @@
         <RadzenText TextStyle="TextStyle.H6">Bans</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl)" Text="@Session.Selected.Team?.Console?.Data.Name" />
         <RadzenBreadCrumbItem Text="Bans" />
     </RadzenBreadCrumb>
 
-    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ViewBans))
+    @if (Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewBans))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -78,13 +78,13 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ConsoleData Console => Session.Selected.Console;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ConsoleData? Console => Session.Selected.Console;
+    public TeamMemberData? Member => Session.Selected.Member;
 
-    public IEnumerable<Ban> Bans { get; set; }
+    public IEnumerable<Ban>? Bans { get; set; }
     public int BanCount { get; set; }
 
     public string GetMask(string value)
@@ -111,6 +111,9 @@
 
     void LoadData(LoadDataArgs args)
     {
+        if (Console == null)
+            return;
+
         if (_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc))
         {
             if (rc.IsConnected)
@@ -118,7 +121,7 @@
                 var query = rc.GetBans().AsQueryable();
 
                 BanCount = query.Count();
-                Bans = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+                Bans = query.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
             }
             else
             {
@@ -154,6 +157,9 @@
 
     public async Task UnbanPlayer(Ban ban)
     {
+        if (Member == null || Console == null)
+            return;
+
         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
         {
             await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);

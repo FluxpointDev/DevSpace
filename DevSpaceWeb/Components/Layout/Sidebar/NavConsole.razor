@@ -3,42 +3,42 @@
 @inject NavigationManager Nav
 
 <div class="nav-list nav-list-sub">
-    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
+    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
     <div class="nav-list-header">
             <span class="iconify" data-icon="mdi:console" style="color: #a5a5a5 !important;"></span>
-        <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Console.Name</h5>
+            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Console?.Name</h5>
     </div>
     </RadzenLink>
     <RadzenPanelMenu>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:home"></span>
                 <p>Home</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/players")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/players")" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:account"></span>
                 <p>Players</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/bans")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/bans")" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:court-hammer"></span>
                 <p>Bans</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/console")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/console")" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:console-line"></span>
                 <p>Console</p>
             </Template>
         </RadzenPanelMenuItem>
-        @switch (Session.Selected.Team.Console.Data.Type)
+        @switch (Session.Selected.Team?.Console?.Data.Type)
         {
             case ConsoleType.Battleye:
                 {
-                    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl + "/connections")" Match="NavLinkMatch.All">
+                    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/connections")" Match="NavLinkMatch.All">
                         <Template>
                             <span class="iconify" data-icon="mdi:lightning-bolt"></span>
                             <p>Connections</p>
@@ -52,19 +52,19 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     [Parameter]
     public bool StateChange { get; set; }
 
     public TeamData? Team => Session.Selected.Team?.Data;
-    public ConsoleData Console => Session.Selected.Console;
-    public TeamMemberData Member => Session.Selected.Member;
+    public ConsoleData? Console => Session.Selected.Console;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
                 new ContextMenuItem(){ Text = "Close", Icon = "close"  },
-                new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole) },
-                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPermissions) },
+                new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole) },
+                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPermissions) },
          }, OnMenuItemClick);
 
     void OnMenuItemClick(MenuItemEventArgs arg)
@@ -72,18 +72,18 @@
         switch (arg.Text)
         {
             case "Close":
-                Session.Selected.Team.Console.IsVisible = false;
+                if (Session.Selected.Team != null && Session.Selected.Team.Console != null)
+                    Session.Selected.Team.Console.IsVisible = false;
+
                 Session.TriggerNavMenuChange();
                 break;
             case "Settings":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Console.VanityUrl + "/settings");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected?.Console?.VanityUrl + "/settings");
                 break;
             case "Permissions":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Console.VanityUrl + "/permissions");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected?.Console?.VanityUrl + "/permissions");
                 break;
         }
         ContextMenuService.Close();
     }
-
-
 }

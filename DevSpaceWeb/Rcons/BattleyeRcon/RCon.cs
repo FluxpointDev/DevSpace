@@ -261,7 +261,7 @@ public class RCon
                 row++;
                 if (row > 3 && !line.StartsWith("(") && line.Length > 0)
                 {
-                    String[] items = line.Split(new char[] { ' ' }, 5, StringSplitOptions.RemoveEmptyEntries);
+                    String[] items = line.Split([' '], 5, StringSplitOptions.RemoveEmptyEntries);
 
                     if (items.Length == 5)
                     {
@@ -337,7 +337,7 @@ public class RCon
                 row++;
                 if (row > 3 && !line.StartsWith("IP Bans:") && !line.StartsWith("[#]") && !line.StartsWith("----------------------------------------------") && line.Length > 0)
                 {
-                    String[] items = line.Split(new char[] { ' ' }, 4, StringSplitOptions.RemoveEmptyEntries);
+                    String[] items = line.Split([' '], 4, StringSplitOptions.RemoveEmptyEntries);
 
                     if (items.Length == 4)
                     {
@@ -686,7 +686,7 @@ public class RCon
                     // Connect/disconnect/kick/ban messages
 
 
-                    String[] items = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    String[] items = message.Split([' '], StringSplitOptions.RemoveEmptyEntries);
                     if (message.EndsWith(" connected"))
                     {
                         Logger.LogMessage("Add Player", LogSeverity.Debug);
@@ -723,7 +723,7 @@ public class RCon
                     args.Type = LogType.Console;
 
                     // GUID verification messages
-                    String[] items = message.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    String[] items = message.Split([' '], StringSplitOptions.RemoveEmptyEntries);
                     int Number = int.Parse(items[5].Substring(1));
                     Player? FindPlayer = CachedPlayers.FirstOrDefault(x => x.number == Number);
                     if (FindPlayer != null)
@@ -934,7 +934,7 @@ public class RCon
         {
             if (SetShowAdminCalls)
             {
-                message = message.Split(new char[] { ':' }, 2, StringSplitOptions.RemoveEmptyEntries)[1];
+                message = message.Split([':'], 2, StringSplitOptions.RemoveEmptyEntries)[1];
 
                 bool important = message.IndexOf("admin", StringComparison.OrdinalIgnoreCase) >= 0;
 

@@ -18,7 +18,7 @@ public class IResource
     [BsonId]
     public ObjectId Id { get; set; }
 
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
 

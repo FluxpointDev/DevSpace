@@ -3,7 +3,7 @@
 @using DevSpaceShared.Responses
 @inject NotificationService Notifications
 
-@if (!Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo))
+@if (Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo))
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -11,7 +11,7 @@
             <RadzenText TextStyle="TextStyle.H6">Host Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl)" Text="@Session.Selected.Team.Server.Data.Name" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
             <RadzenBreadCrumbItem Text="Host" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -31,7 +31,7 @@ else if (Host == null)
         }
         </div>
         <RadzenBreadCrumb class="mt-2">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl)" Text="@Session.Selected.Team.Server.Data.Name" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
             <RadzenBreadCrumbItem Text="Host" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -50,7 +50,7 @@ else
             <RadzenText TextStyle="TextStyle.H6">Host Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl)" Text="@Session.Selected.Team.Server.Data.Name" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
             <RadzenBreadCrumbItem Text="Host" />
         </RadzenBreadCrumb>
         <br />
@@ -70,7 +70,7 @@ else
                         IP
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        <RadzenTextMask Value="@Server.AgentIp" IsIp="true"></RadzenTextMask>
+                        <RadzenTextMask Value="@Server?.AgentIp" IsIp="true"></RadzenTextMask>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -124,7 +124,10 @@ else
                         Warnings
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @(string.Join("\n\n", Host.Warnings))
+                        @if (Host.Warnings != null)
+                        {
+                            @(string.Join("\n\n", Host.Warnings))
+                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
             </RadzenTableBody>
@@ -234,7 +237,10 @@ else
                         Log Plugins
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @string.Join(", ", Host.LogPlugins)
+                        @if (Host.LogPlugins != null)
+                        {
+                            @string.Join(", ", Host.LogPlugins)
+                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -243,7 +249,10 @@ else
                         Volume Plugins
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @string.Join(", ", Host.VolumePlugins)
+                        @if (Host.VolumePlugins != null)
+                        {
+                            @string.Join(", ", Host.VolumePlugins)
+                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -252,7 +261,10 @@ else
                         Network Plugins
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @string.Join(", ", Host.NetworkPlugins)
+                        @if (Host.NetworkPlugins != null)
+                        {
+                            @string.Join(", ", Host.NetworkPlugins)
+                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -261,7 +273,10 @@ else
                         Auth Plugins
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @string.Join(", ", Host.AuthPlugins)
+                        @if (Host.AuthPlugins != null)
+                        {
+                            @string.Join(", ", Host.AuthPlugins)
+                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
             </RadzenTableBody>
@@ -271,7 +286,7 @@ else
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -282,6 +297,9 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo))
             return;
 

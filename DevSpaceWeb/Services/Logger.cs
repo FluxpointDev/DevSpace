@@ -8,16 +8,11 @@ namespace DevSpaceWeb;
 /// </summary>
 public static class Logger
 {
-    /// <summary>
-    /// Initialize your own logging system with a custom title and log mode.
-    /// </summary>
-    /// <param name="title"></param>
-    /// <param name="logMode"></param>
     public static void RunLogger(string title, LogSeverity logMode)
     {
         Title = title;
         LogMode = logMode;
-        LoggerTask = Task.Factory.StartNew(async () =>
+        LoggerTask = Task.Factory.StartNew(() =>
         {
             while (true)
             {
@@ -52,7 +47,7 @@ public static class Logger
 
     private static string Title { get; set; }
 
-    private static Task LoggerTask { get; set; }
+    private static Task? LoggerTask { get; set; }
 
     private static LogSeverity LogMode { get; set; }
 
@@ -94,9 +89,13 @@ public static class Logger
 #pragma warning restore IDE0051 // Remove unused private members
 
 
-    private static string FormatJsonPretty(string json)
+    private static string? FormatJsonPretty(string json)
     {
-        dynamic parsedJson = JsonConvert.DeserializeObject(json);
+        dynamic? parsedJson = JsonConvert.DeserializeObject(json);
+
+        if (parsedJson == null)
+            return null;
+
         return JsonConvert.SerializeObject(parsedJson, Formatting.Indented);
 
 
@@ -181,8 +180,8 @@ public static class Logger
 internal class LogJsonMessage
 {
     public string? Title;
-    public string Message;
-    public object Data;
+    public string? Message;
+    public object? Data;
     public string Color = "";
 }
 

@@ -10,42 +10,42 @@
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
-        <RadzenText TextStyle="TextStyle.H6">@(IsHome ? "Settings" : Team.Name + " Settings")</RadzenText>
+        <RadzenText TextStyle="TextStyle.H6">@(IsHome ? "Settings" : Team?.Name + " Settings")</RadzenText>
     </div>
     <br />
     <RadzenStack Gap="10px" JustifyContent="JustifyContent.Center" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/basic")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(Team, TeamPermission.ManageTeam) ? "" : " settings-item-disabled"))">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/basic")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasTeamPermission(Team, TeamPermission.ManageTeam) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:gear"></span>
                 <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/members")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(Team, TeamPermission.ViewMembers) ? "" : " settings-item-disabled"))">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/members")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasTeamPermission(Team, TeamPermission.ViewMembers) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:account-supervisor"></span>
                 <RadzenText TextStyle="TextStyle.H6">Members</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/roles")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(Team, TeamPermission.ViewRoles) ? "" : " settings-item-disabled"))">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/roles")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasTeamPermission(Team, TeamPermission.ViewRoles) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:tag"></span>
                 <RadzenText TextStyle="TextStyle.H6">Roles</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/permissions")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(Team, TeamPermission.ViewPermissions) ? "" : " settings-item-disabled"))">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/permissions")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasTeamPermission(Team, TeamPermission.ViewPermissions) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:shield-key"></span>
                 <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/audit")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasTeamPermission(Team, TeamPermission.ViewAuditLogs) ? "" : " settings-item-disabled"))">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/audit")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasTeamPermission(Team, TeamPermission.ViewAuditLogs) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:format-list-bulleted-square"></span>
                 <RadzenText TextStyle="TextStyle.H6">Audit Logs</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/settings/api")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) ? "" : " settings-item-disabled"))">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/api")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:robot"></span>
                 <RadzenText TextStyle="TextStyle.H6">API</RadzenText>
             </RadzenCard>
@@ -90,11 +90,10 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     [Parameter]
     public bool IsHome { get; set; }

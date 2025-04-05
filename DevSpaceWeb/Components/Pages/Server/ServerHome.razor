@@ -9,7 +9,7 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:server"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Server</RadzenText>
     </div>
-    @if (!Server.IsConnected)
+    @if (Server == null || !Server.IsConnected)
     {
         <br />
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false" Size="AlertSize.Small">
@@ -76,9 +76,9 @@
                             </RadzenText>
                             @if (Data != null)
                             {
-                                @if (Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo) || Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection))
+                                @if (Member != null && (Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo) || Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection)))
                                 {
-                                    <RadzenTextMask Value="@Server.AgentIp" IsIp="true"></RadzenTextMask>
+                                    <RadzenTextMask Value="@Server?.AgentIp" IsIp="true"></RadzenTextMask>
                                 }
                                 else
                                 {
@@ -222,7 +222,7 @@
                     </RadzenStack>
                 </RadzenColumn>
                 <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks")">
+                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks")">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                             <div>
                                 <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="ri:stack-fill"></span>
@@ -248,7 +248,7 @@
 
                 </RadzenColumn>
                 <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")">
+                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                             <div>
                                 <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="ri:box-3-fill"></span>
@@ -281,7 +281,7 @@
                     </a>
                 </RadzenColumn>
                 <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images")">
+                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images")">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                             <div>
                                 <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:folder-image"></span>
@@ -306,7 +306,7 @@
                     </a>
                 </RadzenColumn>
                 <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes")">
+                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes")">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                             <div>
                                 <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:storage"></span>
@@ -331,7 +331,7 @@
                     </a>
                 </RadzenColumn>
                 <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/networks")">
+                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks")">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                             <div>
                                 <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:local-area-network"></span>
@@ -356,7 +356,7 @@
                     </a>
                 </RadzenColumn>
                 <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/plugins")">
+                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/plugins")">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                             <div>
                                 <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:power-plug"></span>
@@ -483,19 +483,22 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
-    public string OwnerUser { get; set; }
+    public string? OwnerUser { get; set; }
 
     public SystemInfoResponse? Data { get; set; }
 
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (_DB.Users.TryGetValue(Server.OwnerId, out PartialUserData? user))
             OwnerUser = user.UserName;
         else

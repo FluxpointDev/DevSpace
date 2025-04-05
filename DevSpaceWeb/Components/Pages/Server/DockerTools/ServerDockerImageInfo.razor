@@ -5,7 +5,7 @@
 @using Docker.DotNet.Models
 @inject NotificationService Notifications
 
-@if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
+@if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -13,7 +13,7 @@
             <RadzenText TextStyle="TextStyle.H6">Image Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images")" Text="Images" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images")" Text="Images" />
             <RadzenBreadCrumbItem Text="@ImageId" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -33,7 +33,7 @@ else if (Image == null)
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images")" Text="Images" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images")" Text="Images" />
             <RadzenBreadCrumbItem Text="@ImageId" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -52,7 +52,7 @@ else
             <RadzenText TextStyle="TextStyle.H6">Image Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images")" Text="Images" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images")" Text="Images" />
             <RadzenBreadCrumbItem Text="@GetName()" />
         </RadzenBreadCrumb>
         <br />
@@ -150,7 +150,7 @@ else
                     <RadzenTableCell>
                         @if (!string.IsNullOrEmpty(Image.Parent))
                         {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + Image.Parent)">@Image.Parent</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + Image.Parent)">@Image.Parent</RadzenLink>
                         }
                     </RadzenTableCell>
                 </RadzenTableRow>
@@ -165,13 +165,16 @@ else
         </div>
         <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
             <RadzenTableBody>
-                @foreach (var i in Image.RepoTags)
+                @if (Image.RepoTags != null)
                 {
-                    <RadzenTableRow>
-                        <RadzenTableCell>
-                            @i
-                        </RadzenTableCell>
-                    </RadzenTableRow>
+                    foreach (var i in Image.RepoTags)
+                    {
+                        <RadzenTableRow>
+                            <RadzenTableCell>
+                                @i
+                            </RadzenTableCell>
+                        </RadzenTableRow>
+                    }
                 }
             </RadzenTableBody>
         </RadzenTable>
@@ -189,7 +192,7 @@ else
                         Command
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Image.Config.Command
+                        @Image.Config?.Command
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -198,7 +201,7 @@ else
                         Entrypoint
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Image.Config.Entrypoint
+                        @Image.Config?.Entrypoint
 
                     </RadzenTableCell>
                 </RadzenTableRow>
@@ -208,7 +211,7 @@ else
                         Working Directory
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Image.Config.WorkingDirectory
+                        @Image.Config?.WorkingDirectory
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -218,7 +221,7 @@ else
                     </RadzenTableCell>
                     <RadzenTableCell>
                         <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
-                            @if (Image.Config.ExposedPorts != null)
+                            @if (Image.Config != null && Image.Config.ExposedPorts != null)
                             {
                                 @foreach (var i in Image.Config.ExposedPorts)
                                 {
@@ -241,13 +244,16 @@ else
         <br />
         @if (ShowEnvironment)
         {
-            @foreach (var i in ParseEnvironment(Image.Config.Environment))
+            @if (Image.Config != null && Image.Config.Entrypoint != null)
             {
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">
-                    @i.Value
-                </RadzenText>
-                <br />
+                foreach (var i in ParseEnvironment(Image.Config.Environment!))
+                {
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        @i.Value
+                    </RadzenText>
+                    <br />
+                }
             }
         }
         else
@@ -264,9 +270,9 @@ else
             <RadzenText TextStyle="TextStyle.H6">Labels</RadzenText>
         </div>
         <br />
-        @if (Image.Config.Labels != null)
+        @if (Image.Config != null && Image.Config.Labels != null)
         {
-            @foreach (var i in Image.Config.Labels)
+            foreach (var i in Image.Config.Labels)
             {
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
@@ -348,14 +354,14 @@ else
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
-    public string ImageId { get; set; }
+    public required string ImageId { get; set; }
 
     DockerImageInfo? Image { get; set; }
     public bool Failed { get; set; }
@@ -382,9 +388,12 @@ else
     public string GetName()
     {
         string Name = "Unknown";
-        if (Image.RepoTags.Any())
+        if (Image == null)
+            return Name;
+
+        if (Image.RepoTags != null && Image.RepoTags.Any())
             Name = Image.RepoTags.First().Split(':').First();
-        else if (Image.RepoDigests.Any())
+        else if (Image.RepoDigests != null && Image.RepoDigests.Any())
             Name = Image.RepoDigests.First().Split('@').First();
 
         return Name;
@@ -392,6 +401,9 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
             return;
 

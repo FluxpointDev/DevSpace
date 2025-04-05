@@ -14,12 +14,12 @@
         <RadzenText TextStyle="TextStyle.H6">Players</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl)" Text="@Session.Selected.Team?.Console?.Data.Name" />
         <RadzenBreadCrumbItem Text="Players" />
     </RadzenBreadCrumb>
 
-    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPlayers))
+    @if (Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPlayers))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -75,17 +75,20 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ConsoleData Console => Session.Selected.Console;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ConsoleData? Console => Session.Selected.Console;
+    public TeamMemberData? Member => Session.Selected.Member;
 
-    public IEnumerable<Player> Players { get; set; }
+    public IEnumerable<Player>? Players { get; set; }
     public int PlayerCount { get; set; }
 
     void LoadData(LoadDataArgs args)
     {
+        if (Console == null)
+            return;
+
         if (_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc))
         {
             if (rc.IsConnected)
@@ -94,7 +97,7 @@
                 rc.GetMissions();
 
                 PlayerCount = query.Count();
-                Players = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+                Players = query.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
             }
             else
             {
@@ -144,6 +147,9 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+
+        if (Console == null || Member == null)
+            return;
 
         _ = Task.Run(async () =>
         {

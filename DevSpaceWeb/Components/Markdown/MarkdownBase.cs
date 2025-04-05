@@ -4,7 +4,7 @@ namespace DevSpaceWeb.Components.Markdown;
 
 public class MarkdownBase : ComponentBase
 {
-    protected string ContentValue { get; set; }
+    protected string? ContentValue { get; set; }
 
     protected void TextChanged(ChangeEventArgs e)
     {

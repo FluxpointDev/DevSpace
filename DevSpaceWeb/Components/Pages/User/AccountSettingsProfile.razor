@@ -142,9 +142,9 @@
 
 @code {
     [CascadingParameter]
-    public SessionProvider Session { get; set; }
+    public SessionProvider Session { get; set; } = null!;
 
-    public AuthUser AuthUser { get; set; }
+    public AuthUser? AuthUser { get; set; }
 
     private DateFormatLang _userDateFormat = DateFormatLang.Automatic;
     public DateFormatLang UserDateFormat { get { return _userDateFormat; } set { _userDateFormat = value; Session.UserDateFormat = value; SaveUser(); } }
@@ -157,7 +157,7 @@
     }
 
     public bool EmailVerifySent { get; set; }
-    public string Country { get; set; }
+    public string? Country { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -182,6 +182,9 @@
         if (!Program.IsPreviewMode)
         {
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
             AuthUser.Settings.DateFormat = _userDateFormat;
             await UserManager.UpdateAsync(AuthUser);
         }
@@ -238,18 +241,21 @@
     public async Task ChangeEmail()
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         if (!AuthUser.EmailConfirmed)
         {
             await DialogService.ShowInfoAsync("Account Info", "You can't change your email because your current email is not verified.");
             return;
         }
-            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
-            if (!TwoFactorValid)
-            {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
-                return;
-            }
-        
+        bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
+        if (!TwoFactorValid)
+        {
+            await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            return;
+        }
+
 
         DialogOptions options = new DialogOptions() { };
 
@@ -260,7 +266,10 @@
             if (Dialog == true)
             {
                 AuthUser = await Session.GetCurrentUserAsync();
-                await DialogService.ShowInfoAsync("Check your Emails", $"We have sent a confirmation link to INSERT EMAIL so you can change your account email address.");
+                if (AuthUser == null)
+                    return;
+
+                await DialogService.ShowInfoAsync("Check your Emails", $"We have sent a confirmation link so you can change your account email address.");
             }
         }
     }
@@ -284,6 +293,9 @@
     public async Task DisableAccount()
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         if (AuthUser.IsInstanceAdmin)
         {
             await DialogService.ShowInfoAsync("Account Info", "You can't disable your instance admin account.");
@@ -299,6 +311,9 @@
         if (Result)
         {
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
             if (!TwoFactorValid)
             {
@@ -307,6 +322,9 @@
             }
 
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
             if (AuthUser == null)
             {
                 return;
@@ -326,6 +344,9 @@
     public async Task DeleteAccount()
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         if (AuthUser.IsInstanceAdmin)
         {
             await DialogService.ShowInfoAsync("Account Info", "You can't delete your instance admin account.");
@@ -341,6 +362,9 @@
         if (Result)
         {
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
             if (AuthUser.EmailConfirmed)
             {
                 bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
@@ -351,6 +375,9 @@
                 }
             }
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
             await UserManager.DeleteAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.Logout);
             if (AuthUser.EmailConfirmed)

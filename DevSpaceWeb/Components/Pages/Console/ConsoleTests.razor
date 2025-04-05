@@ -13,14 +13,17 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ConsoleData Console => Session.Selected.Console;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ConsoleData? Console => Session.Selected.Console;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     public async Task Update()
     {
+        if (Member == null || Console == null)
+            return;
+
         await Update(Member.Id, new PermissionsSet() { ConsolePermissions = ConsolePermission.BanPlayers });
         await Update(Console.Id, new PermissionsSet());
     }
@@ -29,7 +32,6 @@
     {
         UpdateDefinition<ConsoleData> update = new UpdateDefinitionBuilder<ConsoleData>()
         .Inc($"RolePermissionOverrides.$[{id1.ToString()}]", new KeyValuePair<ObjectId, PermissionsSet>(id1, set));
-
 
 
         FilterDefinition<ConsoleData> filter = Builders<ConsoleData>.Filter.Eq(r => r.Id, Console.Id);

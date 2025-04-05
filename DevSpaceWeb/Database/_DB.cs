@@ -19,7 +19,7 @@ namespace DevSpaceWeb.Database;
 
 public static class _DB
 {
-    public static ConfigureDatabase Configure;
+    public static ConfigureDatabase? Configure;
 
     public static MongoClient Client = null!;
 
@@ -60,7 +60,7 @@ public static class _DB
                         {
                             NullValueHandling = NullValueHandling.Ignore
                         };
-                        config = (ConfigureDatabase)serializer.Deserialize(reader, typeof(ConfigureDatabase));
+                        config = (ConfigureDatabase?)serializer.Deserialize(reader, typeof(ConfigureDatabase));
                     }
                 }
                 catch (Exception ex)
@@ -88,6 +88,9 @@ public static class _DB
             };
         }
 
+        if (Configure == null)
+            throw new Exception("Database configuration is invalid.");
+
         if (string.IsNullOrEmpty(Configure.Host))
             throw new ArgumentException("Database host not configured in appsettings.json");
 
@@ -100,7 +103,7 @@ public static class _DB
         if (string.IsNullOrEmpty(Configure.User))
             throw new ArgumentException("Database user not configured in appsettings.json");
 
-        _DB.Client = new MongoClient(Configure.GetConnectionString());
+        Client = new MongoClient(Configure.GetConnectionString());
 
         Run = Client.GetDatabase(Configure.Name);
         Teams = new ICacheCollection<TeamData>("teams");
@@ -177,7 +180,7 @@ public static class _DB
                 {
                     if (Roles.Cache.TryAdd(x.Id, x))
                     {
-                        if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))
+                        if (Teams.Cache.TryGetValue(x.TeamId, out TeamData? team))
                             team.CachedRoles.Add(x.Id, x);
                     }
                 });
@@ -249,7 +252,7 @@ public static class _DB
 
                     if (Members.Cache.TryAdd(x.Id, x))
                     {
-                        if (Teams.Cache.TryGetValue(x.TeamId, out TeamData team))
+                        if (Teams.Cache.TryGetValue(x.TeamId, out TeamData? team))
                         {
                             // Fix invalid team members
                             if (team.Members.Count == 0)
@@ -499,7 +502,7 @@ public static class _DB
 
     public static Dictionary<ObjectId, PartialUserData> Users = new Dictionary<ObjectId, PartialUserData>();
 
-    public static ICacheCollection<ConsoleData> Consoles = null;
+    public static ICacheCollection<ConsoleData> Consoles = null!;
 
     public static ICacheCollection<ProjectData> Projects = null!;
 

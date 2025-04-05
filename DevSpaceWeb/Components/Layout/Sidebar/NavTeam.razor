@@ -2,14 +2,14 @@
 @inject NavigationManager Nav
 
 <div class="nav-list nav-list-sub nav-team">
-    <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl)" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
+    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
         <div class="rz-navigation-item-wrapper selected-team mb-2">
-            <img src="@Session.Selected.Team.Data.GetIconOrDefault()" />
-            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Team.Data.Name</h5>
+            <img src="@Session.Selected.Team?.Data.GetIconOrDefault()" />
+            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Team?.Data.Name</h5>
         </div>
     </RadzenLink>
     <RadzenPanelMenu>
-    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers")" class="nav-link-server" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" class="nav-link-server" Match="NavLinkMatch.All">
         <Template>
             <span class="iconify" data-icon="mdi:server"></span>
             <p>
@@ -19,7 +19,7 @@
     </RadzenPanelMenuItem>
     @if (!Program.LimitMode)
     {
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" class="nav-link-server" Match="NavLinkMatch.All">
+            <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" class="nav-link-server" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:console-line"></span>
                 <p>
@@ -27,7 +27,7 @@
                 </p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/links")" class="nav-link-server" Match="NavLinkMatch.All">
+            <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/links")" class="nav-link-server" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:link-variant"></span>
                 <p>
@@ -35,19 +35,19 @@
                 </p>
             </Template>
         </RadzenPanelMenuItem>
-        @* <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/websites")" class="nav-link-web" Match="NavLinkMatch.All">
+            @* <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/websites")" class="nav-link-web" Match="NavLinkMatch.All">
         <Template>
             <span class="iconify" data-icon="mdi:web"></span>
             <p>Websites</p>
         </Template>
     </RadzenPanelMenuItem>
-    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/projects")" class="nav-link-projects" Match="NavLinkMatch.All">
+    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects")" class="nav-link-projects" Match="NavLinkMatch.All">
         <Template>
             <span class="iconify" data-icon="mdi:lightbulb"></span>
             <p>Projects</p>
         </Template>
     </RadzenPanelMenuItem>
-    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/logs")" class="nav-link-errors" Match="NavLinkMatch.All">
+    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/logs")" class="nav-link-errors" Match="NavLinkMatch.All">
         <Template>
             <span class="iconify" data-icon="mdi:warning"></span>
             <p>Error Logs (Sentry)</p>
@@ -60,20 +60,20 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     [Parameter]
     public bool StateChange { get; set; }
 
     public TeamData? Team => Session.Selected.Team?.Data;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Members", Icon = "group", Disabled = !Member.HasTeamPermission(Team, TeamPermission.ViewMembers) },
-                new ContextMenuItem(){ Text = "Roles", Icon = "sell", Disabled = !Member.HasTeamPermission(Team, TeamPermission.ViewRoles) },
-                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = !Member.HasTeamPermission(Team, TeamPermission.ViewPermissions) },
-                new ContextMenuItem(){ Text = "Audit Logs", Icon = "format_list_bulleted", Disabled = !Member.HasTeamPermission(Team, TeamPermission.ViewAuditLogs) },
-                new ContextMenuItem(){ Text = "API", Icon = "smart_toy", Disabled = !Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(Team, APIPermission.ViewAllAPIs) },
+                new ContextMenuItem(){ Text = "Members", Icon = "group", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewMembers) },
+                new ContextMenuItem(){ Text = "Roles", Icon = "sell", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles) },
+                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewPermissions) },
+                new ContextMenuItem(){ Text = "Audit Logs", Icon = "format_list_bulleted", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewAuditLogs) },
+                new ContextMenuItem(){ Text = "API", Icon = "smart_toy", Disabled = Member == null || !Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(Team, APIPermission.ViewAllAPIs) },
          }, OnMenuItemClick);
 
     void OnMenuItemClick(MenuItemEventArgs arg)
@@ -81,19 +81,19 @@
         switch (arg.Text)
         {
             case "Members":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/settings/members");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/members");
                 break;
             case "Roles":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/settings/roles");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/roles");
                 break;
             case "Permissions":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/settings/permissions");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/permissions");
                 break;
             case "Audit Logs":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/settings/audit");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/audit");
                 break;
             case "API":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/settings/api");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/api");
                 break;
         }
         ContextMenuService.Close();

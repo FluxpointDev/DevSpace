@@ -108,9 +108,9 @@ public class EmailTemplateData
         return "question_mark";
     }
 
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
-    public string Body { get; set; }
+    public string? Body { get; set; }
 
     public bool IsCustomHtml { get; set; }
 

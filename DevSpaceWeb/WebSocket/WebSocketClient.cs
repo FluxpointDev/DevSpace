@@ -14,7 +14,7 @@ namespace DevSpaceWeb.WebSocket;
 public class WebSocketBase
 {
     [JsonIgnore]
-    public WebSocketClient Client;
+    public WebSocketClient? Client;
     [JsonIgnore]
     public ConcurrentDictionary<string, TaskCompletionSource<JToken>> TaskCollection = new ConcurrentDictionary<string, TaskCompletionSource<JToken>>();
 }
@@ -60,7 +60,7 @@ public class WebSocketClient : WssClient
     public override void OnWsReceived(byte[] buffer, long offset, long size)
     {
         Logger.LogMessage("WebSocket", "Got MESSAGE", LogSeverity.Info);
-        WebSocketMessage(WebSocket, Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
+        _ = WebSocketMessage(WebSocket, Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
     }
 
 
@@ -116,7 +116,7 @@ public class WebSocketClient : WssClient
         }
         catch (Exception ex)
         {
-            Logger.LogMessage("WebSocket", $"WebSocket Event {payload["type"].ToString()} Error", LogSeverity.Error);
+            Logger.LogMessage("WebSocket", $"WebSocket Event {payload["type"]?.ToString()} Error", LogSeverity.Error);
             Logger.LogMessage("WebSocket", ex.ToString(), LogSeverity.Error);
         }
     }

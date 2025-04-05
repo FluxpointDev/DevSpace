@@ -116,7 +116,7 @@ public static class Utils
     }
 
     private static readonly string[] SizeSuffixes =
-                   { "B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+                   ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
     public static string SizeSuffix(Int64 value, int decimalPlaces = 0)
     {
         if (decimalPlaces < 0) { throw new ArgumentOutOfRangeException("decimalPlaces"); }
@@ -165,7 +165,7 @@ public static class Utils
         return chosenValue;
     }
 
-    public static CultureInfo GetCultureFromTwoLetterCountryCode(string twoLetterISOCountryCode)
+    public static CultureInfo? GetCultureFromTwoLetterCountryCode(string twoLetterISOCountryCode)
     {
         try
         {
@@ -180,7 +180,7 @@ public static class Utils
         }
     }
 
-    public static string GetUserIpAddress(HttpContext context)
+    public static string? GetUserIpAddress(HttpContext context)
     {
         // Test ip in development
         if (Program.IsDevMode || Program.IsPreviewMode)
@@ -207,7 +207,7 @@ public static class Utils
 
         using (SHA256Managed sha = new SHA256Managed())
         {
-            byte[] textData = System.Text.Encoding.UTF8.GetBytes(text);
+            byte[] textData = Encoding.UTF8.GetBytes(text);
             byte[] hash = sha.ComputeHash(textData);
             return BitConverter.ToString(hash).Replace("-", String.Empty);
         }

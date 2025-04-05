@@ -21,11 +21,11 @@ public class Program
     /// </summary>
     public static string Version => Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
 
-    public static string CurrentDirectory = System.AppDomain.CurrentDomain.BaseDirectory;
+    public static string CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
-    public static DockerClient DockerClient;
+    public static DockerClient? DockerClient;
 
-    public static X509Certificate2 Certificate;
+    public static X509Certificate2? Certificate;
 
     public static bool DockerFailed = false;
 
@@ -37,7 +37,7 @@ public class Program
 
     public static void SaveTemplates()
     {
-        using (StreamWriter file = File.CreateText(Program.CurrentDirectory + $"Data/Templates.json"))
+        using (StreamWriter file = File.CreateText(CurrentDirectory + $"Data/Templates.json"))
         {
             JsonSerializer serializer = new JsonSerializer
             {
@@ -49,7 +49,7 @@ public class Program
 
     public static void SaveStacks()
     {
-        using (StreamWriter file = File.CreateText(Program.CurrentDirectory + $"Data/Stacks.json"))
+        using (StreamWriter file = File.CreateText(CurrentDirectory + $"Data/Stacks.json"))
         {
             JsonSerializer serializer = new JsonSerializer
             {
@@ -135,7 +135,7 @@ public class Program
         if (e.Action.EndsWith("healthcheck") || e.Action == "exec_die")
             return;
         Console.WriteLine("--- Docker Message ---");
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(e, Newtonsoft.Json.Formatting.Indented));
+        Console.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
         switch (e.Type)
         {
             case "container":

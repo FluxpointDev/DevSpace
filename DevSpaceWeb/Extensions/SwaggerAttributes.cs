@@ -153,7 +153,8 @@ public class SwaggerCheckAuthFilter : IOperationFilter
         if (List != null)
         {
             OpenApiParameter? Parameter = operation.Parameters.FirstOrDefault(x => x.Name == List.Name);
-            Parameter.Schema.Enum = List.List.Select(x => new OpenApiString(x)).ToArray();
+            if (Parameter != null)
+                Parameter.Schema.Enum = List.List.Select(x => new OpenApiString(x)).ToArray();
         }
 
         //SwaggerRequestBodyAttribute? body = context.MethodInfo.GetCustomAttribute<SwaggerRequestBodyAttribute>(false);

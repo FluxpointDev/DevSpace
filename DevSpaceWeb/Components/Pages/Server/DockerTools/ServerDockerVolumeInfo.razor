@@ -2,7 +2,7 @@
 @using DevSpaceShared.Events.Docker
 @inject NotificationService Notifications
 
-@if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
+@if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -10,7 +10,7 @@
             <RadzenText TextStyle="TextStyle.H6">Volume Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes")" Text="Volumes" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes")" Text="Volumes" />
             <RadzenBreadCrumbItem Text="@VolumeId" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -30,7 +30,7 @@ else if (Volume == null)
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes")" Text="Volumes" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes")" Text="Volumes" />
             <RadzenBreadCrumbItem Text="@VolumeId" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -49,7 +49,7 @@ else
             <RadzenText TextStyle="TextStyle.H6">Volume Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes")" Text="Volumes" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes")" Text="Volumes" />
             @if (Volume.Containers != null && Volume.Containers.Any() && Volume.Containers.First().Value == "registry")
             {
                 <RadzenBreadCrumbItem Text="docker_registry" />
@@ -120,20 +120,23 @@ else
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
-    public string VolumeId { get; set; }
+    public required string VolumeId { get; set; }
 
     public DockerVolumeInfo? Volume { get; set; }
     public bool Failed { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
             return;
 

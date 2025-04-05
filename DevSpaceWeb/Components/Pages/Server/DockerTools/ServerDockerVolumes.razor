@@ -18,13 +18,13 @@
     <div class="dash-box-content dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:storage"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Docker Volumes</RadzenText>
-        @if ((IsLoading || IsActionRunning) && Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
+        @if ((IsLoading || IsActionRunning) && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
         {
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
     </div>
     
-    @if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
+    @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -62,11 +62,11 @@
                 <Template>
                     @if (context.Containers != null && context.Containers.Any() && context.Containers.First().Value == "registry")
                     {
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + context.Name)">docker_registry</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">docker_registry</RadzenLink>
                     }
                     else
                     {
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
                     }
                         
                 </Template>
@@ -131,24 +131,27 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
-    SocketResponse<DockerVolumeInfo[]>? VolumesResponse = null;
+    SocketResponse<DockerVolumeInfo[]?>? VolumesResponse = null;
 
-    IQueryable<DockerVolumeInfo> VolumesList;
+    IQueryable<DockerVolumeInfo>? VolumesList;
     public int Count = 0;
-    IList<DockerVolumeInfo> SelectedVolumes;
+    IList<DockerVolumeInfo>? SelectedVolumes;
     public bool AnySelected => SelectedVolumes != null ? SelectedVolumes.Any() : false;
-    RadzenDataGrid<DockerVolumeInfo> Grid;
+    RadzenDataGrid<DockerVolumeInfo> Grid = null!;
     public bool IsLoading = true;
     public bool IsActionRunning { get; set; }
 
     public async Task LoadData(LoadDataArgs args)
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
             return;
 
@@ -178,7 +181,7 @@
 
             }
 
-            if (VolumesResponse != null && VolumesResponse.IsSuccess)
+            if (VolumesResponse != null && VolumesResponse.IsSuccess && VolumesResponse.Data != null)
             {
                 IQueryable<DockerVolumeInfo> query = VolumesResponse.Data.AsQueryable();
 
@@ -189,7 +192,7 @@
                     query = query.OrderBy(args.OrderBy);
 
                 Count = query.Count();
-                VolumesList = query.OrderBy(x => x.Name).Skip(args.Skip.Value).Take(args.Top.Value);
+                VolumesList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
             }
         }
     }
@@ -209,6 +212,9 @@
             return;
         }
 
+        if (Member == null || Server == null || SelectedVolumes == null)
+            return;
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
             return;
 
@@ -225,16 +231,16 @@
             SelectedVolumes.Clear();
             await InvokeAsync(RefreshVolume);
         });
-        
+
     }
 
     void ShowContextMenuWithManageItems(DockerVolumeInfo item, MouseEventArgs args)
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "View", Value = "view", Icon = "database", Disabled = !Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes) },
-                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = item.ContainersCount != 0 || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes) },
-                new ContextMenuItem() { Text = "Force Remove", Value = "force_remove", Icon = "delete_forever", Disabled = !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes) }
+                new ContextMenuItem(){ Text = "View", Value = "view", Icon = "database", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes) },
+                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = Member == null || item.ContainersCount != 0 || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes) },
+                new ContextMenuItem() { Text = "Force Remove", Value = "force_remove", Icon = "delete_forever", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes) }
                                                          }, x => MenuItemClick(x, item));
     }
 
@@ -246,15 +252,18 @@
             return;
         }
 
+        if (Member == null || Server == null)
+            return;
+
         _ = Task.Run(async () =>
         {
             switch (args.Value.ToString())
             {
                 case "view":
-                if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
-                    return;
+                    if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
+                        return;
 
-                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + item.Name);
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + item.Name);
                     break;
                 case "remove":
                     {
@@ -265,7 +274,7 @@
                         await InvokeAsync(StateHasChanged);
                         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, item.Name, volumeType: ControlVolumeType.Remove), (response) =>
                         {
-                            
+
                         });
                         IsActionRunning = false;
                         await InvokeAsync(RefreshVolume);
@@ -308,6 +317,9 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+
+        if (Member == null || Server == null)
+            return;
 
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
             return;

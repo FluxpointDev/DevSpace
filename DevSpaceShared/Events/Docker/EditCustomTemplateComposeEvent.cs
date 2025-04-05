@@ -2,5 +2,5 @@
 
 public class EditCustomTemplateComposeEvent
 {
-    public string Data { get; set; }
+    public string? Data { get; set; }
 }

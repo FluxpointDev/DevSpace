@@ -5,9 +5,12 @@ namespace DevSpaceWeb.Models.Validation;
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public class PasswordValidationAttribute : ValidationAttribute
 {
-    public override bool IsValid(object value)
+    public override bool IsValid(object? value)
     {
-        string actualValue = value as string;
+        string? actualValue = value as string;
+        if (string.IsNullOrEmpty(actualValue))
+            return false;
+
         bool HasCapital = false;
         bool HasLower = false;
         bool HasDigit = false;

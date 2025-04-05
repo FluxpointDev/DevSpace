@@ -28,7 +28,7 @@ public class AuthLoginController : AuthControllerContext
     [HttpPost("/auth/login")]
     public async Task<IActionResult> Login([FromForm] string email = "", [FromForm] string password = "", [FromHeader] string RequestId = "", [FromForm] bool rememberMe = false)
     {
-        if (string.IsNullOrEmpty(RequestId) || !Cache.TryGetValue("login-" + RequestId, out UserSessionJson SessionJson))
+        if (string.IsNullOrEmpty(RequestId) || !Cache.TryGetValue("login-" + RequestId, out UserSessionJson? SessionJson))
             return BadRequest("Request is invalid or expired");
 
         if (!_Data.Config.Auth.AllowInternalLogin)
@@ -74,7 +74,7 @@ public class AuthLoginController : AuthControllerContext
             return BadRequest("Invalid email or password.");
         }
 
-        string SessionId = Request.Cookies["DevSpace.SessionId"];
+        string? SessionId = Request.Cookies["DevSpace.SessionId"];
         if (string.IsNullOrEmpty(SessionId))
         {
             SessionId = Guid.NewGuid().ToString();
@@ -87,7 +87,7 @@ public class AuthLoginController : AuthControllerContext
             });
         }
 
-        if (!AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession Session))
+        if (!AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession? Session))
             AuthUser.Account.Sessions.Add(SessionId, UserSession.Create(SessionJson));
         else
             Session.LastLoginAt = DateTime.UtcNow;
@@ -111,7 +111,7 @@ public class AuthLoginController : AuthControllerContext
         if (!_Data.Config.Auth.AllowExternalLogin)
             return Unauthorized("External login has been disabled on this instance.");
 
-        if (!AlreadyAuthed && (string.IsNullOrEmpty(requestId) || !Cache.TryGetValue("login-" + requestId, out UserSessionJson SessionJson)))
+        if (!AlreadyAuthed && (string.IsNullOrEmpty(requestId) || !Cache.TryGetValue("login-" + requestId, out UserSessionJson? SessionJson)))
             return BadRequest("Request is invalid or expired");
 
         string redirectUrl = "/auth/external/callback";
@@ -182,7 +182,7 @@ public class AuthLoginController : AuthControllerContext
 
         bool RememberMe = false;
         string? RequestId = null;
-        if (info.AuthenticationProperties.Items.TryGetValue("RememberMe", out string val))
+        if (info.AuthenticationProperties.Items.TryGetValue("RememberMe", out string? val))
             bool.TryParse(val, out RememberMe);
         info.AuthenticationProperties.Items.TryGetValue("RequestId", out RequestId);
         UserSessionJson? SessionJson = null;
@@ -212,7 +212,7 @@ public class AuthLoginController : AuthControllerContext
 
         if (!AlreadyAuthed)
         {
-            string SessionId = Request.Cookies["DevSpace.SessionId"];
+            string? SessionId = Request.Cookies["DevSpace.SessionId"];
             if (string.IsNullOrEmpty(SessionId))
             {
                 SessionId = Guid.NewGuid().ToString();
@@ -225,7 +225,7 @@ public class AuthLoginController : AuthControllerContext
                 });
             }
 
-            if (!AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession Session))
+            if (!AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession? Session))
                 AuthUser.Account.Sessions.Add(SessionId, UserSession.Create(SessionJson));
             else
                 Session.LastLoginAt = DateTime.UtcNow;
@@ -262,7 +262,7 @@ public class AuthLoginController : AuthControllerContext
     [HttpGet("/logout")]
     public async Task<IActionResult> Logout()
     {
-        if (!User.Identity.IsAuthenticated)
+        if (User.Identity == null || !User.Identity.IsAuthenticated)
             return Redirect("/");
 
         if (!Program.IsPreviewMode)
@@ -271,7 +271,7 @@ public class AuthLoginController : AuthControllerContext
             if (AuthUser != null)
             {
                 string? SessionId = Request.Cookies["DevSpace.SessionId"];
-                if (!string.IsNullOrEmpty(SessionId) && AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession Session))
+                if (!string.IsNullOrEmpty(SessionId) && AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession? Session))
                 {
                     Session.AuthorizedIps.Clear();
                     await _userManager.UpdateAsync(AuthUser);

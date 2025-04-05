@@ -80,7 +80,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public Popup NotificationsPopup { get; set; }
     public RadzenButton NotificationsButton { get; set; }
@@ -92,7 +92,7 @@
 
     public async Task Open()
     {
-        LoadData(new LoadDataArgs
+        _ = LoadData(new LoadDataArgs
             {
                 Top = 5
             });
@@ -111,19 +111,21 @@
 
     protected override async Task OnInitializedAsync()
     {
+        if (Session.CurrentUser != null)
         Session.CurrentUser.NotificationTriggered += NotificationTriggered;
     }
 
     public void Dispose()
     {
-        Session.CurrentUser.NotificationTriggered -= NotificationTriggered;
+        if (Session.CurrentUser != null)
+            Session.CurrentUser.NotificationTriggered -= NotificationTriggered;
     }
 
     public void NotificationTriggered(Notification notification)
     {
         if (dataList != null && dataList.CurrentPage == 1)
         {
-        LoadData(new LoadDataArgs
+        _ = LoadData(new LoadDataArgs
             {
                 Top = 5
             });
@@ -135,6 +137,7 @@
     {
         NotificationItems.Clear();
         NotificationCount = 0;
-        await Session.CurrentUser.ClearNotifications();
+        if (Session.CurrentUser != null)
+            await Session.CurrentUser.ClearNotifications();
     }
 }

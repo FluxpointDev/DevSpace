@@ -1,16 +1,16 @@
 ﻿<div class="nav-list nav-list-sub">
     <div class="nav-list-header">
         <span class="iconify" data-icon="mdi:web"></span>
-        <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Website.Name</h5>
+        <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Website?.Name</h5>
     </div>
     <RadzenPanelMenu>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/websites/" + Session.Selected.Team.Website.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/websites/" + Session.Selected.Team?.Website?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
             <span class="iconify" data-icon="mdi:home"></span>
             <p>Home</p>
         </Template>
     </RadzenPanelMenuItem>
-    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/websites/" + Session.Selected.Team.Website.VanityUrl + "/cloudflare")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/websites/" + Session.Selected.Team?.Website?.VanityUrl + "/cloudflare")" Match="NavLinkMatch.All">
         <Template>
             <span class="iconify" data-icon="mdi:cloud"></span>
             <p>Cloudflare</p>
@@ -22,7 +22,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     [Parameter]
     public bool StateChange { get; set; }

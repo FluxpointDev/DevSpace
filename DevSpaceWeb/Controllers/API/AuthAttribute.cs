@@ -42,7 +42,7 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
-        string Authorization = filterContext.HttpContext.Request.Headers["Authorization"];
+        string? Authorization = filterContext.HttpContext.Request.Headers["Authorization"];
         if (string.IsNullOrEmpty(Authorization))
         {
             filterContext.Result = controller.CustomStatus(401, "Authorization header is empty.");
@@ -59,7 +59,7 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
         string Auth = Parts[1];
 
         if (ObjectId.TryParse(ClientId, out ObjectId id))
-            _DB.API.Cache.TryGetValue(id, out controller.Client);
+            _DB.API.Cache.TryGetValue(id, out controller.Client!);
 
         if (controller.Client == null)
         {

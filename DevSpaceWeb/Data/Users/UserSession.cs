@@ -4,8 +4,8 @@ public class UserSession
 {
     public bool IsMobile { get; private set; }
     public SessionBrowserType BrowserType { get; private set; }
-    public string Country { get; private set; }
-    public string Name;
+    public string? Country { get; private set; }
+    public string? Name;
     public HashSet<string> AuthorizedIps { get; private set; } = new HashSet<string>();
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt;
@@ -26,8 +26,8 @@ public class UserSessionJson
 {
     public bool IsMobile { get; set; }
     public int BrowserType { get; set; }
-    public string Country { get; set; }
-    public string Email { get; set; }
+    public string? Country { get; set; }
+    public string? Email { get; set; }
 }
 public enum SessionBrowserType
 {

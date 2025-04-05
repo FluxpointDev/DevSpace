@@ -4,7 +4,7 @@
 @using Newtonsoft.Json.Linq
 @inject NotificationService Notifications
 
-@if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
+@if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -12,8 +12,8 @@
             <RadzenText TextStyle="TextStyle.H6">Container Stats</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
             <RadzenBreadCrumbItem Text="Stats" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -33,8 +33,8 @@ else if (Container == null)
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
             <RadzenBreadCrumbItem Text="Stats" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -53,8 +53,8 @@ else if (Container.IsNotRunning)
             <RadzenText TextStyle="TextStyle.H6">Container Stats</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@Container.ContainerName" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@Container.ContainerName" />
             <RadzenBreadCrumbItem Text="Stats" />
         </RadzenBreadCrumb>
         <br />
@@ -71,8 +71,8 @@ else
             <RadzenText TextStyle="TextStyle.H6">Container Stats</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@Container.ContainerName" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@Container.ContainerName" />
             <RadzenBreadCrumbItem Text="Stats" />
         </RadzenBreadCrumb>
         <br />
@@ -158,20 +158,23 @@ else
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
-    public string ContainerId { get; set; }
+    public required string ContainerId { get; set; }
 
     public DockerContainerProcesses? Container { get; set; }
     public bool Failed { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
             return;
 

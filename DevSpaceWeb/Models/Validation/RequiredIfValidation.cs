@@ -41,10 +41,10 @@ public class RequiredIfValidationAttribute : ValidationAttribute
         OtherPropertyValue = otherPropertyValue;
     }
 
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    protected override ValidationResult IsValid(object? value, ValidationContext validationContext)
     {
 
-        PropertyInfo otherPropertyInfo = validationContext
+        PropertyInfo? otherPropertyInfo = validationContext
             .ObjectType.GetProperty(OtherProperty);
         if (otherPropertyInfo == null)
         {
@@ -56,7 +56,7 @@ public class RequiredIfValidationAttribute : ValidationAttribute
         }
 
         // Determine whether to run [Required] validation
-        object actualOtherPropertyValue = otherPropertyInfo
+        object? actualOtherPropertyValue = otherPropertyInfo
             .GetValue(validationContext.ObjectInstance, null);
         if (!IsInverted && Equals(actualOtherPropertyValue, OtherPropertyValue) ||
             IsInverted && !Equals(actualOtherPropertyValue, OtherPropertyValue))

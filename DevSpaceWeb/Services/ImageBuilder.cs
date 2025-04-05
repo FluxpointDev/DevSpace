@@ -11,16 +11,16 @@ public class ImageBuilder
 
     public class CanvasImage
     {
-        public string type { get; set; }
+        public string? type { get; set; }
 
-        public string path { get; set; }
+        public string? path { get; set; }
     }
 
-    public async Task<SKSurface> Build()
+    public async Task<SKSurface?> Build()
     {
-        SKSurface surface = null;
+        SKSurface? surface = null;
 
-        SKCanvas myCanvas = null;
+        SKCanvas? myCanvas = null;
 
 
 

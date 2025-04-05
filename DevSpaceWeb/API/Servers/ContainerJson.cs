@@ -48,8 +48,8 @@ public class ContainerJson
     public string name;
     public string image_id;
     public string image_name;
-    public string stack_id;
-    public string stack_name;
+    public string? stack_id;
+    public string? stack_name;
     public string status;
     public string state;
     public DateTime created_at;

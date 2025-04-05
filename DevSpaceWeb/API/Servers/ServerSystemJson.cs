@@ -25,11 +25,11 @@ public class ServerSystemJson
 
     public string id;
     public string name;
-    public string agent_version;
-    public string agent_net;
+    public string? agent_version;
+    public string? agent_net;
     public string uptime_text;
     public long uptime_number;
-    public string operating_system;
+    public string? operating_system;
     public long cpu_count;
     public long storage_total_size;
     public long storage_free_size;
@@ -67,17 +67,17 @@ public class ServerHostJson : ServerSystemJson
         warnings = host.Warnings;
     }
     public string ip;
-    public string kernel_version;
-    public string root_directory;
-    public string storage_driver;
-    public string logging_driver;
-    public string system_driver;
-    public IList<string> volume_plugins;
-    public IList<string> network_plugins;
-    public IList<string> log_plugins;
-    public IList<string> auth_plugins;
-    public string hostname;
-    public IList<string> warnings;
+    public string? kernel_version;
+    public string? root_directory;
+    public string? storage_driver;
+    public string? logging_driver;
+    public string? system_driver;
+    public IList<string>? volume_plugins;
+    public IList<string>? network_plugins;
+    public IList<string>? log_plugins;
+    public IList<string>? auth_plugins;
+    public string? hostname;
+    public IList<string>? warnings;
 }
 public class ServerDockerJson
 {
@@ -96,8 +96,8 @@ public class ServerDockerJson
     }
 
     public int networks_count;
-    public string docker_version;
-    public string api_version;
+    public string? docker_version;
+    public string? api_version;
     public int stacks_count;
     public long all_containers_count;
     public long running_containers_count;

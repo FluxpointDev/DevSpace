@@ -44,6 +44,9 @@ public static class DockerNetworks
                 await client.Networks.DeleteNetworkAsync(id);
                 break;
             case ControlNetworkType.LeaveNetwork:
+                if (@event.ResourceList == null)
+                    throw new Exception("Networks list is missing.");
+
                 await client.Networks.DisconnectNetworkAsync(id, new NetworkDisconnectParameters
                 {
                     Container = @event.ResourceList.First()

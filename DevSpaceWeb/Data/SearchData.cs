@@ -32,5 +32,5 @@ public class SearchDataItem
     public string Name;
     public string Type;
     public string Path;
-    public string[] Tags = new string[0];
+    public string[] Tags = [];
 }

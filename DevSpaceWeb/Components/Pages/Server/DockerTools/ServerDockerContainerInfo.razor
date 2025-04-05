@@ -7,7 +7,7 @@
 @inject NotificationService Notifications
 @inject DialogService Dialog
 
-@if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+@if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -15,7 +15,7 @@
             <RadzenText TextStyle="TextStyle.H6">Container Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
             <RadzenBreadCrumbItem Text="@ContainerId" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -35,7 +35,7 @@ else if (Container == null)
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
             <RadzenBreadCrumbItem Text="@ContainerId" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -58,7 +58,7 @@ else
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
             <RadzenBreadCrumbItem Text="@Container.Name.Substring(1)" />
         </RadzenBreadCrumb>
         <br />
@@ -141,7 +141,7 @@ else
                         Image
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + Container.Image)">@Container.Config.Image</RadzenLink>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + Container.Image)">@Container.Config.Image</RadzenLink>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -177,11 +177,11 @@ else
 
                 <RadzenTableRow>
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" class="mt-2">
-                        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId + "/logs")"><RadzenButton Icon="description" Variant="Variant.Text" Text="Logs" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewLogs)" /></a>
-                        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId + "/stats")"><RadzenButton Icon="bar_chart_4_bars" Variant="Variant.Text" Text="Stats" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewStats)" /></a>
-                        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId + "/changes")"><RadzenButton Icon="topic" Variant="Variant.Text" Text="Changes" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewChanges)" /></a>
-                        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId + "/console")"><RadzenButton Icon="terminal" Variant="Variant.Text" Text="Console" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanUseConsole)" /></a>
-                        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId + "/inspect")"><RadzenButton Icon="info" Variant="Variant.Text" Text="Inspect" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanInspect)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/logs")"><RadzenButton Icon="description" Variant="Variant.Text" Text="Logs" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewLogs)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/stats")"><RadzenButton Icon="bar_chart_4_bars" Variant="Variant.Text" Text="Stats" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewStats)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/changes")"><RadzenButton Icon="topic" Variant="Variant.Text" Text="Changes" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewChanges)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/console")"><RadzenButton Icon="terminal" Variant="Variant.Text" Text="Console" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanUseConsole)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/inspect")"><RadzenButton Icon="info" Variant="Variant.Text" Text="Inspect" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanInspect)" /></a>
                     </RadzenStack>
                 </RadzenTableRow>
             </RadzenTableBody>
@@ -742,7 +742,7 @@ else
                         <Template>
                             @if (context.Type == "volume")
                             {
-                                <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                                <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
                             }
                             else
                             {
@@ -795,7 +795,7 @@ else
                 <Columns>
                     <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
                         <Template>
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/networks/" + context.Value.NetworkID)">@context.Key</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + context.Value.NetworkID)">@context.Key</RadzenLink>
                             @if (IsNetworkSystem(context.Key))
                             {
                                 <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
@@ -938,7 +938,7 @@ else
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -947,7 +947,7 @@ else
     [Parameter]
     public string ContainerId { get; set; }
 
-    public ContainerInspectResponse Container { get; set; }
+    public ContainerInspectResponse? Container { get; set; }
     public bool Failed { get; set; }
 
     public bool IsActionLoading { get; set; }
@@ -1006,6 +1006,9 @@ else
 
     public async Task UpdateName()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
             return;
 
@@ -1032,6 +1035,9 @@ else
 
     public async Task UpdateRestartMode()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
             return;
 
@@ -1083,6 +1089,9 @@ else
 
     public void LoadPerms()
     {
+        if (Member == null)
+            return;
+
         CanManageContainer = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers);
         CanControlContainer = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers);
         CanViewLogs = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs);
@@ -1099,7 +1108,7 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+        if (Member == null || Server == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
             return;
 
         LoadPerms();
@@ -1110,7 +1119,7 @@ else
             Failed = !Result.IsSuccess;
             Container = Result.Data;
 
-            if (Result.IsSuccess)
+            if (Result.IsSuccess && Container != null)
             {
                 RestartCount = Container.HostConfig.RestartPolicy.MaximumRetryCount;
                 switch (Container.HostConfig.RestartPolicy.Name)
@@ -1146,6 +1155,9 @@ else
             Session.ShowPreviewModeNotice();
             return;
         }
+        if (Member == null || Server == null)
+            return;
+
         if (type == ControlContainerType.Remove || type == ControlContainerType.ForceRemove)
         {
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
@@ -1196,6 +1208,9 @@ else
 
     public async Task RunSecurityScan()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
             return;
 
@@ -1240,10 +1255,7 @@ else
 
                 if (ScanResult.IsSuccess && ScanResult.Data != null && ScanResult.Data.IsComplete.HasValue && ScanResult.Data.IsComplete == true)
                 {
-                    string[] lines = ScanResult.Data.Logs.Split(
-                    new string[] { "\r\n", "\r", "\n" },
-                    StringSplitOptions.RemoveEmptyEntries
-                    );
+                    string[] lines = ScanResult.Data.Logs.SplitNewlines(trim: false);
                     if (lines.Any())
                     {
                         StringBuilder builder = new StringBuilder();
@@ -1294,6 +1306,9 @@ else
                                         SecurityHasIssues = true;
                                         foreach (var i in SecurityResults)
                                         {
+                                            if (i.Vulnerabilities != null)
+                                                continue;
+
                                             foreach (var v in i.Vulnerabilities)
                                             {
                                                 if (string.IsNullOrEmpty(i.CurrentSeverity))

@@ -85,10 +85,10 @@ namespace DevSpaceShared.Data
             return Info;
         }
 
-        public string ID { get; set; }
-        public string Name { get; set; }
+        public required string ID { get; set; }
+        public required string Name { get; set; }
 
-        public string Version { get; set; }
+        public string? Version { get; set; }
 
         public DateTime Created { get; set; }
 
@@ -113,17 +113,17 @@ namespace DevSpaceShared.Data
 
         public string? DockerVersion { get; set; }
 
-        public string Os { get; set; }
+        public string? Os { get; set; }
 
-        public string Architecture { get; set; }
+        public string? Architecture { get; set; }
 
-        public string OsVersion { get; set; }
+        public string? OsVersion { get; set; }
 
-        public string Comment { get; set; }
+        public string? Comment { get; set; }
 
-        public string Driver { get; set; }
+        public string? Driver { get; set; }
 
-        public DockerImageConfig Config { get; set; }
+        public DockerImageConfig? Config { get; set; }
     }
 }
 

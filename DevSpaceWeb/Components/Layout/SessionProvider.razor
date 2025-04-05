@@ -177,7 +177,7 @@
 
     public SelectedSessionData Selected = new SelectedSessionData();
 
-    public string BackgroundUrl { get; set; } = "https://cdn.fluxpoint.dev/devspace/background.webp";
+    public string? BackgroundUrl { get; set; } = "https://cdn.fluxpoint.dev/devspace/background.webp";
 
     public int UserDateOffset { get; set; }
     public DateFormatLang UserDateFormat { get; set; } = DateFormatLang.MDY_Slash;
@@ -186,14 +186,14 @@
 
     public bool IsInstanceAdmin { get; set; }
 
-    public string WebSocketTest { get; set; }
+    public string? WebSocketTest { get; set; }
 
     public async Task<AuthUser?> GetCurrentUserAsync()
     {
         return await UserManager.GetUserAsync(State.User)!;
     }
 
-    public string CurrentCountry { get; set; }
+    public string? CurrentCountry { get; set; }
 
     public async Task<string> GetCountryAsync()
     {
@@ -205,7 +205,7 @@
 
     public void ShowPreviewModeNotice()
     {
-        DialogService.ShowInfoAsync("Preview Mode", "This feature is not available in preview mode.");
+        _ = DialogService.ShowInfoAsync("Preview Mode", "This feature is not available in preview mode.");
     }
 
     public DateTime? TwoFactorTimeout = null;
@@ -317,9 +317,9 @@
 
         if (Path.StartsWith("admin", StringComparison.OrdinalIgnoreCase))
         {
-            if (State != null && State.User.Identity.IsAuthenticated)
+            if (State.User.Identity != null && State.User.Identity.IsAuthenticated)
             {
-                AuthUser User = await GetCurrentUserAsync();
+                AuthUser? User = await GetCurrentUserAsync();
                 if (User == null)
                 {
                     SessionError = SessionErrorType.AuthenticationError;
@@ -371,7 +371,7 @@
                 SessionError = SessionErrorType.DatabaseError;
                 return;
             }
-            else if (!State.User.Identity.IsAuthenticated)
+            else if (State.User.Identity == null || !State.User.Identity.IsAuthenticated)
             {
                 SessionError = SessionErrorType.AuthenticationRequired;
                 return;
@@ -380,7 +380,7 @@
             {
                 _DB.SessionUpdated += SessionChangedEvent;
 
-                AuthUser User = await GetCurrentUserAsync();
+                AuthUser? User = await GetCurrentUserAsync();
                 if (User == null)
                 {
                     SessionError = SessionErrorType.AuthenticationError;

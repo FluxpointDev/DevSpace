@@ -20,7 +20,7 @@ public class Response
     public bool success;
     public int code;
 
-    public string message = "";
+    public string? message = "";
 }
 public class ResponseData<T> where T : class
 {
@@ -41,7 +41,7 @@ public class ResponseSuccess
     [DefaultValue(200)]
     public int code = 200;
 
-    public string message = "";
+    public string? message = "";
 }
 public class ResponseUnauthorized
 {

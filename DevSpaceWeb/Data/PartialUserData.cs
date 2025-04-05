@@ -17,7 +17,7 @@ public class PartialUserData
     public string? UserName { get; set; }
     public string? DisplayName { get; set; }
 
-    public string GetCurrentName()
+    public string? GetCurrentName()
     {
         if (!string.IsNullOrEmpty(DisplayName))
             return DisplayName;
@@ -69,7 +69,7 @@ public class PartialUserData
         HasNotifications = true;
         FilterDefinition<AuthUser> filter = new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, Id);
         UpdateDefinition<AuthUser> update = new UpdateDefinitionBuilder<AuthUser>().Set(x => x.Account.HasNotifications, true);
-        _DB.Run.GetCollection<AuthUser>("users").UpdateOneAsync(filter, update);
+        _ = _DB.Run.GetCollection<AuthUser>("users").UpdateOneAsync(filter, update);
 
         NotificationTriggered?.Invoke(notification);
     }
@@ -81,6 +81,6 @@ public class PartialUserData
         await _DB.Notifications.Collection.DeleteManyAsync(filter);
         FilterDefinition<AuthUser> filterUser = new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, Id);
         UpdateDefinition<AuthUser> update = new UpdateDefinitionBuilder<AuthUser>().Set(x => x.Account.HasNotifications, false);
-        _DB.Run.GetCollection<AuthUser>("users").UpdateOneAsync(filterUser, update);
+        _ = _DB.Run.GetCollection<AuthUser>("users").UpdateOneAsync(filterUser, update);
     }
 }

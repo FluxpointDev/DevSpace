@@ -15,11 +15,11 @@ public class DockerContainerNetwork
         };
     }
 
-    public string Id { get; set; }
+    public string? Id { get; set; }
 
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
-    public string IPAddress { get; set; }
-    public string Gateway { get; set; }
-    public string MacAddress { get; set; }
+    public string? IPAddress { get; set; }
+    public string? Gateway { get; set; }
+    public string? MacAddress { get; set; }
 }

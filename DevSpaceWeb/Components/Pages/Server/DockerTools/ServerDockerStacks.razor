@@ -17,13 +17,13 @@
     <div class="dash-box-content dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="ri:stack-fill"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Docker Stacks</RadzenText>
-        @if ((IsLoading || IsActionRunning) && Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
+        @if ((IsLoading || IsActionRunning) && Member != null && Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
         {
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
     </div>
 
-    @if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
+    @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -38,7 +38,7 @@
         <RadzenStack Gap="2px;" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
                 <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlStackType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) !important; margin-right: 4px !important;" />
 
-                <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/build")"><RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))" /></a>
+                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/build")"><RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))" /></a>
                 <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshStacks" Disabled="@IsLoading" />
         </RadzenStack>
         
@@ -66,11 +66,11 @@
                 <Template>
                     @if (string.IsNullOrEmpty(context.Id))
                     {
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + context.Name)">@context.Name</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + context.Name)">@context.Name</RadzenLink>
                     }
                     else
                     {
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + context.Id)">@context.Name</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + context.Id)">@context.Name</RadzenLink>
                     }
                 </Template>
             </RadzenDataGridColumn>
@@ -143,7 +143,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -151,9 +151,9 @@
 
     SocketResponse<List<DockerStackInfo>>? StacksResponse = null;
 
-    IQueryable<DockerStackInfo> StacksList;
+    IQueryable<DockerStackInfo>? StacksList;
     public int Count = 0;
-    IList<DockerStackInfo> SelectedStacks;
+    IList<DockerStackInfo>? SelectedStacks;
     public bool AnySelected => SelectedStacks != null ? SelectedStacks.Any() : false;
     RadzenDataGrid<DockerStackInfo> Grid;
     public bool IsLoading = true;
@@ -161,6 +161,9 @@
 
     public async Task LoadData(LoadDataArgs args)
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
             return;
 
@@ -172,11 +175,15 @@
                 {
                     Containers = new HashSet<DockerContainerInfo>
                     {
-                      new DockerContainerInfo
-                      {
-                          Id = "test",
-                          Name = "test-service"
-                      }
+                        new DockerContainerInfo
+                        {
+                            Id = "test",
+                            Name = "test-service",
+                            ImageId = "0",
+                            ImageName = "test:latest",
+                            State = "exited",
+                            Status = "Exited (137) 1 week ago",
+                        }
                     },
                     CreatedAt = DateTime.UtcNow.AddDays(-2),
                     Id = "1",
@@ -209,7 +216,7 @@
 
             }
 
-            if (StacksResponse != null && StacksResponse.IsSuccess)
+            if (StacksResponse != null && StacksResponse.IsSuccess && StacksResponse.Data != null)
             {
                 IQueryable<DockerStackInfo> query = StacksResponse.Data.AsQueryable();
 
@@ -220,7 +227,7 @@
                     query = query.OrderBy(args.OrderBy);
 
                 Count = query.Count();
-                StacksList = query.OrderBy(x => x.Name).Skip(args.Skip.Value).Take(args.Top.Value);
+                StacksList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
             }
         }
     }
@@ -238,6 +245,9 @@
             return;
         }
 
+        if (Member == null || Server == null || SelectedStacks == null)
+            return;
+
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
             return;
 
@@ -253,16 +263,16 @@
             SelectedStacks.Clear();
             await InvokeAsync(RefreshStacks);
         });
-        
+
     }
 
     void ShowContextMenuWithManageItems(DockerStackInfo item, MouseEventArgs args)
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem() { Text = "View", Value = "view", Icon = "stacks", Disabled = !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks)  },
-                new ContextMenuItem() { Text = "Edit", Value = "edit", Icon = "edit_square", Disabled = item.ControlType != DockerStackControl.Full || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks) },
-                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = item.ControlType != DockerStackControl.Full || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks) },
+                new ContextMenuItem() { Text = "View", Value = "view", Icon = "stacks", Disabled = Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks)  },
+                new ContextMenuItem() { Text = "Edit", Value = "edit", Icon = "edit_square", Disabled = Member == null || item.ControlType != DockerStackControl.Full || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks) },
+                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = Member == null || item.ControlType != DockerStackControl.Full || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks) },
                                                          }, x => MenuItemClick(x, item));
     }
 
@@ -274,6 +284,9 @@
             return;
         }
 
+        if (Member == null || Server == null)
+            return;
+
         _ = Task.Run(async () =>
         {
             switch (args.Value.ToString())
@@ -282,13 +295,13 @@
                     if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
                         return;
 
-                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + item.Id);
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + item.Id);
                     break;
                 case "edit":
                     if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
                         return;
 
-                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + item.Id + "/edit");
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + item.Id + "/edit");
                     break;
                 case "remove":
                     if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))

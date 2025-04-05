@@ -38,7 +38,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     [Parameter]
     public TeamData Team { get; set; }
@@ -86,7 +86,7 @@
             return;
         }
 
-        if (!Session.Selected.Member.HasTeamPermission(Team, TeamPermission.AssignRoles))
+        if (Session.Selected.Member == null || !Session.Selected.Member.HasTeamPermission(Team, TeamPermission.AssignRoles))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.AssignRoles);
             return;

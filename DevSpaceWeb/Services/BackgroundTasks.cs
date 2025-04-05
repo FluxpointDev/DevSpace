@@ -4,13 +4,12 @@ namespace DevSpaceWeb.Services;
 
 public class BackgroundTasks
 {
-    public System.Timers.Timer timer;
+    public System.Timers.Timer timer = new System.Timers.Timer(new TimeSpan(1, 0, 0));
     public BackgroundTasks()
     {
         if (!Program.IsDevMode)
         {
             Logger.LogMessage("Starting health check service", LogSeverity.Debug);
-            timer = new System.Timers.Timer(new TimeSpan(1, 0, 0));
             timer.Elapsed += new ElapsedEventHandler(RunChecks);
             timer.Start();
         }

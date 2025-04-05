@@ -252,8 +252,8 @@ public static class ServiceBuilder
             Logger.LogMessage("Apple oauth login enabled", LogSeverity.Info);
             Auth.AddApple("apple", opt =>
             {
-                opt.ClientId = _Data.Config.Providers.Apple.ClientId;
-                opt.ClientSecret = _Data.Config.Providers.Apple.ClientSecret;
+                opt.ClientId = _Data.Config.Providers.Apple.ClientId!;
+                opt.ClientSecret = _Data.Config.Providers.Apple.ClientSecret!;
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
                 opt.CallbackPath = new PathString("/auth/login/apple");
                 opt.Scope.Add("name");
@@ -266,8 +266,8 @@ public static class ServiceBuilder
             Logger.LogMessage("Discord oauth login enabled", LogSeverity.Info);
             Auth.AddDiscord("discord", opt =>
             {
-                opt.ClientId = _Data.Config.Providers.Discord.ClientId;
-                opt.ClientSecret = _Data.Config.Providers.Discord.ClientSecret;
+                opt.ClientId = _Data.Config.Providers.Discord.ClientId!;
+                opt.ClientSecret = _Data.Config.Providers.Discord.ClientSecret!;
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
                 opt.CallbackPath = new PathString("/auth/login/discord");
                 opt.Scope.Add("email");
@@ -279,8 +279,8 @@ public static class ServiceBuilder
             Logger.LogMessage("Google oauth login enabled", LogSeverity.Info);
             Auth.AddGoogle("google", opt =>
             {
-                opt.ClientId = _Data.Config.Providers.Google.ClientId;
-                opt.ClientSecret = _Data.Config.Providers.Google.ClientSecret;
+                opt.ClientId = _Data.Config.Providers.Google.ClientId!;
+                opt.ClientSecret = _Data.Config.Providers.Google.ClientSecret!;
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
                 opt.CallbackPath = new PathString("/auth/login/google");
                 opt.Scope.Add("https://www.googleapis.com/auth/userinfo.email");
@@ -291,8 +291,8 @@ public static class ServiceBuilder
             Logger.LogMessage("GitHub oauth login enabled", LogSeverity.Info);
             Auth.AddGitHub("github", opt =>
             {
-                opt.ClientId = _Data.Config.Providers.GitHub.ClientId;
-                opt.ClientSecret = _Data.Config.Providers.GitHub.ClientSecret;
+                opt.ClientId = _Data.Config.Providers.GitHub.ClientId!;
+                opt.ClientSecret = _Data.Config.Providers.GitHub.ClientSecret!;
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
                 opt.CallbackPath = new PathString("/auth/login/github");
                 opt.Scope.Add("user:email");
@@ -301,6 +301,9 @@ public static class ServiceBuilder
                 {
                     if (context.AccessToken is { })
                     {
+                        if (context.Identity == null)
+                            throw new Exception("GitHub identity failed.");
+
                         Claim? EmailClaim = context.Identity.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email);
                         if (EmailClaim != null)
                             context.Identity.RemoveClaim(EmailClaim);
@@ -333,8 +336,8 @@ public static class ServiceBuilder
             Logger.LogMessage("GitLab oauth login enabled", LogSeverity.Info);
             Auth.AddGitLab("gitlab", opt =>
             {
-                opt.ClientId = _Data.Config.Providers.GitLab.ClientId;
-                opt.ClientSecret = _Data.Config.Providers.GitLab.ClientSecret;
+                opt.ClientId = _Data.Config.Providers.GitLab.ClientId!;
+                opt.ClientSecret = _Data.Config.Providers.GitLab.ClientSecret!;
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
                 opt.CallbackPath = new PathString("/auth/login/gitlab");
                 opt.Scope.Add("email");
@@ -346,8 +349,8 @@ public static class ServiceBuilder
             Logger.LogMessage("Slack oauth login enabled", LogSeverity.Info);
             Auth.AddSlack("slack", opt =>
             {
-                opt.ClientId = _Data.Config.Providers.Slack.ClientId;
-                opt.ClientSecret = _Data.Config.Providers.Slack.ClientSecret;
+                opt.ClientId = _Data.Config.Providers.Slack.ClientId!;
+                opt.ClientSecret = _Data.Config.Providers.Slack.ClientSecret!;
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
                 opt.CallbackPath = new PathString("/auth/login/slack");
                 opt.Scope.Add("email");
@@ -365,16 +368,19 @@ public static class ServiceBuilder
                                 throw new HttpRequestException("An error occurred while retrieving the user profile.");
                             }
 
+                            if (context.Identity == null)
+                                throw new Exception("Slack identity failed.");
+
                             using (JsonDocument payload = JsonDocument.Parse(await response.Content.ReadAsStringAsync(context.HttpContext.RequestAborted)))
                             {
                                 Claim? IdClaim = context.Identity.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier);
                                 if (IdClaim != null)
                                     context.Identity.RemoveClaim(IdClaim);
 
-                                context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, payload.RootElement.GetProperty("user").GetString("id"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
-                                context.Identity.AddClaim(new Claim(ClaimTypes.Name, payload.RootElement.GetProperty("user").GetString("name"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
-                                context.Identity.AddClaim(new Claim(ClaimTypes.Email, payload.RootElement.GetProperty("user").GetString("email"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
-                                context.Identity.AddClaim(new Claim("team", payload.RootElement.GetProperty("team").GetString("id"), ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                                context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, payload.RootElement.GetProperty("user").GetString("id") ?? "", ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                                context.Identity.AddClaim(new Claim(ClaimTypes.Name, payload.RootElement.GetProperty("user").GetString("name") ?? "", ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                                context.Identity.AddClaim(new Claim(ClaimTypes.Email, payload.RootElement.GetProperty("user").GetString("email") ?? "", ClaimValueTypes.String, context.Options.ClaimsIssuer));
+                                context.Identity.AddClaim(new Claim("team", payload.RootElement.GetProperty("team").GetString("id") ?? "", ClaimValueTypes.String, context.Options.ClaimsIssuer));
 
                             }
                         }
@@ -410,8 +416,8 @@ public static class ServiceBuilder
             Logger.LogMessage("Microsoft oauth login enabled", LogSeverity.Info);
             Auth.AddMicrosoftAccount("microsoft", opt =>
             {
-                opt.ClientId = _Data.Config.Providers.Microsoft.ClientId;
-                opt.ClientSecret = _Data.Config.Providers.Microsoft.ClientSecret;
+                opt.ClientId = _Data.Config.Providers.Microsoft.ClientId!;
+                opt.ClientSecret = _Data.Config.Providers.Microsoft.ClientSecret!;
                 opt.SignInScheme = IdentityConstants.ExternalScheme;
                 //opt.AuthorizationEndpoint = "https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize";
                 //opt.TokenEndpoint = "https://login.microsoftonline.com/consumers/oauth2/v2.0/token";

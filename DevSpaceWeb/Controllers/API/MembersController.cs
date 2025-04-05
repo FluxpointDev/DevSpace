@@ -41,7 +41,7 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetMember([FromRoute] string userId = "")
     {
-        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
 
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out TeamPermission? perm))
@@ -57,7 +57,7 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> EnableMember([FromRoute] string userId = "")
     {
-        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
 
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
@@ -72,7 +72,7 @@ public class MembersController : APIController
         {
             FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
             UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, null);
-            UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
+            UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure!.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
             if (!Result.IsAcknowledged)
                 return InternalServerError("Failed to disable member.");
         }
@@ -93,7 +93,7 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> DisableMember([FromRoute] string userId = "")
     {
-        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
 
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
@@ -114,7 +114,7 @@ public class MembersController : APIController
         {
             FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
             UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, Disabled);
-            UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
+            UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure!.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
             if (!Result.IsAcknowledged)
                 return InternalServerError("Failed to disable member.");
         }
@@ -135,7 +135,7 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> RemoveMember([FromRoute] string userId = "")
     {
-        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
 
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))

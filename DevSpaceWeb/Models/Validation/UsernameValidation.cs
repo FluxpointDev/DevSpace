@@ -7,11 +7,11 @@ public class UsernameValidationAttribute : ValidationAttribute
 {
     public static char[] AllowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._".ToCharArray();
 
-    public override bool IsValid(object value)
+    public override bool IsValid(object? value)
     {
-        string actualValue = value as string;
+        string? actualValue = value as string;
         if (string.IsNullOrEmpty(actualValue))
-            return true;
+            return false;
 
         foreach (char c in actualValue)
         {

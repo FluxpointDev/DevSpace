@@ -8,7 +8,7 @@ public class LinkData
 
     public string Title = "Hello World!";
     public string Description = "Test description here";
-    public string BackgroundUrl;
+    public string? BackgroundUrl;
     public bool RequireAuthentication;
     public bool RequireMember;
     public bool RequireRoles;

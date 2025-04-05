@@ -27,7 +27,7 @@ public class AuthAccountController : AuthControllerContext
     [HttpGet("/auth/account/downloadRecoveryCode")]
     public async Task<IActionResult> RecoveryCode([FromQuery] string token = "")
     {
-        if (!User.Identity.IsAuthenticated)
+        if (User.Identity == null || !User.Identity.IsAuthenticated)
             return Redirect("/login");
 
         if (Program.IsPreviewMode)
@@ -52,7 +52,7 @@ public class AuthAccountController : AuthControllerContext
         string data = CodeString;
         MemoryStream content = new MemoryStream(Encoding.ASCII.GetBytes(data));
         string contentType = "APPLICATION/octet-stream";
-        string fileName = $"{AuthUser.Email.Replace(".", "_")} Codes.txt";
+        string fileName = $"{AuthUser.Email!.Replace(".", "_")} Codes.txt";
         return File(content, contentType, fileName);
     }
 
@@ -65,7 +65,7 @@ public class AuthAccountController : AuthControllerContext
         if (string.IsNullOrEmpty(token))
             return BadRequest("Invalid token");
 
-        if (!User.Identity.IsAuthenticated)
+        if (User.Identity == null || !User.Identity.IsAuthenticated)
             return Redirect("/login?token=" + token);
 
         AuthUser? AuthUser = await _userManager.GetUserAsync(User);
@@ -127,8 +127,14 @@ public class AuthAccountController : AuthControllerContext
             return BadRequest("Failed to login");
 
         User.Account.PasswordChangedAt = DateTime.UtcNow;
-        string Ip = Utils.GetUserIpAddress(Request.HttpContext);
-        string SessionId = Request.Cookies["DevSpace.SessionId"];
+        string? Ip = Utils.GetUserIpAddress(Request.HttpContext);
+        if (string.IsNullOrEmpty(Ip))
+            return BadRequest("IP address failed.");
+
+        string? SessionId = Request.Cookies["DevSpace.SessionId"];
+        if (string.IsNullOrEmpty(SessionId))
+            return BadRequest("Invalid session.");
+
         if (User.Account.Sessions.TryGetValue(SessionId, out UserSession? session))
         {
             session.LastLoginAt = DateTime.UtcNow;

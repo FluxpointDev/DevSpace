@@ -2,5 +2,5 @@
 
 public class ConsoleCommandJson
 {
-    public string command;
+    public string? command;
 }

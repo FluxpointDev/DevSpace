@@ -12,12 +12,12 @@
         <RadzenText TextStyle="TextStyle.H6">Console Settings</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl)" Text="@Session.Selected.Team?.Console?.Data.Name" />
         <RadzenBreadCrumbItem Text="Settings" />
     </RadzenBreadCrumb>
 
-    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole))
+    @if (Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for Manage Console
@@ -32,11 +32,11 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ConsoleData Console => Session.Selected.Console;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ConsoleData? Console => Session.Selected.Console;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,7 +51,7 @@
 
     public async Task<string?> UpdateSettings(ModifyConsoleModel model)
     {
-        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole))
+        if (Team == null || Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole))
             return "You do not have Manage Console permissions.";
 
         VanityUrlData Vanity = Team.GetVanityUrlData();
@@ -61,7 +61,7 @@
         if (Vanity.CheckAlreadyExists(Console, model.VanityUrl))
             return Lang.Errors.vanity_url_already_taken;
 
-        string VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+        string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
 
         await Console.UpdateAsync(new UpdateDefinitionBuilder<ConsoleData>()
         .Set(x => x.Name, model.Name)

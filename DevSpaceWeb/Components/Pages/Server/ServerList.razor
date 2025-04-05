@@ -12,12 +12,12 @@
     </div>
     <br />
 
-    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Server" Click="@SetupServer" Disabled="(!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))" />
+    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Server" Click="@SetupServer" Disabled="(Member == null ||!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))" />
     <br />
     <br />
-    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member.HasServerPermission(Team, x, ServerPermission.ViewServer)).OrderBy(x => x.Name))
+    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer)).OrderBy(x => x.Name))
     {
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
                 <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
                     <div class="server-item-icon flex-none d-flex">
                         <span class="iconify" data-icon="mdi:server"></span>
@@ -123,13 +123,16 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
 
     public async Task SetupServer()
     {
+        if (Member == null)
+            return;
+
         if (!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
             return;
 
@@ -166,6 +169,7 @@
                 ServerWebSocket Client = new ServerWebSocket();
                 var TempServer = new ServerData
                 {
+                    Name = ":)",
                     AgentIp = data.Ip,
                     AgentPort = data.Port,
                     AgentKey = data.AgentKey
@@ -188,8 +192,11 @@
                 await Task.Delay(new TimeSpan(0, 0, 2));
                 if (Client.Client == null || !Client.Client.IsConnected)
                 {
-                    Client.Client.DisconnectAndStop();
-                    Client.Client.Dispose();
+                    if (Client.Client != null)
+                    {
+                        Client.Client.DisconnectAndStop();
+                        Client.Client.Dispose();
+                    }
                     return "Failed to connect to server: " + Client.Error.ToString();
                 }
 

@@ -1,16 +1,16 @@
 ﻿namespace DevSpaceShared.Responses;
 public class SystemInfoResponse
 {
-    public string AgentVersion { get; set; }
-    public string AgentNET { get; set; }
+    public string? AgentVersion { get; set; }
+    public string? AgentNET { get; set; }
     public long Uptime { get; set; }
-    public string OperatingSystem { get; set; }
+    public string? OperatingSystem { get; set; }
     public long CpuCount { get; set; }
     public long StorageTotalSize { get; set; }
     public long StorageFreeSize { get; set; }
     public long RamTotal { get; set; }
 
-    public SystemDockerInfo Docker { get; set; }
+    public required SystemDockerInfo Docker { get; set; }
 
     public string GetUptimeText()
     {
@@ -26,31 +26,31 @@ public class SystemInfoResponse
 }
 public class SystemInfoFullResponse : SystemInfoResponse
 {
-    public string KernelVersion { get; set; }
-    public string RootDirectory { get; set; }
-    public string StorageDriver { get; set; }
-    public string LoggingDriver { get; set; }
-    public string SystemDriver { get; set; }
-    public IList<string> VolumePlugins { get; set; }
-    public IList<string> NetworkPlugins { get; set; }
-    public IList<string> LogPlugins { get; set; }
-    public IList<string> AuthPlugins { get; set; }
-    public string Hostname { get; set; }
-    public IList<string> Warnings { get; set; }
-    public SystemInfoDriveResponse[] Drives { get; set; }
+    public string? KernelVersion { get; set; }
+    public string? RootDirectory { get; set; }
+    public string? StorageDriver { get; set; }
+    public string? LoggingDriver { get; set; }
+    public string? SystemDriver { get; set; }
+    public IList<string>? VolumePlugins { get; set; }
+    public IList<string>? NetworkPlugins { get; set; }
+    public IList<string>? LogPlugins { get; set; }
+    public IList<string>? AuthPlugins { get; set; }
+    public string? Hostname { get; set; }
+    public IList<string>? Warnings { get; set; }
+    public SystemInfoDriveResponse[]? Drives { get; set; }
 }
 public class SystemInfoDriveResponse
 {
-    public string Name { get; set; }
-    public string Directory { get; set; }
+    public string? Name { get; set; }
+    public string? Directory { get; set; }
     public long TotalSize { get; set; }
     public long FreeSize { get; set; }
 }
 public class SystemDockerInfo
 {
     public int Networks { get; set; }
-    public string DockerVersion { get; set; }
-    public string APIVersion { get; set; }
+    public string? DockerVersion { get; set; }
+    public string? APIVersion { get; set; }
     public int Stacks { get; set; }
     public long AllContainers { get; set; }
     public long RunningContainers { get; set; }

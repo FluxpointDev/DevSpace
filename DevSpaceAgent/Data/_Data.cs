@@ -65,7 +65,7 @@ public static class _Data
                     {
                         NullValueHandling = NullValueHandling.Ignore
                     };
-                    stacks = (Dictionary<string, StackFile>)serializer.Deserialize(reader, typeof(Dictionary<string, StackFile>));
+                    stacks = (Dictionary<string, StackFile>?)serializer.Deserialize(reader, typeof(Dictionary<string, StackFile>));
                 }
             }
             catch (Exception ex)
@@ -111,7 +111,7 @@ public static class _Data
                     {
                         NullValueHandling = NullValueHandling.Ignore
                     };
-                    templates = (Dictionary<string, DockerCustomTemplate>)serializer.Deserialize(reader, typeof(Dictionary<string, DockerCustomTemplate>));
+                    templates = (Dictionary<string, DockerCustomTemplate>?)serializer.Deserialize(reader, typeof(Dictionary<string, DockerCustomTemplate>));
                 }
             }
             catch (Exception ex)
@@ -144,7 +144,7 @@ public static class _Data
                     {
                         NullValueHandling = NullValueHandling.Ignore
                     };
-                    config = (Config)serializer.Deserialize(reader, typeof(Config));
+                    config = (Config?)serializer.Deserialize(reader, typeof(Config));
                 }
             }
             catch (Exception ex)

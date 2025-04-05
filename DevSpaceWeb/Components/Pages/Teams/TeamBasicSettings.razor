@@ -9,11 +9,11 @@
     </div>
     <RadzenBreadCrumb class="mt-2">
         <RadzenBreadCrumbItem Path="@("/teams")" Text="Teams" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl)" Text="@Session.Selected.Team.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" Text="@Session.Selected.Team?.Data.Name" />
         <RadzenBreadCrumbItem Text="Settings" />
     </RadzenBreadCrumb>
 
-    @if (!Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
+    @if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for Manage Team
@@ -39,11 +39,10 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     public TeamBasicModel Data;
 
@@ -58,7 +57,7 @@
 
     public async Task<string?> UpdateTeamSettings(TeamBasicModel model)
     {
-        if (!Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
             return "You do not have Manage Team permissions.";
 
         string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
@@ -108,7 +107,7 @@
 
     public async Task ChangeIcon()
     {
-        if (!Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
             return;
@@ -127,6 +126,9 @@
 
     public async Task RemoveIcon()
     {
+        if (Team == null || Member == null)
+            return;
+
         if (!Team.HasIcon)
             return;
 

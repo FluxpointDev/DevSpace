@@ -7,7 +7,7 @@ namespace DevSpaceAgent.Docker;
 
 public static class DockerCustomTemplates
 {
-    public static async Task<DockerCustomTemplatesList> ListTemplatesAsync()
+    public static DockerCustomTemplatesList ListTemplates()
     {
         bool HasPortainerTemplates = false;
         try
@@ -24,7 +24,7 @@ public static class DockerCustomTemplates
         };
     }
 
-    public static async Task CreateTemplateAsync(CreateCustomTemplateEvent data)
+    public static void CreateTemplate(CreateCustomTemplateEvent data)
     {
         string Id = Guid.NewGuid().ToString().Replace("-", "");
         Program.CustomTemplates.Add(Id, new DockerCustomTemplate
@@ -35,15 +35,18 @@ public static class DockerCustomTemplates
         Directory.CreateDirectory(Program.CurrentDirectory + "Data/Templates/" + Id);
     }
 
-    public static async Task<DockerCustomTemplate?> GetTemplateInfoAsync(string id)
+    public static DockerCustomTemplate? GetTemplateInfo(string id)
     {
         if (Program.CustomTemplates.TryGetValue(id, out DockerCustomTemplate? template))
             return template;
         return null;
     }
 
-    public static async Task<DockerCustomTemplateData?> GetTemplateAsync(string id)
+    public static DockerCustomTemplateData? GetTemplate(string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Template id is missing.");
+
         if (Program.CustomTemplates.TryGetValue(id, out DockerCustomTemplate? template))
         {
             string Compose = File.ReadAllText(Program.CurrentDirectory + "Data/Templates/" + id + "/docker-compose.yml");
@@ -56,12 +59,15 @@ public static class DockerCustomTemplates
         return null;
     }
 
-    public static async Task<string> GetTemplateDataAsync(string id)
+    public static string GetTemplateData(string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Template id is missing");
+
         return File.ReadAllText(Program.CurrentDirectory + "Data/Templates/" + id + "/docker-compose.yml");
     }
 
-    public static async Task ImportPortainerTemplatesAsync()
+    public static void ImportPortainerTemplates()
     {
         foreach (string i in Directory.GetDirectories("/var/lib/docker/volumes/portainer_data/_data/custom_templates"))
         {
@@ -82,7 +88,7 @@ public static class DockerCustomTemplates
                 string? Name = null;
                 try
                 {
-                    Name = JO["services"].First().Path.Replace("services.", "");
+                    Name = JO["services"]?.First().Path.Replace("services.", "");
                 }
                 catch { }
 
@@ -100,8 +106,14 @@ public static class DockerCustomTemplates
         Console.WriteLine("Template: " + Program.CustomTemplates.Values.Count());
     }
 
-    public static async Task EditTemplateAsync(string id, EditCustomTemplateInfoEvent data)
+    public static void EditTemplate(string? id, EditCustomTemplateInfoEvent? data)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Template id is missing.");
+
+        if (data == null)
+            throw new Exception("Failed to parse template edit options.");
+
         if (Program.CustomTemplates.TryGetValue(id, out DockerCustomTemplate? template))
         {
             Program.SaveTemplates();
@@ -116,36 +128,45 @@ public static class DockerCustomTemplates
         }
     }
 
-    public static async Task EditTemplateData(string id, EditCustomTemplateComposeEvent data)
+    public static void EditTemplateData(string? id, EditCustomTemplateComposeEvent? data)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Template id is missing.");
+
+        if (data == null)
+            throw new Exception("Failed to parse template edit options.");
+
         File.WriteAllText(Program.CurrentDirectory + "Data/Templates/" + id + "/docker-compose.yml", data.Data);
     }
 
-    public static async Task DeleteTemplateAsync(string id)
+    public static void DeleteTemplate(string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Template id is missing.");
+
         Program.CustomTemplates.Remove(id);
         Program.SaveTemplates();
         Directory.Delete(Program.CurrentDirectory + "Data/Templates/" + id);
     }
 
-    public static async Task<object?> ControlTemplateAsync(DockerEvent @event)
+    public static object? ControlTemplate(DockerEvent @event)
     {
         switch (@event.CustomTemplateType)
         {
             case ControlCustomTemplateType.ViewInfo:
-                return await GetTemplateAsync(@event.ResourceId);
+                return GetTemplate(@event.ResourceId);
             case ControlCustomTemplateType.ComposeInfo:
-                return await GetTemplateDataAsync(@event.ResourceId);
+                return GetTemplateData(@event.ResourceId);
             case ControlCustomTemplateType.ViewFull:
-                return await GetTemplateAsync(@event.ResourceId);
+                return GetTemplate(@event.ResourceId);
             case ControlCustomTemplateType.EditInfo:
-                await EditTemplateAsync(@event.ResourceId, @event.Data.ToObject<EditCustomTemplateInfoEvent>());
+                EditTemplate(@event.ResourceId, @event.Data?.ToObject<EditCustomTemplateInfoEvent>());
                 break;
             case ControlCustomTemplateType.EditCompose:
-                await EditTemplateData(@event.ResourceId, @event.Data.ToObject<EditCustomTemplateComposeEvent>());
+                EditTemplateData(@event.ResourceId, @event.Data?.ToObject<EditCustomTemplateComposeEvent>());
                 break;
             case ControlCustomTemplateType.Delete:
-                await DeleteTemplateAsync(@event.ResourceId);
+                DeleteTemplate(@event.ResourceId);
                 break;
         }
 

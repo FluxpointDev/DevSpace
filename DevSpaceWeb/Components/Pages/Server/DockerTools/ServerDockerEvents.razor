@@ -77,7 +77,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -87,9 +87,9 @@
 
     SocketResponse<List<DockerEventInfo>?>? EventsResponse = null;
 
-    IQueryable<DockerEventInfo> EventsList;
+    IQueryable<DockerEventInfo>? EventsList;
     public int Count = 0;
-    RadzenDataGrid<DockerEventInfo> Grid;
+    RadzenDataGrid<DockerEventInfo> Grid = null!;
 
     public async Task LoadData(LoadDataArgs args)
     {
@@ -132,7 +132,7 @@
                     query = query.OrderBy(args.OrderBy);
 
                 Count = query.Count();
-                EventsList = query.Skip(args.Skip.Value).Take(args.Top.Value);
+                EventsList = query.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
             }
         }
     }

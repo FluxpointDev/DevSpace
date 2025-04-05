@@ -15,12 +15,12 @@
     </div>
     <br />
 
-    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Console" Click="@SetupConsole" Disabled="(!Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))" />
+    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Console" Click="@SetupConsole" Disabled="(Member == null || !Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))" />
     <br />
     <br />
-    @foreach (ConsoleData i in _DB.Consoles.Cache.Values.Where(x => Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)).OrderBy(x => x.Name))
+    @foreach (ConsoleData i in _DB.Consoles.Cache.Values.Where(x => Member != null && Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)).OrderBy(x => x.Name))
     {
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + i.GetVanityUrlOrId() + "/home")">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + i.GetVanityUrlOrId() + "/home")">
             <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
                 <div class="server-item-icon flex-none d-flex">
                     <span class="iconify" data-icon="mdi:console-line"></span>
@@ -111,16 +111,19 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     public async Task SetupConsole()
     {
+        if (Member == null || Team == null)
+            return;
+
         await DialogService.ShowDynamicFormAsync<SetupConsoleModel>("Setup Console", new SetupConsoleModel(), async (SetupConsoleModel data) =>
         {
-            if (!Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))
+            if (Member == null || Team == null || !Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))
                 return "You do not have permission for Create Console Resources";
 
                 if (string.IsNullOrEmpty(data.Ip))

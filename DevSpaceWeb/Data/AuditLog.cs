@@ -29,7 +29,7 @@ public class AuditLog
         EventType = evnt;
     }
 
-    public AuditLog AddProperty(string name, string value)
+    public AuditLog AddProperty(string name, string? value)
     {
         Properties.Add(name, value);
         return this;
@@ -47,10 +47,10 @@ public class AuditLog
         return this;
     }
 
-    public AuditLog AddPropertyChange(string name, string oldValue, string newValue)
+    public AuditLog AddPropertyChange(string name, string? oldValue, string? newValue)
     {
         if (oldValue != newValue)
-            Properties.Add(name, name == "Password" ? null : newValue);
+            Properties.Add(name, (name == "Password") ? null : newValue);
         return this;
     }
 
@@ -152,8 +152,8 @@ public class AuditLog
     public AuditLogCategoryType CategoryType;
     public AuditLogTargetType TargetType;
     public ObjectId? TargetId;
-    public string TargetName;
-    public Dictionary<string, string> Properties = new Dictionary<string, string>();
+    public string? TargetName;
+    public Dictionary<string, string?> Properties = new Dictionary<string, string?>();
     public bool IsSensitive;
     public PermissionsSet? Permissions;
 

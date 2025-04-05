@@ -23,11 +23,11 @@ public class DockerVolumeInfo
         return Info;
     }
 
-    public string Name { get; set; }
-    public string CreatedAt { get; set; }
-    public string Driver { get; set; }
-    public string Scope { get; set; }
-    public string MountPoint { get; set; }
+    public string? Name { get; set; }
+    public string? CreatedAt { get; set; }
+    public string? Driver { get; set; }
+    public string? Scope { get; set; }
+    public string? MountPoint { get; set; }
     public Dictionary<string, string> Containers { get; set; } = new Dictionary<string, string>();
     public int ContainersCount { get; set; }
 }

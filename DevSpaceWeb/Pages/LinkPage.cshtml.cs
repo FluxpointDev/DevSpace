@@ -37,7 +37,7 @@ public class LinkPageModel : PageModel
             if (User != null && User.Disabled == null)
                 IsAuthenticated = true;
 
-            if (LinkData.Static.RequireMember)
+            if (LinkData.Static.RequireMember && User != null)
             {
                 RequireMember = true;
 

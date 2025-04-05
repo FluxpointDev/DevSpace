@@ -36,7 +36,7 @@ public static class ServerEventHandler
                     {
                         DockerEvent @event = payload.ToObject<DockerEvent>()!;
                         SocketResponse<object?> response = new SocketResponse<object?>();
-                        if (Program.DockerFailed)
+                        if (Program.DockerFailed || Program.DockerClient == null)
                         {
                             response.DockerError = DockerError.NotInstalled;
                         }

@@ -12,72 +12,75 @@
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:warning"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Account Disabled</RadzenText>
     </div>
-    @switch (Disabled.State)
+    @if (Disabled != null)
     {
-        case UserDisabledState.User:
-            {
-                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
-                    You have disabled your account.
+        switch (Disabled.State)
+        {
+            case UserDisabledState.User:
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+                        You have disabled your account.
+                    </RadzenAlert>
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        @AccountUsername
+                    </RadzenText>
+                    <br />
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        You can reactive your account with an email code.
+                    </RadzenText>
+                    <br />
+                    <RadzenButton Text="Reactivate Account" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@EnableAccount" />
+                    @if (ShowEmailCodeConfirm)
+                    {
+                        <br />
+                        <RadzenLabel Text="Email Code" class="rz-my-0"></RadzenLabel>
+                        <div>
+                            <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@EmailCode" Count="6" Gap="6px" aria-label="Email Code" autofocus />
+                        </div>
+                        <br />
+                        <RadzenButton Click="@EnableAccountConfirm" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                    }
+                    <a href="/logout"><RadzenButton Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="Logout" /></a>
+                }
+                break;
+            case UserDisabledState.TeamManaged:
+                <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+                    Your account is managed by a Team and has been disabled.
                 </RadzenAlert>
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
                     @AccountUsername
                 </RadzenText>
-                <br />
-                <RadzenText TextStyle="TextStyle.Body2">
-                    You can reactive your account with an email code.
-                </RadzenText>
-                <br />
-                <RadzenButton Text="Reactivate Account" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@EnableAccount" />
-                @if (ShowEmailCodeConfirm)
+                @if (!string.IsNullOrEmpty(Reason))
                 {
-                    <br />
-                    <RadzenLabel Text="Email Code" class="rz-my-0"></RadzenLabel>
-                    <div>
-                        <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@EmailCode" Count="6" Gap="6px" aria-label="Email Code" autofocus />
-                    </div>
-                    <br />
-                    <RadzenButton Click="@EnableAccountConfirm" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Reason</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        @Reason
+                    </RadzenText>
                 }
+                <br />
                 <a href="/logout"><RadzenButton Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="Logout" /></a>
-            }
-            break;
-        case UserDisabledState.TeamManaged:
-            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
-                Your account is managed by a Team and has been disabled.
-            </RadzenAlert>
-            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account</RadzenText>
-            <RadzenText TextStyle="TextStyle.Body2">
-                @AccountUsername
-            </RadzenText>
-            @if (!string.IsNullOrEmpty(Reason))
-            {
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Reason</RadzenText>
+                break;
+            case UserDisabledState.Instance:
+                <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+                    Your account has been disabled by the Dev Space instance admin.
+                </RadzenAlert>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
-                    @Reason
+                    @AccountUsername
                 </RadzenText>
-            }
-            <br />
-            <a href="/logout"><RadzenButton Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="Logout" /></a>
-            break;
-        case UserDisabledState.Instance:
-            <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
-                Your account has been disabled by the Dev Space instance admin.
-            </RadzenAlert>
-            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account</RadzenText>
-            <RadzenText TextStyle="TextStyle.Body2">
-                @AccountUsername
-            </RadzenText>
-            @if (!string.IsNullOrEmpty(Reason))
-            {
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Reason</RadzenText>
-            <RadzenText TextStyle="TextStyle.Body2">
-                @Reason
-            </RadzenText>
-            }
-            <br />
-            <a href="/logout"><RadzenButton Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="Logout" /></a>
-            break;
+                @if (!string.IsNullOrEmpty(Reason))
+                {
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Reason</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        @Reason
+                    </RadzenText>
+                }
+                <br />
+                <a href="/logout"><RadzenButton Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="Logout" /></a>
+                break;
+        }
     }
 
 </div>
@@ -85,18 +88,18 @@
 
 @code {
     [CascadingParameter]
-    public SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public bool AccountfailedToLoad = false;
     public bool ShowEmailCodeConfirm { get; set; }
-    public string EmailCode { get; set; }
+    public string? EmailCode { get; set; }
 
-    public UserDisabled Disabled { get; set; }
-    public string Reason { get; set; }
+    public UserDisabled? Disabled { get; set; }
+    public string? Reason { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        AuthUser User = await Session.GetCurrentUserAsync();
+        AuthUser? User = await Session.GetCurrentUserAsync();
         if (User == null)
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
@@ -104,10 +107,10 @@
             return;
         }
         Disabled = User.Disabled!;
-        AccountUsername = User.UserName;
+        AccountUsername = User.UserName!;
     }
 
-    public string AccountUsername { get; set; }
+    public string? AccountUsername { get; set; }
 
 
     public async Task EnableAccount()
@@ -118,7 +121,7 @@
             return;
         }
         ShowEmailCodeConfirm = true;
-        AuthUser User = await Session.GetCurrentUserAsync();
+        AuthUser? User = await Session.GetCurrentUserAsync();
         if (User == null)
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
@@ -138,7 +141,7 @@
 
     public async Task EnableAccountConfirm()
     {
-        AuthUser User = await Session.GetCurrentUserAsync();
+        AuthUser? User = await Session.GetCurrentUserAsync();
         if (User == null)
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);

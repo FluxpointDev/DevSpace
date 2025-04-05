@@ -13,7 +13,7 @@ public class EditorBase : ComponentBase, IDisposable
 
     [Parameter] public string Bindvalue { get; set; } = "";
 
-    private object finalValue;
+    private object? finalValue;
 
     [Parameter] public EventCallback<ChangeEventArgs> OnChange { get; set; }
 

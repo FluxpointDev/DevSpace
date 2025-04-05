@@ -11,12 +11,12 @@
         <RadzenText TextStyle="TextStyle.H6">Console</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles")" Text="Consoles" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/consoles/" + Session.Selected.Team.Console.VanityUrl)" Text="@Session.Selected.Team.Console.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" Text="Consoles" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl)" Text="@Session.Selected.Team?.Console?.Data.Name" />
         <RadzenBreadCrumbItem Text="Console" />
     </RadzenBreadCrumb>
 
-    @if (!Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConsoleLogs))
+    @if (Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConsoleLogs))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for View Console Logs
@@ -39,11 +39,11 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
-    public TeamData Team => Session.Selected.Team.Data;
-    public ConsoleData Console => Session.Selected.Console;
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ConsoleData? Console => Session.Selected.Console;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     public string SelectedCommandType = "Command";
 
@@ -57,14 +57,17 @@
         "Say Player"
     };
 
-    public Player SelectedPlayer;
+    public Player? SelectedPlayer;
 
     public List<Player> Players = new List<Player>();
 
-    public string CommandInput;
+    public string? CommandInput;
 
     public async Task SendCommand()
     {
+        if (Console == null || Member == null)
+            return;
+
         switch (SelectedCommandType)
         {
             case "Command":

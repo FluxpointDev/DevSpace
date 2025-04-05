@@ -7,10 +7,10 @@
         <RadzenText TextStyle="TextStyle.H6">Custom Templates</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/templates")" Text="Templates" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/templates")" Text="Templates" />
         <RadzenBreadCrumbItem Text="Custom" />
     </RadzenBreadCrumb>
-    @if (!Member.HasDockerPermission(Team, Server, DockerPermission.UseCustomTemplates))
+    @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.UseCustomTemplates))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for Use Custom Templates
@@ -25,7 +25,7 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -33,6 +33,9 @@
 
     public async Task Import()
     {
+        if (Member == null || Server == null)
+            return;
+
         await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ImportPortainerTemplates, null));
     }
 }

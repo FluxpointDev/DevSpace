@@ -20,7 +20,7 @@ public partial class RoleSelector<TItem> : RadzenComponent
     /// </summary>
     /// <value>The row render callback.</value>
     [Parameter]
-    public Action<ListBoxItemRenderEventArgs<object>> ItemRender { get; set; }
+    public Action<ListBoxItemRenderEventArgs<object>>? ItemRender { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether component is disabled.
@@ -34,49 +34,49 @@ public partial class RoleSelector<TItem> : RadzenComponent
     /// </summary>
     /// <value>The source header.</value>
     [Parameter]
-    public RenderFragment SourceHeader { get; set; }
+    public RenderFragment? SourceHeader { get; set; }
 
     /// <summary>
     /// Gets or sets the target header
     /// </summary>
     /// <value>The target header.</value>
     [Parameter]
-    public RenderFragment TargetHeader { get; set; }
+    public RenderFragment? TargetHeader { get; set; }
 
     /// <summary>
     /// Gets or sets the common placeholder
     /// </summary>
     /// <value>The common placeholder.</value>
     [Parameter]
-    public string Placeholder { get; set; }
+    public string? Placeholder { get; set; }
 
     /// <summary>
     /// Gets or sets the source placeholder
     /// </summary>
     /// <value>The source placeholder.</value>
     [Parameter]
-    public string SourcePlaceholder { get; set; }
+    public string? SourcePlaceholder { get; set; }
 
     /// <summary>
     /// Gets or sets the target placeholder
     /// </summary>
     /// <value>The target placeholder.</value>
     [Parameter]
-    public string TargetPlaceholder { get; set; }
+    public string? TargetPlaceholder { get; set; }
 
     /// <summary>
     /// Gets or sets the text property
     /// </summary>
     /// <value>The text property.</value>
     [Parameter]
-    public string TextProperty { get; set; }
+    public string? TextProperty { get; set; }
 
     /// <summary>
     /// Gets or sets the source template
     /// </summary>
     /// <value>The source template.</value>
     [Parameter]
-    public RenderFragment<TItem> Template { get; set; }
+    public RenderFragment<TItem>? Template { get; set; }
 
     private RenderFragment<dynamic> ListBoxTemplate => Template != null ? item => Template((TItem)item) : null;
 
@@ -99,7 +99,7 @@ public partial class RoleSelector<TItem> : RadzenComponent
     /// </summary>
     /// <value>The buttons spacing.</value>
     [Parameter]
-    public string ButtonGap { get; set; }
+    public string? ButtonGap { get; set; }
 
     /// <summary>
     /// Gets or sets the orientation
@@ -195,9 +195,9 @@ public partial class RoleSelector<TItem> : RadzenComponent
     /// </summary>
     /// <value>The source collection.</value>
     [Parameter]
-    public IEnumerable<TItem> Source { get; set; }
+    public IEnumerable<TItem>? Source { get; set; }
 
-    IEnumerable<TItem> source;
+    IEnumerable<TItem>? source;
 
     /// <summary>
     /// Gets or sets the source changed.
@@ -211,9 +211,9 @@ public partial class RoleSelector<TItem> : RadzenComponent
     /// </summary>
     /// <value>The target collection.</value>
     [Parameter]
-    public IEnumerable<TItem> Target { get; set; }
+    public IEnumerable<TItem>? Target { get; set; }
 
-    IEnumerable<TItem> target;
+    IEnumerable<TItem>? target;
 
     /// <summary>
     /// Gets or sets the target changed.
@@ -222,11 +222,11 @@ public partial class RoleSelector<TItem> : RadzenComponent
     [Parameter]
     public EventCallback<IEnumerable<TItem>> TargetChanged { get; set; }
 
-    object selectedSourceItems;
-    object selectedTargetItems;
+    object? selectedSourceItems;
+    object? selectedTargetItems;
 
-    string sourceSearchText;
-    string targetSearchText;
+    string? sourceSearchText;
+    string? targetSearchText;
 
     /// <summary>
     /// Set parameters as an asynchronous operation.

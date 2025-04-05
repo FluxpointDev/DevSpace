@@ -5,11 +5,11 @@ namespace DevSpaceWeb.Components.DynamicForm;
 
 public class FormGeneratorComponent : OwningComponentBase
 {
-    [Parameter] public object DataContext { get; set; }
+    [Parameter] public object? DataContext { get; set; }
 
     [Parameter] public EventCallback<EditContext> OnValidSubmit { get; set; }
 
-    public IEnumerable<DynamicFormItem> FormItems { get; set; }
+    public IEnumerable<DynamicFormItem>? FormItems { get; set; }
 
     protected override void OnParametersSet()
     {

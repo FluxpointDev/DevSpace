@@ -21,12 +21,12 @@
         <RadzenText TextStyle="TextStyle.H6">Docker Stack Edit</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks")" Text="Stacks" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId)" Text="@(!string.IsNullOrEmpty(StackName) ? StackName : StackId)" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks")" Text="Stacks" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId)" Text="@(!string.IsNullOrEmpty(StackName) ? StackName : StackId)" />
         <RadzenBreadCrumbItem Text="Edit" />
     </RadzenBreadCrumb>
     <br />
-    @if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
+    @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -60,7 +60,7 @@
             <h6>Stack Created</h6>
             <p>Your containers are now running click the button to show the stack.</p>
             <br />
-            <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId)"><RadzenButton Text="View Stack" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId)"><RadzenButton Text="View Stack" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
             <br />
         }
         else if (Failed)
@@ -76,7 +76,7 @@
                 <h6>Start Failed</h6>
                 <p>One or more of your containers failed to start.</p>
                 <br />
-                <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
             }
             <br />
         }
@@ -110,10 +110,10 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     [Parameter]
-    public string StackId { get; set; }
+    public required string StackId { get; set; }
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -123,10 +123,10 @@
     public bool IsLoading = true;
     public bool IsActionRunning { get; set; }
 
-    public string StackName { get; set; }
-    public string Compose { get; set; }
+    public string? StackName { get; set; }
+    public string? Compose { get; set; }
     public bool GotCompose { get; set; }
-    private StandaloneCodeEditor _editor = null;
+    private StandaloneCodeEditor _editor = null!;
 
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
@@ -149,15 +149,18 @@
 
     protected override async Task OnParametersSetAsync()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
             return;
 
         Compose = "";
 
-        await Server.RunJsonAsync<DockerStackComposeInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ComposeInfo), async (res) =>
+        await Server.RunJsonAsync<DockerStackComposeInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ComposeInfo), (res) =>
         {
-            StackName = res.Data.Name;
-            Compose = res.Data.Content;
+            StackName = res.Data?.Name;
+            Compose = res.Data?.Content;
             GotCompose = true;
         });
 
@@ -165,6 +168,8 @@
 
     public async Task BuildStack()
     {
+        if (Member == null || Server == null)
+            return;
 
         IsBuilding = true;
         string Data = await _editor.GetValue();

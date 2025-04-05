@@ -8,7 +8,7 @@
 @implements IDisposable
 @inject IJSRuntime JS
 
-@if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs))
+@if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs))
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -16,8 +16,8 @@
             <RadzenText TextStyle="TextStyle.H6">Container Logs</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
             <RadzenBreadCrumbItem Text="Logs" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -37,8 +37,8 @@ else
             }
         </div>
         <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@(string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName)" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@(string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName)" />
             <RadzenBreadCrumbItem Text="Logs" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -55,7 +55,7 @@ else
             <HeaderTemplate>
                 <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" JustifyContent="JustifyContent.SpaceAround" Wrap="FlexWrap.NoWrap" class="pd-1">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                        <RadzenSwitch Value="@AutoRefresh" Disabled="@(RefreshTimer == null)" TValue="bool" ValueChanged="@((arg) => { AutoRefresh = arg; if (AutoRefresh) { RefreshTimer.Start(); } else { RefreshTimer.Stop(); } })" />
+                        <RadzenSwitch Value="@AutoRefresh" Disabled="@(RefreshTimer == null)" TValue="bool" ValueChanged="@((arg) => { AutoRefresh = arg; if (AutoRefresh) { RefreshTimer?.Start(); } else { RefreshTimer.Stop(); } })" />
                         <RadzenLabel Text="Auto Refresh" />
                     </RadzenStack>
                     <RadzenButton Icon="refresh" Click="@(() => OnParametersSetAsync())" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Size="ButtonSize.Medium" Disabled="@(RefreshTimer == null || AutoRefresh)" class="rz-border-radius-10" />
@@ -118,7 +118,7 @@ else
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -128,7 +128,7 @@ else
     public string ContainerId { get; set; }
 
     public List<LogMessage> Messages = new List<LogMessage>();
-    public string ContainerName { get; set; }
+    public string? ContainerName { get; set; }
     public bool Failed { get; set; }
 
     public bool AutoRefresh { get; set; } = true;
@@ -151,7 +151,7 @@ else
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs) && firstTimeChange < 2)
+        if (Member != null && Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs) && firstTimeChange < 2)
         {
             firstTimeChange += 1;
             await JS.InvokeVoidAsync("Utils.scrollLogsDown");
@@ -160,7 +160,7 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs))
+        if (Member == null || Server == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs))
         {
             if (RefreshTimer != null)
                 RefreshTimer.Stop();
@@ -184,14 +184,11 @@ else
                 })
             });
             Failed = !Result.IsSuccess;
-            if (Failed)
+            if (Failed || Result.Data == null)
                 return;
             ContainerName = Result.Data.ContainerName;
             SinceDate = Result.Data.SinceDate;
-            string[] lines = Result.Data.Logs.Split(
-                new string[] { "\r\n", "\r", "\n" },
-                StringSplitOptions.RemoveEmptyEntries
-            );
+            string[] lines = Result.Data.Logs.SplitNewlines(trim: false);
             if (lines.Any())
             {
                 Messages.Clear();
@@ -224,6 +221,9 @@ else
 
     public async void OnTimedEvent1(object source, ElapsedEventArgs e)
     {
+        if (Server == null)
+            return;
+
         RefreshTimer.Stop();
         var Result = await Server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
         {
@@ -234,13 +234,10 @@ else
                 SinceDate = SinceDate
             })
         });
-        if (Result.IsSuccess)
+        if (Result.IsSuccess && Result.Data != null)
         {
             SinceDate = Result.Data.SinceDate;
-            string[] lines = Result.Data.Logs.Split(
-                new string[] { "\r\n", "\r", "\n" },
-                StringSplitOptions.RemoveEmptyEntries
-            );
+            string[] lines = Result.Data.Logs.SplitNewlines(trim: false);
 
             if (lines.Any())
             {

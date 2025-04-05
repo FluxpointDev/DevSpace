@@ -20,11 +20,11 @@
         <RadzenText TextStyle="TextStyle.H6">Docker Stack Build</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks")" Text="Stacks" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks")" Text="Stacks" />
         <RadzenBreadCrumbItem Text="Build" />
     </RadzenBreadCrumb>
     <br />
-    @if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
+    @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -54,7 +54,7 @@
             <h6>Stack Created</h6>
             <p>Your containers are now running click the button to show the stack.</p>
             <br />
-            <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId)"><RadzenButton Text="View Stack" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId)"><RadzenButton Text="View Stack" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
             <br />
         }
         else if (BuildFailed)
@@ -69,7 +69,7 @@
             <h6>Start Failed</h6>
             <p>One or more of your containers failed to start.</p>
             <br />
-            <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
         }
         else if (IsBuilding)
         {
@@ -95,13 +95,13 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
-    public string StackName { get; set; }
+    public string? StackName { get; set; }
     private StandaloneCodeEditor _editor = null;
 
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
@@ -129,10 +129,13 @@
     public bool BuildFailed { get; set; }
     public bool StartFailed { get; set; }
     public bool Success { get; set; }
-    public string StackId { get; set; }
+    public string? StackId { get; set; }
 
     public async Task BuildStack()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
             return;
 

@@ -18,13 +18,13 @@
     <div class="dash-box-content dash-box-header">
         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:folder-image"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Docker Images</RadzenText>
-        @if ((IsLoading || IsActionRunning) && Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
+        @if ((IsLoading || IsActionRunning) && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
         {
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
     </div>
 
-    @if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
+    @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
     {
         <div class="dash-box-content">
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -41,7 +41,7 @@
                     <span class="iconify" data-icon="mdi:cloud-download"></span>
                     <RadzenText TextStyle="TextStyle.H6">Pull</RadzenText>
                 </RadzenCard>
-                <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/build")">
+                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/build")">
                     <RadzenCard Style="cursor: pointer;" class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasServerPermission(Team, Server, ServerPermission.ManageServer) ? "" : " settings-item-disabled"))">
                         <span class="iconify" data-icon="mdi:pencil-box"></span>
                         <RadzenText TextStyle="TextStyle.H6">Build</RadzenText>
@@ -84,7 +84,7 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Name" Width="280px" Frozen="true">
                     <Template>
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + context.ID)">@context.Name</RadzenLink>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + context.ID)">@context.Name</RadzenLink>
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Version" Width="120px">
@@ -201,24 +201,27 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
-    SocketResponse<DockerImageInfo[]?> ImagesResponse = null;
+    SocketResponse<DockerImageInfo[]?>? ImagesResponse = null;
 
-    IQueryable<DockerImageInfo> ImagesList;
+    IQueryable<DockerImageInfo>? ImagesList;
     public int Count = 0;
-    IList<DockerImageInfo> SelectedImages;
+    IList<DockerImageInfo>? SelectedImages;
     public bool AnySelected => SelectedImages != null ? SelectedImages.Any() : false;
-    RadzenDataGrid<DockerImageInfo> grid;
+    RadzenDataGrid<DockerImageInfo> grid = null!;
     public bool IsLoading = true;
     public bool IsActionRunning { get; set; }
 
     public async Task LoadData(LoadDataArgs args)
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
             return;
 
@@ -235,7 +238,7 @@
             if (ImagesResponse == null)
             {
                 IsLoading = true;
-                await Server.RunJsonAsync<DockerImageInfo[]>(Notifications, new DockerEvent(DockerEventType.ListImages), async (response) =>
+                await Server.RunJsonAsync<DockerImageInfo[]>(Notifications, new DockerEvent(DockerEventType.ListImages), (response) =>
                 {
                     ImagesResponse = response;
                 });
@@ -243,7 +246,7 @@
                 IsLoading = false;
             }
 
-            if (ImagesResponse != null && ImagesResponse.IsSuccess)
+            if (ImagesResponse != null && ImagesResponse.IsSuccess && ImagesResponse.Data != null)
             {
                 IQueryable<DockerImageInfo> query = ImagesResponse.Data.AsQueryable();
 
@@ -254,7 +257,7 @@
                     query = query.OrderBy(args.OrderBy);
 
                 Count = query.Count();
-                ImagesList = query.OrderBy(x => x.Name).Skip(args.Skip.Value).Take(args.Top.Value);
+                ImagesList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
             }
             else
                 ImagesList = new List<DockerImageInfo>().AsQueryable();
@@ -273,12 +276,15 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+        if (Member == null || Server == null || SelectedImages == null)
+            return;
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
         if (type == ControlImageType.Export)
         {
-            Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
+            _ = Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
             return;
         }
         IsActionRunning = true;
@@ -297,10 +303,10 @@
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "View", Value = "view", Icon = "panorama", Disabled = !Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages) },
-                new ContextMenuItem(){ Text = "Export", Value = "export", Icon = "folder_zip", Disabled = !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) },
-                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = item.ContainersCount != 0 || item.IsParent || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) },
-                new ContextMenuItem() { Text = "Force Remove", Value = "force_remove", Icon = "delete_forever", Disabled = item.IsParent || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) }
+                new ContextMenuItem(){ Text = "View", Value = "view", Icon = "panorama", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages) },
+                new ContextMenuItem(){ Text = "Export", Value = "export", Icon = "folder_zip", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) },
+                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = Member == null || item.ContainersCount != 0 || item.IsParent || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) },
+                new ContextMenuItem() { Text = "Force Remove", Value = "force_remove", Icon = "delete_forever", Disabled = Member == null || item.IsParent || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) }
                                                  }, x => MenuItemClick(x, item));
     }
 
@@ -312,21 +318,24 @@
             return;
         }
 
+        if (Member == null || Server == null)
+            return;
+
         _ = Task.Run(async () =>
         {
             switch (args.Value.ToString())
             {
                 case "view":
-                if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
-                    return;
+                    if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
+                        return;
 
-                    Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/images/" + item.ID);
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + item.ID);
                     break;
                 case "export":
                     if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
                         return;
 
-                    Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
+                    _ = Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
                     // await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.Export) { ResourceList = new string[] { item.ID } }, (response) =>
                     //     {
                     //         InvokeAsync(RefreshImages);
@@ -335,7 +344,7 @@
                 case "remove":
                     {
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
-                        return;
+                            return;
 
                         IsActionRunning = true;
                         await InvokeAsync(StateHasChanged);
@@ -380,6 +389,9 @@
 
     async Task PullImage()
     {
+        if (Member == null || Server == null)
+            return;
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
@@ -388,7 +400,7 @@
         if (Response.IsSuccess)
             Limits = Response.Data;
 
-        var Result = await Dialog.OpenAsync<PullImageDialog>("Pull Docker Image", new Dictionary<string, object>
+        var Result = await Dialog.OpenAsync<PullImageDialog>("Pull Docker Image", new Dictionary<string, object?>
         {
             { "Limits", Limits }
         });
@@ -409,6 +421,9 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+
+        if (Server == null || Member == null)
+            return;
 
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;

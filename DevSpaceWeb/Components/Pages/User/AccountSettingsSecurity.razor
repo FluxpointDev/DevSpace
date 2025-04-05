@@ -632,19 +632,22 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public AuthUser? AuthUser { get; set; }
 
-    public string CurrentCountry { get; set; }
-    public string CurrentIp { get; set; }
+    public string? CurrentCountry { get; set; }
+    public string? CurrentIp { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         _DB.SessionUpdated += SessionChangedEvent;
         AuthUser = await Session.GetCurrentUserAsync();
         CurrentCountry = await Session.GetCountryAsync();
-        CurrentIp = Utils.GetUserIpAddress(Http.HttpContext);
+        if (string.IsNullOrEmpty(CurrentCountry))
+            CurrentCountry = "Unknown?";
+
+        CurrentIp = Utils.GetUserIpAddress(Http.HttpContext!);
         //var Meta = await Fido2Service._metadata.GetEntryAsync(AuthUser.PasskeyTokens.First().AaGuid);
         //Console.WriteLine("Meta: " + Meta.MetadataStatement.Description);
     }
@@ -656,7 +659,7 @@
 
     public async void SessionChangedEvent(ObjectId user, SessionEventType type)
     {
-        if (AuthUser.Id != user || type != SessionEventType.AccountUpdate)
+        if (AuthUser == null || AuthUser.Id != user || type != SessionEventType.AccountUpdate)
             return;
 
         AuthUser = await Session.GetCurrentUserAsync();
@@ -667,7 +670,10 @@
     public async Task EditSession(string id)
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser != null && AuthUser.Account.Sessions.TryGetValue(id, out UserSession? session))
+        if (AuthUser == null)
+            return;
+
+        if (AuthUser.Account.Sessions.TryGetValue(id, out UserSession? session))
         {
             if (AuthUser.Mfa.IsTwoFactorEnabled)
             {
@@ -697,6 +703,9 @@
     public async Task RemoveSession(string id)
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
@@ -708,6 +717,9 @@
         }
 
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         AuthUser.Account.Sessions.Remove(id);
         await UserManager.UpdateAsync(AuthUser);
         _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
@@ -728,6 +740,9 @@
         if (Confirm)
         {
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
             if (AuthUser.Mfa.IsTwoFactorEnabled)
             {
                 bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
@@ -739,6 +754,9 @@
             }
 
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
             AuthUser.Account.Sessions = AuthUser.Account.Sessions.Where(x => x.Key == Session.CurrentSessionId).ToDictionary();
             await UserManager.UpdateAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
@@ -813,9 +831,10 @@
     public async Task EditPasskey(FidoStoredCredential cred)
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser != null)
-        {
-            if (AuthUser.Mfa.IsTwoFactorEnabled)
+        if (AuthUser == null)
+            return;
+
+        if (AuthUser.Mfa.IsTwoFactorEnabled)
             {
                 bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
                 if (!TwoFactorValid)
@@ -841,12 +860,15 @@
 
                 return null;
             });
-        }
+        
     }
 
     public async Task RemovePasskey(FidoStoredCredential cred)
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
@@ -872,6 +894,8 @@
     public async Task RegisterAuthenticator()
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
 
         if (!AuthUser.EmailConfirmed)
         {
@@ -888,8 +912,10 @@
             }
         }
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
 
-        string Key = await UserManager.GetAuthenticatorKeyAsync(AuthUser);
+        string? Key = await UserManager.GetAuthenticatorKeyAsync(AuthUser);
         if (string.IsNullOrEmpty(Key))
         {
             IdentityResult Result = await UserManager.ResetAuthenticatorKeyAsync(AuthUser);
@@ -914,6 +940,9 @@
     public async Task EditAuthenticator(string name)
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
@@ -947,6 +976,9 @@
     public async Task RemoveAllPasskeys()
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         if (!AuthUser.Mfa.Passkeys.Any())
         {
             await DialogService.ShowInfoAsync("Passkey Info", "You do not have any passkeys registered");
@@ -956,6 +988,9 @@
         if (Confirm)
         {
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
@@ -964,6 +999,8 @@
             }
 
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
 
             AuthUser.Mfa.Passkeys.Clear();
             if (!AuthUser.Mfa.HasAny2FA())
@@ -978,6 +1015,9 @@
     public async Task RemoveAllAuthenticators()
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         if (!AuthUser.Mfa.AuthenticatorDevices.Any())
         {
             await DialogService.ShowInfoAsync("Authenticator Info", "You do not have any authenticators registered");
@@ -1011,6 +1051,9 @@
     public async Task GenerateBackupCodes()
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         if (!AuthUser.EmailConfirmed)
         {
             await DialogService.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
@@ -1028,6 +1071,8 @@
         }
 
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
 
         string Code = Utils.CreateTwoFactorRecoveryCode();
 
@@ -1070,6 +1115,8 @@
             }
 
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
 
             AuthUser.Mfa.Disable2FA(AuthUser);
 

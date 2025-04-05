@@ -9,26 +9,26 @@
     </div>
     <br />
     <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server?.VanityUrl + "/host")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo) ? "" : " settings-item-disabled"))">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/host")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:information"></span>
                 <RadzenText TextStyle="TextStyle.H6">Host Info</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server?.VanityUrl + "/settings")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasServerPermission(Team, Server, ServerPermission.ManageServer) ? "" : " settings-item-disabled"))">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/settings")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ManageServer) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:gear"></span>
                 <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server?.VanityUrl + "/permissions")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasServerPermission(Team, Server, ServerPermission.ViewPermissions) ? "" : " settings-item-disabled"))">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/permissions")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ViewPermissions) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:shield-key"></span>
                 <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server?.VanityUrl + "/connection")">
-            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection) ? "" : " settings-item-disabled"))">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/connection")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:lightning-bolt"></span>
                 <RadzenText TextStyle="TextStyle.H6">Connection</RadzenText>
             </RadzenCard>
@@ -43,9 +43,9 @@
     </div>
     <br />
     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
-    <RadzenUserSelector Value="@OwnerUser" Disabled="@(!Member.CanOwn(Server))" OnSelected="@ChangeOwner"></RadzenUserSelector>
+    <RadzenUserSelector Value="@OwnerUser" Disabled="@(Member == null || !Member.CanOwn(Server))" OnSelected="@ChangeOwner"></RadzenUserSelector>
     <br />
-    <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Server" Disabled="@(!Member.HasServerPermission(Team, Server, ServerPermission.DeleteServerResource))" />
+    <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Server" Disabled="@(Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.DeleteServerResource))" />
 </div>
 
 <style>
@@ -84,13 +84,13 @@
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
-    public string OwnerUser { get; set; }
+    public string? OwnerUser { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -106,7 +106,7 @@
 
     public async Task Delete()
     {
-        if (!Member.HasServerPermission(Team, Server, ServerPermission.DeleteServerResource))
+        if (Server == null || Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.DeleteServerResource))
             return;
 
         bool Confirm = await DialogService.ShowConfirmAsync("Delete Server", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
@@ -117,7 +117,7 @@
 
             await Server.DeleteAsync(Member, () =>
             {
-                Nav.NavigateTo("/teams/" + Session.Selected.Team.VanityUrl + "/servers");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers");
             });
         }
     }
@@ -125,7 +125,7 @@
 
     public async Task ChangeOwner(PartialUserData user)
     {
-        if (!Member.CanOwn(Server))
+        if (Server == null || Member == null || !Member.CanOwn(Server))
             return;
 
         bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);

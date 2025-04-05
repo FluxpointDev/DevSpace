@@ -13,8 +13,8 @@
             <RadzenText TextStyle="TextStyle.H6">Container Changes</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
             <RadzenBreadCrumbItem Text="Changes" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -34,8 +34,8 @@ else if (Changes == null)
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
             <RadzenBreadCrumbItem Text="Changes" />
         </RadzenBreadCrumb>
         @if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges))
@@ -60,23 +60,26 @@ else
             <RadzenText TextStyle="TextStyle.H6">Container Changes</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team.VanityUrl + "/servers/" + Session.Selected.Team.Server.VanityUrl + "/containers/" + ContainerId)" Text="@Changes.ContainerName" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@Changes.ContainerName" />
             <RadzenBreadCrumbItem Text="Changes"></RadzenBreadCrumbItem>
         </RadzenBreadCrumb>
         <br />
         <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
             <RadzenTableBody>
-                @foreach (var c in Changes.Changes.OrderBy(x => x.Path))
+                @if (Changes != null && Changes.Changes != null)
                 {
-                    <RadzenTableRow>
-                        <RadzenTableCell>
-                            @c.Kind.ToString()
-                        </RadzenTableCell>
-                        <RadzenTableCell>
-                            @c.Path
-                        </RadzenTableCell>
-                    </RadzenTableRow>
+                    foreach (var c in Changes.Changes.OrderBy(x => x.Path))
+                    {
+                        <RadzenTableRow>
+                            <RadzenTableCell>
+                                @c.Kind.ToString()
+                            </RadzenTableCell>
+                            <RadzenTableCell>
+                                @c.Path
+                            </RadzenTableCell>
+                        </RadzenTableRow>
+                    }
                 }
             </RadzenTableBody>
         </RadzenTable>
@@ -89,7 +92,7 @@ else
 
 @code {
     [CascadingParameter]
-    private SessionProvider Session { get; set; }
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -103,7 +106,8 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges))
+        
+        if (Member == null || Server == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges))
             return;
 
         try

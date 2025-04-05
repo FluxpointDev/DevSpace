@@ -2,6 +2,6 @@
 
 public class ConsoleReasonPlayerJson
 {
-    public string player;
-    public string reason;
+    public string? player;
+    public string? reason;
 }
