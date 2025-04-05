@@ -511,6 +511,9 @@
         if (Response.IsSuccess)
         {
             Data = Response.Data;
+            if (Data != null && Server.GetWebSocket().Discover.Version != Data.AgentVersion)
+                Server.GetWebSocket().Discover.Version = Data.AgentVersion;
+
             StateHasChanged();
         }
 

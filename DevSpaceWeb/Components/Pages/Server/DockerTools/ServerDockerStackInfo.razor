@@ -254,7 +254,7 @@ else
                             {
                                 case "bind":
                                     {
-                                        <RadzenStack Orientation="Orientation.Horizontal">
+                                        <RadzenStack Orientation="Orientation.Horizontal" Style="height: 100%;">
                                             <RadzenIcon Icon="directory_sync" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
                                             <RadzenText TextStyle="TextStyle.Body2">
                                                 Bind
@@ -471,7 +471,7 @@ else
         if (ContainersList != null)
             await Grid.RefreshDataAsync();
 
-        IsLoading = false;
+        
     }
 
     public async Task LoadData(LoadDataArgs args)
@@ -527,6 +527,7 @@ else
                 CountDead = query.Count(x => !x.IsOnline());
                 ContainersList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
             }
+            IsLoading = false;
         }
     }
 

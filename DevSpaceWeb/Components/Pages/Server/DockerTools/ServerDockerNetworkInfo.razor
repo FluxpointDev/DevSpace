@@ -244,6 +244,7 @@ else
             <div class="dash-box-icon"><span class="iconify" data-icon="ri:box-3-fill"></span></div>
             <RadzenText TextStyle="TextStyle.H6">Containers</RadzenText>
         </div>
+        <br />
         <RadzenDataGrid Data="@Network.ContainersList"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
                         ShowPagingSummary="true"
@@ -272,7 +273,7 @@ else
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Action">
                     <Template>
-                        <RadzenButton Click="@(() => LeaveNetwork(context.Key))" Text="Leave Network" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(Network.Name == "host" || IsActionLoading)" />
+                        <RadzenButton Click="@(() => LeaveNetwork(context.Key))" Text="Leave Network" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(Network.Name == "host" || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks) || IsActionLoading)" />
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
@@ -320,6 +321,9 @@ else
     public async Task LeaveNetwork(string id)
     {
         if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
             return;
 
         IsActionLoading = true;
