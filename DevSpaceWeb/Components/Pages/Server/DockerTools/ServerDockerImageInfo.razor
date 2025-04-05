@@ -3,7 +3,9 @@
 @using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using Docker.DotNet.Models
+@using Newtonsoft.Json.Linq
 @inject NotificationService Notifications
+@inject DialogService Dialogs
 
 @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
 {
@@ -36,7 +38,13 @@ else if (Image == null)
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images")" Text="Images" />
             <RadzenBreadCrumbItem Text="@ImageId" />
         </RadzenBreadCrumb>
-        @if (Failed)
+        @if (IsActionLoading)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Image has been removed.
+            </RadzenAlert>
+        }
+        else if (Failed)
         {
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
                 Failed to get image info.
@@ -63,7 +71,14 @@ else
                         Name
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @GetName()
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
+                            <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@GetName()</RadzenText>
+                            <RadzenSplitButton Text="Remove" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="((args) => Remove(args.Text))" Size="ButtonSize.Small" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))">
+                                <ChildContent>
+                                    <RadzenSplitButtonItem Text="Force Remove" Style="cursor: pointer;" />
+                                </ChildContent>
+                            </RadzenSplitButton>
+                        </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -292,8 +307,8 @@ else
         @if (ShowLayers)
         {
             <RadzenTabs RenderMode="TabRenderMode.Server">
-            <Tabs>
-                <RadzenTabsItem Text="List">
+                <Tabs>
+                    <RadzenTabsItem Text="List">
                         <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false" class="table-properties">
                             <RadzenTableHeader>
                                 <RadzenTableHeaderRow>
@@ -329,13 +344,13 @@ else
                                 }
                             </RadzenTableBody>
                         </RadzenTable>
-                </RadzenTabsItem>
-                <RadzenTabsItem Text="File">
+                    </RadzenTabsItem>
+                    <RadzenTabsItem Text="File">
                         <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@SetLayerFile" />
-                </RadzenTabsItem>
-            </Tabs>
+                    </RadzenTabsItem>
+                </Tabs>
             </RadzenTabs>
-            
+
         }
         else
         {
@@ -432,7 +447,7 @@ else
         }
     }
 
-    private StandaloneCodeEditor _editor = null;
+    private StandaloneCodeEditor _editor = null!;
 
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
@@ -456,6 +471,30 @@ else
         {
             var Model = await _editor.GetModel();
             await Model.SetValue(string.Join("\n\n", Layers.Select(x => x.CreatedBy)));
-        }        
+        }
+    }
+
+    public bool IsActionLoading { get; set; }
+
+    public async Task Remove(string option)
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync(option + " Image", $"Are you sure you want to {option.ToLower()} this image?", "Yes", ButtonStyle.Success);
+        if (Confirm)
+        {
+            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+                return;
+
+            IsActionLoading = true;
+
+            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, ImageId, containerType: option == "Force Remove" ? ControlContainerType.ForceRemove : ControlContainerType.Remove));
+            if (Result.IsSuccess)
+                Image = null;
+        }
     }
 }

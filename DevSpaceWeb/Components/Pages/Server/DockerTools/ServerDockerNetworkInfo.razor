@@ -2,6 +2,7 @@
 @using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @inject NotificationService Notifications
+@inject DialogService Dialogs
 
 @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
 {
@@ -34,7 +35,13 @@ else if (Network == null)
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks")" Text="Networks" />
             <RadzenBreadCrumbItem Text="@NetworkId" />
         </RadzenBreadCrumb>
-        @if (Failed)
+        @if (IsActionLoading)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Network has been removed.
+            </RadzenAlert>
+        }
+        else if (Failed)
         {
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
                 Failed to get network info.
@@ -61,7 +68,10 @@ else
                         Name
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Network.Name
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
+                            <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@Network.Name</RadzenText>
+                            <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@Remove" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
+                        </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -248,7 +258,7 @@ else
         <RadzenDataGrid Data="@Network.ContainersList"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
                         ShowPagingSummary="true"
-                        PagingSummaryFormat="@(Network.ContainersCount + " " + (Network.ContainersCount != 1 ? "containers" : "container") )" Density="Density.Default"
+                        PagingSummaryFormat="@(Network.ContainersCount + " " + (Network.ContainersCount != 1 ? "containers" : "container"))" Density="Density.Default"
                         AllowSorting="false" AllowFiltering="false">
             <Columns>
                 <RadzenDataGridColumn Title="Name" Width="160px">
@@ -329,9 +339,31 @@ else
         IsActionLoading = true;
         await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.LeaveNetwork) { ResourceList = new string[] { id } }, (response) =>
         {
-            
+
         });
         IsActionLoading = false;
         await InvokeAsync(OnParametersSetAsync);
+    }
+
+    public async Task Remove()
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Network", $"Are you sure you want to remove this network?", "Yes", ButtonStyle.Success);
+        if (Confirm)
+        {
+            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
+                return;
+
+            IsActionLoading = true;
+
+            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.Remove));
+            if (Result.IsSuccess)
+                Network = null;
+        }
     }
 }
