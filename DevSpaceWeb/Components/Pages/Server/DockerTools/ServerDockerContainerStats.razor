@@ -147,6 +147,105 @@ else
         </RadzenDataGrid>
 
     </div>
+
+    <RadzenRow Gap="18px" RowGap="18px">
+        <RadzenColumn SizeMD="6" SizeSM="12">
+            <div class="dash-box dash-box-content">
+                <div class="dash-box-header">
+                    <div class="dash-box-icon"><span class="iconify" data-icon="mdi:memory"></span></div>
+                    <RadzenText TextStyle="TextStyle.H6">Memory Usage</RadzenText>
+                </div>
+                <br />
+                <RadzenChart>
+                    <RadzenAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Memory" Stroke="#0086c9" Fill="rgb(56, 113, 255)" ValueProperty="MemoryUsage" RenderingOrder="1">
+                        <RadzenSeriesDataLabels Visible="true" />
+                        <RadzenSeriesAnnotation Visible="true" TItem="DockerContainerStat[]" Data="@Stats" OffsetY="-16" Text="Acquisition" />
+                        <RadzenMarkers MarkerType="MarkerType.Circle" />
+                    </RadzenAreaSeries>
+                    <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
+                    <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
+                    <RadzenValueAxis Formatter="@FormatMemory">
+                        <RadzenGridLines Visible="true" Stroke="#2f2f31" />
+                        <RadzenAxisTitle Text="" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+                <br />
+            </div>
+        </RadzenColumn>
+        <RadzenColumn SizeMD="6" SizeSM="12">
+            <div class="dash-box dash-box-content">
+                <div class="dash-box-header">
+                    <div class="dash-box-icon"><span class="iconify" data-icon="mdi:cpu-64-bit"></span></div>
+                    <RadzenText TextStyle="TextStyle.H6">CPU Usage</RadzenText>
+                </div>
+                <br />
+                <RadzenChart>
+                    <RadzenAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="CPU" Stroke="#0086c9" Fill="rgb(56, 113, 255)" ValueProperty="CpuUsage" RenderingOrder="1">
+                        <RadzenSeriesDataLabels Visible="true" />
+                    </RadzenAreaSeries>
+                    <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
+                    <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
+                    <RadzenValueAxis Formatter="@FormatCPU">
+                        <RadzenGridLines Visible="true" Stroke="#2f2f31" />
+                        <RadzenAxisTitle Text="" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+                <br />
+            </div>
+        </RadzenColumn>
+        <RadzenColumn SizeMD="6" SizeSM="12">
+            <div class="dash-box dash-box-content">
+                <div class="dash-box-header">
+                    <div class="dash-box-icon"><span class="iconify" data-icon="mdi:wide-area-network"></span></div>
+                    <RadzenText TextStyle="TextStyle.H6">Network Usage</RadzenText>
+                </div>
+                <br />
+                <RadzenChart>
+                    <RadzenStackedAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="Receive" Stroke="var(--rz-success)" Fill="var(--rz-success)" ValueProperty="NetworkReceive">
+                        <RadzenSeriesDataLabels Visible="true" />
+                    </RadzenStackedAreaSeries>
+                    <RadzenStackedAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Transmit" Stroke="var(--rz-warning)" Fill="var(--rz-warning)" ValueProperty="NetworkTransmit">
+                        <RadzenSeriesDataLabels Visible="true" />
+                    </RadzenStackedAreaSeries>
+                    <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
+                    <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
+                    <RadzenValueAxis Formatter="@FormatMemory">
+                        <RadzenGridLines Visible="true" Stroke="#2f2f31" />
+                        <RadzenAxisTitle Text="" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+                <br />
+            </div>
+        </RadzenColumn>
+        <RadzenColumn SizeMD="6" SizeSM="12">
+            <div class="dash-box dash-box-content">
+                <div class="dash-box-header">
+                    <div class="dash-box-icon"><span class="iconify" data-icon="mdi:file-arrow-up-down"></span></div>
+                    <RadzenText TextStyle="TextStyle.H6">IO Usage</RadzenText>
+                </div>
+                <br />
+                <RadzenChart>
+                    <RadzenStackedAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="Read" Stroke="var(--rz-success)" Fill="var(--rz-success)" ValueProperty="IORead">
+                        <RadzenSeriesDataLabels Visible="true" />
+                    </RadzenStackedAreaSeries>
+                    <RadzenStackedAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Write" Stroke="var(--rz-warning)" Fill="var(--rz-warning)" ValueProperty="IOWrite">
+                        <RadzenSeriesDataLabels Visible="true" />
+                    </RadzenStackedAreaSeries>
+                    <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
+                    <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
+                    <RadzenValueAxis Formatter="@FormatMemory">
+                        <RadzenGridLines Visible="true" Stroke="#2f2f31" />
+                        <RadzenAxisTitle Text="" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+                <br />
+            </div>
+        </RadzenColumn>
+    </RadzenRow>
+
+    
+
+    
 }
 
 <style>
@@ -183,6 +282,7 @@ else
             var Result = await Server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
             Failed = !Result.IsSuccess;
             Container = Result.Data;
+
         }
         catch (Exception ex)
         {
@@ -190,4 +290,35 @@ else
             Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
         }
     }
+
+    private string FormatMemory(object value)
+    {
+        return Utils.SizeSuffix(Convert.ToInt64(value.ToString()), 0);
+    }
+
+
+    private string FormatDate(object value)
+    {
+        return Utils.GetLocalDate(Session, (DateTime)value, showSeconds: true);
+    }
+
+    private string FormatCPU(object value)
+    {
+        Console.WriteLine(value.ToString());
+        return string.Format("{0:F1}", double.Parse(value.ToString())) + "%";
+    }
+
+    public List<DockerContainerStat> Stats = new List<DockerContainerStat>
+    {
+        new DockerContainerStat
+        {
+            Date = DateTime.UtcNow.AddSeconds(-5),
+            CpuUsage = 0.5f,
+            MemoryUsage = 419430400,
+            NetworkReceive = 60,
+            NetworkTransmit = 160,
+            IORead = 470,
+            IOWrite = 2097152
+        }
+    };
 }

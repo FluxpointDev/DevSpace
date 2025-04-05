@@ -48,7 +48,6 @@ public static class DockerVolumes
 
                 IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
                 {
-                    Size = true,
                     All = true,
                     Filters = new Dictionary<string, IDictionary<string, bool>>
                                 {

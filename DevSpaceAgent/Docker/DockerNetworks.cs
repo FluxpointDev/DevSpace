@@ -39,7 +39,47 @@ public static class DockerNetworks
         {
             case ControlNetworkType.View:
                 NetworkResponse Network = await client.Networks.InspectNetworkAsync(id);
-                return DockerNetworkInfo.Create(Network, true);
+                DockerNetworkInfo Data = DockerNetworkInfo.Create(Network, true);
+
+                IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
+                {
+                    All = true,
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
+                                {
+                                    { "network", new Dictionary<string, bool>
+                                    {
+                                        { id, true }
+                                    }
+                                    }
+                                }
+                });
+
+                foreach (var i in containers)
+                {
+                    if (!Data.ContainersList.ContainsKey(i.ID))
+                    {
+                        if (i.NetworkSettings.Networks.TryGetValue(Network.Name, out var endpoint))
+                        {
+                            Data.ContainersList.Add(i.ID, new EndpointResource
+                            {
+                                Name = i.Names.Any() ? i.Names.First().Substring(1) : i.ID,
+                                IPv4Address = endpoint.IPAddress,
+                                IPv6Address = endpoint.GlobalIPv6Address,
+                                MacAddress = endpoint.MacAddress,
+                                EndpointID = endpoint.EndpointID
+                            });
+                        }
+                        else
+                        {
+                            Data.ContainersList.Add(i.ID, new EndpointResource
+                            {
+                                Name = i.Names.Any() ? i.Names.First().Substring(1) : i.ID
+                            });
+                        }
+                    }
+                }
+
+                return Data;
             case ControlNetworkType.Remove:
                 await client.Networks.DeleteNetworkAsync(id);
                 break;

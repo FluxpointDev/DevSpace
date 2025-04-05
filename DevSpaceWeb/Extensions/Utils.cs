@@ -301,13 +301,16 @@ public static class Utils
         return AllowedChars[(int)result];
     }
 
-    public static string GetLocalDate(SessionProvider session, DateTime? date, bool isMini = true, bool showTime = false)
+    public static string GetLocalDate(SessionProvider session, DateTime? date, bool isMini = true, bool showTime = false, bool showSeconds = false)
     {
         if (!date.HasValue)
             return "";
 
         DateTimeOffset MessageOffset = date.Value.AddMinutes(session.UserDateOffset);
         DateTimeOffset UserDate = DateTimeOffset.UtcNow.AddMinutes(session.UserDateOffset);
+
+        if (showSeconds)
+            return MessageOffset.ToString("%h:mm:ss", CultureInfo.InvariantCulture);
 
         if (isMini && MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month)
         {

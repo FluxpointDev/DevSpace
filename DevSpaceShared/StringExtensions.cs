@@ -1,4 +1,6 @@
-﻿namespace DevSpaceShared;
+﻿using System.Runtime.CompilerServices;
+
+namespace DevSpaceShared;
 public static class StringExtensions
 {
     public static string[] SplitNewlines(this string? input, bool trim = false)
