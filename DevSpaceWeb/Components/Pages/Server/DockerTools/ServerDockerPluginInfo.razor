@@ -35,7 +35,13 @@ else if (Plugin == null)
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/plugins")" Text="Plugins" />
             <RadzenBreadCrumbItem Text="@PluginId" />
         </RadzenBreadCrumb>
-        @if (Failed)
+        @if (IsActionLoading)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Plugin has been removed.
+            </RadzenAlert>
+        }
+        else if (Failed)
         {
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
                 Failed to get plugin info.

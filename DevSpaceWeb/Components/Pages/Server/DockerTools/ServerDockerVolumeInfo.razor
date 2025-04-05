@@ -1,6 +1,7 @@
 ﻿@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
 @inject NotificationService Notifications
+@inject DialogService Dialogs
 
 @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
 {
@@ -33,7 +34,13 @@ else if (Volume == null)
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes")" Text="Volumes" />
             <RadzenBreadCrumbItem Text="@VolumeId" />
         </RadzenBreadCrumb>
-        @if (Failed)
+        @if (IsActionLoading)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Volume has been removed.
+            </RadzenAlert>
+        }
+        else if (Failed)
         {
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
                 Failed to get volume info.
@@ -67,14 +74,22 @@ else
                         Name
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @if (Volume.Containers != null && Volume.Containers.Any() && Volume.Containers.First().Value == "registry")
-                        {
-                            @("docker_registry")
-                        }
-                        else
-                        {
-                            @Volume.Name
-                        }
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
+                            @if (Volume.Containers != null && Volume.Containers.Any() && Volume.Containers.First().Value == "registry")
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2" class="mt-2">docker_registry</RadzenText>
+                            }
+                            else
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@Volume.Name</RadzenText>
+                            }
+                            <RadzenSplitButton Text="Remove" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="((args) => Remove(args.Text))" Size="ButtonSize.Small" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))">
+                                <ChildContent>
+                                    <RadzenSplitButtonItem Text="Force Remove" Style="cursor: pointer;" />
+                                </ChildContent>
+                            </RadzenSplitButton>
+                        </RadzenStack>
+                        
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -190,6 +205,30 @@ else
         {
             Failed = true;
             Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+    }
+
+    public bool IsActionLoading { get; set; }
+
+    public async Task Remove(string option)
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync(option + " Volume", $"Are you sure you want to {option.ToLower()} this volume?", "Yes", ButtonStyle.Success);
+        if (Confirm)
+        {
+            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
+                return;
+
+            IsActionLoading = true;
+
+            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: option == "Force Remove" ? ControlVolumeType.ForceRemove : ControlVolumeType.Remove));
+            if (Result.IsSuccess)
+                Volume = null;
         }
     }
 }
