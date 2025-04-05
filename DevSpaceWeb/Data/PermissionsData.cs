@@ -26,6 +26,7 @@ public static class PermissionsData
 
     public static PermissionItem<ResourcePermission>[] AllResourceData =
     [
+        new PermissionItem<ResourcePermission>(ResourcePermission.CreateAPIs, "Create APIs", "Create api clients for the team."),
         new PermissionItem<ResourcePermission>(ResourcePermission.CreateServers, "Create Servers", "Create server resources for the team."),
         new PermissionItem<ResourcePermission>(ResourcePermission.CreateConsoles, "Create Consoles", "Create console resources for the team."),
         new PermissionItem<ResourcePermission>(ResourcePermission.CreateWebsites, "Create Websites", "Create website resources for the team."),
@@ -55,7 +56,6 @@ public static class PermissionsData
         [
             new PermissionItem<APIPermission>(APIPermission.ViewOwnAPIs, Lang.Permissions.view_own_apis, Lang.Permissions.view_own_apis_description),
             new PermissionItem<APIPermission>(APIPermission.ManageOwnAPIs, Lang.Permissions.manage_own_apis, Lang.Permissions.manage_own_apis_description),
-            new PermissionItem<APIPermission>(APIPermission.CreateOwnAPIs, "Create Own APIs", "Create your own API clients."),
             new PermissionItem<APIPermission>(APIPermission.ViewAllAPIs, Lang.Permissions.view_all_apis, Lang.Permissions.view_all_apis_description),
         ];
     }
