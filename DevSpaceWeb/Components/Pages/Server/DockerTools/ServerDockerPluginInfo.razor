@@ -2,6 +2,7 @@
 @using DevSpaceShared.Responses
 @using Docker.DotNet.Models
 @inject NotificationService Notifications
+@inject DialogService Dialogs
 
 @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewPlugins))
 {
@@ -61,7 +62,10 @@ else
                         Name
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Plugin.Name.Split(':').First()
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
+                            <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@Plugin.Name.Split(':').First()</RadzenText>
+                            <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@Remove" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" />
+                        </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -213,6 +217,30 @@ else
         {
             Failed = true;
             Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+    }
+
+    public bool IsActionLoading { get; set; }
+
+    public async Task Remove()
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Plugin", $"Are you sure you want to remove this plugin?", "Yes", ButtonStyle.Success);
+        if (Confirm)
+        {
+            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
+                return;
+
+            IsActionLoading = true;
+
+            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Remove));
+            if (Result.IsSuccess)
+                Plugin = null;
         }
     }
 }
