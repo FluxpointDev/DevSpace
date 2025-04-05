@@ -42,12 +42,48 @@
                         @Utils.GetLocalDate(Session, DateTimeOffset.FromUnixTimeSeconds(context.Time).DateTime)
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Type" Width="100px">
+                <RadzenDataGridColumn Title="Type" Width="120px">
                     <Template>
+                        @switch (context.Type)
+                        {
+                            case "container":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="ri:box-3-fill"></span></div>
+                            break;
+                            case "builder":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="mdi:build"></span></div>
+                                break;
+                            case "config":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="mdi:gear"></span></div>
+                                break;
+                            case "daemon":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="mdi:docker"></span></div>
+                                break;
+                            case "image":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="mdi:folder-image"></span></div>
+                                break;
+                            case "network":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="mdi:local-area-network"></span></div>
+                                break;
+                            case "node":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="mdi:access-point"></span></div>
+                                break;
+                            case "plugin":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="mdi:power-plug"></span></div>
+                                break;
+                            case "secret":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="mdi:password"></span></div>
+                                break;
+                            case "service":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="mdi:lightning-bolt"></span></div>
+                                break;
+                            case "volume":
+                                <div style="display: inline-block;" class="mr-1"><span class="iconify" data-icon="mdi:storage"></span></div>
+                                break;
+                        }
                         @context.Type
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Name" Width="100px">
+                <RadzenDataGridColumn Title="Name" Width="300px">
                     <Template>
                         @if (context.Actor != null && context.Actor.Attributes != null && context.Actor.Attributes.TryGetValue("name", out object? name))
                         {
@@ -55,17 +91,17 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Action" Width="100px">
+                <RadzenDataGridColumn Title="Action" Width="110px">
                     <Template>
                         @context.Action
                     </Template>
                 </RadzenDataGridColumn>
                     
-                    <RadzenDataGridColumn Title="Details" Width="100px">
+                    <RadzenDataGridColumn Title="Details">
                     <Template>
                         @if (context.Actor != null)
                         {
-                            <RadzenButton Variant="Variant.Filled" Text="More Details" Click="@(() => OpenMoreDetails(context))" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" />
+                            <RadzenButton Variant="Variant.Filled" Size="ButtonSize.Small" Text="More Details" Click="@(() => OpenMoreDetails(context))" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" />
                         }
                     </Template>
                 </RadzenDataGridColumn>
