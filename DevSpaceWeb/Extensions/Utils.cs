@@ -306,12 +306,8 @@ public static class Utils
         if (!date.HasValue)
             return "";
 
-        Console.WriteLine("Date: " + date);
-
         DateTimeOffset MessageOffset = date.Value.AddMinutes(session.UserDateOffset);
         DateTimeOffset UserDate = DateTimeOffset.UtcNow.AddMinutes(session.UserDateOffset);
-        Console.WriteLine(session.UserDateOffset);
-        Console.WriteLine("User: " + MessageOffset);
 
         if (showSeconds)
             return MessageOffset.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
