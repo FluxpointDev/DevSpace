@@ -182,7 +182,6 @@ public static class DockerStacks
         if (Program.Stacks.Any(x => !string.IsNullOrEmpty(x.Value.Name) && x.Value.Name.Equals(compose.Name, StringComparison.OrdinalIgnoreCase)))
             throw new Exception("Stack name already exists.");
 
-        Console.WriteLine("Create Stack");
         string Id = Guid.NewGuid().ToString().Replace("-", "");
         string Dir = Program.CurrentDirectory + $"Data/Stacks/{Id}/";
         if (Directory.Exists(Dir))
@@ -596,7 +595,6 @@ public static class DockerStacks
         if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
             throw new Exception("Stack does not exist.");
 
-        Console.WriteLine($"{type.ToString()} Stack");
         string Dir = Program.CurrentDirectory + $"Data/Stacks/{id}/";
         if (!Directory.Exists(Dir))
             throw new Exception("This stack does not exist anymore.");
@@ -629,13 +627,11 @@ public static class DockerStacks
                     break;
             }
 
-            Console.WriteLine("State: " + svc.State.ToString());
         }
     }
 
     public static async Task RemoveStack(DockerClient client, string id)
     {
-        Console.WriteLine("Remove Stack");
         string Dir = Program.CurrentDirectory + $"Data/Stacks/{id}/";
         if (Directory.Exists(Dir))
         {

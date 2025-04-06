@@ -4,7 +4,7 @@ public class DockerStatJson
     public DockerStatMemoryJson memory_stats;
     public DockerStatCpuJson cpu_stats;
     public DockerStatCpuJson precpu_stats;
-    public DockerStatBlkioJson blkio_stats;
+    public DockerStatBlkioJson? blkio_stats;
     //public DockerStatCpuJson GetCpuStats()
     //{
     //    if (cpu_stats == null)
@@ -12,7 +12,7 @@ public class DockerStatJson
 
     //    return cpu_stats;
     //}
-    public Dictionary<string, DockerStatNetworkJson> networks = new Dictionary<string, DockerStatNetworkJson>();
+    public Dictionary<string, DockerStatNetworkJson>? networks;
 }
 public class DockerStatCpuJson
 {
@@ -22,7 +22,7 @@ public class DockerStatCpuJson
 }
 public class DockerStatBlkioJson
 {
-    public DockerStatBlkioServiceJson[] io_service_bytes_recursive;
+    public DockerStatBlkioServiceJson[]? io_service_bytes_recursive;
 }
 public class DockerStatBlkioServiceJson
 {

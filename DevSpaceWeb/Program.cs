@@ -173,10 +173,9 @@ public class Program
                 DockerStatJson? Stats = null;
                 try
                 {
-                    using (Stream StatsStream = await InternalDocker.Containers.GetContainerStatsAsync("7bea5281cca6b44a42ec21a21ad9fb4e58128da9df0df1f76b5f4062c3bcd6e4", new Docker.DotNet.Models.ContainerStatsParameters
+                    using (Stream StatsStream = await InternalDocker.Containers.GetContainerStatsAsync("3e42d53173d83163534fc1e81f9ffab39edab1cd0c2430460a31ac298526684e", new Docker.DotNet.Models.ContainerStatsParameters
                     {
-                        Stream = false,
-                        OneShot = true
+                        Stream = false
                     }, CancellationToken.None))
                     {
                         using (StreamReader reader = new StreamReader(StatsStream, Encoding.UTF8))

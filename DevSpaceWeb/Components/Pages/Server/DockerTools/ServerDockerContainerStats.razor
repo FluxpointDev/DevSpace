@@ -2,6 +2,7 @@
 @using DevSpaceShared.Events.Docker
 @using Docker.DotNet.Models
 @using Newtonsoft.Json.Linq
+@using System.Timers
 @inject NotificationService Notifications
 
 @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
@@ -244,12 +245,13 @@ else
                     <RadzenText TextStyle="TextStyle.H6">Memory Usage</RadzenText>
                 </div>
                 <br />
-                <RadzenChart>
-                    <RadzenAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Memory" Stroke="#0086c9" Fill="rgb(56, 113, 255)" ValueProperty="MemoryUsage" RenderingOrder="1">
+                <RadzenChart @ref="@MemoryChart">
+                    <RadzenAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Memory" Stroke="#0086c9" Fill="rgb(56, 113, 255)" ValueProperty="MemoryUsage" TItem="DockerContainerStats" RenderingOrder="1">
                         <RadzenSeriesDataLabels Visible="true" />
                         <RadzenSeriesAnnotation Visible="true" TItem="List<DockerContainerStats>" Data="@Stats" OffsetY="-16" Text="Acquisition" />
                         <RadzenMarkers MarkerType="MarkerType.Circle" />
                     </RadzenAreaSeries>
+
                     <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
                     <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
                     <RadzenValueAxis Formatter="@FormatMemory">
@@ -267,10 +269,10 @@ else
                     <RadzenText TextStyle="TextStyle.H6">CPU Usage</RadzenText>
                 </div>
                 <br />
-                <RadzenChart>
+                <RadzenChart @ref="@CpuChart">
                     <RadzenAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="CPU" Stroke="#0086c9" Fill="rgb(56, 113, 255)" ValueProperty="CpuUsage" RenderingOrder="1">
                         <RadzenSeriesDataLabels Visible="true" />
-                            <RadzenMarkers MarkerType="MarkerType.Circle" />
+                        <RadzenMarkers MarkerType="MarkerType.Circle" />
                     </RadzenAreaSeries>
                     <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
                     <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
@@ -283,39 +285,52 @@ else
             </div>
         </RadzenColumn>
         <RadzenColumn SizeMD="6" SizeSM="12">
-            <div class="dash-box dash-box-content">
+            <div class="dash-box dash-box-content" style="height: 100%;">
                 <div class="dash-box-header">
                     <div class="dash-box-icon"><span class="iconify" data-icon="mdi:wide-area-network"></span></div>
-                    <RadzenText TextStyle="TextStyle.H6">Network Usage</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H6">Network Usage (Total)</RadzenText>
+                    @if (Stats != null && Stats.Any() && Stats.First().Networks != null && Stats.First().Networks.Any())
+                    {
+                        <RadzenDropDown class="ml-2" @bind-Value="@SelectedNetwork" Data="@Stats.First().Networks" TextProperty="key" ValueProperty="key" Style="" Change="@(() => { foreach (var i in Stats) { i.SelectedNetwork = SelectedNetwork; } })" />
+                    }
                 </div>
-                <br />
-                <RadzenChart>
+                @if (Stats != null && Stats.Any() && Stats.First().Networks == null)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                        Network stats unavailable for this container.
+                    </RadzenAlert>
+                }
+                else
+                {
+                    <br />
+                    <RadzenChart @ref="@NetworkChart">
                         <RadzenAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="Receive" Stroke="var(--rz-success)" Fill="var(--rz-success)" ValueProperty="NetworkReceive" RenderingOrder="1">
-                        <RadzenSeriesDataLabels Visible="true" />
-                        <RadzenMarkers MarkerType="MarkerType.Circle" />
-                    </RadzenAreaSeries>
-                    <RadzenAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Transmit" Stroke="var(--rz-warning)" Fill="var(--rz-warning)" ValueProperty="NetworkTransmit">
-                        <RadzenSeriesDataLabels Visible="true" />
-                        <RadzenMarkers MarkerType="MarkerType.Circle" />
-                    </RadzenAreaSeries>
-                    <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
-                    <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
-                    <RadzenValueAxis Formatter="@FormatMemory">
-                        <RadzenGridLines Visible="@(!IsLoading)" Stroke="#2f2f31" />
-                        <RadzenAxisTitle Text="" />
-                    </RadzenValueAxis>
-                </RadzenChart>
-                <br />
+                            <RadzenSeriesDataLabels Visible="true" />
+                            <RadzenMarkers MarkerType="MarkerType.Circle" />
+                        </RadzenAreaSeries>
+                        <RadzenAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Transmit" Stroke="var(--rz-warning)" Fill="var(--rz-warning)" ValueProperty="NetworkTransmit">
+                            <RadzenSeriesDataLabels Visible="true" />
+                            <RadzenMarkers MarkerType="MarkerType.Circle" />
+                        </RadzenAreaSeries>
+                        <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
+                        <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
+                        <RadzenValueAxis Formatter="@FormatMemory">
+                            <RadzenGridLines Visible="@(!IsLoading)" Stroke="#2f2f31" />
+                            <RadzenAxisTitle Text="" />
+                        </RadzenValueAxis>
+                    </RadzenChart>
+                    <br />
+                }
             </div>
         </RadzenColumn>
         <RadzenColumn SizeMD="6" SizeSM="12">
             <div class="dash-box dash-box-content">
                 <div class="dash-box-header">
                     <div class="dash-box-icon"><span class="iconify" data-icon="mdi:file-arrow-up-down"></span></div>
-                    <RadzenText TextStyle="TextStyle.H6">IO Usage</RadzenText>
+                    <RadzenText TextStyle="TextStyle.H6">IO Usage (Total)</RadzenText>
                 </div>
                 <br />
-                <RadzenChart>
+                <RadzenChart @ref="@IOChart">
                     <RadzenAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="Read" Stroke="var(--rz-success)" Fill="var(--rz-success)" ValueProperty="IORead" RenderingOrder="1">
                         <RadzenSeriesDataLabels Visible="true" />
                         <RadzenMarkers MarkerType="MarkerType.Circle" />
@@ -335,10 +350,6 @@ else
             </div>
         </RadzenColumn>
     </RadzenRow>
-
-    
-
-    
 }
 
 <style>
@@ -365,6 +376,7 @@ else
     public DockerContainerProcesses Container { get; set; } = new DockerContainerProcesses { Data = new ContainerProcessesResponse {  Processes = new List<IList<string>>() { new List<string> { } } } };
     public bool Failed { get; set; }
     public bool IsLoading { get; set; } = true;
+    public System.Timers.Timer StatsTimer = null;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -381,7 +393,40 @@ else
             Container = Result.Data;
 
             if (Result.Data != null && Result.Data.Stats != null)
+            {
+                if (Result.Data.Stats.Networks != null && Result.Data.Stats.Networks.Any())
+                {
+                    SelectedNetwork = Result.Data.Stats.Networks.First().Key;
+
+                }
+
+                Result.Data.Stats.SelectedNetwork = SelectedNetwork;
+
+                Result.Data.Stats.MemoryUsage = Result.Data.Stats.MemoryUsage.RoundNearestBytes();
+                Result.Data.Stats.IORead = Result.Data.Stats.IORead.RoundNearestBytes();
+                Result.Data.Stats.IOWrite = Result.Data.Stats.IOWrite.RoundNearestBytes();
+
+                if (Result.Data.Stats.Networks != null)
+                {
+                    foreach(var i in Result.Data.Stats.Networks)
+                    {
+                        i.NetworkReceive = i.NetworkReceive.RoundNearestBytes();
+                        i.NetworkTransmit = i.NetworkTransmit.RoundNearestBytes();
+                    }
+                }
+                
+
                 Stats.Add(Result.Data.Stats);
+                if (StatsTimer == null)
+                {
+                    StatsTimer = new System.Timers.Timer(new TimeSpan(0, 0, 5));
+                    StatsTimer.AutoReset = false;
+                    StatsTimer.Elapsed += RunStats;
+                    StatsTimer.Start();
+                }
+            }
+
+
         }
         catch (Exception ex)
         {
@@ -391,16 +436,72 @@ else
 
         IsLoading = false;
     }
+    private RadzenChart MemoryChart = null!;
+    private RadzenChart CpuChart = null!;
+    private RadzenChart? NetworkChart = null!;
+    private RadzenChart IOChart = null!;
+    public string? SelectedNetwork { get; set; }
+
+    public async void RunStats(object? sender, ElapsedEventArgs e)
+    {
+        if (Server == null || Member == null)
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
+            return;
+
+        var Result = await Server.RecieveJsonAsync<DockerContainerStats>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Stats));
+        if (Result.IsSuccess && Result.Data != null)
+        {
+            Result.Data.SelectedNetwork = SelectedNetwork;
+            Result.Data.MemoryUsage = Result.Data.MemoryUsage.RoundNearestBytes();
+            Result.Data.IORead = Result.Data.IORead.RoundNearestBytes();
+            Result.Data.IOWrite = Result.Data.IOWrite.RoundNearestBytes();
+
+            if (Result.Data.Stats.Networks != null)
+                {
+                    foreach(var i in Result.Data.Stats.Networks)
+                    {
+                        i.NetworkReceive = i.NetworkReceive.RoundNearestBytes();
+                        i.NetworkTransmit = i.NetworkTransmit.RoundNearestBytes();
+                    }
+                }
+
+            if (Stats.Count == 8)
+            {
+                Stats = new List<DockerContainerStats>
+                {
+                    Stats[1],
+                    Stats[2],
+                    Stats[3],
+                    Stats[4],
+                    Stats[5],
+                    Stats[6],
+                    Stats[7],
+                    Result.Data
+                };
+            }
+            else
+            {
+
+                Stats.Add(Result.Data);
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+
+        StatsTimer.Start();
+    }
 
     private string FormatMemory(object value)
     {
         try
         {
-            return Utils.SizeSuffix(Convert.ToInt64(value.ToString()), 0);
+            return Utils.SizeSuffix(Convert.ToInt64(value.ToString().Split('.').First()), 0);
         }
-        catch
+        catch (Exception ex)
         {
-            return "0";
+            return "0 B";
         }
     }
 
@@ -412,7 +513,7 @@ else
 
     private string FormatCPU(object value)
     {
-        return string.Format("{0:F1}", double.Parse(value.ToString())) + "%";
+        return Double.Round(Double.Parse(value.ToString()), 1, MidpointRounding.ToEven) + "%";
     }
 
     public List<DockerContainerStats> Stats = new List<DockerContainerStats>();

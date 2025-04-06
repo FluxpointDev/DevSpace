@@ -172,8 +172,7 @@ public static class DockerContainers
                         {
                             using (Stream StatsStream = await client.Containers.GetContainerStatsAsync(id, new ContainerStatsParameters
                             {
-                                Stream = false,
-                                OneShot = true
+                                Stream = false
                             }, CancellationToken.None))
                             {
                                 using (StreamReader reader = new StreamReader(StatsStream, Encoding.UTF8))
@@ -210,8 +209,7 @@ public static class DockerContainers
                     {
                         using (Stream StatsStream = await client.Containers.GetContainerStatsAsync(id, new ContainerStatsParameters
                         {
-                            Stream = false,
-                            OneShot = true
+                            Stream = false
                         }, CancellationToken.None))
                         {
                             using (StreamReader reader = new StreamReader(StatsStream, Encoding.UTF8))

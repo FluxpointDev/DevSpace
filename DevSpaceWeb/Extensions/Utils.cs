@@ -161,7 +161,7 @@ public static class Utils
             : asGb > 1 ? string.Format("{0} GB", asGb)
             : asMb > 1 ? string.Format("{0} MB", asMb)
             : asKb > 1 ? string.Format("{0} KB", asKb)
-            : string.Format("{0}B", Math.Round((double)value, decimalPlaces));
+            : string.Format("{0} B", Math.Round((double)value, decimalPlaces));
         return chosenValue;
     }
 

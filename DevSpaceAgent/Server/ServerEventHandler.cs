@@ -61,7 +61,7 @@ public static class ServerEventHandler
                             }
                         }
 
-                        bool NoResponse = false;
+                        bool NoResponse = true;
                         switch (@event.DockerType)
                         {
                             case DockerEventType.ListContainers:
