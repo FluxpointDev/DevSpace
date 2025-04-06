@@ -1,3 +1,4 @@
+using DevSpaceShared.Data;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Services;
@@ -12,6 +13,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace DevSpaceWeb;
@@ -167,6 +169,25 @@ public class Program
 
                 await InternalDocker.System.PingAsync();
                 Console.WriteLine("PINGED DOCKER");
+
+                DockerStatJson? Stats = null;
+                try
+                {
+                    using (Stream StatsStream = await InternalDocker.Containers.GetContainerStatsAsync("7bea5281cca6b44a42ec21a21ad9fb4e58128da9df0df1f76b5f4062c3bcd6e4", new Docker.DotNet.Models.ContainerStatsParameters
+                    {
+                        Stream = false,
+                        OneShot = true
+                    }, CancellationToken.None))
+                    {
+                        using (StreamReader reader = new StreamReader(StatsStream, Encoding.UTF8))
+                        {
+                            string Json = reader.ReadToEnd();
+                            Console.WriteLine(Json);
+                            Stats = Newtonsoft.Json.JsonConvert.DeserializeObject<DockerStatJson>(Json);
+                        }
+                    }
+                }
+                catch { }
 
                 //await InternalDocker.Images.CreateImageAsync(new ImagesCreateParameters
                 //{
