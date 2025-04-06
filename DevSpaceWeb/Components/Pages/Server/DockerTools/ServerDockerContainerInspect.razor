@@ -50,7 +50,7 @@ else
             <br />
             @if (GotInspect)
             {
-                <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
+                <StandaloneCodeEditor @ref="_editor" Id="editorContainerInspect" ConstructionOptions="EditorConstructionOptions" OnDidInit="@Init" />
             }
         }
     </div>
@@ -75,7 +75,7 @@ else
     [Parameter]
     public string ContainerId { get; set; }
 
-    public string? InspectData { get; set; }
+    public string? InspectData { get; set; } = "";
     public bool GotInspect { get; set; }
     public string? ContainerName { get; set; }
     public bool Failed { get; set; }
@@ -94,6 +94,12 @@ else
             Folding = false,
             ReadOnly = true
         };
+    }
+
+    public async Task Init()
+    {
+        var Model = await _editor.GetModel();
+        await Model.SetValue(InspectData);
     }
 
     protected override async Task OnParametersSetAsync()
