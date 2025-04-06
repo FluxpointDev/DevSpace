@@ -159,7 +159,7 @@ else
                 <RadzenChart>
                     <RadzenAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Memory" Stroke="#0086c9" Fill="rgb(56, 113, 255)" ValueProperty="MemoryUsage" RenderingOrder="1">
                         <RadzenSeriesDataLabels Visible="true" />
-                        <RadzenSeriesAnnotation Visible="true" TItem="DockerContainerStat[]" Data="@Stats" OffsetY="-16" Text="Acquisition" />
+                        <RadzenSeriesAnnotation Visible="true" TItem="List<DockerContainerStats>" Data="@Stats" OffsetY="-16" Text="Acquisition" />
                         <RadzenMarkers MarkerType="MarkerType.Circle" />
                     </RadzenAreaSeries>
                     <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
@@ -182,6 +182,7 @@ else
                 <RadzenChart>
                     <RadzenAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="CPU" Stroke="#0086c9" Fill="rgb(56, 113, 255)" ValueProperty="CpuUsage" RenderingOrder="1">
                         <RadzenSeriesDataLabels Visible="true" />
+                            <RadzenMarkers MarkerType="MarkerType.Circle" />
                     </RadzenAreaSeries>
                     <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
                     <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
@@ -201,12 +202,14 @@ else
                 </div>
                 <br />
                 <RadzenChart>
-                    <RadzenStackedAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="Receive" Stroke="var(--rz-success)" Fill="var(--rz-success)" ValueProperty="NetworkReceive">
+                        <RadzenAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="Receive" Stroke="var(--rz-success)" Fill="var(--rz-success)" ValueProperty="NetworkReceive" RenderingOrder="1">
                         <RadzenSeriesDataLabels Visible="true" />
-                    </RadzenStackedAreaSeries>
-                    <RadzenStackedAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Transmit" Stroke="var(--rz-warning)" Fill="var(--rz-warning)" ValueProperty="NetworkTransmit">
+                        <RadzenMarkers MarkerType="MarkerType.Circle" />
+                    </RadzenAreaSeries>
+                    <RadzenAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Transmit" Stroke="var(--rz-warning)" Fill="var(--rz-warning)" ValueProperty="NetworkTransmit">
                         <RadzenSeriesDataLabels Visible="true" />
-                    </RadzenStackedAreaSeries>
+                        <RadzenMarkers MarkerType="MarkerType.Circle" />
+                    </RadzenAreaSeries>
                     <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
                     <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
                     <RadzenValueAxis Formatter="@FormatMemory">
@@ -225,12 +228,14 @@ else
                 </div>
                 <br />
                 <RadzenChart>
-                    <RadzenStackedAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="Read" Stroke="var(--rz-success)" Fill="var(--rz-success)" ValueProperty="IORead">
+                    <RadzenAreaSeries Smooth="false" Data="@Stats" CategoryProperty="Date" Title="Read" Stroke="var(--rz-success)" Fill="var(--rz-success)" ValueProperty="IORead" RenderingOrder="1">
                         <RadzenSeriesDataLabels Visible="true" />
-                    </RadzenStackedAreaSeries>
-                    <RadzenStackedAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Write" Stroke="var(--rz-warning)" Fill="var(--rz-warning)" ValueProperty="IOWrite">
+                        <RadzenMarkers MarkerType="MarkerType.Circle" />
+                    </RadzenAreaSeries>
+                    <RadzenAreaSeries Smooth="true" Data="@Stats" CategoryProperty="Date" Title="Write" Stroke="var(--rz-warning)" Fill="var(--rz-warning)" ValueProperty="IOWrite">
                         <RadzenSeriesDataLabels Visible="true" />
-                    </RadzenStackedAreaSeries>
+                            <RadzenMarkers MarkerType="MarkerType.Circle" />
+                    </RadzenAreaSeries>
                     <RadzenLegend Position="LegendPosition.Top"></RadzenLegend>
                     <RadzenCategoryAxis Padding="20" LabelAutoRotation="-45" Formatter="@FormatDate" />
                     <RadzenValueAxis Formatter="@FormatMemory">
@@ -253,6 +258,9 @@ else
         white-space: pre !important;
         text-overflow: unset !important;
     }
+    .rz-legend-items {
+    margin-top: -16px;
+}
 </style>
 
 @code {
@@ -282,7 +290,15 @@ else
             var Result = await Server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
             Failed = !Result.IsSuccess;
             Container = Result.Data;
-
+            if (Result.Data != null && Result.Data.Stats != null)
+                Stats.Add(Result.Data.Stats);
+            Stats.Add(new DockerContainerStats
+            {
+                MemoryUsage = Result.Data.Stats.MemoryUsage,
+                NetworkReceive = Result.Data.Stats.NetworkReceive,
+                NetworkTransmit = Result.Data.Stats.NetworkTransmit,
+                Date = Result.Data.Stats.Date.AddSeconds(5)
+            });
         }
         catch (Exception ex)
         {
@@ -293,7 +309,14 @@ else
 
     private string FormatMemory(object value)
     {
-        return Utils.SizeSuffix(Convert.ToInt64(value.ToString()), 0);
+        try
+        {
+            return Utils.SizeSuffix(Convert.ToInt64(value.ToString()), 0);
+        }
+        catch
+        {
+            return "0";
+        }
     }
 
 
@@ -308,17 +331,5 @@ else
         return string.Format("{0:F1}", double.Parse(value.ToString())) + "%";
     }
 
-    public List<DockerContainerStat> Stats = new List<DockerContainerStat>
-    {
-        new DockerContainerStat
-        {
-            Date = DateTime.UtcNow.AddSeconds(-5),
-            CpuUsage = 0.5f,
-            MemoryUsage = 419430400,
-            NetworkReceive = 60,
-            NetworkTransmit = 160,
-            IORead = 470,
-            IOWrite = 2097152
-        }
-    };
+    public List<DockerContainerStats> Stats = new List<DockerContainerStats>();
 }

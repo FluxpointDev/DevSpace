@@ -2,6 +2,7 @@
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using System.Text;
 
 namespace DevSpaceAgent.Docker;
 
@@ -166,10 +167,29 @@ public static class DockerContainers
                         {
                             PsArgs = "-eo user,pid,ppid,thcount,c,%cpu,%mem,lstart,etime,comm,cmd --date-format %Y-%m-%dT%H:%M:%S"
                         });
+                        DockerStatJson? Stats = null;
+                        try
+                        {
+                            using (Stream StatsStream = await client.Containers.GetContainerStatsAsync(id, new ContainerStatsParameters
+                            {
+                                Stream = false,
+                                OneShot = true
+                            }, CancellationToken.None))
+                            {
+                                using (StreamReader reader = new StreamReader(StatsStream, Encoding.UTF8))
+                                {
+                                    string Json = reader.ReadToEnd();
+                                    Stats = Newtonsoft.Json.JsonConvert.DeserializeObject<DockerStatJson>(Json);
+                                }
+                            }
+                        }
+                        catch { }
+
                         return new DockerContainerProcesses
                         {
                             ContainerName = Program.ContainerCache.GetValueOrDefault(id, id),
-                            Data = Response
+                            Data = Response,
+                            Stats = Stats != null ? DockerContainerStats.Create(Stats) : null
                         };
                     }
                     catch (DockerApiException ex) when (ex.Message.Contains("is not running"))
@@ -182,6 +202,27 @@ public static class DockerContainers
 
                     }
 
+                }
+            case ControlContainerType.Stats:
+                {
+                    DockerStatJson? Stats = null;
+                    try
+                    {
+                        using (Stream StatsStream = await client.Containers.GetContainerStatsAsync(id, new ContainerStatsParameters
+                        {
+                            Stream = false,
+                            OneShot = true
+                        }, CancellationToken.None))
+                        {
+                            using (StreamReader reader = new StreamReader(StatsStream, Encoding.UTF8))
+                            {
+                                string Json = reader.ReadToEnd();
+                                Stats = Newtonsoft.Json.JsonConvert.DeserializeObject<DockerStatJson>(Json);
+                            }
+                        }
+                    }
+                    catch { }
+                    return Stats != null ? DockerContainerStats.Create(Stats) : null;
                 }
             case ControlContainerType.Rename:
                 {
