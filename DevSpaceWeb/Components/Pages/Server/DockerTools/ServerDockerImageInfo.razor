@@ -73,7 +73,7 @@ else
                     <RadzenTableCell>
                         <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
                             <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@GetName()</RadzenText>
-                            <RadzenSplitButton Text="Remove" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="((args) => Remove(args.Text))" Size="ButtonSize.Small" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))">
+                            <RadzenSplitButton Text="Remove" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="((args) => Remove(args?.Text))" Size="ButtonSize.Small" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))">
                                 <ChildContent>
                                     <RadzenSplitButtonItem Text="Force Remove" Style="cursor: pointer;" />
                                 </ChildContent>
@@ -476,8 +476,11 @@ else
 
     public bool IsActionLoading { get; set; }
 
-    public async Task Remove(string option)
+    public async Task Remove(string? option)
     {
+        if (string.IsNullOrEmpty(option))
+            option = "Remove";
+
         if (Member == null || Server == null)
             return;
 
