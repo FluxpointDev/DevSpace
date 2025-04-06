@@ -754,7 +754,14 @@ else
                         <Template>
                             @if (context.Type == "volume")
                             {
-                                <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                                @if (Container.Name == "/registry")
+                                {
+                                    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">docker_registry</RadzenLink>
+                                }
+                                else
+                                {
+                                    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                                }
                             }
                             else
                             {
