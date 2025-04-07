@@ -84,10 +84,9 @@ else
                 <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Paused || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!CanManageContainer || IsActionLoading)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
             </RadzenStack>
-        </div>
+            </div>
             <RadzenButton Variant="Variant.Filled" Text="Recreate" Icon="autorenew" ButtonStyle="ButtonStyle.Light" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RecreateContainer" Disabled="@(IsActionLoading || Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))" />
         </RadzenStack>
-
     </div>
 
     <div class="dash-box dash-box-content">
@@ -1177,8 +1176,11 @@ else
             Session.ShowPreviewModeNotice();
             return;
         }
+        
         if (Member == null || Server == null)
             return;
+
+        LoadPerms();
 
         if (type == ControlContainerType.Remove || type == ControlContainerType.ForceRemove)
         {
