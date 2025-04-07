@@ -80,10 +80,121 @@ public static class DockerContainers
         return await client.Containers.UpdateContainerAsync(@event.ResourceId, Data);
     }
 
+    public static async Task<CreateContainerResponse?> RecreateContainerAsync(DockerClient client, DockerEvent @event)
+    {
+        ContainerInspectResponse? Info = await client.Containers.InspectContainerAsync(@event.ResourceId);
+        if (Info == null)
+            throw new Exception("Failed to get container info.");
+
+
+        bool ContainerRunning = false;
+        bool RenameDone = false;
+        try
+        {
+
+            await client.Containers.StopContainerAsync(@event.ResourceId, new ContainerStopParameters
+            {
+
+            });
+            ContainerRunning = Info.State.Running;
+
+            await client.Containers.RenameContainerAsync(@event.ResourceId, new ContainerRenameParameters
+            {
+                NewName = Info.Name + "-old"
+            }, CancellationToken.None);
+            RenameDone = true;
+
+            foreach (var i in Info.NetworkSettings.Networks)
+            {
+                await client.Networks.DisconnectNetworkAsync(i.Value.NetworkID, new NetworkDisconnectParameters
+                {
+                    Container = @event.ResourceId,
+                    Force = true
+                });
+            }
+
+
+
+            CreateContainerParameters Config = new CreateContainerParameters(Info.Config)
+            {
+                Name = Info.Name,
+                Platform = Info.Platform,
+                HostConfig = null,
+                NetworkingConfig = null
+            };
+            CreateContainerResponse CreateContainer = await client.Containers.CreateContainerAsync(Config);
+
+            foreach (var i in Info.NetworkSettings.Networks)
+            {
+                _ = client.Networks.ConnectNetworkAsync(i.Value.NetworkID, new NetworkConnectParameters
+                {
+                    Container = CreateContainer.ID,
+                    EndpointConfig = i.Value
+                });
+            }
+
+            await client.Containers.StartContainerAsync(CreateContainer.ID, new ContainerStartParameters
+            {
+
+            });
+
+            try
+            {
+                await client.Containers.StopContainerAsync(@event.ResourceId, new ContainerStopParameters
+                {
+
+                });
+            }
+            catch { }
+
+            try
+            {
+                await client.Containers.RemoveContainerAsync(@event.ResourceId, new ContainerRemoveParameters
+                {
+                    Force = true
+                });
+            }
+            catch { }
+
+            return CreateContainer;
+        }
+        catch (Exception ex)
+        {
+            if (RenameDone)
+            {
+                _ = client.Containers.RenameContainerAsync(@event.ResourceId, new ContainerRenameParameters
+                {
+                    NewName = Info.Name
+                }, CancellationToken.None);
+            }
+
+            foreach (var i in Info.NetworkSettings.Networks)
+            {
+                _ = client.Networks.ConnectNetworkAsync(i.Value.NetworkID, new NetworkConnectParameters
+                {
+                    Container = @event.ResourceId,
+                    EndpointConfig = i.Value
+                });
+            }
+
+            if (ContainerRunning)
+            {
+                _ = client.Containers.StartContainerAsync(@event.ResourceId, new ContainerStartParameters
+                {
+
+                });
+            }
+
+            throw new Exception("Failed to recreate container, " + ex.Message);
+        }
+    }
+
     public static async Task<object?> ControlContainerAsync(DockerClient client, DockerEvent @event, string id)
     {
         switch (@event.ContainerType)
         {
+            case ControlContainerType.Recreate:
+                return await RecreateContainerAsync(client, @event);
             case ControlContainerType.View:
                 return await GetContainerAsync(client, @event.ResourceId);
             case ControlContainerType.Update:

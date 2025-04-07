@@ -170,6 +170,11 @@ public class Program
                 await InternalDocker.System.PingAsync();
                 Console.WriteLine("PINGED DOCKER");
 
+                InternalDocker.Containers.CreateContainerAsync(new Docker.DotNet.Models.CreateContainerParameters
+                {
+                    Domainname = ""
+                });
+
                 DockerStatJson? Stats = null;
                 try
                 {

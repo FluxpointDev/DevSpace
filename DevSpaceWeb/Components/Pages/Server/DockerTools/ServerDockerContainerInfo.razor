@@ -7,6 +7,7 @@
 @using System.Text
 @inject NotificationService Notifications
 @inject DialogService Dialog
+@inject NavigationManager Nav
 
 @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
 {
@@ -82,8 +83,9 @@ else
                 <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Paused || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!CanManageContainer || IsActionLoading)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
             </RadzenStack>
-
         </div>
+        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="Recreate" ButtonStyle="ButtonStyle.Base" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RecreateContainer" Disabled="@(IsActionLoading || Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))" />
+
     </div>
 
     <div class="dash-box dash-box-content">
@@ -1424,5 +1426,20 @@ else
         {
             { "Json", Container.State.Health.Log.Last().Output }
         }, new DialogOptions());
+    }
+
+    public async Task RecreateContainer()
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))
+            return;
+
+        var Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Recreate));
+        if (Result.IsSuccess && Result.Data != null)
+        {
+            Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + Result.Data.ID);
+        }
     }
 }
