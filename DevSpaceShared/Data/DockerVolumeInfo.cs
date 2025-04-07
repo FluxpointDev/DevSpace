@@ -17,7 +17,9 @@ public class DockerVolumeInfo
 
         if (inspect)
         {
-
+            Info.Status = volume.Status;
+            Info.Labels = volume.Labels;
+            Info.Options = volume.Options;
         }
 
         return Info;
@@ -28,6 +30,9 @@ public class DockerVolumeInfo
     public string? Driver { get; set; }
     public string? Scope { get; set; }
     public string? MountPoint { get; set; }
+    public IDictionary<string, object>? Status { get; set; }
+    public IDictionary<string, string>? Labels { get; set; }
+    public IDictionary<string, string>? Options { get; set; }
     public Dictionary<string, string> Containers { get; set; } = new Dictionary<string, string>();
     public Dictionary<string, DockerMountContainer> ContainersList { get; set; } = new Dictionary<string, DockerMountContainer>();
     public int ContainersCount { get; set; }

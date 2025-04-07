@@ -137,6 +137,22 @@ else
                         @Network.IsInternal
                     </RadzenTableCell>
                 </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Config
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Network.ConfigOnly)
+                        {
+                            <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="Config-only" IsPill="true" />
+                        }
+                        else if (Network.ConfigFrom != null)
+                        {
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + Network.ConfigFrom.Id)">@Network.ConfigFrom.Name</RadzenLink>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
             </RadzenTableBody>
         </RadzenTable>
     </div>

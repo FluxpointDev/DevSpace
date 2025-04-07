@@ -4,7 +4,7 @@ namespace DevSpaceShared.Data
 {
     public class DockerNetworkInfo
     {
-        public static DockerNetworkInfo Create(NetworkResponse network, bool inspect)
+        public static DockerNetworkInfo Create(NetworkResponse network, bool inspect, NetworkResponse? networkFrom = null)
         {
             DockerNetworkInfo Info = new DockerNetworkInfo
             {
@@ -27,6 +27,14 @@ namespace DevSpaceShared.Data
                 Info.Labels = network.Labels;
                 Info.Options = network.Options;
                 Info.ContainersList = network.Containers;
+                if (networkFrom != null)
+                {
+                    Info.ConfigFrom = new DockerNetworkInfo
+                    {
+                        Id = networkFrom.ID,
+                        Name = networkFrom.Name
+                    };
+                }
             }
 
             return Info;
@@ -49,6 +57,7 @@ namespace DevSpaceShared.Data
         public string? Scope { get; set; }
         public bool Ingress { get; set; }
         public bool ConfigOnly { get; set; }
+        public DockerNetworkInfo? ConfigFrom { get; set; }
         public DateTime Created { get; set; }
         public IDictionary<string, string>? Labels { get; set; }
         public IDictionary<string, string>? Options { get; set; }

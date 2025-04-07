@@ -39,7 +39,16 @@ public static class DockerNetworks
         {
             case ControlNetworkType.View:
                 NetworkResponse Network = await client.Networks.InspectNetworkAsync(id);
-                DockerNetworkInfo Data = DockerNetworkInfo.Create(Network, true);
+                NetworkResponse? ParentNetwork = null;
+                if (Network.ConfigFrom != null && !string.IsNullOrEmpty(Network.ConfigFrom.Network))
+                {
+                    try
+                    {
+                        ParentNetwork = await client.Networks.InspectNetworkAsync(Network.ConfigFrom.Network);
+                    }
+                    catch { }
+                }
+                DockerNetworkInfo Data = DockerNetworkInfo.Create(Network, true, ParentNetwork);
 
                 IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
                 {

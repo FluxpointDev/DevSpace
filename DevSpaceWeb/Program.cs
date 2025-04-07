@@ -1,4 +1,3 @@
-using DevSpaceShared.Data;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Services;
@@ -13,7 +12,6 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace DevSpaceWeb;
@@ -170,28 +168,27 @@ public class Program
                 await InternalDocker.System.PingAsync();
                 Console.WriteLine("PINGED DOCKER");
 
-                InternalDocker.Containers.CreateContainerAsync(new Docker.DotNet.Models.CreateContainerParameters
-                {
-                    Domainname = ""
-                });
 
-                DockerStatJson? Stats = null;
-                try
-                {
-                    using (Stream StatsStream = await InternalDocker.Containers.GetContainerStatsAsync("3e42d53173d83163534fc1e81f9ffab39edab1cd0c2430460a31ac298526684e", new Docker.DotNet.Models.ContainerStatsParameters
-                    {
-                        Stream = false
-                    }, CancellationToken.None))
-                    {
-                        using (StreamReader reader = new StreamReader(StatsStream, Encoding.UTF8))
-                        {
-                            string Json = reader.ReadToEnd();
-                            Console.WriteLine(Json);
-                            Stats = Newtonsoft.Json.JsonConvert.DeserializeObject<DockerStatJson>(Json);
-                        }
-                    }
-                }
-                catch { }
+                var Volume = await InternalDocker.Volumes.InspectAsync("3d725f9fc66894e63b81e8a2843f1cab06283d78ca0b92246240b291e7184258");
+                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Volume, Newtonsoft.Json.Formatting.Indented));
+
+                //DockerStatJson? Stats = null;
+                //try
+                //{
+                //    using (Stream StatsStream = await InternalDocker.Containers.GetContainerStatsAsync("3e42d53173d83163534fc1e81f9ffab39edab1cd0c2430460a31ac298526684e", new Docker.DotNet.Models.ContainerStatsParameters
+                //    {
+                //        Stream = false
+                //    }, CancellationToken.None))
+                //    {
+                //        using (StreamReader reader = new StreamReader(StatsStream, Encoding.UTF8))
+                //        {
+                //            string Json = reader.ReadToEnd();
+                //            Console.WriteLine(Json);
+                //            Stats = Newtonsoft.Json.JsonConvert.DeserializeObject<DockerStatJson>(Json);
+                //        }
+                //    }
+                //}
+                //catch { }
 
                 //await InternalDocker.Images.CreateImageAsync(new ImagesCreateParameters
                 //{
