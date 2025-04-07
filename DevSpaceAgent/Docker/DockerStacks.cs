@@ -420,7 +420,6 @@ public static class DockerStacks
             DockerStackInfo Info = new DockerStackInfo
             {
                 Id = id,
-                Name = ":)",
                 ControlType = DockerStackControl.System,
             };
 
@@ -517,7 +516,7 @@ public static class DockerStacks
 
                 foreach (ContainerListResponse? c in Containers)
                 {
-                    if (string.IsNullOrEmpty(Info.Name) && c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project", out string name))
+                    if (string.IsNullOrEmpty(Info.Name) && c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project", out string? name))
                         Info.Name = name;
 
                     if (Info.CreatedAt == null || c.Created < Info.CreatedAt)
