@@ -46,97 +46,154 @@ else
         }
         else
         {
-            @if (Stack.ControlType != DockerStackControl.Full)
-            {
-                <div class="dash-box-content">
-                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Darker" AllowClose="false" Size="AlertSize.Small">
-                        This stack is managed by the System or Portainer, some features may be limited.
-                    </RadzenAlert>
-                </div>
-            }
-            <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
-                <RadzenTableBody>
-                    <RadzenTableRow>
-                        <RadzenTableCell>
-                            Name
-                        </RadzenTableCell>
-                        <RadzenTableCell>
+            
+        }
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:information"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Info</RadzenText>
+        </div>
+        @if (Stack != null && Stack.ControlType != DockerStackControl.Full)
+        {
+            <div class="dash-box-content">
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Darker" AllowClose="false" Size="AlertSize.Small">
+                    This stack is managed by the System or Portainer, some features may be limited.
+                </RadzenAlert>
+            </div>
+        }
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Name
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Stack == null)
+                        {
+                            <RadzenSkeleton></RadzenSkeleton>
+                        }
+                        else
+                        {
                             @Stack.Name
-                        </RadzenTableCell>
-                    </RadzenTableRow>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
 
-                    <RadzenTableRow>
-                        <RadzenTableCell>
-                            ID
-                        </RadzenTableCell>
-                        <RadzenTableCell>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        ID
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Stack == null)
+                        {
+                            <RadzenSkeleton></RadzenSkeleton>
+                        }
+                        else
+                        {
                             @Stack.Id
-                        </RadzenTableCell>
-                    </RadzenTableRow>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
 
-                    @if (Stack.ControlType == DockerStackControl.Full)
-                    {
-                        <RadzenTableRow>
-                            <RadzenTableCell>
-                                Compose
-                            </RadzenTableCell>
-                            <RadzenTableCell>
-                                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId + "/edit")"><RadzenButton Icon="edit" Variant="Variant.Text" Text="Edit" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))" /></a>
-                                
-                            </RadzenTableCell>
-                    </RadzenTableRow>
-                    }
-
+                @if (Stack != null && Stack.ControlType == DockerStackControl.Full)
+                {
                     <RadzenTableRow>
                         <RadzenTableCell>
-                            Type
+                            Compose
                         </RadzenTableCell>
                         <RadzenTableCell>
+                            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId + "/edit")"><RadzenButton Icon="edit" Variant="Variant.Text" Text="Edit" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))" /></a>
+
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+                }
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Type
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Stack == null)
+                        {
+                            <RadzenSkeleton></RadzenSkeleton>
+                        }
+                        else
+                        {
                             @Stack.Type.ToString()
-                        </RadzenTableCell>
-                    </RadzenTableRow>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
 
-                    <RadzenTableRow>
-                        <RadzenTableCell>
-                            Control
-                        </RadzenTableCell>
-                        <RadzenTableCell>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Control
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Stack == null)
+                        {
+                            <RadzenSkeleton></RadzenSkeleton>
+                        }
+                        else
+                        {
                             @Stack.ControlType.ToString()
-                        </RadzenTableCell>
-                    </RadzenTableRow>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
 
-                    <RadzenTableRow>
-                        <RadzenTableCell>
-                            Version
-                        </RadzenTableCell>
-                        <RadzenTableCell>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Version
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Stack == null)
+                        {
+                            <RadzenSkeleton></RadzenSkeleton>
+                        }
+                        else
+                        {
                             @Stack.Version
-                        </RadzenTableCell>
-                    </RadzenTableRow>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
 
-                    <RadzenTableRow>
-                        <RadzenTableCell>
-                            Created
-                        </RadzenTableCell>
-                        <RadzenTableCell>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Created
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Stack == null)
+                        {
+                            <RadzenSkeleton></RadzenSkeleton>
+                        }
+                        else
+                        {
                             @Utils.GetLocalDate(Session, Stack.CreatedAt)
-                        </RadzenTableCell>
-                    </RadzenTableRow>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
 
-                    <RadzenTableRow>
-                        <RadzenTableCell>
-                            Updated
-                        </RadzenTableCell>
-                        <RadzenTableCell>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Updated
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Stack == null)
+                        {
+                            <RadzenSkeleton></RadzenSkeleton>
+                        }
+                        else
+                        {
                             @if (Stack.UpdatedAt.HasValue)
                             {
                                 @Utils.GetLocalDate(Session, Stack.UpdatedAt)
                             }
-                        </RadzenTableCell>
-                    </RadzenTableRow>
-                </RadzenTableBody>
-            </RadzenTable>
-        }
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+            </RadzenTableBody>
+        </RadzenTable>
     </div>
 
     @if (Stack != null)
