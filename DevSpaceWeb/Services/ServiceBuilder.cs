@@ -69,12 +69,6 @@ public static class ServiceBuilder
 
     public static void AddPages(IServiceCollection services)
     {
-        //services.AddControllers(opt =>
-        //{
-        //    opt.RequireHttpsPermanent = true;
-        //    opt.Filters.Add<ControllerExceptionFilter>();
-        //});
-
         services.AddRazorComponents(opt =>
         {
             opt.DetailedErrors = Program.IsDevMode;
@@ -82,7 +76,6 @@ public static class ServiceBuilder
             {
                 opt.DetailedErrors = Program.IsDevMode;
             });
-
 
         var MvcBuilder = services.AddMvcCore(opt =>
         {
@@ -92,7 +85,7 @@ public static class ServiceBuilder
 
         if (!Program.LimitMode)
         {
-            //builder.Services.AddRazorPages();
+            // services.AddRazorPages();
             MvcBuilder.AddRazorPages();
         }
     }

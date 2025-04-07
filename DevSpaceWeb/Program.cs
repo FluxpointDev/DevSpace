@@ -266,13 +266,21 @@ public class Program
 
         // Use both wwwroot and public folder for website access :)
         app.UseStaticFiles();
+        app.MapHealthChecks("/api/health", new HealthCheckOptions
+        {
+            ResponseWriter = HealthCheckService.WriteResponse
+        });
+        app.UseRouting();
+        app.UseAuthentication();
+        app.UseAuthorization();
+
+        // Needs to be after authorization
         app.UseStaticFiles(new StaticFileOptions
         {
             FileProvider = new PhysicalFileProvider(Directory.Public.Path),
             RequestPath = "/public",
             OnPrepareResponse = async ctx =>
             {
-                Logger.LogMessage("Got Response", LogSeverity.Debug);
                 if (!(_Data.Config.Instance.Features.AllowUnauthenticatedPublicFolderAccess || (ctx.Context.User.Identity != null && ctx.Context.User.Identity.IsAuthenticated)))
                 {
                     ctx.Context.Response.Clear();
@@ -284,13 +292,6 @@ public class Program
             }
         });
 
-        app.MapHealthChecks("/api/health", new HealthCheckOptions
-        {
-            ResponseWriter = HealthCheckService.WriteResponse
-        });
-        app.UseRouting();
-        app.UseAuthentication();
-        app.UseAuthorization();
         app.UseSession();
         app.UseAntiforgery();
         if (_Data.Config.Instance.Features.SwaggerEnabled)
