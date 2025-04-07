@@ -838,8 +838,9 @@ else
                             @context.Value.MacAddress
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn>
+                    <RadzenDataGridColumn Title="Action">
                         <Template>
+                            <RadzenButton Click="@(() => LeaveNetwork(context.Value.NetworkID))" Text="Leave Network" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(context.Key == "host" || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks) || IsActionLoading)" />
                         </Template>
                     </RadzenDataGridColumn>
                 </Columns>
@@ -1443,5 +1444,22 @@ else
         {
             Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + Result.Data.ID);
         }
+    }
+
+    public async Task LeaveNetwork(string networkId)
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
+            return;
+
+        IsActionLoading = true;
+        await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.LeaveNetwork) { ResourceList = new string[] { ContainerId } }, (response) =>
+        {
+
+        });
+        await Task.Delay(new TimeSpan(0, 0, 1));
+        await InvokeAsync(OnParametersSetAsync);
     }
 }
