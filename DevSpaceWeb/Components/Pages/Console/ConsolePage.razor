@@ -10,9 +10,12 @@
     <RadzenBody>
         <div class="dash-box dash-box-content">
             <div class="dash-box-header">
-                <div class="dash-box-icon"><span class="iconify" data-icon="mdi:console-line"></span></div>
+                <div class="dash-box-icon dash-box-back" onclick="history.back()">
+                    <span class="iconify" data-icon="mdi:console-line"></span>
+                    <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+                </div>
                 <RadzenText TextStyle="TextStyle.H6">@Console.Name</RadzenText>
-                @if (Console.Type == ConsoleType.Battleye)
+                @if (Console != null && Console.Type == ConsoleType.Battleye)
                 {
                     <div @onclick="@(() => LogSidebarExpanded = !LogSidebarExpanded)" style="margin-left: auto;">
                         <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-split-vertical"></span></div>
@@ -20,7 +23,7 @@
                 }
             </div>
             <br />
-            @switch (Console.Type)
+            @switch (Console?.Type)
             {
                 case ConsoleType.Battleye:
                     {
@@ -67,7 +70,7 @@
                     break;
             }
 
-            @switch (Console.Type)
+            @switch (Console?.Type)
             {
                 case ConsoleType.Battleye:
                     {
@@ -126,7 +129,7 @@
                 }
                 break;
             case "players":
-                @switch (Console.Type)
+                @switch (Console?.Type)
                 {
                     case ConsoleType.Battleye:
                         {
@@ -142,7 +145,7 @@
 
                 break;
             case "bans":
-                @switch (Console.Type)
+                @switch (Console?.Type)
                 {
                     case ConsoleType.Battleye:
                         {
@@ -158,7 +161,7 @@
 
                 break;
             case "console":
-                @switch (Console.Type)
+                @switch (Console?.Type)
                 {
                     case ConsoleType.Battleye:
                         {
@@ -174,7 +177,7 @@
 
                 break;
             case "connections":
-                @switch (Console.Type)
+                @switch (Console?.Type)
                 {
                     case ConsoleType.Battleye:
                         {
@@ -200,14 +203,16 @@
         }
     </RadzenBody>
 
-    @if (Console.Type == ConsoleType.Battleye)
+    @if (Console != null && Console.Type == ConsoleType.Battleye)
     {
         <RadzenSidebar @bind-Expanded="@LogSidebarExpanded" class="rz-right-sidebar" Style="@("width: " + (LogSidebarExpanded ? "340px" : "0px") + " !important; grid-area: rz-right-sidebar")">
-            @if (Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConsoleLogs) && _Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rcon))
+            @if (Member != null && Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConsoleLogs) && _Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rcon))
             {
                 <div>
                     <div class="dash-box-header dash-box-content">
-                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
+                        <div class="dash-box-icon">
+                            <span class="iconify" data-icon="mdi:view-list"></span>
+                        </div>
                         <RadzenText TextStyle="TextStyle.H6">Logs</RadzenText>
 
                     </div>
