@@ -1,0 +1,63 @@
+﻿@using BlazorMonaco.Editor
+@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@using Newtonsoft.Json.Linq
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+
+<PageTitle>Container Health Logs | @_Data.Config.Instance.Name</PageTitle>
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@LoadEditor" />
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" />
+    </RadzenStack>
+</RadzenStack>
+
+<style>
+    .monaco-editor, .monaco-diff-editor {
+        height: 400px !important;
+        padding-top: 10px;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    [Parameter]
+    public string Json { get; set; } = "";
+
+    private StandaloneCodeEditor _editor = null!;
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = "dockerfile",
+            Theme = "vs-dark",
+            ScrollBeyondLastLine = false,
+            ReadOnly = true,
+            ColumnSelection = true,
+            Folding = false,
+            Minimap = new EditorMinimapOptions
+            {
+                Enabled = false
+            },
+            Value = ""
+        };
+    }
+
+    public async Task LoadEditor()
+    {
+        var Model = await _editor.GetModel();
+        await Model.SetValue(Json);
+    }
+}

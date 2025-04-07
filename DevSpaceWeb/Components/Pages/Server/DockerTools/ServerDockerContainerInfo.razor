@@ -1,5 +1,6 @@
 ﻿@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
+@using DevSpaceWeb.Components.Dialogs.Docker
 @using DevSpaceWeb.Models.Docker
 @using Docker.DotNet.Models
 @using Newtonsoft.Json.Linq
@@ -316,7 +317,7 @@ else
                             }
                             else if (Container.State.Health.Log != null && Container.State.Health.Log.Any())
                             {
-                                @Container.State.Health.Log.Last().Output
+                                <RadzenButton Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Click="@OpenContainerHealthLogs" Style="max-width: 100%; overflow: hidden !important; white-space: nowrap;">@Container.State.Health.Log.Last().Output</RadzenButton>
                             }
                         </RadzenTableCell>
                     </RadzenTableRow>
@@ -1380,18 +1381,18 @@ else
                                             }
                                         }
 
-                                        }
-                                        else
-                                        {
-                                            SecurityHasIssues = false;
-                                        }
+                                    }
+                                    else
+                                    {
+                                        SecurityHasIssues = false;
                                     }
                                 }
                             }
-                        
+                        }
+
                     }
                 }
-            
+
             }
         }
         catch
@@ -1410,4 +1411,18 @@ else
     public bool SecurityScanRunning { get; set; }
     SecurityResult[]? SecurityResults { get; set; }
     public bool SecurityHasIssues { get; set; }
+
+    public async Task OpenContainerHealthLogs()
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerHealthLogs))
+            return;
+
+        await Dialog.OpenAsync<ContainerHealthLogsDialog>("Container Health Logs", new Dictionary<string, object>()
+        {
+            { "Json", Container.State.Health.Log.Last().Output }
+        }, new DialogOptions());
+    }
 }
