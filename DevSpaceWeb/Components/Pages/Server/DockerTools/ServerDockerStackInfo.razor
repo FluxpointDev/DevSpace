@@ -35,16 +35,16 @@ else
                 <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
             </div>
             <RadzenText TextStyle="TextStyle.H6">Stack Info</RadzenText>
+            @if (IsActionRunning)
+            {
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+            }
         </div>
         <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks")" Text="Stacks" />
             <RadzenBreadCrumbItem Text="@(Stack?.Name ?? StackId)" />
         </RadzenBreadCrumb>
-        @if (Stack == null)
-        {
-            
-        }
-        else
+        @if (Stack != null)
         {
             
         }
@@ -646,6 +646,8 @@ else
                 new ContextMenuItem(){ Text = "Inspect", Value = "inspect", Icon = "info", Disabled = !CanInspect },
                                              }, x => MenuItemClick(x, item));
     }
+
+
 
     void MenuItemClick(MenuItemEventArgs args, DockerContainerInfo item)
     {
