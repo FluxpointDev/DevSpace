@@ -154,6 +154,9 @@ public class UploadController : Controller
 
         IFormFile ImageFile = Request.Form.Files.First();
 
+        if (ImageFile.Length > 5242880)
+            return BadRequest("Background size is more than 5 MB");
+
         switch (ImageFile.ContentType)
         {
             case "image/png":
@@ -254,6 +257,9 @@ public class UploadController : Controller
             return BadRequest("Team id is missing");
 
         IFormFile ImageFile = Request.Form.Files.First();
+
+        if (ImageFile.Length > 5242880)
+            return BadRequest("Icon size is more than 5 MB");
 
         switch (ImageFile.ContentType)
         {
