@@ -13,12 +13,21 @@
         <RadzenText TextStyle="TextStyle.Body2">
             Upload an image to use as your Avatar!
         </RadzenText>
-        <RadzenText TextStyle="TextStyle.Body2">
-            Accepts Png, Jpg or Webp
-        </RadzenText>
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="6px">
+            <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Png" />
+            <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Jpeg" />
+            <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Webp" />
+        </RadzenStack>
+        <br />
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                @(ErrorMessage)
+            </RadzenAlert>
+        }
 
-        <RadzenUpload id="ddUpload" @ref="uploadDD" ChooseText="Click here or drop to upload file" Auto="false" Multiple="false" Url="/upload/avatar" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
-                      Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" Disabled="@IsUploadDisabled" />
+        <RadzenUpload id="ddUpload" @ref="uploadDD" Icon="add_photo_alternate" ChooseText="   Click here or drop to upload file" Auto="false" Multiple="false" Url="/upload/avatar" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select file" } })"
+                      Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" Error="@UploadError" Disabled="@IsUploadDisabled" />
 
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
@@ -58,6 +67,14 @@
         IsUploadDisabled = true;
         await uploadDD.Upload();
 
+    }
+
+    public string ErrorMessage { get; set; }
+
+    async Task UploadError(UploadErrorEventArgs args)
+    {
+        ErrorMessage = args.Message;
+        IsUploadDisabled = false;
     }
 
     async Task UploadComplete(UploadCompleteEventArgs args)

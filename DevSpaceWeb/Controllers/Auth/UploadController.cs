@@ -38,6 +38,11 @@ public class UploadController : Controller
 
         IFormFile ImageFile = Request.Form.Files.First();
 
+        if (ImageFile.Length > 5242880)
+            return BadRequest("Image size is more than 5 MB");
+
+        Console.WriteLine("Length:" + ImageFile.Length);
+
         switch (ImageFile.ContentType)
         {
             case "image/png":
