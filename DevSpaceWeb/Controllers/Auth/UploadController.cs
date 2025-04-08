@@ -41,8 +41,6 @@ public class UploadController : Controller
         if (ImageFile.Length > 5242880)
             return BadRequest("Image size is more than 5 MB");
 
-        Console.WriteLine("Length:" + ImageFile.Length);
-
         switch (ImageFile.ContentType)
         {
             case "image/png":
@@ -68,7 +66,6 @@ public class UploadController : Controller
             AuthUser.UpdatePartial();
 
             Directory.CreateDirectory(Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString());
-
         }
 
         Guid ImageId = Guid.NewGuid();
@@ -111,26 +108,26 @@ public class UploadController : Controller
             }
         }
 
-        if (AuthUser.AvatarId != null)
-        {
-            try
-            {
-                if (System.IO.File.Exists(AuthUser.Avatar.Path("webp")))
-                    System.IO.File.Delete(AuthUser.Avatar.Path("webp"));
-            }
-            catch { }
-            try
-            {
-                if (System.IO.File.Exists(AuthUser.Avatar.Path("png")))
-                    System.IO.File.Delete(AuthUser.Avatar.Path("png"));
-            }
-            catch { }
-        }
+        Guid? CurrentAvatar = AuthUser.AvatarId.GetValueOrDefault();
 
         AuthUser.AvatarId = ImageId;
         IdentityResult UpdateResultAvatar = await _userManager.UpdateAsync(AuthUser);
         if (!UpdateResultAvatar.Succeeded)
             return BadRequest("Failed to update user.");
+
+        if (CurrentAvatar.HasValue)
+        {
+            try
+            {
+                System.IO.File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("webp"));
+            }
+            catch { }
+            try
+            {
+                System.IO.File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("png"));
+            }
+            catch { }
+        }
 
         AuthUser.UpdatePartial();
         _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
@@ -217,20 +214,21 @@ public class UploadController : Controller
             }
         }
 
-        if (AuthUser.BackgroundId != null)
-        {
-            try
-            {
-                if (System.IO.File.Exists(AuthUser.Background.Path("webp")))
-                    System.IO.File.Delete(AuthUser.Background.Path("webp"));
-            }
-            catch { }
-        }
+        Guid? CurrentBackground = AuthUser.BackgroundId.GetValueOrDefault();
 
         AuthUser.BackgroundId = ImageId;
         IdentityResult UpdateResultBackground = await _userManager.UpdateAsync(AuthUser);
         if (!UpdateResultBackground.Succeeded)
             return BadRequest("Failed to update user.");
+
+        if (CurrentBackground.HasValue)
+        {
+            try
+            {
+                System.IO.File.Delete(new FileResource("Background", AuthUser.ResourceId, CurrentBackground).Path("webp"));
+            }
+            catch { }
+        }
 
         AuthUser.UpdatePartial();
         _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
@@ -361,7 +359,6 @@ public class UploadController : Controller
             }
             catch { }
         }
-
 
         Team.IconId = ImageId;
 

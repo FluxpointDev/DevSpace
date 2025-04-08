@@ -157,6 +157,7 @@
     }
     <br />
     <RadzenButton Text="Change Background" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeBackgroundDialog" Disabled="@(AuthUser == null)" />
+    <RadzenButton Click="@RemoveBackground" Variant="Variant.Text" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Text="Remove Background" Disabled="@(AuthUser == null || !AuthUser.BackgroundId.HasValue)" />
 </div>
 
 <style>
@@ -278,6 +279,8 @@
             if (!AuthUser.HasAvatar)
                 return;
 
+            Guid? CurrentAvatar = AuthUser.AvatarId.GetValueOrDefault();
+
             AuthUser.AvatarId = null;
 
             var Result = await UserManager.UpdateAsync(AuthUser);
@@ -285,15 +288,13 @@
             {
                 try
                 {
-                    if (File.Exists(AuthUser.Avatar.Path("webp")))
-                        File.Delete(AuthUser.Avatar.Path("webp"));
+                    File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("webp"));
                 }
                 catch { }
 
                 try
                 {
-                    if (File.Exists(AuthUser.Avatar.Path("png")))
-                        File.Delete(AuthUser.Avatar.Path("png"));
+                    File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("png"));
                 }
                 catch { }
 
@@ -476,6 +477,36 @@
         else
         {
             await DialogService.OpenAsync<ChangeAccountBackgroundDialog>("Change Background");
+        }
+    }
+
+    public async Task RemoveBackground()
+    {
+        bool Confirm = await DialogService.ShowConfirmAsync("Remove Background", "Are you sure you want to remove your background?", "Confirm", ButtonStyle.Success);
+        if (Confirm)
+        {
+            AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
+            if (!AuthUser.BackgroundId.HasValue)
+                return;
+
+            Guid? CurrentBackground = AuthUser.BackgroundId.GetValueOrDefault();
+
+            AuthUser.BackgroundId = null;
+
+            var Result = await UserManager.UpdateAsync(AuthUser);
+            if (Result.Succeeded)
+            {
+                try
+                {
+                    File.Delete(new FileResource("Background", AuthUser.ResourceId, CurrentBackground).Path("webp"));
+                }
+                catch{ }
+                Session.BackgroundUrl = "https://cdn.fluxpoint.dev/devspace/background.webp";
+                Session.TriggerChange();
+            }
         }
     }
 }
