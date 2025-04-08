@@ -53,7 +53,7 @@
 
                     @if (Member.HasTeamPermission(Team, TeamPermission.ViewPermissions))
                     {
-                    @if (SelectedRole.Team != null && Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank)
+                        @if (Team != null && Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank)
                         {
                             <div class="role-info" style="background: none !important;">
                                 <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
@@ -63,7 +63,7 @@
                         }
 
                         <PermissionGrid PermissionType="PermissionType.All" Permissions="@Permissions" UnsavedPermissionsChanged="@((arg) => UnsavedPermissions = arg)"
-                                        OnSave="@SavePermissions" OnLoad="@LoadPermissions" IsDisabled="@(SelectedRole.Team != null && Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank)"></PermissionGrid>
+                                        OnSave="@SavePermissions" OnLoad="@LoadPermissions" IsDisabled="@(Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManagePermissions) || (Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank))"></PermissionGrid>
                     }
                     else
                     {
