@@ -105,7 +105,7 @@
                             </RadzenMenu>
                             <RadzenMenu>
                                 <RadzenMenuItem Text="Manage" Icon="manage_accounts">
-                                    <RadzenMenuItem Text="Change Roles" Icon="sell" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(Team == null || ud.Id == Team.OwnerId && Member.UserId != Team.OwnerId)"></RadzenMenuItem>
+                                    <RadzenMenuItem Text="Change Roles" Icon="sell" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(Team == null || ud.Id == Team.OwnerId && Member.UserId != Team.OwnerId || !Member.HasTeamPermission(Team, TeamPermission.AssignRoles))"></RadzenMenuItem>
                                     @if (user.Disabled == null)
                                     {
                                         <RadzenMenuItem Text="Disable Member" Icon="cancel" Click="@(() => DisableMember(ud))" Disabled="@(Team == null ||ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
@@ -115,39 +115,15 @@
                                         <RadzenMenuItem Text="Enable Member" Icon="check" Click="@(() => EnableMember(ud))" Disabled="@(Team == null || ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
                                     }
 
-                                    @if (ud.Id != Team.OwnerId && Member.UserId == Team.OwnerId)
+                                    @if (Team != null && ud.Id != Team.OwnerId && Member.UserId == Team.OwnerId)
                                     {
                                         <RadzenMenuItem Text="Transfer Ownership" Icon="social_distance" Click="@(() => TransferOwnership(ud))"></RadzenMenuItem>
                                     }
-                                    <RadzenMenuItem Text="Remove Member" Icon="person_cancel" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
+                                    <RadzenMenuItem Text="Remove Member" Icon="person_cancel" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(Team == null || ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
                                 </RadzenMenuItem>
                             </RadzenMenu>
                         </RadzenStack>
                     }
-                    @* @if (_DB.Users.TryGetValue(user.UserId, out PartialUserData? ud))
-                    {
-                        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Change Roles" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.AssignRoles))" />
-                        @if (user.UserId != Team.OwnerId)
-                        {
-                            @if (user.Disabled == null)
-                            {
-                                <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Disable" Click="@(() => DisableMember(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenButton>
-                            }
-                            else
-                            {
-                                <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Enable" Click="@(() => EnableMember(ud))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))"></RadzenButton>
-
-                            }
-
-                            <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Text="Transfer Ownership" Click="@(() => TransferOwnership(ud))" />
-                            <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))" />
-                        }
-
-                    }
-                    else
-                    {
-                        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove" Click="@(() => RemoveTeamMember(user.UserId))" Disabled="@(!Member.HasTeamPermission(TeamPermission.ManageMembers))" />
-                    } *@
                 </RadzenCard>
             </Template>
         </RadzenDataList>
