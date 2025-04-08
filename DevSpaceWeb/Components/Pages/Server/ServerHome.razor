@@ -12,7 +12,14 @@
         </div>
         <RadzenText TextStyle="TextStyle.H6">Server</RadzenText>
     </div>
-    @if (Server == null || !Server.IsConnected)
+    @if (Member == null || Server == null || !Member.HasServerPermission(Team, Server, ServerPermission.ViewServer))
+    {
+        <br />
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Server
+        </RadzenAlert>
+    }
+    else if (!Server.IsConnected)
     {
         <br />
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false" Size="AlertSize.Small">
@@ -23,11 +30,10 @@
     <RadzenRow Gap="10px" RowGap="10px">
         <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
             <h6>System</h6>
-            
             <RadzenRow Gap="10px" RowGap="10px" class="mt-4">
                 <RadzenColumn SizeSM="12">
                     <RadzenStack Orientation="Orientation.Horizontal">
-                        <span class="iconify settings-icon" style="color: var();" data-icon="mdi:information"></span>
+                        <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:information"></span>
                         <div>
                             <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
                                 Version
