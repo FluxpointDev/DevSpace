@@ -7,9 +7,7 @@
     @if (AuthUser == null)
     {
         <br />
-        <RadzenSkeleton></RadzenSkeleton>
-        <RadzenSkeleton></RadzenSkeleton>
-        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenSkeleton Height="48" Style="width: 100%;"></RadzenSkeleton>
     }
     else if (!AuthUser.EmailConfirmed)
     {
@@ -52,9 +50,7 @@
     @if (AuthUser == null)
     {
         <br />
-        <RadzenSkeleton></RadzenSkeleton>
-        <RadzenSkeleton></RadzenSkeleton>
-        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenSkeleton Height="48" Style="width: 100%;"></RadzenSkeleton>
     }
     else if (!AuthUser.EmailConfirmed)
     {
@@ -104,6 +100,9 @@
     protected override async Task OnInitializedAsync()
     {
         AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         if (_Data.Config.Providers.Fluxpoint.IsConfigured())
             ValidConnections.Add("fluxpoint", "Fluxpoint");
         if (_Data.Config.Providers.Apple.IsConfigured())
@@ -122,6 +121,7 @@
             ValidConnections.Add("twitter", "Twitter");
         if (_Data.Config.Providers.Microsoft.IsConfigured())
             ValidConnections.Add("microsoft", "Microsoft");
+
 
         foreach(var i in AuthUser.Logins)
         {
@@ -161,9 +161,9 @@
     public async Task RemoveConnection(UserLoginInfo login)
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser.Logins.RemoveAll(x => x.LoginProvider == login.LoginProvider) != 0)
+        if (AuthUser != null && AuthUser.Logins.RemoveAll(x => x.LoginProvider == login.LoginProvider) != 0)
         {
-            ValidConnections.Add(login.LoginProvider, login.ProviderDisplayName);
+            ValidConnections.Add(login.LoginProvider, login.ProviderDisplayName!);
             await UserManager.UpdateAsync(AuthUser);
 
         }
