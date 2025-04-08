@@ -33,7 +33,7 @@
         <br />
         <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Members">
             <Template Context="user">
-                <RadzenCard Style="width:300px;">
+                <RadzenCard Style="width:350px; max-width: 350px;">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                         @if (_DB.Users.TryGetValue(user.UserId, out PartialUserData? ud))
                         {
@@ -95,7 +95,7 @@
                     @if (_DB.Users.TryGetValue(user.UserId, out PartialUserData? ud))
                     {
                         <RadzenStack Gap="6px" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceEvenly">
-                            <RadzenMenu>
+                            <RadzenMenu Responsive="false">
                                 <RadzenMenuItem Text="View" Icon="visibility">
                                     <RadzenMenuItem Text="Info" Icon="person" Click="@(() => ViewInfo(ud))"></RadzenMenuItem>
                                     <RadzenMenuItem Text="Roles" Icon="sell" Click="@(() => ViewRoles(ud))" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles))"></RadzenMenuItem>
@@ -103,7 +103,7 @@
                                     <RadzenMenuItem Text="Resources" Icon="dynamic_form" Click="@(() => ViewResources(ud))"></RadzenMenuItem>
                                 </RadzenMenuItem>
                             </RadzenMenu>
-                            <RadzenMenu>
+                            <RadzenMenu Responsive="false">
                                 <RadzenMenuItem Text="Manage" Icon="manage_accounts">
                                     <RadzenMenuItem Text="Change Roles" Icon="sell" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(Team == null || Member == null || ud.Id == Team.OwnerId && Member.UserId != Team.OwnerId || !Member.HasTeamPermission(Team, TeamPermission.AssignRoles))"></RadzenMenuItem>
                                     @if (user.Disabled == null)
