@@ -30,9 +30,12 @@
 
         <br />
         <br />
+
+
+
         <RadzenLabel Text="Team Icon" class="rz-my-0"></RadzenLabel>
-        <RadzenUpload id="ddUpload" @ref="IconUploader" ChooseText="Click here or drop to upload files" Auto="false" Multiple="false" Url="@("/upload/icon?teamId=" + Team.Id)" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
-                      Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" Disabled="@IsUploadDisabled" />
+        <RadzenUpload id="ddUpload" @ref="IconUploader" Icon="add_photo_alternate" ChooseText="   Click here or drop to upload file" Auto="false" Multiple="false" Url="@("/upload/icon?teamId=" + Team?.Id)" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select file" } })"
+                      Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" Error="@UploadError" Disabled="@IsUploadDisabled" />
         <br />
         <br />
         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save Icon" Click="@ChangeIcon" ButtonType="ButtonType.Submit" />
@@ -125,6 +128,14 @@
     async Task UploadComplete(UploadCompleteEventArgs args)
     {
         Session.TriggerNavMenuChange();
+    }
+
+    public string ErrorMessage { get; set; }
+
+    async Task UploadError(UploadErrorEventArgs args)
+    {
+        ErrorMessage = args.Message;
+        IsUploadDisabled = false;
     }
 
     public async Task RemoveIcon()
