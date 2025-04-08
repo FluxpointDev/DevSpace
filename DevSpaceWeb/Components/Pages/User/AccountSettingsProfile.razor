@@ -11,89 +11,113 @@
 <div class="settings-box">
     <h6>Profile</h6>
 
-    @if (AuthUser == null)
+    @if (AuthUser != null && AuthUser.IsManaged)
     {
-        <br />
-        <RadzenSkeleton></RadzenSkeleton>
-        <RadzenSkeleton></RadzenSkeleton>
-        <RadzenSkeleton></RadzenSkeleton>
+        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+            Your account is managed by your Team, some options will be unavailable to you.
+        </RadzenAlert>
     }
-    else
-    {
-        @if (AuthUser.IsManaged)
+
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+        @if (AuthUser == null)
         {
-            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-                Your account is managed by your Team, some options will be unavailable to you.
+            <RadzenSkeleton Width="80" Height="80" Style="border-radius: 50%;"></RadzenSkeleton>
+        }
+        else
+        {
+            <RadzenImage class="account-avatar" Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%;" Click="@EditAvatar" />
+        }
+        <RadzenStack Gap="8px">
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
+                <div style="width: 120px;">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Username</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        @if (AuthUser == null)
+                        {
+                            <RadzenSkeleton></RadzenSkeleton>
+                        }
+                        else
+                        {
+                            @AuthUser.UserName
+                        }
+                    </RadzenText>
+                </div>
+                <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Light" Click="@EditAccountUsername" Size="ButtonSize.Small" Disabled="@(AuthUser == null)" />
+            </RadzenStack>
+
+            <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
+                <div style="width: 120px;">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Display Name</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        @if (AuthUser == null)
+                        {
+                            <RadzenSkeleton></RadzenSkeleton>
+                        }
+                        else
+                        {
+                            @(AuthUser.DisplayName ?? "⠀")
+                        }
+                    </RadzenText>
+                </div>
+                <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Light" Click="@EditAccountDisplayName" Size="ButtonSize.Small" Disabled="@(AuthUser == null)" />
+            </RadzenStack>
+
+            <div>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Email</RadzenText>
+                @if (AuthUser == null)
+                {
+                    <RadzenSkeleton></RadzenSkeleton>
+                }
+                else
+                {
+                    <RadzenTextMask Value="@AuthUser.Email" IsEmail="true"></RadzenTextMask>
+                }
+            </div>
+
+            <div>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account Created</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @if (AuthUser == null)
+                    {
+                        <RadzenSkeleton></RadzenSkeleton>
+                    }
+                    else
+                    {
+                        @Utils.GetLocalDate(Session, AuthUser.CreatedOn, true)
+                    }
+                </RadzenText>
+            </div>
+
+        </RadzenStack>
+    </RadzenStack>
+
+    <div class="mb-4" />
+    @if (AuthUser != null && !AuthUser.EmailConfirmed)
+    {
+        if (EmailVerifySent)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                Check your email address to confirm your account.
+                <RadzenButton Disabled="true" Text="Verify" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Base" />
             </RadzenAlert>
         }
-
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-            <RadzenImage class="account-avatar" Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%" Click="@EditAvatar" />
-            <RadzenStack Gap="8px">
-                <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
-                    <div style="width: 120px;">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Username</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2">
-                            @AuthUser.UserName
-                        </RadzenText>
-                    </div>
-                    <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Light" Click="@EditAccountUsername" Size="ButtonSize.Small" />
-                </RadzenStack>
-
-                <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
-                    <div style="width: 120px;">
-                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Display Name</RadzenText>
-                        <RadzenText TextStyle="TextStyle.Body2">
-                            @(AuthUser.DisplayName ?? "⠀")
-                        </RadzenText>
-                    </div>
-                    <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Light" Click="@EditAccountDisplayName" Size="ButtonSize.Small" />
-                </RadzenStack>
-
-                <div>
-                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Email</RadzenText>
-                    <RadzenTextMask Value="@AuthUser.Email" IsEmail="true"></RadzenTextMask>
-                </div>
-                
-                <div>
-                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account Created</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, AuthUser.CreatedOn, true)</RadzenText>
-                </div>
-                
-            </RadzenStack>
-        </RadzenStack>
-
-        <div class="mb-4" />
-
-
-
-        @if (!AuthUser.EmailConfirmed)
+        else
         {
-            if (EmailVerifySent)
-            {
-                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                    Check your email address to confirm your account.
-                    <RadzenButton Disabled="true" Text="Verify" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Base" />
-                </RadzenAlert>
-            }
-            else
-            {
-                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                    You need to confirm your email address.
-                    <RadzenButton Click="@SendEmailVerify" Text="Verify" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" />
-                </RadzenAlert>
-            }
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You need to confirm your email address.
+                <RadzenButton Click="@SendEmailVerify" Text="Verify" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" />
+            </RadzenAlert>
         }
-        <br />
-        <h6 class="mb-2">Manage</h6>
-        
-        <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@(AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
-        <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangePassword" />
-        <br />
-        <br />
-        <RadzenButton Text="Disable Account" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@DisableAccount" Disabled="@(AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
-        <RadzenButton Text="Delete Account" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@DeleteAccount" Disabled="@AuthUser.IsManaged" />
     }
+    <br />
+    <h6 class="mb-2">Manage</h6>
+
+    <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@(AuthUser == null || AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
+    <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangePassword" Disabled="@(AuthUser == null)" />
+    <br />
+    <br />
+    <RadzenButton Text="Disable Account" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@DisableAccount" Disabled="@(AuthUser == null || AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
+    <RadzenButton Text="Delete Account" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@DeleteAccount" Disabled="@(AuthUser == null || AuthUser.IsManaged)" />
 </div>
 
 <div class="settings-box">
@@ -108,7 +132,7 @@
     else
     {
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1 mt-2">Date Format</RadzenText>
-        <RadzenDropDown TValue="DateFormatLang" Data="@(Enum.GetValues(typeof(DateFormatLang)).Cast<Enum>())" @bind-Value="@UserDateFormat"Style="width: 100%;">
+        <RadzenDropDown TValue="DateFormatLang" Data="@(Enum.GetValues(typeof(DateFormatLang)).Cast<Enum>())" @bind-Value="@UserDateFormat" Style="width: 100%;">
             <Template>
 
                 @if (((DateFormatLang)context) == DateFormatLang.Automatic)
@@ -162,7 +186,7 @@
     protected override async Task OnInitializedAsync()
     {
         _DB.SessionUpdated += SessionChangedEvent;
-        AuthUser = await Session.GetCurrentUserAsync();
+        //AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser != null)
             _userDateFormat = AuthUser.Settings.DateFormat;
         Country = await Session.GetCountryAsync();
@@ -210,9 +234,9 @@
     public async Task EditAccountUsername()
     {
         await DialogService.OpenAsync<EditAccountUsernameDialog>("Edit Username", options: new DialogOptions
-            {
-                AutoFocusFirstElement = true
-            });
+        {
+            AutoFocusFirstElement = true
+        });
     }
 
     public async Task EditAccountDisplayName()
@@ -330,10 +354,10 @@
                 return;
             }
             AuthUser.Disabled = new UserDisabled
-                {
-                    State = UserDisabledState.User,
-                    DisabledAt = DateTime.UtcNow
-                };
+            {
+                State = UserDisabledState.User,
+                DisabledAt = DateTime.UtcNow
+            };
             await UserManager.UpdateAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
             await Email.SendAccountDisabled(AuthUser, "You have disabled your account.");
