@@ -112,27 +112,22 @@
     <br />
     <h6 class="mb-2">Manage</h6>
 
-    <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@(AuthUser == null || AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
-    <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangePassword" Disabled="@(AuthUser == null)" />
-    <br />
-    <br />
-    <RadzenButton Text="Disable Account" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@DisableAccount" Disabled="@(AuthUser == null || AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
-    <RadzenButton Text="Delete Account" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@DeleteAccount" Disabled="@(AuthUser == null || AuthUser.IsManaged)" />
+    <RadzenStack Gap="4px;" Orientation="Orientation.Vertical" Wrap="FlexWrap.Wrap">
+        <div>
+            <RadzenButton Text="Change Email" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangeEmail" Disabled="@(AuthUser == null || AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
+            <RadzenButton Text="Change Password" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ChangePassword" Disabled="@(AuthUser == null)" />
+        </div>
+        <div>
+            <RadzenButton Text="Disable Account" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Dark" Click="@DisableAccount" Disabled="@(AuthUser == null || AuthUser.IsManaged || !AuthUser.EmailConfirmed)" />
+            <RadzenButton Text="Delete Account" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@DeleteAccount" Disabled="@(AuthUser == null || AuthUser.IsManaged)" />
+        </div>
+    </RadzenStack>
 </div>
 
 <div class="settings-box">
     <h6>Settings</h6>
-    @if (AuthUser == null)
-    {
-        <br />
-        <RadzenSkeleton></RadzenSkeleton>
-        <RadzenSkeleton></RadzenSkeleton>
-        <RadzenSkeleton></RadzenSkeleton>
-    }
-    else
-    {
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1 mt-2">Date Format</RadzenText>
-        <RadzenDropDown TValue="DateFormatLang" Data="@(Enum.GetValues(typeof(DateFormatLang)).Cast<Enum>())" @bind-Value="@UserDateFormat" Style="width: 100%;">
+        <RadzenDropDown TValue="DateFormatLang" Data="@(Enum.GetValues(typeof(DateFormatLang)).Cast<Enum>())" @bind-Value="@UserDateFormat" Style="width: 100%;" Disabled="@(AuthUser == null)">
             <Template>
 
                 @if (((DateFormatLang)context) == DateFormatLang.Automatic)
@@ -148,11 +143,17 @@
         <br />
         <br />
         <RadzenText TextStyle="TextStyle.Body2">
-            Current Date: @Utils.GetLocalDate(Session, DateTime.UtcNow, false)
+            @if (AuthUser == null)
+            {
+                <RadzenSkeleton></RadzenSkeleton>
+            }
+            else
+            {
+                @("Current Date: " + Utils.GetLocalDate(Session, DateTime.UtcNow, false))
+            }
         </RadzenText>
         <br />
-        <RadzenButton Text="Change Background" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeBackgroundDialog" />
-    }
+        <RadzenButton Text="Change Background" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeBackgroundDialog" Disabled="@(AuthUser == null)" />
 </div>
 
 <style>
@@ -186,7 +187,7 @@
     protected override async Task OnInitializedAsync()
     {
         _DB.SessionUpdated += SessionChangedEvent;
-        //AuthUser = await Session.GetCurrentUserAsync();
+        AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser != null)
             _userDateFormat = AuthUser.Settings.DateFormat;
         Country = await Session.GetCountryAsync();
