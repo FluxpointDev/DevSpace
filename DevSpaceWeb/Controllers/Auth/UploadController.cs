@@ -27,7 +27,7 @@ public class UploadController : Controller
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
-        if (User == null || !User.Identity.IsAuthenticated)
+        if (User.Identity == null || !User.Identity.IsAuthenticated)
             return Unauthorized("Not logged in");
 
         if (!Request.Form.Files.Any())
@@ -143,7 +143,7 @@ public class UploadController : Controller
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
-        if (User == null || !User.Identity.IsAuthenticated)
+        if (User.Identity == null || !User.Identity.IsAuthenticated)
             return Unauthorized("Not logged in");
 
         if (!Request.Form.Files.Any())
@@ -243,7 +243,7 @@ public class UploadController : Controller
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
-        if (User == null || !User.Identity.IsAuthenticated)
+        if (User.Identity == null || !User.Identity.IsAuthenticated)
             return Unauthorized("Not logged in");
 
         if (!Request.Form.Files.Any())
