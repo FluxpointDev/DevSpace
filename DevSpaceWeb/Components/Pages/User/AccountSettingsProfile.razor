@@ -31,16 +31,16 @@
             <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
                 <div style="width: 120px;">
                     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Username</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        @if (AuthUser == null)
-                        {
-                            <RadzenSkeleton></RadzenSkeleton>
-                        }
-                        else
-                        {
+                    @if (AuthUser == null)
+                    {
+                        <RadzenSkeleton></RadzenSkeleton>
+                    }
+                    else
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">
                             @AuthUser.UserName
-                        }
-                    </RadzenText>
+                        </RadzenText>
+                    }
                 </div>
                 <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Light" Click="@EditAccountUsername" Size="ButtonSize.Small" Disabled="@(AuthUser == null)" />
             </RadzenStack>
@@ -48,16 +48,16 @@
             <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
                 <div style="width: 120px;">
                     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Display Name</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        @if (AuthUser == null)
-                        {
-                            <RadzenSkeleton></RadzenSkeleton>
-                        }
-                        else
-                        {
+                    @if (AuthUser == null)
+                    {
+                        <RadzenSkeleton></RadzenSkeleton>
+                    }
+                    else
+                    {
+                        <RadzenText TextStyle="TextStyle.Body2">
                             @(AuthUser.DisplayName ?? "⠀")
-                        }
-                    </RadzenText>
+                        </RadzenText>
+                    }
                 </div>
                 <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Light" Click="@EditAccountDisplayName" Size="ButtonSize.Small" Disabled="@(AuthUser == null)" />
             </RadzenStack>
@@ -76,16 +76,16 @@
 
             <div>
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Account Created</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">
-                    @if (AuthUser == null)
-                    {
-                        <RadzenSkeleton></RadzenSkeleton>
-                    }
-                    else
-                    {
+                @if (AuthUser == null)
+                {
+                    <RadzenSkeleton></RadzenSkeleton>
+                }
+                else
+                {
+                    <RadzenText TextStyle="TextStyle.Body2">
                         @Utils.GetLocalDate(Session, AuthUser.CreatedOn, true)
-                    }
-                </RadzenText>
+                    </RadzenText>
+                }
             </div>
 
         </RadzenStack>
@@ -126,34 +126,34 @@
 
 <div class="settings-box">
     <h6>Settings</h6>
-        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1 mt-2">Date Format</RadzenText>
-        <RadzenDropDown TValue="DateFormatLang" Data="@(Enum.GetValues(typeof(DateFormatLang)).Cast<Enum>())" @bind-Value="@UserDateFormat" Style="width: 100%;" Disabled="@(AuthUser == null)">
-            <Template>
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1 mt-2">Date Format</RadzenText>
+    <RadzenDropDown TValue="DateFormatLang" Data="@(Enum.GetValues(typeof(DateFormatLang)).Cast<Enum>())" @bind-Value="@UserDateFormat" Style="width: 100%;" Disabled="@(AuthUser == null)">
+        <Template>
 
-                @if (((DateFormatLang)context) == DateFormatLang.Automatic)
-                {
-                    @($"Automatic - {Country}")
-                }
-                else
-                {
-                    @(GetDisplayName((DateFormatLang)context))
-                }
-            </Template>
-        </RadzenDropDown>
-        <br />
-        <br />
-        <RadzenText TextStyle="TextStyle.Body2">
-            @if (AuthUser == null)
+            @if (((DateFormatLang)context) == DateFormatLang.Automatic)
             {
-                <RadzenSkeleton></RadzenSkeleton>
+                @($"Automatic - {Country}")
             }
             else
             {
-                @("Current Date: " + Utils.GetLocalDate(Session, DateTime.UtcNow, false))
+                @(GetDisplayName((DateFormatLang)context))
             }
+        </Template>
+    </RadzenDropDown>
+    <br />
+    <br />
+    @if (AuthUser == null)
+    {
+        <RadzenSkeleton></RadzenSkeleton>
+    }
+    else
+    {
+        <RadzenText TextStyle="TextStyle.Body2">
+            @("Current Date: " + Utils.GetLocalDate(Session, DateTime.UtcNow, false))
         </RadzenText>
-        <br />
-        <RadzenButton Text="Change Background" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeBackgroundDialog" Disabled="@(AuthUser == null)" />
+    }
+    <br />
+    <RadzenButton Text="Change Background" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeBackgroundDialog" Disabled="@(AuthUser == null)" />
 </div>
 
 <style>
