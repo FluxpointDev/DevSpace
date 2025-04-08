@@ -29,7 +29,7 @@
     else
     {
         <br />
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" Disabled="@(Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))" />
         <br />
         <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Members">
             <Template Context="user">
@@ -98,28 +98,28 @@
                             <RadzenMenu>
                                 <RadzenMenuItem Text="View" Icon="visibility">
                                     <RadzenMenuItem Text="Info" Icon="person" Click="@(() => ViewInfo(ud))"></RadzenMenuItem>
-                                    <RadzenMenuItem Text="Roles" Icon="sell" Click="@(() => ViewRoles(ud))" Disabled="@(!Member.HasTeamPermission(Team, TeamPermission.ViewRoles))"></RadzenMenuItem>
-                                    <RadzenMenuItem Text="Permissions" Icon="shield_person" Click="@(() => ViewPermissions(ud))" Disabled="@(!Member.HasTeamPermission(Team, TeamPermission.ViewPermissions))"></RadzenMenuItem>
+                                    <RadzenMenuItem Text="Roles" Icon="sell" Click="@(() => ViewRoles(ud))" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles))"></RadzenMenuItem>
+                                    <RadzenMenuItem Text="Permissions" Icon="shield_person" Click="@(() => ViewPermissions(ud))" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewPermissions))"></RadzenMenuItem>
                                     <RadzenMenuItem Text="Resources" Icon="dynamic_form" Click="@(() => ViewResources(ud))"></RadzenMenuItem>
                                 </RadzenMenuItem>
                             </RadzenMenu>
                             <RadzenMenu>
                                 <RadzenMenuItem Text="Manage" Icon="manage_accounts">
-                                    <RadzenMenuItem Text="Change Roles" Icon="sell" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(Team == null || ud.Id == Team.OwnerId && Member.UserId != Team.OwnerId || !Member.HasTeamPermission(Team, TeamPermission.AssignRoles))"></RadzenMenuItem>
+                                    <RadzenMenuItem Text="Change Roles" Icon="sell" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(Team == null || Member == null || ud.Id == Team.OwnerId && Member.UserId != Team.OwnerId || !Member.HasTeamPermission(Team, TeamPermission.AssignRoles))"></RadzenMenuItem>
                                     @if (user.Disabled == null)
                                     {
-                                        <RadzenMenuItem Text="Disable Member" Icon="cancel" Click="@(() => DisableMember(ud))" Disabled="@(Team == null ||ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
+                                        <RadzenMenuItem Text="Disable Member" Icon="cancel" Click="@(() => DisableMember(ud))" Disabled="@(Team == null || Member == null ||ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
                                     }
                                     else
                                     {
-                                        <RadzenMenuItem Text="Enable Member" Icon="check" Click="@(() => EnableMember(ud))" Disabled="@(Team == null || ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
+                                        <RadzenMenuItem Text="Enable Member" Icon="check" Click="@(() => EnableMember(ud))" Disabled="@(Team == null || Member == null || ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
                                     }
 
-                                    @if (Team != null && ud.Id != Team.OwnerId && Member.UserId == Team.OwnerId)
+                                    @if (Team != null && Member != null && ud.Id != Team.OwnerId && Member.UserId == Team.OwnerId)
                                     {
                                         <RadzenMenuItem Text="Transfer Ownership" Icon="social_distance" Click="@(() => TransferOwnership(ud))"></RadzenMenuItem>
                                     }
-                                    <RadzenMenuItem Text="Remove Member" Icon="person_cancel" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(Team == null || ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
+                                    <RadzenMenuItem Text="Remove Member" Icon="person_cancel" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(Team == null || Member == null || ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
                                 </RadzenMenuItem>
                             </RadzenMenu>
                         </RadzenStack>
