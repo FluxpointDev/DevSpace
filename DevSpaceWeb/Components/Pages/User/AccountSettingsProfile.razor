@@ -19,14 +19,17 @@
     }
 
     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-        @if (AuthUser == null)
-        {
-            <RadzenSkeleton Width="80" Height="80" Style="border-radius: 50%;"></RadzenSkeleton>
-        }
-        else
-        {
-            <RadzenImage class="account-avatar" Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%;" Click="@EditAvatar" />
-        }
+        <RadzenStack Gap="10px" AlignItems="AlignItems.Center">
+            @if (AuthUser == null)
+            {
+                <RadzenSkeleton Width="80" Height="80" Style="border-radius: 50%;"></RadzenSkeleton>
+            }
+            else
+            {
+                <RadzenImage class="account-avatar" Path="@AuthUser.GetAvatarOrDefault()" Style="width: 80px; height: 80px; border-radius: 50%;" Click="@EditAvatar" />
+            }
+            <RadzenButton Click="@RemoveAvatar" Variant="Variant.Text" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Text="Remove Avatar" Disabled="@(AuthUser == null || !AuthUser.AvatarId.HasValue)" />
+        </RadzenStack>
         <RadzenStack Gap="8px">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
                 <div style="width: 120px;">
@@ -259,6 +262,45 @@
             if (Dialog == true)
             {
                 AuthUser = await Session.GetCurrentUserAsync();
+            }
+        }
+    }
+
+    public async Task RemoveAvatar()
+    {
+        bool Confirm = await DialogService.ShowConfirmAsync("Remove Avatar", "Are you sure you want to remove your avatar?", "Confirm", ButtonStyle.Success);
+        if (Confirm)
+        {
+            AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
+            if (!AuthUser.HasAvatar)
+                return;
+
+            AuthUser.AvatarId = null;
+
+            var Result = await UserManager.UpdateAsync(AuthUser);
+            if (Result.Succeeded)
+            {
+                try
+                {
+                    if (File.Exists(AuthUser.Avatar.Path("webp")))
+                        File.Delete(AuthUser.Avatar.Path("webp"));
+                }
+                catch { }
+
+                try
+                {
+                    if (File.Exists(AuthUser.Avatar.Path("png")))
+                        File.Delete(AuthUser.Avatar.Path("png"));
+                }
+                catch { }
+
+                Session.CurrentUser.AvatarId = null;
+
+                AuthUser.UpdatePartial();
+                Session.TriggerChange();
             }
         }
     }

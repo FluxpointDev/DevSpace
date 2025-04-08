@@ -17,26 +17,19 @@
             Accepts Png, Jpg or Webp
         </RadzenText>
 
-        <div>
-            <RadzenCheckBox @bind-Value="@RemoveAvatar" Name="RemoveAvatarCheckbox" />
-            <RadzenLabel Text="Remove Avatar" Component="RemoveAvatarCheckbox" class="rz-ms-2" />
-        </div>
-
         <RadzenUpload id="ddUpload" @ref="uploadDD" ChooseText="Click here or drop to upload file" Auto="false" Multiple="false" Url="/upload/avatar" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
                       Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" Disabled="@IsUploadDisabled" />
 
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
-        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" Disabled="@(IsUploadDisabled)" />
     </RadzenStack>
 </RadzenStack>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
-
-    public bool RemoveAvatar { get; set; }
 
     RadzenUpload uploadDD;
     public bool IsUploadDisabled { get; set; }
@@ -56,46 +49,15 @@
             return;
         }
 
+        if (!uploadDD.HasValue)
+        {
+            Session.Notifications.ShowErrorWarning(NotificationErrorType.UploadNoFile);
+            return;
+        }
+
         IsUploadDisabled = true;
+        await uploadDD.Upload();
 
-        if (RemoveAvatar)
-        {
-            if (!user.HasAvatar)
-            {
-                dialogService.Close(false);
-                return;
-            }
-
-            user.AvatarId = null;
-
-            var Result = await UserManager.UpdateAsync(user);
-            if (Result.Succeeded)
-            {
-                try
-                {
-                    if (File.Exists(user.Avatar.Path("webp")))
-                        File.Delete(user.Avatar.Path("webp"));
-                }
-                catch { }
-
-                try
-                {
-                    if (File.Exists(user.Avatar.Path("png")))
-                        File.Delete(user.Avatar.Path("png"));
-                }
-                catch {}
-
-                Session.CurrentUser.AvatarId = null;
-
-                user.UpdatePartial();
-            }
-
-            dialogService.Close(true);
-        }
-        else
-        {
-            await uploadDD.Upload();
-        }
     }
 
     async Task UploadComplete(UploadCompleteEventArgs args)
@@ -107,5 +69,7 @@
 
         Session.CurrentUser.ResourceId = user.ResourceId;
         Session.CurrentUser.AvatarId = user.AvatarId;
+
+        Session.TriggerChange();
     }
 }

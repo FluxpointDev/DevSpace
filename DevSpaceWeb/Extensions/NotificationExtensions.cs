@@ -41,6 +41,9 @@ public static class NotificationExtensions
             case NotificationErrorType.PasskeysNoDevices:
                 Message = "You do not have any passkey devices linked to your account.";
                 break;
+            case NotificationErrorType.UploadNoFile:
+                Message = "You need to add a file to upload.";
+                break;
         }
         notify.Notify(new NotificationMessage
         {
@@ -56,5 +59,5 @@ public static class NotificationExtensions
 }
 public enum NotificationErrorType
 {
-    AccountLoadFailed, PreviewNotEnabled, AuthenticatorNoDevices, PasskeysNoDevices
+    AccountLoadFailed, PreviewNotEnabled, AuthenticatorNoDevices, PasskeysNoDevices, UploadNoFile
 }
