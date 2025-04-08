@@ -367,7 +367,9 @@
         if (!Confirm)
             return;
 
-        AuthUser User = await Session.GetCurrentUserAsync();
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
 
         bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, true);
         if (!twoFactorConfirm)
@@ -417,7 +419,9 @@
         if (SelectedMember == null)
             return;
 
-        AuthUser User = await Session.GetCurrentUserAsync();
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
 
         bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, false);
         if (!twoFactorConfirm)
@@ -446,7 +450,7 @@
 
         if (user.Id != Member.UserId)
         {
-            TeamMemberData SelectedMember = Team.GetMember(user);
+            TeamMemberData? SelectedMember = Team.GetMember(user);
             if (SelectedMember == null)
                 return;
 
