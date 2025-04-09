@@ -21,86 +21,95 @@
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images")" Text="Images" />
         <RadzenBreadCrumbItem Text="Build" />
     </RadzenBreadCrumb>
-    <br />
-    <RadzenText TextStyle="TextStyle.Body2">
-        Build a docker image using the Dockerfile format <RadzenLink Path="https://docs.docker.com/reference/dockerfile/" Target="_blank">More Info</RadzenLink>
-    </RadzenText>
-
-    <br />
-    <h6>Names</h6>
-    <RadzenButton Click="@(() => NameInputs.Add(Guid.NewGuid().ToString(), ""))" Text="Add Name" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" />
-    <br />
-    <br />
-    @if (NameInputs.Any())
+    @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
     {
-        <RadzenText TextStyle="TextStyle.Body2">
-            Image names need to be all lowercase, 2-255 characters and optionally include special characters such as <code>.</code> <code>-</code> <code>_</code>
-        </RadzenText>
-    }
-    <RadzenStack>
-        @foreach (var i in NameInputs)
-        {
-            @RenderFormElement(i.Key, i.Value)
-        }
-    </RadzenStack>
-    <br />
-    <RadzenSelectBar @bind-Value="@SelectedType" TValue="CreateImageType" Disabled="@IsLoading">
-        <Items>
-            <RadzenSelectBarItem Icon="edit_square" Text="Editor" Value="CreateImageType.Editor" />
-            <RadzenSelectBarItem Icon="cloud_upload" Text="Upload" Value="CreateImageType.Upload" />
-            <RadzenSelectBarItem Icon="link" Text="Remote" Value="CreateImageType.Remote" />
-        </Items>
-    </RadzenSelectBar>
-    <br />
-    <br />
-    @switch (SelectedType)
-    {
-        case CreateImageType.Editor:
-            {
-                <StandaloneCodeEditor @ref="_editor" OnDidChangeModelContent="@(arg => IsValueSet = true)" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@LoadEditor" />
-            }
-            break;
-        case CreateImageType.Upload:
-            {
-                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-                    Image upload is not supported yet.
-                </RadzenAlert>
-
-
-                <RadzenUpload @ref="upload" Auto="false" Multiple="false" Url="upload/multiple" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
-                              Style="width: 100%" Disabled="true" />
-            }
-            break;
-        case CreateImageType.Remote:
-
-            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-                Supported url should be a Dockerfile, Tar archive or GitHub repo with .git appended.
-            </RadzenAlert>
-
-            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Remote Url</RadzenText>
-            <RadzenTextBox @oninput="@(arg => RemoteUrl = arg.Value as string)" Style="width: 100%" aria-label="Url TextBox" AutoCompleteType="AutoCompleteType.Url"
-                           autocapitalize="none" MaxLength="300" Disabled="@IsLoading" Placeholder="https://domain.com/image.tar.gz or https://github.com/user/project.git" />
-
-            <br />
-            <br />
-
-            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Dockerfile Name</RadzenText>
-            <RadzenTextBox Value="@DockerfileName" @oninput="@(arg => DockerfileName = arg.Value as string)" Style="width: 100%" aria-label="Dockerfile Name TextBox" AutoCompleteType="AutoCompleteType.Off"
-                           MaxLength="100" Disabled="@IsLoading" />
-            break;
-    }
-
-    @if (Failed)
-    {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-            Failed to create image
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for Manage Images
         </RadzenAlert>
     }
+    else
+    {
+        <br />
+        <RadzenText TextStyle="TextStyle.Body2">
+            Build a docker image using the Dockerfile format <RadzenLink Path="https://docs.docker.com/reference/dockerfile/" Target="_blank">More Info</RadzenLink>
+        </RadzenText>
+
+        <br />
+        <h6>Names</h6>
+        <RadzenButton Click="@(() => NameInputs.Add(Guid.NewGuid().ToString(), ""))" Text="Add Name" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" />
+        <br />
+        <br />
+        @if (NameInputs.Any())
+        {
+            <RadzenText TextStyle="TextStyle.Body2">
+                Image names need to be all lowercase, 2-255 characters and optionally include special characters such as <code>.</code> <code>-</code> <code>_</code>
+            </RadzenText>
+        }
+        <RadzenStack>
+            @foreach (var i in NameInputs)
+            {
+                @RenderFormElement(i.Key, i.Value)
+            }
+        </RadzenStack>
+        <br />
+        <RadzenSelectBar @bind-Value="@SelectedType" TValue="CreateImageType" Disabled="@IsLoading">
+            <Items>
+                <RadzenSelectBarItem Icon="edit_square" Text="Editor" Value="CreateImageType.Editor" />
+                <RadzenSelectBarItem Icon="cloud_upload" Text="Upload" Value="CreateImageType.Upload" />
+                <RadzenSelectBarItem Icon="link" Text="Remote" Value="CreateImageType.Remote" />
+            </Items>
+        </RadzenSelectBar>
+        <br />
+        <br />
+        @switch (SelectedType)
+        {
+            case CreateImageType.Editor:
+                {
+                    <StandaloneCodeEditor @ref="_editor" OnDidChangeModelContent="@(arg => IsValueSet = true)" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@LoadEditor" />
+                }
+                break;
+            case CreateImageType.Upload:
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                        Image upload is not supported yet.
+                    </RadzenAlert>
 
 
-    <br />
-    <br />
-    <RadzenButton Click="@BuildImage" Text="Build Image" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Disabled="@(IsInvalid() || IsLoading)" />
+                    <RadzenUpload @ref="upload" Auto="false" Multiple="false" Url="upload/multiple" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select file" } })"
+                                  Style="width: 100%" Disabled="true" />
+                }
+                break;
+            case CreateImageType.Remote:
+
+                <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                    Supported url should be a Dockerfile, Tar archive or GitHub repo with .git appended.
+                </RadzenAlert>
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Remote Url</RadzenText>
+                <RadzenTextBox @oninput="@(arg => RemoteUrl = arg.Value as string)" Style="width: 100%" aria-label="Url TextBox" AutoCompleteType="AutoCompleteType.Url"
+                               autocapitalize="none" MaxLength="300" Disabled="@IsLoading" Placeholder="https://domain.com/image.tar.gz or https://github.com/user/project.git" />
+
+                <br />
+                <br />
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Dockerfile Name</RadzenText>
+                <RadzenTextBox Value="@DockerfileName" @oninput="@(arg => DockerfileName = arg.Value as string)" Style="width: 100%" aria-label="Dockerfile Name TextBox" AutoCompleteType="AutoCompleteType.Off"
+                               MaxLength="100" Disabled="@IsLoading" />
+                break;
+        }
+
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Failed to create image
+            </RadzenAlert>
+        }
+
+
+        <br />
+        <br />
+        <RadzenButton Click="@BuildImage" Text="Build Image" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Disabled="@(IsInvalid() || IsLoading)" />
+    }
 </div>
 
 <style>
@@ -196,15 +205,15 @@
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
         return new StandaloneEditorConstructionOptions
-            {
-                AutomaticLayout = true,
-                Language = "dockerfile",
-                Theme = "vs-dark",
-                ScrollBeyondLastLine = false,
-                ColumnSelection = true,
-                Folding = false,
-                Value = ""
-            };
+        {
+            AutomaticLayout = true,
+            Language = "dockerfile",
+            Theme = "vs-dark",
+            ScrollBeyondLastLine = false,
+            ColumnSelection = true,
+            Folding = false,
+            Value = ""
+        };
     }
 
     public bool IsLoading { get; set; }
@@ -214,21 +223,24 @@
 
     public async Task BuildImage()
     {
-        if (Server == null)
+        if (Server == null || Member == null || Team == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
         IsLoading = true;
         if (_editor != null)
             await _editor.UpdateOptions(new EditorUpdateOptions
-                {
-                    ReadOnly = true
-                });
+            {
+                ReadOnly = true
+            });
 
         CreateImageEvent Data = new CreateImageEvent
-            {
-                Labels = NameInputs,
-                Type = SelectedType
-            };
+        {
+            Labels = NameInputs,
+            Type = SelectedType
+        };
 
         switch (SelectedType)
         {
@@ -245,18 +257,18 @@
 
 
         var Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.CreateImage)
-            {
-                Data = JObject.FromObject(Data)
-            });
+        {
+            Data = JObject.FromObject(Data)
+        });
         if (!Response.IsSuccess)
         {
             Failed = true;
             IsLoading = false;
             if (_editor != null)
                 await _editor.UpdateOptions(new EditorUpdateOptions
-                    {
-                        ReadOnly = false
-                    });
+                {
+                    ReadOnly = false
+                });
             return;
         }
 
