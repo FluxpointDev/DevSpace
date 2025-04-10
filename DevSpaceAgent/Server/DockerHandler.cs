@@ -63,7 +63,7 @@ public static class DockerHandler
                         case ControlStackType.ListPortainer:
                             return await DockerStacks.ListPortainerStacks(Client);
                         case ControlStackType.ImportPortainer:
-                            return await DockerStacks.ImportPortainerStack(Client, @event.ResourceId);
+                            return await DockerStacks.ImportPortainerStack(Client, @event.Data.ToObject<DockerStackInfo>());
                     }
                 }
                 break;

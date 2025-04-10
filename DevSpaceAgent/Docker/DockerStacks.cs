@@ -295,8 +295,11 @@ public static class DockerStacks
         }
     }
 
-    public static async Task<DockerStackCreate> ImportPortainerStack(DockerClient client, DockerStackInfo stack)
+    public static async Task<DockerStackCreate> ImportPortainerStack(DockerClient client, DockerStackInfo? stack)
     {
+        if (stack == null)
+            throw new Exception("Stack arguments failed to parse.");
+
         if (!Directory.Exists("/var/lib/docker/volumes/portainer_data/_data/compose/"))
             throw new Exception("Dev Space Agent has not been mounted with the Portainer compose folder to import containers.");
 
