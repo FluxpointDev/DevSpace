@@ -67,7 +67,7 @@ public enum ControlImageType
 }
 public enum ControlStackType
 {
-    View, Inspect, Start, Stop, Remove, Restart, Pause, Resume, ReCreate, ComposeInfo
+    View, Inspect, Start, Stop, Remove, Restart, Pause, Resume, ReCreate, ComposeInfo, ListPortainer, ImportPortainer
 }
 public enum ControlNetworkType
 {

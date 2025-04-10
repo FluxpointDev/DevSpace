@@ -194,6 +194,11 @@ public static class DockerStacks
         }
         catch
         {
+            try
+            {
+                Directory.Delete(Dir, true);
+            }
+            catch { }
             throw new Exception("Failed to setup compose files.");
         }
 
@@ -229,6 +234,165 @@ public static class DockerStacks
         {
             Id = Id,
             Name = compose.Name,
+            CreatedAt = DateTime.UtcNow
+        });
+        Program.SaveStacks();
+        return new DockerStackCreate
+        {
+            Id = Id
+        };
+    }
+
+    public static async Task<List<DockerStackInfo>> ListPortainerStacks(DockerClient client)
+    {
+        List<DockerStackInfo> Stacks = new List<DockerStackInfo>();
+        IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
+        {
+            All = true
+        });
+        foreach (var i in containers)
+        {
+            if (i.Labels != null)
+            {
+                string? Directory = null;
+                if (i.Labels.TryGetValue("com.docker.compose.project.config_files", out string? configFile) && !string.IsNullOrEmpty(configFile))
+                    Directory = configFile;
+                else if (i.Labels.TryGetValue("com.docker.compose.project.working_dir", out string? workDir) && !string.IsNullOrEmpty(workDir))
+                    Directory = workDir;
+
+                if (i.Labels.TryGetValue("com.docker.compose.project", out string? label))
+                    continue;
+
+                if (!string.IsNullOrEmpty(Directory) && !string.IsNullOrEmpty(label) && Directory.StartsWith("/data/compose/"))
+                {
+                    Stacks.Add(new DockerStackInfo
+                    {
+                        Id = i.ID,
+                        Name = label
+                    });
+                }
+            }
+        }
+
+        return Stacks;
+    }
+
+    private static void CloneDirectory(string root, string dest)
+    {
+        foreach (var directory in Directory.GetDirectories(root))
+        {
+            //Get the path of the new directory
+            var newDirectory = Path.Combine(dest, Path.GetFileName(directory));
+            //Create the directory if it doesn't already exist
+            Directory.CreateDirectory(newDirectory);
+            //Recursively clone the directory
+            CloneDirectory(directory, newDirectory);
+        }
+
+        foreach (var file in Directory.GetFiles(root))
+        {
+            File.Copy(file, Path.Combine(dest, Path.GetFileName(file)));
+        }
+    }
+
+    public static async Task<DockerStackCreate> ImportPortainerStack(DockerClient client, DockerStackInfo stack)
+    {
+        if (!Directory.Exists("/var/lib/docker/volumes/portainer_data/_data/compose/"))
+            throw new Exception("Dev Space Agent has not been mounted with the Portainer compose folder to import containers.");
+
+        if (!Directory.Exists("/var/lib/docker/volumes/portainer_data/_data/compose/" + stack.Id))
+            throw new Exception("Stack does not exist.");
+
+        int Version = -1;
+
+        foreach (var d in Directory.GetDirectories("/var/lib/docker/volumes/portainer_data/_data/compose/" + stack.Id))
+        {
+            string Split = d.Split('/').Last();
+            if (Split.StartsWith("v") && int.TryParse(Split.Substring(1), out int stackNumber) && stackNumber > Version)
+                Version = stackNumber;
+        }
+
+        if (Version == -1)
+            throw new Exception("Stack does not exist.");
+
+        string ComposeContent = File.ReadAllText($"/var/lib/docker/volumes/portainer_data/_data/compose/{stack.Id}/v{Version}/docker-compose.yml");
+
+        if (string.IsNullOrEmpty(ComposeContent))
+            throw new Exception("Failed to parse stack compose.");
+
+        // Create stack for import
+        if (Program.Stacks.Any(x => !string.IsNullOrEmpty(x.Value.Name) && x.Value.Name.Equals(stack.Name, StringComparison.OrdinalIgnoreCase)))
+            throw new Exception("Stack name already exists.");
+
+        string Id = Guid.NewGuid().ToString().Replace("-", "");
+        string Dir = Program.CurrentDirectory + $"Data/Stacks/{Id}/";
+        if (Directory.Exists(Dir))
+            throw new Exception("Stack directory already exists.");
+
+        try
+        {
+            Directory.CreateDirectory(Dir);
+            CloneDirectory($"/var/lib/docker/volumes/portainer_data/_data/compose/{stack.Id}/v{Version}/", Dir);
+        }
+        catch
+        {
+            try
+            {
+                Directory.Delete(Dir, true);
+            }
+            catch { }
+            throw new Exception("Failed to setup compose files.");
+        }
+
+        try
+        {
+            IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+            {
+                All = true,
+                Filters = new Dictionary<string, IDictionary<string, bool>>
+                { { "label", new Dictionary<string, bool> { { "com.docker.compose.project=" + stack.Name, true } } } }
+            });
+            foreach (var i in Containers)
+            {
+                await client.Containers.RemoveContainerAsync(i.ID, new ContainerRemoveParameters
+                {
+
+                });
+            }
+        }
+        catch { }
+
+        try
+        {
+            using (ICompositeService build = new Builder()
+                .UseContainer()
+                .UseCompose()
+                .ServiceName(stack.Name)
+                .KeepContainer()
+                .KeepVolumes()
+                .KeepOnDispose()
+                .FromFile(Dir + "docker-compose.yml")
+                .Build())
+            {
+
+            }
+           ;
+        }
+        catch
+        {
+            try
+            {
+                Directory.Delete(Dir, true);
+            }
+            catch { }
+
+            throw;
+        }
+
+        Program.Stacks.Add(Id, new Data.StackFile
+        {
+            Id = Id,
+            Name = stack.Name,
             CreatedAt = DateTime.UtcNow
         });
         Program.SaveStacks();
