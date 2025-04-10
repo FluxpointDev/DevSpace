@@ -51,7 +51,7 @@ public enum DockerEventType
     ListVolumes, ControlVolume, CreateVolume,
     SystemInfo, HostInfo,
     ListCustomTemplates, CreateCustomTemplate, ControlCustomTemplate, ImportPortainerTemplates,
-    Events
+    Events, ListPortainerStacks
 }
 public enum ControlContainerType
 {
@@ -67,7 +67,7 @@ public enum ControlImageType
 }
 public enum ControlStackType
 {
-    View, Inspect, Start, Stop, Remove, Restart, Pause, Resume, ReCreate, ComposeInfo, ListPortainer, ImportPortainer
+    View, Inspect, Start, Stop, Remove, Restart, Pause, Resume, ReCreate, ComposeInfo, ImportPortainer
 }
 public enum ControlNetworkType
 {

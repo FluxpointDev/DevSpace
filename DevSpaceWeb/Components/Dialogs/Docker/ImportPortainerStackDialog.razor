@@ -1,0 +1,92 @@
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@using Newtonsoft.Json.Linq
+@using global::Docker.DotNet.Models
+
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+@inject NotificationService Notifications
+
+<PageTitle>Import Portainer Stack | @_Data.Config.Instance.Name</PageTitle>
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        @if (Failed)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Failed to import stack.
+            </RadzenAlert>
+        }
+        @if (Stacks == null)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Failed to list portainer stacks.
+            </RadzenAlert>
+        }
+        else
+        {
+            <RadzenDropDown @bind-Value="@SelectedStack" Data="@Stacks.Data" TextProperty="@nameof(DockerStackInfo.Name)" Style="width: 100%; max-width: 400px;" />
+        }
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@IsLoading" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Import" Style="width: 120px" Disabled="@(IsLoading || SelectedStack == null)" IsBusy="@IsLoading" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ServerData? Server => Session.Selected.Server;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Team == null && Server == null || Member == null)
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
+            return;
+
+        Stacks = await Server.RunJsonAsync<List<DockerStackInfo>>(Notifications, new DockerEvent(DockerEventType.ListPortainerStacks));
+    }
+
+    public SocketResponse<List<DockerStackInfo>?>? Stacks = null;
+    public DockerStackInfo? SelectedStack = null;
+
+    public bool Failed = false;
+    public bool IsLoading = false;
+
+
+    async Task Submit()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Team == null && Server == null || Member == null || SelectedStack == null)
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
+            return;
+
+        IsLoading = true;
+        
+        dialogService.Close(true);
+    }
+}
