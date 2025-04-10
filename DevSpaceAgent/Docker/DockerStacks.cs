@@ -267,7 +267,7 @@ public static class DockerStacks
                 {
                     Stacks.Add(new DockerStackInfo
                     {
-                        Id = i.ID,
+                        Id = Directory.Split('/', StringSplitOptions.RemoveEmptyEntries)[2],
                         Name = label
                     });
                 }
@@ -304,7 +304,7 @@ public static class DockerStacks
             throw new Exception("Dev Space Agent has not been mounted with the Portainer compose folder to import containers.");
 
         if (!Directory.Exists("/var/lib/docker/volumes/portainer_data/_data/compose/" + stack.Id))
-            throw new Exception("Stack does not exist.");
+            throw new Exception("Stack folder does not exist.");
 
         int Version = -1;
 
@@ -316,7 +316,7 @@ public static class DockerStacks
         }
 
         if (Version == -1)
-            throw new Exception("Stack does not exist.");
+            throw new Exception("Stack version folder does not exist.");
 
         string ComposeContent = File.ReadAllText($"/var/lib/docker/volumes/portainer_data/_data/compose/{stack.Id}/v{Version}/docker-compose.yml");
 
@@ -359,7 +359,7 @@ public static class DockerStacks
             {
                 await client.Containers.RemoveContainerAsync(i.ID, new ContainerRemoveParameters
                 {
-
+                    Force = true
                 });
             }
         }
@@ -377,7 +377,16 @@ public static class DockerStacks
                 .FromFile(Dir + "docker-compose.yml")
                 .Build())
             {
-
+                try
+                {
+                    Console.WriteLine("Starting...");
+                    build.Start();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Runtime Failed");
+                    Console.WriteLine(ex);
+                }
             }
            ;
         }
@@ -388,7 +397,6 @@ public static class DockerStacks
                 Directory.Delete(Dir, true);
             }
             catch { }
-
             throw;
         }
 
@@ -792,7 +800,6 @@ public static class DockerStacks
                     svc.Start();
                     break;
             }
-
         }
     }
 
