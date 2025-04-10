@@ -796,6 +796,7 @@ else
         <div class="dash-box-header">
             <div class="dash-box-icon"><span class="iconify" data-icon="mdi:local-area-network"></span></div>
             <RadzenText TextStyle="TextStyle.H6">Networks</RadzenText>
+            <RadzenButton Variant="Variant.Filled" Text="Join Network" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(IsActionLoading || (Container.NetworkSettings.Networks.Any() && Container.NetworkSettings.Networks.First().Key == "host") || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks))" />
         </div>
         <br />
         @if (!CanViewContainerNetworks)
@@ -839,7 +840,7 @@ else
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn Title="Action">
                         <Template>
-                            <RadzenButton Click="@(() => LeaveNetwork(context.Value.NetworkID))" Text="Leave Network" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(context.Key == "host" || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks) || IsActionLoading)" />
+                            <RadzenButton Click="@(() => LeaveNetwork(context.Value.NetworkID))" Text="Leave Network" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(context.Key == "host" || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks) || IsActionLoading)" />
                         </Template>
                     </RadzenDataGridColumn>
                 </Columns>

@@ -186,4 +186,9 @@ public enum DockerContainerPermission : ulong
     /// Delete or change stacks.
     /// </summary>
     ManageStacks = 1L << 18,
+
+    /// <summary>
+    /// Join or remove networks from containers.
+    /// </summary>
+    ManageContainerNetworks = 1L << 19
 }

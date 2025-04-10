@@ -157,6 +157,7 @@ public static class PermissionsData
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerEnvironment, "View Container Environment", "View sensitive container environment variables."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerVolumes, "View Container Volumes", "View container volumes list."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerNetworks, "View Container Networks", "View container networks list."),
+            new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ManageContainerNetworks, "Manage Container Networks", "Join or remove networks from containers."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.UseContainerConsole, "Use Container Console", "Execute shell commands in the container."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ViewContainerFiles, "View Container Files", "View files inside the containers."),
             new PermissionItem<DockerContainerPermission>(DockerContainerPermission.ManageContainerFiles, "Manage Container Files", "Create and modify files inside the containers."),
