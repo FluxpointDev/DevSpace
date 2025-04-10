@@ -260,7 +260,7 @@ public static class DockerStacks
                 else if (i.Labels.TryGetValue("com.docker.compose.project.working_dir", out string? workDir) && !string.IsNullOrEmpty(workDir))
                     Directory = workDir;
 
-                if (i.Labels.TryGetValue("com.docker.compose.project", out string? label))
+                if (!i.Labels.TryGetValue("com.docker.compose.project", out string? label))
                     continue;
 
                 if (!string.IsNullOrEmpty(Directory) && !string.IsNullOrEmpty(label) && Directory.StartsWith("/data/compose/"))

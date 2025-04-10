@@ -22,15 +22,19 @@
                 Failed to import stack.
             </RadzenAlert>
         }
-        @if (Stacks == null)
+        @if (Stacks != null)
         {
-            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-                Failed to list portainer stacks.
-            </RadzenAlert>
-        }
-        else
-        {
-            <RadzenDropDown @bind-Value="@SelectedStack" Data="@Stacks.Data" TextProperty="@nameof(DockerStackInfo.Name)" Style="width: 100%; max-width: 400px;" />
+            @if (!Stacks.IsSuccess)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                    Failed to list portainer stacks.
+                </RadzenAlert>
+            }
+            else
+            {
+                <RadzenDropDown @bind-Value="@SelectedStack" Data="@Stacks.Data" Placeholder="Select a stack" TextProperty="@nameof(DockerStackInfo.Name)" Style="width: 100%; max-width: 400px;" />
+            }
+
         }
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
