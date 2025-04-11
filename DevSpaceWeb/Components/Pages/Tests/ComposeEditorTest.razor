@@ -1,5 +1,4 @@
 ﻿@page "/test/compose"
-@using BlazorMonaco.Editor
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -9,29 +8,19 @@
         </div>
         <RadzenText TextStyle="TextStyle.H6">Compose Editor Test</RadzenText>
     </div>
-    <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
+    <br />
+    <Editor Value="@Text" Language="yaml"></Editor>
+
 </div>
 
 <style>
-    .monaco-editor, .monaco-diff-editor {
-        min-height: calc(100vh - 140px) !important;
-        max-height: calc(100vh - 140px) !important;
-        padding-top: 10px;
-    }
+    
 </style>
 
 @code {
-    private StandaloneCodeEditor _editor = null;
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-            {
-                AutomaticLayout = true,
-                Language = "yaml",
-                Theme = "vs-dark",
-                ScrollBeyondLastLine = false,
-                Folding = false,
-            };
-    }
+    public string Text = @"services:
+  hello-portainer:
+    container_name: hello-portainer
+    image: alpine
+    command: sh -c";
 }

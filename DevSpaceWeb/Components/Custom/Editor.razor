@@ -1,0 +1,278 @@
+﻿@using BlazorMonaco
+@using BlazorMonaco.Editor
+@using BlazorMonaco.Languages
+@inject IJSRuntime JS
+
+<div id="editorToolbox">
+    <div>
+        <RadzenButton @ref="@ShortcutButton" Icon="keyboard" class="ml-2" Click="@(() => ShortcutsPopup.ToggleAsync(ShortcutButton.Element))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
+        <RadzenButton Icon="undo" class="ml-4" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
+        <RadzenButton Icon="redo" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
+        <RadzenButton Icon="insert_text" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
+    </div>
+    <RadzenText TextStyle="TextStyle.Caption">
+        compose.yml
+        @if (ReadOnly)
+        {
+            <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" Text="Read-only" class="ml-2" />
+        }
+    </RadzenText>
+    <div>
+        @if (!ReadOnly && !HideDiff)
+        {
+            <RadzenButton Icon="text_compare" class="mr-2" Click="@ToggleDiffEditor" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
+        }
+        <RadzenButton Icon="settings" Style="visibility: hidden;" class="mr-2" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
+    </div>
+</div>
+
+@if (ShowDiffEditor)
+{
+    <StandaloneDiffEditor @ref="_diffEditor" ConstructionOptions="DiffEditorConstructionOptions" OnDidInit="EditorOnDidInit" />
+}
+else
+{
+    <StandaloneCodeEditor @ref="_editor" ConstructionOptions="EditorConstructionOptions" />
+}
+
+<Popup @ref="@ShortcutsPopup" Lazy="true" id="editorShortcuts">
+    <RadzenStack Gap="6px">
+        <div>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Ctrl + Z
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Undo last edit
+            </RadzenText>
+        </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Ctrl + Y
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Redo last edit
+            </RadzenText>
+        </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Ctrl + C
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Copy selected text
+            </RadzenText>
+        </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Ctrl + V
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Pasted copied text
+            </RadzenText>
+        </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Ctrl + A
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Select all text
+            </RadzenText>
+        </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Ctrl + F
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Search
+            </RadzenText>
+        </div>
+    </RadzenStack>
+</Popup>
+
+<style>
+    #editorToolbox {
+        padding: 4px;
+        background-color: #27282c !important;
+        display: flex;
+        justify-content: space-between;
+    }
+
+        #editorToolbox .rzi {
+            color: rgb(213, 213, 213) !important;
+        }
+
+        #editorToolbox .rz-text-caption {
+            font-size: 14px;
+            padding-top: 4px;
+        }
+
+    #editorShortcuts {
+        display: none;
+        position: absolute;
+        overflow: hidden;
+        margin-top: 18px;
+        border: var(--rz-panel-border);
+        background-color: var(--rz-panel-background-color);
+        box-shadow: var(--rz-panel-shadow);
+        border-radius: var(--rz-border-radius);
+        padding: 8px;
+        padding-right: 18px;
+    }
+
+        #editorShortcuts .rz-text-body2 {
+            display: inline-block;
+        }
+
+            #editorShortcuts .rz-text-body2:first-child {
+                display: inline-block;
+                padding: 4px;
+                padding-left: 10px;
+                padding-right: 10px;
+                margin-right: 20px;
+                border-radius: 12px;
+                border: var(--rz-input-border);
+            }
+
+
+    .monaco-editor-container, .monaco-diff-editor {
+        background-color: #1e1e1e !important;
+    }
+
+    .monaco-editor-container, .monaco-diff-editor {
+        min-height: 400px !important;
+        max-height: calc(100vh - 140px) !important;
+        padding-top: 6px;
+        padding-bottom: 10px;
+    }
+
+</style>
+
+@code {
+    [Parameter]
+    public required string Value { get; set; }
+
+    public string? CurrentValue { get; set; }
+
+    [Parameter]
+    public required string Language { get; set; }
+
+    [Parameter]
+    public bool ReadOnly { get; set; }
+
+    [Parameter]
+    public bool HideDiff { get; set; }
+
+    public bool ShowDiffEditor { get; set; }
+
+    private StandaloneCodeEditor _editor = null!;
+    private StandaloneDiffEditor _diffEditor = null!;
+
+    public Popup ShortcutsPopup = null!;
+    public RadzenButton ShortcutButton = null!;
+
+    public bool FirstRender = false;
+
+    public async Task ToggleDiffEditor()
+    {
+        if (ShowDiffEditor)
+        {
+            CurrentValue = await _diffEditor.ModifiedEditor.GetValue();
+            ShowDiffEditor = false;
+        }
+        else
+        {
+            CurrentValue = await _editor.GetValue();
+            ShowDiffEditor = true;
+        }
+    }
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        var Options = new StandaloneEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Language = Language,
+            Theme = "vs-dark",
+            ScrollBeyondLastLine = false,
+            ReadOnly = ReadOnly,
+            ReadOnlyMessage = new MarkdownString()
+            {
+                Value = "This editor is read-only"
+            },
+            Folding = false,
+            Minimap = new EditorMinimapOptions
+            {
+                Enabled = false
+            }
+        };
+
+        if (!FirstRender)
+        {
+            Console.WriteLine("First Render");
+            FirstRender = true;
+            Options.Value = Value;
+        }
+        else
+        {
+            Options.Value = CurrentValue;
+        }
+
+        return Options;
+    }
+
+    private StandaloneDiffEditorConstructionOptions DiffEditorConstructionOptions(StandaloneDiffEditor editor)
+    {
+        return new StandaloneDiffEditorConstructionOptions
+        {
+            AutomaticLayout = true,
+            Theme = "vs-dark",
+            ScrollBeyondLastLine = false,
+            Folding = false,
+            Minimap = new EditorMinimapOptions
+            {
+                Enabled = false
+            },
+
+
+            OriginalEditable = false,
+            RenderGutterMenu = false
+        };
+    }
+
+    private async Task EditorOnDidInit()
+    {
+
+        // create the original model
+        TextModel original_model = await BlazorMonaco.Editor.Global.GetModel(JS, "diff-original");
+        if (original_model == null)
+        {
+            original_model = await BlazorMonaco.Editor.Global.CreateModel(JS, Value, Language, "diff-original");
+        }
+
+        // Get or create the modified model
+        TextModel modified_model = await BlazorMonaco.Editor.Global.GetModel(JS, "diff-modified");
+        if (modified_model == null)
+        {
+            modified_model = await BlazorMonaco.Editor.Global.CreateModel(JS, CurrentValue, Language, "diff-modified");
+        }
+        else
+        {
+            await modified_model.SetValue(CurrentValue);
+        }
+
+        // Set the editor model
+        await _diffEditor.SetModel(new DiffEditorModel
+        {
+            Original = original_model,
+            Modified = modified_model
+        });
+
+        await _diffEditor.OriginalEditor.UpdateOptions(new EditorUpdateOptions
+        {
+            AutomaticLayout = true
+        });
+        await _diffEditor.ModifiedEditor.UpdateOptions(new EditorUpdateOptions
+        {
+            AutomaticLayout = true
+        });
+    }
+}
