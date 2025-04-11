@@ -54,17 +54,33 @@ public static class ServiceBuilder
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
 
+        // Add website health check
         AddHealth(services, HealthService);
+
+        // Add webauthn/passkey support
         AddFido2(services);
+
+        // Add asp.net identity
         AddIdentity(services);
+
+        // Add database storage
         AddMongoDb(services);
+
+        // Add email sending and services
         AddEmail(services, HealthService);
+
+        // Add Oauth Providers
         AddProviders(services);
 
         if (_Data.Config.Instance.Features.SwaggerEnabled)
             AddSwagger(services);
 
+        // Add MVC core services and blazor pages
         AddPages(services);
+
+        // Add Aspire .net support
+        if (Program.IsUsingAspire)
+            builder.AddServiceDefaults();
     }
 
     public static void AddPages(IServiceCollection services)

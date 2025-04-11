@@ -259,10 +259,8 @@ public class Program
 
         Services = builder.Services;
 
-        builder.AddServiceDefaults();
-
         WebApplication app = builder.Build();
-        
+
         // Configure the HTTP request pipeline.
         //if (!app.Environment.IsDevelopment())
         //{
