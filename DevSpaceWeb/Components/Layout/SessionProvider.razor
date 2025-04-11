@@ -289,7 +289,7 @@
             return;
         }
 
-        if (!HttpContext.Request.IsHttps)
+        if (!Program.IsUsingAspire && !HttpContext.Request.IsHttps)
         {
             SessionError = SessionErrorType.HttpsRequired;
             return;
@@ -297,7 +297,7 @@
 
 
         string Ip = Utils.GetUserIpAddress(HttpContext);
-        if (!_Data.Config.Instance.Features.AllowLocalhost && (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1"))
+        if (!Program.IsUsingAspire && !_Data.Config.Instance.Features.AllowLocalhost && (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1"))
         {
             SessionError = SessionErrorType.SessionSecurityError;
             return;
@@ -472,7 +472,16 @@
 
     public enum SessionErrorType
     {
-        Loading, SessionSecurityError, SessionError, HttpsRequired, SessionSecurityNew, AuthenticationError, AuthenticationRequired, DatabaseError, Success, AccountDisabled
+        Loading,
+        SessionSecurityError,
+        SessionError,
+        HttpsRequired,
+        SessionSecurityNew,
+        AuthenticationError,
+        AuthenticationRequired,
+        DatabaseError,
+        Success,
+        AccountDisabled
     }
 
 }

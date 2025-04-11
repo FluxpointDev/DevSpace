@@ -7,9 +7,16 @@ public class ConfigureDatabase
     public short Port;
     public string? User;
     public string? Password;
+    /// <summary>
+    /// priority
+    /// </summary>
+    public string? ConnectionString;
 
     public string GetConnectionString()
     {
+        if (!string.IsNullOrEmpty(ConnectionString))
+            return ConnectionString;
+        
         if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(Password))
             return $"mongodb://{Host}:{Port}";
 
