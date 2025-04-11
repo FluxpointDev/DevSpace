@@ -29,8 +29,8 @@ jobs:
       run: dotnet restore "DevSpaceWeb/DevSpaceWeb.csproj"
       
     - name: Build
-      run: dotnet build "DevSpaceWeb/DevSpaceWeb.csproj" --no-restore -c Release
+      run: dotnet build "DevSpaceWeb/DevSpaceWeb.csproj" --no-restore -r linux-x64 -c Release
       
     - name: Publish
       if: github.ref == 'refs/heads/master'
-      run: dotnet publish "DevSpaceWeb/DevSpaceWeb.csproj" -r linux-x64 -c Release /p:PublishProfile=Github
+      run: dotnet publish "DevSpaceWeb/DevSpaceWeb.csproj" --no-build -r linux-x64 -c Release /p:PublishProfile=Github
