@@ -32,5 +32,5 @@ jobs:
       run: dotnet build "DevSpaceWeb/DevSpaceWeb.csproj" --no-restore
       
     - name: Publish
-      if: github.event.workflow_run.head_branch == 'master'
+      if: github.ref == 'refs/heads/master'
       run: dotnet publish "DevSpaceWeb/DevSpaceWeb.csproj" --no-build --os linux --arch x64 /t:PublishContainer -p ContainerRegistry=ghcr.io
