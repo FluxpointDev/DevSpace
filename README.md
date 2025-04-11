@@ -57,6 +57,12 @@ https://docs.fluxpoint.dev/devspace
 
 ---
 
+### Contributors
+
+JMPJNS - Add Aspire .net support for Dev Space web deployment, stats and logging.
+
+---
+
 ### Inspiration/Ideas
 I will be taking ideas from other similar developer tools such as:
 - [Sentry](https://sentry.io/welcome/)
