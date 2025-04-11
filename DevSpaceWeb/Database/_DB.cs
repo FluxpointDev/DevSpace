@@ -112,8 +112,6 @@ public static class _DB
 
             if (string.IsNullOrEmpty(Configure.User))
                 throw new ArgumentException("Database user not configured in appsettings.json");
-            
-            throw new ArgumentException("ConnectionString not configured");
         }
 
         Client = new MongoClient(Configure.GetConnectionString());
