@@ -36,7 +36,15 @@ public static class _DB
 
     public static void Init(ConfigurationManager configuration)
     {
-        if (Program.IsDevMode)
+        if (Program.IsUsingAspire)
+        {
+            Configure = new ConfigureDatabase
+            {
+                ConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__dev-space-db"),
+                Name = Environment.GetEnvironmentVariable("DB_NAME")
+            };
+        }
+        else if (Program.IsDevMode)
         {
             if (!File.Exists(Program.Directory.Data.Path + "Dev.json"))
             {
@@ -91,17 +99,22 @@ public static class _DB
         if (Configure == null)
             throw new Exception("Database configuration is invalid.");
 
-        if (string.IsNullOrEmpty(Configure.Host))
-            throw new ArgumentException("Database host not configured in appsettings.json");
+        if (String.IsNullOrEmpty(Configure.ConnectionString))
+        {
+            if (string.IsNullOrEmpty(Configure.Host))
+                throw new ArgumentException("Database host not configured in appsettings.json");
 
-        if (Configure.Port == 0)
-            throw new ArgumentException("Database port not configured in appsettings.json");
+            if (Configure.Port == 0)
+                throw new ArgumentException("Database port not configured in appsettings.json");
 
-        if (string.IsNullOrEmpty(Configure.Name))
-            throw new ArgumentException("Database name not configured in appsettings.json");
+            if (string.IsNullOrEmpty(Configure.Name))
+                throw new ArgumentException("Database name not configured in appsettings.json");
 
-        if (string.IsNullOrEmpty(Configure.User))
-            throw new ArgumentException("Database user not configured in appsettings.json");
+            if (string.IsNullOrEmpty(Configure.User))
+                throw new ArgumentException("Database user not configured in appsettings.json");
+            
+            throw new ArgumentException("ConnectionString not configured");
+        }
 
         Client = new MongoClient(Configure.GetConnectionString());
 

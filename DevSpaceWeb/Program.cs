@@ -73,6 +73,7 @@ public class Program
     public static DockerClient? InternalDocker;
 
     public static bool LimitMode = false;
+    public static bool IsUsingAspire { get; set; }
 
     public static async Task Main(string[] args)
     {
@@ -81,6 +82,7 @@ public class Program
         IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
         LimitMode = Environment.GetEnvironmentVariable("LimitMode") == "true";
+        IsUsingAspire = Environment.GetEnvironmentVariable("ASPIRE") == "true";
         string? LogMode = Environment.GetEnvironmentVariable("LogMode");
 
         LogSeverity DefaultLogMode = LogSeverity.Error;
@@ -257,8 +259,10 @@ public class Program
 
         Services = builder.Services;
 
-        WebApplication app = builder.Build();
+        builder.AddServiceDefaults();
 
+        WebApplication app = builder.Build();
+        
         // Configure the HTTP request pipeline.
         //if (!app.Environment.IsDevelopment())
         //{
