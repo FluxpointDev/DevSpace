@@ -1,5 +1,4 @@
-﻿@using BlazorMonaco.Editor
-@using DevSpaceShared.Events.Docker
+﻿@using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using Newtonsoft.Json.Linq
 @inject NavigationManager Nav
@@ -65,7 +64,7 @@
         {
             case CreateImageType.Editor:
                 {
-                    <StandaloneCodeEditor @ref="_editor" OnDidChangeModelContent="@(arg => IsValueSet = true)" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@LoadEditor" />
+                    <Editor @ref="@_editor" Value="@("")" FileName="Dockerfile" Language="dockerfile" HideDiff="true"></Editor>
                 }
                 break;
             case CreateImageType.Upload:
@@ -112,19 +111,6 @@
     }
 </div>
 
-<style>
-    .monaco-editor, .monaco-diff-editor {
-        background-color: #1e1e1e !important;
-    }
-
-    .monaco-editor-container, .monaco-diff-editor {
-        min-height: 400px !important;
-        max-height: calc(100vh - 140px) !important;
-        padding-top: 6px;
-        padding-bottom: 10px;
-    }
-</style>
-
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
@@ -133,12 +119,12 @@
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
-    public CreateImageType SelectedType { get; set; }
+    public CreateImageType SelectedType { get; set; } = CreateImageType.Editor;
 
     public string? RemoteUrl { get; set; }
     public string? DockerfileName { get; set; } = "Dockerfile";
 
-    public bool IsValueSet = false;
+    //public bool IsValueSet = false;
 
     public bool IsInvalid()
     {
@@ -155,11 +141,11 @@
         @switch (SelectedType)
         {
             case CreateImageType.Editor:
-                if (!IsValueSet)
-                    return true;
+                //if (!IsValueSet)
+                //return true;
                 break;
             case CreateImageType.Upload:
-                if (!upload.HasValue)
+                if (upload != null && !upload.HasValue)
                     return true;
                 return true;
             case CreateImageType.Remote:
@@ -177,12 +163,6 @@
         }
 
         return false;
-    }
-
-    public async Task LoadEditor()
-    {
-        var Model = await _editor.GetModel();
-        await Model.SetValue("");
     }
 
     Dictionary<string, string> NameInputs = new Dictionary<string, string>
@@ -206,20 +186,7 @@
         builder.CloseComponent();
     };
 
-    private StandaloneCodeEditor _editor = null!;
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "dockerfile",
-            Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
-            Folding = false,
-            Value = ""
-        };
-    }
+    private Editor _editor = null!;
 
     public bool IsLoading { get; set; }
     public bool Failed { get; set; }
@@ -236,10 +203,7 @@
 
         IsLoading = true;
         if (_editor != null)
-            await _editor.UpdateOptions(new EditorUpdateOptions
-            {
-                ReadOnly = true
-            });
+            await _editor.SetReadOnly(true);
 
         CreateImageEvent Data = new CreateImageEvent
         {
@@ -270,10 +234,7 @@
             Failed = true;
             IsLoading = false;
             if (_editor != null)
-                await _editor.UpdateOptions(new EditorUpdateOptions
-                {
-                    ReadOnly = false
-                });
+                await _editor.SetReadOnly(false);
             return;
         }
 

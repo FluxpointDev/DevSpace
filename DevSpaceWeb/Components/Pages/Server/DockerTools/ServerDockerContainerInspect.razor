@@ -1,5 +1,4 @@
-﻿@using BlazorMonaco.Editor
-@using DevSpaceShared.Data
+﻿@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
 @using Docker.DotNet.Models
 @using Newtonsoft.Json.Linq
@@ -56,11 +55,11 @@ else
             <br />
             @if (GotInspect)
             {
-                <StandaloneCodeEditor @ref="_editor" Id="editorContainerInspect" ConstructionOptions="EditorConstructionOptions" OnDidInit="@Init" />
+                <Editor Value="@InspectData" FileName="@((string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName) + ".json")" Language="json" ReadOnly="true" HeightOverflow="240"></Editor>
             }
             else
             {
-                <div class="monaco-editor">
+                <div class="monaco-editor-placeholder">
 
                 </div>
             }
@@ -69,13 +68,13 @@ else
 }
 
 <style>
-    .monaco-editor, .monaco-diff-editor {
+    .monaco-editor-placeholder {
         background-color: #1e1e1e !important;
     }
 
-    .monaco-editor-container, .monaco-diff-editor {
+    .monaco-editor-placeholder  {
         min-height: 400px !important;
-        max-height: calc(100vh - 140px) !important;
+        max-height: calc(100vh - 210px) !important;
         padding-top: 6px;
         padding-bottom: 10px;
     }
@@ -97,26 +96,7 @@ else
     public string? ContainerName { get; set; }
     public bool Failed { get; set; }
 
-    private StandaloneCodeEditor _editor = null;
 
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
-            Folding = false,
-            ReadOnly = true
-        };
-    }
-
-    public async Task Init()
-    {
-        var Model = await _editor.GetModel();
-        await Model.SetValue(InspectData);
-    }
 
     protected override async Task OnParametersSetAsync()
     {

@@ -1,5 +1,4 @@
-﻿@using BlazorMonaco.Editor
-@using DevSpaceShared.Data
+﻿@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using DevSpaceShared.WebSocket
@@ -49,7 +48,7 @@
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Editor</RadzenText>
             @if (GotCompose)
             {
-                <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
+                <Editor @ref="@_editor" Value="@Compose" FileName="@((!string.IsNullOrEmpty(StackName) ? StackName : StackId) + ".yml")" Language="yaml"></Editor>
             }
             
         <br />
@@ -136,20 +135,7 @@
     public string? StackName { get; set; }
     public string? Compose { get; set; }
     public bool GotCompose { get; set; }
-    private StandaloneCodeEditor _editor = null!;
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "yaml",
-            Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
-            Folding = false,
-            Value = Compose
-        };
-    }
+    private Editor _editor = null!;
 
     public bool IsBuilding { get; set; }
     public bool IsReady { get; set; }

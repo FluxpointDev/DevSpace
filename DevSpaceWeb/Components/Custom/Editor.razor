@@ -6,12 +6,11 @@
 <div id="editorToolbox">
     <div>
         <RadzenButton @ref="@ShortcutButton" Icon="keyboard" class="ml-2" Click="@(() => ShortcutsPopup.ToggleAsync(ShortcutButton.Element))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
-        <RadzenButton Icon="undo" class="ml-4" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
-        <RadzenButton Icon="redo" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
-        <RadzenButton Icon="insert_text" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
+        @* <RadzenButton Icon="undo" class="ml-4" Click="@Undo" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
+        <RadzenButton Icon="redo" Click="@Redo" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" /> *@
     </div>
     <RadzenText TextStyle="TextStyle.Caption">
-        compose.yml
+        @FileName
         @if (ReadOnly)
         {
             <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" Text="Read-only" class="ml-2" />
@@ -22,17 +21,17 @@
         {
             <RadzenButton Icon="text_compare" class="mr-2" Click="@ToggleDiffEditor" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
         }
-        <RadzenButton Icon="settings" Style="visibility: hidden;" class="mr-2" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" />
+        @* <RadzenButton Icon="settings" Style="visibility: hidden;" class="mr-2" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Variant="Variant.Text" /> *@
     </div>
 </div>
 
 @if (ShowDiffEditor)
 {
-    <StandaloneDiffEditor @ref="_diffEditor" ConstructionOptions="DiffEditorConstructionOptions" OnDidInit="EditorOnDidInit" />
+    <StandaloneDiffEditor @ref="_diffEditor" ConstructionOptions="DiffEditorConstructionOptions" OnDidInit="EditorOnDidInit" OnDidChangeModelContentModified="@(arg => HasValue = true)" />
 }
 else
 {
-    <StandaloneCodeEditor @ref="_editor" ConstructionOptions="EditorConstructionOptions" />
+    <StandaloneCodeEditor @ref="_editor" ConstructionOptions="EditorConstructionOptions" OnDidChangeModelContent="@(arg => HasValue = true)" />
 }
 
 <Popup @ref="@ShortcutsPopup" Lazy="true" id="editorShortcuts">
@@ -66,7 +65,7 @@ else
                 Ctrl + V
             </RadzenText>
             <RadzenText TextStyle="TextStyle.Body2">
-                Pasted copied text
+                Paste copied text
             </RadzenText>
         </div>
         <div>
@@ -83,6 +82,14 @@ else
             </RadzenText>
             <RadzenText TextStyle="TextStyle.Body2">
                 Search
+            </RadzenText>
+        </div>
+        <div>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Tab
+            </RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                Insert indentation
             </RadzenText>
         </div>
     </RadzenStack>
@@ -139,21 +146,26 @@ else
 
     .monaco-editor-container, .monaco-diff-editor {
         min-height: 400px !important;
-        max-height: calc(100vh - 140px) !important;
+        height: calc(100vh - @(HeightOverflow + "px")) !important;
         padding-top: 6px;
         padding-bottom: 10px;
     }
 
 </style>
 
+
+
 @code {
-    [Parameter]
-    public required string Value { get; set; }
+    [Parameter, EditorRequired]
+    public string Value { get; set; }
 
-    public string? CurrentValue { get; set; }
+    private string? CurrentValue { get; set; }
 
-    [Parameter]
-    public required string Language { get; set; }
+    [Parameter, EditorRequired]
+    public string FileName { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Language { get; set; }
 
     [Parameter]
     public bool ReadOnly { get; set; }
@@ -161,17 +173,23 @@ else
     [Parameter]
     public bool HideDiff { get; set; }
 
-    public bool ShowDiffEditor { get; set; }
+    [Parameter]
+    public int HeightOverflow { get; set; } = 210;
+
+    [Parameter]
+    public bool ScrollBeyondLastLine { get; set; } = false;
+
+    private bool ShowDiffEditor { get; set; }
 
     private StandaloneCodeEditor _editor = null!;
     private StandaloneDiffEditor _diffEditor = null!;
 
-    public Popup ShortcutsPopup = null!;
-    public RadzenButton ShortcutButton = null!;
+    private Popup ShortcutsPopup = null!;
+    private RadzenButton ShortcutButton = null!;
 
-    public bool FirstRender = false;
+    private bool FirstRender = false;
 
-    public async Task ToggleDiffEditor()
+    private async Task ToggleDiffEditor()
     {
         if (ShowDiffEditor)
         {
@@ -185,6 +203,14 @@ else
         }
     }
 
+    public async Task SetReadOnly(bool value)
+    {
+        await _editor.UpdateOptions(new EditorUpdateOptions
+            {
+                ReadOnly = value
+            });
+    }
+
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
         var Options = new StandaloneEditorConstructionOptions
@@ -192,7 +218,11 @@ else
             AutomaticLayout = true,
             Language = Language,
             Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
+            ScrollBeyondLastLine = ScrollBeyondLastLine,
+            StickyScroll = new EditorStickyScrollOptions
+            {
+                Enabled = false  
+            },
             ReadOnly = ReadOnly,
             ReadOnlyMessage = new MarkdownString()
             {
@@ -225,22 +255,45 @@ else
         {
             AutomaticLayout = true,
             Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
+            ScrollBeyondLastLine = ScrollBeyondLastLine,
+            StickyScroll = new EditorStickyScrollOptions
+            {
+                Enabled = false
+            },
             Folding = false,
             Minimap = new EditorMinimapOptions
             {
                 Enabled = false
             },
-
-
             OriginalEditable = false,
-            RenderGutterMenu = false
+            RenderGutterMenu = false,
+            ReadOnlyMessage = new MarkdownString()
+            {
+                Value = "You can't edit the original value"
+            },
         };
+    }
+
+    public bool HasValue { get; set; }
+
+    public async Task<string> GetValue()
+    {
+        if (ShowDiffEditor)
+            return await _diffEditor.ModifiedEditor.GetValue();
+
+        return await _editor.GetValue();
+    }
+
+    public async Task SetValue(string text)
+    {
+        if (ShowDiffEditor)
+            await _diffEditor.ModifiedEditor.SetValue(text);
+        else
+            await _editor.SetValue(text);
     }
 
     private async Task EditorOnDidInit()
     {
-
         // create the original model
         TextModel original_model = await BlazorMonaco.Editor.Global.GetModel(JS, "diff-original");
         if (original_model == null)
@@ -275,4 +328,5 @@ else
             AutomaticLayout = true
         });
     }
+
 }

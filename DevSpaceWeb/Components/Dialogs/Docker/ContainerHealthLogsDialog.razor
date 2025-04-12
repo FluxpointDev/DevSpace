@@ -1,5 +1,4 @@
-﻿@using BlazorMonaco.Editor
-@using DevSpaceShared.Events.Docker
+﻿@using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using DevSpaceWeb.Models.Accounts
 @using DevSpaceWeb.Models.Defaults
@@ -12,57 +11,23 @@
 <PageTitle>Container Health Logs | @_Data.Config.Instance.Name</PageTitle>
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
-    <RadzenStack JustifyContent="JustifyContent.Start">
-        <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@LoadEditor" />
+    <RadzenStack JustifyContent="JustifyContent.Start" Gap="0">
+        <Editor @ref="@Editor" Value="@Json" FileName="@(ContainerName + ".json")" Language="json" ReadOnly="true" ScrollBeyondLastLine="false" HeightOverflow="300"></Editor>
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" />
     </RadzenStack>
 </RadzenStack>
 
-<style>
-    .monaco-editor, .monaco-diff-editor {
-        background-color: #1e1e1e !important;
-    }
-
-    .monaco-editor-container, .monaco-diff-editor {
-        min-height: 400px !important;
-        max-height: calc(100vh - 140px) !important;
-        padding-top: 6px;
-        padding-bottom: 10px;
-    }
-</style>
-
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
-    [Parameter]
-    public string Json { get; set; } = "";
+    [Parameter, EditorRequired]
+    public string ContainerName { get; set; } = null!;
 
-    private StandaloneCodeEditor _editor = null!;
+    [Parameter, EditorRequired]
+    public string Json { get; set; } = null!;
 
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
-            ReadOnly = true,
-            Folding = false,
-            Minimap = new EditorMinimapOptions
-            {
-                Enabled = false
-            },
-            Value = ""
-        };
-    }
-
-    public async Task LoadEditor()
-    {
-        var Model = await _editor.GetModel();
-        await Model.SetValue(Json);
-    }
+    private Editor Editor = null!;
 }

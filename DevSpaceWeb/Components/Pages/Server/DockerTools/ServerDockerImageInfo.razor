@@ -1,5 +1,4 @@
-﻿@using BlazorMonaco.Editor
-@using DevSpaceShared.Data
+﻿@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using Docker.DotNet.Models
@@ -356,7 +355,7 @@ else
                         </RadzenTable>
                     </RadzenTabsItem>
                     <RadzenTabsItem Text="File">
-                        <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@SetLayerFile" />
+                        <Editor @ref="@_editor" Value="@LayersText" FileName="Dockerfile" Language="dockerfile" ReadOnly="true"></Editor>
                     </RadzenTabsItem>
                 </Tabs>
             </RadzenTabs>
@@ -515,16 +514,6 @@ else
             height: 1.15rem !important;
         }
 
-    .monaco-editor, .monaco-diff-editor {
-        background-color: #1e1e1e !important;
-    }
-
-    .monaco-editor-container, .monaco-diff-editor {
-        min-height: 400px !important;
-        max-height: calc(100vh - 140px) !important;
-        padding-top: 6px;
-        padding-bottom: 10px;
-    }
 </style>
 
 @code {
@@ -593,6 +582,7 @@ else
                 {
                     reseponse.Data.Reverse();
                     Layers = reseponse.Data;
+                    LayersText = string.Join("\n\n", Layers.Select(x => x.CreatedBy));
                 });
             }
             else
@@ -607,31 +597,8 @@ else
         }
     }
 
-    private StandaloneCodeEditor _editor = null!;
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "dockerfile",
-            Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
-            Folding = false,
-            ReadOnly = true,
-            WordWrap = "on"
-        };
-
-    }
-
-    public async Task SetLayerFile()
-    {
-        if (Layers != null)
-        {
-            var Model = await _editor.GetModel();
-            await Model.SetValue(string.Join("\n\n", Layers.Select(x => x.CreatedBy)));
-        }
-    }
+    private Editor _editor = null!;
+    public string? LayersText = null;
 
     public bool IsActionLoading { get; set; }
 

@@ -1,5 +1,4 @@
-﻿@using BlazorMonaco.Editor
-@using DevSpaceShared.Data
+﻿@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using Docker.DotNet.Models
@@ -47,7 +46,7 @@
             <br />
             <br />
             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Editor</RadzenText>
-            <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@LoadEditor" />
+            <Editor @ref="@_editor" Value="@("")" FileName="compose.yml" Language="yaml" HideDiff="true"></Editor>
             <br />
         <RadzenButton Text="Build Stack" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@BuildStack" Disabled="@(IsBuilding || Success || StartFailed)" />
             <br />
@@ -112,26 +111,7 @@
     public ServerData? Server => Session.Selected.Server;
 
     public string? StackName { get; set; }
-    private StandaloneCodeEditor _editor = null;
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "yaml",
-            Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
-            Folding = false,
-            Value = ""
-        };
-    }
-
-    public async Task LoadEditor()
-    {
-        var Model = await _editor.GetModel();
-        await Model.SetValue("");
-    }
+    private Editor _editor = null!;
 
     public bool IsBuilding { get; set; }
     public bool IsReady { get; set; }
