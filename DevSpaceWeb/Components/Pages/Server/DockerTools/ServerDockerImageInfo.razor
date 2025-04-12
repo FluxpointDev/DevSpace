@@ -114,10 +114,13 @@ else
 
                 <RadzenTableRow>
                     <RadzenTableCell>
-                        Comment
+                        Description
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Image.Comment
+                        @if (Image.Config != null && Image.Config.Labels != null && Image.Config.Labels.TryGetValue("org.opencontainers.image.description", out string? desc))
+                        {
+                            @desc
+                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -136,6 +139,39 @@ else
                     </RadzenTableCell>
                     <RadzenTableCell>
                         @Utils.SizeSuffix(Image.Size)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Parent
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (!string.IsNullOrEmpty(Image.Parent))
+                        {
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + Image.Parent)">@Image.Parent</RadzenLink>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+            </RadzenTableBody>
+        </RadzenTable>
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:build"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Build</RadzenText>
+        </div>
+        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Comment
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.Comment
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -167,18 +203,6 @@ else
                     </RadzenTableCell>
                     <RadzenTableCell>
                         @Image.Driver
-                    </RadzenTableCell>
-                </RadzenTableRow>
-
-                <RadzenTableRow>
-                    <RadzenTableCell>
-                        Parent
-                    </RadzenTableCell>
-                    <RadzenTableCell>
-                        @if (!string.IsNullOrEmpty(Image.Parent))
-                        {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + Image.Parent)">@Image.Parent</RadzenLink>
-                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
             </RadzenTableBody>
