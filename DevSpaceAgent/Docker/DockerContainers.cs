@@ -274,7 +274,7 @@ public static class DockerContainers
                     DockerContainerLogs Logs = new DockerContainerLogs();
                     Logs.ContainerName = Program.ContainerCache.GetValueOrDefault(id, id);
 
-                    MultiplexedStream Stream = await client.Containers.GetContainerLogsAsync(id, false, new ContainerLogsParameters
+                    using (MultiplexedStream Stream = await client.Containers.GetContainerLogsAsync(id, false, new ContainerLogsParameters
                     {
                         Tail = Data.Limit.ToString(),
                         Timestamps = Data.ShowTimestamp,
@@ -282,12 +282,16 @@ public static class DockerContainers
                         ShowStderr = true,
                         Since = Data.SinceDate.HasValue ? ((DateTimeOffset)Data.SinceDate.Value).ToUnixTimeSeconds().ToString() : null,
                         Until = Data.UntilDate.HasValue ? ((DateTimeOffset)Data.UntilDate.Value).ToUnixTimeSeconds().ToString() : null,
-                    }, CancellationToken.None);
-
-                    (string stdout, string stderr) DataStream = await Stream.ReadOutputToEndAsync(CancellationToken.None);
+                    }, CancellationToken.None))
+                    {
+                        (string stdout, string stderr) DataStream = await Stream.ReadOutputToEndAsync(CancellationToken.None);
+                        Logs.Logs = DataStream.stdout;
+                        if (!string.IsNullOrEmpty(DataStream.stderr))
+                        {
+                            Logs.Logs += (!string.IsNullOrEmpty(Logs.Logs) ? "\n" : "") + DataStream.stderr;
+                        }
+                    }
                     Logs.SinceDate = DateTime.UtcNow;
-                    Logs.Logs = DataStream.stdout;
-
                     return Logs;
                 }
             case ControlContainerType.Processes:
