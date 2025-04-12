@@ -619,7 +619,7 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
-        bool Confirm = await Dialogs.ShowConfirmAsync(option + " Image", $"Are you sure you want to {option.ToLower()} this image?", "Yes", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync(option + " Image", $"Are you sure you want to {option.ToLower()} this image?" + (option == "Force Remove" ? "\nThis will stop any running containers using this image." : null), "Yes", ButtonStyle.Success);
         if (Confirm)
         {
             if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
