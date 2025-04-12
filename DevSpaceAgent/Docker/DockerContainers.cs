@@ -274,22 +274,30 @@ public static class DockerContainers
                     DockerContainerLogs Logs = new DockerContainerLogs();
                     Logs.ContainerName = Program.ContainerCache.GetValueOrDefault(id, id);
 
-                    using (MultiplexedStream Stream = await client.Containers.GetContainerLogsAsync(id, false, new ContainerLogsParameters
+                    try
                     {
-                        Tail = Data.Limit.ToString(),
-                        Timestamps = Data.ShowTimestamp,
-                        ShowStdout = true,
-                        ShowStderr = true,
-                        Since = Data.SinceDate.HasValue ? ((DateTimeOffset)Data.SinceDate.Value).ToUnixTimeSeconds().ToString() : null,
-                        Until = Data.UntilDate.HasValue ? ((DateTimeOffset)Data.UntilDate.Value).ToUnixTimeSeconds().ToString() : null,
-                    }, CancellationToken.None))
-                    {
-                        (string stdout, string stderr) DataStream = await Stream.ReadOutputToEndAsync(CancellationToken.None);
-                        Logs.Logs = DataStream.stdout;
-                        if (!string.IsNullOrEmpty(DataStream.stderr))
+                        using (MultiplexedStream Stream = await client.Containers.GetContainerLogsAsync(id, false, new ContainerLogsParameters
                         {
-                            Logs.Logs += (!string.IsNullOrEmpty(Logs.Logs) ? "\n" : "") + DataStream.stderr;
+                            Tail = Data.Limit.ToString(),
+                            Timestamps = Data.ShowTimestamp,
+                            ShowStdout = true,
+                            ShowStderr = true,
+                            Since = Data.SinceDate.HasValue ? ((DateTimeOffset)Data.SinceDate.Value).ToUnixTimeSeconds().ToString() : null,
+                            Until = Data.UntilDate.HasValue ? ((DateTimeOffset)Data.UntilDate.Value).ToUnixTimeSeconds().ToString() : null,
+                        }, CancellationToken.None))
+                        {
+                            (string stdout, string stderr) DataStream = await Stream.ReadOutputToEndAsync(CancellationToken.None);
+                            Logs.Logs = DataStream.stdout;
+                            if (!string.IsNullOrEmpty(DataStream.stderr))
+                            {
+                                Logs.Logs += (!string.IsNullOrEmpty(Logs.Logs) ? "\n" : "") + DataStream.stderr;
+                            }
                         }
+                    }
+                    catch (DockerApiException de) when (de.StatusCode == System.Net.HttpStatusCode.NotImplemented)
+                    {
+                        Logs.NotEnabled = true;
+                        return Logs;
                     }
                     Logs.SinceDate = DateTime.UtcNow;
                     return Logs;

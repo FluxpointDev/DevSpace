@@ -53,6 +53,14 @@ else
                 Failed to get container logs.
             </RadzenAlert>
         }
+        @if (NotEnabled)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                Logging is not enabled for this container, recreate the container with a logging driver.
+            </RadzenAlert>
+        }
+        else
+        {
         <br />
         <RadzenDataGrid id="gridLogs" @ref="@Grid" AllowPaging="false" AllowSorting="false" IsLoading="false"
                         Data="@Messages" AllowVirtualization="true" VirtualizationOverscanCount="3"
@@ -103,6 +111,7 @@ else
                 </RadzenDataGridColumn>
             </Columns>
         </RadzenDataGrid>
+        }
     </div>
 }
 
@@ -145,6 +154,7 @@ else
 
     public List<LogMessage> Messages = new List<LogMessage>();
     public string? ContainerName { get; set; }
+    public bool NotEnabled { get; set; }
     public bool Failed { get; set; }
 
     public bool AutoRefresh { get; set; } = true;
@@ -202,6 +212,7 @@ else
             Failed = !Result.IsSuccess;
             if (Failed || Result.Data == null)
                 return;
+            NotEnabled = Result.Data.NotEnabled;
             ContainerName = Result.Data.ContainerName;
             SinceDate = Result.Data.SinceDate;
             string[] lines = Result.Data.Logs.SplitNewlines(trim: false);
