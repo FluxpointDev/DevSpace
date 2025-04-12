@@ -67,7 +67,6 @@
         Networks = await Server.RunJsonAsync<List<DockerNetworkInfo>>(Notifications, new DockerEvent(DockerEventType.ListNetworks));
         if (Networks.Data != null)
             Networks.Data = Networks.Data.Where(x => x.Name != "host" && x.Name != "none").OrderBy(x => x.Name).ToList();
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Networks, Newtonsoft.Json.Formatting.Indented));
     }
 
     public SocketResponse<List<DockerNetworkInfo>?>? Networks = null;
