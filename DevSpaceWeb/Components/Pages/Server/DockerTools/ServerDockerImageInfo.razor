@@ -126,6 +126,31 @@ else
 
                 <RadzenTableRow>
                     <RadzenTableCell>
+                        Links
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Image.Config != null && Image.Config.Labels != null)
+                        {
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
+                                @if (Image.Config.Labels.TryGetValue("org.opencontainers.image.url", out string? website))
+                                {
+                                    <a href="@website" target="_blank"><RadzenButton Text="Website" Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+                                }
+                                @if (Image.Config.Labels.TryGetValue("org.opencontainers.image.documentation", out string? docs))
+                                {
+                                    <a href="@docs" target="_blank"><RadzenButton Text="Docs" Icon="book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+                                }
+                                @if (Image.Config.Labels.TryGetValue("org.opencontainers.image.source", out string? source))
+                                {
+                                    <a href="@source" target="_blank"><RadzenButton Text="Source" Icon="code" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+                                }
+                            </RadzenStack>
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
                         Created
                     </RadzenTableCell>
                     <RadzenTableCell>
@@ -141,8 +166,6 @@ else
                         @Utils.SizeSuffix(Image.Size)
                     </RadzenTableCell>
                 </RadzenTableRow>
-
-                
 
                 <RadzenTableRow>
                     <RadzenTableCell>
