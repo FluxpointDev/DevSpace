@@ -49,15 +49,21 @@ else
         </RadzenBreadCrumb>
         @if (Failed)
         {
-            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
-                Failed to get container logs.
-            </RadzenAlert>
+            <div class="dash-box-content">
+                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                        Failed to get container logs.
+                    </RadzenAlert>
+            </div>
+            
         }
         @if (NotEnabled)
         {
-            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
-                Logging is not enabled for this container, recreate the container with a logging driver.
-            </RadzenAlert>
+                    <div class="dash-box-content">
+                                 <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
+                        Logging is not enabled for this container, recreate the container with a logging driver.
+                    </RadzenAlert>
+                    </div>
+           
         }
         else
         {
@@ -75,23 +81,23 @@ else
                     <RadzenButton Icon="refresh" Click="@(() => OnParametersSetAsync())" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Size="ButtonSize.Medium" Disabled="@(RefreshTimer == null || AutoRefresh)" class="rz-border-radius-10" />
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                         <RadzenLabel Text="Lines" />
-                        <RadzenNumeric ShowUpDown="false" Value="@Limit" Min="1" Max="9999" TValue="int" ValueChanged="@((value) => { Limit = value; OnParametersSetAsync(); })"></RadzenNumeric>
+                            <RadzenNumeric ShowUpDown="false" Value="@Limit" Min="1" Max="9999" TValue="int" ValueChanged="@((value) => { Limit = value; OnParametersSetAsync(); })" Disabled="@(RefreshTimer == null)"></RadzenNumeric>
                     </RadzenStack>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                         <RadzenLabel Text="Show Timestamp" />
-                        <RadzenCheckBox Value="@ShowTimestamp" TValue="bool" ValueChanged="@((value) => { ShowTimestamp = value; OnParametersSetAsync(); })"></RadzenCheckBox>
+                            <RadzenCheckBox Value="@ShowTimestamp" TValue="bool" ValueChanged="@((value) => { ShowTimestamp = value; OnParametersSetAsync(); })" Disabled="@(RefreshTimer == null)"></RadzenCheckBox>
                     </RadzenStack>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                         <RadzenLabel Text="Show Line Number" />
-                        <RadzenCheckBox @bind-Value="@ShowLineNumbers"></RadzenCheckBox>
+                            <RadzenCheckBox @bind-Value="@ShowLineNumbers" Disabled="@(RefreshTimer == null)"></RadzenCheckBox>
                     </RadzenStack>
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="0px">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                             <RadzenLabel Text="Auto Scroll" />
-                            <RadzenCheckBox @bind-Value="@AutoScroll"></RadzenCheckBox>
+                                <RadzenCheckBox @bind-Value="@AutoScroll" Disabled="@(RefreshTimer == null)"></RadzenCheckBox>
                         </RadzenStack>
-                        <RadzenButton Icon="arrow_upward" Click="@(() => JS.InvokeVoidAsync("Utils.scrollLogsUp"))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Medium" class="rz-border-radius-10 ml-2" />
-                        <RadzenButton Icon="arrow_downward" Click="@(() => JS.InvokeVoidAsync("Utils.scrollLogsDown"))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Medium" class="rz-border-radius-10" />
+                        <RadzenButton Icon="arrow_upward" Click="@(() => JS.InvokeVoidAsync("Utils.scrollLogsUp"))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Medium" class="rz-border-radius-10 ml-2" Disabled="@(RefreshTimer == null)" />
+                            <RadzenButton Icon="arrow_downward" Click="@(() => JS.InvokeVoidAsync("Utils.scrollLogsDown"))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text" Size="ButtonSize.Medium" class="rz-border-radius-10" Disabled="@(RefreshTimer == null)" />
                     </RadzenStack>
 
                 </RadzenStack>
@@ -180,7 +186,11 @@ else
         if (Member != null && Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs) && firstTimeChange < 2)
         {
             firstTimeChange += 1;
-            await JS.InvokeVoidAsync("Utils.scrollLogsDown");
+            try
+            {
+                await JS.InvokeVoidAsync("Utils.scrollLogsDown");
+            }
+            catch { }
         }
     }
 
@@ -214,6 +224,9 @@ else
                 return;
             NotEnabled = Result.Data.NotEnabled;
             ContainerName = Result.Data.ContainerName;
+            if (NotEnabled)
+                return;
+
             SinceDate = Result.Data.SinceDate;
             string[] lines = Result.Data.Logs.SplitNewlines(trim: false);
             if (lines.Any())
