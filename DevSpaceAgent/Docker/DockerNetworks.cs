@@ -63,11 +63,11 @@ public static class DockerNetworks
                                 }
                 });
 
-                foreach (var i in containers)
+                foreach (ContainerListResponse i in containers)
                 {
                     if (!Data.ContainersList.ContainsKey(i.ID))
                     {
-                        if (i.NetworkSettings.Networks.TryGetValue(Network.Name, out var endpoint))
+                        if (i.NetworkSettings.Networks.TryGetValue(Network.Name, out EndpointSettings? endpoint))
                         {
                             Data.ContainersList.Add(i.ID, new EndpointResource
                             {

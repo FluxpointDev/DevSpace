@@ -70,7 +70,7 @@ public static class DockerHandler
             // Containers
 
             case DockerEventType.ListContainers:
-                return await DockerContainers.ListContainersAsync(Client);
+                return await DockerContainers.ListContainersAsync(Client, @event);
 
             case DockerEventType.CreateContainer:
                 return await DockerContainers.CreateContainerAsync(Client, @event);

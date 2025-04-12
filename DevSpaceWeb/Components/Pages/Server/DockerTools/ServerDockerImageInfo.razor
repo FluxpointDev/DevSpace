@@ -3,8 +3,12 @@
 @using DevSpaceShared.Responses
 @using Docker.DotNet.Models
 @using Newtonsoft.Json.Linq
+@using System.Linq.Dynamic.Core
 @inject NotificationService Notifications
 @inject DialogService Dialogs
+@inject ContextMenuService ContextMenuService
+@inject NavigationManager Nav
+@inject TooltipService tooltipService
 
 @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
 {
@@ -369,14 +373,14 @@ else
         }
     </div>
 
-    @* <div class="dash-box">
+    <div class="dash-box">
         <div class="dash-box-header dash-box-content">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
                 <span class="iconify" data-icon="ri:box-3-fill"></span>
                 <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
             </div>
             <RadzenText TextStyle="TextStyle.H6">Containers</RadzenText>
-            @if ((IsLoading || IsActionRunning) && Member != null && Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+            @if ((IsLoading || IsActionRunning) && Member != null && Member != null && Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
             {
                 <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
             }
@@ -498,7 +502,7 @@ else
                 </Columns>
             </RadzenDataGrid>
         }
-    </div> *@
+    </div>
 }
 
 <style>
@@ -568,6 +572,8 @@ else
         if (Member == null || Server == null)
             return;
 
+        LoadPerms();
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewImages))
             return;
 
@@ -625,5 +631,324 @@ else
             if (Result.IsSuccess)
                 Image = null;
         }
+    }
+
+    public bool CanManageContainer;
+    public bool CanControlContainer;
+    public bool CanViewLogs;
+    public bool CanInspect;
+    public bool CanViewStats;
+    public bool CanViewChanges;
+    public bool CanUseConsole;
+
+    public void LoadPerms()
+    {
+        if (Member == null)
+            return;
+
+        CanManageContainer = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers);
+        CanControlContainer = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers);
+        CanViewLogs = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs);
+        CanInspect = Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator);
+        CanViewStats = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats);
+        CanViewChanges = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges);
+        CanUseConsole = Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.UseContainerConsole);
+    }
+
+
+    SocketResponse<DockerContainerInfo[]?>? ContainersResponse = null;
+
+    IQueryable<DockerContainerInfo>? ContainersList;
+    public int Count = 0;
+    public int CountDead = 0;
+    IList<DockerContainerInfo>? SelectedContainers;
+    public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
+    RadzenDataGrid<DockerContainerInfo> Grid;
+    public bool IsLoading = true;
+    public bool IsActionRunning { get; set; }
+
+    public async Task LoadData(LoadDataArgs args)
+    {
+        if (Member == null || Server == null)
+            return;
+
+        LoadPerms();
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+            return;
+
+        if (Program.IsPreviewMode)
+        {
+            ContainersList = new List<DockerContainerInfo>
+             {
+                 new DockerContainerInfo
+                 {
+                     Id = "0",
+                     Name = "my-api",
+                     State = "running",
+                     Status = "Up 14 hours",
+                     CreatedAt = DateTime.UtcNow,
+                     ImageId = "0",
+                     ImageName = "test:latest"
+                 },
+                 new DockerContainerInfo
+                 {
+                     Id = "0",
+                     Name = "discord-bot",
+                     State = "exited",
+                     Status = "Exited (137) 1 week ago",
+                     CreatedAt = DateTime.UtcNow,
+                     ImageId = "0",
+                     ImageName = "test:latest"
+                 },
+             }.AsQueryable();
+            Count = 2;
+            CountDead = 1;
+            IsLoading = false;
+        }
+        else
+        {
+            if (ContainersResponse == null)
+            {
+                IsLoading = true;
+                try
+                {
+                    ContainersResponse = await Server.RecieveJsonAsync<DockerContainerInfo[]>(new DockerEvent(DockerEventType.ListContainers)
+                    {
+                        Data = JObject.FromObject(new ListContainersEvent
+                        {
+                            Filters = new Dictionary<string, string>
+                            {
+                                { "ancestor", Image.ID }
+                            }
+                        })
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+                }
+                IsLoading = false;
+
+
+            }
+
+            if (ContainersResponse != null && ContainersResponse.IsSuccess && ContainersResponse.Data != null)
+            {
+                IQueryable<DockerContainerInfo> query = ContainersResponse.Data.AsQueryable();
+
+                if (!string.IsNullOrEmpty(args.Filter))
+                    query = query.Where(args.Filter);
+
+                if (!string.IsNullOrEmpty(args.OrderBy))
+                    query = query.OrderBy(args.OrderBy);
+
+                Count = query.Count();
+                CountDead = query.Count(x => !x.IsOnline());
+                ContainersList = query.OrderBy(x => x.Name).Skip(args.Skip.Value).Take(args.Top.Value);
+            }
+        }
+    }
+
+    void ShowContextMenuWithControlsItems(DockerContainerInfo item, MouseEventArgs args)
+    {
+        LoadPerms();
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Start", Value = "start", Icon = "power_settings_new", IconColor = Colors.SuccessDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem(){ Text = "Stop", Value = "stop", Icon = "stop", IconColor = Colors.DangerDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem(){ Text = "Restart", Value = "restart", Icon = "restart_alt", IconColor = Colors.WarningDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem(){ Text = "Kill", Value = "kill", Icon = "bolt", IconColor = Colors.InfoDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem(){ Text = "Pause", Value = "pause", Icon = "pause", IconColor = Colors.InfoDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem(){ Text = "Resume", Value = "resume", Icon = "play_arrow", IconColor = Colors.InfoDark, Disabled = IsActionRunning || !CanControlContainer },
+                new ContextMenuItem() { Text = "Remove", Value = "remove", Icon = "delete", IconColor = Colors.Danger, Disabled = IsActionRunning || !CanManageContainer }
+                                 }, x => MenuItemClick(x, item));
+    }
+
+    void ShowContextMenuWithManageItems(DockerContainerInfo item, MouseEventArgs args)
+    {
+        LoadPerms();
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                // new ContextMenuItem(){ Text = "Config", Value = "config", Icon = "settings" },
+                // new ContextMenuItem(){ Text = "Permissions", Value = "permissions", Icon = "shield_lock" },
+                new ContextMenuItem() { Text = "View", Value = "view", Icon = "deployed_code" },
+                new ContextMenuItem(){ Text = "Logs", Value = "logs", Icon = "description", Disabled = !CanViewLogs },
+                new ContextMenuItem(){ Text = "Stats", Value = "stats", Icon = "bar_chart_4_bars", Disabled = !CanViewStats },
+                new ContextMenuItem(){ Text = "Changes", Value = "changes", Icon = "topic", Disabled = !CanViewChanges },
+                new ContextMenuItem(){ Text = "Inspect", Value = "inspect", Icon = "info", Disabled = !CanInspect }
+                                             }, x => MenuItemClick(x, item));
+    }
+
+    void MenuItemClick(MenuItemEventArgs args, DockerContainerInfo item)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+        if (Member == null || Server == null)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            switch (args.Value.ToString())
+            {
+                case "start":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Start));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
+                    break;
+                case "stop":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Stop));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
+                    break;
+                case "restart":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Restart));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
+                    break;
+                case "kill":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Kill));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
+                    break;
+                case "pause":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Pause));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
+                    break;
+                case "resume":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.UnPause));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
+                    break;
+                case "view":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
+                        return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + item.Id);
+                    break;
+                case "logs":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs))
+                        return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + item.Id + "/logs");
+                    break;
+                case "inspect":
+                    if (!Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
+                        return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + item.Id + "/inspect");
+                    break;
+                case "stats":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
+                        return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + item.Id + "/stats");
+                    break;
+                case "changes":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges))
+                        return;
+
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + item.Id + "/changes");
+                    break;
+                case "remove":
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                        return;
+
+                    IsActionRunning = true;
+                    await InvokeAsync(StateHasChanged);
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Remove));
+                    IsActionRunning = false;
+                    await InvokeAsync(RefreshContainers);
+                    break;
+            }
+        });
+
+        ContextMenuService.Close();
+    }
+
+    void RunSelectedContainersAction(ControlContainerType type)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Server == null || Member == null || SelectedContainers == null)
+            return;
+
+        if (type == ControlContainerType.Remove || type == ControlContainerType.ForceRemove)
+        {
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                return;
+        }
+        else
+        {
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
+                return;
+        }
+
+        _ = Task.Run(async () =>
+        {
+            IsActionRunning = true;
+            await InvokeAsync(StateHasChanged);
+            foreach (var i in SelectedContainers)
+            {
+                await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, i.Id, type));
+            }
+
+            IsActionRunning = false;
+            SelectedContainers.Clear();
+            await InvokeAsync(RefreshContainers);
+        });
+
+    }
+
+    void ShowUptimeTooltip(ElementReference elementReference, string uptime) => tooltipService.Open(elementReference, uptime, null);
+
+
+    public async Task RefreshContainers()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        ContainersResponse = null;
+        await Grid.RefreshDataAsync();
     }
 }

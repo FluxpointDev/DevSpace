@@ -8,15 +8,35 @@ namespace DevSpaceAgent.Docker;
 
 public static class DockerContainers
 {
-    public static async Task<IList<DockerContainerInfo>> ListContainersAsync(DockerClient client)
+    public static async Task<IList<DockerContainerInfo>> ListContainersAsync(DockerClient client, DockerEvent @event)
     {
         try
         {
-            IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
+            ContainersListParameters Parameters = new ContainersListParameters()
             {
-                Size = true,
-                All = true
-            });
+                All = true,
+            };
+            Dictionary<string, string>? Filters = null;
+            if (@event.Data != null)
+            {
+                ListContainersEvent? Data = @event.Data.ToObject<ListContainersEvent>();
+                if (Data != null)
+                {
+                    if (Data.Filters != null)
+                    {
+                        Parameters.Filters = new Dictionary<string, IDictionary<string, bool>>();
+                        foreach (var i in Data.Filters)
+                        {
+                            Parameters.Filters.Add(i.Key, new Dictionary<string, bool>
+                            {
+                                { i.Value, true }
+                            });
+                        }
+                    }
+                }
+            }
+
+            IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(Parameters);
             return Containers.Select(x => DockerContainerInfo.Create(x)).ToList();
         }
         catch (Exception ex)
@@ -104,7 +124,7 @@ public static class DockerContainers
             }, CancellationToken.None);
             RenameDone = true;
 
-            foreach (var i in Info.NetworkSettings.Networks)
+            foreach (KeyValuePair<string, EndpointSettings> i in Info.NetworkSettings.Networks)
             {
                 await client.Networks.DisconnectNetworkAsync(i.Value.NetworkID, new NetworkDisconnectParameters
                 {
@@ -124,7 +144,7 @@ public static class DockerContainers
             };
             CreateContainerResponse CreateContainer = await client.Containers.CreateContainerAsync(Config);
 
-            foreach (var i in Info.NetworkSettings.Networks)
+            foreach (KeyValuePair<string, EndpointSettings> i in Info.NetworkSettings.Networks)
             {
                 _ = client.Networks.ConnectNetworkAsync(i.Value.NetworkID, new NetworkConnectParameters
                 {
@@ -168,7 +188,7 @@ public static class DockerContainers
                 }, CancellationToken.None);
             }
 
-            foreach (var i in Info.NetworkSettings.Networks)
+            foreach (KeyValuePair<string, EndpointSettings> i in Info.NetworkSettings.Networks)
             {
                 _ = client.Networks.ConnectNetworkAsync(i.Value.NetworkID, new NetworkConnectParameters
                 {
@@ -347,7 +367,7 @@ public static class DockerContainers
                 break;
             case ControlContainerType.Scan:
                 {
-                    var CurrentContainer = await client.Containers.InspectContainerAsync(id);
+                    ContainerInspectResponse CurrentContainer = await client.Containers.InspectContainerAsync(id);
                     if (!CurrentContainer.Mounts.Any() || !CurrentContainer.Mounts.Any(x => x.Type == "bind" || x.Type == "volume"))
                         return new CreateContainerResponse()
                         {
@@ -360,12 +380,12 @@ public static class DockerContainers
                         Tag = "latest"
                     }, null, new Progress<JSONMessage>());
 
-                    var Binds = new List<string>
+                    List<string> Binds = new List<string>
                     {
                         "/var/trivy:/root/.cache:rw"
                     };
 
-                    foreach (var i in CurrentContainer.Mounts)
+                    foreach (MountPoint? i in CurrentContainer.Mounts)
                     {
                         if (i.Type == "volume")
                         {
@@ -423,7 +443,7 @@ public static class DockerContainers
                     if (Container == null)
                         throw new Exception("Failed to parse container scan options.");
 
-                    var GetContainer = await client.Containers.InspectContainerAsync(Container.ID);
+                    ContainerInspectResponse GetContainer = await client.Containers.InspectContainerAsync(Container.ID);
                     if (GetContainer == null || GetContainer.State.ExitCode != 0)
                         return new SecurityData { IsComplete = false };
 

@@ -93,7 +93,7 @@ public static class ServiceBuilder
                 opt.DetailedErrors = Program.IsDevMode;
             });
 
-        var MvcBuilder = services.AddMvcCore(opt =>
+        IMvcCoreBuilder MvcBuilder = services.AddMvcCore(opt =>
         {
             opt.RequireHttpsPermanent = true;
             opt.Filters.Add<ControllerExceptionFilter>();

@@ -250,7 +250,7 @@ public static class DockerStacks
         {
             All = true
         });
-        foreach (var i in containers)
+        foreach (ContainerListResponse i in containers)
         {
             if (i.Labels != null)
             {
@@ -279,17 +279,17 @@ public static class DockerStacks
 
     private static void CloneDirectory(string root, string dest)
     {
-        foreach (var directory in Directory.GetDirectories(root))
+        foreach (string directory in Directory.GetDirectories(root))
         {
             //Get the path of the new directory
-            var newDirectory = Path.Combine(dest, Path.GetFileName(directory));
+            string newDirectory = Path.Combine(dest, Path.GetFileName(directory));
             //Create the directory if it doesn't already exist
             Directory.CreateDirectory(newDirectory);
             //Recursively clone the directory
             CloneDirectory(directory, newDirectory);
         }
 
-        foreach (var file in Directory.GetFiles(root))
+        foreach (string file in Directory.GetFiles(root))
         {
             File.Copy(file, Path.Combine(dest, Path.GetFileName(file)));
         }
@@ -308,7 +308,7 @@ public static class DockerStacks
 
         int Version = -1;
 
-        foreach (var d in Directory.GetDirectories("/var/lib/docker/volumes/portainer_data/_data/compose/" + stack.Id))
+        foreach (string d in Directory.GetDirectories("/var/lib/docker/volumes/portainer_data/_data/compose/" + stack.Id))
         {
             string Split = d.Split('/').Last();
             if (Split.StartsWith("v") && int.TryParse(Split.Substring(1), out int stackNumber) && stackNumber > Version)
@@ -355,7 +355,7 @@ public static class DockerStacks
                 Filters = new Dictionary<string, IDictionary<string, bool>>
                 { { "label", new Dictionary<string, bool> { { "com.docker.compose.project=" + stack.Name, true } } } }
             });
-            foreach (var i in Containers)
+            foreach (ContainerListResponse i in Containers)
             {
                 await client.Containers.RemoveContainerAsync(i.ID, new ContainerRemoveParameters
                 {
