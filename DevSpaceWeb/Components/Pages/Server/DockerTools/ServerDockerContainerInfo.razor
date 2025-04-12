@@ -235,33 +235,7 @@ else
                         Error
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @if (!Container.State.Running)
-                        {
-                            @if (Container.State.OOMKilled)
-                            {
-                                @("Out of memory")
-                            }
-                            else if (Container.State.Paused)
-                            {
-                                @("Container paused")
-                            }
-                            else if (Container.State.ExitCode == 0)
-                            {
-                                @("Process finished")
-                            }
-                            else if (Container.State.ExitCode == 137)
-                            {
-                                @("Container stopped")
-                            }
-                            else if (string.IsNullOrEmpty(Container.State.Error))
-                            {
-                                @("Code " + Container.State.ExitCode)
-                            }
-                            else
-                            {
-                                @($"Code {Container.State.ExitCode} - {Container.State.Error}")
-                            }
-                        }
+                        @GetExitMessage()
                     </RadzenTableCell>
                 </RadzenTableRow>
                 <RadzenTableRow>
@@ -271,7 +245,7 @@ else
                     <RadzenTableCell>
                         @if (Container.State.Health == null || Container.State.Health.Status == "none")
                         {
-                            @("No health check setup")
+                            @("No health check")
                         }
                         else
                         {
@@ -1025,6 +999,42 @@ else
         "Always",
         "Unless Stopped"
     };
+
+    public string? GetExitMessage()
+    {
+        if (Container == null || Container.State.Running)
+            return null;
+        if (Container.State.OOMKilled)
+            return "Out of Memory";
+
+        if (Container.State.Paused)
+            return "Container Paused";
+
+        switch(Container.State.ExitCode)
+        {
+            case 0:
+                return "Process Finished";
+            case 125:
+                return "Container Error" + (!string.IsNullOrEmpty(Container.State.Error) ? $": {Container.State.Error}" : null);
+            case 126:
+            case 127:
+                return "Command Error" + (!string.IsNullOrEmpty(Container.State.Error) ? $": {Container.State.Error}" : null);
+            case 134:
+                return "Terminated" + (!string.IsNullOrEmpty(Container.State.Error) ? $": {Container.State.Error}" : null);
+            case 137:
+            case 143:
+                return "Container Stopped";
+                case 139:
+                return "Segmentation Fault" + (!string.IsNullOrEmpty(Container.State.Error) ? $": {Container.State.Error}" : null);
+            case 1:
+                return "Application Error" + (!string.IsNullOrEmpty(Container.State.Error) ? $": {Container.State.Error}" : null);
+        }
+
+        if (string.IsNullOrEmpty(Container.State.Error))
+            return $"Code {Container.State.ExitCode}";
+
+        return $"Code {Container.State.ExitCode}: {Container.State.Error}";
+    }
 
     public async Task UpdateName()
     {
