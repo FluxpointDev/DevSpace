@@ -70,10 +70,16 @@
             return;
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.ViewStacks);
             return;
+        }
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.CreateStacks);
             return;
+        }
 
         Stacks = await Server.RunJsonAsync<List<DockerStackInfo>>(Notifications, new DockerEvent(DockerEventType.ListPortainerStacks));
     }
@@ -98,14 +104,20 @@
             return;
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.ViewStacks);
             return;
+        }
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.CreateStacks);
             return;
+        }
 
         IsLoading = true;
 
-        SocketResponse<DockerStackCreate> Response = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.ControlStack, SelectedStack.Id, stackType: ControlStackType.ImportPortainer)
+        SocketResponse<DockerStackCreate?> Response = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.ControlStack, SelectedStack.Id, stackType: ControlStackType.ImportPortainer)
         {
             Data = JObject.FromObject(new DockerStackInfo
             {
