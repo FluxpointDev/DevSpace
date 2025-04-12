@@ -54,7 +54,7 @@ public class DockerContainerInfo
     }
 
     public required string Id { get; set; }
-    public required string Name { get; set; }
+    public string Name { get; set; }
     public string ImageId { get; set; }
     public string ImageName { get; set; }
     public string? StackId { get; set; }

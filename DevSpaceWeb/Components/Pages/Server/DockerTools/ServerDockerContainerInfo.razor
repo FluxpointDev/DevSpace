@@ -796,7 +796,7 @@ else
         <div class="dash-box-header">
             <div class="dash-box-icon"><span class="iconify" data-icon="mdi:local-area-network"></span></div>
             <RadzenText TextStyle="TextStyle.H6">Networks</RadzenText>
-            @* <RadzenButton Variant="Variant.Filled" Text="Join Network" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(IsActionLoading || (Container.NetworkSettings.Networks.Any() && Container.NetworkSettings.Networks.First().Key == "host") || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks))" /> *@
+            <RadzenButton class="ml-2" Variant="Variant.Filled" Text="Join Network" Icon="add" Click="@JoinNetwork" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(IsActionLoading || (Container.NetworkSettings.Networks.Any() && Container.NetworkSettings.Networks.First().Key == "host") || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks) || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks))" />
         </div>
         <br />
         @if (!CanViewContainerNetworks)
@@ -816,7 +816,7 @@ else
                 <Columns>
                     <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
                         <Template>
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + context.Value.NetworkID)">@context.Key</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + (string.IsNullOrEmpty(context.Value.NetworkID) ? context.Key : context.Value.NetworkID))">@context.Key</RadzenLink>
                             @if (IsNetworkSystem(context.Key))
                             {
                                 <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
@@ -840,7 +840,7 @@ else
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn Title="Action">
                         <Template>
-                            <RadzenButton Click="@(() => LeaveNetwork(context.Value.NetworkID))" Text="Leave Network" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(context.Key == "host" || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks) || IsActionLoading)" />
+                            <RadzenButton Click="@(() => LeaveNetwork(string.IsNullOrEmpty(context.Value.NetworkID) ? context.Key : context.Value.NetworkID))" Text="Leave Network" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(context.Key == "host" || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks) || IsActionLoading)" />
                         </Template>
                     </RadzenDataGridColumn>
                 </Columns>
@@ -1177,7 +1177,7 @@ else
             Session.ShowPreviewModeNotice();
             return;
         }
-        
+
         if (Member == null || Server == null)
             return;
 
@@ -1450,6 +1450,35 @@ else
         }
     }
 
+    public async Task JoinNetwork()
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
+        {
+            await Dialog.ShowPermissionErrorAsync(DockerPermission.ViewNetworks);
+            return;
+        }
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks))
+        {
+            await Dialog.ShowPermissionErrorAsync(DockerContainerPermission.ManageContainerNetworks);
+            return;
+        }
+
+        var Result = await Dialog.OpenAsync<ContainerJoinNetworkDialog>("Container Join Network", new Dictionary<string, object>()
+        {
+            { "ContainerId", Container.ID }
+        }, new DialogOptions());
+
+        if (Result != null && (bool)Result)
+        {
+            await Task.Delay(new TimeSpan(0, 0, 1));
+            await InvokeAsync(OnParametersSetAsync);
+        }
+    }
+
     public async Task LeaveNetwork(string networkId)
     {
         if (Member == null || Server == null)
@@ -1459,7 +1488,13 @@ else
             return;
 
         IsActionLoading = true;
-        await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.LeaveNetwork) { ResourceList = new string[] { ContainerId } }, (response) =>
+        await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.LeaveNetwork)
+        {
+            Data = JObject.FromObject(new DockerContainerInfo
+            {
+                Id = ContainerId
+            })
+        }, (response) =>
         {
 
         });

@@ -92,14 +92,33 @@ public static class DockerNetworks
             case ControlNetworkType.Remove:
                 await client.Networks.DeleteNetworkAsync(id);
                 break;
-            case ControlNetworkType.LeaveNetwork:
-                if (@event.ResourceList == null)
-                    throw new Exception("Networks list is missing.");
-
-                await client.Networks.DisconnectNetworkAsync(id, new NetworkDisconnectParameters
+            case ControlNetworkType.JoinNetwork:
                 {
-                    Container = @event.ResourceList.First()
-                });
+                    DockerContainerInfo? Container = @event.Data?.ToObject<DockerContainerInfo>();
+                    if (Container == null)
+                        throw new Exception("Container id is missing.");
+
+                    await client.Networks.ConnectNetworkAsync(id, new NetworkConnectParameters
+                    {
+                        Container = Container.Id,
+                        EndpointConfig = new EndpointSettings
+                        {
+                            NetworkID = id
+                        }
+                    });
+                }
+                break;
+            case ControlNetworkType.LeaveNetwork:
+                {
+                    DockerContainerInfo? Container = @event.Data?.ToObject<DockerContainerInfo>();
+                    if (Container == null)
+                        throw new Exception("Container id is missing.");
+
+                    await client.Networks.DisconnectNetworkAsync(id, new NetworkDisconnectParameters
+                    {
+                        Container = Container.Id
+                    });
+                }
                 break;
         }
         return null;

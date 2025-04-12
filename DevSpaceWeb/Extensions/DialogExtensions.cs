@@ -68,6 +68,12 @@ public static class DialogExtensions
     public static Task ShowPermissionErrorAsync(this DialogService service, ConsolePermission flag)
         => InternalShowPermissionErrorAsync(service, flag);
 
+    public static Task ShowPermissionErrorAsync(this DialogService service, DockerPermission flag)
+        => InternalShowPermissionErrorAsync(service, flag);
+
+    public static Task ShowPermissionErrorAsync(this DialogService service, DockerContainerPermission flag)
+        => InternalShowPermissionErrorAsync(service, flag);
+
     private static async Task InternalShowPermissionErrorAsync(this DialogService service, Enum flag)
     {
         DialogOptions options = new DialogOptions() { };
