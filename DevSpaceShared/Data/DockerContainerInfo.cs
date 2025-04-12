@@ -20,7 +20,7 @@ public class DockerContainerInfo
         if (data.Labels != null)
         {
             string? Id = null;
-            if (data.Labels.TryGetValue("com.docker.compose.project", out string? label))
+            if (data.Labels.TryGetValue("com.docker.compose.project", out string? label) && !string.IsNullOrEmpty(label))
             {
                 Info.StackName = label;
                 Id = label;

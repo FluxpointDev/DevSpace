@@ -93,11 +93,11 @@ public static class DockerSystem
 
         foreach (ContainerListResponse? c in containers)
         {
-            if (c.Labels.TryGetValue("com.docker.compose.project", out string? label))
+            if (c.Labels.TryGetValue("com.docker.compose.project", out string? label) && !string.IsNullOrEmpty(label))
             {
                 try
                 {
-                    Stacks.Add(label!);
+                    Stacks.Add(label);
                 }
                 catch { }
             }

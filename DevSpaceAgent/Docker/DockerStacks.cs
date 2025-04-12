@@ -22,7 +22,7 @@ public static class DockerStacks
 
         foreach (ContainerListResponse? c in containers)
         {
-            if (c.Labels == null || !c.Labels.TryGetValue("com.docker.compose.project", out string? label))
+            if (c.Labels == null || !c.Labels.TryGetValue("com.docker.compose.project", out string? label) || string.IsNullOrEmpty(label))
                 continue;
 
             bool IsRunning = false;
@@ -260,7 +260,7 @@ public static class DockerStacks
                 else if (i.Labels.TryGetValue("com.docker.compose.project.working_dir", out string? workDir) && !string.IsNullOrEmpty(workDir))
                     Directory = workDir;
 
-                if (!i.Labels.TryGetValue("com.docker.compose.project", out string? label))
+                if (!i.Labels.TryGetValue("com.docker.compose.project", out string? label) || string.IsNullOrEmpty(label))
                     continue;
 
                 if (!string.IsNullOrEmpty(Directory) && !string.IsNullOrEmpty(label) && Directory.StartsWith("/data/compose/"))
@@ -612,16 +612,16 @@ public static class DockerStacks
                     string? DataPath = null;
                     if (c.Labels != null)
                     {
-                        if (c.Labels.TryGetValue("com.docker.compose.project.config_files", out string confFile))
+                        if (c.Labels.TryGetValue("com.docker.compose.project.config_files", out string? confFile))
                             DataPath = confFile;
-                        if (string.IsNullOrEmpty(DataPath) && c.Labels.TryGetValue("com.docker.compose.project.working_dir", out string workDir))
+                        if (string.IsNullOrEmpty(DataPath) && c.Labels.TryGetValue("com.docker.compose.project.working_dir", out string? workDir))
                             DataPath = workDir;
                     }
 
                     if (string.IsNullOrEmpty(DataPath) || !DataPath.StartsWith("/data/compose/" + id))
                         continue;
 
-                    if (string.IsNullOrEmpty(Info.Name) && c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project", out string name))
+                    if (string.IsNullOrEmpty(Info.Name) && c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project", out string? name))
                         Info.Name = name;
 
                     if (Info.Version == 0)
@@ -776,7 +776,7 @@ public static class DockerStacks
                     Filters = new Dictionary<string, IDictionary<string, bool>>
                         { { "label", new Dictionary<string, bool> { { $"com.docker.compose.project.working_dir={ContainerWorkDir}", true } } } }
                 });
-                if (Containers.Any() && Containers.First().Labels != null && Containers.First().Labels.TryGetValue("com.docker.compose.project", out string? proj) && !string.IsNullOrEmpty(proj))
+                if (Containers.Any() && Containers.First().Labels != null && Containers.First().Labels.TryGetValue("com.docker.compose.project", out string? proj))
                     Name = proj;
 
             }
