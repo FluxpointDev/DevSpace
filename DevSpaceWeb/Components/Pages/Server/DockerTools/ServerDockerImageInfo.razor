@@ -99,7 +99,14 @@ else
                         Version
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Image.Version
+                        @if (Image.Config != null && Image.Config.Labels != null && Image.Config.Labels.TryGetValue("org.opencontainers.image.version", out string? version) && !string.IsNullOrEmpty(version))
+                        {
+                            @($"{Image.Version} ({version})")
+                        }
+                        else
+                        {
+                            @Image.Version
+                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -132,15 +139,15 @@ else
                         @if (Image.Config != null && Image.Config.Labels != null)
                         {
                             <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
-                                @if (Image.Config.Labels.TryGetValue("org.opencontainers.image.url", out string? website))
+                                @if (Image.Config.Labels.TryGetValue("org.opencontainers.image.url", out string? website) && !string.IsNullOrEmpty(website))
                                 {
                                     <a href="@website" target="_blank"><RadzenButton Text="Website" Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
                                 }
-                                @if (Image.Config.Labels.TryGetValue("org.opencontainers.image.documentation", out string? docs))
+                                @if (Image.Config.Labels.TryGetValue("org.opencontainers.image.documentation", out string? docs) && !string.IsNullOrEmpty(docs))
                                 {
                                     <a href="@docs" target="_blank"><RadzenButton Text="Docs" Icon="book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
                                 }
-                                @if (Image.Config.Labels.TryGetValue("org.opencontainers.image.source", out string? source))
+                                @if (Image.Config.Labels.TryGetValue("org.opencontainers.image.source", out string? source) && !string.IsNullOrEmpty(source))
                                 {
                                     <a href="@source" target="_blank"><RadzenButton Text="Source" Icon="code" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
                                 }
