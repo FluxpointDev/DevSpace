@@ -1,10 +1,12 @@
 ﻿@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
 @using System.Linq.Dynamic.Core
+@using DevSpaceWeb.Components.Dialogs.Docker
 @inject NotificationService Notifications
 @inject ContextMenuService ContextMenuService
 @inject TooltipService tooltipService
 @inject NavigationManager Nav
+@inject DialogService Dialogs
 
 @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
 {
@@ -109,15 +111,24 @@ else
                     </RadzenTableCell>
                 </RadzenTableRow>
 
-                @if (Stack != null && Stack.ControlType == DockerStackControl.Full)
+                @if (Stack != null && Stack.ControlType != DockerStackControl.System)
                 {
                     <RadzenTableRow>
                         <RadzenTableCell>
                             Compose
                         </RadzenTableCell>
                         <RadzenTableCell>
-                            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId + "/edit")"><RadzenButton Icon="edit" Variant="Variant.Text" Text="Edit" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))" /></a>
-
+                            <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
+                                @if (Stack.ControlType == DockerStackControl.Full)
+                                {
+                                    <RadzenButton Icon="wysiwyg" Variant="Variant.Text" Text="View" Click="@ViewCompose" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))" />
+                                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId + "/edit")"><RadzenButton Icon="edit" Variant="Variant.Text" Text="Edit" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))" /></a>
+                                }
+                                else
+                                {
+                                    <RadzenButton Icon="wysiwyg" Variant="Variant.Text" Text="View" Click="@ViewCompose" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))" />
+                                }
+                            </RadzenStack>
                         </RadzenTableCell>
                     </RadzenTableRow>
                 }
@@ -524,6 +535,25 @@ else
     protected override async Task OnParametersSetAsync()
     {
         await RefreshContainers();
+    }
+
+    public async Task ViewCompose()
+    {
+        if (Server == null || Member == null || Team == null)
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
+            return;
+
+        SocketResponse<DockerStackComposeInfo?> Result = await Server.RunJsonAsync<DockerStackComposeInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ComposeInfo));
+        if (!Result.IsSuccess || Result.Data == null)
+            return;
+
+        await Dialogs.OpenAsync<StackComposeViewDialog>("Stack Compose", new Dictionary<string, object>()
+        {
+            { "StackName", Stack.Name },
+            { "Compose", Result.Data.Content }
+        });
     }
 
     public async Task RefreshContainers()

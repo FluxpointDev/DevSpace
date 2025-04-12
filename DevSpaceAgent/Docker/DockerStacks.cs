@@ -741,26 +741,80 @@ public static class DockerStacks
 
     public static async Task<DockerStackComposeInfo> StackCompose(DockerClient client, string id)
     {
-        if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
-            throw new Exception("Stack does not exist.");
-
-        if (!File.Exists(Program.CurrentDirectory + $"Data/Stacks/{id}/docker-compose.yml"))
-            return new DockerStackComposeInfo
-            {
-                Name = stack.Name
-            };
-
-        try
+        if (int.TryParse(id, out _))
         {
-            return new DockerStackComposeInfo
+            string ComposeDir = $"/var/lib/docker/volumes/portainer_data/_data/compose/{id}/";
+            if (!Directory.Exists(ComposeDir))
+                throw new Exception("Stack compose does not exist.");
+
+            int Version = -1;
+
+            foreach (string d in Directory.GetDirectories(ComposeDir))
             {
-                Name = stack.Name,
-                Content = File.ReadAllText(Program.CurrentDirectory + $"Data/Stacks/{id}/docker-compose.yml")
-            };
+                string Split = d.Split('/').Last();
+                if (Split.StartsWith("v") && int.TryParse(Split.Substring(1), out int stackNumber) && stackNumber > Version)
+                    Version = stackNumber;
+            }
+
+            if (Version == -1)
+                throw new Exception("Stack compose does not exist.");
+
+            string ComposeFile = ComposeDir + $"v{Version}/docker-compose.yml";
+
+            if (!File.Exists(ComposeFile))
+                throw new Exception("Failed to get compose content.");
+
+            string ContainerWorkDir = $"/data/compose/{id}v{Version}";
+
+            string? Name = null;
+
+            try
+            {
+                IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                {
+                    All = true,
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
+                        { { "label", new Dictionary<string, bool> { { $"com.docker.compose.project.working_dir={ContainerWorkDir}", true } } } }
+                });
+                if (Containers.Any() && Containers.First().Labels != null && Containers.First().Labels.TryGetValue("com.docker.compose.project", out string? proj) && !string.IsNullOrEmpty(proj))
+                    Name = proj;
+
+            }
+            catch { }
+
+            try
+            {
+                return new DockerStackComposeInfo
+                {
+                    Name = Name,
+                    Content = File.ReadAllText(ComposeFile)
+                };
+            }
+            catch
+            {
+                throw new Exception("Failed to get compose content.");
+            }
         }
-        catch
+        else
         {
-            throw new Exception("Failed to get compose content.");
+            if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
+                throw new Exception("Stack does not exist.");
+
+            if (!File.Exists(Program.CurrentDirectory + $"Data/Stacks/{id}/docker-compose.yml"))
+                throw new Exception("Failed to get compose content.");
+
+            try
+            {
+                return new DockerStackComposeInfo
+                {
+                    Name = stack.Name,
+                    Content = File.ReadAllText(Program.CurrentDirectory + $"Data/Stacks/{id}/docker-compose.yml")
+                };
+            }
+            catch
+            {
+                throw new Exception("Failed to get compose content.");
+            }
         }
     }
 
