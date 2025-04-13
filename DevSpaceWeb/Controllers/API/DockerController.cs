@@ -35,9 +35,6 @@ public class DockerController : APIController
         if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm!);
 
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
-            return PermissionFailed(dockerPerm!);
-
         SocketResponse<DevSpaceShared.Responses.SystemInfoResponse?> Response = await server.RecieveJsonAsync<DevSpaceShared.Responses.SystemInfoResponse>(new DockerEvent(DockerEventType.SystemInfo));
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get server data, " + Response.Message);
@@ -56,9 +53,6 @@ public class DockerController : APIController
 
         if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer | ServerPermission.ViewHostInfo, out ServerPermission? perm))
             return PermissionFailed(perm!);
-
-        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
-            return PermissionFailed(dockerPerm!);
 
         SocketResponse<SystemInfoFullResponse?> Response = await server.RecieveJsonAsync<SystemInfoFullResponse>(new DockerEvent(DockerEventType.HostInfo));
         if (!Response.IsSuccess || Response.Data == null)
