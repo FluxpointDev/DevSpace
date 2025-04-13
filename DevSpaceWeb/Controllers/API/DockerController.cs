@@ -336,6 +336,35 @@ public class DockerController : APIController
             return Ok(new[] { Response.Data.Logs });
     }
 
+    [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/changes")]
+    [SwaggerOperation("Get server container file system changes.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> ContainerChanges([FromRoute] string serverId = "", [FromRoute] string containerId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(containerId))
+            return BadRequest("Container id parameter is missing from path.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
+            return PermissionFailed(perm!);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
+            return PermissionFailed(dockerPerm!);
+
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ViewContainerChanges, out DockerContainerPermission? dockerContainerPerm))
+            return PermissionFailed(dockerContainerPerm!);
+
+        SocketResponse<DockerContainerChanges?> Response = await server.RecieveJsonAsync<DockerContainerChanges>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Changes));
+
+        if (!Response.IsSuccess || Response.Data == null)
+            return Conflict("Failed to get container changes, " + Response.Message);
+
+        return Ok(Response.Data.Changes.Select(x => new ContainerChangeJson(x)));
+    }
+
     [HttpDelete("/api/servers/{serverId?}/containers/{containerId?}/remove")]
     [SwaggerOperation("Delete a server container.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]

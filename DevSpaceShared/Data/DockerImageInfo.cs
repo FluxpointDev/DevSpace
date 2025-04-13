@@ -39,7 +39,7 @@ namespace DevSpaceShared.Data
             string? Source = null;
             if (image.Config.Env != null)
             {
-                foreach (var i in image.Config.Env)
+                foreach (string? i in image.Config.Env)
                 {
                     if (i.StartsWith("DOTNET_VERSION"))
                         AltVersion = i.Substring(15);

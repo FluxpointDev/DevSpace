@@ -25,7 +25,7 @@ public static class DockerContainers
                     if (Data.Filters != null)
                     {
                         Parameters.Filters = new Dictionary<string, IDictionary<string, bool>>();
-                        foreach (var i in Data.Filters)
+                        foreach (KeyValuePair<string, string> i in Data.Filters)
                         {
                             Parameters.Filters.Add(i.Key, new Dictionary<string, bool>
                             {
