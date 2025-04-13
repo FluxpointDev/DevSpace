@@ -24,7 +24,7 @@ public class ContainerJson
     public ContainerJson(ContainerInspectResponse info)
     {
         id = info.ID;
-        name = info.Name;
+        name = info.Name.Substring(1);
         image_id = info.Image;
         image_name = info.Config.Image;
         state = info.State.Status;
