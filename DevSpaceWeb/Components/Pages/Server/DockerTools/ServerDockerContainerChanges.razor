@@ -44,13 +44,7 @@ else if (Changes == null)
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
             <RadzenBreadCrumbItem Text="Changes" />
         </RadzenBreadCrumb>
-        @if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges))
-        {
-            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                You do not have permission for View Container Changes
-            </RadzenAlert>
-        }
-        else if (Failed)
+        @if (Failed)
         {
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
                 Failed to get container logs.
