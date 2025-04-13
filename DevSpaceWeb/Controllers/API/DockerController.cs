@@ -251,6 +251,44 @@ public class DockerController : APIController
         return Ok();
     }
 
+    [HttpPut("/api/servers/{serverId?}/containers/{containerId?}/rename")]
+    [SwaggerOperation("Get server container logs.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> ContainerLogs([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery] string name = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(containerId))
+            return BadRequest("Container id parameter is missing from path.");
+
+        if (string.IsNullOrEmpty(name))
+            return BadRequest("Name parameter is missing from path.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
+            return PermissionFailed(perm!);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
+            return PermissionFailed(dockerPerm!);
+
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ManageContainers, out DockerContainerPermission? dockerContainerPerm))
+            return PermissionFailed(dockerContainerPerm!);
+
+        SocketResponse<object?> Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Rename)
+        {
+            Data = JObject.FromObject(new CreateContainerEvent
+            {
+                Name = name
+            })
+        });
+
+        if (!Response.IsSuccess)
+            return Conflict("Failed to rename container, " + Response.Message);
+
+        return Ok();
+    }
+
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/logs")]
     [SwaggerOperation("Get server container logs.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
