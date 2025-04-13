@@ -42,7 +42,7 @@ namespace DevSpaceShared.Data
                 image.Config.Labels.TryGetValue("org.opencontainers.image.url", out Docs);
                 image.Config.Labels.TryGetValue("org.opencontainers.image.source", out Source);
                 image.Config.Labels.TryGetValue("org.opencontainers.image.version", out AltVersion);
-                if (!string.IsNullOrEmpty(AltVersion))
+                if (string.IsNullOrEmpty(AltVersion))
                     image.Config.Labels.TryGetValue("com.docker.compose.version", out AltVersion);
             }
             if (image.RepoTags != null && image.RepoTags.Any())
@@ -83,7 +83,7 @@ namespace DevSpaceShared.Data
                 image.Labels.TryGetValue("org.opencontainers.image.url", out Docs);
                 image.Labels.TryGetValue("org.opencontainers.image.source", out Source);
                 image.Labels.TryGetValue("org.opencontainers.image.version", out AltVersion);
-                if (!string.IsNullOrEmpty(AltVersion))
+                if (string.IsNullOrEmpty(AltVersion))
                     image.Labels.TryGetValue("com.docker.compose.version", out AltVersion);
             }
             if (image.RepoTags != null && image.RepoTags.Any())
