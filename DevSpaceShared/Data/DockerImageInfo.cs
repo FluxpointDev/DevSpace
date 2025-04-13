@@ -32,24 +32,41 @@ namespace DevSpaceShared.Data
 
             };
 
+            string? Desc = null;
             string? AltVersion = null;
             string? Website = null;
             string? Docs = null;
             string? Source = null;
             if (image.Config.Labels != null)
             {
+                image.Config.Labels.TryGetValue("org.opencontainers.image.description", out Desc);
+                if (string.IsNullOrEmpty(Desc))
+                    image.Config.Labels.TryGetValue("org.label-schema.description", out Desc);
+
                 image.Config.Labels.TryGetValue("org.opencontainers.image.url", out Website);
-                image.Config.Labels.TryGetValue("org.opencontainers.image.url", out Docs);
+                if (string.IsNullOrEmpty(Website))
+                    image.Config.Labels.TryGetValue("org.label-schema.url", out Website);
+
+                image.Config.Labels.TryGetValue("org.opencontainers.image.documentation", out Docs);
                 image.Config.Labels.TryGetValue("org.opencontainers.image.source", out Source);
+                if (string.IsNullOrEmpty(Source))
+                    image.Config.Labels.TryGetValue("org.label-schema.vcs-url", out Source);
+
                 image.Config.Labels.TryGetValue("org.opencontainers.image.version", out AltVersion);
                 if (string.IsNullOrEmpty(AltVersion))
                     image.Config.Labels.TryGetValue("com.docker.compose.version", out AltVersion);
-                if (string.IsNullOrEmpty(AltVersion))
-                    image.Config.Labels.TryGetValue("DOTNET_VERSION", out AltVersion);
             }
+            if (string.IsNullOrEmpty(AltVersion) && image.Config.Env != null)
+            {
+                string? DotNet = image.Config.Env.FirstOrDefault(x => x.StartsWith("DOTNET_VERSION"));
+                if (!string.IsNullOrEmpty(DotNet))
+                    AltVersion = DotNet.Substring(15);
+            }
+
             if (image.RepoTags != null && image.RepoTags.Any())
                 Info.Version = image.RepoTags.First().Split(':').Last();
 
+            Info.Description = Desc;
             Info.Website = Website;
             Info.Docs = Docs;
             Info.Source = Source;
@@ -75,24 +92,34 @@ namespace DevSpaceShared.Data
                 Size = image.Size
             };
 
+            string? Desc = null;
             string? AltVersion = null;
             string? Website = null;
             string? Docs = null;
             string? Source = null;
             if (image.Labels != null)
             {
+                image.Labels.TryGetValue("org.opencontainers.image.description", out Desc);
+                if (string.IsNullOrEmpty(Desc))
+                    image.Labels.TryGetValue("org.label-schema.description", out Desc);
+
                 image.Labels.TryGetValue("org.opencontainers.image.url", out Website);
-                image.Labels.TryGetValue("org.opencontainers.image.url", out Docs);
+                if (string.IsNullOrEmpty(Website))
+                    image.Labels.TryGetValue("org.label-schema.url", out Website);
+
+                image.Labels.TryGetValue("org.opencontainers.image.documentation", out Docs);
                 image.Labels.TryGetValue("org.opencontainers.image.source", out Source);
+                if (string.IsNullOrEmpty(Source))
+                    image.Labels.TryGetValue("org.label-schema.vcs-url", out Source);
+
                 image.Labels.TryGetValue("org.opencontainers.image.version", out AltVersion);
                 if (string.IsNullOrEmpty(AltVersion))
                     image.Labels.TryGetValue("com.docker.compose.version", out AltVersion);
-                if (string.IsNullOrEmpty(AltVersion))
-                    image.Labels.TryGetValue("DOTNET_VERSION", out AltVersion);
             }
             if (image.RepoTags != null && image.RepoTags.Any())
                 Info.Version = image.RepoTags.First().Split(':').Last();
 
+            Info.Description = Desc;
             Info.Website = Website;
             Info.Docs = Docs;
             Info.Source = Source;
@@ -143,6 +170,8 @@ namespace DevSpaceShared.Data
         public string? Comment { get; set; }
 
         public string? Driver { get; set; }
+
+        public string? Description { get; set; }
 
         public DockerImageConfig? Config { get; set; }
     }
