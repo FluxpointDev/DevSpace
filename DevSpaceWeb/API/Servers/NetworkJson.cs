@@ -15,8 +15,16 @@ public class NetworkJson
         ingress = network.Ingress;
         config_only = network.ConfigOnly;
         created_at = network.Created;
-        labels = network.Labels;
-        options = network.Options;
+
+        if (network.Labels != null)
+            labels = network.Labels;
+        else
+            labels = new Dictionary<string, string>();
+
+        if (network.Options != null)
+            options = network.Options;
+        else
+            options = new Dictionary<string, string>();
     }
 
     public string id { get; set; }
@@ -28,6 +36,6 @@ public class NetworkJson
     public bool ingress { get; set; }
     public bool config_only { get; set; }
     public DateTime created_at { get; set; }
-    public IDictionary<string, string>? labels { get; set; }
-    public IDictionary<string, string>? options { get; set; }
+    public IDictionary<string, string> labels { get; set; }
+    public IDictionary<string, string> options { get; set; }
 }
