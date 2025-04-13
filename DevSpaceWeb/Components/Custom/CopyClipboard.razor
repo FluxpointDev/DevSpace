@@ -1,0 +1,31 @@
+﻿@inject IJSRuntime JS
+
+<RadzenIcon @onclick="@Copy" Icon="content_copy" IconColor="@(IsCopying.HasValue ? (IsCopying.Value ? "var(--rz-success)" : "var(--rz-danger)") : "var(--rz-link-color)")" class="ml-1" Style="cursor: pointer; vertical-align: middle;" />
+
+@code {
+    [Parameter, EditorRequired]
+    public string? Value { get; set; }
+
+    public bool? IsCopying { get; set; }
+
+    public async Task Copy()
+    {
+        if (IsCopying.HasValue)
+            return;
+
+        try
+        {
+            await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", Value);
+            IsCopying = true;
+            StateHasChanged();
+        }
+        catch
+        {
+            IsCopying = false;
+            StateHasChanged();
+        }
+        await Task.Delay(1500);
+        IsCopying = null;
+        StateHasChanged();
+    }
+}
