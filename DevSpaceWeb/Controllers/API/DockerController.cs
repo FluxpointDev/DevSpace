@@ -252,7 +252,7 @@ public class DockerController : APIController
     }
 
     [HttpPut("/api/servers/{serverId?}/containers/{containerId?}/rename")]
-    [SwaggerOperation("Get server container logs.", "")]
+    [SwaggerOperation("Rename a container.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ContainerLogs([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery] string name = "")
