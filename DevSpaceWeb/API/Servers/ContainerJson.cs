@@ -44,16 +44,16 @@ public class ContainerJson
         }
     }
 
-    public string id;
-    public string name;
-    public string image_id;
-    public string image_name;
-    public string? stack_id;
-    public string? stack_name;
-    public string status;
-    public string state;
-    public DateTime created_at;
-    public bool is_running;
-    public bool is_paused;
-    public bool is_restarting;
+    public string id { get; set; }
+    public string name { get; set; }
+    public string image_id { get; set; }
+    public string image_name { get; set; }
+    public string? stack_id { get; set; }
+    public string? stack_name { get; set; }
+    public string status { get; set; }
+    public string state { get; set; }
+    public DateTime created_at { get; set; }
+    public bool is_running { get; set; }
+    public bool is_paused { get; set; }
+    public bool is_restarting { get; set; }
 }
