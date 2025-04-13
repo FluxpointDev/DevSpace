@@ -39,13 +39,17 @@ namespace DevSpaceShared.Data
             string? Source = null;
             if (image.Config.Env != null)
             {
-                string? DotNet = image.Config.Env.FirstOrDefault(x => x.StartsWith("DOTNET_VERSION"));
-                if (!string.IsNullOrEmpty(DotNet))
-                    AltVersion = DotNet.Substring(15);
-
-                string Mongo = image.Config.Env.FirstOrDefault(x => x.StartsWith("MONGO_VERSION"));
-                if (!string.IsNullOrEmpty(Mongo))
-                    AltVersion = Mongo.Substring(14);
+                foreach (var i in image.Config.Env)
+                {
+                    if (i.StartsWith("DOTNET_VERSION"))
+                        AltVersion = i.Substring(15);
+                    else if (i.StartsWith("MONGO_VERSION"))
+                        AltVersion = i.Substring(14);
+                    else if (i.StartsWith("NODE_VERSION"))
+                        AltVersion = i.Substring(13);
+                    else if (i.StartsWith("PG_VERSION"))
+                        AltVersion = i.Substring(11);
+                }
             }
 
             if (image.Config.Labels != null)
