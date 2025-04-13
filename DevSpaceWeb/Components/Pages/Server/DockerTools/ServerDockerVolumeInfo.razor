@@ -5,6 +5,8 @@
 
 @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
 {
+    <PageTitle>Volume Info | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -24,6 +26,8 @@
 }
 else if (Volume == null)
 {
+    <PageTitle>Volume Info | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -56,6 +60,15 @@ else if (Volume == null)
 }
 else
 {
+    @if (Volume.ContainersList != null && Volume.ContainersList.Any() && Volume.ContainersList.First().Value.Name == "registry")
+    {
+        <PageTitle>docker_registry Volume | @_Data.Config.Instance.Name</PageTitle>
+    }
+    else
+    {
+        <PageTitle>@(Volume.Name ?? VolumeId) Volume | @_Data.Config.Instance.Name</PageTitle>
+    }
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -72,7 +85,7 @@ else
             }
             else
             {
-                <RadzenBreadCrumbItem Text="@Volume.Name" />
+                <RadzenBreadCrumbItem Text="@(Volume.Name ?? VolumeId)" />
             }
         </RadzenBreadCrumb>
         <br />

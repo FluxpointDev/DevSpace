@@ -10,6 +10,8 @@
 
 @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerLogs))
 {
+    <PageTitle>Container Logs | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -30,6 +32,8 @@
 }
 else
 {
+    <PageTitle>@(ContainerName ?? ContainerId) Logs | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box">
         <div class="dash-box-header dash-box-content">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -44,7 +48,7 @@ else
         </div>
         <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@(string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName)" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@(ContainerName ?? ContainerId)" />
             <RadzenBreadCrumbItem Text="Logs" />
         </RadzenBreadCrumb>
         @if (Failed)
