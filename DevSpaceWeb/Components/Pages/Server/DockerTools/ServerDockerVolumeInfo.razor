@@ -99,12 +99,13 @@ else
                         <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
                             @if (Volume.ContainersList != null && Volume.ContainersList.Any() && Volume.ContainersList.First().Value.Name == "registry")
                             {
-                                <RadzenText TextStyle="TextStyle.Body2" class="mt-2">docker_registry</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" class="mt-2">docker_registry (@Volume.Name)</RadzenText>
                             }
                             else
                             {
                                 <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@Volume.Name</RadzenText>
                             }
+                            <CopyClipboard Value="@Volume.Name"></CopyClipboard>
                             <RadzenSplitButton Text="Remove" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="((args) => Remove(args?.Text))" Size="ButtonSize.Small" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))">
                                 <ChildContent>
                                     <RadzenSplitButtonItem Text="Force Remove" Style="cursor: pointer;" />
