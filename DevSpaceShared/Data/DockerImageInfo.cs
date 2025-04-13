@@ -44,6 +44,8 @@ namespace DevSpaceShared.Data
                 image.Config.Labels.TryGetValue("org.opencontainers.image.version", out AltVersion);
                 if (string.IsNullOrEmpty(AltVersion))
                     image.Config.Labels.TryGetValue("com.docker.compose.version", out AltVersion);
+                if (string.IsNullOrEmpty(AltVersion))
+                    image.Config.Labels.TryGetValue("DOTNET_VERSION", out AltVersion);
             }
             if (image.RepoTags != null && image.RepoTags.Any())
                 Info.Version = image.RepoTags.First().Split(':').Last();
@@ -85,6 +87,8 @@ namespace DevSpaceShared.Data
                 image.Labels.TryGetValue("org.opencontainers.image.version", out AltVersion);
                 if (string.IsNullOrEmpty(AltVersion))
                     image.Labels.TryGetValue("com.docker.compose.version", out AltVersion);
+                if (string.IsNullOrEmpty(AltVersion))
+                    image.Labels.TryGetValue("DOTNET_VERSION", out AltVersion);
             }
             if (image.RepoTags != null && image.RepoTags.Any())
                 Info.Version = image.RepoTags.First().Split(':').Last();
