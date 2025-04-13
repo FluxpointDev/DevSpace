@@ -8,6 +8,8 @@ public class StackJson
     {
         id = info.Id;
         name = info.Name;
+        if (string.IsNullOrEmpty(id))
+            id = name;
         created_at = info.CreatedAt;
         updated_at = info.UpdatedAt;
         version = info.Version;
@@ -19,7 +21,7 @@ public class StackJson
     }
 
     public string id { get; set; }
-    public string name { get; set; }
+    public string? name { get; set; }
     public DateTime? created_at { get; set; }
     public DateTime? updated_at { get; set; }
     public long version { get; set; }
