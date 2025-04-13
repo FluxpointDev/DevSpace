@@ -156,7 +156,7 @@ else
     public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
-    public string ContainerId { get; set; }
+    public string? ContainerId { get; set; }
 
     public List<LogMessage> Messages = new List<LogMessage>();
     public string? ContainerName { get; set; }
@@ -168,15 +168,15 @@ else
     public bool ShowTimestamp { get; set; }
     public bool ShowLineNumbers { get; set; } = true;
     public bool AutoScroll { get; set; } = true;
-    public System.Timers.Timer RefreshTimer;
+    public System.Timers.Timer? RefreshTimer;
 
-    public RadzenDataGrid<LogMessage> Grid { get; set; }
+    public RadzenDataGrid<LogMessage> Grid { get; set; } = null!;
 
     public DateTime? SinceDate = null;
 
     public class LogMessage
     {
-        public string Text { get; set; }
+        public string? Text { get; set; }
     }
 
     private int firstTimeChange;
@@ -291,7 +291,11 @@ else
                 await InvokeAsync(StateHasChanged);
                 if (AutoScroll)
                 {
-                    JS.InvokeVoidAsync("Utils.scrollLogsDown");
+                    try
+                    {
+                        _ = JS.InvokeVoidAsync("Utils.scrollLogsDown");
+                    }
+                    catch {}
                 }
             }
         }
