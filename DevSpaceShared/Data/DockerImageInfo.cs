@@ -32,21 +32,26 @@ namespace DevSpaceShared.Data
 
             };
 
-            string? Version = null;
+            string? AltVersion = null;
             string? Website = null;
+            string? Docs = null;
             string? Source = null;
             if (image.Config.Labels != null)
             {
                 image.Config.Labels.TryGetValue("org.opencontainers.image.url", out Website);
+                image.Config.Labels.TryGetValue("org.opencontainers.image.url", out Docs);
                 image.Config.Labels.TryGetValue("org.opencontainers.image.source", out Source);
-                image.Config.Labels.TryGetValue("com.docker.compose.version", out Version);
+                image.Config.Labels.TryGetValue("org.opencontainers.image.version", out AltVersion);
+                if (!string.IsNullOrEmpty(AltVersion))
+                    image.Config.Labels.TryGetValue("com.docker.compose.version", out AltVersion);
             }
-            if (string.IsNullOrEmpty(Version) && image.RepoTags != null && image.RepoTags.Any())
-                Version = image.RepoTags.First().Split(':').Last();
+            if (image.RepoTags != null && image.RepoTags.Any())
+                Info.Version = image.RepoTags.First().Split(':').Last();
 
             Info.Website = Website;
+            Info.Docs = Docs;
             Info.Source = Source;
-            Info.Version = Version;
+            Info.AltVersion = AltVersion;
 
             return Info;
         }
@@ -68,27 +73,37 @@ namespace DevSpaceShared.Data
                 Size = image.Size
             };
 
-            string? Version = null;
+            string? AltVersion = null;
             string? Website = null;
+            string? Docs = null;
             string? Source = null;
             if (image.Labels != null)
             {
                 image.Labels.TryGetValue("org.opencontainers.image.url", out Website);
+                image.Labels.TryGetValue("org.opencontainers.image.url", out Docs);
                 image.Labels.TryGetValue("org.opencontainers.image.source", out Source);
-                image.Labels.TryGetValue("com.docker.compose.version", out Version);
+                image.Labels.TryGetValue("org.opencontainers.image.version", out AltVersion);
+                if (!string.IsNullOrEmpty(AltVersion))
+                    image.Labels.TryGetValue("com.docker.compose.version", out AltVersion);
             }
-            if (string.IsNullOrEmpty(Version) && image.RepoTags != null && image.RepoTags.Any())
-                Version = image.RepoTags.First().Split(':').Last();
+            if (image.RepoTags != null && image.RepoTags.Any())
+                Info.Version = image.RepoTags.First().Split(':').Last();
 
-            Info.Version = Version;
+            Info.Website = Website;
+            Info.Docs = Docs;
+            Info.Source = Source;
+            Info.AltVersion = AltVersion;
 
             return Info;
         }
 
         public required string ID { get; set; }
+
         public required string Name { get; set; }
 
         public string? Version { get; set; }
+
+        public string? AltVersion { get; set; }
 
         public DateTime Created { get; set; }
 
@@ -104,6 +119,8 @@ namespace DevSpaceShared.Data
         public int ContainersCount { get; set; }
 
         public string? Website { get; set; }
+
+        public string? Docs { get; set; }
 
         public string? Source { get; set; }
 
