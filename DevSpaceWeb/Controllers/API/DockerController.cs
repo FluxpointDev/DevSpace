@@ -251,7 +251,7 @@ public class DockerController : APIController
         return Ok();
     }
 
-    [HttpPut("/api/servers/{serverId?}/containers/{containerId?}/rename")]
+    [HttpPost("/api/servers/{serverId?}/containers/{containerId?}/rename")]
     [SwaggerOperation("Rename a container.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
