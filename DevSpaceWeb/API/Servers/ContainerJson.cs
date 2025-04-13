@@ -14,7 +14,7 @@ public class ContainerJson
         stack_id = info.StackId;
         stack_name = info.StackName;
         state = info.State;
-        status = info.State;
+        status = info.Status;
         created_at = info.CreatedAt;
         is_running = info.IsRunning;
         is_paused = info.IsPaused;
