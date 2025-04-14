@@ -221,7 +221,7 @@ public class DockerController : APIController
     [SwaggerOperation("Rename a container.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
-    public async Task<IActionResult> ContainerLogs([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery] string name = "")
+    public async Task<IActionResult> ContainerLogs([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery, Required] string name = "")
     {
         if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
             return NotFound("Could not find server.");
