@@ -16,7 +16,7 @@ using System.ComponentModel.DataAnnotations;
 namespace DevSpaceWeb.Controllers.API;
 
 [ShowInSwagger]
-[SwaggerTag("Requires permission View Servers")]
+[SwaggerTag("Requires View Server permission.")]
 [IsAuthenticated]
 [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized", typeof(ResponseUnauthorized))]
 [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
@@ -24,7 +24,7 @@ namespace DevSpaceWeb.Controllers.API;
 public class DockerController : APIController
 {
     [HttpGet("/api/servers/{serverId?}/stacks")]
-    [SwaggerOperation("Get server stacks list.", "")]
+    [SwaggerOperation("Get server stacks list.", "Requires View Server and View Stack permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<StackJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetStacks([FromRoute] string serverId = "")
@@ -50,7 +50,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/containers")]
-    [SwaggerOperation("Get server containers list.", "")]
+    [SwaggerOperation("Get server containers list.", "Requires View Server and View Container permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ContainerJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetContainers([FromRoute] string serverId = "")
@@ -76,7 +76,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/stacks/{stackId?}")]
-    [SwaggerOperation("Get server stack info.", "")]
+    [SwaggerOperation("Get server stack info.", "Requires View Server and View Stack permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<StackJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetStack([FromRoute] string serverId = "", [FromRoute] string stackId = "")
@@ -107,7 +107,7 @@ public class DockerController : APIController
     }
 
     [HttpDelete("/api/servers/{serverId?}/stacks/{stackId?}/remove")]
-    [SwaggerOperation("Delete a server stack.", "")]
+    [SwaggerOperation("Delete a server stack.", "Requires View Server, View Stack and Manage Stack permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> RemoveStack([FromRoute] string serverId = "", [FromRoute] string stackId = "")
@@ -135,7 +135,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}")]
-    [SwaggerOperation("Get server container info.", "")]
+    [SwaggerOperation("Get server container info.", "Requires View Server and View Containers permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<StackJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetContainers([FromRoute] string serverId = "", [FromRoute] string containerId = "")
@@ -170,7 +170,7 @@ public class DockerController : APIController
     }
 
     [HttpPatch("/api/servers/{serverId?}/containers/{containerId?}/control")]
-    [SwaggerOperation("Control server container state.", "")]
+    [SwaggerOperation("Control server container state.", "Requires View Server, View Container and Control Container permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     [ListParameterSwagger("type", ["start", "stop", "restart", "pause", "unpause", "kill"])]
@@ -218,7 +218,7 @@ public class DockerController : APIController
     }
 
     [HttpPost("/api/servers/{serverId?}/containers/{containerId?}/rename")]
-    [SwaggerOperation("Rename a container.", "")]
+    [SwaggerOperation("Rename a container.", "Requires View Server, View Container and Manage Container permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ContainerLogs([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery, Required] string name = "")
@@ -256,7 +256,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/logs")]
-    [SwaggerOperation("Get server container logs.", "")]
+    [SwaggerOperation("Get server container logs.", "Requires View Server, View Container and View Container Logs permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ContainerLogs([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery] int limit = 100, [FromQuery] bool split = false, [FromQuery] bool showTimestamp = false)
@@ -303,7 +303,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/changes")]
-    [SwaggerOperation("Get server container file system changes.", "")]
+    [SwaggerOperation("Get server container file system changes.", "Requires View Server, View Container and View Container Changes permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ContainerChangeJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ContainerChanges([FromRoute] string serverId = "", [FromRoute] string containerId = "")
@@ -332,7 +332,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/stats")]
-    [SwaggerOperation("Get server container stats.", "")]
+    [SwaggerOperation("Get server container stats.", "Requires View Server, View Container and View Container Stats permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ContainerStatsJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ContainerStats([FromRoute] string serverId = "", [FromRoute] string containerId = "")
@@ -361,7 +361,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/processes")]
-    [SwaggerOperation("Get server container processes.", "")]
+    [SwaggerOperation("Get server container processes.", "Requires View Server, View Container and View Container Stats permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ContainerProcessJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ContainerProcesses([FromRoute] string serverId = "", [FromRoute] string containerId = "")
@@ -391,7 +391,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/inspect")]
-    [SwaggerOperation("Get server container full docker information.", "")]
+    [SwaggerOperation("Get server container full docker information.", "Requires View Server and Docker Administrator permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ContainerInspectResponse>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ContainerInspect([FromRoute] string serverId = "", [FromRoute] string containerId = "")
@@ -419,7 +419,7 @@ public class DockerController : APIController
     }
 
     [HttpDelete("/api/servers/{serverId?}/containers/{containerId?}/remove")]
-    [SwaggerOperation("Delete a server container.", "")]
+    [SwaggerOperation("Delete a server container.", "Requires View Server, View Container and Manage Container permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> RemoveContainer([FromRoute] string serverId = "", [FromRoute] string containerId = "", [FromQuery] bool force = false)
@@ -447,7 +447,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/images")]
-    [SwaggerOperation("Get server images list.", "")]
+    [SwaggerOperation("Get server images list.", "Requires View Server and View Image permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ImageJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetImages([FromRoute] string serverId = "")
@@ -470,7 +470,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/images/{imageId?}")]
-    [SwaggerOperation("Get a server image.", "")]
+    [SwaggerOperation("Get a server image.", "Requires View Server and View Image permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ImageJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetImage([FromRoute] string serverId = "", [FromRoute] string imageId = "")
@@ -499,7 +499,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/volumes")]
-    [SwaggerOperation("Get server volumes list.", "")]
+    [SwaggerOperation("Get server volumes list.", "Requires View Server and View Volume permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<VolumeJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetVolumes([FromRoute] string serverId = "")
@@ -522,7 +522,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/volumes/{volumeId?}")]
-    [SwaggerOperation("Get a server volume.", "")]
+    [SwaggerOperation("Get a server volume.", "Requires View Server and View Volume permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<VolumeJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetVolume([FromRoute] string serverId = "", [FromRoute] string volumeId = "")
@@ -551,7 +551,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/networks")]
-    [SwaggerOperation("Get server networks list.", "")]
+    [SwaggerOperation("Get server networks list.", "Requires View Server and View Network permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<NetworkJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetNetworks([FromRoute] string serverId = "")
@@ -574,7 +574,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/networks/{networkId?}")]
-    [SwaggerOperation("Get a server network.", "")]
+    [SwaggerOperation("Get a server network.", "Requires View Server and View Network permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<NetworkJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetNetwork([FromRoute] string serverId = "", [FromRoute] string networkId = "")
@@ -603,7 +603,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/plugins")]
-    [SwaggerOperation("Get server plugins list.", "")]
+    [SwaggerOperation("Get server plugins list.", "Requires View Server and View Plugin permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<PluginJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetPlugins([FromRoute] string serverId = "")
@@ -626,7 +626,7 @@ public class DockerController : APIController
     }
 
     [HttpGet("/api/servers/{serverId?}/plugins/{pluginId?}")]
-    [SwaggerOperation("Get a server plugins.", "")]
+    [SwaggerOperation("Get a server plugins.", "Requires View Server and View Plugin permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<PluginJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetPlugin([FromRoute] string serverId = "", [FromRoute] string pluginId = "")
