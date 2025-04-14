@@ -365,6 +365,65 @@ public class DockerController : APIController
         return Ok(Response.Data.Changes.Select(x => new ContainerChangeJson(x)));
     }
 
+    [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/stats")]
+    [SwaggerOperation("Get server container stats.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ContainerStatsJson>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> ContainerStats([FromRoute] string serverId = "", [FromRoute] string containerId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(containerId))
+            return BadRequest("Container id parameter is missing from path.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
+            return PermissionFailed(perm!);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
+            return PermissionFailed(dockerPerm!);
+
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ViewContainerStats, out DockerContainerPermission? dockerContainerPerm))
+            return PermissionFailed(dockerContainerPerm!);
+
+        SocketResponse<DockerContainerStats?> Response = await server.RecieveJsonAsync<DockerContainerStats>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Stats));
+
+        if (!Response.IsSuccess || Response.Data == null)
+            return Conflict("Failed to get container stats, " + Response.Message);
+
+        return Ok(new ContainerStatsJson(Response.Data));
+    }
+
+    [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/processes")]
+    [SwaggerOperation("Get server container processes.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ContainerProcessesJson>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> ContainerProcesses([FromRoute] string serverId = "", [FromRoute] string containerId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (string.IsNullOrEmpty(containerId))
+            return BadRequest("Container id parameter is missing from path.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
+            return PermissionFailed(perm!);
+
+        if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs, out DockerPermission? dockerPerm))
+            return PermissionFailed(dockerPerm!);
+
+        if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ViewContainerStats, out DockerContainerPermission? dockerContainerPerm))
+            return PermissionFailed(dockerContainerPerm!);
+
+        SocketResponse<DockerContainerProcesses?> Response = await server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Processes));
+
+        if (!Response.IsSuccess || Response.Data == null)
+            return Conflict("Failed to get container processes, " + Response.Message);
+
+
+        return Ok(new ContainerProcessesJson(Response.Data));
+    }
+
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/inspect")]
     [SwaggerOperation("Get server container full docker information.", "")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ContainerInspectResponse>))]
