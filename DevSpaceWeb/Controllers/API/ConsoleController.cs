@@ -51,7 +51,7 @@ public class ConsoleController : APIController
     }
 
     [HttpGet("/api/consoles/{consoleId?}/server/players")]
-    [SwaggerOperation("Get a list of player names on the server.", "Requires View Console and View Players permission.")]
+    [SwaggerOperation("Get a list of player names on the server.", "Requires View Console and View Players permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetPlayers([FromRoute] string consoleId = "")
@@ -106,7 +106,7 @@ public class ConsoleController : APIController
     }
 
     [HttpGet("/api/consoles/{consoleId?}/battleye/players")]
-    [SwaggerOperation("Get a list of battleye players on the server.", "Requires View Console and View Players permission.")]
+    [SwaggerOperation("Get a list of battleye players on the server.", "Requires View Console and View Players permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ConsolePlayerJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetPlayersBattleye([FromRoute] string consoleId = "")
@@ -130,7 +130,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/server/command")]
-    [SwaggerOperation("Execute a command on the server.", "Requires View Console permission and Use Console Commands.")]
+    [SwaggerOperation("Execute a command on the server.", "Requires View Console permission and Use Console Commandss.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<string>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ExecuteCommand([FromRoute] string consoleId = "", [FromBody, Required] ConsoleCommandJson? command = null)
@@ -171,7 +171,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/message/global")]
-    [SwaggerOperation("Send a global message.", "Requires View Console and Message Global permission.")]
+    [SwaggerOperation("Send a global message.", "Requires View Console and Message Global permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> MessageGlobal([FromRoute] string consoleId = "", [FromBody, Required] ConsoleMessageJson? message = null)
@@ -209,7 +209,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/message/player")]
-    [SwaggerOperation("Send a message to a player.", "Requires View Console and Message Players permission.")]
+    [SwaggerOperation("Send a message to a player.", "Requires View Console and Message Players permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> MessagePlayer([FromRoute] string consoleId = "", [FromBody, Required] ConsoleMessagePlayerJson? json = null)
@@ -253,7 +253,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPut("/api/consoles/{consoleId?}/players/kick")]
-    [SwaggerOperation("Kick a player on the server.", "Requires View Console and Kick Players permission.")]
+    [SwaggerOperation("Kick a player on the server.", "Requires View Console and Kick Players permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> KickPlayer([FromRoute] string consoleId = "", [FromBody, Required] ConsoleReasonPlayerJson? json = null)
@@ -296,7 +296,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPut("/api/consoles/{consoleId?}/players/ban")]
-    [SwaggerOperation("Ban a player on the server.", "Requires View Console and Ban Players permission.")]
+    [SwaggerOperation("Ban a player on the server.", "Requires View Console and Ban Players permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> BanPlayer([FromRoute] string consoleId = "", [FromBody, Required] ConsoleReasonPlayerJson? json = null)
@@ -339,7 +339,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/server/restart")]
-    [SwaggerOperation("Restart the server.", "Requires View Console and Control Console permission.")]
+    [SwaggerOperation("Restart the server.", "Requires View Console and Control Console permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> RestartServer([FromRoute] string consoleId = "")
@@ -377,7 +377,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/server/shutdown")]
-    [SwaggerOperation("Shutdown the server.", "Requires View Console and Control Console permission.")]
+    [SwaggerOperation("Shutdown the server.", "Requires View Console and Control Console permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ShutdownServer([FromRoute] string consoleId = "")
@@ -416,7 +416,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/lock")]
-    [SwaggerOperation("Lock the server.", "Requires View Console and Control Console permission.")]
+    [SwaggerOperation("Lock the server.", "Requires View Console and Control Console permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> LockServer([FromRoute] string consoleId = "")
@@ -438,7 +438,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/unlock")]
-    [SwaggerOperation("Unlock the server.", "Requires View Console and Control Console permission.")]
+    [SwaggerOperation("Unlock the server.", "Requires View Console and Control Console permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> UnlockServer([FromRoute] string consoleId = "")
@@ -460,7 +460,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/reload/config")]
-    [SwaggerOperation("Reload the config.", "Requires View Console and Control Console permission.")]
+    [SwaggerOperation("Reload the config.", "Requires View Console and Control Console permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ReloadConfig([FromRoute] string consoleId = "")
@@ -482,7 +482,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/reload/events")]
-    [SwaggerOperation("Reload the events.", "Requires View Console and Control Console permission.")]
+    [SwaggerOperation("Reload the events.", "Requires View Console and Control Console permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ReloadEvents([FromRoute] string consoleId = "")
@@ -504,7 +504,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/reload/scripts")]
-    [SwaggerOperation("Reload the scripts.", "Requires View Console and Control Console permission.")]
+    [SwaggerOperation("Reload the scripts.", "Requires View Console and Control Console permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ReloadScripts([FromRoute] string consoleId = "")
@@ -526,7 +526,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/reload/bans")]
-    [SwaggerOperation("Reload the bans.", "Requires View Console and Control Console permission.")]
+    [SwaggerOperation("Reload the bans.", "Requires View Console and Control Console permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ReloadBans([FromRoute] string consoleId = "")
@@ -548,7 +548,7 @@ public class ConsoleController : APIController
     }
 
     [HttpPost("/api/consoles/{consoleId?}/battleye/reassign")]
-    [SwaggerOperation("Reload the config.", "Requires View Console and Control Console permission.")]
+    [SwaggerOperation("Reload the config.", "Requires View Console and Control Console permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> Reassign([FromRoute] string consoleId = "")
@@ -570,7 +570,7 @@ public class ConsoleController : APIController
     }
 
     [HttpGet("/api/consoles/{consoleId?}/battleye/connection")]
-    [SwaggerOperation("Get a list of rcon connections.", "Requires View Console and View Connections permission.")]
+    [SwaggerOperation("Get a list of rcon connections.", "Requires View Console and View Connections permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ConsoleAdminJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> Admins([FromRoute] string consoleId = "")

@@ -21,13 +21,16 @@ namespace DevSpaceWeb.Controllers.API;
 public class UsersController : APIController
 {
     [HttpGet("/api/users/{userId?}")]
-    [SwaggerOperation("Get a user.", "")]
+    [SwaggerOperation("Get a user.", "Requires View Members permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<UserJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetUser([FromRoute] string userId = "")
     {
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj))
-            return NotFound("Could not find user.");
+            return NotFound("Invalid user id.");
+
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out TeamPermission? perm))
+            return PermissionFailed(perm!);
 
         if (!((_DB.Teams.Cache.TryGetValue(Client.TeamId, out TeamData? Team) && Team.Members.ContainsKey(obj))))
             return NotFound("Could not find user.");
@@ -35,9 +38,6 @@ public class UsersController : APIController
         AuthUser? user = await _DB.Run.GetCollection<AuthUser>("users").Find(new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, obj)).FirstOrDefaultAsync();
         if (user == null)
             return NotFound("Could not find user.");
-
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out TeamPermission? perm))
-            return PermissionFailed(perm);
 
         return Ok(new UserJson(user));
     }
