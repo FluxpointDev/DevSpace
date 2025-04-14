@@ -433,7 +433,7 @@ public class ConsoleController : APIController
         return Conflict($"Failed to {type} server");
     }
 
-    [HttpGet("/api/consoles/{consoleId?}/battleye/connection")]
+    [HttpGet("/api/consoles/{consoleId?}/battleye/connections")]
     [SwaggerOperation("Get a list of rcon connections.", "Requires View Console and View Connections permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ConsoleAdminJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
