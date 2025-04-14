@@ -362,7 +362,7 @@ public class DockerController : APIController
 
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/processes")]
     [SwaggerOperation("Get server container processes.", "")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ContainerProcessesJson>))]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ContainerProcessJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> ContainerProcesses([FromRoute] string serverId = "", [FromRoute] string containerId = "")
     {
@@ -387,7 +387,7 @@ public class DockerController : APIController
             return Conflict("Failed to get container processes, " + Response.Message);
 
 
-        return Ok(new ContainerProcessesJson(Response.Data));
+        return Ok(new ContainerProcessesJson(Response.Data).processes);
     }
 
     [HttpGet("/api/servers/{serverId?}/containers/{containerId?}/inspect")]
