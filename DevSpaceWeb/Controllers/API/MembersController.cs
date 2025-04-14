@@ -57,11 +57,11 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> EnableMember([FromRoute] string userId = "")
     {
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
+            return PermissionFailed(perm!);
+
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
-
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
-            return PermissionFailed(perm);
 
         if (member.GetRank() >= Client.GetRank())
             return RankFailed();
@@ -93,11 +93,13 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> DisableMember([FromRoute] string userId = "")
     {
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
+            return PermissionFailed(perm!);
+
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
 
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
-            return PermissionFailed(perm);
+
 
         if (member.GetRank() >= Client.GetRank())
             return RankFailed();
@@ -135,11 +137,11 @@ public class MembersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> RemoveMember([FromRoute] string userId = "")
     {
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
+            return PermissionFailed(perm!);
+
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
-
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
-            return PermissionFailed(perm);
 
         if (member.GetRank() >= Client.GetRank())
             return RankFailed();

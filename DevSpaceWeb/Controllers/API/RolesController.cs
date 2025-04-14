@@ -25,7 +25,7 @@ public class RolesController : APIController
     public async Task<IActionResult> GetRoles()
     {
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out TeamPermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         bool HasViewPerms = Client.HasTeamPermission(CurrentTeam, TeamPermission.ViewPermissions);
 
@@ -37,11 +37,11 @@ public class RolesController : APIController
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<RoleJson>))]
     public async Task<IActionResult> GetRole([FromRoute] string roleId = "")
     {
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out TeamPermission? perm))
+            return PermissionFailed(perm!);
+
         if (string.IsNullOrEmpty(roleId) || !ObjectId.TryParse(roleId, out ObjectId obj) || !_DB.Roles.Cache.TryGetValue(obj, out Data.Teams.TeamRoleData? Role) || !(Role.TeamId == Client.TeamId))
             return NotFound("Could not find role.");
-
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewRoles, out TeamPermission? perm))
-            return PermissionFailed(perm);
 
         bool HasViewPerms = Client.HasTeamPermission(CurrentTeam, TeamPermission.ViewPermissions);
 

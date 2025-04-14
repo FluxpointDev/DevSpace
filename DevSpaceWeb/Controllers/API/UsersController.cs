@@ -26,11 +26,11 @@ public class UsersController : APIController
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetUser([FromRoute] string userId = "")
     {
-        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj))
-            return NotFound("Invalid user id.");
-
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out TeamPermission? perm))
             return PermissionFailed(perm!);
+
+        if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj))
+            return NotFound("Invalid user id.");
 
         if (!((_DB.Teams.Cache.TryGetValue(Client.TeamId, out TeamData? Team) && Team.Members.ContainsKey(obj))))
             return NotFound("Could not find user.");
