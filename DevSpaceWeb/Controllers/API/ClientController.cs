@@ -23,7 +23,7 @@ namespace DevSpaceWeb.Controllers.API;
 public class ClientController : APIController
 {
     [HttpGet("/api/clients")]
-    [SwaggerOperation("Get a list of API clients.")]
+    [SwaggerOperation("Get a list of API clients.", "Requires View API Client or View All API Clients permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ClientJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetClients()
@@ -35,7 +35,7 @@ public class ClientController : APIController
     }
 
     [HttpGet("/api/clients/{clientId}")]
-    [SwaggerOperation("Get an API clients.")]
+    [SwaggerOperation("Get an API clients.", "Requires View API Client or View All API Clients permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ClientJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetClient([FromRoute] string clientId = "")
@@ -84,7 +84,7 @@ public class ClientController : APIController
     }
 
     [HttpPatch("/api/clients/{clientId}/enable")]
-    [SwaggerOperation("Enable the API clients.")]
+    [SwaggerOperation("Enable the API clients.", "Requires Manage API Client or Manage All API Clients permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> EnableClient([FromRoute] string clientId = "")
@@ -143,7 +143,7 @@ public class ClientController : APIController
     //}
 
     [HttpPatch("/api/clients/{clientId}/disable")]
-    [SwaggerOperation("Disable the API clients.")]
+    [SwaggerOperation("Disable the API clients.", "Requires Manage API Client or Manage All API Clients permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> DisableClient([FromRoute] string clientId = "")
@@ -174,7 +174,7 @@ public class ClientController : APIController
     }
 
     [HttpDelete("/api/clients/{clientId}/delete")]
-    [SwaggerOperation("Delete the API clients.")]
+    [SwaggerOperation("Delete the API clients.", "Requires Manage API Client or Manage All API Clients permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> DeleteClient([FromRoute] string clientId = "")
