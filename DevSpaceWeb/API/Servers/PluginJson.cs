@@ -18,7 +18,7 @@ public class PluginJson
         docker_version = plugin.Config.DockerVersion;
         description = plugin.Config.Description;
         documentation = plugin.Config.Documentation;
-        work_directory = plugin.Config.WorkDir;
+        working_directory = plugin.Config.WorkDir;
         if (plugin.Config.Entrypoint.Any())
             entrypoint = string.Join(" ", plugin.Config.Entrypoint);
         capabilities = plugin.Config.Linux.Capabilities;
@@ -33,7 +33,7 @@ public class PluginJson
     public string description { get; set; }
     public string url { get; set; }
     public string? documentation { get; set; }
-    public string work_directory { get; set; }
+    public string working_directory { get; set; }
     public string? entrypoint { get; set; }
     public IList<string> capabilities { get; set; } = new List<string>();
 }

@@ -200,7 +200,11 @@ public class DockerController : APIController
         if (Response.Data == null)
             return NotFound("Container does not exist");
 
-        return Ok(new ContainerJson(Response.Data));
+        bool ViewDetails = Client.HasDockerContainerPermission(server.Team, server, DockerContainerPermission.ViewContainerDetails);
+        bool ViewEnvironment = Client.HasDockerContainerPermission(server.Team, server, DockerContainerPermission.ViewContainerEnvironment);
+        bool ViewHealthLog = Client.HasDockerContainerPermission(server.Team, server, DockerContainerPermission.ViewContainerHealthLogs);
+
+        return Ok(new ContainerJson(Response.Data, ViewDetails, ViewEnvironment, ViewHealthLog));
     }
 
     [HttpPatch("/api/servers/{serverId?}/containers/{containerId?}/control")]

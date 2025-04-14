@@ -165,21 +165,24 @@ else
                                     <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" />
                                     break;
                             }
-                            @if (Container.HostConfig.OomKillDisable.GetValueOrDefault())
+                            @if (CanViewContainerDetails)
                             {
-                                <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="OOM Disabled" IsPill="true" />
-                            }
-                            @if (Container.HostConfig.Privileged)
-                            {
-                                <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Privileged" IsPill="true" />
-                            }
-                            @if (Container.HostConfig.ReadonlyRootfs)
-                            {
-                                <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Read-Only" IsPill="true" />
-                            }
-                            @if (Container.Config.NetworkDisabled)
-                            {
-                                <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Network Disabled" IsPill="true" />
+                                if (Container.HostConfig.OomKillDisable.GetValueOrDefault())
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="OOM Disabled" IsPill="true" />
+                                }
+                                if (Container.HostConfig.Privileged)
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Privileged" IsPill="true" />
+                                }
+                                if (Container.HostConfig.ReadonlyRootfs)
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Read-Only" IsPill="true" />
+                                }
+                                if (Container.Config.NetworkDisabled)
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Network Disabled" IsPill="true" />
+                                }
                             }
                         </RadzenStack>
                     </RadzenTableCell>
@@ -250,7 +253,10 @@ else
                         Started
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @ParseDate(Container.State.StartedAt)
+                        @if (!string.IsNullOrEmpty(Container.State.StartedAt))
+                        {
+                            @ParseDate(Container.State.StartedAt)
+                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -259,7 +265,7 @@ else
                         Stopped
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @if (Container.State.FinishedAt != "01/01/0001 00:00:00")
+                        @if (!string.IsNullOrEmpty(Container.State.FinishedAt) && Container.State.StartedAt != Container.State.FinishedAt)
                         {
                             @ParseDate(Container.State.FinishedAt)
                         }
@@ -271,7 +277,7 @@ else
                         Error
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @GetExitMessage()
+                        @Container.GetExitMessage()
                     </RadzenTableCell>
                 </RadzenTableRow>
                 <RadzenTableRow>
@@ -477,7 +483,7 @@ else
                     {
                         <div class="dash-box-content">
 
-                            @foreach (var i in ParseEnvironment(Container.Config.Env))
+                            @foreach (var i in Container.Config.Env.ParseEnvironment())
                             {
                                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body2">
@@ -1000,20 +1006,6 @@ else
         return timestamp;
     }
 
-    public List<KeyValuePair<string, string?>> ParseEnvironment(IList<string> variables)
-    {
-        List<KeyValuePair<string, string?>> List = new List<KeyValuePair<string, string?>>();
-        foreach (var i in variables)
-        {
-            string[] Split = i.Split('=');
-            if (Split.Length == 1)
-                List.Add(new KeyValuePair<string, string?>(Split[0], null));
-            else
-                List.Add(new KeyValuePair<string, string?>(Split[0], Split[1]));
-        }
-        return List;
-    }
-
     public bool IsNetworkSystem(string name)
     {
         switch (name)
@@ -1038,42 +1030,6 @@ else
         "Always",
         "Unless Stopped"
     };
-
-    public string? GetExitMessage()
-    {
-        if (Container == null || Container.State.Running)
-            return null;
-        if (Container.State.OOMKilled)
-            return "Out of Memory";
-
-        if (Container.State.Paused)
-            return "Container Paused";
-
-        switch (Container.State.ExitCode)
-        {
-            case 0:
-                return "Process Finished";
-            case 125:
-                return "Container Error" + (!string.IsNullOrEmpty(Container.State.Error) ? $": {Container.State.Error}" : null);
-            case 126:
-            case 127:
-                return "Command Error" + (!string.IsNullOrEmpty(Container.State.Error) ? $": {Container.State.Error}" : null);
-            case 134:
-                return "Terminated" + (!string.IsNullOrEmpty(Container.State.Error) ? $": {Container.State.Error}" : null);
-            case 137:
-            case 143:
-                return "Container Stopped";
-            case 139:
-                return "Segmentation Fault" + (!string.IsNullOrEmpty(Container.State.Error) ? $": {Container.State.Error}" : null);
-            case 1:
-                return "Application Error" + (!string.IsNullOrEmpty(Container.State.Error) ? $": {Container.State.Error}" : null);
-        }
-
-        if (string.IsNullOrEmpty(Container.State.Error))
-            return $"Code {Container.State.ExitCode}";
-
-        return $"Code {Container.State.ExitCode}: {Container.State.Error}";
-    }
 
     public async Task UpdateName()
     {
