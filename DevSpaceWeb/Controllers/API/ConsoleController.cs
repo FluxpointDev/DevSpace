@@ -14,7 +14,7 @@ using System.Data;
 namespace DevSpaceWeb.Controllers.API;
 
 [ShowInSwagger]
-[SwaggerTag("Requires permission View Consoles")]
+[SwaggerTag("Manage game servers for minecraft and battleye games.")]
 [IsAuthenticated]
 [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized", typeof(ResponseUnauthorized))]
 [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
@@ -22,7 +22,7 @@ namespace DevSpaceWeb.Controllers.API;
 public class ConsoleController : APIController
 {
     [HttpGet("/api/consoles")]
-    [SwaggerOperation("Get a list of consoles.", "")]
+    [SwaggerOperation("Get a list of consoles.", "Requires View Console permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ConsoleJson[]>))]
     public async Task<IActionResult> GetConsoles([FromQuery] bool showIp = false)
     {

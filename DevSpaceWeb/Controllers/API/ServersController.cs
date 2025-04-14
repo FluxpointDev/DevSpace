@@ -13,7 +13,7 @@ using System.Data;
 namespace DevSpaceWeb.Controllers.API;
 
 [ShowInSwagger]
-[SwaggerTag("Requires permission View Servers")]
+[SwaggerTag("Manage Team servers and information.")]
 [IsAuthenticated]
 [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized", typeof(ResponseUnauthorized))]
 [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]

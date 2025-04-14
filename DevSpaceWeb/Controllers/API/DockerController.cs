@@ -16,7 +16,7 @@ using System.ComponentModel.DataAnnotations;
 namespace DevSpaceWeb.Controllers.API;
 
 [ShowInSwagger]
-[SwaggerTag("Requires View Server permission.")]
+[SwaggerTag("Manage Team docker resources for servers.")]
 [IsAuthenticated]
 [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized", typeof(ResponseUnauthorized))]
 [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
