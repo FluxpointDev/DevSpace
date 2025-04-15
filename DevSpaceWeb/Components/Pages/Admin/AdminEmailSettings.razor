@@ -98,7 +98,7 @@
                 return;
 
             HttpRequestMessage Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/send");
-            Message.Headers.Add("Authorization", ManagedEmailToken);
+            Message.Headers.TryAddWithoutValidation("Authorization", ManagedEmailToken);
             Message.Content = JsonContent.Create(new EmailService.SendMailJson
                 {
                     instance_name = _Data.Config.Instance.Name,

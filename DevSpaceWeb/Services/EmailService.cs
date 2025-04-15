@@ -116,7 +116,7 @@ public class EmailService
                     reason = reason
                 })
             };
-            message.Headers.Add("Authorization", _Data.Config.Email.ManagedEmailToken);
+            message.Headers.TryAddWithoutValidation("Authorization", _Data.Config.Email.ManagedEmailToken);
             HttpResponseMessage Res = await ManagedEmailSystem.SendAsync(message);
 
             if (Res.IsSuccessStatusCode)

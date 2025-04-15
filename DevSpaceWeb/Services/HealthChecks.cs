@@ -91,7 +91,7 @@ public class HealthCheckService
         if (_Data.Config.Email.Type == ConfigEmailType.FluxpointManaged)
         {
             HttpRequestMessage Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/test");
-            Message.Headers.Add("Authorization", _Data.Config.Email.ManagedEmailToken);
+            Message.Headers.TryAddWithoutValidation("Authorization", _Data.Config.Email.ManagedEmailToken);
 
             HttpResponseMessage Res = await Program.Http.SendAsync(Message);
             IsEmailOnline = Res.IsSuccessStatusCode;
