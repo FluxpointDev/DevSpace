@@ -1,0 +1,208 @@
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@using Newtonsoft.Json.Linq
+@using global::Docker.DotNet.Models
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+@inject NotificationService Notifications
+@implements IDisposable
+
+<PageTitle>Account Change Avatar | @_Data.Config.Instance.Name</PageTitle>
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        @switch (UpdateStatus)
+        {
+            case UpdateStatusType.Checking:
+                {
+                    <h6>Checking for Update</h6>
+                    <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" />
+                }
+                break;
+            case UpdateStatusType.CheckFailed:
+                {
+                    <h6>Update Check Failed</h6>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Failed to check for an update.
+                    </RadzenText>
+                }
+                break;
+            case UpdateStatusType.UpdateAvailable:
+                {
+                    <h6>Update Available!</h6>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        An update for the Dev Space Agent service on this server is available, press Update to start the process.
+                    </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Current: @Server?.GetWebSocket()?.Discover?.Version
+                    </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Current: @Version!.AgentVersion
+                    </RadzenText>
+                }
+                break;
+            case UpdateStatusType.AlreadyUpdated:
+                {
+                    <h6>Already Updated</h6>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        This server already has the latest version @Version!.AgentVersion for the Dev Space Agent.
+                    </RadzenText>
+                }
+                break;
+            case UpdateStatusType.UpdatingNow:
+                {
+                    <h6>Updating...</h6>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Please wait this will take a minutes.
+                    </RadzenText>
+                    <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" />
+                }
+                break;
+            case UpdateStatusType.UpdateSuccess:
+                {
+                    <h6>Update Complete!</h6>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        You can now close this dialog to refresh the server page.
+                    </RadzenText>
+                }
+                break;
+        }
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => { if (UpdateStatus == UpdateStatusType.UpdateSuccess) InvokeAsync(Session.TriggerChange); else dialogService.Close(false); })" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" Disabled="@(UpdateStatus == UpdateStatusType.UpdatingNow)" />
+        <RadzenButton Click="@RunUpdate" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Update" Style="width: 100px" Disabled="@(UpdateStatus != UpdateStatusType.UpdateAvailable || UpdateStatus == UpdateStatusType.UpdateSuccess)" />
+    </RadzenStack>
+</RadzenStack>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ServerData? Server => Session.Selected.Server;
+
+    public VersionCheck? Version;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                string Test = await Program.Http.GetStringAsync("https://devspacesmtp.fluxpoint.dev/version");
+                Version = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionCheck>(Test);
+                string? ServerVersion = Server?.GetWebSocket()?.Discover?.Version;
+                if (ServerVersion == Version!.AgentVersion)
+                    UpdateStatus = UpdateStatusType.UpdateAvailable;
+                else
+                    UpdateStatus = UpdateStatusType.AlreadyUpdated;
+            }
+            catch
+            {
+                UpdateStatus = UpdateStatusType.CheckFailed;
+            }
+            StateHasChanged();
+        }
+    }
+
+    async Task RunUpdate()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Server == null || Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator))
+            return;
+
+        UpdateStatus = UpdateStatusType.UpdatingNow;
+
+        var Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, "devspace-agent", containerType: ControlContainerType.Inspect));
+
+        if (!Result.IsSuccess || Result.Data == null)
+        {
+            UpdateStatus = UpdateStatusType.UpdateFailed;
+            return;
+        }
+
+        string? UpdatePath = Result.Data.HostConfig.Binds.FirstOrDefault(x => x.Contains(":/app:ro"));
+        if (string.IsNullOrEmpty(UpdatePath))
+        {
+            UpdateStatus = UpdateStatusType.UpdateFailed;
+            return;
+        }
+        UpdatePath = UpdatePath.Split(':').First();
+        if (!UpdatePath.StartsWith('/'))
+        {
+            UpdateStatus = UpdateStatusType.UpdateFailed;
+            return;
+        }
+
+        string Compose = @"services:
+  devspace-agent-updater:
+    container_name: devspace-agent-updater
+    image: docker:dind
+    command: sh -c ""cat DevSpaceAgent && docker container stop devspace-agent && apk add unzip wget && rm -f agent_update.zip && wget https://cdn.fluxpoint.dev/devspace/agent_update.zip && unzip -o agent_update.zip && rm -f agent_update.zip && docker container start devspace-agent && docker rm -f devspace-agent-updater && echo Update Done""
+    volumes:
+        - {0}:/app:rw
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+    working_dir: /app
+    network_mode: bridge
+    dns:
+      - 1.1.1.2
+      - 1.0.0.2".Replace("{0}", UpdatePath);
+
+        Console.WriteLine("Compose: " + Compose);
+
+        var res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
+        {
+            Data = JObject.FromObject(new CreateStackEvent
+            {
+                Name = "devspace-agent-updater",
+                DockerfileName = "devspace-agent-updater",
+                Content = Compose,
+                IsAdministrator = Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator)
+            })
+        }, async (res) =>
+        {
+            var Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
+            if (Res.IsSuccess)
+            {
+                Console.WriteLine("Waiting");
+                await Task.Delay(new TimeSpan(0, 0, 10));
+                while (CheckingUpdate)
+                {
+                    Console.WriteLine("Checking update status");
+                    if (Server.IsConnected)
+                    {
+                        Console.WriteLine("Update Done");
+                        await InvokeAsync(Session.TriggerChange);
+                        return;
+                    }
+                    await Task.Delay(new TimeSpan(0, 0, 3));
+                }
+            }
+        });
+    }
+
+    public bool CheckingUpdate = true;
+
+    public void Dispose()
+    {
+        CheckingUpdate = false;
+    }
+
+    UpdateStatusType UpdateStatus; 
+
+    public enum UpdateStatusType
+    {
+        Checking, CheckFailed, UpdateAvailable, AlreadyUpdated, UpdatingNow, UpdateFailed, UpdateSuccess
+    }
+}

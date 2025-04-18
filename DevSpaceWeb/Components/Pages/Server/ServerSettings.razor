@@ -33,6 +33,10 @@
                 <RadzenText TextStyle="TextStyle.H6">Connection</RadzenText>
             </RadzenCard>
         </a>
+        <RadzenCard @onclick="@OpenUpdater" class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator) ? "" : " settings-item-disabled"))">
+            <span class="iconify" data-icon="mdi:cloud-upload"></span>
+            <RadzenText TextStyle="TextStyle.H6">Update Agent</RadzenText>
+        </RadzenCard>
     </RadzenStack>
 </div>
 
@@ -58,6 +62,7 @@
     .settings-item {
         width: 120px;
         height: 120px;
+        cursor: pointer;
     }
 
         .settings-item .iconify {
@@ -126,6 +131,19 @@
                 Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers");
             });
         }
+    }
+
+    public async Task OpenUpdater()
+    {
+        if (Server == null || Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator))
+            return;
+
+        await DialogService.OpenAsync<ServerUpdateDialog>("Agent Updater", options: new DialogOptions
+        {
+            CloseDialogOnEsc = false,
+            CloseDialogOnOverlayClick = false,
+            ShowClose = false
+        });
     }
 
 
