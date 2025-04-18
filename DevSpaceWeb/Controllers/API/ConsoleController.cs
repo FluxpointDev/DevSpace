@@ -355,7 +355,7 @@ public class ConsoleController : APIController
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ControlServer, out ConsolePermission? perm))
             return PermissionFailed(perm!);
 
-        if (!Enum.TryParse<ConsoleControlType>(type, true, out var controlType))
+        if (!Enum.TryParse<ConsoleControlType>(type, true, out ConsoleControlType controlType))
             return BadRequest("Invalid control type parameter.");
 
         switch (server.Type)
