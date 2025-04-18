@@ -100,7 +100,7 @@
 
     public async Task LoadData(LoadDataArgs args)
     {
-        var filter = new FilterDefinitionBuilder<Notification>().Eq(x => x.UserId, Session.CurrentUser.Id);
+        FilterDefinition<Notification> filter = new FilterDefinitionBuilder<Notification>().Eq(x => x.UserId, Session.CurrentUser.Id);
         NotificationItems = await _DB.Notifications.Find(filter).SortByDescending(x => x.CreatedAt).Skip(args.Skip.GetValueOrDefault()).Limit(args.Top.GetValueOrDefault()).ToListAsync();
         long Count = await _DB.Notifications.Find(filter).CountDocumentsAsync();
         if (Count >= 30)

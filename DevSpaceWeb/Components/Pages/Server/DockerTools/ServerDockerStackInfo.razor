@@ -573,7 +573,7 @@ else
         IsLoading = true;
         try
         {
-            var Result = await Server.RunJsonAsync<DockerStackInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.View));
+            SocketResponse<DockerStackInfo?> Result = await Server.RunJsonAsync<DockerStackInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.View));
             Stack = Result.Data;
         }
         catch (Exception ex)
@@ -845,7 +845,7 @@ else
         {
             IsActionRunning = true;
             await InvokeAsync(StateHasChanged);
-            foreach (var i in SelectedContainers)
+            foreach (DockerContainerInfo i in SelectedContainers)
             {
                 await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, i.Id, type));
             }

@@ -124,11 +124,11 @@
                 string[] lines = ListCommand.SplitNewlines(trim: true);
                 List<Player> list = new List<Player>();
 
-                foreach (var i in lines.First().Split(", ").Select(x => new Player(1, null, null, null, x, null)))
+                foreach (Player i in lines.First().Split(", ").Select(x => new Player(1, null, null, null, x, null)))
                 {
                     if (i.name.Contains(" and "))
                     {
-                        var SplitAnd = lines.First().Split(" and ");
+                        string[] SplitAnd = lines.First().Split(" and ");
                         list.Add(new Player(0, null, null, null, SplitAnd[0], null));
                         list.Add(new Player(0, null, null, null, SplitAnd[1], null));
                     }
@@ -146,11 +146,11 @@
                     }
                     catch { }
                     lines = ListCommand.SplitNewlines(trim: true);
-                    foreach (var i in lines.First().Split(", ").Select(x => new Player(1, null, null, null, x, null)))
+                    foreach (Player i in lines.First().Split(", ").Select(x => new Player(1, null, null, null, x, null)))
                     {
                         if (i.name.Contains(" and "))
                         {
-                            var SplitAnd = lines.First().Split(" and ");
+                            string[] SplitAnd = lines.First().Split(" and ");
                             list.Add(new Player(1, null, null, null, SplitAnd[0], null));
                             list.Add(new Player(1, null, null, null, SplitAnd[1], null));
                         }
@@ -161,10 +161,8 @@
                 }
                 catch { }
 
-                var query = list;
-
-                PlayerCount = query.Count();
-                Players = query.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
+                PlayerCount = list.Count();
+                Players = list.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
             }
             else
             {
@@ -201,7 +199,7 @@
         {
             if (rcon.IsConnected)
             {
-                var Result = await rcon.ExecuteCmd("pardon " + player.name);
+                string Result = await rcon.ExecuteCmd("pardon " + player.name);
                 await Dialog.ShowInfoAsync("Unban Result", Result);
             }
             else

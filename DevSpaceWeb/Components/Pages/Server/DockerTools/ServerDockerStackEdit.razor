@@ -170,7 +170,7 @@
 
         IsBuilding = true;
         string Data = await _editor.GetValue();
-        var res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ReCreate)
+        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ReCreate)
             {
                 Data = JObject.FromObject(new CreateStackEvent
                 {

@@ -124,7 +124,7 @@
 
         UpdateStatus = UpdateStatusType.UpdatingNow;
 
-        var Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, "devspace-agent", containerType: ControlContainerType.Inspect));
+        SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, "devspace-agent", containerType: ControlContainerType.Inspect));
 
         if (!Result.IsSuccess || Result.Data == null)
         {
@@ -161,7 +161,7 @@
 
         Console.WriteLine("Compose: " + Compose);
 
-        var res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
+        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
         {
             Data = JObject.FromObject(new CreateStackEvent
             {
@@ -172,7 +172,7 @@
             })
         }, async (res) =>
         {
-            var Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
+            SocketResponse<object?> Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
             if (Res.IsSuccess)
             {
                 Console.WriteLine("Waiting");

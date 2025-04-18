@@ -47,7 +47,7 @@
             </RadzenText>
         }
         <RadzenStack>
-            @foreach (var i in NameInputs)
+            @foreach (KeyValuePair<string, string> i in NameInputs)
             {
                 @RenderFormElement(i.Key, i.Value)
             }
@@ -134,7 +134,7 @@
             return true;
 
 
-        foreach (var i in NameInputs)
+        foreach (KeyValuePair<string, string> i in NameInputs)
         {
             if (!Utils.IsDockerImageNameValid(i.Value))
                 return true;
@@ -227,7 +227,7 @@
         }
 
 
-        var Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.CreateImage)
+        SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.CreateImage)
         {
             Data = JObject.FromObject(Data)
         });

@@ -131,7 +131,7 @@
         }
         string Code = Email.RandomCodeGenerator();
         Cache.Set("2fa-verify-" + User.Id.ToString(), Code, new TimeSpan(0, 5, 0));
-        var IsEmailSent = await Email.SendAccessCode(User, "2FA Verification", Code);
+        bool IsEmailSent = await Email.SendAccessCode(User, "2FA Verification", Code);
         User.Mfa.EmailCodeLastSentAt = DateTime.UtcNow;
         await UserManager.UpdateAsync(User);
         if (!IsEmailSent)

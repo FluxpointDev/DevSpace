@@ -85,11 +85,11 @@
 
                 List<Player> list = new List<Player>();
 
-                foreach (var i in ListCommand.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(x => new Player(0, null, null, null, x, null)))
+                foreach (Player i in ListCommand.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(x => new Player(0, null, null, null, x, null)))
                 {
                     if (i.name.Contains(" and "))
                     {
-                        var SplitAnd = i.name.Split(" and ");
+                        string[] SplitAnd = i.name.Split(" and ");
                         list.Add(new Player(0, null, null, null, SplitAnd[0], null));
                         list.Add(new Player(0, null, null, null, SplitAnd[1], null));
                     }
@@ -97,10 +97,9 @@
                         list.Add(i);
                 }
 
-                var query = list;
 
-                PlayerCount = query.Count();
-                Players = query.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
+                PlayerCount = list.Count();
+                Players = list.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
             }
             else
             {
@@ -166,7 +165,7 @@
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";
 
-                            var Result = await rcon.ExecuteCmd("ban " + item.name);
+                            string Result = await rcon.ExecuteCmd("ban " + item.name);
                             await Dialog.ShowInfoAsync("Ban Result", Result);
                             return null;
                         });
@@ -194,7 +193,7 @@
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";
 
-                            var Result = await rcon.ExecuteCmd("kick " + item.name);
+                            string Result = await rcon.ExecuteCmd("kick " + item.name);
                             await Dialog.ShowInfoAsync("Kick Result", Result);
                             return null;
                         });
@@ -222,7 +221,7 @@
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";
 
-                            var Result = await rcon.ExecuteCmd("tell " + item.name + " " + data.Message);
+                            string Result = await rcon.ExecuteCmd("tell " + item.name + " " + data.Message);
                             await Dialog.ShowInfoAsync("Message Result", Result);
                             return null;
                         });

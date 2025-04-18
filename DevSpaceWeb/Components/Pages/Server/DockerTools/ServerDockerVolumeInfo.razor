@@ -163,7 +163,7 @@ else
             <br />
             @if (Volume != null && Volume.Labels != null)
             {
-                    foreach (var i in Volume.Labels)
+                    foreach (KeyValuePair<string, string> i in Volume.Labels)
                     {
                             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                             <RadzenText TextStyle="TextStyle.Body2">
@@ -183,7 +183,7 @@ else
         </div>
         <br />
         
-            @foreach (var i in Volume.Status)
+            @foreach (KeyValuePair<string, object> i in Volume.Status)
             {
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
@@ -204,7 +204,7 @@ else
             </div>
             <br />
 
-            @foreach (var i in Volume.Options)
+            @foreach (KeyValuePair<string, string> i in Volume.Options)
             {
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
@@ -280,7 +280,7 @@ else
 
         try
         {
-            var Result = await Server.RunJsonAsync<DockerVolumeInfo>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: ControlVolumeType.View));
+            SocketResponse<DockerVolumeInfo?> Result = await Server.RunJsonAsync<DockerVolumeInfo>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: ControlVolumeType.View));
             Failed = !Result.IsSuccess;
             Volume = Result.Data;
 
@@ -313,7 +313,7 @@ else
 
             IsActionLoading = true;
 
-            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: option == "Force Remove" ? ControlVolumeType.ForceRemove : ControlVolumeType.Remove));
+            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: option == "Force Remove" ? ControlVolumeType.ForceRemove : ControlVolumeType.Remove));
             if (Result.IsSuccess)
                 Volume = null;
         }

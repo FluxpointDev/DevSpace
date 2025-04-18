@@ -1,4 +1,6 @@
-﻿@inject IJSRuntime JS
+﻿@using DevSpaceWeb.Data.API
+@using DevSpaceWeb.Data.Consoles
+@inject IJSRuntime JS
 
 <RadzenFormField @ref="@SearchBox" Variant="Variant.Outlined" @attributes="@(new Dictionary<string, object> { { "placeholder", "Test" } })">
     <Start>
@@ -92,7 +94,7 @@
 
     public async Task OpenSearch()
     {
-        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", IsMobile ? "popupSearch" : "popupSearchMobile");
+        bool IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", IsMobile ? "popupSearch" : "popupSearchMobile");
         if (!IsSearchOpen || IsFirstOpen)
         {
             IsFirstOpen = false;
@@ -103,7 +105,7 @@
     public async Task Search(string text)
     {
         SearchHasValue = !string.IsNullOrEmpty(text);
-        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", IsMobile ? "popupSearch" : "popupSearchMobile");
+        bool IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", IsMobile ? "popupSearch" : "popupSearchMobile");
         if (!IsSearchOpen || IsFirstOpen)
         {
             IsFirstOpen = false;
@@ -114,7 +116,7 @@
 
     public async Task ClearSearch()
     {
-        var IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", IsMobile ? "popupSearch" : "popupSearchMobile");
+        bool IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", IsMobile ? "popupSearch" : "popupSearchMobile");
         if (IsSearchOpen)
             SearchPopup.ToggleAsync(SearchBox.Element);
         SearchText = null;
@@ -185,20 +187,20 @@
             if (session.CurrentUser != null)
             {
                 List<TeamMemberData> Members = new List<TeamMemberData>();
-                foreach (var i in _DB.Teams.Cache.Values.Where(x => x.Members.ContainsKey(session.CurrentUser.Id)))
+                foreach (TeamData i in _DB.Teams.Cache.Values.Where(x => x.Members.ContainsKey(session.CurrentUser.Id)))
                 {
                     if (i.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
                         items.Add(new SearchItem { Name = i.Name, Team = i, Type = "team", Path = "/teams/" + i.GetVanityUrlOrId() });
 
-                    var Member = i.GetMember(session.CurrentUser);
+                    TeamMemberData? Member = i.GetMember(session.CurrentUser);
                     if (Member != null)
                         Members.Add(Member);
                 }
-                foreach (var s in _DB.Servers.Cache.Values)
+                foreach (ServerData s in _DB.Servers.Cache.Values)
                 {
                     if (s.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
                     {
-                        foreach (var m in Members)
+                        foreach (TeamMemberData m in Members)
                         {
                             if (m.TeamId != s.TeamId)
                                 continue;
@@ -208,11 +210,11 @@
                         }
                     }
                 }
-                foreach (var c in _DB.Consoles.Cache.Values)
+                foreach (ConsoleData c in _DB.Consoles.Cache.Values)
                 {
                     if (c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
                     {
-                        foreach (var m in Members)
+                        foreach (TeamMemberData m in Members)
                         {
                             if (m.TeamId != c.TeamId)
                                 continue;
@@ -222,11 +224,11 @@
                         }
                     }
                 }
-                foreach (var a in _DB.API.Cache.Values)
+                foreach (APIClient a in _DB.API.Cache.Values)
                 {
                     if (a.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
                     {
-                        foreach (var m in Members)
+                        foreach (TeamMemberData m in Members)
                         {
                             if (m.TeamId != a.TeamId)
                                 continue;
@@ -237,7 +239,7 @@
                     }
                 }
             }
-            foreach (var d in SearchData.List)
+            foreach (SearchDataItem d in SearchData.List)
             {
                 if (d.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) || d.Tags.Any(x => x.Equals(searchText)))
                 {

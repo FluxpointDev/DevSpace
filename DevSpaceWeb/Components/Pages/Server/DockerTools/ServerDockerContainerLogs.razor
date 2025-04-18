@@ -215,7 +215,7 @@ else
 
         try
         {
-            var Result = await Server.RunJsonAsync<DockerContainerLogs>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
+            SocketResponse<DockerContainerLogs?> Result = await Server.RunJsonAsync<DockerContainerLogs>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
             {
                 Data = JObject.FromObject(new ContainerLogsEvent
                 {
@@ -237,7 +237,7 @@ else
             {
                 Messages.Clear();
 
-                foreach (var i in lines)
+                foreach (string i in lines)
                 {
                     Messages.Add(new LogMessage { Text = i });
                 }
@@ -269,7 +269,7 @@ else
             return;
 
         RefreshTimer.Stop();
-        var Result = await Server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
+        SocketResponse<DockerContainerLogs?> Result = await Server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
         {
             Data = JObject.FromObject(new ContainerLogsEvent
             {
@@ -285,7 +285,7 @@ else
 
             if (lines.Any())
             {
-                foreach (var i in lines)
+                foreach (string i in lines)
                 {
                     if (Messages.Count >= 100)
                         Messages.RemoveAt(0);

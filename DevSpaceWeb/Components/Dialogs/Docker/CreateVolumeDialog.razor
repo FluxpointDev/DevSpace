@@ -37,7 +37,7 @@
         <br />
         <br />
         <RadzenStack>
-            @foreach (var i in DriverOptionsInputs)
+            @foreach (KeyValuePair<string, Tuple<string, string>> i in DriverOptionsInputs)
             {
                 @DockerNameValueInput.RenderElement(this, DriverOptionsInputs, "Option", i.Key, i.Value, IsLoading)
             }
@@ -50,7 +50,7 @@
         <br />
         <br />
         <RadzenStack>
-            @foreach (var i in LabelInputs)
+            @foreach (KeyValuePair<string, Tuple<string, string>> i in LabelInputs)
             {
                 @DockerNameValueInput.RenderElement(this, LabelInputs, "Label", i.Key, i.Value, IsLoading)
             }
@@ -106,7 +106,7 @@
             return;
 
         IsLoading = true;
-        var Response = await Server.RecieveJsonAsync<VolumeResponse>(new DockerEvent(DockerEventType.CreateVolume)
+        SocketResponse<VolumeResponse?> Response = await Server.RecieveJsonAsync<VolumeResponse>(new DockerEvent(DockerEventType.CreateVolume)
         {
             Data = JObject.FromObject(new VolumesCreateParameters
             {

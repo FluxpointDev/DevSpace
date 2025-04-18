@@ -200,9 +200,9 @@
 
     public string GetDisplayName(Enum enumValue)
     {
-        var enumValueAsString = enumValue.ToString();
-        var val = enumValue.GetType().GetMember(enumValueAsString).FirstOrDefault();
-        var enumVal = val?.GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetDescription() ?? enumValueAsString;
+        string enumValueAsString = enumValue.ToString();
+        MemberInfo? val = enumValue.GetType().GetMember(enumValueAsString).FirstOrDefault();
+        string? enumVal = val?.GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetDescription() ?? enumValueAsString;
 
         return enumVal;
     }
@@ -284,7 +284,7 @@
 
             AuthUser.AvatarId = null;
 
-            var Result = await UserManager.UpdateAsync(AuthUser);
+            IdentityResult Result = await UserManager.UpdateAsync(AuthUser);
             if (Result.Succeeded)
             {
                 try
@@ -497,7 +497,7 @@
 
             AuthUser.BackgroundId = null;
 
-            var Result = await UserManager.UpdateAsync(AuthUser);
+            IdentityResult Result = await UserManager.UpdateAsync(AuthUser);
             if (Result.Succeeded)
             {
                 try

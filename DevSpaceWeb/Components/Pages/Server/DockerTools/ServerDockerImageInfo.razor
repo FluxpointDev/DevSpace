@@ -199,7 +199,7 @@ else
                 <RadzenTableBody>
                     @if (Image.RepoTags != null)
                     {
-                            foreach (var i in Image.RepoTags)
+                            foreach (string i in Image.RepoTags)
                             {
                                     <RadzenTableRow>
                                         <RadzenTableCell>
@@ -305,7 +305,7 @@ else
                         <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
                             @if (Image.Config != null && Image.Config.ExposedPorts != null)
                             {
-                                @foreach (var i in Image.Config.ExposedPorts)
+                                @foreach (string i in Image.Config.ExposedPorts)
                                 {
                                     <RadzenBadge IsPill="true" BadgeStyle="BadgeStyle.Base" Shade="Shade.Dark" Text="@i" />
                                 }
@@ -328,7 +328,7 @@ else
             <br />
             @if (ShowEnvironment)
             {
-                foreach (var i in ParseEnvironment(Image.Config.Environment!))
+                foreach (KeyValuePair<string, string?> i in ParseEnvironment(Image.Config.Environment!))
                 {
                     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                     <RadzenText TextStyle="TextStyle.Body2">
@@ -355,7 +355,7 @@ else
                 <RadzenText TextStyle="TextStyle.H6">Labels</RadzenText>
             </div>
             <br />
-            @foreach (var i in Image.Config.Labels)
+            @foreach (KeyValuePair<string, string> i in Image.Config.Labels)
             {
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
@@ -394,9 +394,8 @@ else
                             <RadzenTableBody>
                                 @if (Layers != null)
                                 {
-                                    @for (var i = 0; i < Layers.Count(); i++)
+                                    @for (int col = 0; col < Layers.Count(); col++)
                                     {
-                                        var col = i;
                                         <RadzenTableRow>
                                             <RadzenTableCell>
                                                 @col
@@ -597,7 +596,7 @@ else
     public List<KeyValuePair<string, string?>> ParseEnvironment(IList<string> variables)
     {
         List<KeyValuePair<string, string?>> List = new List<KeyValuePair<string, string?>>();
-        foreach (var i in variables)
+        foreach (string i in variables)
         {
             string[] Split = i.Split('=');
             if (Split.Length == 1)
@@ -634,7 +633,7 @@ else
 
         try
         {
-            var Result = await Server.RunJsonAsync<DockerImageInfo>(Notifications, new DockerEvent(DockerEventType.ControlImage, ImageId, imageType: ControlImageType.View));
+            SocketResponse<DockerImageInfo?> Result = await Server.RunJsonAsync<DockerImageInfo>(Notifications, new DockerEvent(DockerEventType.ControlImage, ImageId, imageType: ControlImageType.View));
             Failed = !Result.IsSuccess;
             Image = Result.Data;
             if (Result.IsSuccess)
@@ -682,7 +681,7 @@ else
 
             IsActionLoading = true;
 
-            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, ImageId, imageType: option == "Force Remove" ? ControlImageType.ForceRemove : ControlImageType.Remove));
+            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, ImageId, imageType: option == "Force Remove" ? ControlImageType.ForceRemove : ControlImageType.Remove));
             if (Result.IsSuccess)
                 Image = null;
         }
@@ -980,7 +979,7 @@ else
         {
             IsActionRunning = true;
             await InvokeAsync(StateHasChanged);
-            foreach (var i in SelectedContainers)
+            foreach (DockerContainerInfo i in SelectedContainers)
             {
                 await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, i.Id, type));
             }

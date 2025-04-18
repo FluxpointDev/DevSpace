@@ -312,7 +312,7 @@ else
                     <RadzenText TextStyle="TextStyle.H6">Network Usage (Total)</RadzenText>
                     @if (Stats != null && Stats.Any() && Stats.First().Networks != null && Stats.First().Networks.Any())
                     {
-                        <RadzenDropDown class="ml-2" @bind-Value="@SelectedNetwork" Data="@Stats.First().Networks" TextProperty="key" ValueProperty="key" Style="" Change="@(() => { foreach (var i in Stats) { i.SelectedNetwork = SelectedNetwork; } })" />
+                        <RadzenDropDown class="ml-2" @bind-Value="@SelectedNetwork" Data="@Stats.First().Networks" TextProperty="key" ValueProperty="key" Style="" Change="@(() => { foreach (DockerContainerStats i in Stats) { i.SelectedNetwork = SelectedNetwork; } })" />
                     }
                 </div>
                 @if (Stats != null && Stats.Any() && Stats.First().Networks == null)
@@ -409,7 +409,7 @@ else
 
         try
         {
-            var Result = await Server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
+            SocketResponse<DockerContainerProcesses?> Result = await Server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
             Failed = !Result.IsSuccess;
             Container = Result.Data;
 
@@ -429,7 +429,7 @@ else
 
                 if (Result.Data.Stats.Networks != null)
                 {
-                    foreach(var i in Result.Data.Stats.Networks)
+                    foreach(KeyValuePair<string, DockerContainerStatsNetwork> i in Result.Data.Stats.Networks)
                     {
                         i.Value.NetworkReceive = i.Value.NetworkReceive.RoundNearestBytes();
                         i.Value.NetworkTransmit = i.Value.NetworkTransmit.RoundNearestBytes();
@@ -471,7 +471,7 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
             return;
 
-        var Result = await Server.RecieveJsonAsync<DockerContainerStats>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Stats));
+        SocketResponse<DockerContainerStats?> Result = await Server.RecieveJsonAsync<DockerContainerStats>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Stats));
         if (Result.IsSuccess && Result.Data != null)
         {
             Result.Data.SelectedNetwork = SelectedNetwork;
@@ -481,7 +481,7 @@ else
 
             if (Result.Data.Networks != null)
             {
-                foreach (var i in Result.Data.Networks)
+                foreach (KeyValuePair<string, DockerContainerStatsNetwork> i in Result.Data.Networks)
                 {
                     i.Value.NetworkReceive = i.Value.NetworkReceive.RoundNearestBytes();
                     i.Value.NetworkTransmit = i.Value.NetworkTransmit.RoundNearestBytes();

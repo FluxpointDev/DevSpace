@@ -189,7 +189,7 @@ else
         </div>
         <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
             <RadzenTableBody>
-                @foreach (var i in Plugin.Config.Linux.Capabilities)
+                @foreach (string i in Plugin.Config.Linux.Capabilities)
                 {
                     <RadzenTableRow>
                         <RadzenTableCell>
@@ -223,7 +223,7 @@ else
 
         try
         {
-            var Result = await Server.RunJsonAsync<Plugin>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Inspect));
+            SocketResponse<Plugin?> Result = await Server.RunJsonAsync<Plugin>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Inspect));
             Failed = !Result.IsSuccess;
             Plugin = Result.Data;
         }
@@ -252,7 +252,7 @@ else
 
             IsActionLoading = true;
 
-            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Remove));
+            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Remove));
             if (Result.IsSuccess)
                 Plugin = null;
         }

@@ -135,7 +135,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!string.IsNullOrEmpty(ClientId) && ObjectId.TryParse(ClientId, out ObjectId id) && _DB.API.Cache.TryGetValue(id, out var client))
+        if (!string.IsNullOrEmpty(ClientId) && ObjectId.TryParse(ClientId, out ObjectId id) && _DB.API.Cache.TryGetValue(id, out APIClient client))
             Client = client;
         else
             Client = null;
@@ -192,7 +192,7 @@
         bool Confirm = await DialogService.ShowConfirmAsync("Delete API Client", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
-            var Result = await Client.DeleteAsync(() =>
+            DeleteResult Result = await Client.DeleteAsync(() =>
             {
                 Client = null;
             });
@@ -217,7 +217,7 @@
         bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
-            var AuthUser = await Session.GetCurrentUserAsync();
+            AuthUser AuthUser = await Session.GetCurrentUserAsync();
             await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
             .Set(x => x.OwnerId, user.Id).Set(x => x.TokenHash, null).Set(x => x.GeneratedAt, null).Set(x => x.GeneratedBy, null), () =>
             {
@@ -292,7 +292,7 @@
         if (!CanGenerate)
             return;
 
-        var AuthUser = await Session.GetCurrentUserAsync();
+        AuthUser AuthUser = await Session.GetCurrentUserAsync();
         bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
         if (!TwoFactorValid)
         {

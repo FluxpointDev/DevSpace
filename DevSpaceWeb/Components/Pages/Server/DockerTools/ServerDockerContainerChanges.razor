@@ -79,7 +79,7 @@ else
             <RadzenTableBody>
                 @if (Changes != null && Changes.Changes != null)
                 {
-                    foreach (var c in Changes.Changes.OrderBy(x => x.Path))
+                    foreach (ContainerFileSystemChangeResponse c in Changes.Changes.OrderBy(x => x.Path))
                     {
                         <RadzenTableRow>
                             <RadzenTableCell>
@@ -118,7 +118,7 @@ else
 
         try
         {
-            var Result = await Server.RunJsonAsync<DockerContainerChanges>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Changes));
+            SocketResponse<DockerContainerChanges?> Result = await Server.RunJsonAsync<DockerContainerChanges>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Changes));
             Failed = !Result.IsSuccess;
             Changes = Result.Data;
         }

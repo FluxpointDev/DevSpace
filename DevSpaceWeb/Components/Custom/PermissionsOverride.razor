@@ -364,20 +364,20 @@
                     break;
                 case OverrideType.Roles:
                     {
-                        if (SelectedPermission != null && _DB.Roles.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out var role) && CurrentRank > role.GetPosition())
+                        if (SelectedPermission != null && _DB.Roles.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out TeamRoleData role) && CurrentRank > role.GetPosition())
                             Resource.AddRolePermissionAsync(SelectedPermission.ObjectId.Value, perms);
                     }
 
                     break;
                 case OverrideType.Members:
                     {
-                        if (SelectedPermission != null && _DB.Members.Cache.TryGetValue(Team.Members[SelectedPermission.ObjectId.Value], out var member) && CurrentRank >= member.GetRank())
+                        if (SelectedPermission != null && _DB.Members.Cache.TryGetValue(Team.Members[SelectedPermission.ObjectId.Value], out TeamMemberData member) && CurrentRank >= member.GetRank())
                             Resource.AddMemberPermissionAsync(SelectedPermission.ObjectId.Value, perms);
                     }
                     break;
                 case OverrideType.APIs:
                     {
-                        if (SelectedPermission != null && _DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out var client) && client.CanManage(Member, false))
+                        if (SelectedPermission != null && _DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out APIClient client) && client.CanManage(Member, false))
                             Resource.AddApiPermissionAsync(SelectedPermission.ObjectId.Value, perms);
                     }
                     break;

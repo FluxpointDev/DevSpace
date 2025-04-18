@@ -297,7 +297,7 @@
         IsActionRunning = true;
         await InvokeAsync(StateHasChanged);
 
-        foreach(var i in SelectedImages)
+        foreach(DockerImageInfo i in SelectedImages)
         {
             await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, i.ID, imageType: type));
         }
@@ -402,12 +402,12 @@
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
-        var Response = await Server.RecieveJsonAsync<RegistryLimitResponse>(new DockerEvent(DockerEventType.GetPullLimit));
+        SocketResponse<RegistryLimitResponse?> Response = await Server.RecieveJsonAsync<RegistryLimitResponse>(new DockerEvent(DockerEventType.GetPullLimit));
         RegistryLimitResponse? Limits = null;
         if (Response.IsSuccess)
             Limits = Response.Data;
 
-        var Result = await Dialog.OpenAsync<PullImageDialog>("Pull Docker Image", new Dictionary<string, object?>
+        SocketResponse<PullImageDialog?> Result = await Dialog.OpenAsync<PullImageDialog>("Pull Docker Image", new Dictionary<string, object?>
         {
             { "Limits", Limits }
         });

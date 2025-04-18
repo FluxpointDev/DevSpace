@@ -139,7 +139,7 @@
             return;
         }
 
-        var Data = await _editor.GetValue();
+        string Data = await _editor.GetValue();
         if (string.IsNullOrEmpty(Data))
         {
             Notifications.Notify(NotificationSeverity.Error, "Compose Error", "Compose content is empty.");
@@ -147,7 +147,7 @@
         }
         IsBuilding = true;
 
-        var res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
+        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
         {
             Data = JObject.FromObject(new CreateStackEvent
             {
@@ -161,7 +161,7 @@
             IsReady = true;
             StateHasChanged();
             StackId = res.Data.Id;
-            var Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
+            SocketResponse<object?> Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
             if (Res.IsSuccess)
                 Success = true;
             else

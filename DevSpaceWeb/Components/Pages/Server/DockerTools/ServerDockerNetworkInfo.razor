@@ -246,7 +246,7 @@ else
             </div>
             <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
                 <RadzenTableBody>
-                    @foreach (var i in Network.Options)
+                    @foreach (KeyValuePair<string, string> i in Network.Options)
                     {
                         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                         <RadzenText TextStyle="TextStyle.Body2">
@@ -267,7 +267,7 @@ else
         <br />
         @if (Network.Labels != null)
         {
-            foreach (var i in Network.Labels)
+            foreach (KeyValuePair<string, string> i in Network.Labels)
             {
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
@@ -346,7 +346,7 @@ else
 
         try
         {
-            var Result = await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.View));
+            SocketResponse<DockerNetworkInfo?> Result = await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.View));
             Failed = !Result.IsSuccess;
             Network = Result.Data;
         }
@@ -390,7 +390,7 @@ else
 
             IsActionLoading = true;
 
-            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.Remove));
+            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.Remove));
             if (Result.IsSuccess)
                 Network = null;
         }

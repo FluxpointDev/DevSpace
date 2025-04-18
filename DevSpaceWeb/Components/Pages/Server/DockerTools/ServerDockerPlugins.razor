@@ -230,7 +230,7 @@
         {
             IsActionRunning = true;
             await InvokeAsync(StateHasChanged);
-            foreach(var i in SelectedPlugins)
+            foreach(Plugin i in SelectedPlugins)
             {
                 await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, i.Name, pluginType: type));
             }
@@ -304,7 +304,7 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
                             return;
 
-                        var AuthUser = await Session.GetCurrentUserAsync();
+                        AuthUser AuthUser = await Session.GetCurrentUserAsync();
                         bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
                         if (!TwoFactorValid)
                         {
@@ -388,7 +388,7 @@
         if (Member == null || Server == null)
             return;
 
-        var AuthUser = await Session.GetCurrentUserAsync();
+        AuthUser AuthUser = await Session.GetCurrentUserAsync();
         bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
         if (!TwoFactorValid)
         {

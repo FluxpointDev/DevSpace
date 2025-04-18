@@ -420,9 +420,9 @@ else
                                         Ports
                                     </RadzenTableCell>
                                     <RadzenTableCell>
-                                        @foreach (var p in Container.HostConfig.PortBindings)
+                                        @foreach (KeyValuePair<string, IList<PortBinding>> p in Container.HostConfig.PortBindings)
                                         {
-                                            foreach (var i in p.Value)
+                                            foreach (PortBinding i in p.Value)
                                             {
                                                 if (string.IsNullOrEmpty(i.HostIP))
                                                 {
@@ -460,7 +460,7 @@ else
                     else if (Container.Config.Labels != null)
                     {
                         <div class="dash-box-content">
-                            @foreach (var i in Container.Config.Labels)
+                            @foreach (KeyValuePair<string, string> i in Container.Config.Labels)
                             {
                                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body2">
@@ -483,7 +483,7 @@ else
                     {
                         <div class="dash-box-content">
 
-                            @foreach (var i in Container.Config.Env.ParseEnvironment())
+                            @foreach (KeyValuePair<string, string> i in Container.Config.Env.ParseEnvironment())
                             {
                                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body2">
@@ -1044,7 +1044,7 @@ else
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
                 return "You do not have permission for Manage Containers";
 
-            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Rename)
+            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Rename)
             {
                 Data = JObject.FromObject(new CreateContainerEvent
                 {
@@ -1142,7 +1142,7 @@ else
 
         try
         {
-            var Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
+            SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
             Failed = !Result.IsSuccess;
             Container = Result.Data;
 
@@ -1247,11 +1247,11 @@ else
         SecurityScanRunning = true;
         try
         {
-            var Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Scan));
+            SocketResponse<CreateContainerResponse?> Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Scan));
             if (Result.IsSuccess && Result.Data != null)
             {
                 await Task.Delay(new TimeSpan(0, 0, 15));
-                var ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
+                SocketResponse<SecurityData?> ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
                 {
                     Data = JObject.FromObject(new CreateContainerResponse
                     {
@@ -1289,7 +1289,7 @@ else
                     if (lines.Any())
                     {
                         StringBuilder builder = new StringBuilder();
-                        foreach (var i in lines)
+                        foreach (string i in lines)
                         {
                             if (builder.Length != 0 || i.StartsWith("{"))
                                 builder.Append(i);
@@ -1334,12 +1334,12 @@ else
                                     if (SecurityResults.Any())
                                     {
                                         SecurityHasIssues = true;
-                                        foreach (var i in SecurityResults)
+                                        foreach (SecurityResult i in SecurityResults)
                                         {
                                             if (i.Vulnerabilities != null)
                                                 continue;
 
-                                            foreach (var v in i.Vulnerabilities)
+                                            foreach (SecurityVulnerability v in i.Vulnerabilities)
                                             {
                                                 if (string.IsNullOrEmpty(i.CurrentSeverity))
                                                     i.CurrentSeverity = v.Severity;
@@ -1448,7 +1448,7 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))
             return;
 
-        var Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Recreate));
+        SocketResponse<CreateContainerResponse?> Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Recreate));
         if (Result.IsSuccess && Result.Data != null)
         {
             Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + Result.Data.ID);
@@ -1472,7 +1472,7 @@ else
             return;
         }
 
-        var Result = await Dialog.OpenAsync<ContainerJoinNetworkDialog>("Container Join Network", new Dictionary<string, object>()
+        dynamic Result = await Dialog.OpenAsync<ContainerJoinNetworkDialog>("Container Join Network", new Dictionary<string, object>()
         {
             { "ContainerId", Container.ID }
         }, new DialogOptions());

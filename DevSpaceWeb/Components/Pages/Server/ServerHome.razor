@@ -13,7 +13,7 @@
         </div>
         <RadzenText TextStyle="TextStyle.H6">Server</RadzenText>
     </div>
-    @if (Permissions.CheckFailedServerPermissions(Member, Team, Server, ServerPermission.ViewServer, out var failedPerm))
+    @if (Permissions.CheckFailedServerPermissions(Member, Team, Server, ServerPermission.ViewServer, out ServerPermission failedPerm))
     {
         <br />
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -517,7 +517,7 @@
         if (!Member.HasServerPermission(Team, Server, ServerPermission.ViewServer))
             return;
 
-        var Response = await Server.RecieveJsonAsync<SystemInfoResponse>(new DockerEvent(DockerEventType.SystemInfo));
+        SocketResponse<SystemInfoResponse?> Response = await Server.RecieveJsonAsync<SystemInfoResponse>(new DockerEvent(DockerEventType.SystemInfo));
         if (Response.IsSuccess)
         {
             Data = Response.Data;

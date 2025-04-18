@@ -86,7 +86,7 @@
                         }
                         else if (user.Roles.Any())
                         {
-                            @foreach(var i in user.GetCachedRoles().OrderByDescending(x => x.GetPosition()))
+                            @foreach(TeamRoleData i in user.GetCachedRoles().OrderByDescending(x => x.GetPosition()))
                             {
                                 <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Base" Text="@i.Name" />
                             }
@@ -339,7 +339,7 @@
             {
                 return "Failed to create member.";
             }
-            var Clone = Team.Members.ToDictionary(x => x.Key, x => x.Value);
+            Dictionary<ObjectId, ObjectId> Clone = Team.Members.ToDictionary(x => x.Key, x => x.Value);
             Clone.Add(memberData.UserId, memberData.Id);
             await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Clone), () =>
         {
