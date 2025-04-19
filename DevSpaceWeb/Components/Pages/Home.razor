@@ -1,3 +1,137 @@
-﻿@page "/"
+﻿@using DevSpaceWeb.Components.Pages.Teams
+@using static DevSpaceWeb.Components.Pages.Previews.PreviewsPage
+@page "/"
 
-<DevSpaceWeb.Components.Pages.Teams.MyTeams></DevSpaceWeb.Components.Pages.Teams.MyTeams>
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:account-supervisor-circle"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Dashboard</RadzenText>
+        <br />
+        <br />
+    </div>
+    <br />
+    <div style="display: flex; align-items: flex-start; flex-wrap: wrap;">
+        @foreach (Feature i in Features)
+        {
+            <a href="@i.Path" target="_blank" style="color: cornflowerblue">
+                <div Class="tool-item">
+                    <RadzenText TextStyle="TextStyle.Subtitle1">@i.Name</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline">@i.Desc</RadzenText>
+                    <span class="iconify" data-icon="@i.Icon"></span>
+                    
+                </div>
+            </a>
+        }
+    </div>
+</div>
+
+<MyTeams></MyTeams>
+
+<style>
+    .tool-item {
+        display: inline-block !important;
+        margin-right: 6px;
+        margin-bottom: 6px;
+        margin-top: 6px;
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #2f2f31 !important;
+        background-color: #161617 !important;
+        width: 8.4rem;
+        height: 8.4rem;
+        text-align: center;
+    }
+
+        .tool-item:hover {
+            background-color: #1b1b1c !important;
+            border: 1px solid #3b3b3e !important;
+        }
+
+        .tool-item .rz-text-subtitle1 {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tool-item .rz-text-subtitle2 {
+            color: var(--rz-text-overline-color) !important;
+        }
+
+        .tool-item .rz-text-overline {
+            display: block;
+            font-size: 0.8rem;
+            letter-spacing: var(--rz-text-subtitle2-letter-spacing);
+            color: var(--rz-text-tertiary-color);
+            margin-bottom: 12px;
+        }
+
+
+        .tool-item .iconify {
+            width: 36px;
+            height: 36px;
+        }
+</style>
+
+@code {
+    public Feature[] Features = new Feature[]
+    {
+        new Feature
+        {
+            Name = "Image Tools",
+            Icon = "mdi:image-edit",
+            Path = "https://ezgif.com",
+            Desc = "Ezgif"
+        },
+        new Feature
+        {
+            Name = "Whiteboard",
+            Icon = "mdi:draw",
+            Path = "https://excalidraw.com/",
+            Desc = "Excalidraw"
+        },
+        new Feature
+        {
+            Name = "Database Design",
+            Icon = "mdi:flowchart",
+            Path = "https://dbdiagram.io",
+            Desc = "dbdiagram.io"
+        },
+        new Feature
+        {
+            Name = "Icons",
+            Icon = "mdi:puzzle",
+            Path = "https://icon-sets.iconify.design",
+            Desc = "Iconify"
+        },
+        new Feature
+        {
+            Name = "DNS/IP",
+            Icon = "mdi:internet-protocol",
+            Path = "https://dnschecker.org/all-tools.php",
+            Desc = "dnschecker.org"
+        },
+        new Feature
+        {
+            Name = "Open Graph",
+            Icon = "mdi:tag-text",
+            Path = "https://orcascan.com/tools/open-graph-validator",
+            Desc = "orcascan.com"
+        },
+        new Feature
+        {
+            Name = "Private Pastes",
+            Icon = "mdi:file-code",
+            Path = "https://zerobin.org/",
+            Desc = "zerobin.org"
+        },
+        new Feature
+        {
+            Name = "Json Parser",
+            Icon = "mdi:code-json",
+            Path = "https://jsonformatter.org/",
+            Desc = "jsonformatter.org"
+        },
+    };    
+}
