@@ -4,6 +4,8 @@
 @using Swashbuckle.AspNetCore.Swagger
 @inject EmailService EmailService
 @inject ISwaggerProvider Swagger
+@inject DialogService DialogService
+@inject UserManager<AuthUser> UserManager
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -21,6 +23,14 @@
     <p>Projects: @_DB.Projects.Cache.Keys.Count()</p>
     <p>Logs: @_DB.Logs.Cache.Keys.Count()</p>
     <br />
+
+    <RadzenLabel Text="Email" class="rz-my-05"></RadzenLabel>
+    <RadzenTextBox @bind-Value="@EmailInput" Style="width: 100%" aria-label="Email TextBox" AutoCompleteType="AutoCompleteType.Off" inputmode="email"
+                   autocapitalize="none" MaxLength="100" />
+    <br />
+    <br />
+    <RadzenButton Text="Verify Email" ButtonStyle="ButtonStyle.Light" Click="@VerifyEmail" Size="ButtonSize.Small" />
+
     <RadzenStack Gap="10px" JustifyContent="JustifyContent.Center" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
         <a href="@("/admin/instance")">
             <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
@@ -100,6 +110,36 @@
     public int MaxImagesUpload { get; set; }
 
     public string Value { get; set; }
+
+    public string EmailInput { get; set; }
+
+    public async Task VerifyEmail()
+    {
+        if (string.IsNullOrEmpty(EmailInput))
+            return;
+
+        bool Confirm = await DialogService.ShowConfirmAsync("Verify Email", $"Are you sure you want to verify the account for {EmailInput}", "Confirm", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        AuthUser? user = await UserManager.FindByEmailAsync(EmailInput);
+        if (user == null)
+        {
+            await DialogService.ShowInfoAsync("Unknown Account", "Could not find account for " + EmailInput);
+            return;
+        }
+
+        if (user.EmailConfirmed)
+        {
+            await DialogService.ShowInfoAsync("Email Verified", $"This account email has already been verified.");
+            return;
+        }
+
+        user.EmailConfirmed = true;
+        await UserManager.UpdateAsync(user);
+
+        await DialogService.ShowInfoAsync("Email Verified", EmailInput);
+    }
 
     protected override async Task OnInitializedAsync()
     {
