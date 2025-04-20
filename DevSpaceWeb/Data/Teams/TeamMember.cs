@@ -44,6 +44,19 @@ public class TeamMemberData
         return "Unknown User";
     }
 
+    public string GetCurrentColor()
+    {
+        if (Team != null)
+        {
+            foreach (ObjectId i in Roles.OrderByDescending(x => Team.RolePositions.GetValueOrDefault(x)))
+            {
+                if (_DB.Roles.Cache.TryGetValue(i, out TeamRoleData? role) && !string.IsNullOrEmpty(role.Color))
+                    return role.Color;
+            }
+        }
+        return "#C4C9CE";
+    }
+
     public string GetCurrentAvatar()
     {
 

@@ -1,9 +1,9 @@
-﻿@using DevSpaceWeb.Components.Dialogs
+﻿@using System.Linq.Dynamic.Core
 @using DevSpaceWeb.Components.Dialogs.Members
 @using DevSpaceWeb.Models.Defaults
 @using DevSpaceWeb.Models.Teams
+@inject ContextMenuService ContextMenuService
 @inject DialogService DialogService
-@inject TooltipService TooltipService
 
 <PageTitle>Team Members | @_Data.Config.Instance.Name</PageTitle>
 
@@ -31,116 +31,100 @@
     {
         <br />
         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" Disabled="@(Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))" />
-        <br />
-        <RadzenDataList WrapItems="true" AllowPaging="true" Data="@Members">
-            <Template Context="user">
-                <RadzenCard Style="width:350px; max-width: 350px;">
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                        @if (_DB.Users.TryGetValue(user.UserId, out PartialUserData? ud))
+        <RadzenDataGrid @ref="@Grid" Data="@MembersList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
+                        AllowRowSelectOnRowClick="false"
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                        ShowPagingSummary="true" PagingSummaryFormat="@(Count + " member" + (Count != 1 ? "s" : "") )"
+                        AllowSorting="false" AllowFiltering="false"
+                        TItem="TeamMemberData" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
+            <Columns>
+                <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true">
+                    <Template>
+                        <RadzenImage Path="@context.GetCurrentAvatar()"></RadzenImage>
+                        <div class="members-item-names">
+                            <RadzenText TextStyle="TextStyle.Body1" Style="@($"color: {context.GetCurrentColor()};")">
+                                @context.GetCurrentName()
+                            </RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color); font-weight: 400;">
+                                @context.GetUsername()
+                            </RadzenText>
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Created" Width="100px">
+                    <Template>
+                        @Utils.GetLocalDate(Session, _DB.Users[context.UserId].Id.CreationTime)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Joined" Width="100px">
+                    <Template>
+                        @Utils.GetLocalDate(Session, context.JoinedAt)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Roles" Width="200px">
+                    <Template>
+                        @if (!context.Roles.Any())
                         {
-                            <RadzenImage Path="@user.GetCurrentAvatar()" Style="width: 60px; height: 60px; border-radius: 50%" />
-                            <div>
-                                <RadzenText TextStyle="TextStyle.H6">
-                                    @user.GetCurrentName()
-                                </RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 400; margin-top: 6px;">@("@" + ud.UserName)</RadzenText>
-                            </div>
-                            
+                            @("No roles")
                         }
                         else
                         {
-                            <RadzenImage Path="https://cdn.fluxpoint.dev/devspace/user_avatar.webp" Style="width: 60px; height: 60px; border-radius: 50%" />
-                            <div>
-                                <RadzenText TextStyle="TextStyle.H6">
-                                    @user.GetCurrentName()
-                                </RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 400; margin-top: 6px;">Deleted User</RadzenText>
-                            </div>
-                        }
-                    </RadzenStack>
-                    <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" class="mt-3 mb-3">
-                        @if (Team != null && user.UserId == Team.OwnerId)
-                        {
-                            <RadzenIcon class="filled-icon" Icon="assignment_ind" IconColor="#F0B232" MouseEnter="@(element => ShowTooltip(element, "Team Owner"))" />
-                        }
-                        else if (user.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
-                        {
-                            <RadzenIcon class="filled-icon" Icon="shield_person" IconColor="#D88838" MouseEnter="@(element => ShowTooltip(element, "Global Administrator"))" />
-                        }
-                        else
-                        {
-                            <RadzenIcon class="filled-icon" Icon="person" IconColor="#1ABC9C" MouseEnter="@(element => ShowTooltip(element, "Member"))" />
-                        }
-                        @if (user.Disabled != null)
-                        {
-                            <RadzenIcon class="filled-icon" Icon="person_off" IconColor="#ff3535" MouseEnter="@(element => ShowTooltip(element, "Disabled Member"))" />                            
-                        }
-                    </RadzenStack>
-                    <RadzenText TextStyle="TextStyle.Subtitle2" class="@(user.Roles.Any() ? "rz-mb-1" : "rz-mb-05")">Roles</RadzenText>
-                    <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.NoWrap" Style="overflow: hidden;">
-                        @if (user.Roles.Any())
-                        {
-                            @foreach(TeamRoleData i in user.GetCachedRoles().OrderByDescending(x => x.GetPosition()))
+                            <RoleBadge Role="@context.GetCachedRoles().OrderByDescending(x => x.GetPosition()).First()"></RoleBadge>
+                            if (context.GetCachedRoles().Count() > 1)
                             {
-                                <RoleBadge Role="@i"></RoleBadge>
+                                <span style="margin-left: 4px; color: #C4C9CE; text-transform: none; font-size: 13px !important; font-weight: 500 !important;" class="rz-badge rz-badge-base rz-variant-outlined rz-shade-default">+@(context.GetCachedRoles().Count() - 1)</span>
                             }
                         }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Status" Width="100px">
+                    <Template>
+                        @if (context.Disabled == null)
+                        {
+                            <span class="iconify" data-icon="mdi:success-circle" style="color: var(--rz-success-dark);"></span>
+                            <span>Enabled</span>
+                        }
                         else
                         {
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                No roles
-                            </RadzenText>
-                        }
-                    </RadzenStack>
-                    <hr style="border: none; background-color: rgba(0,0,0,.2); height: 1px; margin: 1rem 0;" />
-                    @if (_DB.Users.TryGetValue(user.UserId, out PartialUserData? ud))
-                    {
-                        <RadzenStack Gap="6px" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" JustifyContent="JustifyContent.SpaceEvenly">
-                            <RadzenMenu Responsive="false">
-                                <RadzenMenuItem Text="View" Icon="visibility">
-                                    <RadzenMenuItem Text="Info" Icon="person" Click="@(() => ViewInfo(ud))"></RadzenMenuItem>
-                                    <RadzenMenuItem Text="Roles" Icon="sell" Click="@(() => ViewRoles(ud))" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles))"></RadzenMenuItem>
-                                    <RadzenMenuItem Text="Permissions" Icon="shield_person" Click="@(() => ViewPermissions(ud))" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewPermissions))"></RadzenMenuItem>
-                                    <RadzenMenuItem Text="Resources" Icon="dynamic_form" Click="@(() => ViewResources(ud))"></RadzenMenuItem>
-                                </RadzenMenuItem>
-                            </RadzenMenu>
-                            <RadzenMenu Responsive="false">
-                                <RadzenMenuItem Text="Manage" Icon="manage_accounts">
-                                    <RadzenMenuItem Text="Change Roles" Icon="sell" Click="@(() => ChangeMemberRoles(ud))" Disabled="@(Team == null || Member == null || (ud.Id == Team.OwnerId && Member.UserId != Team.OwnerId) || !Member.HasTeamPermission(Team, TeamPermission.AssignRoles))"></RadzenMenuItem>
-                                    @if (user.Disabled == null)
-                                    {
-                                        <RadzenMenuItem Text="Disable Member" Icon="cancel" Click="@(() => DisableMember(ud))" Disabled="@(Team == null || Member == null ||ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
-                                    }
-                                    else
-                                    {
-                                        <RadzenMenuItem Text="Enable Member" Icon="check" Click="@(() => EnableMember(ud))" Disabled="@(Team == null || Member == null || ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
-                                    }
 
-                                    @if (Team != null && Member != null && ud.Id != Team.OwnerId && Member.UserId == Team.OwnerId)
-                                    {
-                                        <RadzenMenuItem Text="Transfer Ownership" Icon="social_distance" Click="@(() => TransferOwnership(ud))"></RadzenMenuItem>
-                                    }
-                                    <RadzenMenuItem Text="Remove Member" Icon="person_cancel" Click="@(() => RemoveTeamMember(ud.Id))" Disabled="@(Team == null || Member == null || ud.Id == Team.OwnerId || Member.UserId == ud.Id || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))"></RadzenMenuItem>
-                                </RadzenMenuItem>
-                            </RadzenMenu>
+                            <span class="iconify" data-icon="mdi:cross-circle" style="color: var(--rz-danger-dark);"></span>
+                            <span>Disabled</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Type" Width="100px">
+                    <Template>
+                       @if (context.UserId == Team.OwnerId)
+                        {
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="owner" IsPill="true" />
+                        }
+                        else if (context.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                        {
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Global Admin" IsPill="true" />
+                        }
+                        else if (context.HasTeamPermission(Team, TeamPermission.TeamAdministrator))
+                        {
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Team Admin" IsPill="true" />
+                        }
+                        else
+                        {
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Member" IsPill="true" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Actions" Width="200px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                    <Template>
+                        <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
+                            <RadzenButton Click="@(args => ShowContextMenuWithViewItems(context, args))" Icon="visibility" Text="View" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />
+                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="manage_accounts" Text="Manage" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />
                         </RadzenStack>
-                    }
-                </RadzenCard>
-            </Template>
-        </RadzenDataList>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
     }
 </div>
 
-<style>
-    .rz-body .rz-navigation-item-wrapper .rz-navigation-item-icon, .filled-icon {
-    font-variation-settings: 'FILL' 1;
-    }
-
-    .filled-icon {
-    font-weight: 500;
-    font-size: 1.5rem;
-    }
-</style>
 
 @code {
     [CascadingParameter]
@@ -149,15 +133,128 @@
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
 
-    protected override async Task OnInitializedAsync()
+    IQueryable<TeamMemberData>? MembersList;
+    public int Count = 0;
+    public bool IsLoading = true;
+    RadzenDataGrid<TeamMemberData> Grid;
+
+    public async Task LoadData(LoadDataArgs args)
     {
-        if (Team != null)
-            Members = Team.CachedMembers.Values;
+        if (Member == null || Team == null)
+            return;
+
+        if (!Member.HasTeamPermission(Team, TeamPermission.ViewMembers))
+            return;
+
+        IQueryable<TeamMemberData> query = Team.CachedMembers.Values.AsQueryable();
+
+        if (!string.IsNullOrEmpty(args.Filter))
+            query = query.Where(args.Filter);
+
+        if (!string.IsNullOrEmpty(args.OrderBy))
+            query = query.OrderBy(args.OrderBy);
+
+        Count = query.Count();
+        MembersList = query.OrderBy(x => x.GetCurrentName()).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
+
+        IsLoading = false;
     }
 
-    void ShowTooltip(ElementReference elementReference, string text) => TooltipService.Open(elementReference, text, null);
+    void ShowContextMenuWithViewItems(TeamMemberData item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem>
+            {
+                new ContextMenuItem(){ Text = "Info", Icon = "person" },
+                new ContextMenuItem(){ Text = "Roles", Icon = "sell", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles) },
+                new ContextMenuItem(){ Text = "Permissions", Icon = "shield_person", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewPermissions) },
+                new ContextMenuItem(){ Text = "Resources", Icon = "dynamic_form" },
+            }, x => MenuItemClick(x, item));
+    }
 
-    public IEnumerable<TeamMemberData> Members { get; set; }
+    void ShowContextMenuWithManageItems(TeamMemberData item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem>
+            {
+                new ContextMenuItem(){ Text = "Change Roles", Icon = "sell", Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.AssignRoles) },
+                new ContextMenuItem
+                {
+                    Text = item.Disabled == null ? "Disable Member" : "Enable Member",
+                    Icon = item.Disabled == null ? "cancel" : "check",
+                    Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers)
+                },
+                new ContextMenuItem() { Text = "Transfer Ownership", Icon = "social_distance", Disabled = item.UserId != Team.OwnerId },
+                new ContextMenuItem() { Text = "Remove Member", Icon = "person_cancel", Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers) }
+
+            }, x => MenuItemClick(x, item));
+    }
+
+    void MenuItemClick(MenuItemEventArgs args, TeamMemberData item)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Member == null || Team == null)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            switch (args.Text)
+            {
+                case "Info":
+                    {
+                        ViewInfo(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Roles":
+                    {
+                        ViewRoles(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Permissions":
+                    {
+                        ViewPermissions(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Resources":
+                    {
+                        ViewResources(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Change Roles":
+                    {
+                        ChangeMemberRoles(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Enable Member":
+                    {
+                        EnableMember(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Disable Member":
+                    {
+                        DisableMember(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Transfer Ownership":
+                    {
+                        TransferOwnership(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Remove Member":
+                    {
+                        RemoveTeamMember(item.UserId);
+                    }
+                    break;
+            }
+        });
+
+        ContextMenuService.Close();
+    }
 
     public async Task EnableMember(PartialUserData user)
     {
@@ -320,10 +417,10 @@
                 return "This user account has already been added to the team.";
 
             TeamMemberData memberData = new TeamMemberData
-                {
-                    TeamId = Team.Id,
-                    UserId = user.Id
-                };
+            {
+                TeamId = Team.Id,
+                UserId = user.Id
+            };
 
             try
             {
@@ -519,7 +616,7 @@
         }, new DialogOptions
         {
             Width = "850px"
-        });        
+        });
     }
 
     public async Task ViewResources(PartialUserData user)
