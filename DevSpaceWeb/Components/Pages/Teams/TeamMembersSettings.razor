@@ -78,17 +78,11 @@
                     </RadzenStack>
                     <RadzenText TextStyle="TextStyle.Subtitle2" class="@(user.Roles.Any() ? "rz-mb-1" : "rz-mb-05")">Roles</RadzenText>
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.NoWrap" Style="overflow: hidden;">
-                        @if (!Member.HasTeamPermission(Team, TeamPermission.ViewRoles))
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                No View Roles permission.
-                            </RadzenText>
-                        }
-                        else if (user.Roles.Any())
+                        @if (user.Roles.Any())
                         {
                             @foreach(TeamRoleData i in user.GetCachedRoles().OrderByDescending(x => x.GetPosition()))
                             {
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Base" Text="@i.Name" />
+                                <RoleBadge Role="@i"></RoleBadge>
                             }
                         }
                         else
