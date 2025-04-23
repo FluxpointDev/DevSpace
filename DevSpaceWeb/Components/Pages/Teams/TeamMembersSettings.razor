@@ -32,6 +32,7 @@
         <br />
         <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" Disabled="@(Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))" />
         <br />
+        <br />
         <RadzenDataGrid @ref="@Grid" Data="@MembersList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                         AllowRowSelectOnRowClick="false"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
@@ -73,7 +74,7 @@
                             <RoleBadge Role="@context.GetCachedRoles().OrderByDescending(x => x.GetPosition()).First()"></RoleBadge>
                             if (context.GetCachedRoles().Count() > 1)
                             {
-                                <span style="margin-left: 4px; color: #C4C9CE; text-transform: none; font-size: 13px !important; font-weight: 500 !important;" class="rz-badge rz-badge-base rz-variant-outlined rz-shade-default">+@(context.GetCachedRoles().Count() - 1)</span>
+                                <span @onclick="@(() => ViewRoles(_DB.Users[context.UserId]))" style="cursor: pointer; margin-left: 4px; color: #C4C9CE; text-transform: none; font-size: 13px !important; font-weight: 500 !important;" class="rz-badge rz-badge-base rz-variant-outlined rz-shade-default">+@(context.GetCachedRoles().Count() - 1)</span>
                             }
                         }
                     </Template>
@@ -113,7 +114,7 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Actions" Width="200px" Frozen="true" FrozenPosition="FrozenColumnPosition.Right">
+                <RadzenDataGridColumn Title="Actions" Width="200px">
                     <Template>
                         <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
                             <RadzenButton Click="@(args => ShowContextMenuWithViewItems(context, args))" Icon="visibility" Text="View" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />
@@ -200,8 +201,8 @@
         ContextMenuService.Open(args,
             new List<ContextMenuItem>
             {
-                new ContextMenuItem(){ Text = "Info", Icon = "person" },
-                new ContextMenuItem(){ Text = "Roles", Icon = "sell", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles) },
+                new ContextMenuItem(){ Text = "Info", Icon = "person", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewMembers) },
+                new ContextMenuItem(){ Text = "Roles", Icon = "sell", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewMembers) },
                 new ContextMenuItem(){ Text = "Permissions", Icon = "shield_person", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewPermissions) },
                 new ContextMenuItem(){ Text = "Resources", Icon = "dynamic_form" },
             }, x => MenuItemClick(x, item));
@@ -622,9 +623,9 @@
 
     public async Task ViewRoles(PartialUserData user)
     {
-        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles))
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ViewMembers))
         {
-            Session.Notifications.ShowPermissionWarning(TeamPermission.ViewRoles);
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ViewMembers);
             return;
         }
 
