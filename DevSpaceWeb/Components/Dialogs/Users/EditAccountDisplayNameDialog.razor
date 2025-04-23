@@ -36,11 +36,14 @@
 
     protected override void OnInitialized()
     {
-        AccountForm.DisplayName = Session.CurrentUser.DisplayName;
+        AccountForm.Username = Session.CurrentUser.UserName;
+        AccountForm.DisplayName = Session.CurrentUser?.DisplayName;
     }
 
     async Task Submit()
     {
+        Console.WriteLine("Submit Data");
+
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
@@ -53,8 +56,20 @@
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
             return;
         }
+        bool ShouldUpdate = false;
 
-        if ((string.IsNullOrEmpty(AccountForm.DisplayName) && !string.IsNullOrEmpty(user.DisplayName)) || (!string.IsNullOrEmpty(AccountForm.DisplayName) && string.IsNullOrEmpty(user.DisplayName) || !user.DisplayName.Equals(AccountForm.DisplayName, StringComparison.OrdinalIgnoreCase)))
+        if (string.IsNullOrEmpty(AccountForm.DisplayName))
+        {
+            if (!string.IsNullOrEmpty(user.DisplayName))
+                ShouldUpdate = true;
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(user.DisplayName) || !user.DisplayName.Equals(AccountForm.DisplayName, StringComparison.OrdinalIgnoreCase))
+                ShouldUpdate = true;
+        }
+
+        if (ShouldUpdate)
         {
             Session.CurrentUser.DisplayName = AccountForm.DisplayName;
             user.DisplayName = AccountForm.DisplayName;

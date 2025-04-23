@@ -71,7 +71,20 @@
                 return;
         }
 
-        if ((string.IsNullOrEmpty(AccountForm.Nickname) && !string.IsNullOrEmpty(SelectedMember.NickName)) || (!string.IsNullOrEmpty(AccountForm.Nickname) && string.IsNullOrEmpty(SelectedMember.NickName) || !SelectedMember.NickName.Equals(AccountForm.Nickname, StringComparison.OrdinalIgnoreCase)))
+        bool ShouldUpdate = false;
+
+        if (string.IsNullOrEmpty(AccountForm.Nickname))
+        {
+            if (!string.IsNullOrEmpty(SelectedMember.NickName))
+                ShouldUpdate = true;
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(SelectedMember.NickName) || !SelectedMember.NickName.Equals(AccountForm.Nickname, StringComparison.OrdinalIgnoreCase))
+                ShouldUpdate = true;
+        }
+
+        if (ShouldUpdate)
         {
             FilterDefinition<TeamMemberData> filter = Builders<TeamMemberData>.Filter.Eq(r => r.Id, SelectedMember.Id);
             UpdateDefinition<TeamMemberData> update = new UpdateDefinitionBuilder<TeamMemberData>()
