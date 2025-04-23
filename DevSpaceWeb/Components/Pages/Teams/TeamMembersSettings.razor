@@ -221,7 +221,7 @@
                     Icon = item.Disabled == null ? "cancel" : "check",
                     Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers)
                 },
-                new ContextMenuItem() { Text = "Transfer Ownership", Icon = "social_distance", Disabled = item.UserId != Team.OwnerId },
+                new ContextMenuItem() { Text = "Transfer Ownership", Icon = "social_distance", Disabled = Member == null || Team == null || Member.UserId != Team.OwnerId || item.UserId == Team.OwnerId },
                 new ContextMenuItem() { Text = "Remove Member", Icon = "person_cancel", Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers) }
 
             }, x => MenuItemClick(x, item));
@@ -500,7 +500,7 @@
         if (Member == null || Team == null)
             return;
 
-        if (Member.Team.OwnerId != Session.CurrentUser.Id)
+        if (Team.OwnerId != Session.CurrentUser.Id)
             return;
 
         bool Confirm = await DialogService.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Team.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
@@ -515,7 +515,7 @@
         if (!twoFactorConfirm)
             return;
 
-        if (Member.Team.OwnerId != Session.CurrentUser.Id)
+        if (Team.OwnerId != User.Id)
             return;
 
         await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id), () =>
@@ -526,8 +526,6 @@
                 .AddProperty("ID", user.Id.ToString()));
             Team.OwnerId = user.Id;
         });
-
-
     }
 
     public async Task RemoveTeamMember(ObjectId user)
