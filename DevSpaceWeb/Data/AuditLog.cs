@@ -177,5 +177,6 @@ public enum AuditLogEventType
     APIClientCreated, APIClientDeleted, APIClientPermissionsChanged, APIClientTokenGenerated, APIClientEnabled, APIClientDisabled, APIClientSettingsChanged,
     ServerCreated, ServerDeleted, ServerPermissionsChanged, ServerSettingsChanged,
     ConsoleCreated, ConsoleDeleted, ConsolePermissionsChanged, ConsoleSettingsChanged, ConsoleRconChanged,
-    RoleSettingsChanged, ServerOwnershipChanged, APIClientOwnershipChanged, ConsoleOwnershipChanged, RolePositionChanged
+    RoleSettingsChanged, ServerOwnershipChanged, APIClientOwnershipChanged, ConsoleOwnershipChanged, RolePositionChanged,
+    MemberNicknameChanged
 }

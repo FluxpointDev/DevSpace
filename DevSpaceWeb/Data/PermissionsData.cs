@@ -40,6 +40,8 @@ public static class PermissionsData
         [
             new PermissionItem<TeamPermission>(TeamPermission.ViewMembers, Lang.Permissions.view_members, Lang.Permissions.view_members_description),
             new PermissionItem<TeamPermission>(TeamPermission.ManageMembers, Lang.Permissions.manage_members, Lang.Permissions.manage_members_description),
+            new PermissionItem<TeamPermission>(TeamPermission.ChangeNickname, "Change Nickname", "Lets members change their nickname."),
+            new PermissionItem<TeamPermission>(TeamPermission.ManageNicknames, "Manage Nicknames", "Lets members manage nicknames for members below their role rank."),
             new PermissionItem<TeamPermission>(TeamPermission.ViewRoles, Lang.Permissions.view_roles, Lang.Permissions.view_roles_description),
             new PermissionItem<TeamPermission>(TeamPermission.AssignRoles, Lang.Permissions.assign_roles, Lang.Permissions.assign_roles_description),
             new PermissionItem<TeamPermission>(TeamPermission.ManageRoles, Lang.Permissions.manage_roles, Lang.Permissions.manage_roles_description),

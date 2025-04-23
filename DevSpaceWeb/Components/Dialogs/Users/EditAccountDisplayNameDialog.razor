@@ -59,10 +59,13 @@
             Session.CurrentUser.DisplayName = AccountForm.DisplayName;
             user.DisplayName = AccountForm.DisplayName;
             await UserManager.UpdateAsync(user);
+            Session.TriggerChange();
+            _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+            dialogService.Close(true);
+            return;
         }
-        Session.TriggerChange();
-        _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
         
-        dialogService.Close(true);
+        
+        dialogService.Close();
     }
 }

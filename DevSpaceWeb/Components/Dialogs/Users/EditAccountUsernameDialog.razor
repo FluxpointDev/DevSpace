@@ -63,11 +63,12 @@
             {
                 Session.CurrentUser.UserName = AccountForm.Username;
                 user.UserName = AccountForm.Username;
+                Session.TriggerChange();
+                _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+                dialogService.Close(true);
+                return;
             }
         }
-        Session.TriggerChange();
-        _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
-        
-        dialogService.Close(true);
+        dialogService.Close();
     }
 }

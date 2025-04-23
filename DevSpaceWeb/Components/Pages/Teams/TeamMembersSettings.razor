@@ -213,7 +213,8 @@
         ContextMenuService.Open(args,
             new List<ContextMenuItem>
             {
-                new ContextMenuItem(){ Text = "Change Roles", Icon = "sell", Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.AssignRoles) },
+                new ContextMenuItem(){ Text = "Edit Nickname", Icon = "id_card", Disabled = Team == null || Member == null || (item.UserId == Team.OwnerId && Member.UserId != item.UserId) || (Member.UserId == item.UserId && !Member.HasTeamPermission(Team, TeamPermission.ChangeNickname)) || (Member.UserId != item.UserId && !Member.HasTeamPermission(Team, TeamPermission.ManageNicknames)) },
+                new ContextMenuItem(){ Text = "Change Roles", Icon = "sell", Disabled = Team == null || Member == null || (item.UserId == Team.OwnerId && Member.UserId != item.UserId) || !Member.HasTeamPermission(Team, TeamPermission.AssignRoles) },
                 new ContextMenuItem
                 {
                     Text = item.Disabled == null ? "Disable Member" : "Enable Member",
@@ -259,6 +260,11 @@
                 case "Resources":
                     {
                         ViewResources(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Edit Nickname":
+                    {
+                        EditNickname(_DB.Users[item.UserId]);
                     }
                     break;
                 case "Change Roles":
@@ -573,6 +579,53 @@
             .AddProperty("ID", _DB.Users[user].Id.ToString()));
         });
     }
+
+    public async Task EditNickname(PartialUserData user)
+    {
+        if (Member == null || Team == null)
+            return;
+
+        if (Member == null || Team == null)
+            return;
+
+        if (user.Id != Member.UserId)
+        {
+            if (!Member.HasTeamPermission(Team, TeamPermission.ManageNicknames))
+            {
+                Session.Notifications.ShowPermissionWarning(TeamPermission.ManageNicknames);
+                return;
+            }
+
+            TeamMemberData? SelectedMember = Team.GetMember(user);
+            if (SelectedMember == null)
+                return;
+
+            int CurrentRank = Member.GetRank();
+            int SelectedRank = SelectedMember.GetRank();
+            if (CurrentRank <= SelectedRank)
+            {
+                await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+                return;
+            }
+        }
+        else
+        {
+            if (!Member.HasTeamPermission(Team, TeamPermission.ChangeNickname))
+            {
+                Session.Notifications.ShowPermissionWarning(TeamPermission.ChangeNickname);
+                return;
+            }
+        }
+
+        dynamic Result = await DialogService.OpenAsync<EditMemberNicknameDialog>($"Edit Nickname for {user.UserName}", new Dictionary<string, object>()
+        {
+            { "Team", Team },
+            { "SelectedMember", Team.GetMember(user) }
+        });
+        if (Result != null && (bool)Result == true)
+            await Grid.RefreshDataAsync();
+    }
+
 
     public async Task ChangeMemberRoles(PartialUserData user)
     {
