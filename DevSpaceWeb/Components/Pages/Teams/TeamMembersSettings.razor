@@ -96,15 +96,15 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Type" Width="100px">
                     <Template>
-                       @if (context.UserId == Team.OwnerId)
+                       @if (Team != null && context.UserId == Team.OwnerId)
                         {
                             <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="owner" IsPill="true" />
                         }
-                        else if (context.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                        else if (Team != null && context.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
                         {
                             <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Global Admin" IsPill="true" />
                         }
-                        else if (context.HasTeamPermission(Team, TeamPermission.TeamAdministrator))
+                        else if (Team != null && context.HasTeamPermission(Team, TeamPermission.TeamAdministrator))
                         {
                             <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Team Admin" IsPill="true" />
                         }
@@ -244,52 +244,52 @@
             {
                 case "Info":
                     {
-                        ViewInfo(_DB.Users[item.UserId]);
+                        await ViewInfo(_DB.Users[item.UserId]);
                     }
                     break;
                 case "Roles":
                     {
-                        ViewRoles(_DB.Users[item.UserId]);
+                        await ViewRoles(_DB.Users[item.UserId]);
                     }
                     break;
                 case "Permissions":
                     {
-                        ViewPermissions(_DB.Users[item.UserId]);
+                        await ViewPermissions(_DB.Users[item.UserId]);
                     }
                     break;
                 case "Resources":
                     {
-                        ViewResources(_DB.Users[item.UserId]);
+                        await ViewResources(_DB.Users[item.UserId]);
                     }
                     break;
                 case "Edit Nickname":
                     {
-                        EditNickname(_DB.Users[item.UserId]);
+                        await EditNickname(_DB.Users[item.UserId]);
                     }
                     break;
                 case "Change Roles":
                     {
-                        ChangeMemberRoles(_DB.Users[item.UserId]);
+                        await ChangeMemberRoles(_DB.Users[item.UserId]);
                     }
                     break;
                 case "Enable Member":
                     {
-                        EnableMember(_DB.Users[item.UserId]);
+                        await EnableMember(_DB.Users[item.UserId]);
                     }
                     break;
                 case "Disable Member":
                     {
-                        DisableMember(_DB.Users[item.UserId]);
+                        await DisableMember(_DB.Users[item.UserId]);
                     }
                     break;
                 case "Transfer Ownership":
                     {
-                        TransferOwnership(_DB.Users[item.UserId]);
+                        await TransferOwnership(_DB.Users[item.UserId]);
                     }
                     break;
                 case "Remove Member":
                     {
-                        RemoveTeamMember(item.UserId);
+                        await RemoveTeamMember(item.UserId);
                     }
                     break;
             }
@@ -497,7 +497,7 @@
             return;
         }
 
-        if (Member == null || Team == null)
+        if (Member == null || Team == null || Session.CurrentUser == null)
             return;
 
         if (Team.OwnerId != Session.CurrentUser.Id)
@@ -699,7 +699,7 @@
 
         await DialogService.OpenAsync<MemberPermissionsPreviewDialog>($"Permissions for {user.UserName}", new Dictionary<string, object>()
         {
-            { "Permissions", Team.GetMember(user).CalculatePermissions(null) }
+            { "Permissions", Team.GetMember(user)?.CalculatePermissions(null) }
         }, new DialogOptions
         {
             Width = "850px"

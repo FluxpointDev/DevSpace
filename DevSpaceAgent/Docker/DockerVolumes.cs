@@ -38,8 +38,11 @@ public static class DockerVolumes
         return await client.Volumes.CreateAsync(param);
     }
 
-    public static async Task<object?> ControlVolumeAsync(DockerClient client, DockerEvent @event, string id)
+    public static async Task<object?> ControlVolumeAsync(DockerClient client, DockerEvent @event, string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Volume id is missing.");
+
         switch (@event.VolumeType)
         {
             case ControlVolumeType.View:

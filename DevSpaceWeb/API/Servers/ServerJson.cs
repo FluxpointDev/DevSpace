@@ -22,5 +22,5 @@ public class ServerJson
     public string? vanity_url;
     public DateTime created_at;
     public bool is_online;
-    public string ip;
+    public string? ip;
 }

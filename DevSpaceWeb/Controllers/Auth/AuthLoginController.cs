@@ -29,7 +29,7 @@ public class AuthLoginController : AuthControllerContext
     public async Task<IActionResult> Login([FromForm] string email = "", [FromForm] string password = "", [FromHeader] string RequestId = "", [FromForm] bool rememberMe = false)
     {
         if (string.IsNullOrEmpty(RequestId) || !Cache.TryGetValue("login-" + RequestId, out UserSessionJson? SessionJson))
-            return BadRequest("Request is invalid or expired");
+            return BadRequest("Request is invalid or expired.");
 
         if (!_Data.Config.Auth.AllowInternalLogin)
             return Unauthorized("Internal login has been disabled on this instance.");
@@ -37,22 +37,26 @@ public class AuthLoginController : AuthControllerContext
         if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
             return BadRequest("Invalid email or password.");
 
-        if (SessionJson.Email != email)
-            return BadRequest("Request is invalid or expired");
+        if (SessionJson!.Email != email)
+            return BadRequest("Request is invalid or expired.");
+
+        string? Ip = Utils.GetUserIpAddress(Request.HttpContext);
+        if (string.IsNullOrEmpty(Ip))
+            return BadRequest("Invalid session data.");
 
         AuthUser? AuthUser = await _userManager.FindByEmailAsync(email);
         if (AuthUser == null)
         {
-            if (Program.Cache.TryGetValue(Utils.GetStringSha256Hash(Utils.GetUserIpAddress(Request.HttpContext)), out LoginTryCount? loginTry))
+            if (Program.Cache.TryGetValue(Utils.GetStringSha256Hash(Ip), out LoginTryCount? loginTry))
             {
-                if (loginTry.Count == 9)
+                if (loginTry!.Count == 9)
                     return StatusCode(429);
 
                 loginTry.Count += 1;
             }
             else
             {
-                Program.Cache.Set(Utils.GetStringSha256Hash(Utils.GetUserIpAddress(Request.HttpContext)), new LoginTryCount(), new MemoryCacheEntryOptions().SetAbsoluteExpiration(new TimeSpan(1, 0, 0)));
+                Program.Cache.Set(Utils.GetStringSha256Hash(Ip), new LoginTryCount(), new MemoryCacheEntryOptions().SetAbsoluteExpiration(new TimeSpan(1, 0, 0)));
             }
             return BadRequest("Invalid email or password.");
         }
@@ -60,16 +64,16 @@ public class AuthLoginController : AuthControllerContext
         Microsoft.AspNetCore.Identity.SignInResult Result = await _signInManager.PasswordSignInAsync(AuthUser, password, rememberMe, false);
         if (!Result.Succeeded)
         {
-            if (Program.Cache.TryGetValue(Utils.GetStringSha256Hash(Utils.GetUserIpAddress(Request.HttpContext)), out LoginTryCount? loginTry))
+            if (Program.Cache.TryGetValue(Utils.GetStringSha256Hash(Ip), out LoginTryCount? loginTry))
             {
-                if (loginTry.Count == 9)
+                if (loginTry!.Count == 9)
                     return StatusCode(429);
 
                 loginTry.Count += 1;
             }
             else
             {
-                Program.Cache.Set(Utils.GetStringSha256Hash(Utils.GetUserIpAddress(Request.HttpContext)), new LoginTryCount(), new MemoryCacheEntryOptions().SetAbsoluteExpiration(new TimeSpan(1, 0, 0)));
+                Program.Cache.Set(Utils.GetStringSha256Hash(Ip), new LoginTryCount(), new MemoryCacheEntryOptions().SetAbsoluteExpiration(new TimeSpan(1, 0, 0)));
             }
             return BadRequest("Invalid email or password.");
         }

@@ -178,7 +178,7 @@
     public AuthUser? AuthUser { get; set; }
 
     private DateFormatLang _userDateFormat = DateFormatLang.Automatic;
-    public DateFormatLang UserDateFormat { get { return _userDateFormat; } set { _userDateFormat = value; Session.UserDateFormat = value; SaveUser(); } }
+    public DateFormatLang UserDateFormat { get { return _userDateFormat; } set { _userDateFormat = value; Session.UserDateFormat = value; _ = SaveUser(); } }
 
     public bool ShowEmailAddress { get; set; }
 
@@ -228,12 +228,11 @@
 
     public async void SessionChangedEvent(ObjectId user, SessionEventType type)
     {
-        if (AuthUser.Id != user || type != SessionEventType.AccountUpdate)
+        if (AuthUser == null || AuthUser.Id != user || type != SessionEventType.AccountUpdate)
             return;
 
         AuthUser = await Session.GetCurrentUserAsync();
         _ = InvokeAsync(StateHasChanged);
-
     }
 
 
@@ -346,6 +345,9 @@
 
     public async Task ChangePassword()
     {
+        if (AuthUser == null)
+            return;
+
         if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);

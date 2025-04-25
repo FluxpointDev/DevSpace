@@ -129,8 +129,8 @@
             if (Member == null || Team == null || !Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))
                 return "You do not have permission for Create Console Resources";
 
-                if (string.IsNullOrEmpty(data.Ip))
-                    return "Console ip is required.";
+            if (string.IsNullOrEmpty(data.Ip))
+                return "Console ip is required.";
 
             if (Uri.CheckHostName(data.Ip) == UriHostNameType.Unknown)
                 return "Console ip has invalid format.";
@@ -155,6 +155,11 @@
             if (address == null)
                 return "Console ip invalid.";
 
+            if (Session.CurrentUser == null)
+                return "Session user is invalid.";
+
+            if (Session.Selected.Team == null)
+                return "Selected team is invalid.";
 
             ConsoleData NewConsole = new ConsoleData
             {
@@ -168,7 +173,7 @@
                 VanityUrl = data.VanityUrl
             };
 
-            VanityUrlData Vanity = Member.Team.GetVanityUrlData();
+            VanityUrlData Vanity = Session.Selected.Team.Data.GetVanityUrlData();
             if (Vanity.CheckAlreadyExists(null, NewConsole.VanityUrl))
                 return Lang.Errors.vanity_url_already_taken;
 

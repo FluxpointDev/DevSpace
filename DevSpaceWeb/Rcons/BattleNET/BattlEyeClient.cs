@@ -158,7 +158,7 @@ public class BattlEyeClient
         return SendCommandPacket(command, log);
     }
 
-    private int SendCommandPacket(string command, bool log = true)
+    private int SendCommandPacket(string? command, bool log = true)
     {
         int packetID = _sequenceNumber;
         _sequenceNumber = (_sequenceNumber == 255) ? 0 : _sequenceNumber + 1;

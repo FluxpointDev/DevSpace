@@ -66,8 +66,11 @@ public static class DockerImages
         });
     }
 
-    public static async Task PullImageAsync(DockerClient client, string name)
+    public static async Task PullImageAsync(DockerClient client, string? name)
     {
+        if (string.IsNullOrEmpty(name))
+            throw new Exception("Image name is missing.");
+
         string? TagName = null;
         string[] split = name.Split(':');
         string ImageName = split[0];
@@ -82,8 +85,11 @@ public static class DockerImages
 
     }
 
-    public static async Task CreateImageAsync(DockerClient client, CreateImageEvent build)
+    public static async Task CreateImageAsync(DockerClient client, CreateImageEvent? build)
     {
+        if (build == null)
+            throw new Exception("Invalid image creation options.");
+
         switch (build.Type)
         {
             case CreateImageType.Editor:
@@ -93,6 +99,7 @@ public static class DockerImages
                     try
                     {
                         FileStream tarball = new FileStream(TarFile, FileMode.Create);
+#pragma warning disable CS0618 // Type or member is obsolete
                         using (TarOutputStream tarArchive = new TarOutputStream(tarball))
                         {
                             TarEntry tarEntry = TarEntry.CreateTarEntry("Dockerfile");
@@ -102,6 +109,7 @@ public static class DockerImages
                             tarArchive.Write(fileBytes, 0, fileBytes.Length);
                             tarArchive.CloseEntry();
                         }
+#pragma warning restore CS0618 // Type or member is obsolete
                         tarball.Close();
                         tarball = new FileStream(TarFile, FileMode.Open);
 

@@ -82,7 +82,7 @@
 
     public Popup SearchPopup { get; set; }
     public RadzenFormField SearchBox { get; set; }
-    public string SearchText { get; set; }
+    public string? SearchText { get; set; }
     public bool SearchHasValue { get; set; }
 
     public RadzenDataList<SearchItem> dataList;
@@ -98,7 +98,7 @@
         if (!IsSearchOpen || IsFirstOpen)
         {
             IsFirstOpen = false;
-            SearchPopup.ToggleAsync(SearchBox.Element);
+            await SearchPopup.ToggleAsync(SearchBox.Element);
         }
     }
 
@@ -109,7 +109,7 @@
         if (!IsSearchOpen || IsFirstOpen)
         {
             IsFirstOpen = false;
-            SearchPopup.ToggleAsync(SearchBox.Element);
+            await SearchPopup.ToggleAsync(SearchBox.Element);
         }
         await LoadData(Session, null, text);
     }
@@ -118,7 +118,7 @@
     {
         bool IsSearchOpen = await JS.InvokeAsync<bool>("Radzen.popupOpened", IsMobile ? "popupSearch" : "popupSearchMobile");
         if (IsSearchOpen)
-            SearchPopup.ToggleAsync(SearchBox.Element);
+            await SearchPopup.ToggleAsync(SearchBox.Element);
         SearchText = null;
         SearchHasValue = false;
         SearchItems = new List<SearchItem>();
@@ -127,9 +127,9 @@
     public class SearchItem
     {
         public TeamData? Team;
-        public string Name;
-        public string Type;
-        public string Path;
+        public string? Name;
+        public string? Type;
+        public string? Path;
 
         public string GetIcon()
         {
@@ -161,7 +161,7 @@
             if (Team != null)
                 return Team.GetIconOrDefault();
 
-            return session.CurrentUser.GetAvatarOrDefault();
+            return session.CurrentUser?.GetAvatarOrDefault();
         }
 
         public string GetSmallName(SessionProvider session)
@@ -169,7 +169,7 @@
             if (Team != null)
                 return Team.Name;
 
-            return session.CurrentUser.UserName;
+            return session.CurrentUser?.UserName;
         }
     }
 
@@ -206,7 +206,7 @@
                                 continue;
 
                             if (m.HasServerPermission(Team, s, ServerPermission.ViewServer))
-                                items.Add(new SearchItem { Name = s.Name, Type = "server", Team = s.Team, Path = "/teams/" + m.Team.GetVanityUrlOrId() + "/servers/" + s.GetVanityUrlOrId() });
+                                items.Add(new SearchItem { Name = s.Name, Type = "server", Team = s.Team, Path = "/teams/" + m.Team?.GetVanityUrlOrId() + "/servers/" + s.GetVanityUrlOrId() });
                         }
                     }
                 }
@@ -220,7 +220,7 @@
                                 continue;
 
                             if (m.HasConsolePermission(Team, c, ConsolePermission.ViewConsole))
-                                items.Add(new SearchItem { Name = c.Name, Type = "console", Team = c.Team, Path = "/teams/" + m.Team.GetVanityUrlOrId() + "/consoles/" + c.GetVanityUrlOrId() });
+                                items.Add(new SearchItem { Name = c.Name, Type = "console", Team = c.Team, Path = "/teams/" + m.Team?.GetVanityUrlOrId() + "/consoles/" + c.GetVanityUrlOrId() });
                         }
                     }
                 }
@@ -234,7 +234,7 @@
                                 continue;
 
                             if (a.HasAccess(m, false))
-                                items.Add(new SearchItem { Name = a.Name, Type = "api", Team = a.Team, Path = "/teams/" + m.Team.GetVanityUrlOrId() + "/api/" + a.Id.ToString() });
+                                items.Add(new SearchItem { Name = a.Name, Type = "api", Team = a.Team, Path = "/teams/" + m.Team?.GetVanityUrlOrId() + "/api/" + a.Id.ToString() });
                         }
                     }
                 }

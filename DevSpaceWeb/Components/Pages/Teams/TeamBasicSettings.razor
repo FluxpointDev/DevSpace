@@ -26,9 +26,10 @@
     else
     {
         <br />
-        <DynamicFormDialog Model="@TeamBasicModel" ModelData="@Data" OnSubmit="@UpdateTeamSettings"></DynamicFormDialog>
-
-
+        @if (Data != null)
+        {
+            <DynamicFormDialog Model="@TeamBasicModel" ModelData="@Data" OnSubmit="@UpdateTeamSettings"></DynamicFormDialog>
+        }
         <br />
         <br />
 
@@ -51,11 +52,12 @@
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
 
-    public TeamBasicModel Data;
+    public TeamBasicModel? Data;
 
     protected override async Task OnInitializedAsync()
     {
-        Data = new TeamBasicModel
+        if (Team != null)
+            Data = new TeamBasicModel
             {
                 Name = Team.Name,
                 VanityUrl = Team.VanityUrl
@@ -64,7 +66,7 @@
 
     public async Task<string?> UpdateTeamSettings(TeamBasicModel model)
     {
-        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
+        if (Member == null || Team == null || Session.Selected.Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
             return "You do not have Manage Team permissions.";
 
         string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);

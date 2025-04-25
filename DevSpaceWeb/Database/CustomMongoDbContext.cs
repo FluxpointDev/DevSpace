@@ -94,7 +94,7 @@ public class CustomMongoDbContext : IMongoDbContext
     // Type parameters:
     //   TDocument:
     //     The type representing a Document.
-    public virtual IMongoCollection<TDocument> GetCollection<TDocument>(string partitionKey = null)
+    public virtual IMongoCollection<TDocument> GetCollection<TDocument>(string partitionKey)
     {
         return Database.GetCollection<TDocument>(GetCollectionName<TDocument>(partitionKey));
     }
@@ -106,7 +106,7 @@ public class CustomMongoDbContext : IMongoDbContext
     // Type parameters:
     //   TDocument:
     //     The type representing a Document.
-    public virtual void DropCollection<TDocument>(string partitionKey = null)
+    public virtual void DropCollection<TDocument>(string partitionKey)
     {
         Database.DropCollection(GetCollectionName<TDocument>(partitionKey));
     }

@@ -29,9 +29,9 @@
                     <RadzenText TextStyle="TextStyle.H6" class="mt-5 ml-2">@i.Name</RadzenText>
                     <RadzenStack Orientation="Orientation.Horizontal">
                         <RadzenText class="ml-2" Style="@("color: var(" + (i.IsConnected ? "--rz-success" : "--rz-danger") + ");")" TextStyle="TextStyle.Body2">@(i.IsConnected ? "Online" : "Down")</RadzenText>
-                        @if (i.GetWebSocket() != null && i.GetWebSocket().Discover != null)
+                        @if (i.GetWebSocket() != null && i.GetWebSocket()!.Discover != null)
                         {
-                            <RadzenText TextStyle="TextStyle.Body2">@("v" + i.GetWebSocket().Discover.Version)</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">@("v" + i.GetWebSocket()!.Discover!.Version)</RadzenText>
                         }
                         @if (i.WebSocketError.HasValue)
                         {
@@ -226,7 +226,7 @@
                 .AddProperty("IP", data.Ip)
                 .AddProperty("Port", data.Port));
 
-                InvokeAsync(StateHasChanged);
+                _ =  InvokeAsync(StateHasChanged);
                 return null;
             });
     }

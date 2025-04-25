@@ -23,7 +23,7 @@ public static class _Data
             }
             catch
             {
-                Logger.LogMessage("Failed to write data to the program path: " + Program.Directory.Path, LogSeverity.Error);
+                Logger.LogMessage("Failed to write data to the program path: " + Program.Directory?.Path, LogSeverity.Error);
                 Environment.Exit(1);
             }
 
@@ -102,7 +102,9 @@ public static class _Data
             throw new ArgumentException("characterSet must not be empty", "characterSet");
 
         byte[] bytes = new byte[length * 8];
+#pragma warning disable SYSLIB0023 // Type or member is obsolete
         new RNGCryptoServiceProvider().GetBytes(bytes);
+#pragma warning restore SYSLIB0023 // Type or member is obsolete
         char[] result = new char[length];
         for (int i = 0; i < length; i++)
         {

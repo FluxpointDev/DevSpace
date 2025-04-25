@@ -43,7 +43,7 @@ public static class DockerContainers
         {
             Console.WriteLine(ex);
         }
-        return null;
+        return [];
     }
 
     public static async Task<ContainerListResponse?> GetContainerAsync(DockerClient client, string? id)
@@ -313,6 +313,7 @@ public static class DockerContainers
                         DockerStatJson? Stats = null;
                         try
                         {
+#pragma warning disable CS0618 // Type or member is obsolete
                             using (Stream StatsStream = await client.Containers.GetContainerStatsAsync(id, new ContainerStatsParameters
                             {
                                 Stream = false
@@ -324,6 +325,7 @@ public static class DockerContainers
                                     Stats = Newtonsoft.Json.JsonConvert.DeserializeObject<DockerStatJson>(Json);
                                 }
                             }
+#pragma warning restore CS0618 // Type or member is obsolete
                         }
                         catch { }
 
@@ -350,6 +352,7 @@ public static class DockerContainers
                     DockerStatJson? Stats = null;
                     try
                     {
+#pragma warning disable CS0618 // Type or member is obsolete
                         using (Stream StatsStream = await client.Containers.GetContainerStatsAsync(id, new ContainerStatsParameters
                         {
                             Stream = false
@@ -361,6 +364,7 @@ public static class DockerContainers
                                 Stats = Newtonsoft.Json.JsonConvert.DeserializeObject<DockerStatJson>(Json);
                             }
                         }
+#pragma warning restore CS0618 // Type or member is obsolete
                     }
                     catch { }
                     return Stats != null ? DockerContainerStats.Create(Stats) : null;

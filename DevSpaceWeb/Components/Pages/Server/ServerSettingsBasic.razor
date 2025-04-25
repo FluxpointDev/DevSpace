@@ -23,7 +23,10 @@
     else
     {
         <br />
-        <DynamicFormDialog Model="@ModifyServerModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        @if (Data != null)
+        {
+            <DynamicFormDialog Model="@ModifyServerModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        }
     }
     
 </div>
@@ -38,14 +41,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Data = new ModifyServerModel
+        if (Server != null)
+            Data = new ModifyServerModel
             {
                 Name = Server.Name,
                 VanityUrl = Server.VanityUrl
             };
     }
 
-    public ModifyServerModel Data { get; set; }
+    public ModifyServerModel? Data { get; set; }
 
     public async Task<string?> UpdateSettings(ModifyServerModel model)
     {

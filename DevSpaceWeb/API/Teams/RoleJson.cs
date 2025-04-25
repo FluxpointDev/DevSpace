@@ -19,8 +19,8 @@ public class RoleJson
 
     public string id;
     public string team_id;
-    public string name;
-    public string description;
+    public string? name;
+    public string? description;
     public int position;
     public PermissionsSet? permissions;
     public DateTime created_at;

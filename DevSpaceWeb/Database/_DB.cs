@@ -27,7 +27,7 @@ public static class _DB
 
     public static bool HasException;
 
-    public static event SessionEventHandler SessionUpdated;
+    public static event SessionEventHandler? SessionUpdated;
 
     public static void TriggerSessionEvent(ObjectId user, SessionEventType type)
     {
@@ -214,6 +214,7 @@ public static class _DB
                         {
                             Logger.LogMessage("Database", "- Roles: Migrating " + i.Name, LogSeverity.Info);
 
+#pragma warning disable CS0612 // Type or member is obsolete
                             if (i.Roles != null)
                             {
                                 _ = i.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Unset(x => x.Roles), () =>
@@ -234,6 +235,8 @@ public static class _DB
 
                                 });
                             }
+#pragma warning restore CS0612 // Type or member is obsolete
+
                             await i.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.RolePositions, UpdatedPositions), () =>
                             {
 
@@ -378,7 +381,7 @@ public static class _DB
                     Servers.Cache.TryAdd(x.Id, x);
                     bool IsDev = Program.IsDevMode || Program.IsPreviewMode;
                     if (!IsDev || x.OwnerId.ToString() == "6757b63be964c430187491bb")
-                        x.StartWebSocket(true);
+                        _ = x.StartWebSocket(true);
                 });
                 Logger.LogMessage("Database", "- Servers: " + Servers.Cache.Keys.Count, LogSeverity.Info);
             }
@@ -458,7 +461,7 @@ public static class _DB
                                     RConPort = x.Port,
                                     RConPass = x.GetDecryptedPassword()
                                 };
-                                rcon.StartComms();
+                                _ = rcon.StartComms();
                                 _Data.MinecraftRcons.Add(x.Id, rcon);
                             }
                             break;

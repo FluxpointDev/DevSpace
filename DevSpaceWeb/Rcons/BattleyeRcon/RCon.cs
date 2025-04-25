@@ -253,7 +253,7 @@ public class RCon
 
         using (StringReader reader = new StringReader(response))
         {
-            string line;
+            string? line;
             int row = 0;
             while ((line = reader.ReadLine()) != null)
             {
@@ -330,7 +330,7 @@ public class RCon
 
         using (StringReader reader = new StringReader(response))
         {
-            String line;
+            String? line;
             int row = 0;
             while ((line = reader.ReadLine()) != null)
             {
@@ -454,7 +454,7 @@ public class RCon
         List<RconAdmin> admins = new List<RconAdmin>();
         using (StringReader reader = new StringReader(response))
         {
-            string line;
+            string? line;
             int row = 0;
             while ((line = reader.ReadLine()) != null)
             {
@@ -496,7 +496,7 @@ public class RCon
 
         using (StringReader reader = new StringReader(response))
         {
-            string line;
+            string? line;
             int row = 0;
             while ((line = reader.ReadLine()) != null)
             {

@@ -90,9 +90,11 @@
         if (user == null)
             return;
 
-        Session.CurrentUser.ResourceId = user.ResourceId;
-        Session.CurrentUser.AvatarId = user.AvatarId;
-
+        if (Session.CurrentUser != null)
+        {
+            Session.CurrentUser.ResourceId = user.ResourceId;
+            Session.CurrentUser.AvatarId = user.AvatarId;
+        }
         Session.TriggerChange();
     }
 }

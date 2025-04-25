@@ -35,7 +35,7 @@ public class SecuritySource
     public string? Name { get; set; }
     public string? URL { get; set; }
 
-    public string GetUrl(SecurityVulnerability info)
+    public string? GetUrl(SecurityVulnerability info)
     {
         if (!string.IsNullOrEmpty(URL) && URL.StartsWith("https://github.com/advisories"))
             return URL + "+" + info.VulnerabilityID;

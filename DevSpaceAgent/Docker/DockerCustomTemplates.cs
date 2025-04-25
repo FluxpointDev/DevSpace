@@ -24,8 +24,11 @@ public static class DockerCustomTemplates
         };
     }
 
-    public static void CreateTemplate(CreateCustomTemplateEvent data)
+    public static void CreateTemplate(CreateCustomTemplateEvent? data)
     {
+        if (data == null)
+            throw new Exception("Invalid custom template creation options.");
+
         string Id = Guid.NewGuid().ToString().Replace("-", "");
         Program.CustomTemplates.Add(Id, new DockerCustomTemplate
         {

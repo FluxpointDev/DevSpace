@@ -1,9 +1,9 @@
 ﻿namespace DevSpaceShared.Data;
 public class DockerStatJson
 {
-    public DockerStatMemoryJson memory_stats;
-    public DockerStatCpuJson cpu_stats;
-    public DockerStatCpuJson precpu_stats;
+    public DockerStatMemoryJson? memory_stats;
+    public DockerStatCpuJson? cpu_stats;
+    public DockerStatCpuJson? precpu_stats;
     public DockerStatBlkioJson? blkio_stats;
     //public DockerStatCpuJson GetCpuStats()
     //{
@@ -18,7 +18,7 @@ public class DockerStatCpuJson
 {
     public long online_cpus;
     public long system_cpu_usage;
-    public DockerStatCpuUsageJson cpu_usage;
+    public DockerStatCpuUsageJson? cpu_usage;
 }
 public class DockerStatBlkioJson
 {
@@ -32,12 +32,12 @@ public class DockerStatBlkioServiceJson
 public class DockerStatCpuUsageJson
 {
     public long total_usage;
-    public long[] percpu_usage;
+    public long[]? percpu_usage;
 }
 public class DockerStatMemoryJson
 {
     public long usage;
-    public DockerStatMemoryStatsJson stats;
+    public DockerStatMemoryStatsJson? stats;
 }
 public class DockerStatMemoryStatsJson
 {

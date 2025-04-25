@@ -80,7 +80,7 @@
         </RadzenAlert>
         <br />
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Permission Type</RadzenText>
-        <RadzenDropDown Value="@(Client.UseCustomPermissions ? "Custom Permissions" : "Owner Permissions")" TValue="string" Data="PermissionTypes" Style="width: 100%; max-width: 400px;" Change="((arg) => ChangePermissionType(arg as string))" Disabled="@(DisableChangeType || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" />
+        <RadzenDropDown Value="@(Client.UseCustomPermissions ? "Custom Permissions" : "Owner Permissions")" TValue="string" Data="PermissionTypes" Style="width: 100%; max-width: 400px;" Change="((arg) => ChangePermissionType(arg as string))" Disabled="@(DisableChangeType || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" />
         <br />
         <br />
         <br />
@@ -135,7 +135,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if (!string.IsNullOrEmpty(ClientId) && ObjectId.TryParse(ClientId, out ObjectId id) && _DB.API.Cache.TryGetValue(id, out APIClient client))
+        if (!string.IsNullOrEmpty(ClientId) && ObjectId.TryParse(ClientId, out ObjectId id) && _DB.API.Cache.TryGetValue(id, out APIClient? client))
             Client = client;
         else
             Client = null;
@@ -217,7 +217,14 @@
         bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
-            AuthUser AuthUser = await Session.GetCurrentUserAsync();
+            AuthUser? AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null || Client == null || Member == null)
+                return;
+
+            CanManage = Client.CanManage(Member, false);
+            if (!CanManage)
+                return;
+
             await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
             .Set(x => x.OwnerId, user.Id).Set(x => x.TokenHash, null).Set(x => x.GeneratedAt, null).Set(x => x.GeneratedBy, null), () =>
             {
@@ -292,7 +299,7 @@
         if (!CanGenerate)
             return;
 
-        AuthUser AuthUser = await Session.GetCurrentUserAsync();
+        AuthUser? AuthUser = await Session.GetCurrentUserAsync();
         bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
         if (!TwoFactorValid)
         {
@@ -300,15 +307,17 @@
             return;
         }
 
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
         CanGenerate = Client!.CanGenerate(Member);
         if (!CanGenerate)
             return;
 
         string Token = "DSA-" + _Data.GetRandomString(new Random().Next(30, 50));
-        string Hash = Utils.Hasher.HashPassword(null, Token);
-        AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
-            return;
+        string Hash = Utils.Hasher.HashPassword(null!, Token);
+        
 
         await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
         .Set(x => x.TokenHash, Hash).Set(x => x.GeneratedAt, DateTime.UtcNow).Set(x => x.GeneratedBy, AuthUser.Id), async () =>

@@ -1033,7 +1033,7 @@ else
 
     public async Task UpdateName()
     {
-        if (Member == null || Server == null)
+        if (Member == null || Server == null || Container == null)
             return;
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
@@ -1336,7 +1336,7 @@ else
                                         SecurityHasIssues = true;
                                         foreach (SecurityResult i in SecurityResults)
                                         {
-                                            if (i.Vulnerabilities != null)
+                                            if (i.Vulnerabilities == null)
                                                 continue;
 
                                             foreach (SecurityVulnerability v in i.Vulnerabilities)
@@ -1427,7 +1427,7 @@ else
 
     public async Task OpenContainerHealthLogs()
     {
-        if (Member == null || Server == null)
+        if (Member == null || Server == null || Container == null)
             return;
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerHealthLogs))
@@ -1457,7 +1457,7 @@ else
 
     public async Task JoinNetwork()
     {
-        if (Member == null || Server == null)
+        if (Member == null || Server == null || Container == null)
             return;
 
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))

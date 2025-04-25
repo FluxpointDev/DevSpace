@@ -9,9 +9,9 @@ public class ConsoleData : ITeamResource
 {
     public ConsoleData() : base(ResourceType.Console) { }
 
-    public string Ip { get; set; }
-    public short Port { get; set; }
-    public string EncryptedPassword { get; set; }
+    public required string Ip { get; set; }
+    public required short Port { get; set; }
+    public required string EncryptedPassword { get; set; }
     public ConsoleType Type { get; set; }
     public DateTime ConnectedAt { get; set; } = DateTime.UtcNow;
 
@@ -98,7 +98,7 @@ public class ConsoleData : ITeamResource
                         if (_Data.MinecraftRcons.TryGetValue(Id, out LibMCRcon.RCon.TCPRconAsync? rcon))
                         {
                             _Data.MinecraftRcons.Remove(Id);
-                            rcon.StopComms();
+                            await rcon.StopComms();
                         }
                     }
                     break;

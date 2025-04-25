@@ -20,7 +20,7 @@
             You do not have permission for @Utils.FriendlyName(failedPerm.ToString()!)
         </RadzenAlert>
     }
-    else if (!Server.IsConnected)
+    else if (Server == null || !Server.IsConnected)
     {
         <br />
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false" Size="AlertSize.Small">
@@ -521,8 +521,8 @@
         if (Response.IsSuccess)
         {
             Data = Response.Data;
-            if (Data != null && Server.GetWebSocket().Discover.Version != Data.AgentVersion)
-                Server.GetWebSocket().Discover.Version = Data.AgentVersion;
+            if (Data != null && Server.GetWebSocket() != null && Server.GetWebSocket()!.Discover != null && Server.GetWebSocket()!.Discover!.Version != Data.AgentVersion)
+                Server.GetWebSocket()!.Discover!.Version = Data.AgentVersion;
 
             StateHasChanged();
         }

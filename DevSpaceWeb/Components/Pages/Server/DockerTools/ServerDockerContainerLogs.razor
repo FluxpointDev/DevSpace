@@ -79,17 +79,17 @@ else
             <HeaderTemplate>
                 <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" JustifyContent="JustifyContent.SpaceAround" Wrap="FlexWrap.NoWrap" class="pd-1">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-                        <RadzenSwitch Value="@AutoRefresh" Disabled="@(RefreshTimer == null)" TValue="bool" ValueChanged="@((arg) => { AutoRefresh = arg; if (AutoRefresh) { RefreshTimer?.Start(); } else { RefreshTimer.Stop(); } })" />
+                        <RadzenSwitch Value="@AutoRefresh" Disabled="@(RefreshTimer == null)" TValue="bool" ValueChanged="@((arg) => { AutoRefresh = arg; if (AutoRefresh) { RefreshTimer?.Start(); } else { RefreshTimer?.Stop(); } })" />
                         <RadzenLabel Text="Auto Refresh" />
                     </RadzenStack>
                     <RadzenButton Icon="refresh" Click="@(() => OnParametersSetAsync())" ButtonStyle="ButtonStyle.Primary" Variant="Variant.Text" Size="ButtonSize.Medium" Disabled="@(RefreshTimer == null || AutoRefresh)" class="rz-border-radius-10" />
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                         <RadzenLabel Text="Lines" />
-                            <RadzenNumeric ShowUpDown="false" Value="@Limit" Min="1" Max="9999" TValue="int" ValueChanged="@((value) => { Limit = value; OnParametersSetAsync(); })" Disabled="@(RefreshTimer == null)"></RadzenNumeric>
+                            <RadzenNumeric ShowUpDown="false" Value="@Limit" Min="1" Max="9999" TValue="int" ValueChanged="@((value) => { Limit = value; _ = OnParametersSetAsync(); })" Disabled="@(RefreshTimer == null)"></RadzenNumeric>
                     </RadzenStack>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                         <RadzenLabel Text="Show Timestamp" />
-                            <RadzenCheckBox Value="@ShowTimestamp" TValue="bool" ValueChanged="@((value) => { ShowTimestamp = value; OnParametersSetAsync(); })" Disabled="@(RefreshTimer == null)"></RadzenCheckBox>
+                            <RadzenCheckBox Value="@ShowTimestamp" TValue="bool" ValueChanged="@((value) => { ShowTimestamp = value; _ = OnParametersSetAsync(); })" Disabled="@(RefreshTimer == null)"></RadzenCheckBox>
                     </RadzenStack>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
                         <RadzenLabel Text="Show Line Number" />
@@ -268,7 +268,7 @@ else
         if (Server == null)
             return;
 
-        RefreshTimer.Stop();
+        RefreshTimer?.Stop();
         SocketResponse<DockerContainerLogs?> Result = await Server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
         {
             Data = JObject.FromObject(new ContainerLogsEvent
@@ -307,7 +307,7 @@ else
         {
             try
             {
-                RefreshTimer.Start();
+                RefreshTimer?.Start();
             }
             catch { }
         }

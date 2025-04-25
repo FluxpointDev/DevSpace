@@ -28,13 +28,13 @@
     [Parameter]
     public Func<PartialUserData, Task>? OnSelected { get; set; }
 
-    public TeamData Team => Session.Selected.Team?.Data;
+    public TeamData? Team => Session.Selected.Team?.Data;
 
     IEnumerable<PartialUserData> users;
 
     public PartialUserData? Selected;
 
-    public void LoadData(LoadDataArgs args)
+    public void LoadData(LoadDataArgs? args)
     {
         try
         {
@@ -54,7 +54,7 @@
 
     public async Task SelectUser(PartialUserData user)
     {
-        popup.CloseAsync();
+        await popup.CloseAsync();
         OnSelected?.Invoke(user);
     }
 }

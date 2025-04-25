@@ -21,7 +21,7 @@
                 Current Roles
             </TargetHeader>
             <Template>
-                @if (Team.OwnerId != Session.CurrentUser.Id && context.GetPosition() >= CurrentRank)
+                @if (Session.CurrentUser == null || Team.OwnerId != Session.CurrentUser.Id && context.GetPosition() >= CurrentRank)
                 {
                     <span class="iconify" data-icon="mdi:lock"></span> @context.Name
                 }
@@ -56,12 +56,16 @@
 
     public async Task SourceChanged(IEnumerable<TeamRoleData> roles)
     {
-        
+
     }
 
     protected override void OnParametersSet()
     {
-        CurrentRank = Session.Selected.Member.GetRank();
+        if (Session.Selected.Member == null)
+            CurrentRank = 0;
+        else
+            CurrentRank = Session.Selected.Member.GetRank();
+
         List<TeamRoleData> list = new List<TeamRoleData>();
         foreach(ObjectId i in Member.Roles)
         {
@@ -74,8 +78,8 @@
 
     public ListBoxItemRenderEventArgs<object> ItemRenderAction(ListBoxItemRenderEventArgs<object> data)
     {
-        TeamRoleData role = data.Item as TeamRoleData;
-        if (Team.OwnerId != Session.CurrentUser.Id && role.GetPosition() >= CurrentRank)
+        TeamRoleData? role = data.Item as TeamRoleData;
+        if (role == null || Session.CurrentUser == null || Team.OwnerId != Session.CurrentUser.Id && role.GetPosition() >= CurrentRank)
             data.Disabled = true;
         return data;
     }

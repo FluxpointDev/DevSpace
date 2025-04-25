@@ -5,10 +5,10 @@ namespace DevSpaceWeb.Models.Consoles;
 public class ModifyRconModel
 {
     [Required(ErrorMessage = "Server IP address is required")]
-    public string? Ip { get; set; }
+    public string Ip { get; set; } = null!;
 
     public short Port { get; set; }
 
     [Required(ErrorMessage = "Rcon password is required")]
-    public string? Password { get; set; }
+    public string Password { get; set; } = null!;
 }

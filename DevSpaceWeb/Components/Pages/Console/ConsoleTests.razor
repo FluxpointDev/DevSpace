@@ -33,6 +33,9 @@
 
     public async Task Update(ObjectId id1, PermissionsSet set)
     {
+        if (Console == null)
+            return;
+
         UpdateDefinition<ConsoleData> update = new UpdateDefinitionBuilder<ConsoleData>()
         .Inc($"RolePermissionOverrides.$[{id1.ToString()}]", new KeyValuePair<ObjectId, PermissionsSet>(id1, set));
 

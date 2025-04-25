@@ -24,7 +24,7 @@ public class TCPRcon : Queue<RconPacket>
 
     protected bool AbortTCP { get; set; }
 
-    Thread bgCommThread;
+    Thread? bgCommThread;
     Queue<RconPacket> cmdQue = new Queue<RconPacket>();
 
     int sessionID = -1;
@@ -451,7 +451,7 @@ public class TCPRconAsync : Queue<RconPacket>
 
     protected bool AbortTCP { get; set; }
 
-    Task bgTask;
+    Task? bgTask;
 
     Queue<RconPacket> cmdQue = new Queue<RconPacket>();
 

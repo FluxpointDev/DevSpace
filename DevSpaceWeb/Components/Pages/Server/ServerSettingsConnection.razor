@@ -25,7 +25,10 @@
     else
     {
         <br />
-        <DynamicFormDialog Model="@ModifyServerConnectionModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        @if (Data != null)
+        {
+            <DynamicFormDialog Model="@ModifyServerConnectionModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        }
     }
 </div>
 
@@ -39,14 +42,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Data = new ModifyServerConnectionModel
+        if (Server != null)
+            Data = new ModifyServerConnectionModel
             {
                 Ip = Server.AgentIp,
                 Port = Server.AgentPort
             };
     }
 
-    public ModifyServerConnectionModel Data { get; set; }
+    public ModifyServerConnectionModel? Data { get; set; }
 
     public async Task<string?> UpdateSettings(ModifyServerConnectionModel model)
     {
@@ -84,7 +88,8 @@
             Name = ":)",
             AgentIp = model.Ip,
             AgentPort = model.Port,
-            AgentKey = model.AgentKey
+            AgentKey = model.AgentKey,
+            OwnerId = Member.UserId
         };
         await Client.DiscoverAsync(TempServer);
         if (Client.Discover == null)

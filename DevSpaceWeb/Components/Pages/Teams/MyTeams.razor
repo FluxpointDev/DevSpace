@@ -78,6 +78,9 @@
 
     public async Task CreateTeam()
     {
+        if (Session.CurrentUser == null)
+            return;
+
         await DialogService.ShowDynamicFormAsync<TeamBasicModel>("Create Team", new TeamBasicModel(), async (TeamBasicModel data) =>
             {
                 string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
@@ -125,7 +128,7 @@
                 _DB.Teams.Cache.TryAdd(Team.Id, Team);
 
 
-                InvokeAsync(StateHasChanged);
+                _ = InvokeAsync(StateHasChanged);
                 return null;
             });
     }

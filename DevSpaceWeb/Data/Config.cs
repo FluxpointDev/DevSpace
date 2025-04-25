@@ -30,12 +30,12 @@ public class Config
 }
 public class ConfigInstance
 {
-    public string Name = "Dev Space Self-hosted";
+    public string? Name = "Dev Space Self-hosted";
     public string? Description;
     public string? Email;
     public bool HasIcon;
     public int IconVersion;
-    public string PublicDomain = "example.com";
+    public string? PublicDomain = "example.com";
 
     public string GetPublicUrl()
     {

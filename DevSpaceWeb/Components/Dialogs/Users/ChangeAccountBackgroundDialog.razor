@@ -80,7 +80,9 @@
         if (user == null)
             return;
 
-        Session.CurrentUser.ResourceId = user.ResourceId;
+        if (Session.CurrentUser != null)
+            Session.CurrentUser.ResourceId = user.ResourceId;
+
         Session.BackgroundUrl = new FileResource("Background", user.ResourceId, user.BackgroundId).Url("webp");
 
         Session.TriggerChange();

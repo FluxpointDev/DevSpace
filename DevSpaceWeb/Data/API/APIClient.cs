@@ -32,7 +32,7 @@ public class APIClient
 
     public int GetRank()
     {
-        if (Team != null && Team.Members.TryGetValue(OwnerId, out ObjectId memberObj) && Team.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+        if (Team != null && Team.Members.TryGetValue(OwnerId, out ObjectId memberObj) && Team.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return member.GetRank();
 
         return 0;
@@ -124,7 +124,7 @@ public class APIClient
             if (SelectedTeam.DefaultPermissions.HasTeamPermission(checkPermission))
                 return true;
 
-            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData member))
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasTeamPermission(Team, checkPermission);
         }
 

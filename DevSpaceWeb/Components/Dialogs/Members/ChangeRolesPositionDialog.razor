@@ -45,10 +45,10 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public TeamData Team { get; set; }
 
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     public IList<TeamRoleData> RolesList { get; set; }
     public TeamRoleData? SelectedRole { get; set; }
@@ -59,7 +59,7 @@
         Team.RoleChangeEvent += RoleChanged;
     }
 
-    public ListBoxItemRenderEventArgs<TeamRoleData> RenderItem(ListBoxItemRenderEventArgs<TeamRoleData> data)
+    public ListBoxItemRenderEventArgs<TeamRoleData> RenderItem(ListBoxItemRenderEventArgs<TeamRoleData?> data)
     {
         if (!Program.IsPreviewMode && Team.OwnerId != Member.UserId)
             data.Disabled = (data.Item as TeamRoleData)!.GetPosition() >= CurrentRank;

@@ -29,7 +29,10 @@
     else
     {
         <br />
-        <DynamicFormDialog Model="@ModifyConsoleModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        @if (Data != null)
+        {
+            <DynamicFormDialog Model="@ModifyConsoleModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        }
     }
 </div>
 
@@ -43,14 +46,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Data = new ModifyConsoleModel
-        {
-            Name = Console.Name,
-            VanityUrl = Console.VanityUrl
-        };
+        if (Console != null)
+            Data = new ModifyConsoleModel
+            {
+                Name = Console.Name,
+                VanityUrl = Console.VanityUrl
+            };
     }
 
-    public ModifyConsoleModel Data { get; set; }
+    public ModifyConsoleModel? Data { get; set; }
 
     public async Task<string?> UpdateSettings(ModifyConsoleModel model)
     {
@@ -80,7 +84,9 @@
             Console.VanityUrl = model.VanityUrl;
             VanityUrlData Vanity = Team.GetVanityUrlData();
             await Vanity.UpdateAsync(Console, VanityUrl);
-            Session.Selected.Team.Console.VanityUrl = Console.GetVanityUrlOrId();
+
+            if (Session.Selected.Team != null && Session.Selected.Team.Console != null)
+                Session.Selected.Team.Console.VanityUrl = Console.GetVanityUrlOrId();
             Session.TriggerNavMenuChange();
         });
         return null;

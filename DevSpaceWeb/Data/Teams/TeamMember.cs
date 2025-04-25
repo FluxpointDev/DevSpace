@@ -99,9 +99,9 @@ public class TeamMemberData
         return false;
     }
 
-    public bool CanManage(TeamMemberData currentMember)
+    public bool CanManage(TeamMemberData? currentMember)
     {
-        if (TeamId != currentMember.TeamId)
+        if (currentMember == null || TeamId != currentMember.TeamId)
             return false;
 
         TeamData? CurrentTeam = Team;

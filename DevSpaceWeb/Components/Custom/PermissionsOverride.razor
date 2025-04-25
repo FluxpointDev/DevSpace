@@ -26,7 +26,7 @@
 
                     <Popup @ref="@RolePopup" Lazy="true" class="permission-popup">
                         <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
-                            <RadzenListBox TValue="TeamRoleData" ValueChanged="@((el) => {  AddOverride(el); })" AllowVirtualization="true"
+                            <RadzenListBox TValue="TeamRoleData" ValueChanged="@((el) => { _ = AddOverride(el); })" AllowVirtualization="true"
                             AllowFiltering="true" Data="@Team.CachedRoles.Values.Where(x => !RoleOverrides.Any(y => y.ObjectId.GetValueOrDefault() == x.Id) && _DB.Roles.Cache.ContainsKey(x.Id) && CurrentRank > x.GetPosition())" TextProperty="@nameof(TeamRoleData.Name)" Style="width: 100%; height: 100%"
                             InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select role" }})" Disabled="@(UnsavedPermissions || IsDisabled)" />
                         </RadzenStack>
@@ -48,7 +48,7 @@
 
                     <Popup @ref="@MemberPopup" Lazy="true" class="permission-popup">
                         <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
-                            <RadzenListBox TValue="TeamMemberData" ValueChanged="@((el) => {  AddOverride(el); })" AllowVirtualization="true"
+                            <RadzenListBox TValue="TeamMemberData" ValueChanged="@((el) => { _ = AddOverride(el); })" AllowVirtualization="true"
                             AllowFiltering="true" Data="@Team.CachedMembers.Values.Where(x => !MemberOverrides.Any(y => y.ObjectId.GetValueOrDefault() == x.UserId) && _DB.Users.ContainsKey(x.UserId) && CurrentRank > x.GetRank())" Style="width: 100%; height: 100%"
                             InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select member" }})" Disabled="@(UnsavedPermissions || IsDisabled)">
                                 <Template>
@@ -73,7 +73,7 @@
 
                     <Popup @ref="@ApiPopup" Lazy="true" class="permission-popup">
                         <RadzenStack Orientation="Orientation.Vertical" Gap="1rem" class="rz-h-100 rz-p-1">
-                            <RadzenListBox TValue="APIClient" ValueChanged="@((el) => {  AddOverride(el); })" AllowVirtualization="true"
+                            <RadzenListBox TValue="APIClient" ValueChanged="@((el) => { _ = AddOverride(el); })" AllowVirtualization="true"
                             AllowFiltering="true" Data="@_DB.API.Cache.Values.Where(x => x.HasAccess(Member, false) && !ApiOverrides.Any(y => y.ObjectId.GetValueOrDefault() == x.Id))" Style="width: 100%; height: 100%"
                             InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select api client" }})" Disabled="@(UnsavedPermissions || IsDisabled)">
                                 <Template>
@@ -207,8 +207,8 @@
 
     public bool IsDisabled { get; set; }
 
-    [Parameter]
-    public ITeamResource? Resource { get; set; }
+    [Parameter, EditorRequired]
+    public ITeamResource Resource { get; set; }
 
     [Parameter]
     public PermissionType PermissionType { get; set; }
@@ -239,7 +239,11 @@
 
     public void LoadPermissions()
     {
-        CurrentRank = Member.GetRank();
+        if (Member == null || Team == null)
+            CurrentRank = 0;
+        else
+            CurrentRank = Member.GetRank();
+
         @switch (Override)
         {
             case OverrideType.DefaultMembers:
@@ -324,7 +328,11 @@
 
     public async Task SavePermissions(PermissionsSet perms)
     {
-        CurrentRank = Member.GetRank();
+        if (Member == null || Team == null)
+            CurrentRank = 0;
+        else
+            CurrentRank = Member.GetRank();
+
         if (CanManageOverride())
         {
             switch (Override)
@@ -364,21 +372,21 @@
                     break;
                 case OverrideType.Roles:
                     {
-                        if (SelectedPermission != null && _DB.Roles.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out TeamRoleData role) && CurrentRank > role.GetPosition())
-                            Resource.AddRolePermissionAsync(SelectedPermission.ObjectId.Value, perms);
+                        if (SelectedPermission != null && _DB.Roles.Cache.TryGetValue(SelectedPermission.ObjectId.GetValueOrDefault(), out TeamRoleData? role) && CurrentRank > role.GetPosition())
+                            Resource.AddRolePermissionAsync(SelectedPermission.ObjectId.GetValueOrDefault(), perms);
                     }
 
                     break;
                 case OverrideType.Members:
                     {
-                        if (SelectedPermission != null && _DB.Members.Cache.TryGetValue(Team.Members[SelectedPermission.ObjectId.Value], out TeamMemberData member) && CurrentRank >= member.GetRank())
-                            Resource.AddMemberPermissionAsync(SelectedPermission.ObjectId.Value, perms);
+                        if (SelectedPermission != null && _DB.Members.Cache.TryGetValue(Team.Members[SelectedPermission.ObjectId.GetValueOrDefault()], out TeamMemberData? member) && CurrentRank >= member.GetRank())
+                            Resource.AddMemberPermissionAsync(SelectedPermission.ObjectId.GetValueOrDefault(), perms);
                     }
                     break;
                 case OverrideType.APIs:
                     {
-                        if (SelectedPermission != null && _DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.Value, out APIClient client) && client.CanManage(Member, false))
-                            Resource.AddApiPermissionAsync(SelectedPermission.ObjectId.Value, perms);
+                        if (SelectedPermission != null && _DB.API.Cache.TryGetValue(SelectedPermission.ObjectId.GetValueOrDefault(), out APIClient? client) && client.CanManage(Member, false))
+                            Resource.AddApiPermissionAsync(SelectedPermission.ObjectId.GetValueOrDefault(), perms);
                     }
                     break;
             }
@@ -393,7 +401,11 @@
 
     public async Task AddOverride(object data)
     {
-        CurrentRank = Member.GetRank();
+        if (Member == null || Team == null)
+            CurrentRank = 0;
+        else
+            CurrentRank = Member.GetRank();
+
         IsDisabled = true;
         switch (Override)
         {
@@ -479,7 +491,7 @@
         switch (Override)
         {
             case OverrideType.DefaultMembers:
-                    return true;
+                return true;
             case OverrideType.Roles:
                 {
                     if (SelectedPermission != null && SelectedPermission.ObjectId.HasValue && Member.HasTeamPermission(Team, TeamPermission.ViewRoles))
@@ -534,7 +546,11 @@
 
     public async Task DeleteOverride()
     {
-        CurrentRank = Member.GetRank();
+        if (Member == null || Team == null)
+            CurrentRank = 0;
+        else
+            CurrentRank = Member.GetRank();
+
         IsDisabled = true;
         switch (Override)
         {

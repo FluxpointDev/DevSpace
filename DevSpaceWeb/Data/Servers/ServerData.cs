@@ -18,11 +18,11 @@ public class ServerData : ITeamResource
     public ServerData() : base(ResourceType.Server) { }
 
     public string AgentId { get; set; }
-    public string AgentIp { get; set; }
-    public string AgentKey { get; set; }
-    public short AgentPort { get; internal set; }
+    public required string AgentIp { get; set; }
+    public required string AgentKey { get; set; }
+    public short AgentPort { get; set; }
 
-    private ServerWebSocket WebSocket;
+    private ServerWebSocket? WebSocket;
 
     [BsonIgnore]
     [JsonIgnore]

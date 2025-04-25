@@ -1,7 +1,7 @@
 ﻿@implements IDisposable
 
 <RadzenButton id="buttonNotifications" @ref="@NotificationsButton" class="rz-button-icon-only" Click="@(() => NotificationsPopup.ToggleAsync(NotificationsButton.Element))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text">
-    @if (Session.CurrentUser.HasNotifications)
+    @if (Session.CurrentUser != null && Session.CurrentUser.HasNotifications)
     {
         <RadzenIcon Icon="notifications" IconColor="var(--rz-header-color)" Style="font-variation-settings: 'FILL' 1;"></RadzenIcon>
         <RadzenBadge Variant="Variant.Filled" BadgeStyle="BadgeStyle.Info" />
@@ -15,7 +15,7 @@
 <Popup @ref="@NotificationsPopup" class="rz-popup popup-notifications" Open="@Open" Lazy="true" AutoFocusFirstElement="false">
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
         <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Notifications</RadzenText>
-        <RadzenButton Variant="Variant.Text" Size="ButtonSize.Small" Click="@ClearNotifications" Text="Clear All" ButtonStyle="ButtonStyle.Info" Disabled="@(!Session.CurrentUser.HasNotifications)" />
+        <RadzenButton Variant="Variant.Text" Size="ButtonSize.Small" Click="@ClearNotifications" Text="Clear All" ButtonStyle="ButtonStyle.Info" Disabled="@(Session.CurrentUser == null || !Session.CurrentUser.HasNotifications)" />
     </RadzenStack>
     <RadzenDataList @ref="@dataList" Density="Density.Compact" Data="@NotificationItems" PageSize="5" Count="@NotificationCount" LoadData="@LoadData" class="@((NotificationItems.Count() > 3) ? "mt-1 pr-3" : "mt-1")"
     Style="flex: 1; --rz-datalist-padding: 2px 0; --rz-datalist-item-margin-inline: 0; overflow: auto;"
@@ -100,6 +100,9 @@
 
     public async Task LoadData(LoadDataArgs args)
     {
+        if (Session.CurrentUser == null)
+            return;
+
         FilterDefinition<Notification> filter = new FilterDefinitionBuilder<Notification>().Eq(x => x.UserId, Session.CurrentUser.Id);
         NotificationItems = await _DB.Notifications.Find(filter).SortByDescending(x => x.CreatedAt).Skip(args.Skip.GetValueOrDefault()).Limit(args.Top.GetValueOrDefault()).ToListAsync();
         long Count = await _DB.Notifications.Find(filter).CountDocumentsAsync();

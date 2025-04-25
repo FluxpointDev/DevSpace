@@ -24,7 +24,7 @@ public class AgentSession : WssSession
     {
         if (request.Url == "/")
         {
-            string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
+            string? Ip = Socket.RemoteEndPoint?.ToString()?.Split(':').First();
             bool IsLocal = false;
             if (Ip == "127.0.0.1" || Ip == "localhost")
                 IsLocal = true;
@@ -74,7 +74,7 @@ public class AgentSession : WssSession
             else
             {
                 bool IsWhitelisted = false;
-                string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
+                string? Ip = Socket.RemoteEndPoint?.ToString()?.Split(':').First();
                 bool IsLocal = false;
                 if (Ip == "127.0.0.1" || Ip == "localhost")
                     IsLocal = true;
@@ -161,7 +161,7 @@ public class AgentSession : WssSession
     {
         Console.WriteLine("Connecting...");
 
-        string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
+        string? Ip = Socket.RemoteEndPoint?.ToString()?.Split(':').First();
         bool IsLocal = false;
         if (Ip == "127.0.0.1" || Ip == "localhost")
             IsLocal = true;
@@ -212,7 +212,7 @@ public class AgentSession : WssSession
 
     public override void OnWsReceived(byte[] buffer, long offset, long size)
     {
-        ServerEventHandler.RecieveAsync(AgentWebSocket, buffer, offset, size);
+        _ = ServerEventHandler.RecieveAsync(AgentWebSocket, buffer, offset, size);
     }
 
     protected override void OnError(SocketError error)

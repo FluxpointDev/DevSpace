@@ -57,7 +57,7 @@ public class Program
         }
     });
 
-    public static IServiceCollection? Services;
+    public static IServiceCollection Services = null!;
 
     public static MemoryCache Cache = new MemoryCache(new MemoryCacheOptions());
 

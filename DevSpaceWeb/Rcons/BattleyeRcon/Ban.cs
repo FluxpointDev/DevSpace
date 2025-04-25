@@ -3,9 +3,9 @@
 public class Ban
 {
     private int _id;
-    private string _name;
-    private string _guid;
-    private string _ip;
+    private string? _name;
+    private string? _guid;
+    private string? _ip;
     private int _duration;
     private string? _reason;
     private bool _online;
@@ -46,11 +46,11 @@ public class Ban
     }
 
     public string number = "";
-    public string ipguid = "";
-    public string time = "";
+    public string? ipguid = "";
+    public string? time = "";
     public string? reason = "";
 
-    public Ban(string number, string ipguid, string time, string? reason)
+    public Ban(string number, string? ipguid, string? time, string? reason)
     {
         this.number = number;
         this.ipguid = ipguid;
@@ -65,7 +65,7 @@ public class Ban
         _reason = reason;
         _online = false;
     }
-    public Ban(int id, string name, string guid, string ip, int duration, string reason, bool online)
+    public Ban(int id, string? name, string? guid, string? ip, int duration, string? reason, bool online)
     {
         _id = id;
         _name = name;
@@ -75,7 +75,7 @@ public class Ban
         _reason = reason;
         _online = online;
     }
-    public Ban(int id, string name, string guid, string ip, bool online)
+    public Ban(int id, string? name, string? guid, string? ip, bool online)
     {
         _id = id;
         _name = name;

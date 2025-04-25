@@ -205,12 +205,14 @@ public static class Utils
         if (String.IsNullOrEmpty(text))
             return String.Empty;
 
+#pragma warning disable SYSLIB0021 // Type or member is obsolete
         using (SHA256Managed sha = new SHA256Managed())
         {
             byte[] textData = Encoding.UTF8.GetBytes(text);
             byte[] hash = sha.ComputeHash(textData);
             return BitConverter.ToString(hash).Replace("-", String.Empty);
         }
+#pragma warning restore SYSLIB0021 // Type or member is obsolete
     }
 
 

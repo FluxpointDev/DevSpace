@@ -36,8 +36,11 @@
 
     protected override void OnInitialized()
     {
-        AccountForm.Username = Session.CurrentUser.UserName;
-        AccountForm.DisplayName = Session.CurrentUser?.DisplayName;
+        if (Session.CurrentUser != null)
+        {
+            AccountForm.Username = Session.CurrentUser.UserName;
+            AccountForm.DisplayName = Session.CurrentUser.DisplayName;
+        }
     }
 
     async Task Submit()
@@ -71,7 +74,9 @@
 
         if (ShouldUpdate)
         {
-            Session.CurrentUser.DisplayName = AccountForm.DisplayName;
+            if (Session.CurrentUser != null)
+                Session.CurrentUser.DisplayName = AccountForm.DisplayName;
+
             user.DisplayName = AccountForm.DisplayName;
             await UserManager.UpdateAsync(user);
             Session.TriggerChange();

@@ -840,7 +840,7 @@
     public async Task EditPasskey(FidoStoredCredential cred)
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
+        if (AuthUser == null || cred.Descriptor == null)
             return;
 
         if (AuthUser.Mfa.IsTwoFactorEnabled)
@@ -858,7 +858,7 @@
             if (AuthUser != null)
             {
                 string Key = System.Text.Encoding.UTF8.GetString(cred.Descriptor.Id);
-                FidoStoredCredential? Cred = AuthUser.Mfa.Passkeys.FirstOrDefault(x => System.Text.Encoding.UTF8.GetString(x.Descriptor.Id) == Key);
+                FidoStoredCredential? Cred = AuthUser.Mfa.Passkeys.FirstOrDefault(x => x.Descriptor != null && System.Text.Encoding.UTF8.GetString(x.Descriptor.Id) == Key);
                 if (Cred != null)
                 {
                     Cred.Name = data.Name;
@@ -875,7 +875,7 @@
     public async Task RemovePasskey(FidoStoredCredential cred)
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
+        if (AuthUser == null || cred.Descriptor == null)
             return;
 
         if (AuthUser.Mfa.IsTwoFactorEnabled)
@@ -890,7 +890,8 @@
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser == null)
             return;
-        AuthUser.Mfa.Passkeys = AuthUser.Mfa.Passkeys.Where(x => System.Text.Encoding.UTF8.GetString(x.Descriptor.Id) != System.Text.Encoding.UTF8.GetString(cred.Descriptor.Id)).ToList();
+
+        AuthUser.Mfa.Passkeys = AuthUser.Mfa.Passkeys.Where(x => x.Descriptor != null && System.Text.Encoding.UTF8.GetString(x.Descriptor.Id) != System.Text.Encoding.UTF8.GetString(cred.Descriptor.Id)).ToList();
         if (!AuthUser.Mfa.HasAny2FA())
             AuthUser.Mfa.Disable2FA(AuthUser);
 
@@ -1044,6 +1045,9 @@
             }
 
             AuthUser = await Session.GetCurrentUserAsync();
+            if (AuthUser == null)
+                return;
+
             IdentityUserToken<ObjectId>? Token = AuthUser.GetToken("[AspNetUserStore]", "AuthenticatorKey");
             if (Token != null)
                 AuthUser.RemoveUserToken(Token);

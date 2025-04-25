@@ -40,9 +40,9 @@ public class TeamRoleData
         return 0;
     }
 
-    public bool CanManage(TeamMemberData currentMember)
+    public bool CanManage(TeamMemberData? currentMember)
     {
-        if (TeamId != currentMember.TeamId)
+        if (currentMember == null || TeamId != currentMember.TeamId)
             return false;
 
         if (Team != null && Team.OwnerId == currentMember.UserId)

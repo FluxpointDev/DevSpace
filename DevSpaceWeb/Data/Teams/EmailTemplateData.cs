@@ -162,8 +162,11 @@ public class EmailTemplateData
         return Html;
     }
 
-    public string ParseTags(AuthUser user, string action, string other_email, string code, string reason, string ip, string country)
+    public string? ParseTags(AuthUser user, string action, string other_email, string code, string reason, string ip, string country)
     {
+        if (string.IsNullOrEmpty(Body))
+            return Body;
+
         return Body.Replace("{user.name}", user.UserName).Replace("{user.email}", user.Email)
             .Replace("{instance.email}", !string.IsNullOrEmpty(_Data.Config.Instance.Email) ? "mailto:" + _Data.Config.Instance.Email : "Invalid Email")
             .Replace("{instance.name}", _Data.Config.Instance.Name).Replace("{action}", action).Replace("{other_email}", other_email)

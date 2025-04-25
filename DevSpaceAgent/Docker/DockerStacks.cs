@@ -413,8 +413,14 @@ public static class DockerStacks
         };
     }
 
-    public static async Task<DockerStackCreate> RecreateContainer(DockerClient client, string id, CreateStackEvent create)
+    public static async Task<DockerStackCreate> RecreateContainer(DockerClient client, string? id, CreateStackEvent? create)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Stack id is missing.");
+
+        if (create == null)
+            throw new Exception("Invalid container creation options.");
+
         if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
             throw new Exception("Stack does not exist.");
 
@@ -531,8 +537,11 @@ public static class DockerStacks
         };
     }
 
-    public static async Task<DockerStackInfo> ViewStack(DockerClient client, string id)
+    public static async Task<DockerStackInfo> ViewStack(DockerClient client, string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Stack id is missing.");
+
         if (Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
         {
             DockerStackInfo Info = new DockerStackInfo
@@ -739,8 +748,11 @@ public static class DockerStacks
         }
     }
 
-    public static async Task<DockerStackComposeInfo> StackCompose(DockerClient client, string id)
+    public static async Task<DockerStackComposeInfo> StackCompose(DockerClient client, string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Stack id is missing.");
+
         if (int.TryParse(id, out _))
         {
             string ComposeDir = $"/var/lib/docker/volumes/portainer_data/_data/compose/{id}/";
@@ -818,8 +830,11 @@ public static class DockerStacks
         }
     }
 
-    public static async Task ControlStack(DockerClient client, string id, ControlStackType type)
+    public static async Task ControlStack(DockerClient client, string? id, ControlStackType type)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Stack id is missing.");
+
         if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
             throw new Exception("Stack does not exist.");
 
@@ -857,8 +872,11 @@ public static class DockerStacks
         }
     }
 
-    public static async Task RemoveStack(DockerClient client, string id)
+    public static async Task RemoveStack(DockerClient client, string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Stack id is missing.");
+
         string Dir = Program.CurrentDirectory + $"Data/Stacks/{id}/";
         if (Directory.Exists(Dir))
         {

@@ -29,7 +29,10 @@
     else
     {
         <br />
-        <DynamicFormDialog Model="@ModifyRconModel" ModelData="@Data" OnSubmit="@UpdateRconSettings"></DynamicFormDialog>
+        @if (Data != null)
+        {
+            <DynamicFormDialog Model="@ModifyRconModel" ModelData="@Data" OnSubmit="@UpdateRconSettings"></DynamicFormDialog>
+        }
     }
 </div>
 
@@ -43,14 +46,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Data = new ModifyRconModel
-        {
-            Ip = Console.Ip,
-            Port = Console.Port
-        };
+        if (Console != null)
+            Data = new ModifyRconModel
+            {
+                Ip = Console.Ip,
+                Port = Console.Port
+            };
     }
 
-    public ModifyRconModel Data { get; set; }
+    public ModifyRconModel? Data { get; set; }
 
     public async Task<string?> UpdateRconSettings(ModifyRconModel model)
     {

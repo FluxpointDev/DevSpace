@@ -34,7 +34,7 @@
                                 <h6>Authenticator</h6>
                             </div>
 
-                            <div class="twofactor-item @(User.Mfa.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="(() => { if (User.Mfa.Passkeys.Any()) { AuthType = TwoFactorSelector.WebAuth; VerifyPasskey(); } })">
+                            <div class="twofactor-item @(User.Mfa.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="(() => { if (User.Mfa.Passkeys.Any()) { AuthType = TwoFactorSelector.WebAuth; _ = VerifyPasskey(); } })">
                                 <span class="iconify" data-icon="mdi:key-chain"></span>
                                 <h6>Passkey, Webauth or Yubikey</h6>
                             </div>
@@ -103,7 +103,7 @@
                         </RadzenText>
                         <RadzenIcon Icon="forward_to_inbox" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
                         <div>
-                            <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" @onpaste="@CheckPaste" Change="@(() => { if (CodeInput.Length == 6) VerifyEmail(); })" Count="6" Gap="6px" aria-label="Email Code" autofocus />
+                            <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" @onpaste="@CheckPaste" Change="@(() => { if (!string.IsNullOrEmpty(CodeInput) && CodeInput.Length == 6) _ = VerifyEmail(); })" Count="6" Gap="6px" aria-label="Email Code" autofocus />
                         </div>
                         <br />
                         <RadzenButton Click="@VerifyEmail" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" Disabled="@IsVerifyingAuth" IsBusy="@IsVerifyingAuth" />
@@ -119,7 +119,7 @@
                     </RadzenText>
                     <RadzenIcon Icon="screen_lock_portrait" IconColor="@Colors.Info" Style="font-size: 2rem; font-variation-settings: 'FILL' 1;" />
                     <div>
-                        <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" @onpaste="@CheckPaste" Change="@(() => { if (CodeInput.Length == 6) VerifyAuthenticator(); })" Count="6" Gap="6px" aria-label="Auth Code" autofocus />
+                        <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@CodeInput" @onpaste="@CheckPaste" Change="@(() => { if (!string.IsNullOrEmpty(CodeInput) && CodeInput.Length == 6) _ = VerifyAuthenticator(); })" Count="6" Gap="6px" aria-label="Auth Code" autofocus />
                     </div>
                     <br />
                     <RadzenButton Click="@VerifyAuthenticator" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" Disabled="@IsVerifyingAuth" IsBusy="@IsVerifyingAuth" />
@@ -296,7 +296,7 @@
     {
         if (string.IsNullOrEmpty(CodeInput))
         {
-            dialogService.ShowInfoAsync("Paste Failed", $"Your pasted text contains invalid characters or blank spaces at the end.");
+            _ = dialogService.ShowInfoAsync("Paste Failed", $"Your pasted text contains invalid characters or blank spaces at the end.");
         }
     }
 
@@ -307,6 +307,9 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+        if (User == null || string.IsNullOrEmpty(CodeInput))
+            return;
+
         if (!User.Mfa.AuthenticatorDevices.Any(x => x.Value == true))
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AuthenticatorNoDevices);

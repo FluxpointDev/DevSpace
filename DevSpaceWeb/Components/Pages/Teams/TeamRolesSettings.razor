@@ -242,13 +242,13 @@
 
 
     private TeamRoleData? _selectedRole = null;
-    public TeamRoleData? SelectedRole { get { return _selectedRole; } set { _selectedRole = value; SelectedRoleModel = new TeamRoleModel { Name = value.Name, Description = value.Description }; UpdateCanManage(); RoleForm?.LoadModel(SelectedRoleModel); } }
+    public TeamRoleData? SelectedRole { get { return _selectedRole; } set { _selectedRole = value; if (value != null) { SelectedRoleModel = new TeamRoleModel { Name = value.Name, Description = value.Description }; UpdateCanManage(); RoleForm?.LoadModel(SelectedRoleModel); } } }
     public TeamRoleModel? SelectedRoleModel { get; set; }
     public DynamicFormDialog<TeamRoleModel> RoleForm { get; set; } = null!;
     public bool SelectedRoleCanManage { get; set; }
     public void UpdateCanManage()
     {
-        if (Member == null || SelectedRole == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+        if (Member == null || SelectedRole == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
             SelectedRoleCanManage = false;
         else
         {
@@ -273,7 +273,8 @@
 
     public void LoadPermissions()
     {
-        Permissions = SelectedRole.Permissions.Clone();
+        if (SelectedRole != null)
+            Permissions = SelectedRole.Permissions.Clone();
     }
 
     public async Task SavePermissions(PermissionsSet perms)
@@ -448,7 +449,7 @@
         if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
             return;
 
-        if (SelectedRole.GetPosition() >= Member.GetRank())
+        if (SelectedRole == null || SelectedRole.GetPosition() >= Member.GetRank())
             return;
 
         bool Confirm = await DialogService.ShowConfirmAsync("Delete Role", "Are you sure your want to delete " + SelectedRole.Name, "Confirm", ButtonStyle.Success);
