@@ -53,6 +53,9 @@ public class TeamMemberData
                 if (_DB.Roles.Cache.TryGetValue(i, out TeamRoleData? role) && !string.IsNullOrEmpty(role.Color))
                     return role.Color;
             }
+
+            if (!string.IsNullOrEmpty(Team.DefaultMembersColor))
+                return Team.DefaultMembersColor;
         }
         return "#C4C9CE";
     }

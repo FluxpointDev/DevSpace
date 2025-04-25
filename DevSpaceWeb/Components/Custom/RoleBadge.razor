@@ -1,5 +1,5 @@
 ﻿<RadzenBadge BadgeStyle="BadgeStyle.Base" Variant="Variant.Outlined" Text="Outlined" Style="@($"color: #C4C9CE; text-transform: none; font-size: 13px !important; font-weight: 500 !important;")">
-    <span style="@($"background-color: {GetColor()};")"></span> @Role.Name
+    <span style="@($"background-color: {GetColor(Role)};")"></span> @Role.Name
 </RadzenBadge>
 
 <style>
@@ -23,10 +23,10 @@
     [Parameter, EditorRequired]
     public TeamRoleData Role { get; set; }
 
-    public string GetColor()
+    public static string GetColor(TeamRoleData role)
     {
-        if (!string.IsNullOrEmpty(Role.Color))
-            return Role.Color;
+        if (!string.IsNullOrEmpty(role.Color))
+            return role.Color;
 
         return "#C4C9CE";
     }

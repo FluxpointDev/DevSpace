@@ -47,14 +47,14 @@
             @if (IsDialog)
             {
                 <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@LoadingSubmit" />
-                <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" Disabled="@LoadingSubmit" />
+                <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" Disabled="@(LoadingSubmit || Disabled)" />
             }
             else
             {
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" Click="@Submit" />
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" Click="@Submit" Disabled="@(LoadingSubmit || Disabled)" />
                 @if (OnTest != null)
                 {
-                    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Test" Click="@Test" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Test" Click="@Test" Disabled="@(LoadingSubmit)" />
                 }
             }
         </RadzenStack>
@@ -70,6 +70,9 @@
     public Model ModelData { get; set; }
 
     public Model CloneData { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
 
     public EditForm Form { get; internal set; }
 
@@ -159,6 +162,8 @@
             builder.AddAttribute(7, "ShowUpDown", false);
         }
 
+        builder.AddAttribute(8, "ReadOnly", Disabled);
+
         builder.CloseComponent();
     };
 
@@ -167,9 +172,14 @@
         if (IsLoaded)
             return;
         IsLoaded = true;
+        LoadModel(ModelData);
+    }
+
+    public void LoadModel(Model data)
+    {
+        ModelData = data;
         CloneData = JsonConvert.DeserializeObject<Model>(JsonConvert.SerializeObject(ModelData));
         FormItems = CloneData.GetType().GetProperties().Select(x => new DynamicFormItem(CloneData, x)).ToList();
-
     }
 
     public async Task Submit()

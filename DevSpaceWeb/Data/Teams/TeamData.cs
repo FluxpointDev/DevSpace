@@ -39,6 +39,7 @@ public class TeamData : IResource
     }
 
     public PermissionsSet DefaultPermissions { get; set; } = new PermissionsSet();
+    public string? DefaultMembersColor { get; set; }
 
     [Obsolete]
     [BsonIgnoreIfNull]
