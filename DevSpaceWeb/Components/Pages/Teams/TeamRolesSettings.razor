@@ -1,5 +1,6 @@
 ﻿@using DevSpaceWeb.Components.Dialogs
 @using DevSpaceWeb.Components.Dialogs.Members
+@using DevSpaceWeb.Data.Consoles
 @using DevSpaceWeb.Models
 @using DevSpaceWeb.Models.Teams
 @inject DialogService DialogService
@@ -91,7 +92,7 @@
                                     <DynamicFormDialog @ref="@RoleForm" Model="@TeamRoleModel" ModelData="@SelectedRoleModel" OnSubmit="@EditRole" Disabled="@(!SelectedRoleCanManage || SelectedRole.Team == null)"></DynamicFormDialog>
                                     
                                     <br style="margin-bottom: 6px;" />
-                                    <RadzenLabel Text="Color" class="rz-my-1"></RadzenLabel>
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Color</RadzenText>
                                     <div>
                                         <RadzenColorPicker Value="@RoleBadge.GetColor(SelectedRole)" ShowHSV="true" ShowRGBA="true" ShowColors="true" ShowButton="true" Change="@EditRoleColor" ButtonText="Save" Disabled="@(!SelectedRoleCanManage)">
                                             <RadzenColorPickerItem Value="#d7c730"></RadzenColorPickerItem>
@@ -149,12 +150,98 @@
                             </RadzenTabsItem>
                             <RadzenTabsItem Text="Members">
                                 <div style="padding: 10px;">
-                                    <p>This feature is not available yet.</p>
+                                    <MembersList SelectedRole="@SelectedRole"></MembersList>
                                 </div>
                             </RadzenTabsItem>
                             <RadzenTabsItem Text="Resources">
                                 <div style="padding: 10px;">
-                                    <p>This feature is not available yet.</p>
+                                    @if (Member == null || !Member.IsGlobalAdministrator(Team))
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false" Size="AlertSize.Small">
+                                            Some resources may not be listed with your current access.
+                                        </RadzenAlert>
+                                    }
+
+                                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Left" Wrap="FlexWrap.Wrap" Gap="0.2rem">
+            <RadzenStack Gap="6px" class="permission-grid-box">
+                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:server"></span> Servers</RadzenText>
+
+                @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (Team != null && Team.DefaultPermissions.HasServerPermission(ServerPermission.ViewServer)) || SelectedRole.HasServerPermission(Team, x, ServerPermission.ViewServer)))
+                {
+                    <a>
+                        <div class="server-item">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                        </div>
+                    </a>
+                }
+            </RadzenStack>
+
+            <RadzenStack Gap="6px" class="permission-grid-box">
+                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:docker"></span> Docker</RadzenText>
+
+                @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (Team != null && (Team.DefaultPermissions.HasDockerContainerPermission(DockerContainerPermission.ViewStacks) || Team.DefaultPermissions.HasDockerContainerPermission(DockerContainerPermission.ViewContainers))) || SelectedRole.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewStacks) || SelectedRole.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewContainers)))
+                {
+                    <a>
+                        <div class="server-item">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                        </div>
+                    </a>
+                }
+            </RadzenStack>
+
+            <RadzenStack Gap="6px" class="permission-grid-box">
+                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:web"></span> Websites</RadzenText>
+
+                @foreach (WebsiteData i in _DB.Websites.Cache.Values.Where(x => Member != null && Member.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite) && (Team != null && Team.DefaultPermissions.HasWebsitePermission(WebsitePermission.ViewWebsite)) || SelectedRole.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite)))
+                {
+                    <a>
+                        <div class="server-item">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                        </div>
+                    </a>
+                }
+            </RadzenStack>
+
+            <RadzenStack Gap="6px" class="permission-grid-box">
+                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:lightbulb"></span> Projects</RadzenText>
+
+                @foreach (ProjectData i in _DB.Projects.Cache.Values.Where(x => Member != null && Member.HasProjectPermission(Team, x, ProjectPermission.ViewProject) && (Team != null && Team.DefaultPermissions.HasProjectPermission(ProjectPermission.ViewProject)) || SelectedRole.HasProjectPermission(Team, x, ProjectPermission.ViewProject)))
+                {
+                    <a>
+                        <div class="server-item">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                        </div>
+                    </a>
+                }
+            </RadzenStack>
+
+            <RadzenStack Gap="6px" class="permission-grid-box">
+                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:warning"></span> Logs</RadzenText>
+
+                @foreach (LogData i in _DB.Logs.Cache.Values.Where(x => Member != null && Member.HasLogPermission(Team, x, LogPermission.ViewLog) && (Team != null && Team.DefaultPermissions.HasLogPermission(LogPermission.ViewLog)) || SelectedRole.HasLogPermission(Team, x, LogPermission.ViewLog)))
+                {
+                    <a>
+                        <div class="server-item">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                        </div>
+                    </a>
+                }
+            </RadzenStack>
+
+            <RadzenStack Gap="6px" class="permission-grid-box">
+                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05"><span class="iconify" data-icon="mdi:console"></span> Consoles</RadzenText>
+
+                @foreach (ConsoleData i in _DB.Consoles.Cache.Values.Where(x => Member != null && Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole) && (Team != null && Team.DefaultPermissions.HasConsolePermission(ConsolePermission.ViewConsole)) || SelectedRole.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)))
+                {
+                    <a>
+                        <div class="server-item">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                        </div>
+                    </a>
+                }
+            </RadzenStack>
+        </RadzenStack>
+
                                 </div>
                             </RadzenTabsItem>
                         </Tabs>
@@ -235,6 +322,55 @@
 .rz-colorpicker-popup .rz-color-box:last-child {
     display: none;
 }
+.rz-py-2:last-child {
+    max-width: calc(100% - 300px) !important;
+}
+</style>
+
+<style>
+    .permission-grid-box {
+        width: 260px;
+        padding: 4px;
+        padding-left: 8px;
+        padding-right: 8px !important;
+        padding-bottom: 16px;
+        background-color: #242527 !important;
+        margin-right: 4px;
+        margin-bottom: 4px;
+        box-shadow: var(--rz-card-shadow);
+        min-height: 80px;
+        
+    }
+
+        .permission-grid-box .rz-text-subtitle1 {
+            text-align: center !important;
+            display: inline-block !important;
+            margin-bottom: 14px !important;
+        }
+
+        .permission-grid-box span {
+            display: block;
+        }
+
+        .permission-grid-box .iconify {
+            width: 22px;
+            height: 22px;
+            margin-right: 6px;
+            margin-top: -2px;
+        }
+
+    .server-item {
+        background-color: #21262d !important;
+        border-radius: 6px;
+        border: 1px solid rgba(0,135,201,0.3) !important;
+        padding: 6px;
+        padding-left: 10px;
+        cursor: pointer;
+    }
+
+        .server-item:hover {
+            border-color: rgba(0,135,201,0.5) !important;
+        }
 </style>
 
 @code {

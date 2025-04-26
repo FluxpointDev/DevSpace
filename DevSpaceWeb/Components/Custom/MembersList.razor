@@ -1,0 +1,633 @@
+﻿@using System.Linq.Dynamic.Core
+@using DevSpaceWeb.Components.Dialogs.Members
+@using DevSpaceWeb.Models.Defaults
+@inject ContextMenuService ContextMenuService
+@inject DialogService DialogService
+
+<RadzenDataGrid @ref="@Grid" Data="@Members" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
+                AllowRowSelectOnRowClick="false"
+                PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                ShowPagingSummary="true" PagingSummaryFormat="@(Count + " member" + (Count != 1 ? "s" : "") )"
+                AllowSorting="false" AllowFiltering="false"
+                TItem="TeamMemberData" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
+    <Columns>
+        <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true">
+            <Template>
+                <RadzenImage Path="@context.GetCurrentAvatar()"></RadzenImage>
+                <div class="members-item-names">
+                    <RadzenText TextStyle="TextStyle.Body1" Style="@($"color: {context.GetCurrentColor()};")">
+                        @context.GetCurrentName()
+                    </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color); font-weight: 400;">
+                        @context.GetUsername()
+                    </RadzenText>
+                </div>
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Created" Width="100px">
+            <Template>
+                @Utils.GetLocalDate(Session, _DB.Users[context.UserId].Id.CreationTime)
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Joined" Width="100px">
+            <Template>
+                @Utils.GetLocalDate(Session, context.JoinedAt)
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Roles" Width="200px">
+            <Template>
+                @if (!context.Roles.Any())
+                {
+                    @("No roles")
+                }
+                else
+                {
+                    <RoleBadge Role="@context.GetCachedRoles().OrderByDescending(x => x.GetPosition()).First()"></RoleBadge>
+                    if (context.GetCachedRoles().Count() > 1)
+                    {
+                        <span @onclick="@(() => ViewRoles(_DB.Users[context.UserId]))" style="cursor: pointer; margin-left: 4px; color: #C4C9CE; text-transform: none; font-size: 13px !important; font-weight: 500 !important;" class="rz-badge rz-badge-base rz-variant-outlined rz-shade-default">+@(context.GetCachedRoles().Count() - 1)</span>
+                    }
+                }
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Status" Width="100px">
+            <Template>
+                @if (context.Disabled == null)
+                {
+                    <span class="iconify" data-icon="mdi:success-circle" style="color: var(--rz-success-dark);"></span>
+                    <span>Enabled</span>
+                }
+                else
+                {
+
+                    <span class="iconify" data-icon="mdi:cross-circle" style="color: var(--rz-danger-dark);"></span>
+                    <span>Disabled</span>
+                }
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Type" Width="100px">
+            <Template>
+                @if (Team != null && context.UserId == Team.OwnerId)
+                {
+                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="owner" IsPill="true" />
+                }
+                else if (Team != null && context.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                {
+                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Global Admin" IsPill="true" />
+                }
+                else if (Team != null && context.HasTeamPermission(Team, TeamPermission.TeamAdministrator))
+                {
+                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Team Admin" IsPill="true" />
+                }
+                else
+                {
+                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Member" IsPill="true" />
+                }
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Actions" Width="200px">
+            <Template>
+                <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
+                    <RadzenButton Click="@(args => ShowContextMenuWithViewItems(context, args))" Icon="visibility" Text="View" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />
+                    <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="manage_accounts" Text="Manage" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />
+                </RadzenStack>
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+<style>
+    .rz-cell-data img {
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 8px;
+        margin-top: -24px;
+    }
+
+    .members-item-names {
+        display: inline-block;
+    }
+
+        .members-item-names .rz-text-body2 {
+            line-height: 8px;
+        }
+
+    .rz-data-row .iconify {
+        height: 20px;
+        width: 20px;
+        margin-right: 2px;
+    }
+
+    .rz-grid-table-fixed .rz-frozen-cell {
+    }
+
+    .rz-data-row .rz-frozen-cell {
+        background-color: rgba(24,25,28) !important;
+    }
+
+    .rz-button-sm .rzi {
+        font-variation-settings: 'FILL' 1
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    [Parameter]
+    public TeamRoleData? SelectedRole { get; set; }
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    IQueryable<TeamMemberData>? Members;
+    public int Count = 0;
+    public bool IsLoading = true;
+    RadzenDataGrid<TeamMemberData> Grid;
+
+    public async Task LoadData(LoadDataArgs args)
+    {
+        if (Member == null || Team == null)
+            return;
+
+        if (!Member.HasTeamPermission(Team, TeamPermission.ViewMembers))
+            return;
+
+        IQueryable<TeamMemberData> query = Team.CachedMembers.Values.AsQueryable();
+
+        if (SelectedRole != null)
+            query = query.Where(x => x.Roles.Contains(SelectedRole.Id));
+
+        if (!string.IsNullOrEmpty(args.Filter))
+            query = query.Where(args.Filter);
+
+        if (!string.IsNullOrEmpty(args.OrderBy))
+            query = query.OrderBy(args.OrderBy);
+
+        Count = query.Count();
+        Members = query.OrderBy(x => x.GetCurrentName()).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
+
+        IsLoading = false;
+    }
+
+    void ShowContextMenuWithViewItems(TeamMemberData item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem>
+            {
+                new ContextMenuItem(){ Text = "Info", Icon = "person", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewMembers) },
+                new ContextMenuItem(){ Text = "Roles", Icon = "sell", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewMembers) },
+                new ContextMenuItem(){ Text = "Permissions", Icon = "shield_person", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewPermissions) },
+                new ContextMenuItem(){ Text = "Resources", Icon = "dynamic_form" },
+            }, x => MenuItemClick(x, item));
+    }
+
+    void ShowContextMenuWithManageItems(TeamMemberData item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem>
+            {
+                new ContextMenuItem(){ Text = "Edit Nickname", Icon = "id_card", Disabled = Team == null || Member == null || (item.UserId == Team.OwnerId && Member.UserId != item.UserId) || (Member.UserId == item.UserId && !Member.HasTeamPermission(Team, TeamPermission.ChangeNickname)) || (Member.UserId != item.UserId && !Member.HasTeamPermission(Team, TeamPermission.ManageNicknames)) },
+                new ContextMenuItem(){ Text = "Change Roles", Icon = "sell", Disabled = Team == null || Member == null || (item.UserId == Team.OwnerId && Member.UserId != item.UserId) || !Member.HasTeamPermission(Team, TeamPermission.AssignRoles) },
+                new ContextMenuItem
+                {
+                    Text = item.Disabled == null ? "Disable Member" : "Enable Member",
+                    Icon = item.Disabled == null ? "cancel" : "check",
+                    Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers)
+                },
+                new ContextMenuItem() { Text = "Transfer Ownership", Icon = "social_distance", Disabled = Member == null || Team == null || Member.UserId != Team.OwnerId || item.UserId == Team.OwnerId },
+                new ContextMenuItem() { Text = "Remove Member", Icon = "person_cancel", Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers) }
+
+            }, x => MenuItemClick(x, item));
+    }
+
+    void MenuItemClick(MenuItemEventArgs args, TeamMemberData item)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Member == null || Team == null)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            switch (args.Text)
+            {
+                case "Info":
+                    {
+                        await ViewInfo(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Roles":
+                    {
+                        await ViewRoles(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Permissions":
+                    {
+                        await ViewPermissions(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Resources":
+                    {
+                        await ViewResources(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Edit Nickname":
+                    {
+                        await EditNickname(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Change Roles":
+                    {
+                        await ChangeMemberRoles(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Enable Member":
+                    {
+                        await EnableMember(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Disable Member":
+                    {
+                        await DisableMember(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Transfer Ownership":
+                    {
+                        await TransferOwnership(_DB.Users[item.UserId]);
+                    }
+                    break;
+                case "Remove Member":
+                    {
+                        await RemoveTeamMember(item.UserId);
+                    }
+                    break;
+            }
+        });
+
+        ContextMenuService.Close();
+    }
+
+    public async Task EnableMember(PartialUserData user)
+    {
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
+            return;
+        }
+
+
+        TeamMemberData? SelectedMember = Team.GetMember(user);
+        if (SelectedMember == null)
+            return;
+
+        int CurrentRank = Member.GetRank();
+        int SelectedRank = SelectedMember.GetRank();
+        if (CurrentRank <= SelectedRank)
+        {
+            await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+            return;
+        }
+
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, false);
+        if (!twoFactorConfirm)
+            return;
+
+        bool Confirm = await DialogService.ShowConfirmAsync("Enable Member " + user.UserName, "Are you sure you want to enable this member?", "Confirm", ButtonStyle.Success);
+        if (Confirm)
+        {
+            if (Program.IsPreviewMode)
+            {
+                Session.ShowPreviewModeNotice();
+                return;
+            }
+
+            if (!Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
+            {
+                await DialogService.ShowPermissionErrorAsync(TeamPermission.ManageMembers);
+                return;
+            }
+
+            if (user.ManagedAccountTeamId.HasValue)
+            {
+                FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
+                UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, null);
+                UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure!.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
+                if (!Result.IsAcknowledged)
+                {
+                    await DialogService.ShowInfoAsync("Database Error", "Failed to enable account.");
+                    return;
+                }
+            }
+            TeamMemberData? member = Team.GetMember(user);
+            if (member == null)
+                return;
+
+            await member.UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, null), () =>
+            {
+                _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+                member.Disabled = null;
+            });
+        }
+    }
+
+    public async Task DisableMember(PartialUserData user)
+    {
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
+            return;
+        }
+
+        TeamMemberData? SelectedMember = Team.GetMember(user);
+        if (SelectedMember == null)
+            return;
+
+        int CurrentRank = Member.GetRank();
+        int SelectedRank = SelectedMember.GetRank();
+        if (CurrentRank <= SelectedRank)
+        {
+            await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+            return;
+        }
+
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, false);
+        if (!twoFactorConfirm)
+            return;
+
+        await DialogService.ShowDynamicFormAsync<ReasonModel>("Disable Member " + user.UserName, new ReasonModel(), async (ReasonModel data) =>
+        {
+            if (!Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
+                return "You do not have permission for Manage Members";
+
+            UserDisabled Disabled = new UserDisabled
+            {
+                DisabledAt = DateTime.UtcNow,
+                State = UserDisabledState.TeamManaged,
+                Reason = data.Reason
+            };
+            if (user.ManagedAccountTeamId.HasValue)
+            {
+                FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
+                UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, Disabled);
+                UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure!.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
+                if (!Result.IsAcknowledged)
+                    return "Failed to disable user";
+            }
+
+            TeamMemberData? member = Team.GetMember(user);
+            if (member == null)
+                return "You do not have permission for Manage Member";
+
+            await member.UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, Disabled), () =>
+            {
+                member.Disabled = Disabled;
+                _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+            });
+
+            return null;
+        });
+    }
+
+    public async Task TransferOwnership(PartialUserData user)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Member == null || Team == null || Session.CurrentUser == null)
+            return;
+
+        if (Team.OwnerId != Session.CurrentUser.Id)
+            return;
+
+        bool Confirm = await DialogService.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Team.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, true);
+        if (!twoFactorConfirm)
+            return;
+
+        if (Team.OwnerId != User.Id)
+            return;
+
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.OwnerId, user.Id), () =>
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.TeamOwnershipChanged)
+                .SetTarget(user)
+                .AddProperty("User", user.UserName)
+                .AddProperty("ID", user.Id.ToString()));
+            Team.OwnerId = user.Id;
+        });
+    }
+
+    public async Task RemoveTeamMember(ObjectId user)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
+            return;
+        }
+
+        if (!Team.Members.TryGetValue(user, out ObjectId selected))
+            return;
+
+        TeamMemberData SelectedMember = Team.CachedMembers[selected];
+        int CurrentRank = Member.GetRank();
+        int SelectedRank = SelectedMember.GetRank();
+        if (CurrentRank <= SelectedRank)
+        {
+            await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+            return;
+        }
+
+        if (SelectedMember == null)
+            return;
+
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, false);
+        if (!twoFactorConfirm)
+            return;
+
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Team.Members.Where(x => x.Key != user).ToDictionary(x => x.Key, x => x.Value)), () =>
+        {
+            _DB.Members.Collection.DeleteOneAsync(new FilterDefinitionBuilder<TeamMemberData>().Eq(x => x.Id, SelectedMember.Id));
+            Team.Members.Remove(user);
+            Team.CachedMembers.Remove(SelectedMember.Id);
+            _DB.Members.Cache.Remove(user, out _);
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.MemberRemoved)
+            .SetTarget(_DB.Users[user])
+            .AddProperty("User", _DB.Users[user].UserName)
+            .AddProperty("ID", _DB.Users[user].Id.ToString()));
+        });
+    }
+
+    public async Task EditNickname(PartialUserData user)
+    {
+        if (Member == null || Team == null)
+            return;
+
+        if (Member == null || Team == null)
+            return;
+
+        if (user.Id != Member.UserId)
+        {
+            if (!Member.HasTeamPermission(Team, TeamPermission.ManageNicknames))
+            {
+                Session.Notifications.ShowPermissionWarning(TeamPermission.ManageNicknames);
+                return;
+            }
+
+            TeamMemberData? SelectedMember = Team.GetMember(user);
+            if (SelectedMember == null)
+                return;
+
+            int CurrentRank = Member.GetRank();
+            int SelectedRank = SelectedMember.GetRank();
+            if (CurrentRank <= SelectedRank)
+            {
+                await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+                return;
+            }
+        }
+        else
+        {
+            if (!Member.HasTeamPermission(Team, TeamPermission.ChangeNickname))
+            {
+                Session.Notifications.ShowPermissionWarning(TeamPermission.ChangeNickname);
+                return;
+            }
+        }
+
+        dynamic Result = await DialogService.OpenAsync<EditMemberNicknameDialog>($"Edit Nickname for {user.UserName}", new Dictionary<string, object>()
+        {
+            { "Team", Team },
+            { "SelectedMember", Team.GetMember(user) }
+        });
+        if (Result != null && (bool)Result == true)
+            await Grid.RefreshDataAsync();
+    }
+
+    public async Task ChangeMemberRoles(PartialUserData user)
+    {
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.AssignRoles))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.AssignRoles);
+            return;
+        }
+
+        if (user.Id != Member.UserId)
+        {
+            TeamMemberData? SelectedMember = Team.GetMember(user);
+            if (SelectedMember == null)
+                return;
+
+            int CurrentRank = Member.GetRank();
+            int SelectedRank = SelectedMember.GetRank();
+            if (CurrentRank <= SelectedRank)
+            {
+                await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+                return;
+            }
+        }
+
+        await DialogService.OpenAsync<ChangeMemberRolesDialog>($"Update Roles for {user.UserName}", new Dictionary<string, object>()
+        {
+            { "Team", Team },
+            { "Member", Team.GetMember(user) }
+        });
+    }
+
+    public async Task ViewInfo(PartialUserData user)
+    {
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ViewMembers))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ViewMembers);
+            return;
+        }
+
+        await DialogService.OpenAsync<MemberInfoPreviewDialog>($"Info for {user.UserName}", new Dictionary<string, object>()
+        {
+            { "Member", Team.GetMember(user) }
+        }, new DialogOptions
+        {
+            Width = "850px"
+        });
+    }
+
+    public async Task ViewRoles(PartialUserData user)
+    {
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ViewMembers))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ViewMembers);
+            return;
+        }
+
+        await DialogService.OpenAsync<MemberRolesPreviewDialog>($"Roles for {user.UserName}", new Dictionary<string, object>()
+        {
+            { "Member", Team.GetMember(user) }
+        }, new DialogOptions
+        {
+            Width = "850px"
+        });
+    }
+
+    public async Task ViewPermissions(PartialUserData user)
+    {
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ViewPermissions))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ViewPermissions);
+            return;
+        }
+
+        await DialogService.OpenAsync<MemberPermissionsPreviewDialog>($"Permissions for {user.UserName}", new Dictionary<string, object>()
+        {
+            { "Permissions", Team.GetMember(user)?.CalculatePermissions(null) }
+        }, new DialogOptions
+        {
+            Width = "850px"
+        });
+    }
+
+    public async Task ViewResources(PartialUserData user)
+    {
+        if (Member == null || Team == null)
+            return;
+
+        await DialogService.OpenAsync<MemberResourcesPreviewDialog>($"Resources for {user.UserName}", new Dictionary<string, object>()
+        {
+            { "Member", Team.GetMember(user) }
+        }, new DialogOptions
+        {
+            Width = "850px"
+        });
+    }
+}
