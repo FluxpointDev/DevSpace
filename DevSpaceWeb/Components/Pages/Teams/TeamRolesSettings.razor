@@ -490,6 +490,10 @@
 
         await SelectedRole.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Name, data.Name).Set(x => x.Description, data.Description), () =>
         {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.RoleSettingsChanged)
+                .SetTarget(SelectedRole)
+                .AddPropertyChange(nameof(TeamRoleData.Name), SelectedRole.Name, data.Name)
+                .AddPropertyChange(nameof(TeamRoleData.Description), SelectedRole.Description, data.Description));
             SelectedRole.Name = data.Name;
             SelectedRole.Description = data.Description;
             InvokeAsync(StateHasChanged);
@@ -510,6 +514,10 @@
         {
             await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultMembersColor, hex), () =>
             {
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.TeamSettingsChanged)
+                .SetTarget(SelectedRole)
+                .AddPropertyChange(Utils.FriendlyName(nameof(TeamData.DefaultMembersColor)), Team.DefaultMembersColor, hex));
+
                 Roles.First(x => x.Team == null).Color = hex;
                 Team.DefaultMembersColor = hex;
                 InvokeAsync(StateHasChanged);
@@ -523,6 +531,10 @@
 
             await SelectedRole.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Color, hex), () =>
             {
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.RoleSettingsChanged)
+                .SetTarget(SelectedRole)
+                .AddPropertyChange(nameof(TeamRoleData.Color), SelectedRole.Color, hex));
+
                 SelectedRole.Color = hex;
                 InvokeAsync(StateHasChanged);
             });
