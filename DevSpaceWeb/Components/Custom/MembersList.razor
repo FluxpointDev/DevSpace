@@ -85,6 +85,21 @@
                 }
             </Template>
         </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="2FA" Width="100px">
+            <Template>
+                @if (_DB.Users.TryGetValue(context.UserId, out PartialUserData? user) && user.Has2FA)
+                {
+                    <span class="iconify" data-icon="mdi:success-circle" style="color: var(--rz-success-dark);"></span>
+                    <span>Enabled</span>
+                }
+                else
+                {
+
+                    <span class="iconify" data-icon="mdi:cross-circle" style="color: var(--rz-danger-dark);"></span>
+                    <span>Disabled</span>
+                }
+            </Template>
+        </RadzenDataGridColumn>
         <RadzenDataGridColumn Title="Actions" Width="200px">
             <Template>
                 <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
