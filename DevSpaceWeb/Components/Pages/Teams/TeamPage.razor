@@ -15,6 +15,13 @@ else if (Member.Disabled != null)
         Your account has been restricted from accessing this team.
     </RadzenAlert>
 }
+else if (Team.Require2FA && Member.UserId != Team.OwnerId && !Session.CurrentUser!.Has2FA)
+{
+    <PageTitle>Member Restricted | @_Data.Config.Instance.Name</PageTitle>
+    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+        This team and resources requires 2FA to access, setup 2FA for your account.
+    </RadzenAlert>
+}
 else
 {
     <PageTitle>@Team.Name | @_Data.Config.Instance.Name</PageTitle>

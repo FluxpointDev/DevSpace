@@ -109,6 +109,12 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
+        if (controller.CurrentTeam.Require2FA && controller.CurrentTeam.OwnerId != user.Id && !user.Has2FA)
+        {
+            filterContext.Result = controller.CustomStatus(403, "Owner does not have 2FA to access this team or resources.");
+            return;
+        }
+
         if (controller.CurrentOwner.Disabled != null)
         {
             filterContext.Result = controller.CustomStatus(403, "Owner has been disabled in the team for this client.");

@@ -11,4 +11,6 @@ public class TeamBasicModel
 
     [MaxLength(100, ErrorMessage = "Team vanity url has a maximum of 100 characters")]
     public string? VanityUrl { get; set; }
+
+    public bool MembersRequire2FA { get; set; }
 }

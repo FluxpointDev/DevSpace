@@ -270,7 +270,7 @@ public static class Utils
                     newText.Append(' ');
             newText.Append(text[i]);
         }
-        return newText.ToString();
+        return newText.ToString().Replace("2 FA", " 2FA");
     }
 
     private static readonly char[] AllowedChars = "23456789BCDFGHJKMNPQRTVWXY_-.<>+=!?$*[]()%".ToCharArray();

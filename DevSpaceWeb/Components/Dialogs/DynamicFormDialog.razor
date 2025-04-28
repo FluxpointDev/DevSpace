@@ -61,6 +61,12 @@
     </EditForm>
 </RadzenStack>
 
+<style>
+    .rz-switch {
+        max-width: 0% !important;
+    }
+</style>
+
 @code {
 
     [CascadingParameter]
@@ -105,9 +111,18 @@
             builder.OpenComponent(0, typeof(RadzenTextBox));
             builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
             builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<string>(this, (value) =>
+            {
+                propInfoValue.SetValue(model, value);
+            }));
+        }
+        else if (propInfoValue.PropertyType == typeof(bool))
         {
-            propInfoValue.SetValue(model, value);
-        }));
+            builder.OpenComponent(0, typeof(RadzenSwitch));
+            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<bool>(this, (value) =>
+            {
+                propInfoValue.SetValue(model, value);
+            }));
         }
         else if (propInfoValue.PropertyType == typeof(int))
         {

@@ -28,12 +28,10 @@
         <br />
         @if (Data != null)
         {
-            <DynamicFormDialog Model="@TeamBasicModel" ModelData="@Data" OnSubmit="@UpdateTeamSettings"></DynamicFormDialog>
+            <DynamicFormDialog Model="@TeamBasicModel" Description="2FA Restriction will not effect the owner." ModelData="@Data" OnSubmit="@UpdateTeamSettings"></DynamicFormDialog>
         }
         <br />
         <br />
-
-
 
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Team Icon</RadzenText>
         <RadzenUpload id="ddUpload" @ref="IconUploader" Icon="add_photo_alternate" ChooseText="   Click here or drop to upload file" Auto="false" Multiple="false" Url="@("/upload/icon?teamId=" + Team?.Id)" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select file" } })"
@@ -60,7 +58,8 @@
             Data = new TeamBasicModel
             {
                 Name = Team.Name,
-                VanityUrl = Team.VanityUrl
+                VanityUrl = Team.VanityUrl,
+                MembersRequire2FA = Team.Require2FA
             };
     }
 
@@ -76,9 +75,11 @@
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.TeamSettingsChanged)
             .SetTarget(Team)
             .AddPropertyChange("Name", Team.Name, model.Name)
+            .AddPropertyChange("Require 2FA", Team.Require2FA, model.MembersRequire2FA)
         .AddPropertyChange("Vanity Url", Team.VanityUrl, VanityUrl));
 
             Team.Name = model.Name;
+            Team.Require2FA = model.MembersRequire2FA;
             if (Team.VanityUrl != VanityUrl)
             {
                 if (string.IsNullOrEmpty(VanityUrl))

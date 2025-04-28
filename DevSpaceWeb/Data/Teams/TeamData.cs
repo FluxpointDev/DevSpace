@@ -40,6 +40,7 @@ public class TeamData : IResource
 
     public PermissionsSet DefaultPermissions { get; set; } = new PermissionsSet();
     public string? DefaultMembersColor { get; set; }
+    public bool Require2FA { get; set; }
 
     [Obsolete]
     [BsonIgnoreIfNull]
