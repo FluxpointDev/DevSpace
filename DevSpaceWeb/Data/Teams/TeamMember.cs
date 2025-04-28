@@ -598,7 +598,7 @@ public class TeamMemberData
                 {
                     _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.MemberRolesChanged)
                         .SetTarget(this)
-                        .AddProperty("Roles", ""));
+                        .AddProperty("Roles", null));
                 }
             }
         }

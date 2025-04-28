@@ -1,6 +1,8 @@
 ﻿@using System.Globalization
+@using DevSpaceWeb.Components.Dialogs.Teams
 @using DevSpaceWeb.Data.API
 @using DevSpaceWeb.Data.Consoles
+@inject Radzen.DialogService dialogService
 
 <PageTitle>Team Audit Logs | @_Data.Config.Instance.Name</PageTitle>
 
@@ -193,14 +195,14 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Properties" Width="160px" Filterable="false">
                     <Template>
-                        @* @if (context.Properties.Any())
+                        @if (context.Properties.Any())
                         {
-                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Variant="Variant.Flat" Shade="Shade.Dark" Icon="info" class="rz-m-1" Text="Info" />
+                            <RadzenButton Click="@(() => ViewInfo(context))" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Variant="Variant.Flat" Shade="Shade.Dark" Icon="info" class="rz-m-1" Text="Info" />
                         }
-                        else
+                        else if (context.Permissions != null)
                         {
-                            <RadzenButton ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Variant="Variant.Flat" Shade="Shade.Dark" Icon="info" class="rz-m-1" Text="Permissions" />
-                        } *@
+                            <RadzenButton Click="@(() => ViewInfo(context))" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Variant="Variant.Flat" Shade="Shade.Dark" Icon="info" class="rz-m-1" Text="Permissions" />
+                        }
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>
@@ -233,64 +235,78 @@
 
     public async Task LoadData(LoadDataArgs args)
     {
-        Logger.LogMessage("Loading Data", LogSeverity.Info);
-        if (Team == null)
+        if (Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewAuditLogs))
             return;
 
-            isLoading = true;
-            List<FilterDefinition<AuditLog>> filters = new List<FilterDefinition<AuditLog>>
+        isLoading = true;
+        List<FilterDefinition<AuditLog>> filters = new List<FilterDefinition<AuditLog>>
             {
                 new FilterDefinitionBuilder<AuditLog>().Eq(x => x.TeamId, Team.Id)
             };
 
-            foreach (FilterDescriptor i in args.Filters)
+        foreach (FilterDescriptor i in args.Filters)
+        {
+            switch (i.Property)
             {
-                switch (i.Property)
-                {
-                    case "CategoryType":
-                        {
-                            IEnumerable<AuditLogCategoryType> Selected = (IEnumerable<AuditLogCategoryType>)i.FilterValue;
-                            if (Selected.Any())
-                                filters.Add(new FilterDefinitionBuilder<AuditLog>()
-                                .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.CategoryType, x))));                            
-                        }
-                        break;
-                    case "EventType":
-                        {
-                            IEnumerable<AuditLogEventType> Selected = (IEnumerable<AuditLogEventType>)i.FilterValue;
-                            if (Selected.Any())
-                                filters.Add(new FilterDefinitionBuilder<AuditLog>()
-                                .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.EventType, x))));
-                        }
-                        break;
-                    case "TargetType":
-                        {
-                            IEnumerable<AuditLogTargetType> Selected = (IEnumerable<AuditLogTargetType>)i.FilterValue;
-                            if (Selected.Any())
-                                filters.Add(new FilterDefinitionBuilder<AuditLog>()
-                                .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.TargetType, x))));
-                        }
-                        break;
-                }
+                case "CategoryType":
+                    {
+                        IEnumerable<AuditLogCategoryType> Selected = (IEnumerable<AuditLogCategoryType>)i.FilterValue;
+                        if (Selected.Any())
+                            filters.Add(new FilterDefinitionBuilder<AuditLog>()
+                            .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.CategoryType, x))));                            
+                    }
+                    break;
+                case "EventType":
+                    {
+                        IEnumerable<AuditLogEventType> Selected = (IEnumerable<AuditLogEventType>)i.FilterValue;
+                        if (Selected.Any())
+                            filters.Add(new FilterDefinitionBuilder<AuditLog>()
+                            .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.EventType, x))));
+                    }
+                    break;
+                case "TargetType":
+                    {
+                        IEnumerable<AuditLogTargetType> Selected = (IEnumerable<AuditLogTargetType>)i.FilterValue;
+                        if (Selected.Any())
+                            filters.Add(new FilterDefinitionBuilder<AuditLog>()
+                            .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.TargetType, x))));
+                    }
+                    break;
             }
+        }
 
-            FilterDefinition<AuditLog> filter = Builders<AuditLog>.Filter.And(filters);
+        FilterDefinition<AuditLog> filter = Builders<AuditLog>.Filter.And(filters);
 
-            try
-            {
-                Count = (int)await _DB.AuditLogs.Collection.CountDocumentsAsync(filter, new CountOptions
+        try
+        {
+            Count = (int)await _DB.AuditLogs.Collection.CountDocumentsAsync(filter, new CountOptions
                     {
                         Limit = 450
                     });
 
-                AuditLogs = await _DB.AuditLogs.Collection.Find(filter).SortByDescending(x => x.CreatedAt).Skip(args.Skip.GetValueOrDefault()).Limit(args.Top.GetValueOrDefault()).ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
-            }
+            AuditLogs = await _DB.AuditLogs.Collection.Find(filter).SortByDescending(x => x.CreatedAt).Skip(args.Skip.GetValueOrDefault()).Limit(args.Top.GetValueOrDefault()).ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
 
-            isLoading = false;
-        
+        isLoading = false;
+    }
+
+    public async Task ViewInfo(AuditLog log)
+    {
+        if (Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewAuditLogs))
+            return;
+
+        await dialogService.OpenAsync<ViewAuditLogDialog>("Audit Log - " + Utils.FriendlyName(log.EventType.ToString()), new Dictionary<string, object>
+        {
+            { "Team", Team },
+            { "Member", Member },
+            { "AuditLog", log }
+        }, new DialogOptions
+        {
+            Width = "850px"
+        });
     }
 }
