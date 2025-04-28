@@ -1,27 +1,18 @@
 ﻿@using System.Text
-@if (string.IsNullOrEmpty(Value))
-{
-    <RadzenText @ref="@Text" TextStyle="TextStyle.Body2">
-        <span class="rz-link ml-1" @onclick="@(() => { if (!Disabled) { _ = TogglePopup(); } })">Change</span>
-    </RadzenText>
-}
-else
-{
-    <RadzenText @ref="@Text" TextStyle="TextStyle.Body2">
-        @Value <span class="rz-link ml-1" @onclick="@(() => { if (!Disabled) { _ = TogglePopup(); } })">Change</span>
-    </RadzenText>
-}
+<MemberStrip Team="@Team" UserId="@UserId" ActionText="Change" Action="@TogglePopup" ActionDisabled="@ActionDisabled"></MemberStrip>
 
 <RadzenUserPopup @ref="@UserPopup" OnSelected="@Selected"></RadzenUserPopup>
 
 @code {
-    [Parameter]
-    public string Value { get; set; }
+    [Parameter, EditorRequired]
+    public TeamData? Team { get; set; }
+
+    [Parameter, EditorRequired]
+    public ObjectId? UserId { get; set; }
 
     [Parameter]
-    public bool Disabled { get; set; }
+    public bool ActionDisabled { get; set; }
 
-    public RadzenText Text { get; set; }
     public RadzenUserPopup UserPopup { get; set; }
 
     [Parameter]
@@ -32,9 +23,12 @@ else
         OnSelected?.Invoke(user);
     }
 
-    public async Task TogglePopup()
+    public async Task TogglePopup(MemberStrip strip)
     {
-        await UserPopup.popup.ToggleAsync(Text.Element);
+        if (ActionDisabled)
+            return;
+
+        await UserPopup.popup.ToggleAsync(strip.Text.Element);
         if (UserPopup.popup.Visible)
             UserPopup.LoadData(null);
     }
