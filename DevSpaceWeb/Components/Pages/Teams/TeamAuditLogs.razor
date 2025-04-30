@@ -29,6 +29,11 @@
     }
     else
     {
+        @if (Program.IsDevMode)
+        {
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Debug Refresh" Click="@(() => grid.RefreshDataAsync())" />
+        }
+
         <RadzenDataGrid @ref="@grid" Data="@AuditLogs" LoadData="@LoadData" IsLoading="@isLoading"
         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15"
         GridLines="DataGridGridLines.Horizontal"
@@ -195,7 +200,7 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Properties" Width="160px" Filterable="false">
                     <Template>
-                        @if (context.Properties.Any())
+                        @if (context.Properties.Any() || !string.IsNullOrEmpty(context.TargetName))
                         {
                             <RadzenButton Click="@(() => ViewInfo(context))" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Variant="Variant.Flat" Shade="Shade.Dark" Icon="info" class="rz-m-1" Text="Info" />
                         }

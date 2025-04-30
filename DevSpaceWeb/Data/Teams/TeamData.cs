@@ -178,8 +178,7 @@ public class TeamData : IResource
             if (Result.IsAcknowledged)
             {
                 _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.RoleDeleted)
-                .SetTarget(this)
-                .AddProperty("Name", Name));
+                .SetTarget(role));
 
                 CachedRoles.Remove(role.Id);
                 RolePositions = UpdatedPositions;

@@ -9,7 +9,7 @@
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
-       @if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewAuditLogs))
+        @if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewAuditLogs))
         {
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
                 You do not have permission for View Audit Logs
@@ -21,43 +21,54 @@
                 Unknown audit log.
             </RadzenAlert>
         }
-        else if (AuditLog.EventType == AuditLogEventType.MemberRolesChanged)
+        else
         {
-            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Roles</RadzenText>
-            if (!AuditLog.Properties.Any() || string.IsNullOrEmpty(AuditLog.Properties.First().Value))
+            if (!string.IsNullOrEmpty(AuditLog.TargetName))
             {
-                <RadzenText TextStyle="TextStyle.Body2">No roles</RadzenText>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Target ID</RadzenText>
+                <CopyClipboard Value="@AuditLog.TargetId.ToString()"></CopyClipboard>
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Target Name</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">@AuditLog.TargetName</RadzenText>
+            }
+            if (AuditLog.EventType == AuditLogEventType.MemberRolesChanged)
+            {
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Roles</RadzenText>
+                if (!AuditLog.Properties.Any() || string.IsNullOrEmpty(AuditLog.Properties.First().Value))
+                {
+                    <RadzenText TextStyle="TextStyle.Body2">No roles</RadzenText>
+                }
+                else
+                {
+                    <div>
+                        @foreach (string i in AuditLog.Properties.First().Value!.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                        {
+                            @if (ObjectId.TryParse(i, out ObjectId obj) && _DB.Roles.Cache.TryGetValue(obj, out TeamRoleData? role))
+                            {
+                                <RoleBadge Role="@role"></RoleBadge>
+                            }
+                        }
+                    </div>
+                }
+            }
+            else if (AuditLog.Properties.Any())
+            {
+                foreach (KeyValuePair<string, string> i in AuditLog.Properties)
+                {
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">@i.Value</RadzenText>
+                }
+            }
+            else if (AuditLog.Permissions != null)
+            {
+                <PermissionGrid Permissions="@AuditLog.Permissions" IsPreview="true"></PermissionGrid>
             }
             else
             {
-                <div>
-                @foreach(string i in AuditLog.Properties.First().Value!.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                {
-                    @if (ObjectId.TryParse(i, out ObjectId obj) && _DB.Roles.Cache.TryGetValue(obj, out TeamRoleData? role))
-                    {
-                        <RoleBadge Role="@role"></RoleBadge>
-                    }
-                }
-                </div>
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                    Unknown properties for audit log.
+                </RadzenAlert>
             }
-        }
-        else if (AuditLog.Properties.Any())
-        {
-            foreach(KeyValuePair<string, string> i in AuditLog.Properties)
-            {
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">@i.Value</RadzenText>
-            }
-        }
-        else if (AuditLog.Permissions != null)
-        {
-            <PermissionGrid Permissions="@AuditLog.Permissions" IsPreview="true"></PermissionGrid>
-        }
-        else
-        {
-            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                Unknown properties for audit log.
-            </RadzenAlert>
         }
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
