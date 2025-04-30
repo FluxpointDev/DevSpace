@@ -16,6 +16,7 @@
                 <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" ItemRender="@((x) => RenderItem(x))"
                 LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
                     <Template>
+                        <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData))};")"></span>
                         @if (Program.IsPreviewMode || Team.OwnerId == Member.UserId || (context as TeamRoleData)!.GetPosition() < CurrentRank)
                         {
                             @((context as TeamRoleData)!.Name)
