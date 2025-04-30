@@ -3,6 +3,7 @@
 @using DevSpaceWeb.Models.Defaults
 @inject ContextMenuService ContextMenuService
 @inject DialogService DialogService
+@inject IJSRuntime JS
 
 <RadzenDataGrid @ref="@Grid" Data="@Members" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                 AllowRowSelectOnRowClick="false"
@@ -211,7 +212,8 @@
                     Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers)
                 },
                 new ContextMenuItem() { Text = "Transfer Ownership", Icon = "social_distance", Disabled = Member == null || Team == null || Member.UserId != Team.OwnerId || item.UserId == Team.OwnerId },
-                new ContextMenuItem() { Text = "Remove Member", Icon = "person_cancel", Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers) }
+                new ContextMenuItem() { Text = "Remove Member", Icon = "person_cancel", Disabled = Team == null || Member == null || item.UserId == Team.OwnerId || Member.UserId == item.UserId || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers) },
+                new ContextMenuItem() { Text = "Copy ID", Icon = "content_copy" }
 
             }, x => MenuItemClick(x, item));
     }
@@ -279,6 +281,11 @@
                 case "Remove Member":
                     {
                         await RemoveTeamMember(item.UserId);
+                    }
+                    break;
+                case "Copy ID":
+                    {
+                        await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.UserId.ToString());
                     }
                     break;
             }
