@@ -163,6 +163,17 @@ public static class _DB
             return false;
         }
 
+        try
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            _ = Run.GetCollection<AuditLog>("audit").Indexes.CreateOne(Builders<AuditLog>.IndexKeys.Ascending("CreatedAt"),
+                new CreateIndexOptions { ExpireAfter = new TimeSpan(30, 0, 0, 0), Name = "_expire_at_" });
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+        catch (Exception ex)
+        {
+
+        }
 
         try
         {
