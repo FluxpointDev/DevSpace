@@ -584,8 +584,8 @@
                 return "Failed to create role.";
             }
             Team.AddRole(Member, role);
-
-
+            Roles.Add(role);
+            Roles = Roles.OrderByDescending(x => x.Team == null ? -1 : x.GetPosition()).ToList();
             return string.Empty;
         });
     }
@@ -613,7 +613,12 @@
             FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, SelectedRole.Id);
             DeleteResult Result = await _DB.Roles.Collection.DeleteOneAsync(filter);
             if (Result.IsAcknowledged)
+            {
+                Roles.Remove(SelectedRole);
+                Roles = Roles.OrderByDescending(x => x.Team == null ? -1 : x.GetPosition()).ToList();
                 Team.DeleteRole(Member, SelectedRole);
+                SelectedRole = null;
+            }
         }
     }
 
