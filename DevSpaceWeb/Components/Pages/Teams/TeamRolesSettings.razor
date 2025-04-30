@@ -31,13 +31,15 @@
         <br />
         <RadzenRow Gap="0.2rem">
             <RadzenColumn Size="3" class="rz-py-2 pr-2">
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
-                <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Role Positions" Click="@UpdateRolePositions" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
+                <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Positions" Click="@UpdateRolePositions" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
+                </RadzenStack>
                 <br />
                 <br />
                 <RadzenListBox @bind-Value="@SelectedRole" Change="@(() => { CurrentRank = Member.GetRank(); Permissions = SelectedRole.Permissions.Clone(); })" Data="@Roles" Disabled="@UnsavedPermissions"
                                TextProperty="@nameof(TeamRoleData.Name)" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
-                               Style="width: 100%; max-width: 400px; height: calc(100vh - 200px); min-height:400px;" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select role" } })">
+                               Style="width: 100%; max-width: 400px; height: calc(100vh - 200px); min-height:400px;" class="mt-1" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select role" } })">
                     <Template>
                         <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData))};")"></span>
                         @if ((context as TeamRoleData)!.Team != null && Team.OwnerId != Member.UserId && (context as TeamRoleData).GetPosition() >= CurrentRank)
