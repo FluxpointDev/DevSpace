@@ -177,8 +177,13 @@
                     Name = ":)",
                     AgentIp = data.Ip,
                     AgentPort = data.Port,
-                    AgentKey = data.AgentKey
+                    AgentKey = data.AgentKey,
+                    VanityUrl = data.VanityUrl
                 };
+
+                if (Vanity.CheckAlreadyExists(null, TempServer.VanityUrl))
+                    return Lang.Errors.vanity_url_already_taken;
+
                 await Client.DiscoverAsync(TempServer);
                 if (Client.Discover == null)
                     return "Failed to discover server.";
@@ -213,7 +218,8 @@
                         AgentId = Client.Discover.Id,
                         AgentIp = data.Ip,
                         AgentPort = data.Port,
-                        AgentKey = data.AgentKey
+                        AgentKey = data.AgentKey,
+                        VanityUrl = data.VanityUrl
                     };
 
                 if (Vanity.CheckAlreadyExists(null, Server.VanityUrl))
