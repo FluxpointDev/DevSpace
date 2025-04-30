@@ -21,6 +21,7 @@
                 Current Roles
             </TargetHeader>
             <Template>
+                <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData))};")"></span>
                 @if (Session.CurrentUser == null || Team.OwnerId != Session.CurrentUser.Id && context.GetPosition() >= CurrentRank)
                 {
                     <span class="iconify" data-icon="mdi:lock"></span> @context.Name
@@ -37,6 +38,17 @@
         <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
     </RadzenStack>
 </RadzenStack>
+
+<style>
+    .rz-multiselect-item-content span {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        margin-bottom: -3px;
+        margin-right: 6px;
+    }
+</style>
 
 @code {
     [CascadingParameter]
