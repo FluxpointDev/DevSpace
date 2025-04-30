@@ -57,7 +57,7 @@ public class TeamMemberData
             if (!string.IsNullOrEmpty(Team.DefaultMembersColor))
                 return Team.DefaultMembersColor;
         }
-        return "#C4C9CE";
+        return Static.DefaultRoleColor;
     }
 
     public string GetCurrentAvatar()
