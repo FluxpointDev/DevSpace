@@ -212,9 +212,9 @@
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ConsoleCreated)
                 .SetTarget(NewConsole)
                 .SetSensitive()
-                .AddProperty("Name", data.Name)
                 .AddProperty("IP", data.Ip)
-                .AddProperty("Port", data.Port));
+                .AddProperty("Port", data.Port)
+                .AddProperty("Vanity URL", data.VanityUrl));
 
             _DB.Consoles.Cache.TryAdd(NewConsole.Id, NewConsole);
             await Vanity.UpdateAsync(NewConsole, NewConsole.VanityUrl);

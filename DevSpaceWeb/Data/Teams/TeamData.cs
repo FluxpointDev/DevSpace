@@ -140,7 +140,6 @@ public class TeamData : IResource
             {
                 _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.RoleCreated)
                     .SetTarget(role)
-                    .AddProperty("Name", role.Name)
                     .AddProperty("Description", role.Description));
 
                 _DB.Roles.Cache.TryAdd(role.Id, role);

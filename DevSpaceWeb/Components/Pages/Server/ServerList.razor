@@ -169,6 +169,8 @@
                 if (address == null)
                     return "Server ip is invalid.";
 
+                VanityUrlData Vanity = Team.GetVanityUrlData();
+
                 ServerWebSocket Client = new ServerWebSocket();
                 ServerData TempServer = new ServerData
                 {
@@ -213,18 +215,21 @@
                         AgentPort = data.Port,
                         AgentKey = data.AgentKey
                     };
+
+                if (Vanity.CheckAlreadyExists(null, Server.VanityUrl))
+                    return Lang.Errors.vanity_url_already_taken;
                 
 
                 await _DB.Servers.CreateAsync(Server);
                 Server.SetWebSocket(Client);
                 _DB.Servers.Cache.TryAdd(Server.Id, Server);
-
+                await Vanity.UpdateAsync(Server, Server.VanityUrl);
                 _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ServerCreated)
                 .SetTarget(Server)
                 .SetSensitive()
-                .AddProperty("Name", data.Name)
                 .AddProperty("IP", data.Ip)
-                .AddProperty("Port", data.Port));
+                .AddProperty("Port", data.Port)
+                .AddProperty("Vanity URL", data.VanityUrl));
 
                 _ =  InvokeAsync(StateHasChanged);
                 return null;

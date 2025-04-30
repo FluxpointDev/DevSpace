@@ -14,4 +14,7 @@ public class ServerSetupModel
 
     [Required(ErrorMessage = "Agent key is required")]
     public string AgentKey { get; set; } = null!;
+
+    [MaxLength(100, ErrorMessage = "Server vanity url has a maximum of 100 characters")]
+    public string? VanityUrl { get; set; }
 }

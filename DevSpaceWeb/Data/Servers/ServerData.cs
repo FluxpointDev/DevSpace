@@ -99,8 +99,7 @@ public class ServerData : ITeamResource
         if (Result.IsAcknowledged)
         {
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.ServerDeleted)
-                .SetTarget(Team)
-                .AddProperty("Name", Name));
+                .SetTarget(this));
 
             _DB.Servers.Cache.TryRemove(Id, out _);
 

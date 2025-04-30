@@ -35,7 +35,7 @@ public class VanityUrlData
         return false;
     }
 
-    public async Task UpdateAsync(ServerData server, string vanityUrl)
+    public async Task UpdateAsync(ServerData server, string? vanityUrl)
     {
         if (string.IsNullOrEmpty(vanityUrl))
         {
