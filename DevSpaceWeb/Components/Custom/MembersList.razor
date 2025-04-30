@@ -159,7 +159,13 @@
     IQueryable<TeamMemberData>? Members;
     public int Count = 0;
     public bool IsLoading = true;
-    RadzenDataGrid<TeamMemberData> Grid;
+    private RadzenDataGrid<TeamMemberData> Grid = null!;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!IsLoading)
+            await Grid.RefreshDataAsync();
+    }
 
     public async Task LoadData(LoadDataArgs args)
     {
@@ -184,6 +190,11 @@
         Members = query.OrderBy(x => x.GetCurrentName()).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
 
         IsLoading = false;
+    }
+
+    public void ChangeState()
+    {
+        StateHasChanged();
     }
 
     void ShowContextMenuWithViewItems(TeamMemberData item, MouseEventArgs args)

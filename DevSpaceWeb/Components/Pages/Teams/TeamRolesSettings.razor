@@ -150,7 +150,7 @@
                             </RadzenTabsItem>
                             <RadzenTabsItem Text="Members">
                                 <div style="padding: 10px;">
-                                    <MembersList SelectedRole="@SelectedRole"></MembersList>
+                                    <MembersList @ref="@MembersList" SelectedRole="@SelectedRole"></MembersList>
                                 </div>
                             </RadzenTabsItem>
                             <RadzenTabsItem Text="Resources">
@@ -375,12 +375,11 @@
 
 @code {
     public List<TeamRoleData> Roles { get; set; }
-
-
     private TeamRoleData? _selectedRole = null;
     public TeamRoleData? SelectedRole { get { return _selectedRole; } set { _selectedRole = value; if (value != null) { SelectedRoleModel = new TeamRoleModel { Name = value.Name, Description = value.Description }; UpdateCanManage(); RoleForm?.LoadModel(SelectedRoleModel); } } }
     public TeamRoleModel? SelectedRoleModel { get; set; }
     public DynamicFormDialog<TeamRoleModel> RoleForm { get; set; } = null!;
+    public MembersList MembersList { get; set; }
     public bool SelectedRoleCanManage { get; set; }
     public void UpdateCanManage()
     {
