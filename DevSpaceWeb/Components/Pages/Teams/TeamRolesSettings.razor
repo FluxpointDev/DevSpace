@@ -4,6 +4,8 @@
 @using DevSpaceWeb.Models
 @using DevSpaceWeb.Models.Teams
 @inject DialogService DialogService
+@inject ContextMenuService ContextMenuService
+@inject IJSRuntime JS
 
 <PageTitle>Team Permissions | @_Data.Config.Instance.Name</PageTitle>
 
@@ -41,6 +43,7 @@
                                TextProperty="@nameof(TeamRoleData.Name)" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
                                Style="width: 100%; max-width: 400px; height: calc(100vh - 200px); min-height:400px;" class="mt-1" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select role" } })">
                     <Template>
+                        <div @oncontextmenu=@((args) => ShowContextMenuWithManageItems(context, args)) @oncontextmenu:preventDefault="true">
                         <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData))};")"></span>
                         @if ((context as TeamRoleData)!.Team != null && Team.OwnerId != Member.UserId && (context as TeamRoleData).GetPosition() >= CurrentRank)
                         {
@@ -51,6 +54,7 @@
                         {
                             @context.Name
                         }
+                        </div>
                     </Template>
                 </RadzenListBox>
             </RadzenColumn>
@@ -90,6 +94,12 @@
                                         }
                                         
                                     }
+
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">ID</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        @SelectedRole?.Id
+                                    <CopyClipboard Value="@SelectedRole?.Id.ToString()"></CopyClipboard>
+                                    </RadzenText>
 
                                     <DynamicFormDialog @ref="@RoleForm" Model="@TeamRoleModel" ModelData="@SelectedRoleModel" OnSubmit="@EditRole" Disabled="@(!SelectedRoleCanManage || SelectedRole.Team == null)"></DynamicFormDialog>
                                     
@@ -592,32 +602,38 @@
 
     public async Task DeleteRole()
     {
+        await DeleteRoleInternal(SelectedRole);
+    }
+
+    private async Task DeleteRoleInternal(TeamRoleData role)
+    {
         if (Member == null || Team == null)
             return;
 
         if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
             return;
 
-        if (SelectedRole == null || SelectedRole.GetPosition() >= Member.GetRank())
+        if (role == null || role.GetPosition() >= Member.GetRank())
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Delete Role", "Are you sure your want to delete " + SelectedRole.Name, "Confirm", ButtonStyle.Success);
+        bool Confirm = await DialogService.ShowConfirmAsync("Delete Role", "Are you sure your want to delete " + role.Name, "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
                 return;
 
-            if (SelectedRole.GetPosition() >= Member.GetRank())
+            if (role.GetPosition() >= Member.GetRank())
                 return;
 
-            FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, SelectedRole.Id);
+            FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
             DeleteResult Result = await _DB.Roles.Collection.DeleteOneAsync(filter);
             if (Result.IsAcknowledged)
             {
-                Roles.Remove(SelectedRole);
+                Roles.Remove(role);
                 Roles = Roles.OrderByDescending(x => x.Team == null ? -1 : x.GetPosition()).ToList();
-                Team.DeleteRole(Member, SelectedRole);
-                SelectedRole = null;
+                Team.DeleteRole(Member, role);
+                if (SelectedRole != null && SelectedRole.Id == role.Id)
+                    SelectedRole = null;
             }
         }
     }
@@ -635,5 +651,49 @@
             { "Team", Team }
         });
         Roles = Roles.OrderByDescending(x => x.Team == null ? -1 : x.GetPosition()).ToList();
+    }
+
+    object ShowContextMenuWithManageItems(TeamRoleData item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem>
+            {
+                new ContextMenuItem() { Text = "Delete Role", Icon = "delete", Disabled = Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles) || item.GetPosition() >= Member.GetRank() },
+                new ContextMenuItem() { Text = "Copy Role ID", Icon = "content_copy" }
+
+            }, e => MenuItemClick(item, e));
+
+        return null;
+    }
+
+    void MenuItemClick(TeamRoleData item, MenuItemEventArgs args)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Member == null || Team == null)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            switch (args.Text)
+            {
+                case "Delete Role":
+                    {
+                        await DeleteRoleInternal(item);
+                    }
+                    break;
+                case "Copy Role ID":
+                    {
+                        await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.Id.ToString());
+                    }
+                    break;
+            }
+        });
+
+        ContextMenuService.Close();
     }
 }
