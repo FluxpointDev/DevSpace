@@ -35,36 +35,29 @@
         }
 
         <RadzenDataGrid @ref="@grid" Data="@AuditLogs" LoadData="@LoadData" IsLoading="@isLoading"
-        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15"
-        GridLines="DataGridGridLines.Horizontal"
-        Density="Density.Compact" Count="@Count"
-        AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
-        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-        GotoFirstPageOnSort="true"
-        LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15"
+                        GridLines="DataGridGridLines.Horizontal"
+                        Density="Density.Compact" Count="@Count"
+                        AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                        FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        GotoFirstPageOnSort="true"
+                        LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
             <Columns>
-                <RadzenDataGridColumn Title="Date" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
+                <RadzenDataGridColumn Title="Date" Property="@nameof(AuditLog.CreatedAt)" Width="130px" Filterable="false">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, context.CreatedAt, true)</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Member" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
+                <RadzenDataGridColumn Title="By" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
                     <Template>
-                        @if (_DB.Users.TryGetValue(context.ActionUserId.GetValueOrDefault(), out PartialUserData? user))
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2">@user.UserName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="User" IsPill="true" class="ml-1" /></RadzenText>
-                        }
-                        else
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2">Unknown</RadzenText>
-                        }
+                        <MemberStrip Team="@Team" UserId="@context.ActionUserId"></MemberStrip>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Category" Property="@nameof(AuditLog.CategoryType)" Width="120px"
-                FilterValue="@SelectedCategoryTypes">
+                <RadzenDataGridColumn Title="Type" Property="@nameof(AuditLog.CategoryType)" Width="100px"
+                                      FilterValue="@SelectedCategoryTypes">
                     <FilterTemplate>
-                        <RadzenListBox @bind-Value="@SelectedCategoryTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "filter by Company" }})"
-                        Data="@CategoryTypes" AllowClear="true" Multiple="true" Context="CategoryList">
+                        <RadzenListBox @bind-Value="@SelectedCategoryTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "filter by Company" } })"
+                                       Data="@CategoryTypes" AllowClear="true" Multiple="true" Context="CategoryList">
                             <Template>
                                 @Utils.FriendlyName(((AuditLogCategoryType)CategoryList).ToString())
                             </Template>
@@ -75,17 +68,24 @@
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Event" Property="@nameof(AuditLog.EventType)" Width="200px"
-                FilterValue="@SelectedEventTypes">
+                                      FilterValue="@SelectedEventTypes">
                     <FilterTemplate>
-                        <RadzenListBox @bind-Value="@SelectedEventTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "filter by Company" }})"
-                        Data="@EventTypes" AllowClear="true" Multiple="true" Context="EventList">
+                        <RadzenListBox @bind-Value="@SelectedEventTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "filter by Company" } })"
+                                       Data="@EventTypes" AllowClear="true" Multiple="true" Context="EventList">
                             <Template>
                                 @Utils.FriendlyName(((AuditLogEventType)EventList).ToString())
                             </Template>
                         </RadzenListBox>
                     </FilterTemplate>
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(context.EventType.ToString())</RadzenText>
+                        @if (GetIconType(context.EventType, out Tuple<string, string> icon))
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="@icon.Item1" style="color: @icon.Item2;"></span> @Utils.FriendlyName(context.EventType.ToString())</RadzenText>
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(context.EventType.ToString())</RadzenText>
+                        }
                     </Template>
                 </RadzenDataGridColumn>
                 @* <RadzenDataGridColumn Title="Data" Property="@nameof(AuditLog.EventType)" Width="200px"
@@ -97,105 +97,99 @@
                     </Template>
                 </RadzenDataGridColumn> *@
                 <RadzenDataGridColumn Title="Target" Property="@nameof(AuditLog.TargetType)" Width="140px"
-                FilterValue="@SelectedTargetTypes">
+                                      FilterValue="@SelectedTargetTypes">
                     <FilterTemplate>
-                        <RadzenListBox @bind-Value="@SelectedTargetTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "filter by Company" }})"
-                        Data="@TargetTypes" AllowClear="true" Multiple="true" Context="TargetList">
+                        <RadzenListBox @bind-Value="@SelectedTargetTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "filter by Company" } })"
+                                       Data="@TargetTypes" AllowClear="true" Multiple="true" Context="TargetList">
                             <Template>
                                 @Utils.FriendlyName(((AuditLogTargetType)TargetList).ToString())
                             </Template>
                         </RadzenListBox>
                     </FilterTemplate>
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(context.TargetType.ToString())</RadzenText>
-                    </Template>
-                </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Name" Property="@nameof(AuditLog.TargetType)"
-                FilterMode="FilterMode.CheckBoxList" Type="typeof(IEnumerable<string>)" Filterable="false">
-                    <Template>
-                            @switch (context.TargetType)
-                            {
-                                case AuditLogTargetType.Server:
-                                    if (_DB.Servers.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ServerData? server))
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@server.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Server" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    else
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Server" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    break;
-                                case AuditLogTargetType.Log:
-                                    if (_DB.Logs.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out LogData? log))
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@log.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Log" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    else
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Log" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    break;
-                                case AuditLogTargetType.Project:
-                                    if (_DB.Projects.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ProjectData? project))
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@project.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Project" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    else
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Project" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    break;
-                                case AuditLogTargetType.Role:
-                                    if (_DB.Roles.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out TeamRoleData? role))
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@role.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Role" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    else
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Role" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    break;
-                                case AuditLogTargetType.Member:
-                                    if (_DB.Users.TryGetValue(context.TargetId.GetValueOrDefault(), out PartialUserData? user))
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@user.UserName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="User" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    else
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="User" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    break;
-                                case AuditLogTargetType.Website:
-                                    if (_DB.Websites.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out WebsiteData? website))
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@website.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Website" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    else
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Website" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    break;
-                                    case AuditLogTargetType.Console:
-                                    if (_DB.Consoles.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ConsoleData? console))
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@console.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Console" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    else
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Console" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    break;
-                                case AuditLogTargetType.API:
-                                    if (_DB.API.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out APIClient? client))
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@client.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="API Client" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    else
-                                    {
-                                        <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="API Client" IsPill="true" class="ml-1" /></RadzenText>
-                                    }
-                                    break;
-                            }
+                        @switch (context.TargetType)
+                        {
+                            case AuditLogTargetType.Server:
+                                if (_DB.Servers.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ServerData? server))
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@server.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Server" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Server" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                break;
+                            case AuditLogTargetType.Log:
+                                if (_DB.Logs.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out LogData? log))
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@log.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Log" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Log" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                break;
+                            case AuditLogTargetType.Project:
+                                if (_DB.Projects.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ProjectData? project))
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@project.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Project" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Project" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                break;
+                            case AuditLogTargetType.Role:
+                                if (_DB.Roles.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out TeamRoleData? role))
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@role.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Role" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Role" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                break;
+                            case AuditLogTargetType.Member:
+                                if (_DB.Users.TryGetValue(context.TargetId.GetValueOrDefault(), out PartialUserData? user))
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@user.UserName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Member" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Member" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                break;
+                            case AuditLogTargetType.Website:
+                                if (_DB.Websites.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out WebsiteData? website))
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@website.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Website" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Website" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                break;
+                            case AuditLogTargetType.Console:
+                                if (_DB.Consoles.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out ConsoleData? console))
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@console.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Console" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="Console" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                break;
+                            case AuditLogTargetType.API:
+                                if (_DB.API.Cache.TryGetValue(context.TargetId.GetValueOrDefault(), out APIClient? client))
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@client.Name <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="API Client" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">@context.TargetName <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="API Client" IsPill="true" class="ml-1" /></RadzenText>
+                                }
+                                break;
+                        }
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Properties" Width="160px" Filterable="false">
@@ -214,6 +208,18 @@
         </RadzenDataGrid>
     }
 </div>
+
+<style>
+    .dash-box .rz-grid-table .iconify {
+        width: 20px;
+        height: 20px;
+        margin-right: 4px;
+    }
+
+    .dash-box .rz-grid-table td {
+        vertical-align: bottom;
+    }
+</style>
 
 @code {
     public List<AuditLog> AuditLogs { get; set; }
@@ -258,7 +264,7 @@
                         IEnumerable<AuditLogCategoryType> Selected = (IEnumerable<AuditLogCategoryType>)i.FilterValue;
                         if (Selected.Any())
                             filters.Add(new FilterDefinitionBuilder<AuditLog>()
-                            .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.CategoryType, x))));                            
+                            .Or(Selected.Select(x => new FilterDefinitionBuilder<AuditLog>().Eq(x => x.CategoryType, x))));
                     }
                     break;
                 case "EventType":
@@ -285,9 +291,9 @@
         try
         {
             Count = (int)await _DB.AuditLogs.Collection.CountDocumentsAsync(filter, new CountOptions
-                    {
-                        Limit = 450
-                    });
+            {
+                Limit = 450
+            });
 
             AuditLogs = await _DB.AuditLogs.Collection.Find(filter).SortByDescending(x => x.CreatedAt).Skip(args.Skip.GetValueOrDefault()).Limit(args.Top.GetValueOrDefault()).ToListAsync();
         }
@@ -313,5 +319,97 @@
         {
             Width = "850px"
         });
+    }
+
+    public string IconColorCreate = "var(--rz-success)";
+    public string IconColorDelete = "var(--rz-danger)";
+    public string IconColorChange = "var(--rz-info)";
+    public string IconColorState = "var(--rz-warning)";
+    public string IconColorDefault = "";
+
+    public bool GetIconType(AuditLogEventType type, out Tuple<string, string> value)
+    {
+        value = IconTypes(type);
+        return true;
+    }
+
+    private Tuple<string, string> IconTypes(AuditLogEventType type)
+    {
+        switch (type)
+        {
+            case AuditLogEventType.RoleCreated:
+                return new Tuple<string, string>("mdi:tag-plus", IconColorCreate);
+            case AuditLogEventType.RoleDeleted:
+                return new Tuple<string, string>("mdi:tag-remove", IconColorDelete);
+            case AuditLogEventType.RolePermissionsChanged:
+                return new Tuple<string, string>("mdi:tag-check", IconColorState);
+            case AuditLogEventType.RolePositionChanged:
+                return new Tuple<string, string>("mdi:tag-arrow-left", IconColorState);
+            case AuditLogEventType.RoleSettingsChanged:
+                return new Tuple<string, string>("mdi:tag-edit", IconColorChange);
+
+            case AuditLogEventType.APIClientCreated:
+                return new Tuple<string, string>("mdi:robot-excited", IconColorCreate);
+            case AuditLogEventType.APIClientDeleted:
+                return new Tuple<string, string>("mdi:robot-dead", IconColorDelete);
+            case AuditLogEventType.APIClientDisabled:
+                return new Tuple<string, string>("mdi:robot-off", IconColorState);
+            case AuditLogEventType.APIClientEnabled:
+                return new Tuple<string, string>("mdi:robot", IconColorState);
+            case AuditLogEventType.APIClientOwnershipChanged:
+                return new Tuple<string, string>("mdi:robot-confused", IconColorState);
+            case AuditLogEventType.APIClientPermissionsChanged:
+                return new Tuple<string, string>("mdi:robot-confused", IconColorChange);
+            case AuditLogEventType.APIClientSettingsChanged:
+                return new Tuple<string, string>("mdi:robot", IconColorChange);
+            case AuditLogEventType.APIClientTokenGenerated:
+                return new Tuple<string, string>("mdi:robot-confused", IconColorState);
+
+            case AuditLogEventType.ConsoleCreated:
+                return new Tuple<string, string>("mdi:console-line", IconColorCreate);
+            case AuditLogEventType.ConsoleDeleted:
+                return new Tuple<string, string>("mdi:console-line", IconColorDelete);
+            case AuditLogEventType.ConsoleOwnershipChanged:
+                return new Tuple<string, string>("mdi:console-line", IconColorState);
+            case AuditLogEventType.ConsolePermissionsChanged:
+                return new Tuple<string, string>("mdi:console-line", IconColorState);
+            case AuditLogEventType.ConsoleRconChanged:
+                return new Tuple<string, string>("mdi:console-line", IconColorState);
+            case AuditLogEventType.ConsoleSettingsChanged:
+                return new Tuple<string, string>("mdi:console-line", IconColorChange);
+
+            case AuditLogEventType.MemberAdded:
+                return new Tuple<string, string>("mdi:account-plus", IconColorCreate);
+            case AuditLogEventType.MemberRemoved:
+                return new Tuple<string, string>("mdi:account-remove", IconColorDelete);
+            case AuditLogEventType.MemberNicknameChanged:
+                return new Tuple<string, string>("mdi:account-edit", IconColorChange);
+            case AuditLogEventType.MemberRolesChanged:
+                return new Tuple<string, string>("mdi:account-tag", IconColorState);
+
+            case AuditLogEventType.DefaultPermissionsChanged:
+                return new Tuple<string, string>("mdi:tag-check", IconColorState);
+            case AuditLogEventType.IconChanged:
+                return new Tuple<string, string>("mdi:image-plus", IconColorCreate);
+            case AuditLogEventType.IconRemoved:
+                return new Tuple<string, string>("mdi:image-remove", IconColorDelete);
+            case AuditLogEventType.TeamOwnershipChanged:
+                return new Tuple<string, string>("mdi:account-sync", IconColorState);
+            case AuditLogEventType.TeamSettingsChanged:
+                return new Tuple<string, string>("mdi:gear", IconColorChange);
+
+            case AuditLogEventType.ServerCreated:
+                return new Tuple<string, string>("mdi:server-plus", IconColorCreate);
+            case AuditLogEventType.ServerDeleted:
+                return new Tuple<string, string>("mdi:server-remove", IconColorDelete);
+            case AuditLogEventType.ServerOwnershipChanged:
+                return new Tuple<string, string>("mdi:server", IconColorState);
+            case AuditLogEventType.ServerPermissionsChanged:
+                return new Tuple<string, string>("mdi:server", IconColorState);
+            case AuditLogEventType.ServerSettingsChanged:
+                return new Tuple<string, string>("mdi:server", IconColorChange);
+        }
+
+        return new Tuple<string, string>("mdi:question-mark", IconColorChange);
     }
 }
