@@ -40,7 +40,6 @@ public class PartialUserData
     public ObjectId? ManagedAccountTeamId { get; set; }
     public bool HasNotifications { get; set; }
     public bool Has2FA { get; set; }
-    public List<SessionTask> Tasks { get; set; } = new List<SessionTask>();
 
     public void Update(AuthUser user)
     {
