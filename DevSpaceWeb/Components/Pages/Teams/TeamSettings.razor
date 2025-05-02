@@ -15,7 +15,7 @@ else
             <RadzenText TextStyle="TextStyle.H6">Resources</RadzenText>
         </div>
         <br />
-        <RadzenStack Gap="10px" JustifyContent="JustifyContent.Center" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+        <RadzenStack Gap="10px" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
             <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")">
                 <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
                     <span class="iconify" data-icon="mdi:server"></span>
@@ -48,7 +48,7 @@ else
         <RadzenText TextStyle="TextStyle.H6">@(IsHome ? "Settings" : Team?.Name + " Settings")</RadzenText>
     </div>
     <br />
-    <RadzenStack Gap="10px" JustifyContent="JustifyContent.Center" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+    <RadzenStack Gap="10px" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
         <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/basic")">
             <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasTeamPermission(Team, TeamPermission.ManageTeam) ? "" : " settings-item-disabled"))">
                 <span class="iconify" data-icon="mdi:gear"></span>
@@ -80,6 +80,21 @@ else
             </RadzenCard>
         </a>
     </RadzenStack>
+</div>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Manage</RadzenText>
+    </div>
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">ID</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body2">
+        @Team?.Id
+        <CopyClipboard Value="@Team?.Id.ToString()"></CopyClipboard>
+    </RadzenText>
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
+    <MemberStrip Team="@Team" UserId="@Team?.OwnerId"></MemberStrip>
 </div>
 
 <style>
