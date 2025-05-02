@@ -480,11 +480,11 @@ else
             if (GotTeam != null && (Session.Selected.Team == null || Session.Selected.Team.Data.Id != GotTeam.Id))
             {
                 TeamMemberData? Member = GotTeam.GetMember(Session);
-                if (Member != null && GotTeam.Id == Member.TeamId)
+                if (Session.CurrentUser?.Id == GotTeam.OwnerId || (Member != null && GotTeam.Id == Member.TeamId))
                 {
                     Session.Selected.Team = new SelectedTeamData(GotTeam)
                     {
-                        Member = Member
+                        Member = Member!
                     };
                 }
                 else
