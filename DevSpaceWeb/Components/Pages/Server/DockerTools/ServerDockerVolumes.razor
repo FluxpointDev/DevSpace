@@ -26,7 +26,11 @@
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
     </div>
-    
+    <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important; margin-bottom: 10px;">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
+        <RadzenBreadCrumbItem Text="Volumes" />
+    </RadzenBreadCrumb>
     @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
     {
         <div class="dash-box-content">
