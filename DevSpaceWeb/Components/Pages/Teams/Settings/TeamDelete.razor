@@ -1,4 +1,6 @@
-﻿@using DevSpaceWeb.Models.Teams
+﻿@using DevSpaceWeb.Data.API
+@using DevSpaceWeb.Data.Consoles
+@using DevSpaceWeb.Models.Teams
 @using Microsoft.AspNetCore.Components.Forms
 
 <PageTitle>Team Settings | @_Data.Config.Instance.Name</PageTitle>
@@ -16,16 +18,50 @@
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" Text="@Session.Selected.Team?.Data.Name" />
         <RadzenBreadCrumbItem Text="Delete" />
     </RadzenBreadCrumb>
-    @if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
+    @if ((Member == null || Member.UserId != Team?.OwnerId) && !IsDeleting)
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for Manage Team
+            You do not own this team
         </RadzenAlert>
     }
     else
     {
-        <br />
-        
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            This will delete all resources for @(Team?.Name) and require 2FA confirmation
+        </RadzenAlert>
+        @if (!ShowConfirm)
+        {
+            <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Team" Disabled="@(Member == null || Team?.OwnerId != Member.UserId)" />
+        }
+        else
+        {
+            <ul>
+                <li><RadzenText TextStyle="TextStyle.Body1">@(ServerCount) servers</RadzenText></li>
+                <li><RadzenText TextStyle="TextStyle.Body1">@(ConsoleCount) consoles</RadzenText></li>
+                <li><RadzenText TextStyle="TextStyle.Body1">@(MemberCount) members</RadzenText></li>
+                <li><RadzenText TextStyle="TextStyle.Body1">@(RoleCount) roles</RadzenText></li>
+            </ul>
+            <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Confirm Delete" Disabled="@(Member == null || Team?.OwnerId != Member.UserId || IsDeleting)" />
+
+            @if (IsSuccess)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose="false">
+                    Team has been deleted.
+                </RadzenAlert>
+            }
+            else if (IsFail)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false">
+                    Failed to delete team!
+                </RadzenAlert>
+            }
+            else if (IsDeleting)
+            {
+                <br />
+                <br />
+                <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" />
+            }
+        }
     }
 </div>
 
@@ -35,4 +71,141 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
+
+    public bool ShowConfirm = false;
+
+    public int ServerCount;
+    public int ConsoleCount;
+    public int MemberCount;
+    public int RoleCount;
+    public bool IsDeleting { get; set; }
+    public bool IsFail { get; set; }
+    public bool IsSuccess { get; set; }
+
+    public async Task Delete()
+    {
+        if (Member == null || Member.UserId != Team?.OwnerId)
+            return;
+
+        if (!ShowConfirm)
+        {
+            ShowConfirm = true;
+            ServerCount = _DB.Servers.Cache.Values.Count(x => x.TeamId == Team.Id);
+            ConsoleCount = _DB.Consoles.Cache.Values.Count(x => x.TeamId == Team.Id);
+            MemberCount = Team.CachedMembers.Keys.Count();
+            RoleCount = Team.CachedRoles.Keys.Count();
+            return;
+        }
+
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, true);
+        if (!twoFactorConfirm)
+            return;
+
+        if (User.Id != Team.OwnerId)
+            return;
+
+        IsDeleting = true;
+
+        FilterDefinition<TeamRoleData> RolesFilter = Builders<TeamRoleData>.Filter.Eq(r => r.TeamId, Team.Id);
+        DeleteResult RolesResult = await _DB.Roles.Collection.DeleteManyAsync(RolesFilter);
+
+        if (RolesResult.IsAcknowledged)
+        {
+            Team.CachedRoles.Clear();
+            foreach (var i in _DB.Roles.Cache.Values.Where(x => x.TeamId == Team.Id))
+            {
+                _DB.Roles.Cache.TryRemove(i.Id, out _);
+            }
+        }
+        else
+        {
+            IsFail = true;
+            return;
+        }
+
+        FilterDefinition<APIClient> APIFilter = Builders<APIClient>.Filter.Eq(r => r.TeamId, Team.Id);
+        await _DB.API.Collection.DeleteManyAsync(APIFilter);
+
+        FilterDefinition<AuditLog> AuditFilter = Builders<AuditLog>.Filter.Eq(r => r.TeamId, Team.Id);
+        await _DB.AuditLogs.Collection.DeleteManyAsync(AuditFilter);
+
+        FilterDefinition<ServerData> ServerFilter = Builders<ServerData>.Filter.Eq(r => r.TeamId, Team.Id);
+        await _DB.Servers.Collection.DeleteManyAsync(ServerFilter);
+
+        foreach (var i in _DB.Servers.Cache.Values.Where(x => x.TeamId == Team.Id))
+        {
+            _DB.Servers.Cache.TryRemove(i.Id, out _);
+            try
+            {
+                i.RemoveWebSocket();
+            }
+            catch { }
+        }
+
+
+        FilterDefinition<ConsoleData> ConsoleFilter = Builders<ConsoleData>.Filter.Eq(r => r.TeamId, Team.Id);
+        await _DB.Consoles.Collection.DeleteManyAsync(ConsoleFilter);
+
+        foreach (var i in _DB.Consoles.Cache.Values.Where(x => x.TeamId == Team.Id))
+        {
+            _DB.Consoles.Cache.TryRemove(i.Id, out _);
+        }
+
+
+        FilterDefinition<TeamMemberData> MembersFilter = Builders<TeamMemberData>.Filter.Eq(r => r.TeamId, Team.Id);
+        await _DB.Members.Collection.DeleteManyAsync(MembersFilter);
+
+        foreach (var i in _DB.Members.Cache.Values.Where(x => x.TeamId == Team.Id))
+        {
+            _DB.Members.Cache.TryRemove(i.Id, out _);
+        }
+
+        FilterDefinition<LogData> LogFilter = Builders<LogData>.Filter.Eq(r => r.TeamId, Team.Id);
+        await _DB.Logs.Collection.DeleteManyAsync(LogFilter);
+
+        foreach (var i in _DB.Logs.Cache.Values.Where(x => x.TeamId == Team.Id))
+        {
+            _DB.Logs.Cache.TryRemove(i.Id, out _);
+        }
+
+        FilterDefinition<ProjectData> ProjectFilter = Builders<ProjectData>.Filter.Eq(r => r.TeamId, Team.Id);
+        await _DB.Projects.Collection.DeleteManyAsync(ProjectFilter);
+
+        foreach (var i in _DB.Projects.Cache.Values.Where(x => x.TeamId == Team.Id))
+        {
+            _DB.Projects.Cache.TryRemove(i.Id, out _);
+        }
+
+        FilterDefinition<WebsiteData> WebFilter = Builders<WebsiteData>.Filter.Eq(r => r.TeamId, Team.Id);
+        await _DB.Websites.Collection.DeleteManyAsync(WebFilter);
+
+        foreach (var i in _DB.Websites.Cache.Values.Where(x => x.TeamId == Team.Id))
+        {
+            _DB.Websites.Cache.TryRemove(i.Id, out _);
+        }
+
+        FilterDefinition<VanityUrlData> VanityFilter = Builders<VanityUrlData>.Filter.Eq(r => r.Id, Team.Id);
+        await _DB.TeamVanityUrls.Collection.DeleteOneAsync(VanityFilter);
+        if (_DB.TeamVanityUrls.Cache.TryRemove(Team.Id, out VanityUrlData? vanityData))
+        {
+            vanityData.ClearCache();
+        }
+
+        FilterDefinition<TeamData> TeamFilter = Builders<TeamData>.Filter.Eq(r => r.Id, Team.Id);
+        await _DB.Teams.Collection.DeleteOneAsync(TeamFilter);
+
+        if (!string.IsNullOrEmpty(Team.VanityUrl))
+            _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
+
+        _DB.Teams.Cache.TryRemove(Team.Id, out _);
+
+        Session.Selected.Team = null;
+        Session.TriggerNavMenuChange();
+
+        IsSuccess = true;
+    }
 }

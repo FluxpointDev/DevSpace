@@ -106,4 +106,28 @@ public class VanityUrlData
         if (Result.IsAcknowledged)
             action?.Invoke();
     }
+
+    public void ClearCache()
+    {
+        foreach (KeyValuePair<string, ObjectId> i in ServerVanityUrls)
+        {
+            _DB.VanityUrlCache.TryAdd(i.Value, i.Key);
+        }
+        foreach (KeyValuePair<string, ObjectId> i in LogVanityUrls)
+        {
+            _DB.VanityUrlCache.TryAdd(i.Value, i.Key);
+        }
+        foreach (KeyValuePair<string, ObjectId> i in ProjectVanityUrls)
+        {
+            _DB.VanityUrlCache.TryAdd(i.Value, i.Key);
+        }
+        foreach (KeyValuePair<string, ObjectId> i in ConsoleVanityUrls)
+        {
+            _DB.VanityUrlCache.TryAdd(i.Value, i.Key);
+        }
+        foreach (KeyValuePair<string, ObjectId> i in WebsiteVanityUrls)
+        {
+            _DB.VanityUrlCache.TryAdd(i.Value, i.Key);
+        }
+    }
 }
