@@ -43,7 +43,7 @@
                                TextProperty="@nameof(TeamRoleData.Name)" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
                                Style="width: 100%; max-width: 400px; height: calc(100vh - 200px); min-height:400px;" class="mt-1" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select role" } })">
                     <Template>
-                        <div @oncontextmenu=@((args) => ShowContextMenuWithManageItems(context, args)) @oncontextmenu:preventDefault="true">
+                        <div @oncontextmenu="@((args) => ShowContextMenuWithManageItems(context, args))" @oncontextmenu:preventDefault="true">
                         <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData))};")"></span>
                         @if ((context as TeamRoleData)!.Team != null && Team.OwnerId != Member.UserId && (context as TeamRoleData).GetPosition() >= CurrentRank)
                         {
