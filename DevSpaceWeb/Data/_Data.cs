@@ -9,8 +9,8 @@ namespace DevSpaceWeb.Data;
 public static class _Data
 {
     public static Config Config = null!;
-    public static Dictionary<ObjectId, RCon> BattleyeRcons = new Dictionary<ObjectId, RCon>();
-    public static Dictionary<ObjectId, TCPRconAsync> MinecraftRcons = new Dictionary<ObjectId, TCPRconAsync>();
+    public static Dictionary<ObjectId, RCon> BattleyeRcons = [];
+    public static Dictionary<ObjectId, TCPRconAsync> MinecraftRcons = [];
     public static bool LoadConfig()
     {
         bool SaveConfig = false;

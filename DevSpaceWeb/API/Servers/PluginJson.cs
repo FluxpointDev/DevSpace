@@ -35,5 +35,5 @@ public class PluginJson
     public string? documentation { get; set; }
     public string working_directory { get; set; }
     public string? entrypoint { get; set; }
-    public IList<string> capabilities { get; set; } = new List<string>();
+    public IList<string> capabilities { get; set; } = [];
 }

@@ -30,7 +30,7 @@ public class ImageJson
         if (image.Config != null && image.Config.Environment != null)
             config.environment = image.Config.Environment;
         else
-            config.environment = new List<string>();
+            config.environment = [];
 
         if (image.Config != null && image.Config.Labels != null)
             config.labels = image.Config.Labels;
@@ -40,7 +40,7 @@ public class ImageJson
         if (image.Config != null && image.Config.ExposedPorts != null)
             config.ports = image.Config.ExposedPorts;
         else
-            config.ports = new List<string>();
+            config.ports = [];
 
         if (image.Config != null)
         {
@@ -75,7 +75,7 @@ public class ImageJson
 }
 public class ImageConfigJson
 {
-    public IList<string> environment { get; set; }
+    public IList<string>? environment { get; set; }
     public IDictionary<string, string>? labels { get; set; }
     public string? command { get; set; }
     public string? entrypoint { get; set; }

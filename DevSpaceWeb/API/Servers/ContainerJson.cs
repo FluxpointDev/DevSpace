@@ -48,13 +48,12 @@ public class ContainerJson
         {
             details = new ContainerDetailsJson(info);
             labels = info.Config.Labels;
-            if (labels == null)
-                labels = new Dictionary<string, string>();
+            labels ??= new Dictionary<string, string>();
         }
         if (viewEnvironment)
         {
             if (info.Config.Env == null)
-                environment = new Dictionary<string, string>();
+                environment = new Dictionary<string, string?>();
             else
                 environment = info.Config.Env.ParseEnvironment().ToDictionary(x => x.Key, x => x.Value);
         }

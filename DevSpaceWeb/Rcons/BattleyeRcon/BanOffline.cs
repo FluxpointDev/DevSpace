@@ -3,11 +3,11 @@
 public class BanOffline
 {
     public string guid = "";
-    public String name = "";
-    public String duration = "";
-    public String reason = "";
+    public string name = "";
+    public string duration = "";
+    public string? reason = "";
 
-    public BanOffline(string guid, String name, String duration, String reason)
+    public BanOffline(string guid, string name, string duration, string? reason)
     {
         this.guid = guid;
         this.name = name;

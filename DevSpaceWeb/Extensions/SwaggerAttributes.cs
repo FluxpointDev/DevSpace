@@ -188,14 +188,14 @@ public class SwaggerCheckAuthFilter : IOperationFilter
         {
             Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "key" }
         };
-        operation.Security = new List<OpenApiSecurityRequirement>
-            {
+        operation.Security =
+            [
 
                 new OpenApiSecurityRequirement
                 {
                     [security] = Array.Empty<string>()
                 }
-            };
+            ];
 
     }
 }

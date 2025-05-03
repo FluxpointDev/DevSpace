@@ -16,8 +16,8 @@
                 <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" ItemRender="@((x) => RenderItem(x))"
                 LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
                     <Template>
-                        <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData))};")"></span>
-                        @if (Program.IsPreviewMode || Team.OwnerId == Member.UserId || (context as TeamRoleData)!.GetPosition() < CurrentRank)
+                        <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData)!)};")"></span>
+                        @if (Program.IsPreviewMode || Team.OwnerId == Member?.UserId || (context as TeamRoleData)!.GetPosition() < CurrentRank)
                         {
                             @((context as TeamRoleData)!.Name)
                         }
@@ -25,7 +25,6 @@
                         {
                             <span class="iconify" data-icon="mdi:lock"></span> @((context as TeamRoleData)!.Name)
                         }
-
                     </Template>
                 </RadzenListBox>
             </RadzenStack>
@@ -72,7 +71,7 @@
         Team.RoleChangeEvent -= RoleChanged;
     }
 
-    public void RoleChanged(object sender, Tuple<TeamRoleData?, bool> role)
+    public void RoleChanged(object? sender, Tuple<TeamRoleData?, bool> role)
     {
         if (role.Item1 == null)
             RolesList = Team.CachedRoles.Values.OrderByDescending(x => x.GetPosition()).ToList();

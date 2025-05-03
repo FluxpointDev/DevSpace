@@ -5,7 +5,7 @@ using MongoDbGenericRepository.Attributes;
 using MongoDbGenericRepository.Utils;
 using System.Reflection;
 
-namespace AspNetCore.Identity.MongoDbCore;
+namespace DevSpaceWeb.Database;
 
 public class CustomMongoDbContext : IMongoDbContext
 {
@@ -135,7 +135,9 @@ public class CustomMongoDbContext : IMongoDbContext
     //     The name of the collection in which the TDocument is stored.
     protected virtual string GetAttributeCollectionName<TDocument>()
     {
+#pragma warning disable CS8603 // Possible null reference return.
         return (typeof(TDocument).GetTypeInfo().GetCustomAttributes(typeof(CollectionNameAttribute)).FirstOrDefault() as CollectionNameAttribute)?.Name;
+#pragma warning restore CS8603 // Possible null reference return.
     }
 
     //

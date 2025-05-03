@@ -28,7 +28,7 @@ public static class DialogExtensions
     {
         DialogOptions options = new DialogOptions() { AutoFocusFirstElement = true };
 
-        dynamic dialog = await service.OpenAsync<DynamicFormDialog<Model>>(title, new Dictionary<string, object>()
+        dynamic dialog = await service.OpenAsync<DynamicFormDialog<Model>>(title, new Dictionary<string, object?>()
         {
             { "ModelData", model },
             { "OnSubmit", function },
@@ -78,7 +78,7 @@ public static class DialogExtensions
     {
         DialogOptions options = new DialogOptions() { };
 
-        dynamic Dialog = await service.OpenAsync<ConfirmInfoDialog>("Permission Error", new Dictionary<string, object>()
+        await service.OpenAsync<ConfirmInfoDialog>("Permission Error", new Dictionary<string, object>()
         {
             { "ContentText", $"You do not have permission for {Utils.FriendlyName(flag.ToString())}" },
             { "ButtonText", "Ok" },

@@ -17,7 +17,9 @@ using System.Net;
 
 namespace DevSpaceWeb.Database;
 
+#pragma warning disable IDE1006 // Naming Styles
 public static class _DB
+#pragma warning restore IDE1006 // Naming Styles
 {
     public static ConfigureDatabase? Configure;
 
@@ -170,7 +172,7 @@ public static class _DB
                 new CreateIndexOptions { ExpireAfter = new TimeSpan(30, 0, 0, 0), Name = "_expire_at_" });
 #pragma warning restore CS0618 // Type or member is obsolete
         }
-        catch (Exception ex)
+        catch
         {
 
         }
@@ -235,7 +237,7 @@ public static class _DB
                             }
 
                             int Position = 0;
-                            Dictionary<ObjectId, int> UpdatedPositions = new Dictionary<ObjectId, int>();
+                            Dictionary<ObjectId, int> UpdatedPositions = [];
                             foreach (TeamRoleData? r in i.CachedRoles.Values.OrderBy(x => x.Position.GetValueOrDefault()))
                             {
 
@@ -525,7 +527,7 @@ public static class _DB
 
     public static ICacheCollection<ServerData> Servers = null!;
 
-    public static Dictionary<ObjectId, PartialUserData> Users = new Dictionary<ObjectId, PartialUserData>();
+    public static Dictionary<ObjectId, PartialUserData> Users = [];
 
     public static ICacheCollection<ConsoleData> Consoles = null!;
 

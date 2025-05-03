@@ -172,6 +172,9 @@
                                     return;
                                 }
 
+                                if (string.IsNullOrEmpty(SelectedPlayer.name))
+                                    return;
+
                                 rc.SayPrivate(new Message(SelectedPlayer.number, SelectedPlayer.name, CommandInput));
                             }
                             break;
@@ -182,6 +185,9 @@
                                     await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
                                 }
+
+                                if (string.IsNullOrEmpty(SelectedPlayer.name))
+                                    return;
 
                                 string Result = await rc.SayPlayer(SelectedPlayer.name, CommandInput);
                                 await Dialog.ShowInfoAsync("Message Result", Result);

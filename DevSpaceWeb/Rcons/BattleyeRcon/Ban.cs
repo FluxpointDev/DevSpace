@@ -14,17 +14,17 @@ public class Ban
     {
         get { return _id; }
     }
-    public string Name
+    public string? Name
     {
         get { return _name; }
         set { _name = value; }
     }
-    public string GUID
+    public string? GUID
     {
         get { return _guid; }
         set { _guid = value; }
     }
-    public string IP
+    public string? IP
     {
         get { return _ip; }
         set { _ip = value; }

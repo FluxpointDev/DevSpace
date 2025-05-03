@@ -169,7 +169,7 @@ public class WebSocketClient : WssClient
         string message = JsonConvert.SerializeObject(json);
         SendTextAsync(message);
 
-        JToken result = null!;
+        JToken? result = null;
         try
         {
             result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 30), token);

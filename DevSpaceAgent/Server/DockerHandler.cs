@@ -221,7 +221,7 @@ public static class DockerHandler
 #pragma warning disable CS0618 // Type or member is obsolete
                 Stream Stream = await Program.DockerClient.System.MonitorEventsAsync(Params, CancellationToken.None);
 #pragma warning restore CS0618 // Type or member is obsolete
-                List<DockerEventInfo> List = new List<DockerEventInfo>();
+                List<DockerEventInfo> List = [];
                 using (StreamReader reader = new StreamReader(Stream, Encoding.UTF8, true))
                 {
                     while (!reader.EndOfStream)

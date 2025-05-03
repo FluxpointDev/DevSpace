@@ -3,10 +3,10 @@
 public class Kick
 {
     public int id;
-    public String name;
-    public String reason;
+    public string name;
+    public string? reason;
 
-    public Kick(int id, String name, String reason)
+    public Kick(int id, string name, string? reason)
     {
         this.id = id;
         this.name = name;

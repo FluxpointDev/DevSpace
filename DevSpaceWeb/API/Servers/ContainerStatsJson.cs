@@ -33,7 +33,7 @@ public class ContainerStatsJson
         if (stats.Networks != null)
             networks = stats.Networks.ToDictionary(x => x.Key, x => new ContainerStatsNetworkJson(x.Value));
         else
-            networks = new Dictionary<string, ContainerStatsNetworkJson>();
+            networks = [];
 
     }
 
@@ -45,7 +45,7 @@ public class ContainerStatsJson
 }
 public class ContainerStatsInfoJson
 {
-    public string text { get; set; }
+    public string? text { get; set; }
     public long raw { get; set; }
     public long nearest { get; set; }
 }

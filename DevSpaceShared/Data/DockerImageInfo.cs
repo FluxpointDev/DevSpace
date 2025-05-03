@@ -153,7 +153,7 @@ namespace DevSpaceShared.Data
 
         public long Size { get; set; }
 
-        public Dictionary<string, string> Containers { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> Containers { get; set; } = [];
         public int ContainersCount { get; set; }
 
         public string? Website { get; set; }

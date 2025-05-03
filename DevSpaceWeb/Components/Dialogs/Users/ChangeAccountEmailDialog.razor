@@ -69,14 +69,13 @@
             Session.Notifications.ShowErrorWarning(NotificationErrorType.AccountLoadFailed);
             return;
         }
-
-        if (user.Email.Equals(EmailForm.Email, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(user.Email) && user.Email.Equals(EmailForm.Email, StringComparison.OrdinalIgnoreCase))
         {
             IsEmailTaken = true;
             return;
         }
 
-        AuthUser? FindUser = await UserManager.FindByEmailAsync(EmailForm.Email);
+        AuthUser? FindUser = await UserManager.FindByEmailAsync(EmailForm.Email!);
         if (FindUser != null)
         {
             IsEmailTaken = true;

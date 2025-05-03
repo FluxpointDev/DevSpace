@@ -129,7 +129,7 @@ public class PasskeyAuthController : AuthControllerContext
 
             // 5. Make the assertion
             VerifyAssertionResult res = await _fido2Service._lib.MakeAssertionAsync(
-                clientResponse, options, creds.PublicKey, null, 0, callback);
+                clientResponse, options, creds.PublicKey, null!, 0, callback);
 
             if (res.Status == "ok")
             {

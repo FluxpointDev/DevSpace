@@ -191,7 +191,7 @@ public static class ServiceBuilder
                     {
                         Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "key" }
                     },
-                    new string[] {  }
+                    Array.Empty<string>()
                 }
             });
             c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
@@ -439,7 +439,7 @@ public static class ServiceBuilder
 
     public static void AddFido2(IServiceCollection services)
     {
-        HashSet<string> Origins = new HashSet<string>();
+        HashSet<string> Origins = [];
         if (Program.IsDevMode)
         {
             Origins.Add("https://localhost:5149");

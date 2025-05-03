@@ -33,7 +33,7 @@ public class TeamMemberData
         return "Unknown User";
     }
 
-    public string GetCurrentName()
+    public string? GetCurrentName()
     {
         if (!string.IsNullOrEmpty(NickName))
             return NickName;
@@ -500,13 +500,13 @@ public class TeamMemberData
         return CurrentRank;
     }
 
-    public HashSet<ObjectId> Roles { get; set; } = new HashSet<ObjectId>();
+    public HashSet<ObjectId> Roles { get; set; } = [];
 
     public IEnumerable<TeamRoleData> GetCachedRoles()
     {
         TeamData? selectedTeam = Team;
         if (selectedTeam == null)
-            return new List<TeamRoleData>();
+            return [];
         return (IEnumerable<TeamRoleData>)Roles.Select(x => selectedTeam.CachedRoles.GetValueOrDefault(x)).Where(x => x != null);
     }
     public string? NickName { get; set; }

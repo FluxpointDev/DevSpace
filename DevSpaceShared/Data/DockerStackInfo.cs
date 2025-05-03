@@ -12,9 +12,9 @@ public class DockerStackInfo
     public long Version { get; set; }
     public DockerStackType Type { get; set; }
     public DockerStackControl ControlType { get; set; }
-    public HashSet<DockerContainerInfo> Containers { get; set; } = new HashSet<DockerContainerInfo>();
-    public HashSet<MountPoint> Volumes { get; set; } = new HashSet<MountPoint>();
-    public HashSet<DockerContainerNetwork> Networks { get; set; } = new HashSet<DockerContainerNetwork>();
+    public HashSet<DockerContainerInfo> Containers { get; set; } = [];
+    public HashSet<MountPoint> Volumes { get; set; } = [];
+    public HashSet<DockerContainerNetwork> Networks { get; set; } = [];
     public int ContainersCount { get; set; }
     public bool IsRunning { get; set; } = false;
 }

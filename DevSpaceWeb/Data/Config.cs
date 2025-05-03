@@ -117,7 +117,7 @@ public class ConfigEmail
         return "Default " + new EmailTemplateData { Type = type }.GetTypeName();
     }
 
-    public Dictionary<EmailTemplateType, ObjectId> ActiveEmailTemplates = new Dictionary<EmailTemplateType, ObjectId>();
+    public Dictionary<EmailTemplateType, ObjectId> ActiveEmailTemplates = [];
 
     public EmailTemplateData GetActiveTemplateOrDefault(EmailTemplateType type)
     {

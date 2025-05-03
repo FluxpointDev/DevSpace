@@ -61,8 +61,10 @@ public class RequiredIfValidationAttribute : ValidationAttribute
         if (!IsInverted && Equals(actualOtherPropertyValue, OtherPropertyValue) ||
             IsInverted && !Equals(actualOtherPropertyValue, OtherPropertyValue))
         {
+#pragma warning disable CS8603 // Possible null reference return.
             return base.IsValid(value, validationContext);
         }
         return default;
+#pragma warning restore CS8603 // Possible null reference return.
     }
 }

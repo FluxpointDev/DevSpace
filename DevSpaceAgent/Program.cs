@@ -33,7 +33,7 @@ public class Program
 
     public static System.Net.Http.HttpClient UnAuthenticatedClient = new System.Net.Http.HttpClient();
 
-    public static Dictionary<string, DockerCustomTemplate> CustomTemplates = new Dictionary<string, DockerCustomTemplate>();
+    public static Dictionary<string, DockerCustomTemplate> CustomTemplates = [];
 
     public static void SaveTemplates()
     {
@@ -59,8 +59,8 @@ public class Program
         }
     }
 
-    public static Dictionary<string, string> ContainerCache = new Dictionary<string, string>();
-    public static Dictionary<string, StackFile> Stacks = new Dictionary<string, StackFile>();
+    public static Dictionary<string, string> ContainerCache = [];
+    public static Dictionary<string, StackFile> Stacks = [];
 
     static async Task Main(string[] args)
     {

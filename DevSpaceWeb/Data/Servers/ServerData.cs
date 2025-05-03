@@ -17,7 +17,7 @@ public class ServerData : ITeamResource
 {
     public ServerData() : base(ResourceType.Server) { }
 
-    public string AgentId { get; set; }
+    public string? AgentId { get; set; }
     public required string AgentIp { get; set; }
     public required string AgentKey { get; set; }
     public short AgentPort { get; set; }

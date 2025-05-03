@@ -73,7 +73,7 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
-        Microsoft.AspNetCore.Identity.PasswordVerificationResult Validate = Utils.Hasher.VerifyHashedPassword(null, controller.Client.TokenHash, Auth);
+        Microsoft.AspNetCore.Identity.PasswordVerificationResult Validate = Utils.Hasher.VerifyHashedPassword(null!, controller.Client.TokenHash, Auth);
 
         if (Validate == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
         {

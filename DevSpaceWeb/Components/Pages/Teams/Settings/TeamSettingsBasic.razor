@@ -96,7 +96,9 @@
                 {
                     if (VanityUrl != Team.VanityUrl)
                     {
-                        _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
+                        if (!string.IsNullOrEmpty(Team.VanityUrl))
+                            _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
+
                         _DB.TeamsVanityCache.TryAdd(VanityUrl, Team);
                         Team.VanityUrl = VanityUrl;
                         Session.Selected.Team.VanityUrl = VanityUrl;

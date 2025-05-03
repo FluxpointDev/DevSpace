@@ -396,10 +396,10 @@ public static class DockerContainers
                         Tag = "latest"
                     }, null, new Progress<JSONMessage>());
 
-                    List<string> Binds = new List<string>
-                    {
+                    List<string> Binds =
+                    [
                         "/var/trivy:/root/.cache:rw"
-                    };
+                    ];
 
                     foreach (MountPoint? i in CurrentContainer.Mounts)
                     {
@@ -415,8 +415,8 @@ public static class DockerContainers
 
                     CreateContainerResponse Container = await client.Containers.CreateContainerAsync(new CreateContainerParameters
                     {
-                        Cmd = new List<string>
-                        {
+                        Cmd =
+                        [
                             "filesystem",
                             "/root/mount/",
                             "--skip-files",
@@ -426,7 +426,7 @@ public static class DockerContainers
                             "json",
                             "--scanners",
                             "vuln"
-                        },
+                        ],
                         Image = "docker.io/aquasec/trivy",
                         Name = "security-scan-" + Guid.NewGuid().ToString().Replace("-", ""),
                         HostConfig = new HostConfig

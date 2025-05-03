@@ -10,7 +10,7 @@ namespace DevSpaceWeb.Fido2;
 /// </summary>
 public class FidoStoredCredential
 {
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     /// <summary>
     /// Gets or sets the public key for this user.

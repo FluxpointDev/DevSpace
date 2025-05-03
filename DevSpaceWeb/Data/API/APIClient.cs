@@ -20,7 +20,7 @@ public class APIClient
     public ObjectId OwnerId { get; set; }
     public ObjectId TeamId { get; set; }
     public bool IsDisabled { get; set; }
-    [Obsolete]
+    [Obsolete("Removed for privacy")]
     public bool IsInstanceAdmin { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public bool UseCustomPermissions { get; set; }
@@ -159,7 +159,7 @@ public class APIClient
         return false;
     }
 
-    public bool HasLogPermission(TeamData? SelectedTeam, LogData log, LogPermission checkPermission)
+    public bool HasLogPermission(TeamData? SelectedTeam, LogData? log, LogPermission checkPermission)
     {
         if (SelectedTeam == null)
             return false;
@@ -193,7 +193,7 @@ public class APIClient
         return false;
     }
 
-    public bool HasProjectPermission(TeamData? SelectedTeam, ProjectData project, ProjectPermission checkPermission)
+    public bool HasProjectPermission(TeamData? SelectedTeam, ProjectData? project, ProjectPermission checkPermission)
     {
         if (SelectedTeam == null)
             return false;
@@ -223,7 +223,7 @@ public class APIClient
         return false;
     }
 
-    public bool HasServerPermission(TeamData? SelectedTeam, ServerData server, ServerPermission checkPermission)
+    public bool HasServerPermission(TeamData? SelectedTeam, ServerData? server, ServerPermission checkPermission)
     {
         if (SelectedTeam == null)
             return false;
@@ -256,7 +256,7 @@ public class APIClient
         return false;
     }
 
-    public bool HasConsolePermission(TeamData? SelectedTeam, ConsoleData console, ConsolePermission checkPermission)
+    public bool HasConsolePermission(TeamData? SelectedTeam, ConsoleData? console, ConsolePermission checkPermission)
     {
         if (SelectedTeam == null)
             return false;
@@ -291,7 +291,7 @@ public class APIClient
         return false;
     }
 
-    public bool HasWebsitePermission(TeamData? SelectedTeam, WebsiteData website, WebsitePermission checkPermission)
+    public bool HasWebsitePermission(TeamData? SelectedTeam, WebsiteData? website, WebsitePermission checkPermission)
     {
         if (SelectedTeam == null)
             return false;
@@ -322,7 +322,7 @@ public class APIClient
         return false;
     }
 
-    public bool HasDockerPermission(TeamData? SelectedTeam, ServerData server, DockerPermission checkPermission)
+    public bool HasDockerPermission(TeamData? SelectedTeam, ServerData? server, DockerPermission checkPermission)
     {
         if (SelectedTeam == null)
             return false;
@@ -354,7 +354,7 @@ public class APIClient
         return false;
     }
 
-    public bool HasDockerContainerPermission(TeamData? SelectedTeam, ServerData server, DockerContainerPermission checkPermission)
+    public bool HasDockerContainerPermission(TeamData? SelectedTeam, ServerData? server, DockerContainerPermission checkPermission)
     {
         if (SelectedTeam == null)
             return false;

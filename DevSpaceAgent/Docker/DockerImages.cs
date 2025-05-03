@@ -20,8 +20,8 @@ public static class DockerImages
         {
             All = true
         });
-        List<DockerImageInfo> Response = new List<DockerImageInfo>();
-        HashSet<string> ParentMap = new HashSet<string>();
+        List<DockerImageInfo> Response = [];
+        HashSet<string> ParentMap = [];
         foreach (ImagesListResponse i in List)
         {
             DockerImageInfo Image = DockerImageInfo.Create(i);

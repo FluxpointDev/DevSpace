@@ -186,9 +186,12 @@ public class AuthLoginController : AuthControllerContext
 
         bool RememberMe = false;
         string? RequestId = null;
-        if (info.AuthenticationProperties.Items.TryGetValue("RememberMe", out string? val))
+        if (info.AuthenticationProperties != null && info.AuthenticationProperties.Items.TryGetValue("RememberMe", out string? val))
             bool.TryParse(val, out RememberMe);
-        info.AuthenticationProperties.Items.TryGetValue("RequestId", out RequestId);
+
+        if (info.AuthenticationProperties != null)
+            info.AuthenticationProperties.Items.TryGetValue("RequestId", out RequestId);
+
         UserSessionJson? SessionJson = null;
         if (!AlreadyAuthed && (string.IsNullOrEmpty(RequestId) || !Cache.TryGetValue("login-" + RequestId, out SessionJson)))
             return Redirect(returnUrl + "?link=Failed");
@@ -230,7 +233,7 @@ public class AuthLoginController : AuthControllerContext
             }
 
             if (!AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession? Session))
-                AuthUser.Account.Sessions.Add(SessionId, UserSession.Create(SessionJson));
+                AuthUser.Account.Sessions.Add(SessionId, UserSession.Create(SessionJson!));
             else
                 Session.LastLoginAt = DateTime.UtcNow;
 

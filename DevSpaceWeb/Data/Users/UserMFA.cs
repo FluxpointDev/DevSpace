@@ -12,7 +12,7 @@ public class UserMfa
     public DateTime? EmailCodeLastUsedAt { get; set; }
     public DateTime? AuthenticatorLastRegisteredAt { get; set; }
     public DateTime? AuthenticatorLastUsedAt { get; set; }
-    public Dictionary<string, bool> AuthenticatorDevices { get; set; } = new Dictionary<string, bool>();
+    public Dictionary<string, bool> AuthenticatorDevices { get; set; } = [];
 
     public bool HasAny2FA()
     {
@@ -43,7 +43,7 @@ public class UserMfa
     public DateTime? PasskeyLastRegisteredAt { get; set; }
     public DateTime? PasskeyLastUsedAt { get; set; }
     public string? PasskeyLastUsedDevice { get; set; }
-    public List<FidoStoredCredential> Passkeys { get; set; } = new List<FidoStoredCredential>();
+    public List<FidoStoredCredential> Passkeys { get; set; } = [];
 
     public DateTime? RecoveryCodeCreatedAt { get; set; }
     public DateTime? RecoveryCodeLastUsedAt { get; set; }

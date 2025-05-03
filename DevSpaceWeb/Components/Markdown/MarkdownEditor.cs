@@ -5,7 +5,7 @@ namespace DevSpaceWeb.Components.Markdown;
 
 public class EditorBase : ComponentBase, IDisposable
 {
-    private System.Timers.Timer debounceTimer = new System.Timers.Timer()
+    private readonly System.Timers.Timer debounceTimer = new System.Timers.Timer()
     {
         Interval = 1000,
         AutoReset = false
@@ -31,7 +31,7 @@ public class EditorBase : ComponentBase, IDisposable
         }
     }
 
-    private async void DebounceTimer_Elapsed(object sender, ElapsedEventArgs e)
+    private async void DebounceTimer_Elapsed(object? sender, ElapsedEventArgs e)
     {
         await InvokeAsync(() => OnChange.InvokeAsync(new ChangeEventArgs { Value = finalValue }));
     }

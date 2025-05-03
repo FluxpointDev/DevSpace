@@ -44,12 +44,12 @@ public class ConsoleController : APIController
             return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole, out ConsolePermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         if (showIp)
         {
             if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ConsoleAdministrator, out perm))
-                return PermissionFailed(perm);
+                return PermissionFailed(perm!);
         }
 
         return Ok(new ConsoleJson(server, showIp));
@@ -65,7 +65,7 @@ public class ConsoleController : APIController
             return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ViewPlayers, out ConsolePermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         switch (server.Type)
         {
@@ -89,7 +89,7 @@ public class ConsoleController : APIController
                     }
                     catch { }
 
-                    List<Player> list = new List<Player>();
+                    List<Player> list = [];
 
                     foreach (Player? i in ListCommand.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(x => new Player(0, null, null, null, x, null)))
                     {
@@ -120,7 +120,7 @@ public class ConsoleController : APIController
             return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ViewPlayers, out ConsolePermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
             return BadRequest("Invalid console type that can't be used for this endpoint.");
@@ -144,7 +144,7 @@ public class ConsoleController : APIController
             return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.UseConsoleCommands, out ConsolePermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         if (command == null || string.IsNullOrEmpty(command.command))
             return BadRequest("Command argument is required.");
@@ -185,7 +185,7 @@ public class ConsoleController : APIController
             return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.MessageGlobal, out ConsolePermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         if (message == null || string.IsNullOrEmpty(message.message))
             return BadRequest("Message argument is required.");
@@ -223,7 +223,7 @@ public class ConsoleController : APIController
             return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.MessagePlayers, out ConsolePermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         if (json == null || string.IsNullOrEmpty(json.player))
             return BadRequest("Player argument is required.");
@@ -267,7 +267,7 @@ public class ConsoleController : APIController
             return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.KickPlayers, out ConsolePermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         if (json == null || string.IsNullOrEmpty(json.player))
             return BadRequest("Player argument is required.");
@@ -310,7 +310,7 @@ public class ConsoleController : APIController
             return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.BanPlayers, out ConsolePermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         if (json == null || string.IsNullOrEmpty(json.player))
             return BadRequest("Player argument is required.");
@@ -443,7 +443,7 @@ public class ConsoleController : APIController
             return NotFound("Could not find console.");
 
         if (Client.CheckFailedConsolePermissions(server, ConsolePermission.ViewConsole | ConsolePermission.ViewConnections, out ConsolePermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
             return BadRequest("Invalid console type that can't be used for this endpoint.");
@@ -453,7 +453,7 @@ public class ConsoleController : APIController
 
         bool ShowIp = Client.HasConsolePermission(server.Team, server, ConsolePermission.ViewIPs);
 
-        List<RconAdmin>? Admins = rcon.GetAdmins();
+        List<RconAdmin> Admins = rcon.GetAdmins();
         return Ok(Admins.Select(x => new ConsoleAdminJson(x, ShowIp)));
     }
 }

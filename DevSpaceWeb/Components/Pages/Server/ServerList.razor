@@ -141,7 +141,7 @@
 
         await DialogService.ShowDynamicFormAsync<ServerSetupModel>("Setup Server", new ServerSetupModel(), async (ServerSetupModel data) =>
             {
-                if (!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
+                if (Team == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
                     return "You do not have Manage Resource permissions";
 
                 if (data.Port == 0)

@@ -34,7 +34,7 @@ public class APIController : ControllerBase
     {
         Response.ContentType = "application/json";
         Response.StatusCode = 200;
-        JObject JObject = new JObject();
+        JObject JObject = [];
         if (obj != null)
         {
             Type type = obj.GetType();

@@ -9,7 +9,7 @@ public class StackJson
         id = info.Id;
         name = info.Name;
         if (string.IsNullOrEmpty(id))
-            id = name;
+            id = name!;
         created_at = info.CreatedAt;
         updated_at = info.UpdatedAt;
         version = info.Version;

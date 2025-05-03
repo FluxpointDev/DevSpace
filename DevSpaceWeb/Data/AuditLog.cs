@@ -153,7 +153,7 @@ public class AuditLog
     public AuditLogTargetType TargetType;
     public ObjectId? TargetId;
     public string? TargetName;
-    public Dictionary<string, string?> Properties = new Dictionary<string, string?>();
+    public Dictionary<string, string?> Properties = [];
     public bool IsSensitive;
     public PermissionsSet? Permissions;
 

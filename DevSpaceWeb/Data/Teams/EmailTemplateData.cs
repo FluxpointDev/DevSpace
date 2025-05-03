@@ -123,9 +123,12 @@ public class EmailTemplateData
         await _DB.EmailTemplates.Collection.UpdateOneAsync(filter, update);
     }
 
-    public string ParseMarkdown(AuthUser user, string action, string other_email = "", string code = "", string reason = "", string ip = "", string country = "")
+    public string? ParseMarkdown(AuthUser user, string action, string other_email = "", string code = "", string reason = "", string ip = "", string country = "")
     {
-        string TaggedBody = ParseTags(user, action, other_email, code, reason, ip, country);
+        string? TaggedBody = ParseTags(user, action, other_email, code, reason, ip, country);
+        if (string.IsNullOrEmpty(TaggedBody))
+            return TaggedBody;
+
         if (Type != EmailTemplateType.Header && Type != EmailTemplateType.Footer && !string.IsNullOrEmpty(_Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Header).Body))
             TaggedBody = _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Header).ParseTags(user, action, other_email, code, reason, ip, country) + "\n--- --- ---\n" + TaggedBody;
 
@@ -137,12 +140,15 @@ public class EmailTemplateData
 
     public string ParseHtml(AuthUser user, string action, string other_email = "", string code = "", string reason = "", string ip = "", string country = "")
     {
-        string TaggedBody = ParseTags(user, action, other_email, code, reason, ip, country);
-        if (Type != EmailTemplateType.Header && Type != EmailTemplateType.Footer && !string.IsNullOrEmpty(_Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Header).Body))
-            TaggedBody = _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Header).ParseTags(user, action, other_email, code, reason, ip, country) + "\n&nbsp;" + TaggedBody;
+        string? TaggedBody = ParseTags(user, action, other_email, code, reason, ip, country);
+        if (!string.IsNullOrEmpty(TaggedBody))
+        {
+            if (Type != EmailTemplateType.Header && Type != EmailTemplateType.Footer && !string.IsNullOrEmpty(_Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Header).Body))
+                TaggedBody = _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Header).ParseTags(user, action, other_email, code, reason, ip, country) + "\n&nbsp;" + TaggedBody;
 
-        if (Type != EmailTemplateType.Header && Type != EmailTemplateType.Footer && !string.IsNullOrEmpty(_Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Footer).Body))
-            TaggedBody = TaggedBody + "\n&nbsp;\n" + _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Footer).ParseTags(user, action, other_email, code, reason, ip, country);
+            if (Type != EmailTemplateType.Header && Type != EmailTemplateType.Footer && !string.IsNullOrEmpty(_Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Footer).Body))
+                TaggedBody = TaggedBody + "\n&nbsp;\n" + _Data.Config.Email.GetActiveTemplateOrDefault(EmailTemplateType.Footer).ParseTags(user, action, other_email, code, reason, ip, country);
+        }
 
         string Html = Markdown.BuildHtmlFromMarkdown(TaggedBody);
 

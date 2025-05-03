@@ -9,7 +9,7 @@ public static class DockerVolumes
 {
     public static async Task<IList<DockerVolumeInfo>> ListVolumesAsync(DockerClient client)
     {
-        IList<DockerVolumeInfo> List = new List<DockerVolumeInfo>();
+        IList<DockerVolumeInfo> List = [];
         VolumesListResponse Volumes = await client.Volumes.ListAsync();
         IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
         {

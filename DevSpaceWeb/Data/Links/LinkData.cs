@@ -12,7 +12,7 @@ public class LinkData
     public bool RequireAuthentication;
     public bool RequireMember;
     public bool RequireRoles;
-    public HashSet<ObjectId> RestrictedRoles = new HashSet<ObjectId>();
+    public HashSet<ObjectId> RestrictedRoles = [];
     public int ButtonTimer = 3;
     public bool RequireCode;
     public string? Code;

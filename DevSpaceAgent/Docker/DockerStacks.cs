@@ -13,7 +13,7 @@ public static class DockerStacks
 {
     public static async Task<List<DockerStackInfo>> ListStacksAsync(DockerClient client)
     {
-        List<DockerStackInfo> Stacks = new List<DockerStackInfo>();
+        List<DockerStackInfo> Stacks = [];
         IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
         {
             Size = true,
@@ -138,14 +138,14 @@ public static class DockerStacks
                     Name = label,
                     CreatedAt = CreatedAt,
                     ContainersCount = 1,
-                    Containers = new HashSet<DockerContainerInfo>
-                        {
+                    Containers =
+                        [
                             new DockerContainerInfo
                             {
                                 Id = c.ID,
                                 Name = (c.Names != null && c.Names.Any()) ? c.Names.First().Substring(1) : c.ID
                             }
-                        },
+                        ],
                     Version = Version,
                     IsRunning = IsRunning,
                     ControlType = Type,
@@ -162,7 +162,7 @@ public static class DockerStacks
                 {
                     ControlType = DockerStackControl.Full,
                     Id = i.Key,
-                    Containers = new HashSet<DockerContainerInfo>(),
+                    Containers = [],
                     Name = i.Value.Name,
                     CreatedAt = i.Value.CreatedAt,
                     UpdatedAt = i.Value.UpdatedAt,
@@ -245,7 +245,7 @@ public static class DockerStacks
 
     public static async Task<List<DockerStackInfo>> ListPortainerStacks(DockerClient client)
     {
-        List<DockerStackInfo> Stacks = new List<DockerStackInfo>();
+        List<DockerStackInfo> Stacks = [];
         IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
         {
             All = true
@@ -449,7 +449,7 @@ public static class DockerStacks
         {
             using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
             {
-                ComposeFilePath = new List<string> { File },
+                ComposeFilePath = [File],
                 ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                 StopOnDispose = false,
                 KeepContainers = true,
@@ -480,7 +480,7 @@ public static class DockerStacks
                 {
                     using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
                     {
-                        ComposeFilePath = new List<string> { File },
+                        ComposeFilePath = [File],
                         ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                         StopOnDispose = false,
                         AlternativeServiceName = stack.Name,
@@ -510,7 +510,7 @@ public static class DockerStacks
                 {
                     using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
                     {
-                        ComposeFilePath = new List<string> { File },
+                        ComposeFilePath = [File],
                         ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                         StopOnDispose = false,
                         AlternativeServiceName = stack.Name,
@@ -844,7 +844,7 @@ public static class DockerStacks
         string File = Dir + "docker-compose.yml";
         using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
         {
-            ComposeFilePath = new List<string> { File },
+            ComposeFilePath = [File],
             ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
             StopOnDispose = false,
             AlternativeServiceName = stack.Name,
@@ -887,7 +887,7 @@ public static class DockerStacks
                 {
                     using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
                     {
-                        ComposeFilePath = new List<string> { File },
+                        ComposeFilePath = [File],
                         ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                         StopOnDispose = false,
                         RemoveOrphans = true,

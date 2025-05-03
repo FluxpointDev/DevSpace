@@ -12,6 +12,7 @@ using System.Text;
 
 namespace BattleNET;
 
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 public class BattlEyeClient
 {
     private Socket _socket;
@@ -21,7 +22,7 @@ public class BattlEyeClient
     private bool _keepRunning;
     private int _sequenceNumber;
     private int _currentPacket;
-    private SortedDictionary<int, string[]> _packetQueue;
+    private SortedDictionary<int, string?[]> _packetQueue;
     private BattlEyeLoginCredentials _loginCredentials;
 
     public bool Connected => _socket != null && _socket.Connected;
@@ -34,10 +35,13 @@ public class BattlEyeClient
 
     public int CommandQueue => _packetQueue.Count;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     public BattlEyeClient(BattlEyeLoginCredentials loginCredentials)
     {
         _loginCredentials = loginCredentials;
     }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+
 
     public BattlEyeConnectionResult Connect()
     {
@@ -51,7 +55,7 @@ public class BattlEyeClient
 
         _sequenceNumber = 0;
         _currentPacket = -1;
-        _packetQueue = new SortedDictionary<int, string[]>();
+        _packetQueue = [];
         _keepRunning = true;
 
         IPEndPoint remoteEp = new IPEndPoint(_loginCredentials.Host, _loginCredentials.Port);
@@ -223,7 +227,7 @@ public class BattlEyeClient
         _socket.Send(packet);
     }
 
-    private byte[] ConstructPacket(BattlEyePacketType packetType, int sequenceNumber, string command)
+    private byte[] ConstructPacket(BattlEyePacketType packetType, int sequenceNumber, string? command)
     {
         string type;
 
@@ -366,12 +370,13 @@ public class BattlEyeClient
     {
         try
         {
+
             StateObject state = (StateObject)ar.AsyncState;
-            Socket client = state.WorkSocket;
+            Socket client = state?.WorkSocket;
 
             // this method can be called from the middle of a .Disconnect() call
             // test with Debug > Exception > CLR exs on
-            if (!client.Connected)
+            if (client == null || state == null || !client.Connected)
             {
                 return;
             }
@@ -464,3 +469,4 @@ public class StateObject
     public StringBuilder Message = new StringBuilder();
     public int PacketsTodo;
 }
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.

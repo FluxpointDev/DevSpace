@@ -20,7 +20,7 @@ else
 
 @code {
     [Parameter]
-    public string Value { get; set; }
+    public string? Value { get; set; }
 
     [Parameter]
     public bool IsEmail { get; set; }
@@ -30,8 +30,11 @@ else
 
     private bool IsVisible { get; set; }
 
-    public string GetMask()
+    public string? GetMask()
     {
+        if (string.IsNullOrEmpty(Value))
+            return Value;
+
         if (IsIp)
         {
             bool FirstDot = false;

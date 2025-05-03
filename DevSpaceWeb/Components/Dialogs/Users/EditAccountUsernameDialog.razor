@@ -57,7 +57,7 @@
             return;
         }
 
-        if (!string.IsNullOrEmpty(AccountForm.Username) && !user.UserName.Equals(AccountForm.Username, StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(AccountForm.Username) && (string.IsNullOrEmpty(user.UserName) || !user.UserName.Equals(AccountForm.Username, StringComparison.OrdinalIgnoreCase)))
         {
             IdentityResult Result = await UserManager.SetUserNameAsync(user, AccountForm.Username);
             if (Result.Succeeded)

@@ -8,6 +8,9 @@ namespace Radzen.Blazor;
 /// </summary>
 public partial class RoleSelector<TItem> : RadzenComponent
 {
+#pragma warning disable CS8604 // Possible null reference argument.
+#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
     /// <summary>
     /// Gets or sets a value indicating whether multiple selection is allowed.
     /// </summary>
@@ -262,12 +265,12 @@ public partial class RoleSelector<TItem> : RadzenComponent
         {
             if (items != null)
             {
-                target = (target ?? Enumerable.Empty<TItem>()).Concat(items);
-                source = (source ?? Enumerable.Empty<TItem>()).Except(items);
+                target = (target ?? []).Concat(items);
+                source = (source ?? []).Except(items);
             }
             else
             {
-                target = (target ?? Enumerable.Empty<TItem>()).Concat(source);
+                target = (target ?? []).Concat(source);
                 source = null;
             }
         }
@@ -275,12 +278,12 @@ public partial class RoleSelector<TItem> : RadzenComponent
         {
             if (items != null)
             {
-                source = (source ?? Enumerable.Empty<TItem>()).Concat(items);
-                target = (target ?? Enumerable.Empty<TItem>()).Except(items);
+                source = (source ?? []).Concat(items);
+                target = (target ?? []).Except(items);
             }
             else
             {
-                source = (source ?? Enumerable.Empty<TItem>()).Concat(target);
+                source = (source ?? []).Concat(target);
                 target = null;
             }
         }
@@ -323,3 +326,6 @@ public partial class RoleSelector<TItem> : RadzenComponent
         await Update(false, Multiple ? (selectedTargetItems as IEnumerable)?.Cast<TItem>() : new List<TItem>() { (TItem)selectedTargetItems });
     }
 }
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning restore CS8604 // Possible null reference argument.

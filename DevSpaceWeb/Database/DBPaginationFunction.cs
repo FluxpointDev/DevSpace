@@ -37,7 +37,9 @@ public static class DBPaginationFunction
             ?.FirstOrDefault()
             ?.Count;
 
+#pragma warning disable CS8629 // Nullable value type may be null.
         int totalPages = (int)Math.Ceiling((double)count / pageSize);
+#pragma warning restore CS8629 // Nullable value type may be null.
 
         IReadOnlyList<TDocument> data = aggregation.First()
             .Facets.First(x => x.Name == "data")

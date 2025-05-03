@@ -71,7 +71,7 @@ public class TCPRcon : Queue<RconPacket>
 
         TCPRcon r = new TCPRcon(RConHost, RConPort, RConPass);
         if (r.StartComms() == false)
-            return null;
+            return r;
 
         return r;
     }

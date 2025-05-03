@@ -9,7 +9,7 @@ public static class DockerNetworks
 {
     public static async Task<IList<DockerNetworkInfo>> ListNetworksAsync(DockerClient client)
     {
-        IList<DockerNetworkInfo> List = new List<DockerNetworkInfo>();
+        IList<DockerNetworkInfo> List = [];
         IList<NetworkResponse> Networks = await client.Networks.ListNetworksAsync();
         IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
         {

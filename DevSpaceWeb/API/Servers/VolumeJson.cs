@@ -30,21 +30,21 @@ public class VolumeJson
         if (volume.ContainersList != null)
             containers = volume.ContainersList.ToDictionary(x => x.Key, x => new VolumeContainerJson(x.Value));
         else
-            containers = new Dictionary<string, VolumeContainerJson>();
+            containers = [];
 
         if (volume.Containers != null)
             containers_list = volume.Containers;
         else
-            containers_list = new Dictionary<string, string>();
+            containers_list = [];
 
         containers_count = volume.ContainersCount;
     }
 
-    public string name { get; set; }
-    public string created_at { get; set; }
-    public string driver { get; set; }
-    public string scope { get; set; }
-    public string mountpoint { get; set; }
+    public string? name { get; set; }
+    public string? created_at { get; set; }
+    public string? driver { get; set; }
+    public string? scope { get; set; }
+    public string? mountpoint { get; set; }
     public IDictionary<string, object> status { get; set; }
     public IDictionary<string, string> labels { get; set; }
     public IDictionary<string, string> options { get; set; }

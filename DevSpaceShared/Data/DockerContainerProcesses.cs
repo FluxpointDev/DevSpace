@@ -49,7 +49,7 @@ public class DockerContainerStats
 
         if (json.networks != null)
         {
-            Stats.Networks = new Dictionary<string, DockerContainerStatsNetwork>();
+            Stats.Networks = [];
             foreach (KeyValuePair<string, DockerStatNetworkJson> i in json.networks)
             {
                 Stats.Networks.Add(i.Key, new DockerContainerStatsNetwork

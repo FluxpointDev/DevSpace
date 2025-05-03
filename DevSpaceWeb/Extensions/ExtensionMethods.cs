@@ -8,7 +8,7 @@ public static class ExtensionMethods
 {
     public static List<KeyValuePair<string, string?>> ParseEnvironment(this IList<string> variables)
     {
-        List<KeyValuePair<string, string?>> List = new List<KeyValuePair<string, string?>>();
+        List<KeyValuePair<string, string?>> List = [];
         foreach (string i in variables)
         {
             string[] Split = i.Split('=');

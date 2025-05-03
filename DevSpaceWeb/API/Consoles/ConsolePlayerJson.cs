@@ -19,10 +19,10 @@ public class ConsolePlayerJson
 
     public int number;
     public string? ip;
-    public string ping;
-    public string guid;
-    public string name;
-    public string status;
-    public string location;
-    public string comment;
+    public string? ping;
+    public string? guid;
+    public string? name;
+    public string? status;
+    public string? location;
+    public string? comment;
 }

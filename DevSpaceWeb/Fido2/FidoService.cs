@@ -13,15 +13,7 @@ public class Fido2Service
 
     public void SetConfig()
     {
-        HashSet<string> Origins = new HashSet<string>();
-        if (Program.IsDevMode)
-        {
-            Origins.Add("https://localhost:5149");
-        }
-        else
-        {
-            Origins.Add("https://" + _Data.Config.Instance.PublicDomain);
-        }
+        HashSet<string> Origins = [Program.IsDevMode ? "https://localhost:5149" : "https://" + _Data.Config.Instance.PublicDomain];
 
         _lib = new Fido2NetLib.Fido2(new Fido2Configuration
         {

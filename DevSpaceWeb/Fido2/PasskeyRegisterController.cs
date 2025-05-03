@@ -58,7 +58,7 @@ public class PasskeyRegisterController : AuthControllerContext
 
 
             // 2. Get user existing keys by username
-            List<PublicKeyCredentialDescriptor> existingKeys = new List<PublicKeyCredentialDescriptor>();
+            List<PublicKeyCredentialDescriptor> existingKeys = [];
             foreach (FidoStoredCredential credential in AuthUser.Mfa.Passkeys)
             {
                 if (credential.Descriptor != null)

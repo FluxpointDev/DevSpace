@@ -38,12 +38,12 @@ public class ServersController : APIController
             return NotFound("Could not find server.");
 
         if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         if (showIp)
         {
             if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewHostInfo, out perm))
-                return PermissionFailed(perm);
+                return PermissionFailed(perm!);
         }
 
         return Ok(new ServerJson(server, showIp));

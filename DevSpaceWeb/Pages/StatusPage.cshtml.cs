@@ -5,14 +5,14 @@ namespace DevSpaceWeb.Pages;
 
 public class StatusPageModel : PageModel
 {
-    public StatusPageModel(Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckService health)
+    public StatusPageModel(HealthCheckService health)
     {
         HealthService = health;
     }
 
-    public Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckService HealthService;
+    public HealthCheckService HealthService;
 
-    public HealthReport Report;
+    public HealthReport Report = null!;
 
     public async Task OnGet()
     {

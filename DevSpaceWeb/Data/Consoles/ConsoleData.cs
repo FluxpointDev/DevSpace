@@ -39,7 +39,7 @@ public class ConsoleData : ITeamResource
             return rcon.CachedPlayers;
         }
 
-        return new List<DaRT.Player>();
+        return [];
     }
 
     public RconStatusType RconStatus()
