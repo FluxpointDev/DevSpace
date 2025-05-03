@@ -85,7 +85,7 @@
                                         Change="@(args => SelectedImages = args == true ? (SelectedImages != null && SelectedImages.Any()) ? null : ImagesList.ToList() : null)" Disabled="@IsActionRunning" />
                     </HeaderTemplate>
                     <Template Context="data">
-                        <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedImages != null && SelectedImages.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                        <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedImages != null && SelectedImages.Contains(data))" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"
                                         TValue="bool" Change="@(() => grid.SelectRow(data))" Disabled="@IsActionRunning" />
                     </Template>
                 </RadzenDataGridColumn>
@@ -301,7 +301,7 @@
         IsActionRunning = true;
         await InvokeAsync(StateHasChanged);
 
-        foreach(DockerImageInfo i in SelectedImages)
+        foreach (DockerImageInfo i in SelectedImages)
         {
             await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, i.ID, imageType: type));
         }
