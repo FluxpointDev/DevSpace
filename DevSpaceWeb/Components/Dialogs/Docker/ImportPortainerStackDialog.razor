@@ -22,29 +22,29 @@
 
         @if (!string.IsNullOrEmpty(ErrorMessage))
         {
-                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-                        Failed to import stack, @ErrorMessage
-                </RadzenAlert>
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Failed to import stack, @ErrorMessage
+            </RadzenAlert>
         }
 
         @if (Stacks != null)
         {
-                @if (!Stacks.IsSuccess)
-                {
-                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-                            Failed to list portainer stacks.
-                        </RadzenAlert>
-                }
-                else
-                {
-                        <RadzenDropDown @bind-Value="@SelectedStack" Data="@Stacks.Data" Placeholder="Select a stack" TextProperty="@nameof(DockerStackInfo.Name)" Style="width: 100%; max-width: 400px;" />
-                }
+            @if (!Stacks.IsSuccess)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                    Failed to list portainer stacks.
+                </RadzenAlert>
+            }
+            else
+            {
+                <RadzenDropDown @bind-Value="@SelectedStack" Data="@Stacks.Data" Placeholder="Select a stack" TextProperty="@nameof(DockerStackInfo.Name)" Style="width: 100%; max-width: 400px;" />
+            }
 
-                @if (IsSuccess)
-                {
-                        <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-                            Stack has been imported, you can view the new stack now and delete the old one from portainer.
-                        </RadzenAlert>
+            @if (IsSuccess)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                    Stack has been imported, you can view the new stack now and delete the old one from portainer.
+                </RadzenAlert>
             }
         }
         else
