@@ -54,22 +54,11 @@ else
     public string? page { get; set; }
 
     public bool IsAdmin { get; set; }
-    public string? AdminKeyInput { get; set; }
-
-    public bool InvalidKey { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         AuthUser? User = await Session.GetCurrentUserAsync();
         if (User != null)
             IsAdmin = User.IsInstanceAdmin;
-    }
-
-    public void CheckAdminKey()
-    {
-        if (string.IsNullOrEmpty(AdminKeyInput) || AdminKeyInput != _Data.Config.AdminKey)
-            InvalidKey = true;
-        else
-            IsAdmin = true;
     }
 }

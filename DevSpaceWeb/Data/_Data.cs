@@ -62,12 +62,6 @@ public static class _Data
             Config = config;
         }
 
-        if (string.IsNullOrEmpty(Config.AdminKey))
-        {
-            SaveConfig = true;
-            Config.AdminKey = GetRandomString(new Random().Next(30, 50)) + Guid.NewGuid().ToString().Replace("-", "");
-        }
-
         if (Config.Admin == null)
         {
             SaveConfig = true;
