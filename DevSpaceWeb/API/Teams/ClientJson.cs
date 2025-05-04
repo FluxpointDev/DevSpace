@@ -14,6 +14,7 @@ public class ClientJson
         is_disabled = data.IsDisabled;
         created_at = data.CreatedAt;
         token_generated_at = data.GeneratedAt;
+        allowed_permissions = data.AllowedPermissions;
         use_custom_permissions = data.UseCustomPermissions;
         if (data.UseCustomPermissions)
             custom_permissions = data.CustomPermissions;
@@ -27,5 +28,6 @@ public class ClientJson
     public DateTime created_at;
     public DateTime? token_generated_at;
     public bool use_custom_permissions;
-    public PermissionsSet? custom_permissions;
+    public PermissionsSet allowed_permissions;
+    public PermissionsSet custom_permissions;
 }
