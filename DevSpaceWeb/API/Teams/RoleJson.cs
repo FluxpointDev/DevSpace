@@ -14,6 +14,7 @@ public class RoleJson
         position = data.GetPosition();
         if (viewPermissions)
             permissions = data.Permissions;
+        color = data.Color;
     }
 
     public string id;
@@ -22,4 +23,5 @@ public class RoleJson
     public int position;
     public PermissionsSet? permissions;
     public DateTime created_at;
+    public string? color;
 }
