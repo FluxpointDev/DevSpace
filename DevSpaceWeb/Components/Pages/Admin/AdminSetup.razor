@@ -36,6 +36,10 @@
                             You need to setup an email provider (smtp service) for account registration and security.
                         </RadzenAlert>
 
+                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                            Some server hosts may block SMTP such as Digital Ocean, you can use Fluxpoint Managed instead.
+                        </RadzenAlert>
+
                         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Email Type</RadzenText>
                         <RadzenSelectBar TValue="ConfigEmailType" @bind-Value="@EmailType" Style="width: 100%" Disabled="@(SetupStep != SetupStepType.Smtp)">
                             <Items>
@@ -92,10 +96,10 @@
                                 case ConfigEmailType.Gmail:
                                     {
                                         <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                                            Your google account will need two-factor authentication setup to use this.
+                                            Create a new google account with two-factor authentication to use this.
                                         </RadzenAlert>
 
-                                        <a href="https://www.gmass.co/blog/gmail-smtp/">How to Setup</a>
+                                        <a href="https://www.gmass.co/blog/gmail-smtp/" target="_blank">How to Setup</a>
 
                                         <br style="margin-bottom: 20px;" />
 
@@ -127,7 +131,7 @@
 
                                         <p>Create an API Key and create a Sender Authentication/Identity to use this.</p>
 
-                                        <br style="margin-bottom: 20px;" />
+                                        <br style="margin-bottom: 10px;" />
 
                                         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">SendGrid API Key</RadzenText>
                                         <RadzenPassword @bind-Value="@SmtpForm.Password" Style="width: 100%" aria-label="SendGrid API Key" AutoCompleteType="AutoCompleteType.Off"
@@ -144,10 +148,6 @@
                                     break;
                                 case ConfigEmailType.FluxpointManaged:
                                     {
-                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                                            You will not be able to use custom email templates with this option to prevent abuse.
-                                        </RadzenAlert>
-
                                         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Email API Key</RadzenText>
                                         <RadzenTextBox @bind-Value="@ManagedEmailToken" Style="width: 100%" aria-label="Email API Key" AutoCompleteType="AutoCompleteType.Off"
                                         Disabled="@(SetupStep != SetupStepType.Smtp)" MaxLength="100" />
@@ -383,54 +383,55 @@
 
     protected override async Task OnInitializedAsync()
     {
-        InstanceForm = new InstanceBasicModel
-            {
-                Name = _Data.Config.Instance.Name,
-                Description = _Data.Config.Instance.Description,
-                PublicDomain = Nav.BaseUri
-            };
-
-        SmtpForm = new SmtpModel
-            {
-                Host = _Data.Config.Email.SmtpHost,
-                Port = _Data.Config.Email.SmtpPort,
-                User = _Data.Config.Email.SmtpUser,
-                Password = _Data.Config.Email.SmtpPassword,
-                EmailAddress = _Data.Config.Email.SenderEmailAddress
-            };
-        EmailType = _Data.Config.Email.Type;
-        if (_Data.Config.Email.SmtpPort != 0 || !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
-            SetupStep = SetupStepType.Instance;
-
-        if (_DB.Teams.Cache.Any())
-            SetupStep = SetupStepType.Admin;
-
-        if (_DB.Users.Any())
+        if (!_DB.Users.Any())
         {
+            InstanceForm = new InstanceBasicModel();
+            SmtpForm = new SmtpModel();
             SetupStep = SetupStepType.Confirm;
             _Data.Config.IsFullySetup = true;
             _Data.Config.Save();
         }
+        else
+        {
+            InstanceForm = new InstanceBasicModel
+                {
+                    Name = _Data.Config.Instance.Name,
+                    Description = _Data.Config.Instance.Description,
+                    PublicDomain = Nav.BaseUri
+                };
 
+            SmtpForm = new SmtpModel
+                {
+                    Host = _Data.Config.Email.SmtpHost,
+                    Port = _Data.Config.Email.SmtpPort,
+                    User = _Data.Config.Email.SmtpUser,
+                    Password = _Data.Config.Email.SmtpPassword,
+                    EmailAddress = _Data.Config.Email.SenderEmailAddress
+                };
+            EmailType = _Data.Config.Email.Type;
+            // if (_Data.Config.Email.SmtpPort != 0 || !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
+            //     SetupStep = SetupStepType.Instance;
+
+            // if (_DB.Teams.Cache.Any())
+            //     SetupStep = SetupStepType.Admin;
+
+            // try
+            // {
+            //     await _DB.Run.GetCollection<TestWrite>("TestWrite").InsertOneAsync(new()
+            //         {
+            //             Name = "Fluxpoint Development",
+            //         });
+            //     await _DB.Run.DropCollectionAsync("TestWrite");
+            // }
+            // catch (Exception ex)
+            // {
+            //     DatabaseErrorMessage = "Database write error, " + ex.Message;
+            //     IsDatabaseSetupRunning = false;
+            //     SetupStep = SetupStepType.Database;
+            //     return;
+            // }
+        }
     }
-
-
-            @* try
-            {
-                await db.GetCollection<TestWrite>("TestWrite").InsertOneAsync(new()
-                    {
-                        Name = "Fluxpoint Development",
-                    });
-                await db.DropCollectionAsync("TestWrite");
-            }
-            catch (Exception ex)
-            {
-                DatabaseErrorMessage = "Database write error, " + ex.Message;
-                IsDatabaseSetupRunning = false;
-                SetupStep = SetupStepType.Database;
-                return;
-            } *@
-
 
     public string SmtpErrorMessage { get; set; }
 
