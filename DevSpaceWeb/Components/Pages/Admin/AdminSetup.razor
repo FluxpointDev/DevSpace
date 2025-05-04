@@ -383,7 +383,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (!_DB.Users.Any())
+        if (_DB.Users.Any())
         {
             InstanceForm = new InstanceBasicModel();
             SmtpForm = new SmtpModel();
@@ -409,11 +409,11 @@
                     EmailAddress = _Data.Config.Email.SenderEmailAddress
                 };
             EmailType = _Data.Config.Email.Type;
-            // if (_Data.Config.Email.SmtpPort != 0 || !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
-            //     SetupStep = SetupStepType.Instance;
+            if (_Data.Config.Email.SmtpPort != 0 || !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
+                SetupStep = SetupStepType.Instance;
 
-            // if (_DB.Teams.Cache.Any())
-            //     SetupStep = SetupStepType.Admin;
+            if (_DB.Teams.Cache.Any())
+                SetupStep = SetupStepType.Admin;
 
             // try
             // {
