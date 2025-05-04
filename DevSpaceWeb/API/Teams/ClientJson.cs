@@ -10,7 +10,6 @@ public class ClientJson
         id = data.Id.ToString();
         name = data.Name;
         owner_id = data.OwnerId.ToString();
-        team_id = data.TeamId.ToString();
         is_disabled = data.IsDisabled;
         created_at = data.CreatedAt;
         token_generated_at = data.GeneratedAt;
@@ -23,7 +22,6 @@ public class ClientJson
     public string id;
     public string name;
     public string owner_id;
-    public string team_id;
     public bool is_disabled;
     public DateTime created_at;
     public DateTime? token_generated_at;

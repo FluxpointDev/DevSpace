@@ -9,7 +9,6 @@ public class MemberJson
     {
         id = data.Id.ToString();
         user_id = data.UserId.ToString();
-        team_id = data.TeamId.ToString();
         joined_at = data.JoinedAt;
         is_disabled = data.Disabled != null;
         roles = data.GetCachedRoles().Select(x => new RoleJson(x, viewPerms)).ToArray();
@@ -20,7 +19,6 @@ public class MemberJson
 
     public string id;
     public string user_id;
-    public string team_id;
     public bool is_disabled;
     public RoleJson[] roles;
     public string? nickname;
