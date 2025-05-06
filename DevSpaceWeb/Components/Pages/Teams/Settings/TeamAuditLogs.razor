@@ -80,10 +80,12 @@
                     <Template>
                         @if (GetIconType(context.EventType, out Tuple<string, string> icon))
                         {
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="@icon.Item1" style="color: @icon.Item2;"></span> @Utils.FriendlyName(context.EventType.ToString())</RadzenText>
+                            <span class="iconify" data-icon="@icon.Item1" style="color: @icon.Item2;"></span>
+                            <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(context.EventType.ToString())</RadzenText>
                         }
                         else
                         {
+                            <span class="iconify" data-icon="mdi:question-mark" style="color: var(--rz-text-body2-color);"></span>
                             <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(context.EventType.ToString())</RadzenText>
                         }
                     </Template>
@@ -218,6 +220,16 @@
 
     .dash-box .rz-grid-table td {
         vertical-align: bottom;
+    }
+
+    .dash-box .rz-grid-table .iconify {
+        height: 24px;
+        width: 24px;
+        margin-bottom: 4px;
+    }
+
+    .dash-box .rz-grid-table .rz-text-body2 {
+        display: inline-block;
     }
 </style>
 
