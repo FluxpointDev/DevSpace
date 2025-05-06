@@ -521,6 +521,13 @@
             return;
         }
 
+        if (!string.IsNullOrEmpty(hex))
+        {
+            string RGB = hex.Substring(4, hex.Length - 5);
+            string[] Colors = RGB.Split(", ");
+            hex = "#" + int.Parse(Colors[0]).ToString("X2") + int.Parse(Colors[1]).ToString("X2") + int.Parse(Colors[2]).ToString("X2");
+        }
+
         if (SelectedRole.Team == null)
         {
             await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultMembersColor, hex), () =>
