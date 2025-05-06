@@ -28,10 +28,7 @@ public class Program
     public static string GetVersionText()
     {
         if (string.IsNullOrEmpty(Version))
-            return "Unknown";
-
-        if (Version.StartsWith("1."))
-            return Version + " Beta";
+            return "Unknown Version";
 
         return Version + " Release";
     }
