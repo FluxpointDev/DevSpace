@@ -30,7 +30,7 @@ public class Program
         if (string.IsNullOrEmpty(Version))
             return "Unknown Version";
 
-        return Version + " Release";
+        return Version + " Beta";
     }
 
     public static InteractiveServerRenderMode RenderMode = new InteractiveServerRenderMode(prerender: false);
