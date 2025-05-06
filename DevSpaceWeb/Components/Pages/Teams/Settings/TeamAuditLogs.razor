@@ -23,15 +23,19 @@
 
     @if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewAuditLogs))
     {
-        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for View Audit Logs
-        </RadzenAlert>
+        <div class="dash-box-content">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for View Audit Logs
+            </RadzenAlert>
+        </div>
     }
     else
     {
         @if (Program.IsDevMode)
         {
-            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Debug Refresh" Click="@(() => grid.RefreshDataAsync())" />
+            <div class="dash-box-content">
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Debug Refresh" Click="@(() => grid.RefreshDataAsync())" />
+            </div>
         }
 
         <RadzenDataGrid @ref="@grid" Data="@AuditLogs" LoadData="@LoadData" IsLoading="@isLoading"
