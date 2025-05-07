@@ -412,16 +412,16 @@
                 if (User.Background.Id.HasValue)
                     BackgroundUrl = User.Background.Url("webp");
 
+                string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
+                if (string.IsNullOrEmpty(SessionId))
+                {
+                    NavigationManager.NavigateTo("/logout", true);
+                    return;
+                }
+                CurrentSessionId = SessionId;
+
                 if (!Program.IsPreviewMode)
                 {
-                    string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
-                    if (string.IsNullOrEmpty(SessionId))
-                    {
-                        NavigationManager.NavigateTo("/logout", true);
-                        return;
-                    }
-                    CurrentSessionId = SessionId;
-
                     bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession? session);
                     if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
                     {

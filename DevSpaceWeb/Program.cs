@@ -78,6 +78,7 @@ public class Program
         ShowDemoLink = builder.Configuration.GetValue<bool>("ShowDemoLink");
         IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
+        IsPreviewMode = true;
         LimitMode = Environment.GetEnvironmentVariable("LimitMode") == "true";
         IsUsingAspire = Environment.GetEnvironmentVariable("ASPIRE") == "true";
         string? LogMode = Environment.GetEnvironmentVariable("LogMode");

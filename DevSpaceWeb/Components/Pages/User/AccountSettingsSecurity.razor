@@ -401,8 +401,107 @@
         else
         {
             <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
-                @foreach (KeyValuePair<string, UserSession> i in AuthUser.Account.Sessions.OrderByDescending(x => x.Value.CreatedAt))
+                @if (Program.IsPreviewMode)
                 {
+                    if (AuthUser.Account.Sessions.TryGetValue(Session.CurrentSessionId, out UserSession? currentSession))
+                    {
+                        <div class="session-item">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                            <div>
+                                @switch (currentSession.BrowserType)
+                                {
+                                    case SessionBrowserType.Firefox:
+                                        <span class="iconify" data-icon="logos:firefox"></span>
+                                        break;
+                                    case SessionBrowserType.Chrome:
+                                        <span class="iconify" data-icon="logos:chrome"></span>
+                                        break;
+                                    case SessionBrowserType.Edge:
+                                        <span class="iconify" data-icon="logos:microsoft-edge"></span>
+                                        break;
+                                    case SessionBrowserType.InternetExplorer:
+                                        <span class="iconify" data-icon="logos:internetexplorer"></span>
+                                        break;
+                                    case SessionBrowserType.Opera:
+                                        <span class="iconify" data-icon="logos:opera"></span>
+                                        break;
+                                    case SessionBrowserType.Safari:
+                                        <span class="iconify" data-icon="logos:safari"></span>
+                                        break;
+                                    case SessionBrowserType.Vivaldi:
+                                        <span class="iconify" data-icon="logos:vivaldi-icon"></span>
+                                        break;
+                                    case SessionBrowserType.Unknown:
+                                        <span class="iconify" data-icon="mdi:web"></span>
+                                        break;
+                                }
+                                @if (currentSession.IsMobile)
+                                {
+                                    <span class="iconify" data-icon="mdi:mobile-phone"></span>
+                                }
+                                else
+                                {
+                                    <span class="iconify" data-icon="mdi:computer-classic"></span>
+                                }
+                            </div>
+
+                            <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">
+                                    <span>@(currentSession.Name) <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" Text="Current Session" class="ml-1" /></span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Created: @(Utils.GetLocalDate(Session, currentSession.CreatedAt, true))</span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Last Login: @(Utils.GetLocalDate(Session, currentSession.LastLoginAt, true))</span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Region: @currentSession.Country</span>
+                                </RadzenText>
+                            </RadzenStack>
+                            <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                                <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditSession(null!))" />
+                                <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveSession(null!))" />
+                            </RadzenStack>
+                        </RadzenStack>
+                    </div>
+                    }
+                    else
+                    {
+                        <div class="session-item">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                            <div>
+                                <span class="iconify" data-icon="logos:firefox"></span>
+                                <span class="iconify" data-icon="mdi:computer-classic"></span>
+                            </div>
+
+                            <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">
+                                    <span>Firefox <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" Text="Current Session" class="ml-1" /></span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Created: @(Utils.GetLocalDate(Session, DateTime.Now.AddDays(-5), true))</span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Last Login: @(Utils.GetLocalDate(Session, DateTime.Now.AddDays(-3), true))</span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Region: England (GB)</span>
+                                </RadzenText>
+                            </RadzenStack>
+                            <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                                <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditSession(null!))" />
+                                <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveSession(null!))" />
+                            </RadzenStack>
+
+                        </RadzenStack>
+                        </div>
+                    }
+                }
+                else
+                {
+                    foreach (KeyValuePair<string, UserSession> i in AuthUser.Account.Sessions.OrderByDescending(x => x.Value.CreatedAt))
+                    {
                     <div class="session-item">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
                             <div>
@@ -468,14 +567,9 @@
                                 <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditSession(i.Key))" />
                                 <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveSession(i.Key))" />
                             </RadzenStack>
-
                         </RadzenStack>
-
-
-
-
-
                     </div>
+                    }
                 }
             </RadzenStack>
             <br />
