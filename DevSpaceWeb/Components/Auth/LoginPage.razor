@@ -597,7 +597,15 @@
         if (string.IsNullOrEmpty(LoginForm.Email))
             return;
 
-        if (!Program.IsPreviewMode && LoginForm.Email.Equals("test@test.com", StringComparison.OrdinalIgnoreCase))
+        if (Program.IsPreviewMode)
+        {
+            if (!LoginForm.Email.Equals("test@test.com", StringComparison.OrdinalIgnoreCase))
+            {
+                _ = Dialog.ShowInfoAsync("Login Disabled", "You can't login with other accounts in preview mode.");
+                return;
+            }
+        }
+        else if (LoginForm.Email.Equals("test@test.com", StringComparison.OrdinalIgnoreCase))
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.PreviewNotEnabled);
             return;
