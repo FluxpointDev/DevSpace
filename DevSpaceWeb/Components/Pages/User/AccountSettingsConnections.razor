@@ -134,6 +134,9 @@
 
     public bool IsDisabled(string provider)
     {
+        if (Program.IsPreviewMode)
+            return true;
+
         switch (provider)
         {
             case "fluxpoint":
@@ -161,6 +164,11 @@
 
     public async Task RemoveConnection(UserLoginInfo login)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser != null && AuthUser.Logins.RemoveAll(x => x.LoginProvider == login.LoginProvider) != 0)
         {
