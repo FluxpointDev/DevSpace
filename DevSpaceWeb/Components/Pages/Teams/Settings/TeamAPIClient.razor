@@ -87,11 +87,11 @@
 
         @if (Client.UseCustomPermissions)
         {
-            <PermissionGrid IsDisabled="@(Member == null ||!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Permissions="@CustomPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
+            <PermissionGrid IsDisabled="@(Member == null || Program.IsPreviewMode ||!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Permissions="@CustomPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
         }
         else
         {
-            <PermissionGrid IsDisabled="@(Member == null || !Client.CanManage(Member, false))" Permissions="@AllowedPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
+            <PermissionGrid IsDisabled="@(Member == null || Program.IsPreviewMode || !Client.CanManage(Member, false))" Permissions="@AllowedPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
         }
 
     </div>
@@ -185,6 +185,12 @@
         if (Member == null || Client == null || Team == null)
             return;
 
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         CanManage = Client.CanManage(Member, false);
         if (!CanManage)
             return;
@@ -208,6 +214,12 @@
     {
         if (Member == null || Client == null)
             return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
 
         CanManage = Client.CanManage(Member, false);
         if (!CanManage)
@@ -261,6 +273,12 @@
         if (Member == null || Client == null)
             return;
 
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         if (Client.UseCustomPermissions)
         {
             if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
@@ -293,6 +311,12 @@
     {
         if (Member == null || Client == null)
             return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
 
         CanGenerate = Client!.CanGenerate(Member);
         if (!CanGenerate)
@@ -340,6 +364,12 @@
     {
         if (Member == null || Client == null)
             return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
 
         CanManage = Client!.CanManage(Member, false);
         if (!CanManage)
