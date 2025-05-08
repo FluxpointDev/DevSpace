@@ -1139,7 +1139,7 @@ else
         if (Member == null || Server == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
             return;
 
-        if (Program.IsPreviewMode && ContainerId != "devspace-web2")
+        if (Program.IsPreviewMode && ContainerId != "devspace-demo")
         {
             Failed = true;
             return;
@@ -1150,6 +1150,20 @@ else
             SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
             Failed = !Result.IsSuccess;
             Container = Result.Data;
+
+            if (Container != null && Program.IsPreviewMode && ContainerId == "devspace-demo")
+            {
+                Container.HostConfig.NetworkMode = "devspace_demo_network";
+                Container.NetworkSettings.Networks = new Dictionary<string, Docker.DotNet.Models.EndpointSettings>
+                {
+                    { "devspace-demo", new Docker.DotNet.Models.EndpointSettings
+                    {
+                        NetworkID = "devspace-demo",
+                        IPAddress = "172.21.0.2/16",
+                        MacAddress = "02:42:ac:15:00:02"
+                    }}
+                };
+            }
 
             if (Result.IsSuccess && Container != null)
             {

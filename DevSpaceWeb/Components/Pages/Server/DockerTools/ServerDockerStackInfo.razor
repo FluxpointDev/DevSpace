@@ -570,7 +570,7 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
             return;
 
-        if (Program.IsPreviewMode && StackId != "43")
+        if (Program.IsPreviewMode && StackId != "64")
         {
             IsLoading = false;
             return;
@@ -581,12 +581,22 @@ else
         {
             SocketResponse<DockerStackInfo?> Result = await Server.RunJsonAsync<DockerStackInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.View));
             Stack = Result.Data;
-            if (Stack != null && Program.IsPreviewMode && StackId == "43")
+            if (Stack != null && Program.IsPreviewMode && StackId == "64")
             {
                 Stack.ControlType = DockerStackControl.Full;
                 Stack.Volumes.Clear();
                 Stack.Containers.RemoveWhere(x => x.Name == "devspace-mongodb");
-                Stack.Containers.First().Id = "devspace-web2";
+                Stack.Containers.First().Id = "devspace-demo";
+                Stack.Networks = new HashSet<DockerContainerNetwork>
+                {
+                    new DockerContainerNetwork
+                    {
+                        Id = "d38254f7c4f952d6cc32c059e3aaf5993c304163880d179c14de81e60eecbb0c",
+                        Name = "devspace_demo_network",
+                        IPAddress = "172.21.0.2/16",
+                        MacAddress = "02:42:ac:15:00:02"
+                    }
+                };
             }
         }
         catch (Exception ex)
@@ -608,7 +618,7 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
             return;
 
-        if (Program.IsPreviewMode && StackId != "43")
+        if (Program.IsPreviewMode && StackId != "64")
         {
             IsLoading = false;
             return;

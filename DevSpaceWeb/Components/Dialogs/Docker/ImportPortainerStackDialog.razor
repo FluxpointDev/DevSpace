@@ -73,6 +73,12 @@
         if (Team == null || Server == null || Member == null)
             return;
 
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
         {
             await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.ViewStacks);

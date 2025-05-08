@@ -125,6 +125,12 @@
         if (Member == null || Server == null)
             return;
 
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
             return;
 

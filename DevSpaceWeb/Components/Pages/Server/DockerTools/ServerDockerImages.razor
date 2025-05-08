@@ -436,17 +436,17 @@
 
     public async Task PruneImages()
     {
-        if (Program.IsPreviewMode)
-        {
-            Session.ShowPreviewModeNotice();
-            return;
-        }
-
         if (Server == null || Member == null)
             return;
 
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
 
         bool Result = await Dialog.ShowConfirmAsync("Prune Images", "Are you sure you want to prune unused images?", "Confirm", ButtonStyle.Warning);
         if (Result)

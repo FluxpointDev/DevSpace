@@ -200,6 +200,12 @@
         if (Server == null || Member == null || Team == null)
             return;
 
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
