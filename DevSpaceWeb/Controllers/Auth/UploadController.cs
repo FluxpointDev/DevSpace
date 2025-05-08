@@ -64,9 +64,12 @@ public class UploadController : Controller
                 return BadRequest("Failed to update user.");
 
             AuthUser.UpdatePartial();
-
-            Directory.CreateDirectory(Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString());
         }
+
+        string Path = Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString();
+
+        if (!Directory.Exists(Path))
+            Directory.CreateDirectory(Path);
 
         Guid ImageId = Guid.NewGuid();
 
@@ -91,7 +94,7 @@ public class UploadController : Controller
                 using (SKData Webp = Image.Encode(SKEncodedImageFormat.Webp, 100))
                 using (Stream Save = Webp.AsStream())
                 using (FileStream Stream = System.IO.File.OpenWrite(
-                    Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString() + $"/Avatar_{ImageId.ToString()}.webp"
+                    Path + $"/Avatar_{ImageId.ToString()}.webp"
                     ))
                 {
                     Save.CopyTo(Stream);
@@ -100,7 +103,7 @@ public class UploadController : Controller
                 using (SKData Png = Image.Encode(SKEncodedImageFormat.Png, 100))
                 using (Stream Save = Png.AsStream())
                 using (FileStream Stream = System.IO.File.OpenWrite(
-                    Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString() + $"/Avatar_{ImageId.ToString()}.png"
+                    Path + $"/Avatar_{ImageId.ToString()}.png"
                     ))
                 {
                     Save.CopyTo(Stream);
@@ -177,9 +180,12 @@ public class UploadController : Controller
                 return BadRequest("Failed to update user.");
 
             AuthUser.UpdatePartial();
-
-            Directory.CreateDirectory(Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString());
         }
+
+        string Path = Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString();
+
+        if (!Directory.Exists(Path))
+            Directory.CreateDirectory(Path);
 
         Guid ImageId = Guid.NewGuid();
 
@@ -206,7 +212,7 @@ public class UploadController : Controller
                 using (SKData Webp = Image.Encode(SKEncodedImageFormat.Webp, 80))
                 using (Stream Save = Webp.AsStream())
                 using (FileStream Stream = System.IO.File.OpenWrite(
-                    Program.Directory.Public.Files.Path + AuthUser.ResourceId.ToString() + $"/Background_{ImageId.ToString()}.webp"
+                    Path + $"/Background_{ImageId.ToString()}.webp"
                     ))
                 {
                     Save.CopyTo(Stream);
@@ -293,9 +299,12 @@ public class UploadController : Controller
                 return BadRequest("Failed to update team resource.");
 
             Team.ResourceId = GeneratedId;
-
-            Directory.CreateDirectory(Program.Directory.Public.Files.Path + GeneratedId.ToString());
         }
+
+        string Path = Program.Directory.Public.Files.Path + Team.ResourceId.ToString();
+
+        if (!Directory.Exists(Path))
+            Directory.CreateDirectory(Path);
 
         Guid ImageId = Guid.NewGuid();
 
@@ -320,7 +329,7 @@ public class UploadController : Controller
                 using (SKData Webp = Image.Encode(SKEncodedImageFormat.Webp, 100))
                 using (Stream Save = Webp.AsStream())
                 using (FileStream Stream = System.IO.File.OpenWrite(
-                    Program.Directory.Public.Files.Path + Team.ResourceId.ToString() + $"/Icon_{ImageId.ToString()}.webp"
+                    Path + $"/Icon_{ImageId.ToString()}.webp"
                     ))
                 {
                     Save.CopyTo(Stream);
@@ -328,7 +337,7 @@ public class UploadController : Controller
                 using (SKData Png = Image.Encode(SKEncodedImageFormat.Png, 100))
                 using (Stream Save = Png.AsStream())
                 using (FileStream Stream = System.IO.File.OpenWrite(
-                    Program.Directory.Public.Files.Path + Team.ResourceId.ToString() + $"/Icon_{ImageId.ToString()}.png"
+                    Path + $"/Icon_{ImageId.ToString()}.png"
                     ))
                 {
                     Save.CopyTo(Stream);
