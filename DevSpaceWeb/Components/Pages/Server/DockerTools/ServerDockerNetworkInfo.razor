@@ -355,7 +355,7 @@ else
             SocketResponse<DockerNetworkInfo?> Result = await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.View));
             Failed = !Result.IsSuccess;
             Network = Result.Data;
-            if (Network != null && Program.IsPreviewMode && NetworkId == "d38254f7c4f952d6cc32c059e3aaf5993c304163880d179c14de81e60eecbb0c")
+            if (Network != null && Program.IsPreviewMode && (NetworkId == "devspace-demo" || NetworkId == "d38254f7c4f952d6cc32c059e3aaf5993c304163880d179c14de81e60eecbb0c"))
             {
                 Network.Labels["com.docker.compose.project"] = "devspace-demo";
                 Network.ContainersList = new Dictionary<string, Docker.DotNet.Models.EndpointResource>
