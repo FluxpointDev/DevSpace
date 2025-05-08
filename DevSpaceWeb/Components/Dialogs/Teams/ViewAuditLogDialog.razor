@@ -27,6 +27,12 @@
                 This feature is not available in preview mode.
             </RadzenAlert>
         }
+        else if (AuditLog.IsSensitive && !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                This data is sensitive and can only by viewed by administrators.
+            </RadzenAlert>
+        }
         else
         {
             if (!string.IsNullOrEmpty(AuditLog.TargetName))
