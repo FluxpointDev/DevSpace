@@ -119,6 +119,12 @@
 
     public async Task ChangeIcon()
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
@@ -151,6 +157,12 @@
 
         if (!Team.HasIcon)
             return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
 
         if (!Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
         {
