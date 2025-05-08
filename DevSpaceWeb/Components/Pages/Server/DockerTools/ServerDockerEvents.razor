@@ -144,7 +144,22 @@
 
         if (Program.IsPreviewMode)
         {
-            EventsList = new List<DockerEventInfo>().AsQueryable();
+            EventsList = new List<DockerEventInfo>()
+            {
+                new DockerEventInfo
+                {
+                    Type = "container",
+                    Time = 1746655630,
+                    Actor = new DockerEventInfoActor
+                    {
+                        Attributes = new Dictionary<string, object>
+                        {
+                            { "name", "devspace-web" }
+                        }
+                    },
+                    Action = "start"
+                }
+            }.AsQueryable();
             Count = 0;
             IsLoading = false;
         }

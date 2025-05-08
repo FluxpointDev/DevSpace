@@ -166,6 +166,19 @@
         {
             VolumesList = new List<DockerVolumeInfo>
             {
+                new DockerVolumeInfo
+                {
+                    Name = "3d725f9fc66894e63b81e8a2843f1cab06283d78ca0b92246240b291e7184258",
+                    Containers = new Dictionary<string, string>
+                    {
+                        { "registry", "registry" }
+                    },
+                    ContainersCount = 1,
+                    Driver = "local",
+                    Scope = "local",
+                    CreatedAt = "07/13/2023 09:05:38",
+                    MountPoint = "/var/lib/docker/volumes/3d725f9fc66894e63b81e8a2843f1cab06283d78ca0b92246240b291e7184258/_data",
+                }
             }.AsQueryable();
             Count = 0;
             IsLoading = false;
@@ -253,7 +266,7 @@
 
     void MenuItemClick(MenuItemEventArgs args, DockerVolumeInfo item)
     {
-        if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode && args.Value.ToString() != "view")
         {
             Session.ShowPreviewModeNotice();
             return;
@@ -336,11 +349,6 @@
 
     public async Task RefreshVolume()
     {
-        if (Program.IsPreviewMode)
-        {
-            Session.ShowPreviewModeNotice();
-            return;
-        }
         VolumesResponse = null;
         await Grid.RefreshDataAsync();
     }

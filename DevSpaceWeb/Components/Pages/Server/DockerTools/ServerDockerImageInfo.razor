@@ -396,15 +396,16 @@ else
                                 {
                                     @for (int col = 0; col < Layers.Count(); col++)
                                     {
+                                        int index = col;
                                         <RadzenTableRow>
                                             <RadzenTableCell>
-                                                @col
+                                                @index
                                             </RadzenTableCell>
                                             <RadzenTableCell>
-                                                @Utils.SizeSuffix(Layers[col].Size)
+                                                @Utils.SizeSuffix(Layers[index].Size)
                                             </RadzenTableCell>
                                             <RadzenTableCell>
-                                                @Layers[col].CreatedBy
+                                                @Layers[index].CreatedBy
                                             </RadzenTableCell>
                                         </RadzenTableRow>
                                     }
@@ -730,43 +731,18 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
             return;
 
-        if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode && ImageId != "sha256:a24316da3958ca259f1d8f371809ff8c813684172a53ce39ed43428319a6c934")
         {
-            ContainersList = new List<DockerContainerInfo>
-             {
-                 new DockerContainerInfo
-                 {
-                     Id = "0",
-                     Name = "my-api",
-                     State = "running",
-                     Status = "Up 14 hours",
-                     CreatedAt = DateTime.UtcNow,
-                     ImageId = "0",
-                     ImageName = "test:latest"
-                 },
-                 new DockerContainerInfo
-                 {
-                     Id = "0",
-                     Name = "discord-bot",
-                     State = "exited",
-                     Status = "Exited (137) 1 week ago",
-                     CreatedAt = DateTime.UtcNow,
-                     ImageId = "0",
-                     ImageName = "test:latest"
-                 },
-             }.AsQueryable();
-            Count = 2;
-            CountDead = 1;
             IsLoading = false;
+            return;
         }
-        else
+
+        if (ContainersResponse == null)
         {
-            if (ContainersResponse == null)
+            IsLoading = true;
+            try
             {
-                IsLoading = true;
-                try
-                {
-                    ContainersResponse = await Server.RecieveJsonAsync<DockerContainerInfo[]>(new DockerEvent(DockerEventType.ListContainers)
+                ContainersResponse = await Server.RecieveJsonAsync<DockerContainerInfo[]>(new DockerEvent(DockerEventType.ListContainers)
                     {
                         Data = JObject.FromObject(new ListContainersEvent
                         {
@@ -776,29 +752,32 @@ else
                             }
                         })
                     });
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
-                }
-                IsLoading = false;
-
-
             }
-
-            if (ContainersResponse != null && ContainersResponse.IsSuccess && ContainersResponse.Data != null)
+            catch (Exception ex)
             {
-                IQueryable<DockerContainerInfo> query = ContainersResponse.Data.AsQueryable();
+                Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+            }
+            IsLoading = false;
 
-                if (!string.IsNullOrEmpty(args.Filter))
-                    query = query.Where(args.Filter);
 
-                if (!string.IsNullOrEmpty(args.OrderBy))
-                    query = query.OrderBy(args.OrderBy);
+        }
 
-                Count = query.Count();
-                CountDead = query.Count(x => !x.IsOnline());
-                ContainersList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
+        if (ContainersResponse != null && ContainersResponse.IsSuccess && ContainersResponse.Data != null)
+        {
+            IQueryable<DockerContainerInfo> query = ContainersResponse.Data.AsQueryable();
+
+            if (!string.IsNullOrEmpty(args.Filter))
+                query = query.Where(args.Filter);
+
+            if (!string.IsNullOrEmpty(args.OrderBy))
+                query = query.OrderBy(args.OrderBy);
+
+            Count = query.Count();
+            CountDead = query.Count(x => !x.IsOnline());
+            ContainersList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
+            if (Program.IsPreviewMode && ImageId == "sha256:a24316da3958ca259f1d8f371809ff8c813684172a53ce39ed43428319a6c934")
+            {
+                ContainersList.First().Id = "devspace-web2";
             }
         }
     }
@@ -835,7 +814,7 @@ else
 
     void MenuItemClick(MenuItemEventArgs args, DockerContainerInfo item)
     {
-        if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode && args.Value.ToString() != "view" && args.Value.ToString() != "stats")
         {
             Session.ShowPreviewModeNotice();
             return;
@@ -996,12 +975,6 @@ else
 
     public async Task RefreshContainers()
     {
-        if (Program.IsPreviewMode)
-        {
-            Session.ShowPreviewModeNotice();
-            return;
-        }
-
         ContainersResponse = null;
         await Grid.RefreshDataAsync();
     }

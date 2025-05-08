@@ -1135,10 +1135,15 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        LoadPerms();
         if (Member == null || Server == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
             return;
 
-        LoadPerms();
+        if (Program.IsPreviewMode && ContainerId != "devspace-web2")
+        {
+            Failed = true;
+            return;
+        }
 
         try
         {

@@ -174,6 +174,16 @@
         {
             PluginsList = new List<Plugin>
             {
+                new Plugin
+                {
+                    ID = "2d421985d32be33c53393366bf6ed7740c5d3e478fe1c9db3371446ca3f09019",
+                    Name = "docker/imagefs:latest",
+                    PluginReference = "docker.io/docker/imagefs:latest",
+                    Config = new PluginConfig
+                    {
+                        Description = "ImageFS plugin for Docker"
+                    }
+                }
             }.AsQueryable();
             Count = 0;
             IsLoading = false;
@@ -258,7 +268,7 @@
 
     void MenuItemClick(MenuItemEventArgs args, Plugin item)
     {
-        if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode && args.Value.ToString() != "view")
         {
             Session.ShowPreviewModeNotice();
             return;
@@ -433,11 +443,6 @@
 
     public async Task RefreshPlugins()
     {
-        if (Program.IsPreviewMode)
-        {
-            Session.ShowPreviewModeNotice();
-            return;
-        }
         PluginsResponse = null;
         await Grid.RefreshDataAsync();
     }

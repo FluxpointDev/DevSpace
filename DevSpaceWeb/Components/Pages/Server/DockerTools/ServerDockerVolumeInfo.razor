@@ -278,6 +278,12 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
             return;
 
+        if (Program.IsPreviewMode && VolumeId != "3d725f9fc66894e63b81e8a2843f1cab06283d78ca0b92246240b291e7184258")
+        {
+            Failed = true;
+            return;
+        }
+
         try
         {
             SocketResponse<DockerVolumeInfo?> Result = await Server.RunJsonAsync<DockerVolumeInfo>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: ControlVolumeType.View));

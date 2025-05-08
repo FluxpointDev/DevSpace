@@ -221,6 +221,15 @@ else
         if (Member == null || Server == null)
             return;
 
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewPlugins))
+            return;
+
+        if (Program.IsPreviewMode && PluginId != "2d421985d32be33c53393366bf6ed7740c5d3e478fe1c9db3371446ca3f09019")
+        {
+            Failed = true;
+            return;
+        }
+
         try
         {
             SocketResponse<Plugin?> Result = await Server.RunJsonAsync<Plugin>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Inspect));

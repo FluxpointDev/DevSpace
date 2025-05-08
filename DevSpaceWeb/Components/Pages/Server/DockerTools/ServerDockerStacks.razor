@@ -193,13 +193,14 @@
                             Status = "Exited (137) 1 week ago",
                         }
                     },
-                    CreatedAt = DateTime.UtcNow.AddDays(-2),
-                    Id = "1",
+                    CreatedAt = DateTime.UtcNow.AddDays(-3),
+                    Id = "43",
                     IsRunning = true,
-                    Name = "test",
+                    Name = "devspace-web2",
                     Type = DockerStackType.Compose,
                     UpdatedAt = DateTime.UtcNow,
-                    Version = 1
+                    Version = 1,
+                    ControlType = DockerStackControl.Full
                 }
             }.AsQueryable();
             Count = 0;
@@ -286,7 +287,7 @@
 
     void MenuItemClick(MenuItemEventArgs args, DockerStackInfo item)
     {
-        if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode && args.Value.ToString() != "view")
         {
             Session.ShowPreviewModeNotice();
             return;

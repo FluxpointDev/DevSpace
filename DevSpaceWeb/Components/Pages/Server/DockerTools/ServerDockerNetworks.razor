@@ -175,6 +175,19 @@
         {
             NetworksList = new List<DockerNetworkInfo>
             {
+                new DockerNetworkInfo
+                {
+                    Id = "d38254f7c4f952d6cc32c059e3aaf5993c304163880d179c14de81e60eecbb0c",
+                    Name = "devspace_demo_network",
+                    ContainersCount = 1,
+                    Driver = "bridge",
+                    Scope = "local",
+                    IPAM = new DockerNetworkIPAM
+                    {
+                        Driver = "default"
+                    },
+                    Created = DateTime.UtcNow.AddDays(-3)
+                }
             }.AsQueryable();
             Count = 0;
             IsLoading = false;
@@ -257,7 +270,7 @@
 
     void MenuItemClick(MenuItemEventArgs args, DockerNetworkInfo item)
     {
-        if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode && args.Value.ToString() != "view")
         {
             Session.ShowPreviewModeNotice();
             return;
@@ -329,11 +342,6 @@
 
     public async Task RefreshNetworks()
     {
-        if (Program.IsPreviewMode)
-        {
-            Session.ShowPreviewModeNotice();
-            return;
-        }
         NetworksResponse = null;
         await Grid.RefreshDataAsync();
     }

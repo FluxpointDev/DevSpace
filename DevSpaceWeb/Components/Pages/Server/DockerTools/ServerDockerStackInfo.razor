@@ -570,11 +570,24 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
             return;
 
+        if (Program.IsPreviewMode && StackId != "43")
+        {
+            IsLoading = false;
+            return;
+        }
+
         IsLoading = true;
         try
         {
             SocketResponse<DockerStackInfo?> Result = await Server.RunJsonAsync<DockerStackInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.View));
             Stack = Result.Data;
+            if (Stack != null && Program.IsPreviewMode && StackId == "43")
+            {
+                Stack.ControlType = DockerStackControl.Full;
+                Stack.Volumes.Clear();
+                Stack.Containers.RemoveWhere(x => x.Name == "devspace-mongodb");
+                Stack.Containers.First().Id = "devspace-web2";
+            }
         }
         catch (Exception ex)
         {
@@ -595,53 +608,27 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
             return;
 
-        if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode && StackId != "43")
         {
-            ContainersList = new List<DockerContainerInfo>
-             {
-                 new DockerContainerInfo
-                 {
-                     Id = "0",
-                     Name = "my-api",
-                     State = "running",
-                     Status = "Up 14 hours",
-                     CreatedAt = DateTime.UtcNow,
-                     ImageId = "0",
-                     ImageName = "test:latest"
-                 },
-                 new DockerContainerInfo
-                 {
-                     Id = "0",
-                     Name = "discord-bot",
-                     State = "exited",
-                     Status = "Exited (137) 1 week ago",
-                     CreatedAt = DateTime.UtcNow,
-                     ImageId = "0",
-                     ImageName = "test:latest"
-                 },
-             }.AsQueryable();
-            Count = 2;
-            CountDead = 1;
             IsLoading = false;
+            return;
         }
-        else
+
+        if (Stack != null)
         {
-            if (Stack != null)
-            {
-                IQueryable<DockerContainerInfo> query = Stack.Containers.AsQueryable();
+            IQueryable<DockerContainerInfo> query = Stack.Containers.AsQueryable();
 
-                if (!string.IsNullOrEmpty(args.Filter))
-                    query = query.Where(args.Filter);
+            if (!string.IsNullOrEmpty(args.Filter))
+                query = query.Where(args.Filter);
 
-                if (!string.IsNullOrEmpty(args.OrderBy))
-                    query = query.OrderBy(args.OrderBy);
+            if (!string.IsNullOrEmpty(args.OrderBy))
+                query = query.OrderBy(args.OrderBy);
 
-                Count = query.Count();
-                CountDead = query.Count(x => !x.IsOnline());
-                ContainersList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
-            }
-            IsLoading = false;
+            Count = query.Count();
+            CountDead = query.Count(x => !x.IsOnline());
+            ContainersList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
         }
+        IsLoading = false;
     }
 
     IQueryable<DockerContainerInfo>? ContainersList;
@@ -698,7 +685,7 @@ else
 
     void MenuItemClick(MenuItemEventArgs args, DockerContainerInfo item)
     {
-        if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode && args.Value.ToString() != "view" && args.Value.ToString() != "stats")
         {
             Session.ShowPreviewModeNotice();
             return;

@@ -240,6 +240,15 @@
         {
             ImagesList = new List<DockerImageInfo>
             {
+                new DockerImageInfo
+                {
+                    ID = "sha256:a24316da3958ca259f1d8f371809ff8c813684172a53ce39ed43428319a6c934",
+                    Name = "mcr.microsoft.com/dotnet/aspnet",
+                    Version = "9.0",
+                    ContainersCount = 1,
+                    Size = 223346688,
+                    Created = DateTime.UtcNow.AddDays(-3)
+                }
             }.AsQueryable();
             Count = 0;
             IsLoading = false;
@@ -323,7 +332,7 @@
 
     void MenuItemClick(MenuItemEventArgs args, DockerImageInfo item)
     {
-        if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode && args.Value.ToString() != "view")
         {
             Session.ShowPreviewModeNotice();
             return;
@@ -456,12 +465,6 @@
 
     public async Task RefreshImages()
     {
-        if (Program.IsPreviewMode)
-        {
-            Session.ShowPreviewModeNotice();
-            return;
-        }
-
         ImagesResponse = null;
         await grid.RefreshDataAsync();
     }

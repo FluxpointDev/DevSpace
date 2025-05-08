@@ -226,27 +226,19 @@
              {
                  new DockerContainerInfo
                  {
-                     Id = "0",
-                     Name = "my-api",
+                     Id = "devspace-web2",
+                     Name = "devspace-web2",
                      State = "running",
                      Status = "Up 14 hours",
-                     CreatedAt = DateTime.UtcNow,
-                     ImageId = "0",
-                     ImageName = "test:latest"
-                 },
-                 new DockerContainerInfo
-                 {
-                     Id = "0",
-                     Name = "discord-bot",
-                     State = "exited",
-                     Status = "Exited (137) 1 week ago",
-                     CreatedAt = DateTime.UtcNow,
-                     ImageId = "0",
-                     ImageName = "test:latest"
+                     StackId = "43",
+                     StackName = "devspace-web2",
+                     CreatedAt = DateTime.UtcNow.AddDays(-3),
+                     ImageId = "sha256:a24316da3958ca259f1d8f371809ff8c813684172a53ce39ed43428319a6c934",
+                     ImageName = "mcr.microsoft.com/dotnet/aspnet:9.0"
                  },
              }.AsQueryable();
-            Count = 2;
-            CountDead = 1;
+            Count = 1;
+            CountDead = 0;
             IsLoading = false;
         }
         else
@@ -316,7 +308,7 @@
 
     void MenuItemClick(MenuItemEventArgs args, DockerContainerInfo item)
     {
-        if (Program.IsPreviewMode)
+        if (Program.IsPreviewMode && args.Value.ToString() != "view" && args.Value.ToString() != "stats")
         {
             Session.ShowPreviewModeNotice();
             return;
