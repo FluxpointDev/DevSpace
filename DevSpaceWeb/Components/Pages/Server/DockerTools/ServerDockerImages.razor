@@ -67,9 +67,11 @@
             </RadzenStack>
             <br />
 
-            <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) !important; margin-right: 4px !important;" />
-
-            <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshImages" Disabled="@IsLoading" />
+            <ActionBar>
+                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshImages" Disabled="@IsLoading" />
+            </ActionBar>
+            
         </div>
         <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" Data="@ImagesList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
@@ -140,7 +142,7 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn>
                     <Template>
-                        <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
+                        <RadzenStack Gap="6px" Orientation="Orientation.Horizontal">
                             @if (!string.IsNullOrEmpty(context.Website))
                             {
                                 <a href="@context.Website" target="_blank"><RadzenButton Text="Website" Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
@@ -161,20 +163,6 @@
         </RadzenDataGrid>
     }
 </div>
-
-<style>
-    .dash-box-content .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
-        border-radius: 0px !important;
-        margin-right: -4px !important;
-        box-shadow: inset 0 0 0 var(--rz-border-width) rgb(150,150,150) !important;
-    }
-
-    .dash-box-content .rz-button-sm .rzi {
-        font-size: 1.15rem !important;
-        width: 1.15rem !important;
-        height: 1.15rem !important;
-    }
-</style>
 
 <style>
     .settings-item {

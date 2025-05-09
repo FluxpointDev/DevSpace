@@ -78,20 +78,16 @@ else
             <RadzenBreadCrumbItem Text="@Container.Name.Substring(1)" />
         </RadzenBreadCrumb>
         <br />
-        <RadzenStack Gap="2px;" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-            <div class="action-bar">
-                <RadzenStack Gap="2px;" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-                    <RadzenButton Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(Container.State.Paused || !Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Paused || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!CanManageContainer || IsActionLoading)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
-                </RadzenStack>
-            </div>
+        <ActionBar>
+            <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(Container.State.Paused || !Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Paused || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!CanManageContainer || IsActionLoading)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
             <RadzenButton Variant="Variant.Filled" Text="Recreate" Icon="autorenew" ButtonStyle="ButtonStyle.Light" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RecreateContainer" Disabled="@(IsActionLoading || Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))" />
-        </RadzenStack>
+        </ActionBar>
     </div>
 
     <div class="dash-box dash-box-content">
@@ -106,9 +102,9 @@ else
                         Name
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
-                            <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@Container.Name.Substring(1)</RadzenText>
-                            <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@UpdateName" Disabled="@(IsActionLoading || !CanManageContainer)" />
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap" AlignItems="AlignItems.Center">
+                            @Container.Name.Substring(1)
+                            <RadzenButton Text="Edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@UpdateName" Disabled="@(IsActionLoading || !CanManageContainer)" />
                         </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
@@ -866,18 +862,6 @@ else
 }
 
 <style>
-    .action-bar .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
-        border-radius: 0px !important;
-        margin-right: -4px !important;
-        box-shadow: inset 0 0 0 var(--rz-border-width) rgb(150,150,150) !important;
-    }
-
-    .action-bar .rz-button-sm .rzi {
-        font-size: 1.15rem !important;
-        width: 1.15rem !important;
-        height: 1.15rem !important;
-    }
-
     .rz-series-item-0 {
         fill: #e94861 !important;
     }

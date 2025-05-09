@@ -43,10 +43,11 @@
     {
 
     <div class="dash-box-content">
-            <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlNetworkType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) !important; margin-right: 4px !important;" />
-
+        <ActionBar>
+            <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlNetworkType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
             <RadzenButton Variant="Variant.Filled" Text="Create Network" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateNetwork" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
-        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshNetworks" Disabled="@IsLoading" />
+            <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshNetworks" Disabled="@IsLoading" />
+        </ActionBar>
     </div>
 
     <RadzenDataGrid @ref="@Grid" AllowRowSelectOnRowClick="false" Data="@NetworksList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
@@ -130,20 +131,6 @@
     </RadzenDataGrid>
     }
 </div>
-
-<style>
-    .dash-box-content .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
-        border-radius: 0px !important;
-        margin-right: -4px !important;
-        box-shadow: inset 0 0 0 var(--rz-border-width) rgb(150,150,150) !important;
-    }
-
-    .dash-box-content .rz-button-sm .rzi {
-        font-size: 1.15rem !important;
-        width: 1.15rem !important;
-        height: 1.15rem !important;
-    }
-</style>
 
 @code {
     [CascadingParameter]

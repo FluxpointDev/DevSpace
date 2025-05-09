@@ -53,18 +53,14 @@ else
         @if (Stack != null && Stack.ControlType == DockerStackControl.Full)
         {
             <br />
-            <RadzenStack Gap="2px;" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-                <div class="action-bar">
-                    <RadzenStack Gap="2px;" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-                        <RadzenButton Variant="Variant.Outlined" Text="Start" Click="@(() => RunStackAction(ControlStackType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) !important; 0 0 var(--rz-button-border-radius) !important;" />
-                        <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunStackAction(ControlStackType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunStackAction(ControlStackType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunStackAction(ControlStackType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunStackAction(ControlStackType.Start))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunStackAction(ControlStackType.Remove))" Icon="delete" Disabled="@(!CanManageStacks || IsActionRunning)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
-                    </RadzenStack>
-                </div>
-            </RadzenStack>
+            <ActionBar>
+                <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Start" Click="@(() => RunStackAction(ControlStackType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunStackAction(ControlStackType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunStackAction(ControlStackType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunStackAction(ControlStackType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunStackAction(ControlStackType.Start))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunStackAction(ControlStackType.Remove))" Icon="delete" Disabled="@(!CanManageStacks || IsActionRunning)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            </ActionBar>
         }
     </div>
 
@@ -232,18 +228,16 @@ else
                 <RadzenText TextStyle="TextStyle.H6">Containers</RadzenText>
             </div>
             <br />
-            <div class="action-bar">
-                <RadzenStack Gap="2px;" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-                    <RadzenButton Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected || IsActionRunning || !CanManageStacks)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
-                    <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@IsLoading" />
-                </RadzenStack>
-            </div>
+            <ActionBar>
+                <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
+                <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected || IsActionRunning || !CanManageStacks)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
+                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@IsLoading" />
+            </ActionBar>
             <RadzenDataGrid class="mt-4" @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                             Density="Density.Compact" AllowRowSelectOnRowClick="false"
                             PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
@@ -480,20 +474,6 @@ else
         </div>
     }
 }
-
-<style>
-    .action-bar .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
-        border-radius: 0px !important;
-        margin-right: -4px !important;
-        box-shadow: inset 0 0 0 var(--rz-border-width) rgb(150,150,150) !important;
-    }
-
-    .action-bar .rz-button-sm .rzi {
-        font-size: 1.15rem !important;
-        width: 1.15rem !important;
-        height: 1.15rem !important;
-    }
-</style>
 
 @code {
     [CascadingParameter]

@@ -42,10 +42,11 @@
     else
     {
         <div class="dash-box-content">
-            <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumeAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) !important; margin-right: 4px !important;" />
-
-            <RadzenButton Variant="Variant.Filled" Text="Create Volume" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateVolume" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
-            <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshVolume" Disabled="@IsLoading" />
+            <ActionBar>
+                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumeAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Filled" Text="Create Volume" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateVolume" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
+                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshVolume" Disabled="@IsLoading" />
+            </ActionBar>
         </div>
     <RadzenDataGrid @ref="@Grid" AllowRowSelectOnRowClick="false" Data="@VolumesList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
@@ -121,20 +122,6 @@
     </RadzenDataGrid>
     }
 </div>
-
-<style>
-    .dash-box-content .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
-        border-radius: 0px !important;
-        margin-right: -4px !important;
-        box-shadow: inset 0 0 0 var(--rz-border-width) rgb(150,150,150) !important;
-    }
-
-    .dash-box-content .rz-button-sm .rzi {
-        font-size: 1.15rem !important;
-        width: 1.15rem !important;
-        height: 1.15rem !important;
-    }
-</style>
 
 @code {
     [CascadingParameter]
