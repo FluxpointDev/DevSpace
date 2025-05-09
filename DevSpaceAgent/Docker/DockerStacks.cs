@@ -1,4 +1,6 @@
-﻿using DevSpaceShared.Data;
+﻿using CliWrap;
+using CliWrap.Buffered;
+using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -204,6 +206,22 @@ public static class DockerStacks
 
         try
         {
+            BufferedCommandResult result = await Cli.Wrap("docker")
+                .WithArguments(["compose", "config", "--quiet"])
+                .WithValidation(CommandResultValidation.None)
+                .WithWorkingDirectory(Dir)
+                .ExecuteBufferedAsync();
+
+
+            string error = result.StandardError;
+            if (!string.IsNullOrEmpty(error))
+            {
+                if (error.StartsWith("validating"))
+                    error = string.Join("", error.Split(": ").Last().Split(") ").Last());
+
+                throw new Exception(error);
+            }
+
             using (ICompositeService build = new Builder()
                 .UseContainer()
                 .UseCompose()
@@ -413,7 +431,7 @@ public static class DockerStacks
         };
     }
 
-    public static async Task<DockerStackCreate> RecreateContainer(DockerClient client, string? id, CreateStackEvent? create)
+    public static async Task<DockerStackCreate> RecreateStack(DockerClient client, string? id, CreateStackEvent? create)
     {
         if (string.IsNullOrEmpty(id))
             throw new Exception("Stack id is missing.");
@@ -447,6 +465,22 @@ public static class DockerStacks
         ServiceRunningState? CurrentState = null;
         try
         {
+            BufferedCommandResult result = await Cli.Wrap("docker")
+                .WithArguments(["compose", "config", "--quiet"])
+                .WithValidation(CommandResultValidation.None)
+                .WithWorkingDirectory(Dir)
+                .ExecuteBufferedAsync();
+
+
+            string error = result.StandardError;
+            if (!string.IsNullOrEmpty(error))
+            {
+                if (error.StartsWith("validating"))
+                    error = string.Join("", error.Split(": ").Last().Split(") ").Last());
+
+                throw new Exception(error);
+            }
+
             using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
             {
                 ComposeFilePath = [File],
@@ -455,7 +489,8 @@ public static class DockerStacks
                 KeepContainers = true,
                 RemoveOrphans = true,
                 AlternativeServiceName = stack.Name,
-                KeepVolumes = true
+                KeepVolumes = true,
+                AlwaysPull = create.PullImage
             }))
             {
                 CurrentState = svc.State;

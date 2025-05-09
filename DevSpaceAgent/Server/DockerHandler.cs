@@ -61,7 +61,7 @@ public static class DockerHandler
                         case ControlStackType.ComposeInfo:
                             return await DockerStacks.StackCompose(Client, @event.ResourceId);
                         case ControlStackType.ReCreate:
-                            return await DockerStacks.RecreateContainer(Client, @event.ResourceId, @event.Data?.ToObject<CreateStackEvent>());
+                            return await DockerStacks.RecreateStack(Client, @event.ResourceId, @event.Data?.ToObject<CreateStackEvent>());
                         case ControlStackType.ImportPortainer:
                             return await DockerStacks.ImportPortainerStack(Client, @event.Data?.ToObject<DockerStackInfo>());
                     }
