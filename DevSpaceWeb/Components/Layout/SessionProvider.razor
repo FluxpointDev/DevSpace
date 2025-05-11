@@ -290,7 +290,7 @@
             return;
         }
 
-        if (!Program.IsUsingAspire && !HttpContext.Request.IsHttps)
+        if (!Program.IsUsingAspire && !_Data.Config.Instance.Features.AllowLocalhost && !HttpContext.Request.IsHttps)
         {
             SessionError = SessionErrorType.HttpsRequired;
             return;
