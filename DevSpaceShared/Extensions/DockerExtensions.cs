@@ -4,6 +4,20 @@ using Docker.DotNet.Models;
 namespace DevSpaceShared;
 public static class DockerExtensions
 {
+    public static bool IsRunning(this DockerContainerInfo container)
+    {
+        switch (container.Status)
+        {
+            case "running":
+            case "restarting":
+            case "paused":
+            case "healthy":
+                return true;
+        }
+
+        return false;
+    }
+
     public static bool IsRunning(this ContainerListResponse container)
     {
         switch (container.State)

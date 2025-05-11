@@ -66,14 +66,4 @@ public class DockerContainerInfo
     public bool IsRestarting => State != null && State == "restarting";
     public bool IsPaused => State != null && State == "paused";
 
-    public bool IsOnline()
-    {
-        if (State == null)
-            return false;
-
-        if (State.StartsWith("running") || State == "restarting")
-            return true;
-
-        return false;
-    }
 }

@@ -615,7 +615,7 @@ else
                 query = query.OrderBy(args.OrderBy);
 
             Count = query.Count();
-            CountDead = query.Count(x => !x.IsOnline());
+            CountDead = query.Count(x => !x.IsRunning());
             ContainersList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
         }
         IsLoading = false;
@@ -769,6 +769,16 @@ else
                     if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
                         return;
 
+                    bool Confirm = await Dialogs.ShowConfirmAsync("Remove Container: " + item?.Name, item!.IsRunning() ?
+                        "This container is still running, are you sure you want to remove it?." :
+                        "Are you sure you want to remove this container?", "Confirm", ButtonStyle.Success);
+
+                    if (!Confirm)
+                        return;
+
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
+                        return;
+
                     IsActionRunning = true;
                     await InvokeAsync(StateHasChanged);
                     await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Remove));
@@ -781,7 +791,7 @@ else
         ContextMenuService.Close();
     }
 
-    void RunSelectedContainersAction(ControlContainerType type)
+    async Task RunSelectedContainersAction(ControlContainerType type)
     {
         if (Program.IsPreviewMode)
         {
@@ -796,6 +806,18 @@ else
 
         if (type == ControlContainerType.Remove || type == ControlContainerType.ForceRemove)
         {
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
+                return;
+
+            
+
+            bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedContainers.Count()} container" + (SelectedContainers.Count() > 1 ? "s" : ""),
+            SelectedContainers.Any(x => x.IsRunning) ? "Some containers are still running, are you sure you want to remove?" :
+            "Are you sure you want to remove containers?", "Confirm", ButtonStyle.Success);
+
+            if (!Confirm)
+                return;
+
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
                 return;
         }
