@@ -820,7 +820,7 @@ else
 
     }
 
-    void RunStackAction(ControlStackType type)
+    async Task RunStackAction(ControlStackType type)
     {
         if (Program.IsPreviewMode)
         {
@@ -835,6 +835,15 @@ else
 
         if (type == ControlStackType.Remove)
         {
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
+                return;
+
+            bool Confirm = await Dialogs.ShowConfirmAsync("Remove Stack: " + Stack?.Name, 
+            "Are you sure you want to remove this stack?", "Confirm", ButtonStyle.Success);
+
+            if (!Confirm)
+                return;
+
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
                 return;
         }
