@@ -1,4 +1,5 @@
 ﻿@using DevSpaceShared.Events.Docker
+@inject NotificationService Notifications
 
 <PageTitle>Custom Templates | @_Data.Config.Instance.Name</PageTitle>
 
@@ -42,6 +43,6 @@
         if (Member == null || Server == null)
             return;
 
-        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ImportPortainerTemplates, null));
+        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ImportPortainerTemplates, null));
     }
 }

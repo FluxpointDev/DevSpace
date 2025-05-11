@@ -9,6 +9,7 @@
 
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
+@inject NotificationService Notifications
 
 <PageTitle>Create Volume | @_Data.Config.Instance.Name</PageTitle>
 
@@ -106,7 +107,7 @@
             return;
 
         IsLoading = true;
-        SocketResponse<VolumeResponse?> Response = await Server.RecieveJsonAsync<VolumeResponse>(new DockerEvent(DockerEventType.CreateVolume)
+        SocketResponse<VolumeResponse?> Response = await Server.RunJsonAsync<VolumeResponse>(Notifications, new DockerEvent(DockerEventType.CreateVolume)
         {
             Data = JObject.FromObject(new VolumesCreateParameters
             {

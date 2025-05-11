@@ -315,7 +315,7 @@
                         IsActionRunning = true;
                         await InvokeAsync(StateHasChanged);
 
-                        SocketResponse<object?> Response = await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.InstallCheck));
+                        SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.InstallCheck));
                         if (!Response.IsSuccess)
                         {
                             _ = DialogService.ShowInfoAsync("Plugin Upgrade Failed", Response.Data as string);
@@ -398,7 +398,7 @@
 
         await DialogService.ShowDynamicFormAsync<InstallPluginModel>("Install Plugin", new InstallPluginModel(), async (InstallPluginModel data) =>
         {
-            SocketResponse<object?> Response = await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlPlugin, data.Name, null, ControlPluginType.InstallCheck));
+            SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, data.Name, null, ControlPluginType.InstallCheck));
             if (!Response.IsSuccess)
                 return "Plugin install failed: " + Response.Data as string;
 

@@ -417,7 +417,7 @@
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
-        SocketResponse<RegistryLimitResponse?> Response = await Server.RecieveJsonAsync<RegistryLimitResponse>(new DockerEvent(DockerEventType.GetPullLimit));
+        SocketResponse<RegistryLimitResponse?> Response = await Server.RunJsonAsync<RegistryLimitResponse>(Notifications, new DockerEvent(DockerEventType.GetPullLimit));
         RegistryLimitResponse? Limits = null;
         if (Response.IsSuccess)
             Limits = Response.Data;

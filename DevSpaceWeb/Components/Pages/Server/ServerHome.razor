@@ -2,6 +2,7 @@
 @using DevSpaceShared.Responses
 @inject DialogService DialogService
 @inject NavigationManager Nav
+@inject NotificationService Notifications
 
 <PageTitle>@(Server?.Name ?? "Server") Home | @_Data.Config.Instance.Name</PageTitle>
 
@@ -517,7 +518,7 @@
         if (!Member.HasServerPermission(Team, Server, ServerPermission.ViewServer))
             return;
 
-        SocketResponse<SystemInfoResponse?> Response = await Server.RecieveJsonAsync<SystemInfoResponse>(new DockerEvent(DockerEventType.SystemInfo));
+        SocketResponse<SystemInfoResponse?> Response = await Server.RunJsonAsync<SystemInfoResponse>(Notifications, new DockerEvent(DockerEventType.SystemInfo));
         if (Response.IsSuccess)
         {
             Data = Response.Data;

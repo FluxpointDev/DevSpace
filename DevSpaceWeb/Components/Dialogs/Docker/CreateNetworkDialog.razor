@@ -7,6 +7,7 @@
 @using Newtonsoft.Json.Linq
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
+@inject NotificationService Notifications
 
 <PageTitle>Create Network | @_Data.Config.Instance.Name</PageTitle>
 
@@ -160,7 +161,7 @@
             return;
 
         IsLoading = true;
-        SocketResponse<object?> Response = await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.CreateNetwork)
+        SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.CreateNetwork)
         {
             Data = JObject.FromObject(new CreateNetworkEvent
             {

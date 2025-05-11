@@ -416,7 +416,7 @@ else
 
         try
         {
-            SocketResponse<DockerContainerProcesses?> Result = await Server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
+            SocketResponse<DockerContainerProcesses?> Result = await Server.RunJsonAsync<DockerContainerProcesses>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
             Failed = !Result.IsSuccess;
             Container = Result.Data;
 

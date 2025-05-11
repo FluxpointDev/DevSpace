@@ -186,7 +186,7 @@
                 IsLoading = true;
                 try
                 {
-                    NetworksResponse = await Server.RecieveJsonAsync<DockerNetworkInfo[]>(new DockerEvent(DockerEventType.ListNetworks));
+                    NetworksResponse = await Server.RunJsonAsync<DockerNetworkInfo[]>(Notifications, new DockerEvent(DockerEventType.ListNetworks));
                 }
                 catch (Exception ex)
                 {
@@ -283,7 +283,7 @@
                     IsActionRunning = true;
                     await InvokeAsync(StateHasChanged);
 
-                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlNetwork, item.Id, networkType: ControlNetworkType.Remove));
+                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, item.Id, networkType: ControlNetworkType.Remove));
 
                     IsActionRunning = false;
                     await InvokeAsync(RefreshNetworks);
