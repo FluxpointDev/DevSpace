@@ -1182,6 +1182,16 @@ else
         {
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
                 return;
+
+
+            bool Confirm = await Dialogs.ShowConfirmAsync("Remove Container", Container!.State.Running ?
+            "This container is still running, are you sure you want to remove it?." :
+            "Are you sure you want to remove this container?", "Confirm", ButtonStyle.Success);
+            if (!Confirm)
+                return;
+
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                return;
         }
         else
         {
@@ -1438,7 +1448,7 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))
             return;
 
-        bool Confirm = await Dialogs.ShowConfirmAsync("Recreate Container", "You are about to recreate this container, volumes and networks which will reset any changes and files that are not using volumes.", "Confirm", ButtonStyle.Warning);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Recreate Container", "You are about to recreate this container, volumes and networks which will reset any changes and files that are not using volumes.", "Confirm", ButtonStyle.Success);
         if (!Confirm)
             return;
 
