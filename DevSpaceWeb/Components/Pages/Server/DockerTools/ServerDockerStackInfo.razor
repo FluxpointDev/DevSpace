@@ -443,7 +443,7 @@ else
                     <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
                         <Template>
                             <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + context.Id)">@context.Name</RadzenLink>
-                            @if (IsNetworkSystem(context.Name))
+                            @if (context.IsNetworkSystem())
                             {
                                 <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
                             }
@@ -627,19 +627,6 @@ else
     IList<DockerContainerInfo>? SelectedContainers;
     public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
     RadzenDataGrid<DockerContainerInfo> Grid = null!;
-
-    public bool IsNetworkSystem(string? name)
-    {
-        switch (name)
-        {
-            case "host":
-            case "bridge":
-            case "none":
-                return true;
-        }
-
-        return false;
-    }
 
     void ShowContextMenuWithControlsItems(DockerContainerInfo item, MouseEventArgs args)
     {

@@ -829,7 +829,7 @@ else
                     <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
                         <Template>
                             <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + (string.IsNullOrEmpty(context.Value.NetworkID) ? context.Key : context.Value.NetworkID))">@context.Key</RadzenLink>
-                            @if (IsNetworkSystem(context.Key))
+                            @if (DockerExtensions.IsNetworkSystem(context.Key))
                             {
                                 <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
                             }
@@ -988,19 +988,6 @@ else
             return Utils.GetLocalDate(Session, date, showTime: true);
 
         return timestamp;
-    }
-
-    public bool IsNetworkSystem(string name)
-    {
-        switch (name)
-        {
-            case "host":
-            case "bridge":
-            case "none":
-                return true;
-        }
-
-        return false;
     }
 
     public string SelectedRestartMode { get; set; } = "None";
@@ -1446,6 +1433,13 @@ else
     public async Task RecreateContainer()
     {
         if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Recreate Container", "You are about to recreate this container, volumes and networks which will reset any changes and files that are not using volumes.", "Confirm", ButtonStyle.Warning);
+        if (!Confirm)
             return;
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))

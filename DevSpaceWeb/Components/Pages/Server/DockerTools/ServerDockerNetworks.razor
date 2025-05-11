@@ -61,10 +61,10 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                                     Value="@(SelectedNetworks == null || SelectedNetworks?.Any() != true ? false : !NetworksList.All(i => SelectedNetworks.Contains(i)) ? null : NetworksList.Any(i => SelectedNetworks.Contains(i)))"
-                                        Change="@(args => SelectedNetworks = args == true ? (SelectedNetworks != null && SelectedNetworks.Any()) ? null : NetworksList.Where(x => !this.IsNetworkSystem(x)).ToList() : null)" Disabled="@IsActionRunning" />
+                                        Change="@(args => SelectedNetworks = args == true ? (SelectedNetworks != null && SelectedNetworks.Any()) ? null : NetworksList.Where(x => !x.IsNetworkSystem()).ToList() : null)" Disabled="@IsActionRunning" />
                 </HeaderTemplate>
                 <Template Context="data">
-                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedNetworks != null && SelectedNetworks.Contains(data))" Disabled="@(this.IsNetworkSystem(data) || IsActionRunning)" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedNetworks != null && SelectedNetworks.Contains(data))" Disabled="@(data.IsNetworkSystem() || IsActionRunning)" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
                                         TValue="bool" Change="@(() => Grid.SelectRow(data))" />
                 </Template>
             </RadzenDataGridColumn>
@@ -84,7 +84,7 @@
                     {
                         <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="@(context.ContainersCount + " Container" +  (context.ContainersCount != 1 ? "s" : ""))" />
                     }
-                    @if (this.IsNetworkSystem(context))
+                    @if (context.IsNetworkSystem())
                     {
                         <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
                     }
@@ -251,7 +251,7 @@
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
                 new ContextMenuItem(){ Text = "View", Value = "view", Icon = "lan", Disabled = Member == null ||  !Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks) },
-                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = Member == null || IsNetworkSystem(item) || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks) },
+                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = Member == null || item.IsNetworkSystem() || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks) },
                                                      }, x => MenuItemClick(x, item));
     }
 
@@ -296,19 +296,6 @@
 
     void ShowUptimeTooltip(ElementReference elementReference, string uptime) => tooltipService.Open(elementReference, uptime, null);
 
-
-    public bool IsNetworkSystem(DockerNetworkInfo info)
-    {
-        switch (info.Name)
-        {
-            case "host":
-            case "bridge":
-            case "none":
-                return true;
-        }
-
-        return false;
-    }
 
     async Task CreateNetwork()
     {
