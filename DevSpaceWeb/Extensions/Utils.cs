@@ -308,7 +308,7 @@ public static class Utils
         if (!date.HasValue)
             return "";
 
-        if (date.Value.Year == 0001 || date.Value.Year == 1600)
+        if (date.Value.Year == 0001 || date.Value.Year == 1601)
             return "";
 
         DateTimeOffset MessageOffset = date.Value.AddMinutes(session.UserDateOffset);
