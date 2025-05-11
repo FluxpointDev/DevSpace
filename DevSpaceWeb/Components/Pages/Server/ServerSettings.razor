@@ -1,6 +1,6 @@
 ﻿@using DevSpaceWeb.Components.Dialogs.Servers
 @using DevSpaceWeb.Data.Consoles
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject NavigationManager Nav
 
 <div class="dash-box dash-box-content">
@@ -121,7 +121,7 @@
         if (Server == null || Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.DeleteServerResource))
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Delete Server", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete Server", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             if (!Member.HasServerPermission(Team, Server, ServerPermission.DeleteServerResource))
@@ -139,7 +139,7 @@
         if (Server == null || Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator))
             return;
 
-        await DialogService.OpenAsync<ServerUpdateDialog>("Agent Updater", options: new DialogOptions
+        await Dialogs.OpenAsync<ServerUpdateDialog>("Agent Updater", options: new DialogOptions
         {
             CloseDialogOnEsc = false,
             CloseDialogOnOverlayClick = false,
@@ -153,7 +153,7 @@
         if (Server == null || Member == null || !Member.CanOwn(Server))
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             if (!Member.CanOwn(Server))

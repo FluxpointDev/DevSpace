@@ -1,6 +1,6 @@
 ﻿@using DevSpaceWeb.Models
 @using DevSpaceWeb.Models.Docker
-@inject DialogService DialogService
+@inject DialogService Dialogs
 
 <PageTitle>App Templates | @_Data.Config.Instance.Name</PageTitle>
 
@@ -43,7 +43,7 @@
 
     public async Task SetupTemplate()
     {
-        await DialogService.ShowDynamicFormAsync<SetupTemplateStackModel>("Setup Anyviz Cloud Adaptor", new SetupTemplateStackModel(), async (SetupTemplateStackModel data) =>
+        await Dialogs.ShowDynamicFormAsync<SetupTemplateStackModel>("Setup Anyviz Cloud Adaptor", new SetupTemplateStackModel(), async (SetupTemplateStackModel data) =>
         {
             if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
                 return "You do not have permission for Docker Administrator";

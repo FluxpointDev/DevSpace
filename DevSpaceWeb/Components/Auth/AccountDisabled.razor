@@ -2,7 +2,7 @@
 @using Microsoft.Extensions.Caching.Distributed
 @inject IMemoryCache Cache
 @inject EmailService Email
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject UserManager<AuthUser> UserManager
 @inject NavigationManager NavigationManager
 
@@ -119,7 +119,7 @@
     {
         if (!Email.CanSendEmail())
         {
-            await DialogService.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
             return;
         }
         ShowEmailCodeConfirm = true;
@@ -136,7 +136,7 @@
         await UserManager.UpdateAsync(User);
         if (!IsEmailSent)
         {
-            await DialogService.ShowInfoAsync("Email Error", "Failed to send email.");
+            await Dialogs.ShowInfoAsync("Email Error", "Failed to send email.");
             return;
         }
     }
@@ -152,7 +152,7 @@
 
         string? VerifyCache = Cache.Get<string>("2fa-verify-" + User.Id.ToString());
         if (string.IsNullOrEmpty(VerifyCache) || !VerifyCache.Equals(EmailCode))
-            await DialogService.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
+            await Dialogs.ShowInfoAsync("Email Code Failed", $"Failed to verify your email code.");
         else
         {
 

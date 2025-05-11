@@ -6,7 +6,7 @@
 @using System.Linq.Dynamic.Core
 @using Newtonsoft.Json.Linq
 @using static DevSpaceWeb.Components.Pages.Server.DockerTools.ServerDockerContainers
-@inject DialogService Dialog
+@inject DialogService Dialogs
 @inject ContextMenuService ContextMenuService
 @inject TooltipService tooltipService
 @inject NotificationService Notifications
@@ -292,14 +292,14 @@
 
         if (type == ControlImageType.Export)
         {
-            _ = Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
+            _ = Dialogs.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
             return;
         }
         else
         {
             if (SelectedImages.Any(x => x.ContainersCount != 0 || x.IsParent))
             {
-                bool Confirm = await Dialog.ShowConfirmAsync("Image Conflict", "Some images are being used by containers would you like to force remove the selected images and stop running containers.", "Confirm", ButtonStyle.Success);
+                bool Confirm = await Dialogs.ShowConfirmAsync("Image Conflict", "Some images are being used by containers would you like to force remove the selected images and stop running containers.", "Confirm", ButtonStyle.Success);
                 if (!Confirm)
                     return;
                 type = ControlImageType.ForceRemove;
@@ -357,7 +357,7 @@
                     if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
                         return;
 
-                    _ = Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
+                    _ = Dialogs.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
                     // await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.Export) { ResourceList = new string[] { item.ID } }, (response) =>
                     //     {
                     //         InvokeAsync(RefreshImages);
@@ -383,7 +383,7 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
                             return;
 
-                        bool Confirm = await Dialog.ShowConfirmAsync("Force Remove Image", "This will stop any running containers using this image.", "Confirm", ButtonStyle.Success);
+                        bool Confirm = await Dialogs.ShowConfirmAsync("Force Remove Image", "This will stop any running containers using this image.", "Confirm", ButtonStyle.Success);
                         if (Confirm)
                         {
                             if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
@@ -422,7 +422,7 @@
         if (Response.IsSuccess)
             Limits = Response.Data;
 
-        dynamic Result = await Dialog.OpenAsync<PullImageDialog>("Pull Docker Image", new Dictionary<string, object?>
+        dynamic Result = await Dialogs.OpenAsync<PullImageDialog>("Pull Docker Image", new Dictionary<string, object?>
         {
             { "Limits", Limits }
         });
@@ -450,7 +450,7 @@
             return;
         }
 
-        bool Result = await Dialog.ShowConfirmAsync("Prune Images", "Are you sure you want to prune unused images?", "Confirm", ButtonStyle.Warning);
+        bool Result = await Dialogs.ShowConfirmAsync("Prune Images", "Are you sure you want to prune unused images?", "Confirm", ButtonStyle.Warning);
         if (Result)
         {
             IsActionRunning = true;

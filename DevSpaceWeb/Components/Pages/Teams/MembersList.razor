@@ -2,7 +2,7 @@
 @using DevSpaceWeb.Components.Dialogs.Members
 @using DevSpaceWeb.Models.Defaults
 @inject ContextMenuService ContextMenuService
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject IJSRuntime JS
 
 <RadzenDataGrid @ref="@Grid" Data="@Members" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
@@ -316,7 +316,7 @@
         int SelectedRank = SelectedMember.GetRank();
         if (CurrentRank <= SelectedRank)
         {
-            await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+            await Dialogs.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
             return;
         }
 
@@ -328,7 +328,7 @@
         if (!twoFactorConfirm)
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Enable Member " + user.UserName, "Are you sure you want to enable this member?", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Enable Member " + user.UserName, "Are you sure you want to enable this member?", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             if (Program.IsPreviewMode)
@@ -339,7 +339,7 @@
 
             if (!Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
             {
-                await DialogService.ShowPermissionErrorAsync(TeamPermission.ManageMembers);
+                await Dialogs.ShowPermissionErrorAsync(TeamPermission.ManageMembers);
                 return;
             }
 
@@ -350,7 +350,7 @@
                 UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure!.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
                 if (!Result.IsAcknowledged)
                 {
-                    await DialogService.ShowInfoAsync("Database Error", "Failed to enable account.");
+                    await Dialogs.ShowInfoAsync("Database Error", "Failed to enable account.");
                     return;
                 }
             }
@@ -382,7 +382,7 @@
         int SelectedRank = SelectedMember.GetRank();
         if (CurrentRank <= SelectedRank)
         {
-            await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+            await Dialogs.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
             return;
         }
 
@@ -394,7 +394,7 @@
         if (!twoFactorConfirm)
             return;
 
-        await DialogService.ShowDynamicFormAsync<ReasonModel>("Disable Member " + user.UserName, new ReasonModel(), async (ReasonModel data) =>
+        await Dialogs.ShowDynamicFormAsync<ReasonModel>("Disable Member " + user.UserName, new ReasonModel(), async (ReasonModel data) =>
         {
             if (!Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
                 return "You do not have permission for Manage Members";
@@ -442,7 +442,7 @@
         if (Team.OwnerId != Session.CurrentUser.Id)
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Team.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Team.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
         if (!Confirm)
             return;
 
@@ -489,7 +489,7 @@
         int SelectedRank = SelectedMember.GetRank();
         if (CurrentRank <= SelectedRank)
         {
-            await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+            await Dialogs.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
             return;
         }
 
@@ -543,7 +543,7 @@
             int SelectedRank = SelectedMember.GetRank();
             if (CurrentRank <= SelectedRank)
             {
-                await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+                await Dialogs.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
                 return;
             }
         }
@@ -556,7 +556,7 @@
             }
         }
 
-        dynamic Result = await DialogService.OpenAsync<EditMemberNicknameDialog>($"Edit Nickname for {user.UserName}", new Dictionary<string, object>()
+        dynamic Result = await Dialogs.OpenAsync<EditMemberNicknameDialog>($"Edit Nickname for {user.UserName}", new Dictionary<string, object>()
         {
             { "Team", Team },
             { "SelectedMember", Team.GetMember(user) }
@@ -583,12 +583,12 @@
             int SelectedRank = SelectedMember.GetRank();
             if (CurrentRank <= SelectedRank)
             {
-                await DialogService.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
+                await Dialogs.ShowInfoAsync("Access Failed", $"You do not have access to modify this member with your current roles (You {CurrentRank} | Selected {SelectedRank})");
                 return;
             }
         }
 
-        await DialogService.OpenAsync<ChangeMemberRolesDialog>($"Update Roles for {user.UserName}", new Dictionary<string, object>()
+        await Dialogs.OpenAsync<ChangeMemberRolesDialog>($"Update Roles for {user.UserName}", new Dictionary<string, object>()
         {
             { "Team", Team },
             { "Member", Team.GetMember(user) }
@@ -603,7 +603,7 @@
             return;
         }
 
-        await DialogService.OpenAsync<MemberInfoPreviewDialog>($"Info for {user.UserName}", new Dictionary<string, object>()
+        await Dialogs.OpenAsync<MemberInfoPreviewDialog>($"Info for {user.UserName}", new Dictionary<string, object>()
         {
             { "Member", Team.GetMember(user) }
         }, new DialogOptions
@@ -620,7 +620,7 @@
             return;
         }
 
-        await DialogService.OpenAsync<MemberRolesPreviewDialog>($"Roles for {user.UserName}", new Dictionary<string, object?>()
+        await Dialogs.OpenAsync<MemberRolesPreviewDialog>($"Roles for {user.UserName}", new Dictionary<string, object?>()
         {
             { "Member", Team.GetMember(user) }
         }, new DialogOptions
@@ -637,7 +637,7 @@
             return;
         }
 
-        await DialogService.OpenAsync<MemberPermissionsPreviewDialog>($"Permissions for {user.UserName}", new Dictionary<string, object>()
+        await Dialogs.OpenAsync<MemberPermissionsPreviewDialog>($"Permissions for {user.UserName}", new Dictionary<string, object>()
         {
             { "Permissions", Team.GetMember(user)?.CalculatePermissions(null) }
         }, new DialogOptions
@@ -651,7 +651,7 @@
         if (Member == null || Team == null)
             return;
 
-        await DialogService.OpenAsync<MemberResourcesPreviewDialog>($"Resources for {user.UserName}", new Dictionary<string, object>()
+        await Dialogs.OpenAsync<MemberResourcesPreviewDialog>($"Resources for {user.UserName}", new Dictionary<string, object>()
         {
             { "Member", Team.GetMember(user) }
         }, new DialogOptions

@@ -3,7 +3,7 @@
 @using DevSpaceWeb.Data.Consoles
 @using Newtonsoft.Json.Linq
 @using System.Text
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <PageTitle>Console Bans | @_Data.Config.Instance.Name</PageTitle>
 
@@ -165,28 +165,28 @@
 
         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
             return;
         }
 
         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
             return;
         }
 
-        bool Confirm = await Dialog.ShowConfirmAsync($"Unban {ban.ipguid}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync($"Unban {ban.ipguid}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
             {
-                await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+                await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
                 return;
             }
 
             if (!rc.IsConnected)
             {
-                await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+                await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
                 return;
             }
             rc.UnbanPlayer(ban.GUID);

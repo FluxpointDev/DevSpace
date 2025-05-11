@@ -5,7 +5,7 @@
 @using LibMCRcon.RCon
 @using Newtonsoft.Json.Linq
 @using System.Text
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <PageTitle>Console Bans | @_Data.Config.Instance.Name</PageTitle>
 
@@ -186,26 +186,26 @@
     {
         if (Member == null || Console == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
             return;
         }
 
         if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
             return;
         }
 
-        bool Confirm = await Dialog.ShowConfirmAsync($"Unban {player.name}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync($"Unban {player.name}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             if (rcon.IsConnected)
             {
                 string Result = await rcon.ExecuteCmd("pardon " + player.name);
-                await Dialog.ShowInfoAsync("Unban Result", Result);
+                await Dialogs.ShowInfoAsync("Unban Result", Result);
             }
             else
-                await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+                await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
         }
     }
 

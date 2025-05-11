@@ -1,6 +1,6 @@
 ﻿@page "/teams"
 @using DevSpaceWeb.Models.Teams
-@inject DialogService DialogService
+@inject DialogService Dialogs
 
 <PageTitle>My Teams | @_Data.Config.Instance.Name</PageTitle>
 
@@ -81,7 +81,7 @@
         if (Session.CurrentUser == null)
             return;
 
-        await DialogService.ShowDynamicFormAsync<TeamBasicModel>("Create Team", new TeamBasicModel(), async (TeamBasicModel data) =>
+        await Dialogs.ShowDynamicFormAsync<TeamBasicModel>("Create Team", new TeamBasicModel(), async (TeamBasicModel data) =>
             {
                 string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
                 if (!string.IsNullOrEmpty(VanityUrl) && _DB.TeamsVanityCache.ContainsKey(VanityUrl))

@@ -4,7 +4,7 @@
 @using Swashbuckle.AspNetCore.Swagger
 @inject EmailService EmailService
 @inject ISwaggerProvider Swagger
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject UserManager<AuthUser> UserManager
 
 <div class="dash-box dash-box-content">
@@ -122,27 +122,27 @@
         if (string.IsNullOrEmpty(EmailInput))
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Verify Email", $"Are you sure you want to verify the account for {EmailInput}", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Verify Email", $"Are you sure you want to verify the account for {EmailInput}", "Confirm", ButtonStyle.Success);
         if (!Confirm)
             return;
 
         AuthUser? user = await UserManager.FindByEmailAsync(EmailInput);
         if (user == null)
         {
-            await DialogService.ShowInfoAsync("Unknown Account", "Could not find account for " + EmailInput);
+            await Dialogs.ShowInfoAsync("Unknown Account", "Could not find account for " + EmailInput);
             return;
         }
 
         if (user.EmailConfirmed)
         {
-            await DialogService.ShowInfoAsync("Email Verified", $"This account email has already been verified.");
+            await Dialogs.ShowInfoAsync("Email Verified", $"This account email has already been verified.");
             return;
         }
 
         user.EmailConfirmed = true;
         await UserManager.UpdateAsync(user);
 
-        await DialogService.ShowInfoAsync("Email Verified", EmailInput);
+        await Dialogs.ShowInfoAsync("Email Verified", EmailInput);
     }
 
     protected override async Task OnInitializedAsync()

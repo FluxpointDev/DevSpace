@@ -4,7 +4,7 @@
 @using Microsoft.Extensions.Caching.Distributed
 @using System.Globalization
 @inject IJSRuntime JS
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject HttpContextAccessor Http
 @inject UserManager<AuthUser> UserManager
 @inject NavigationManager Nav
@@ -784,12 +784,12 @@
                 bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
                 if (!TwoFactorValid)
                 {
-                    await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                    await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                     return;
                 }
             }
 
-            await DialogService.ShowDynamicFormAsync<AccountItemEditModel>("Edit Session", new AccountItemEditModel { Name = session.Name }, async (AccountItemEditModel data) =>
+            await Dialogs.ShowDynamicFormAsync<AccountItemEditModel>("Edit Session", new AccountItemEditModel { Name = session.Name }, async (AccountItemEditModel data) =>
             {
                 AuthUser = await Session.GetCurrentUserAsync();
                 if (AuthUser != null && AuthUser.Account.Sessions.TryGetValue(id, out UserSession? session))
@@ -815,7 +815,7 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
@@ -840,7 +840,7 @@
 
     public async Task RemoveAllSessions()
     {
-        bool Confirm = await DialogService.ShowConfirmAsync("Remove All Sessions", "This will remove all login sessions except the current one.", "Confirm", ButtonStyle.Warning);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove All Sessions", "This will remove all login sessions except the current one.", "Confirm", ButtonStyle.Warning);
         if (Confirm)
         {
             AuthUser = await Session.GetCurrentUserAsync();
@@ -852,7 +852,7 @@
                 bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
                 if (!TwoFactorValid)
                 {
-                    await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                    await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                     return;
                 }
             }
@@ -879,7 +879,7 @@
         catch { }
         if (!DetectPasskeyAllow)
         {
-            await DialogService.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
+            await Dialogs.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
             return;
         }
 
@@ -889,7 +889,7 @@
 
         if (!AuthUser.EmailConfirmed)
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
             return;
         }
 
@@ -900,14 +900,14 @@
             if (!TwoFactorValid)
             {
 
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
 
         DialogOptions options = new DialogOptions() { };
 
-        await DialogService.OpenAsync<RegisterPasskeyDialog>("Register Passkey", new Dictionary<string, object>(), options);
+        await Dialogs.OpenAsync<RegisterPasskeyDialog>("Register Passkey", new Dictionary<string, object>(), options);
 
     }
 
@@ -921,15 +921,15 @@
         catch { }
         if (!DetectPasskeyAllow)
         {
-            await DialogService.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
+            await Dialogs.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
             return;
         }
 
         bool Result = await Session.TestPasskey(false);
         if (Result)
-            await DialogService.ShowInfoAsync("Passkey Test", "Your passkey was successful");
+            await Dialogs.ShowInfoAsync("Passkey Test", "Your passkey was successful");
         else
-            await DialogService.ShowInfoAsync("Passkey Test", "Your passkey failed to validate");
+            await Dialogs.ShowInfoAsync("Passkey Test", "Your passkey failed to validate");
     }
 
     public async Task EditPasskey(FidoStoredCredential cred)
@@ -943,11 +943,11 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
-        await DialogService.ShowDynamicFormAsync<AccountItemEditModel>("Edit Passkey", new AccountItemEditModel { Name = cred.Name }, async (AccountItemEditModel data) =>
+        await Dialogs.ShowDynamicFormAsync<AccountItemEditModel>("Edit Passkey", new AccountItemEditModel { Name = cred.Name }, async (AccountItemEditModel data) =>
         {
             AuthUser = await Session.GetCurrentUserAsync();
             if (AuthUser != null)
@@ -978,7 +978,7 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
@@ -1004,7 +1004,7 @@
 
         if (!AuthUser.EmailConfirmed)
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
             return;
         }
         if (AuthUser.Mfa.IsTwoFactorEnabled)
@@ -1012,7 +1012,7 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
@@ -1029,7 +1029,7 @@
 
         DialogOptions options = new DialogOptions() { };
 
-        dynamic Dialog = await DialogService.OpenAsync<RegisterAuthenticatorDialog>("Register Authenticator", new Dictionary<string, object>()
+        dynamic Dialog = await Dialogs.OpenAsync<RegisterAuthenticatorDialog>("Register Authenticator", new Dictionary<string, object>()
         {
             { "SetupKey", Key },
             { "SetupUrl", $"otpauth://totp/{Uri.EscapeDataString(_Data.Config.Instance.Name)}:{Uri.EscapeDataString(AuthUser.Email)}?secret={Key}" },
@@ -1037,7 +1037,7 @@
 
         if (Dialog != null && Dialog == true)
         {
-            await DialogService.ShowInfoAsync("Authenticator Verified", "The authenticator app has now been verified.");
+            await Dialogs.ShowInfoAsync("Authenticator Verified", "The authenticator app has now been verified.");
             StateHasChanged();
         }
     }
@@ -1053,13 +1053,13 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
         if (AuthUser != null)
         {
-            await DialogService.ShowDynamicFormAsync<AccountItemEditModel>("Edit Authenticator", new AccountItemEditModel { Name = name }, async (AccountItemEditModel data) =>
+            await Dialogs.ShowDynamicFormAsync<AccountItemEditModel>("Edit Authenticator", new AccountItemEditModel { Name = name }, async (AccountItemEditModel data) =>
             {
                 AuthUser = await Session.GetCurrentUserAsync();
                 if (AuthUser != null)
@@ -1086,10 +1086,10 @@
 
         if (!AuthUser.Mfa.Passkeys.Any())
         {
-            await DialogService.ShowInfoAsync("Passkey Info", "You do not have any passkeys registered");
+            await Dialogs.ShowInfoAsync("Passkey Info", "You do not have any passkeys registered");
             return;
         }
-        bool Confirm = await DialogService.ShowConfirmAsync("Remove All Passkeys", "Are you sure you want to remove all passkeys?", "Confirm", ButtonStyle.Warning);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove All Passkeys", "Are you sure you want to remove all passkeys?", "Confirm", ButtonStyle.Warning);
         if (Confirm)
         {
             AuthUser = await Session.GetCurrentUserAsync();
@@ -1099,7 +1099,7 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
 
@@ -1125,17 +1125,17 @@
 
         if (!AuthUser.Mfa.AuthenticatorDevices.Any())
         {
-            await DialogService.ShowInfoAsync("Authenticator Info", "You do not have any authenticators registered");
+            await Dialogs.ShowInfoAsync("Authenticator Info", "You do not have any authenticators registered");
             return;
         }
-        bool Confirm = await DialogService.ShowConfirmAsync("Remove All Authenticators", "Are you sure you want to remove all authenticators?", "Confirm", ButtonStyle.Warning);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove All Authenticators", "Are you sure you want to remove all authenticators?", "Confirm", ButtonStyle.Warning);
         if (Confirm)
         {
             AuthUser = await Session.GetCurrentUserAsync();
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
 
@@ -1164,7 +1164,7 @@
 
         if (!AuthUser.EmailConfirmed)
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
             return;
         }
 
@@ -1173,7 +1173,7 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
@@ -1194,7 +1194,7 @@
 
         DialogOptions options = new DialogOptions() { };
 
-        dynamic Dialog = await DialogService.OpenAsync<ShowRecoveryCodesDialog>("Recovery Codes", new Dictionary<string, object>()
+        dynamic Dialog = await Dialogs.OpenAsync<ShowRecoveryCodesDialog>("Recovery Codes", new Dictionary<string, object>()
         {
             { "Code", Code },
             { "DownloadToken", Key }
@@ -1211,14 +1211,14 @@
 
     public async Task Disable2FA()
     {
-        bool Confirm = await DialogService.ShowConfirmAsync("Disable 2FA", "This will remove all authenticator apps and passkeys?", "Confirm", ButtonStyle.Warning);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Disable 2FA", "This will remove all authenticator apps and passkeys?", "Confirm", ButtonStyle.Warning);
         if (Confirm)
         {
             AuthUser = await Session.GetCurrentUserAsync();
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
 
@@ -1231,7 +1231,7 @@
             await UserManager.UpdateAsync(AuthUser);
             _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
             StateHasChanged();
-            await DialogService.ShowInfoAsync("2FA Disabled", "2FA has been disabled for your account including backup code.");
+            await Dialogs.ShowInfoAsync("2FA Disabled", "2FA has been disabled for your account including backup code.");
 
         }
     }

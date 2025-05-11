@@ -1,5 +1,5 @@
 ﻿@using DevSpaceWeb.Models.Teams
-@inject DialogService DialogService
+@inject DialogService Dialogs
 
 <PageTitle>Team Members | @_Data.Config.Instance.Name</PageTitle>
 
@@ -57,7 +57,7 @@
         if (!twoFactorConfirm)
             return;
 
-        await DialogService.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), async (TeamAddUserModel data) =>
+        await Dialogs.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), async (TeamAddUserModel data) =>
         {
             if (!Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
                 return "You do not have permission for Manage Members";

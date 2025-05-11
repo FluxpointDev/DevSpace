@@ -1,7 +1,7 @@
 ﻿@using DevSpaceWeb.Models.Setup
 @using System.Net
 @using Newtonsoft.Json
-@inject DialogService DialogService
+@inject DialogService Dialogs
 
 <PageTitle>My Servers | @_Data.Config.Instance.Name</PageTitle>
 
@@ -139,7 +139,7 @@
         if (!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
             return;
 
-        await DialogService.ShowDynamicFormAsync<ServerSetupModel>("Setup Server", new ServerSetupModel(), async (ServerSetupModel data) =>
+        await Dialogs.ShowDynamicFormAsync<ServerSetupModel>("Setup Server", new ServerSetupModel(), async (ServerSetupModel data) =>
             {
                 if (Team == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
                     return "You do not have Manage Resource permissions";

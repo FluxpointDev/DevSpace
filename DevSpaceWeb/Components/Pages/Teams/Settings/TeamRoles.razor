@@ -3,7 +3,7 @@
 @using DevSpaceWeb.Data.Consoles
 @using DevSpaceWeb.Models
 @using DevSpaceWeb.Models.Teams
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject ContextMenuService ContextMenuService
 @inject IJSRuntime JS
 
@@ -567,7 +567,7 @@
             return;
         }
 
-        await DialogService.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), async (TeamRoleModel data) =>
+        await Dialogs.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), async (TeamRoleModel data) =>
         {
             if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
                 return "You do not have permission for Manage Roles";
@@ -623,7 +623,7 @@
         if (role == null || role.GetPosition() >= Member.GetRank())
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Delete Role", "Are you sure your want to delete " + role.Name, "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete Role", "Are you sure your want to delete " + role.Name, "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
@@ -653,7 +653,7 @@
             return;
         }
 
-        await DialogService.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
+        await Dialogs.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
         {
             { "Team", Team }
         });

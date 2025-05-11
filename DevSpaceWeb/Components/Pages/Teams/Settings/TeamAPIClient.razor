@@ -1,5 +1,5 @@
 ﻿@using DevSpaceWeb.Data.API
-@inject DialogService DialogService
+@inject DialogService Dialogs
 
 <PageTitle>Team API Client | @_Data.Config.Instance.Name</PageTitle>
 
@@ -195,7 +195,7 @@
         if (!CanManage)
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Delete API Client", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete API Client", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             DeleteResult Result = await Client.DeleteAsync(() =>
@@ -225,7 +225,7 @@
         if (!CanManage)
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             AuthUser? AuthUser = await Session.GetCurrentUserAsync();
@@ -326,7 +326,7 @@
         bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
         if (!TwoFactorValid)
         {
-            await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
             return;
         }
 
@@ -354,7 +354,7 @@
                 .SetTarget(Client));
 
             StateHasChanged();
-            _ = DialogService.ShowInfoAsync("API Token", Client.Id.ToString() + "." + Token);
+            _ = Dialogs.ShowInfoAsync("API Token", Client.Id.ToString() + "." + Token);
         });
 
 
@@ -383,7 +383,7 @@
                 .SetTarget(Client));
 
                 Client.IsDisabled = false;
-                _ = DialogService.ShowInfoAsync("API Client", "This client has been enabled.");
+                _ = Dialogs.ShowInfoAsync("API Client", "This client has been enabled.");
             }
             else
             {
@@ -391,7 +391,7 @@
                 .SetTarget(Client));
 
                 Client.IsDisabled = true;
-                _  = DialogService.ShowInfoAsync("API Client", "This client has been disabled.");
+                _  = Dialogs.ShowInfoAsync("API Client", "This client has been disabled.");
             }
         });
         

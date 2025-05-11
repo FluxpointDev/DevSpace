@@ -4,7 +4,7 @@
 @using Docker.DotNet.Models
 @using System.Linq.Dynamic.Core
 @using Newtonsoft.Json.Linq
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject ContextMenuService ContextMenuService
 @inject NotificationService Notifications
 @inject NavigationManager Nav
@@ -308,7 +308,7 @@
                         bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
                         if (!TwoFactorValid)
                         {
-                            await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                             return;
                         }
 
@@ -318,7 +318,7 @@
                         SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.InstallCheck));
                         if (!Response.IsSuccess)
                         {
-                            _ = DialogService.ShowInfoAsync("Plugin Upgrade Failed", Response.Data as string);
+                            _ = Dialogs.ShowInfoAsync("Plugin Upgrade Failed", Response.Data as string);
 
                             IsActionRunning = false;
                             await InvokeAsync(StateHasChanged);
@@ -335,11 +335,11 @@
 
                             if (Perms.Any())
                             {
-                                bool Confirm = await DialogService.ShowConfirmAsync($"{item.Name} Requires Permissions", $"This plugin requires permissions.\n\n" + string.Join("\n\n", Perms), "Accept", ButtonStyle.Success);
+                                bool Confirm = await Dialogs.ShowConfirmAsync($"{item.Name} Requires Permissions", $"This plugin requires permissions.\n\n" + string.Join("\n\n", Perms), "Accept", ButtonStyle.Success);
                                 if (!Confirm)
                                     if (!Response.IsSuccess)
                                     {
-                                        _ = DialogService.ShowInfoAsync("Plugin Upgrade Failed", "You need to accept plugin permissions to upgrade.");
+                                        _ = Dialogs.ShowInfoAsync("Plugin Upgrade Failed", "You need to accept plugin permissions to upgrade.");
 
                                         IsActionRunning = false;
                                         await InvokeAsync(StateHasChanged);
@@ -392,11 +392,11 @@
         bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
         if (!TwoFactorValid)
         {
-            await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
             return;
         }
 
-        await DialogService.ShowDynamicFormAsync<InstallPluginModel>("Install Plugin", new InstallPluginModel(), async (InstallPluginModel data) =>
+        await Dialogs.ShowDynamicFormAsync<InstallPluginModel>("Install Plugin", new InstallPluginModel(), async (InstallPluginModel data) =>
         {
             SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, data.Name, null, ControlPluginType.InstallCheck));
             if (!Response.IsSuccess)
@@ -412,7 +412,7 @@
 
                 if (Perms.Any())
                 {
-                    bool Confirm = await DialogService.ShowConfirmAsync($"{data.Name} Requires Permissions", $"This plugin requires permissions.\n\n" + string.Join("\n\n", Perms), "Accept", ButtonStyle.Success);
+                    bool Confirm = await Dialogs.ShowConfirmAsync($"{data.Name} Requires Permissions", $"This plugin requires permissions.\n\n" + string.Join("\n\n", Perms), "Accept", ButtonStyle.Success);
                     if (!Confirm)
                         return "You need to accept plugin permissions to install.";
                 }

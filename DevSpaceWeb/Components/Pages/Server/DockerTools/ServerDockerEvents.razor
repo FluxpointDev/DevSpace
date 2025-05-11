@@ -4,7 +4,7 @@
 @using System.Linq.Dynamic.Core
 @using DevSpaceWeb.Components.Dialogs.Docker
 @inject NotificationService Notifications
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <PageTitle>Docker Events | @_Data.Config.Instance.Name</PageTitle>
 
@@ -209,7 +209,7 @@
             Name = name as string;
         }
 
-        await Dialog.OpenAsync<DockerEventsDetailsDialog>($"Event {Name}", new Dictionary<string, object>()
+        await Dialogs.OpenAsync<DockerEventsDetailsDialog>($"Event {Name}", new Dictionary<string, object>()
         {
             { "Event", evnt.Actor }
         }, new DialogOptions

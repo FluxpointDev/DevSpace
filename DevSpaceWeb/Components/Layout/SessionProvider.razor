@@ -15,7 +15,7 @@
 @inject IJSRuntime JS
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpContextAccessor Http
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject NotificationService NotificationService
 @implements IDisposable
 @inject IMemoryCache Cache
@@ -216,7 +216,7 @@
 
     public void ShowPreviewModeNotice()
     {
-        _ = DialogService.ShowInfoAsync("Preview Mode", "This feature is not available in preview mode.");
+        _ = Dialogs.ShowInfoAsync("Preview Mode", "This feature is not available in preview mode.");
     }
 
     public DateTime? TwoFactorTimeout = null;
@@ -231,7 +231,7 @@
 
         DialogOptions options = new DialogOptions() { };
 
-        dynamic Dialog = await DialogService.OpenAsync<TwoFactorVerifyDialog>("2FA Verification", new Dictionary<string, object>()
+        dynamic Dialog = await Dialogs.OpenAsync<TwoFactorVerifyDialog>("2FA Verification", new Dictionary<string, object>()
         {
             { "LogUsage", logUsage }
         }, options);

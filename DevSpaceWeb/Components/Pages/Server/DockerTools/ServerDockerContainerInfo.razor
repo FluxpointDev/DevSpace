@@ -6,7 +6,7 @@
 @using Newtonsoft.Json.Linq
 @using System.Text
 @inject NotificationService Notifications
-@inject DialogService Dialog
+@inject DialogService Dialogs
 @inject NavigationManager Nav
 
 @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
@@ -1023,7 +1023,7 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
             return;
 
-        await Dialog.ShowDynamicFormAsync<ContainerRenameModel>("Rename Container", new ContainerRenameModel { Name = Container.Name.Substring(1) }, async (ContainerRenameModel data) =>
+        await Dialogs.ShowDynamicFormAsync<ContainerRenameModel>("Rename Container", new ContainerRenameModel { Name = Container.Name.Substring(1) }, async (ContainerRenameModel data) =>
         {
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
                 return "You do not have permission for Manage Containers";
@@ -1436,7 +1436,7 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerHealthLogs))
             return;
 
-        await Dialog.OpenAsync<ContainerHealthLogsDialog>("Container Health Logs", new Dictionary<string, object>()
+        await Dialogs.OpenAsync<ContainerHealthLogsDialog>("Container Health Logs", new Dictionary<string, object>()
         {
             { "Json", Container.State.Health.Log.Last().Output },
             { "ContainerName", Container.Name.Substring(1) }
@@ -1465,17 +1465,17 @@ else
 
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
         {
-            await Dialog.ShowPermissionErrorAsync(DockerPermission.ViewNetworks);
+            await Dialogs.ShowPermissionErrorAsync(DockerPermission.ViewNetworks);
             return;
         }
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks))
         {
-            await Dialog.ShowPermissionErrorAsync(DockerContainerPermission.ManageContainerNetworks);
+            await Dialogs.ShowPermissionErrorAsync(DockerContainerPermission.ManageContainerNetworks);
             return;
         }
 
-        dynamic Result = await Dialog.OpenAsync<ContainerJoinNetworkDialog>("Container Join Network", new Dictionary<string, object>()
+        dynamic Result = await Dialogs.OpenAsync<ContainerJoinNetworkDialog>("Container Join Network", new Dictionary<string, object>()
         {
             { "ContainerId", Container.ID }
         }, new DialogOptions());

@@ -1,7 +1,7 @@
 ﻿@using DaRT
 @using DevSpaceWeb.Data.Consoles
 @using LibMCRcon.RCon
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <PageTitle>Console Commands | @_Data.Config.Instance.Name</PageTitle>
 
@@ -77,7 +77,7 @@
                 {
                     if (!Member.HasConsolePermission(Team, Console, ConsolePermission.UseConsoleCommands))
                     {
-                        await Dialog.ShowPermissionErrorAsync(ConsolePermission.UseConsoleCommands);
+                        await Dialogs.ShowPermissionErrorAsync(ConsolePermission.UseConsoleCommands);
                         return;
                     }
 
@@ -87,7 +87,7 @@
                             {
                                 if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                                 {
-                                    await Dialog.ShowInfoAsync("Failed to Send Command", "Could not connect to server.");
+                                    await Dialogs.ShowInfoAsync("Failed to Send Command", "Could not connect to server.");
                                     return;
                                 }
                                 rc.ExecuteCommand(CommandInput);
@@ -97,12 +97,12 @@
                             {
                                 if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
                                 {
-                                    await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
                                 }
 
                                 string Result = await rc.ExecuteCmd(CommandInput);
-                                await Dialog.ShowInfoAsync("Command Result", Result);
+                                await Dialogs.ShowInfoAsync("Command Result", Result);
                             }
                             break;
                     }
@@ -114,7 +114,7 @@
                 {
                     if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessageGlobal))
                     {
-                        await Dialog.ShowPermissionErrorAsync(ConsolePermission.MessageGlobal);
+                        await Dialogs.ShowPermissionErrorAsync(ConsolePermission.MessageGlobal);
                         return;
                     }
 
@@ -127,7 +127,7 @@
                             {
                                 if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                                 {
-                                    await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
                                 }
 
@@ -138,12 +138,12 @@
                             {
                                 if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
                                 {
-                                    await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
                                 }
 
                                 string Result = await rc.SayGlobal(CommandInput);
-                                await Dialog.ShowInfoAsync("Message Result", Result);
+                                await Dialogs.ShowInfoAsync("Message Result", Result);
                             }
                             break;
                     }
@@ -155,7 +155,7 @@
                 {
                     if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                     {
-                        await Dialog.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
+                        await Dialogs.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
                         return;
                     }
 
@@ -168,7 +168,7 @@
                             {
                                 if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                                 {
-                                    await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
                                 }
 
@@ -182,7 +182,7 @@
                             {
                                 if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
                                 {
-                                    await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
                                 }
 
@@ -190,7 +190,7 @@
                                     return;
 
                                 string Result = await rc.SayPlayer(SelectedPlayer.name, CommandInput);
-                                await Dialog.ShowInfoAsync("Message Result", Result);
+                                await Dialogs.ShowInfoAsync("Message Result", Result);
                             }
                             break;
                     }

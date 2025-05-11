@@ -6,7 +6,7 @@
 @using System.Linq.Dynamic.Core
 @using Newtonsoft.Json.Linq
 @using static DevSpaceWeb.Components.Pages.Server.DockerTools.ServerDockerContainers
-@inject DialogService Dialog
+@inject DialogService Dialogs
 @inject ContextMenuService ContextMenuService
 @inject TooltipService tooltipService
 @inject NotificationService Notifications
@@ -227,7 +227,7 @@
 
         if (SelectedVolumes.Any(x => x.ContainersCount != 0))
         {
-            bool Confirm = await Dialog.ShowConfirmAsync("Volume Conflict", "Some volumes are being used by containers would you like to force remove the selected volumes and stop running containers.", "Confirm", ButtonStyle.Success);
+            bool Confirm = await Dialogs.ShowConfirmAsync("Volume Conflict", "Some volumes are being used by containers would you like to force remove the selected volumes and stop running containers.", "Confirm", ButtonStyle.Success);
             if (!Confirm)
                 return;
             type = ControlVolumeType.ForceRemove;
@@ -303,7 +303,7 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
                             return;
 
-                        bool Confirm = await Dialog.ShowConfirmAsync("Force Remove Volume", "This will stop any running containers using this volume.", "Confirm", ButtonStyle.Success);
+                        bool Confirm = await Dialogs.ShowConfirmAsync("Force Remove Volume", "This will stop any running containers using this volume.", "Confirm", ButtonStyle.Success);
                         if (Confirm)
                         {
                             if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
@@ -336,7 +336,7 @@
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
             return;
 
-        await Dialog.OpenAsync<CreateVolumeDialog>("Create Docker Volume");
+        await Dialogs.OpenAsync<CreateVolumeDialog>("Create Docker Volume");
     }
 
     public async Task RefreshVolume()

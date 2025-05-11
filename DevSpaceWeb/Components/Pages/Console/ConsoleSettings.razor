@@ -1,5 +1,5 @@
 ﻿@using DevSpaceWeb.Data.Consoles
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject NavigationManager Nav
 
 <div class="dash-box dash-box-content">
@@ -111,7 +111,7 @@
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.DeleteConsoleResource))
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Delete Console", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete Console", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.DeleteConsoleResource))
@@ -130,7 +130,7 @@
         if (Member == null || Console == null || !Member.CanOwn(Console))
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
         if (Confirm)
         {
             if (!Member.CanOwn(Console))

@@ -4,7 +4,7 @@
 @using DevSpaceWeb.Models.Setup
 @using System.Net
 @using LibMCRcon.RCon
-@inject DialogService DialogService
+@inject DialogService Dialogs
 
 <PageTitle>My Consoles | @_Data.Config.Instance.Name</PageTitle>
 
@@ -124,7 +124,7 @@
         if (Member == null || Team == null)
             return;
 
-        await DialogService.ShowDynamicFormAsync<SetupConsoleModel>("Setup Console", new SetupConsoleModel(), async (SetupConsoleModel data) =>
+        await Dialogs.ShowDynamicFormAsync<SetupConsoleModel>("Setup Console", new SetupConsoleModel(), async (SetupConsoleModel data) =>
         {
             if (Member == null || Team == null || !Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))
                 return "You do not have permission for Create Console Resources";

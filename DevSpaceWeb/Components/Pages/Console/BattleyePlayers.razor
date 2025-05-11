@@ -4,7 +4,7 @@
 @using DevSpaceWeb.Models.Consoles
 @using Newtonsoft.Json.Linq
 @inject ContextMenuService ContextMenuService
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <PageTitle>Console Players | @_Data.Config.Instance.Name</PageTitle>
 
@@ -162,17 +162,17 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
                             return;
                         }
 
                         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
                             return;
                         }
 
-                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                                 return "You do not have permission for Ban Players";
@@ -181,7 +181,7 @@
                                 return "Could not connect to server.";
 
                             rc.BanPlayer(new Ban(item.guid, 0, data.Reason));
-                            await Dialog.ShowInfoAsync("Ban Result", $"{item.name} has been banned.");
+                            await Dialogs.ShowInfoAsync("Ban Result", $"{item.name} has been banned.");
                             return null;
                         });
                     }
@@ -190,17 +190,17 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
                             return;
                         }
 
                         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Ban IP", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Ban IP", "Could not connect to server.");
                             return;
                         }
 
-                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban IP " + item.ip, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Ban IP " + item.ip, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                                 return "You do not have permission for Ban Players";
@@ -209,7 +209,7 @@
                                 return "Could not connect to server.";
 
                             rc.BanIP(new BanIP(item.number, item.name, "0", data.Reason));
-                            await Dialog.ShowInfoAsync("IP Ban Result", $"{item.name}'s IP has been banned.");
+                            await Dialogs.ShowInfoAsync("IP Ban Result", $"{item.name}'s IP has been banned.");
                             return null;
                         });
                     }
@@ -218,16 +218,16 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.KickPlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.KickPlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.KickPlayers);
                             return;
                         }
 
                         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Kick", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Kick", "Could not connect to server.");
                             return;
                         }
-                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.KickPlayers))
                                 return "You do not have permission for Kick Players";
@@ -236,7 +236,7 @@
                                 return "Could not connect to server.";
 
                             rc.KickPlayer(new Kick(item.number, item.name, data.Reason));
-                            await Dialog.ShowInfoAsync("Kick Result", $"{item.name} has been kicked.");
+                            await Dialogs.ShowInfoAsync("Kick Result", $"{item.name} has been kicked.");
                             return null;
                         });
                     }
@@ -245,17 +245,17 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
                             return;
                         }
 
                         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                             return;
                         }
 
-                        await Dialog.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                                 return "You do not have permission for Message Players";
@@ -264,7 +264,7 @@
                                 return "Could not connect to server.";
 
                             rc.SayPrivate(new Message(item.number, item.name, data.Message));
-                            await Dialog.ShowInfoAsync("Message Result", $"Message sent to {item.name}");
+                            await Dialogs.ShowInfoAsync("Message Result", $"Message sent to {item.name}");
                             return null;
                         });
                     }

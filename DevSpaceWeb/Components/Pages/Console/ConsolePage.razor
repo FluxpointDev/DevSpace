@@ -2,7 +2,7 @@
 @using DaRT
 @using DevSpaceWeb.Data.Consoles
 @using LibMCRcon.RCon
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <PageTitle>@Console?.Name | @_Data.Config.Instance.Name</PageTitle>
 
@@ -305,13 +305,13 @@
     {
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
 
         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Lock Server", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Lock Server", "Could not connect to server.");
             return;
         }
 
@@ -322,13 +322,13 @@
     {
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
 
         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Unlock Server", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Unlock Server", "Could not connect to server.");
             return;
         }
 
@@ -339,7 +339,7 @@
     {
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
 
@@ -349,7 +349,7 @@
                 {
                     if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                     {
-                        await Dialog.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
+                        await Dialogs.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
                         return;
                     }
 
@@ -360,14 +360,14 @@
                 {
                     if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
                     {
-                        await Dialog.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
+                        await Dialogs.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
                         return;
                     }
 
                     string Result = await rc.ExecuteCmd("restart");
                     if (Result.Contains("unknown command", StringComparison.OrdinalIgnoreCase))
                     {
-                        await Dialog.ShowInfoAsync("Failed to Restart Server", "Server does not support restart.");
+                        await Dialogs.ShowInfoAsync("Failed to Restart Server", "Server does not support restart.");
                         return;
                     }
                 }
@@ -381,7 +381,7 @@
     {
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
 
@@ -391,7 +391,7 @@
                 {
                     if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                     {
-                        await Dialog.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
+                        await Dialogs.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
                         return;
                     }
 
@@ -402,7 +402,7 @@
                 {
                     if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
                     {
-                        await Dialog.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
+                        await Dialogs.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
                         return;
                     }
 
@@ -416,13 +416,13 @@
     {
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
 
         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Reload Config", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Reload Config", "Could not connect to server.");
             return;
         }
 
@@ -433,13 +433,13 @@
     {
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
 
         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Reload Events", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Reload Events", "Could not connect to server.");
             return;
         }
         rc.ReloadEvents();
@@ -449,13 +449,13 @@
     {
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
 
         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Reload Scripts", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Reload Scripts", "Could not connect to server.");
             return;
         }
 
@@ -466,13 +466,13 @@
     {
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
 
         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Reload Bans", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Reload Bans", "Could not connect to server.");
             return;
         }
 
@@ -483,13 +483,13 @@
     {
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
 
         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Reassign", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Reassign", "Could not connect to server.");
             return;
         }
 

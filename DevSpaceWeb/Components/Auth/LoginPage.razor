@@ -23,7 +23,7 @@
 @inject IMemoryCache Cache
 @inject NavigationManager NavigationManager
 @inject EmailService Email
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <div class="dash-box dash-box-content dash-center" style="max-width: 700px !important;">
     <div class="flex-center" style="text-align: center !important;">
@@ -525,7 +525,7 @@
         }
         if (!_Data.Config.Auth.AllowRegister)
         {
-            await Dialog.ShowInfoAsync("Register Disabled", "You can't create an account on this dev space instance.");
+            await Dialogs.ShowInfoAsync("Register Disabled", "You can't create an account on this dev space instance.");
             return;
         }
         if (string.IsNullOrEmpty(RegisterForm.Username))
@@ -601,7 +601,7 @@
         {
             if (!LoginForm.Email.Equals("test@test.com", StringComparison.OrdinalIgnoreCase))
             {
-                _ = Dialog.ShowInfoAsync("Login Disabled", "You can't login with other accounts in preview mode.");
+                _ = Dialogs.ShowInfoAsync("Login Disabled", "You can't login with other accounts in preview mode.");
                 return;
             }
         }
@@ -613,7 +613,7 @@
 
         if (!_Data.Config.Auth.AllowInternalLogin)
         {
-            _ = Dialog.ShowInfoAsync("Login Disabled", "Internal login as been disabled.");
+            _ = Dialogs.ShowInfoAsync("Login Disabled", "Internal login as been disabled.");
             return;
         }
 
@@ -648,13 +648,13 @@
 
         if (!_Data.Config.Auth.AllowExternalLogin)
         {
-            _ = Dialog.ShowInfoAsync("Login Disabled", "External login as been disabled on this instance.");
+            _ = Dialogs.ShowInfoAsync("Login Disabled", "External login as been disabled on this instance.");
             return;
         }
 
         if (IsProviderDisabled(provider))
         {
-            _ = Dialog.ShowInfoAsync("Login Disabled", $"The {provider} login as been disabled on this instance.");
+            _ = Dialogs.ShowInfoAsync("Login Disabled", $"The {provider} login as been disabled on this instance.");
             return;
         }
 
