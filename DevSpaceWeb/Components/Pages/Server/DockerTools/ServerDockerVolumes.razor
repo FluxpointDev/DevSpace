@@ -211,7 +211,7 @@
 
 
 
-    void RunSelectedVolumeAction(ControlVolumeType type)
+    async Task RunSelectedVolumeAction(ControlVolumeType type)
     {
         if (Program.IsPreviewMode)
         {
@@ -224,6 +224,17 @@
 
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
             return;
+
+        if (SelectedVolumes.Any(x => x.ContainersCount != 0))
+        {
+            bool Confirm = await Dialog.ShowConfirmAsync("Volume Conflict", "Some volumes are being used by containers would you like to force remove the selected volumes and stop running containers.", "Confirm", ButtonStyle.Success);
+            if (!Confirm)
+                return;
+            type = ControlVolumeType.ForceRemove;
+
+            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
+                return;
+        }
 
         _ = Task.Run(async () =>
         {

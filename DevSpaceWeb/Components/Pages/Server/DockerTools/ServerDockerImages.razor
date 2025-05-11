@@ -295,6 +295,20 @@
             _ = Dialog.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
             return;
         }
+        else
+        {
+            if (SelectedImages.Any(x => x.ContainersCount != 0 || x.IsParent))
+            {
+                bool Confirm = await Dialog.ShowConfirmAsync("Image Conflict", "Some images are being used by containers would you like to force remove the selected images and stop running containers.", "Confirm", ButtonStyle.Success);
+                if (!Confirm)
+                    return;
+                type = ControlImageType.ForceRemove;
+
+                if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+                    return;
+            }
+        }
+
         IsActionRunning = true;
         await InvokeAsync(StateHasChanged);
 
