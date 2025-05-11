@@ -1,4 +1,5 @@
-﻿using DevSpaceShared.Data;
+﻿using DevSpaceShared;
+using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -69,6 +70,27 @@ public static class DockerVolumes
                 return Data;
             case ControlVolumeType.Remove:
             case ControlVolumeType.ForceRemove:
+                if (@event.VolumeType == ControlVolumeType.ForceRemove)
+                {
+                    IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                    {
+                        All = true,
+                        Filters = new Dictionary<string, IDictionary<string, bool>>
+                            {
+                                { "volume", new Dictionary<string, bool>
+                                { { id, true }}
+                                }
+                            }
+                    });
+                    foreach (ContainerListResponse? i in Containers)
+                    {
+                        if (i.IsRunning())
+                        {
+                            await client.Containers.StopContainerAsync(i.ID, new ContainerStopParameters());
+                        }
+                    }
+                }
+
                 await client.Volumes.RemoveAsync(id, @event.VolumeType == ControlVolumeType.ForceRemove);
                 break;
         }
