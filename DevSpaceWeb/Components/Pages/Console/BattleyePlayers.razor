@@ -29,40 +29,60 @@
                 You do not have permission for View Players
             </RadzenAlert>
         </div>
-
     }
     else
     {
         <br />
-        <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+        <div class="dash-box-content">
+            <ActionBar>
+                <RadzenFormField Variant="Variant.Outlined">
+                    <Start>
+                        <RadzenIcon Icon="search" />
+                    </Start>
+                    <ChildContent>
+                        <RadzenTextBox id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                       autocapitalize="none" MaxLength="100"
+                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
+                    </ChildContent>
+                    <End>
+                        @if (!string.IsNullOrWhiteSpace(SearchText))
+                        {
+                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        }
+                    </End>
+                </RadzenFormField>
+            </ActionBar>
+        </div>
+        <RadzenDataGrid @ref="@Grid" Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
-                <RadzenDataGridColumn Title="ID" Width="60px">
+                <RadzenDataGridColumn Title="ID" Width="60px" Property="@nameof(Player.number)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.number</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="GUID" Width="240px">
+                <RadzenDataGridColumn Title="GUID" Width="240px" Property="@nameof(Player.guid)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.guid</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Name">
+                <RadzenDataGridColumn Title="Name" Property="@nameof(Player.name)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.name</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Ping" Width="80px">
+                <RadzenDataGridColumn Title="Ping" Width="80px" Filterable="false">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.ping ms</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Status" Width="100px">
+                <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(Player.status)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.status</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Actions" Width="80px">
+                <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                     <Template>
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                             <RadzenButton Icon="build" Click="@(args => ShowContextMenuWithManageItems(context, args))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
@@ -86,6 +106,20 @@
 
     public IEnumerable<Player>? Players { get; set; }
     public int PlayerCount { get; set; }
+
+    public RadzenDataGrid<Player> Grid { get; set; }
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(2).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
+    }
 
     void LoadData(LoadDataArgs args)
     {

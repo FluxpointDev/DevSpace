@@ -33,10 +33,31 @@
     else
     {
         <br />
-        <RadzenDataGrid Count="@BanCount" Data="@Bans" LoadData="@LoadData"
+        <div class="dash-box-content">
+            <ActionBar>
+                <RadzenFormField Variant="Variant.Outlined">
+                    <Start>
+                        <RadzenIcon Icon="search" />
+                    </Start>
+                    <ChildContent>
+                        <RadzenTextBox id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                       autocapitalize="none" MaxLength="100"
+                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
+                    </ChildContent>
+                    <End>
+                        @if (!string.IsNullOrWhiteSpace(SearchText))
+                        {
+                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        }
+                    </End>
+                </RadzenFormField>
+            </ActionBar>
+        </div>
+        <RadzenDataGrid @ref="@Grid" Count="@BanCount" Data="@Bans" LoadData="@LoadData"
+                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
-                <RadzenDataGridColumn Title="ID/IP" Width="120px">
+                <RadzenDataGridColumn Title="ID/IP" Width="120px" Filterable="@Member.HasConsolePermission(Team, Console, ConsolePermission.ViewIPs)" Property="@nameof(Ban.ipguid)">
                     <Template>
                         @if (!string.IsNullOrEmpty(context.ipguid) && context.ipguid.Contains('.'))
                         {
@@ -49,7 +70,7 @@
                                 <RadzenText TextStyle="TextStyle.Body2">
                                     @GetMask(context.ipguid)
                                 </RadzenText>
-                            }
+                        }
                         }
                         else
                         {
@@ -57,17 +78,17 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Reason">
+                <RadzenDataGridColumn Title="Reason" Property="@nameof(Ban.reason)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.reason</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Duration" Width="100px">
+                <RadzenDataGridColumn Title="Duration" Width="100px" Filterable="false">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@ParseTime(context.Duration)</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Action" Width="80px">
+                <RadzenDataGridColumn Title="Action" Width="80px" Filterable="false">
                     <Template>
                         <RadzenButton Text="Unban" Click="@(() => UnbanPlayer(context))" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" />
                     </Template>
@@ -89,6 +110,20 @@
 
     public IEnumerable<Ban>? Bans { get; set; }
     public int BanCount { get; set; }
+
+    public RadzenDataGrid<Ban> Grid { get; set; }
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(0).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
+    }
 
     public string GetMask(string value)
     {

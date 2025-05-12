@@ -46,13 +46,29 @@
                 <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumesAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton Variant="Variant.Filled" Text="Create Volume" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateVolume" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
                 <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshVolume" Disabled="@IsLoading" />
+                <RadzenFormField Variant="Variant.Outlined">
+                    <Start>
+                        <RadzenIcon Icon="search" />
+                    </Start>
+                    <ChildContent>
+                        <RadzenTextBox id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                       autocapitalize="none" MaxLength="100"
+                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
+                    </ChildContent>
+                    <End>
+                        @if (!string.IsNullOrWhiteSpace(SearchText))
+                        {
+                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        }
+                    </End>
+                </RadzenFormField>
             </ActionBar>
         </div>
     <RadzenDataGrid @ref="@Grid" AllowRowSelectOnRowClick="false" Data="@VolumesList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
                     @bind-Value="@SelectedVolumes" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
                     PagingSummaryFormat="@(Count + " volume" + (Count != 1 ? "s" : "") )" Density="Density.Compact"
-                    AllowSorting="false" AllowFiltering="false"
+                        AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                     TItem="DockerVolumeInfo" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
         <Columns>
             <RadzenDataGridColumn Width="36px" Frozen="true">
@@ -66,7 +82,7 @@
                                         TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsActionRunning" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true">
+                <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(DockerVolumeInfo.Name)">
                 <Template>
                     @if (context.Containers != null && context.Containers.Any() && context.Containers.First().Value == "registry")
                     {
@@ -79,7 +95,7 @@
                         
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Status" Width="140px">
+            <RadzenDataGridColumn Title="Status" Width="140px" Filterable="false">
                 <Template>
                     @if (context.ContainersCount == 0)
                     {
@@ -91,29 +107,29 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Width="70px">
+            <RadzenDataGridColumn Title="Actions" Width="70px" Filterable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                             <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Driver" Width="80px">
+                <RadzenDataGridColumn Title="Driver" Width="80px" Property="@nameof(DockerVolumeInfo.Driver)" FilterMode="FilterMode.CheckBoxList">
                 <Template>
                     @context.Driver
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Scope" Width="80px">
+                <RadzenDataGridColumn Title="Scope" Width="80px" Property="@nameof(DockerVolumeInfo.Scope)" FilterMode="FilterMode.CheckBoxList">
                 <Template>
                     @context.Scope
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Created" Width="160px">
+            <RadzenDataGridColumn Title="Created" Width="160px" Filterable="false">
                 <Template>
                     @context.CreatedAt
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Mount Point">
+            <RadzenDataGridColumn Title="Mount Point" Filterable="false">
                 <Template>
                     @context.MountPoint
                 </Template>
@@ -140,6 +156,18 @@
     RadzenDataGrid<DockerVolumeInfo> Grid = null!;
     public bool IsLoading = true;
     public bool IsActionRunning { get; set; }
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
+    }
 
     public async Task LoadData(LoadDataArgs args)
     {
@@ -203,13 +231,6 @@
             }
         }
     }
-
-    public async Task SetNameFilter(string text)
-    {
-        await Grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
-    }
-
-
 
     async Task RunSelectedVolumesAction(ControlVolumeType type)
     {

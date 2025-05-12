@@ -44,15 +44,15 @@
         <RadzenDataGrid @ref="@Grid" AllowRowSelectOnRowClick="false" Data="@EventsList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
                         PagingSummaryFormat="@(Count + " events" + (Count != 1 ? "s" : "") )" Density="Density.Compact"
-                        AllowSorting="false" AllowFiltering="false"
+                        AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                         TItem="DockerEventInfo">
             <Columns>
-                <RadzenDataGridColumn Title="Date" Width="120px">
+                <RadzenDataGridColumn Title="Date" Width="120px" Filterable="false">
                     <Template>
                         @Utils.GetLocalDate(Session, DateTimeOffset.FromUnixTimeSeconds(context.Time).DateTime)
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Type" Width="120px">
+                <RadzenDataGridColumn Title="Type" Width="120px" Property="@nameof(DockerEventInfo.Type)" FilterMode="FilterMode.CheckBoxList">
                     <Template>
                         @switch (context.Type)
                         {
@@ -93,7 +93,7 @@
                         @context.Type
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Name" Width="300px">
+                <RadzenDataGridColumn Title="Name" Width="300px" Filterable="false">
                     <Template>
                         @if (context.Actor != null && context.Actor.Attributes != null && context.Actor.Attributes.TryGetValue("name", out object? name))
                         {
@@ -101,13 +101,13 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Action" Width="110px">
+                <RadzenDataGridColumn Title="Action" Width="110px" Property="@nameof(DockerEventInfo.Action)" FilterMode="FilterMode.CheckBoxList">
                     <Template>
                         @context.Action
                     </Template>
                 </RadzenDataGridColumn>
                     
-                    <RadzenDataGridColumn Title="Details">
+                    <RadzenDataGridColumn Title="Details" Filterable="false">
                     <Template>
                         @if (context.Actor != null)
                         {

@@ -22,7 +22,6 @@
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl)" Text="@Session.Selected.Team?.Console?.Data.Name" />
         <RadzenBreadCrumbItem Text="Bans" />
     </RadzenBreadCrumb>
-    <br />
     @if (Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewBans))
     {
         <div class="dash-box-content">
@@ -34,10 +33,32 @@
     }
     else
     {
-        <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+        <br />
+        <div class="dash-box-content">
+            <ActionBar>
+                <RadzenFormField Variant="Variant.Outlined">
+                    <Start>
+                        <RadzenIcon Icon="search" />
+                    </Start>
+                    <ChildContent>
+                        <RadzenTextBox id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                       autocapitalize="none" MaxLength="100"
+                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
+                    </ChildContent>
+                    <End>
+                        @if (!string.IsNullOrWhiteSpace(SearchText))
+                        {
+                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        }
+                    </End>
+                </RadzenFormField>
+            </ActionBar>
+        </div>
+        <RadzenDataGrid @ref="@Grid" Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
-                <RadzenDataGridColumn Title="Name" Width="200px">
+                <RadzenDataGridColumn Title="Name" Width="200px" Property="@nameof(Player.name)">
                     <Template>
                         @if (context.number == 0)
                         {
@@ -49,18 +70,12 @@
                             @if (Member.HasConsolePermission(Team, Console, ConsolePermission.ViewIPs))
                             {
                                 <RadzenTextMask Value="@context.name" IsIp="true"></RadzenTextMask>
+                                <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="IP" IsPill="true" />
                             }
-                            else
-                            {
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @GetMask(context.name)
-                                </RadzenText>
-                            }
-                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="IP" IsPill="true" />
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Actions" Width="80px">
+                <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                     <Template>
                         <RadzenButton Icon="hardware" Click="@(() => Unban(context))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
                     </Template>
@@ -79,6 +94,20 @@
     public TeamData? Team => Session.Selected.Team?.Data;
     public ConsoleData? Console => Session.Selected.Console;
     public TeamMemberData? Member => Session.Selected.Member;
+
+    public RadzenDataGrid<Player> Grid { get; set; }
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(0).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
+    }
 
     public IEnumerable<Player> Players { get; set; }
     public int PlayerCount { get; set; }

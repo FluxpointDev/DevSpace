@@ -237,13 +237,29 @@ else
                 <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlStacks)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected || IsActionRunning || !CanManageStacks)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
                 <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@IsLoading" />
+                <RadzenFormField Variant="Variant.Outlined">
+                    <Start>
+                        <RadzenIcon Icon="search" />
+                    </Start>
+                    <ChildContent>
+                        <RadzenTextBox id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                       autocapitalize="none" MaxLength="100"
+                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
+                    </ChildContent>
+                    <End>
+                        @if (!string.IsNullOrWhiteSpace(SearchText))
+                        {
+                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        }
+                    </End>
+                </RadzenFormField>
             </ActionBar>
             <RadzenDataGrid class="mt-4" @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                             Density="Density.Compact" AllowRowSelectOnRowClick="false"
                             PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
                             @bind-Value="@SelectedContainers" SelectionMode="DataGridSelectionMode.Multiple"
                             ShowPagingSummary="true" PagingSummaryFormat="@(Count + " container" + (Count != 1 ? "s" : "") + $" - {CountDead} down" )"
-                            AllowSorting="false" AllowFiltering="false"
+                            AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             TItem="DockerContainerInfo" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
                 <Columns>
                     <RadzenDataGridColumn Width="36px" Frozen="true">
@@ -257,12 +273,12 @@ else
                                             TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsActionRunning" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true">
+                    <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(DockerContainerInfo.Name)">
                         <Template>
                             <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + context.Id)" Text="@context.Name" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Title="Status" Width="100px">
+                    <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(DockerContainerInfo.State)" FilterMode="FilterMode.CheckBoxList">
                         <Template>
                             @switch (context.State)
                             {
@@ -301,7 +317,7 @@ else
                             }
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Title="Actions" Width="100px">
+                    <RadzenDataGridColumn Title="Actions" Width="100px" Filterable="false">
                         <Template>
                             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                                 <RadzenButton Click="@(args => ShowContextMenuWithControlsItems(context, args))" Icon="power_settings_new" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!CanControlStacks || IsActionRunning)" />
@@ -309,12 +325,12 @@ else
                             </RadzenStack>
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Title="Image" Width="280px">
+                    <RadzenDataGridColumn Title="Image" Width="280px" Property="@nameof(DockerContainerInfo.ImageName)" FilterMode="FilterMode.CheckBoxList">
                         <Template>
                             <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + context.ImageId)" Text="@context.ImageName" />
                         </Template>
                     </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Title="Created">
+                    <RadzenDataGridColumn Title="Created" Filterable="false">
                         <Template>
                             @Utils.GetLocalDate(Session, context.CreatedAt)
                         </Template>
@@ -627,6 +643,18 @@ else
     IList<DockerContainerInfo>? SelectedContainers;
     public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
     RadzenDataGrid<DockerContainerInfo> Grid = null!;
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
+    }
 
     void ShowContextMenuWithControlsItems(DockerContainerInfo item, MouseEventArgs args)
     {
