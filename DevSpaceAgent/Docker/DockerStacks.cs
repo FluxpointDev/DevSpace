@@ -792,7 +792,7 @@ public static class DockerStacks
         {
             string ComposeDir = $"/var/lib/docker/volumes/portainer_data/_data/compose/{id}/";
             if (!Directory.Exists(ComposeDir))
-                throw new Exception("Stack compose does not exist.");
+                throw new Exception("Can't access stack compose file due to missing portainer data volume mount.");
 
             int Version = -1;
 
@@ -804,7 +804,7 @@ public static class DockerStacks
             }
 
             if (Version == -1)
-                throw new Exception("Stack compose does not exist.");
+                throw new Exception("Could not find stack compose file in portainer data.");
 
             string ComposeFile = ComposeDir + $"v{Version}/docker-compose.yml";
 
@@ -845,10 +845,10 @@ public static class DockerStacks
         else
         {
             if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
-                throw new Exception("Stack does not exist.");
+                throw new Exception("Stack does not exist or trying to access a system controlled stack.");
 
             if (!File.Exists(Program.CurrentDirectory + $"Data/Stacks/{id}/docker-compose.yml"))
-                throw new Exception("Failed to get compose content.");
+                throw new Exception("Failed to get compose file or content.");
 
             try
             {
