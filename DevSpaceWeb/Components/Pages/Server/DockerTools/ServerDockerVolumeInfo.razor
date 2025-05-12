@@ -311,17 +311,20 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
             return;
 
-        bool Confirm = await Dialogs.ShowConfirmAsync(option + " Volume", $"Are you sure you want to {option.ToLower()} this volume?", "Yes", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
-                return;
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Volume: " + Volume?.Name,
+            "Are you sure you want to remove this volume?", "Confirm", ButtonStyle.Success);
 
-            IsActionLoading = true;
+        if (!Confirm)
+            return;
 
-            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: option == "Force Remove" ? ControlVolumeType.ForceRemove : ControlVolumeType.Remove));
-            if (Result.IsSuccess)
-                Volume = null;
-        }
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
+            return;
+
+        IsActionLoading = true;
+
+        SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: option == "Force Remove" ? ControlVolumeType.ForceRemove : ControlVolumeType.Remove));
+        if (Result.IsSuccess)
+            Volume = null;
+
     }
 }

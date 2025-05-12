@@ -662,6 +662,9 @@ else
         bool Confirm = await Dialogs.ShowConfirmAsync("Remove Image: " + Image?.Name,
             "Are you sure you want to remove this image?", "Confirm", ButtonStyle.Success);
 
+        if (!Confirm)
+            return;
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
