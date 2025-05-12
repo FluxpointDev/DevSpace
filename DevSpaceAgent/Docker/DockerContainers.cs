@@ -254,6 +254,14 @@ public static class DockerContainers
                 break;
             case ControlContainerType.ForceRemove:
             case ControlContainerType.Remove:
+                if (@event.ContainerType == ControlContainerType.ForceRemove)
+                {
+                    await client.Containers.StopContainerAsync(id, new ContainerStopParameters
+                    {
+
+                    });
+                }
+
                 await client.Containers.RemoveContainerAsync(id, new ContainerRemoveParameters
                 {
                     Force = @event.ContainerType == ControlContainerType.ForceRemove
