@@ -329,41 +329,42 @@
             return;
 
         bool Confirm = await Dialogs.ShowConfirmAsync("Enable Member " + user.UserName, "Are you sure you want to enable this member?", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        if (Program.IsPreviewMode)
         {
-            if (Program.IsPreviewMode)
-            {
-                Session.ShowPreviewModeNotice();
-                return;
-            }
-
-            if (!Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
-            {
-                await Dialogs.ShowPermissionErrorAsync(TeamPermission.ManageMembers);
-                return;
-            }
-
-            if (user.ManagedAccountTeamId.HasValue)
-            {
-                FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
-                UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, null);
-                UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure!.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
-                if (!Result.IsAcknowledged)
-                {
-                    await Dialogs.ShowInfoAsync("Database Error", "Failed to enable account.");
-                    return;
-                }
-            }
-            TeamMemberData? member = Team.GetMember(user);
-            if (member == null)
-                return;
-
-            await member.UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, null), () =>
-            {
-                _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
-                member.Disabled = null;
-            });
+            Session.ShowPreviewModeNotice();
+            return;
         }
+
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
+        {
+            await Dialogs.ShowPermissionErrorAsync(TeamPermission.ManageMembers);
+            return;
+        }
+
+        if (user.ManagedAccountTeamId.HasValue)
+        {
+            FilterDefinition<AuthUser> filter = Builders<AuthUser>.Filter.Eq(r => r.Id, user.Id);
+            UpdateDefinition<AuthUser> update = Builders<AuthUser>.Update.Set(x => x.Disabled, null);
+            UpdateResult Result = _DB.Client.GetDatabase(_DB.Configure!.Name).GetCollection<AuthUser>("users").UpdateOne(filter, update);
+            if (!Result.IsAcknowledged)
+            {
+                await Dialogs.ShowInfoAsync("Database Error", "Failed to enable account.");
+                return;
+            }
+        }
+        TeamMemberData? member = Team.GetMember(user);
+        if (member == null)
+            return;
+
+        await member.UpdateAsync(Builders<TeamMemberData>.Update.Set(x => x.Disabled, null), () =>
+        {
+            _DB.TriggerSessionEvent(user.Id, SessionEventType.AccountUpdate);
+            member.Disabled = null;
+        });
     }
 
     public async Task DisableMember(PartialUserData user)
@@ -443,6 +444,7 @@
             return;
 
         bool Confirm = await Dialogs.ShowConfirmAsync("Team Ownership Transfer", $"This will give ownership of team {Team.Name} to the account {user.UserName}, are you sure you want to continue?", "Yes", ButtonStyle.Success);
+        
         if (!Confirm)
             return;
 

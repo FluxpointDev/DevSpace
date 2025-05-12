@@ -254,16 +254,17 @@ else
             return;
 
         bool Confirm = await Dialogs.ShowConfirmAsync("Remove Plugin", $"Are you sure you want to remove this plugin?", "Yes", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
-                return;
 
-            IsActionLoading = true;
+        if (!Confirm)
+            return;
 
-            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Remove));
-            if (Result.IsSuccess)
-                Plugin = null;
-        }
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
+            return;
+
+        IsActionLoading = true;
+
+        SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Remove));
+        if (Result.IsSuccess)
+            Plugin = null;
     }
 }

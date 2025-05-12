@@ -196,18 +196,20 @@
             return;
 
         bool Confirm = await Dialogs.ShowConfirmAsync("Delete API Client", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        DeleteResult Result = await Client.DeleteAsync(() =>
         {
-            DeleteResult Result = await Client.DeleteAsync(() =>
-            {
-                Client = null;
-            });
-            if (Result.IsAcknowledged)
-            {
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.APIClientDeleted)
-                .SetTarget(Client));
-            }
+            Client = null;
+        });
+        if (Result.IsAcknowledged)
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.APIClientDeleted)
+            .SetTarget(Client));
         }
+
     }
 
     public async Task ChangeOwner(PartialUserData user)
@@ -226,37 +228,38 @@
             return;
 
         bool Confirm = await Dialogs.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        AuthUser? AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null || Client == null || Member == null)
+            return;
+
+        CanManage = Client.CanManage(Member, false);
+        if (!CanManage)
+            return;
+
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
+        .Set(x => x.OwnerId, user.Id).Set(x => x.TokenHash, null).Set(x => x.GeneratedAt, null).Set(x => x.GeneratedBy, null), () =>
         {
-            AuthUser? AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null || Client == null || Member == null)
-                return;
+            Client.TokenHash = null;
+            Client.GeneratedBy = null;
+            Client.GeneratedAt = null;
+            Client.OwnerId = user.Id;
+            OwnerUser = user.UserName;
+            GeneratedUser = null;
 
-            CanManage = Client.CanManage(Member, false);
-            if (!CanManage)
-                return;
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.APIClientOwnershipChanged)
+            .SetTarget(Client)
+            .AddProperty("User", user.UserName)
+            .AddProperty("ID", user.Id.ToString()));
 
-            await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
-            .Set(x => x.OwnerId, user.Id).Set(x => x.TokenHash, null).Set(x => x.GeneratedAt, null).Set(x => x.GeneratedBy, null), () =>
-            {
-                Client.TokenHash = null;
-                Client.GeneratedBy = null;
-                Client.GeneratedAt = null;
-                Client.OwnerId = user.Id;
-                OwnerUser = user.UserName;
-                GeneratedUser = null;
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientTokenGenerated)
+            .SetTarget(Client));
 
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.APIClientOwnershipChanged)
-                .SetTarget(Client)
-                .AddProperty("User", user.UserName)
-                .AddProperty("ID", user.Id.ToString()));
-
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientTokenGenerated)
-                .SetTarget(Client));
-
-                StateHasChanged();
-            });
-        }
+            StateHasChanged();
+        });
     }
 
     public void LoadPermissions()

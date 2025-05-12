@@ -271,40 +271,42 @@
     public async Task RemoveAvatar()
     {
         bool Confirm = await Dialogs.ShowConfirmAsync("Remove Avatar", "Are you sure you want to remove your avatar?", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        if (!AuthUser.HasAvatar)
+            return;
+
+        Guid? CurrentAvatar = AuthUser.AvatarId.GetValueOrDefault();
+
+        AuthUser.AvatarId = null;
+
+        IdentityResult Result = await UserManager.UpdateAsync(AuthUser);
+        if (Result.Succeeded)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            if (!AuthUser.HasAvatar)
-                return;
-
-            Guid? CurrentAvatar = AuthUser.AvatarId.GetValueOrDefault();
-
-            AuthUser.AvatarId = null;
-
-            IdentityResult Result = await UserManager.UpdateAsync(AuthUser);
-            if (Result.Succeeded)
+            try
             {
-                try
-                {
-                    File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("webp"));
-                }
-                catch { }
-
-                try
-                {
-                    File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("png"));
-                }
-                catch { }
-
-                Session.CurrentUser.AvatarId = null;
-
-                AuthUser.UpdatePartial();
-                Session.TriggerChange();
+                File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("webp"));
             }
+            catch { }
+
+            try
+            {
+                File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("png"));
+            }
+            catch { }
+
+            Session.CurrentUser.AvatarId = null;
+
+            AuthUser.UpdatePartial();
+            Session.TriggerChange();
         }
+
     }
 
     public async Task ChangeEmail()
@@ -487,30 +489,31 @@
     public async Task RemoveBackground()
     {
         bool Confirm = await Dialogs.ShowConfirmAsync("Remove Background", "Are you sure you want to remove your background?", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        if (!AuthUser.BackgroundId.HasValue)
+            return;
+
+        Guid? CurrentBackground = AuthUser.BackgroundId.GetValueOrDefault();
+
+        AuthUser.BackgroundId = null;
+
+        IdentityResult Result = await UserManager.UpdateAsync(AuthUser);
+        if (Result.Succeeded)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            if (!AuthUser.BackgroundId.HasValue)
-                return;
-
-            Guid? CurrentBackground = AuthUser.BackgroundId.GetValueOrDefault();
-
-            AuthUser.BackgroundId = null;
-
-            IdentityResult Result = await UserManager.UpdateAsync(AuthUser);
-            if (Result.Succeeded)
+            try
             {
-                try
-                {
-                    File.Delete(new FileResource("Background", AuthUser.ResourceId, CurrentBackground).Path("webp"));
-                }
-                catch{ }
-                Session.BackgroundUrl = Static.DefaultBackgroundUrl;
-                Session.TriggerChange();
+                File.Delete(new FileResource("Background", AuthUser.ResourceId, CurrentBackground).Path("webp"));
             }
+            catch { }
+            Session.BackgroundUrl = Static.DefaultBackgroundUrl;
+            Session.TriggerChange();
         }
     }
 }

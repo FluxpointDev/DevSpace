@@ -624,24 +624,25 @@
             return;
 
         bool Confirm = await Dialogs.ShowConfirmAsync("Delete Role", "Are you sure your want to delete " + role.Name, "Confirm", ButtonStyle.Success);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+            return;
+
+        if (role.GetPosition() >= Member.GetRank())
+            return;
+
+        FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
+        DeleteResult Result = await _DB.Roles.Collection.DeleteOneAsync(filter);
+        if (Result.IsAcknowledged)
         {
-            if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
-                return;
-
-            if (role.GetPosition() >= Member.GetRank())
-                return;
-
-            FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
-            DeleteResult Result = await _DB.Roles.Collection.DeleteOneAsync(filter);
-            if (Result.IsAcknowledged)
-            {
-                Roles.Remove(role);
-                Roles = Roles.OrderByDescending(x => x.Team == null ? -1 : x.GetPosition()).ToList();
-                Team.DeleteRole(Member, role);
-                if (SelectedRole != null && SelectedRole.Id == role.Id)
-                    SelectedRole = null;
-            }
+            Roles.Remove(role);
+            Roles = Roles.OrderByDescending(x => x.Team == null ? -1 : x.GetPosition()).ToList();
+            Team.DeleteRole(Member, role);
+            if (SelectedRole != null && SelectedRole.Id == role.Id)
+                SelectedRole = null;
         }
     }
 

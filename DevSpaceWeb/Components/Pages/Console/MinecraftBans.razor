@@ -197,16 +197,17 @@
         }
 
         bool Confirm = await Dialogs.ShowConfirmAsync($"Unban {player.name}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        if (rcon.IsConnected)
         {
-            if (rcon.IsConnected)
-            {
-                string Result = await rcon.ExecuteCmd("pardon " + player.name);
-                await Dialogs.ShowInfoAsync("Unban Result", Result);
-            }
-            else
-                await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+            string Result = await rcon.ExecuteCmd("pardon " + player.name);
+            await Dialogs.ShowInfoAsync("Unban Result", Result);
         }
+        else
+            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
     }
 
 }

@@ -228,8 +228,10 @@
         if (SelectedVolumes.Any(x => x.ContainersCount != 0))
         {
             bool Confirm = await Dialogs.ShowConfirmAsync("Volume Conflict", "Some volumes are being used by containers would you like to force remove the selected volumes and stop running containers.", "Confirm", ButtonStyle.Success);
+
             if (!Confirm)
                 return;
+
             type = ControlVolumeType.ForceRemove;
 
             if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
@@ -304,20 +306,22 @@
                             return;
 
                         bool Confirm = await Dialogs.ShowConfirmAsync("Force Remove Volume", "This will stop any running containers using this volume.", "Confirm", ButtonStyle.Success);
-                        if (Confirm)
-                        {
-                            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
-                                return;
 
-                            IsActionRunning = true;
-                            await InvokeAsync(StateHasChanged);
-                            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, volumeType: ControlVolumeType.ForceRemove) { ResourceList = new string[] { item.Name } }, (response) =>
-                            {
-                                InvokeAsync(RefreshVolume);
-                            });
-                            IsActionRunning = false;
-                            await InvokeAsync(RefreshVolume);
-                        }
+                        if (!Confirm)
+                            return;
+
+                        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
+                            return;
+
+                        IsActionRunning = true;
+                        await InvokeAsync(StateHasChanged);
+                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, volumeType: ControlVolumeType.ForceRemove) { ResourceList = new string[] { item.Name } }, (response) =>
+                        {
+                            InvokeAsync(RefreshVolume);
+                        });
+                        IsActionRunning = false;
+                        await InvokeAsync(RefreshVolume);
+
                     }
                     break;
             }

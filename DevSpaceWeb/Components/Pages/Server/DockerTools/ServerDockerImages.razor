@@ -300,8 +300,10 @@
             if (SelectedImages.Any(x => x.ContainersCount != 0 || x.IsParent))
             {
                 bool Confirm = await Dialogs.ShowConfirmAsync("Image Conflict", "Some images are being used by containers would you like to force remove the selected images and stop running containers.", "Confirm", ButtonStyle.Success);
+
                 if (!Confirm)
                     return;
+
                 type = ControlImageType.ForceRemove;
 
                 if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
@@ -384,20 +386,22 @@
                             return;
 
                         bool Confirm = await Dialogs.ShowConfirmAsync("Force Remove Image", "This will stop any running containers using this image.", "Confirm", ButtonStyle.Success);
-                        if (Confirm)
+
+                        if (!Confirm)
+                            return;
+
+                        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+                            return;
+
+                        IsActionRunning = true;
+                        await InvokeAsync(StateHasChanged);
+                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.ForceRemove) { ResourceList = new string[] { item.ID } }, (response) =>
                         {
-                            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
-                                return;
 
-                            IsActionRunning = true;
-                            await InvokeAsync(StateHasChanged);
-                            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.ForceRemove) { ResourceList = new string[] { item.ID } }, (response) =>
-                            {
+                        });
+                        IsActionRunning = false;
+                        await InvokeAsync(RefreshImages);
 
-                            });
-                            IsActionRunning = false;
-                            await InvokeAsync(RefreshImages);
-                        }
                     }
                     break;
             }

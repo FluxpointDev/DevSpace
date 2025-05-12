@@ -176,20 +176,21 @@
         }
 
         bool Confirm = await Dialogs.ShowConfirmAsync($"Unban {ban.ipguid}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
-            {
-                await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
-                return;
-            }
 
-            if (!rc.IsConnected)
-            {
-                await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
-                return;
-            }
-            rc.UnbanPlayer(ban.GUID);
+        if (!Confirm)
+            return;
+
+        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
+        {
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+            return;
         }
+
+        if (!rc.IsConnected)
+        {
+            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+            return;
+        }
+        rc.UnbanPlayer(ban.GUID);
     }
 }

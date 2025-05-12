@@ -841,31 +841,33 @@
     public async Task RemoveAllSessions()
     {
         bool Confirm = await Dialogs.ShowConfirmAsync("Remove All Sessions", "This will remove all login sessions except the current one.", "Confirm", ButtonStyle.Warning);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            if (AuthUser.Mfa.IsTwoFactorEnabled)
+            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
+            if (!TwoFactorValid)
             {
-                bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
-                if (!TwoFactorValid)
-                {
-                    await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
-                    return;
-                }
-            }
-
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
-
-            AuthUser.Account.Sessions = AuthUser.Account.Sessions.Where(x => x.Key == Session.CurrentSessionId).ToDictionary();
-            await UserManager.UpdateAsync(AuthUser);
-            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
-            StateHasChanged();
+            }
         }
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        AuthUser.Account.Sessions = AuthUser.Account.Sessions.Where(x => x.Key == Session.CurrentSessionId).ToDictionary();
+        await UserManager.UpdateAsync(AuthUser);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        StateHasChanged();
+
     }
 
     public async Task RegisterPasskey()
@@ -1089,32 +1091,35 @@
             await Dialogs.ShowInfoAsync("Passkey Info", "You do not have any passkeys registered");
             return;
         }
+
         bool Confirm = await Dialogs.ShowConfirmAsync("Remove All Passkeys", "Are you sure you want to remove all passkeys?", "Confirm", ButtonStyle.Warning);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
+        if (!TwoFactorValid)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
-            if (!TwoFactorValid)
-            {
-                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
-                return;
-            }
-
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            AuthUser.Mfa.Passkeys.Clear();
-            if (!AuthUser.Mfa.HasAny2FA())
-                AuthUser.Mfa.Disable2FA(AuthUser);
-
-            await UserManager.UpdateAsync(AuthUser);
-            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
-            StateHasChanged();
+            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            return;
         }
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        AuthUser.Mfa.Passkeys.Clear();
+        if (!AuthUser.Mfa.HasAny2FA())
+            AuthUser.Mfa.Disable2FA(AuthUser);
+
+        await UserManager.UpdateAsync(AuthUser);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        StateHasChanged();
+
     }
 
     public async Task RemoveAllAuthenticators()
@@ -1129,31 +1134,33 @@
             return;
         }
         bool Confirm = await Dialogs.ShowConfirmAsync("Remove All Authenticators", "Are you sure you want to remove all authenticators?", "Confirm", ButtonStyle.Warning);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
+        if (!TwoFactorValid)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
-            if (!TwoFactorValid)
-            {
-                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
-                return;
-            }
-
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            IdentityUserToken<ObjectId>? Token = AuthUser.GetToken("[AspNetUserStore]", "AuthenticatorKey");
-            if (Token != null)
-                AuthUser.RemoveUserToken(Token);
-            AuthUser.Mfa.AuthenticatorDevices.Clear();
-            if (!AuthUser.Mfa.HasAny2FA())
-                AuthUser.Mfa.Disable2FA(AuthUser);
-
-            await UserManager.UpdateAsync(AuthUser);
-            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
-            StateHasChanged();
+            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            return;
         }
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        IdentityUserToken<ObjectId>? Token = AuthUser.GetToken("[AspNetUserStore]", "AuthenticatorKey");
+        if (Token != null)
+            AuthUser.RemoveUserToken(Token);
+        AuthUser.Mfa.AuthenticatorDevices.Clear();
+        if (!AuthUser.Mfa.HasAny2FA())
+            AuthUser.Mfa.Disable2FA(AuthUser);
+
+        await UserManager.UpdateAsync(AuthUser);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        StateHasChanged();
+
     }
 
     public async Task GenerateBackupCodes()
@@ -1212,27 +1219,27 @@
     public async Task Disable2FA()
     {
         bool Confirm = await Dialogs.ShowConfirmAsync("Disable 2FA", "This will remove all authenticator apps and passkeys?", "Confirm", ButtonStyle.Warning);
-        if (Confirm)
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
+        if (!TwoFactorValid)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
-            if (!TwoFactorValid)
-            {
-                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
-                return;
-            }
-
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            AuthUser.Mfa.Disable2FA(AuthUser);
-
-            await UserManager.UpdateAsync(AuthUser);
-            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
-            StateHasChanged();
-            await Dialogs.ShowInfoAsync("2FA Disabled", "2FA has been disabled for your account including backup code.");
-
+            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            return;
         }
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        AuthUser.Mfa.Disable2FA(AuthUser);
+
+        await UserManager.UpdateAsync(AuthUser);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        StateHasChanged();
+        await Dialogs.ShowInfoAsync("2FA Disabled", "2FA has been disabled for your account including backup code.");
     }
 }

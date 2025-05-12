@@ -402,16 +402,17 @@ else
             return;
 
         bool Confirm = await Dialogs.ShowConfirmAsync("Remove Network", $"Are you sure you want to remove this network?", "Yes", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
-                return;
 
-            IsActionLoading = true;
+        if (!Confirm)
+            return;
 
-            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.Remove));
-            if (Result.IsSuccess)
-                Network = null;
-        }
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
+            return;
+
+        IsActionLoading = true;
+
+        SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.Remove));
+        if (Result.IsSuccess)
+            Network = null;
     }
 }
