@@ -43,7 +43,7 @@
     {
         <div class="dash-box-content">
             <ActionBar>
-                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumeAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumesAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton Variant="Variant.Filled" Text="Create Volume" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateVolume" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
                 <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshVolume" Disabled="@IsLoading" />
             </ActionBar>
@@ -211,7 +211,7 @@
 
 
 
-    async Task RunSelectedVolumeAction(ControlVolumeType type)
+    async Task RunSelectedVolumesAction(ControlVolumeType type)
     {
         if (Program.IsPreviewMode)
         {

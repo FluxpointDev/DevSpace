@@ -44,7 +44,7 @@
 
     <div class="dash-box-content">
         <ActionBar>
-            <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlNetworkType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedNetworksAction(ControlNetworkType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
             <RadzenButton Variant="Variant.Filled" Text="Create Network" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateNetwork" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
             <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshNetworks" Disabled="@IsLoading" />
         </ActionBar>
@@ -216,7 +216,7 @@
         await Grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 
-    void RunSelectedContainersAction(ControlNetworkType type)
+    void RunSelectedNetworksAction(ControlNetworkType type)
     {
         if (Program.IsPreviewMode)
         {

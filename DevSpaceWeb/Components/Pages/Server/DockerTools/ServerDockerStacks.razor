@@ -43,7 +43,7 @@
     {
     <div class="dash-box-content">
         <ActionBar>
-            <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlStackType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small"/>
+                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedStacksAction(ControlStackType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
             <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/build")"><RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))" /></a>
             <RadzenButton Variant="Variant.Filled" Click="@ImportStack" Text="Import Stack" Icon="publish" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(Member == null || Team == null || Server == null || Program.IsPreviewMode || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))" />
             <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshStacks" Disabled="@IsLoading" />
@@ -229,7 +229,7 @@
         await Grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 
-    void RunSelectedContainersAction(ControlStackType type)
+    void RunSelectedStacksAction(ControlStackType type)
     {
         if (Program.IsPreviewMode)
         {

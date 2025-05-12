@@ -44,9 +44,9 @@
             </RadzenAlert>
             <br />
             <ActionBar>
-                <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@(() => RunSelectedContainersAction(ControlPluginType.Enable))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@(() => RunSelectedContainersAction(ControlPluginType.Disable))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlPluginType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@(() => RunSelectedPluginsAction(ControlPluginType.Enable))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@(() => RunSelectedPluginsAction(ControlPluginType.Disable))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedPluginsAction(ControlPluginType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton Variant="Variant.Filled" Text="Install Plugin" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@InstallPlugin" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" />
                 <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshPlugins" Disabled="@IsLoading" />
             </ActionBar>
@@ -211,7 +211,7 @@
         await Grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 
-    void RunSelectedContainersAction(ControlPluginType type)
+    void RunSelectedPluginsAction(ControlPluginType type)
     {
         if (Program.IsPreviewMode)
         {

@@ -68,7 +68,7 @@
             <br />
 
             <ActionBar>
-                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedImagesAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshImages" Disabled="@IsLoading" />
             </ActionBar>
             
@@ -277,7 +277,7 @@
         await grid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
     }
 
-    async Task RunSelectedContainersAction(ControlImageType type)
+    async Task RunSelectedImagesAction(ControlImageType type)
     {
         if (Program.IsPreviewMode)
         {
