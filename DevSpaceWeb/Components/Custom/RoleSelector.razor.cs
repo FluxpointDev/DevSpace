@@ -81,7 +81,7 @@ public partial class RoleSelector<TItem> : RadzenComponent
     [Parameter]
     public RenderFragment<TItem>? Template { get; set; }
 
-    private RenderFragment<dynamic> ListBoxTemplate => Template != null ? item => Template((TItem)item) : null;
+    private RenderFragment<dynamic>? ListBoxTemplate => Template != null ? item => Template((TItem)item) : null;
 
     /// <summary>
     /// Gets or sets value if filtering is allowed.

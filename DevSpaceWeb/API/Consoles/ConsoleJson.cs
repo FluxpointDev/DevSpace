@@ -33,5 +33,5 @@ public class ConsoleJson
     public ConsoleType type;
     public bool is_online;
     public DateTime created_at;
-    public string ip;
+    public string? ip;
 }

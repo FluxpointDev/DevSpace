@@ -67,10 +67,10 @@
     }
 
     [Parameter]
-    public string SetupKey { get; set; }
+    public string? SetupKey { get; set; }
 
     [Parameter]
-    public string SetupUrl { get; set; }
+    public string? SetupUrl { get; set; }
 
     public AccountRegisterAuthenticatorModel RegisterModel = new AccountRegisterAuthenticatorModel();
 
@@ -89,11 +89,11 @@
             return;
         }
 
-        bool Test = await Authenticator.ValidateAsync("", RegisterModel.Code, UserManager, user);
+        bool Test = await Authenticator.ValidateAsync("", RegisterModel.Code!, UserManager, user);
         if (Test)
         {
             user.Mfa.AuthenticatorLastRegisteredAt = DateTime.UtcNow;
-            if (user.Mfa.AuthenticatorDevices.TryAdd(RegisterModel.DeviceName, true))
+            if (user.Mfa.AuthenticatorDevices.TryAdd(RegisterModel.DeviceName!, true))
             {
                 user.Mfa.IsTwoFactorEnabled = true;
                 await UserManager.UpdateAsync(user);

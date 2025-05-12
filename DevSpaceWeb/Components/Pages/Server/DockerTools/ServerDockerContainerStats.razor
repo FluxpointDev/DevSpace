@@ -518,11 +518,15 @@ else
 
         await InvokeAsync(StateHasChanged);
 
-        StatsTimer.Start();
+        if (StatsTimer != null)
+            StatsTimer.Start();
     }
 
-    private string FormatMemory(object value)
+    private string FormatMemory(object? value)
     {
+        if (value == null)
+            return "0 B";
+
         try
         {
             return Utils.SizeSuffix(Convert.ToInt64(value.ToString()?.Split('.').First()), 0);

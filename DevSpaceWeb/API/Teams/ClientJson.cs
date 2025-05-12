@@ -27,5 +27,5 @@ public class ClientJson
     public DateTime? token_generated_at;
     public bool use_custom_permissions;
     public PermissionsSet allowed_permissions;
-    public PermissionsSet custom_permissions;
+    public PermissionsSet? custom_permissions;
 }

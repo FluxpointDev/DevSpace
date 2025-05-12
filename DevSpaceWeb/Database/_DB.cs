@@ -228,6 +228,7 @@ public static class _DB
                             Logger.LogMessage("Database", "- Roles: Migrating " + i.Name, LogSeverity.Info);
 
 #pragma warning disable CS0612 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
                             if (i.Roles != null)
                             {
                                 _ = i.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Unset(x => x.Roles), () =>
@@ -235,6 +236,7 @@ public static class _DB
 
                                 });
                             }
+
 
                             int Position = 0;
                             Dictionary<ObjectId, int> UpdatedPositions = [];
@@ -248,6 +250,7 @@ public static class _DB
 
                                 });
                             }
+#pragma warning restore CS0618 // Type or member is obsolete
 #pragma warning restore CS0612 // Type or member is obsolete
 
                             await i.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.RolePositions, UpdatedPositions), () =>

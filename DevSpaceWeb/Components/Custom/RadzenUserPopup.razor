@@ -41,7 +41,7 @@
             IEnumerable<PartialUserData> list = Team.Members.Select(dict => _DB.Users.TryGetValue(dict.Key, out PartialUserData? ur) ? ur : null).Where(val => val != null).AsQueryable();
             if (args != null && !string.IsNullOrEmpty(args.Filter))
             {
-                list = list.Where(c => c.UserName.ToLower().Contains(args.Filter, StringComparison.OrdinalIgnoreCase) || (!string.IsNullOrEmpty(c.DisplayName) && c.DisplayName.ToLower().Contains(args.Filter, StringComparison.OrdinalIgnoreCase)));
+                list = list.Where(c => !string.IsNullOrEmpty(c.UserName) && c.UserName.ToLower().Contains(args.Filter, StringComparison.OrdinalIgnoreCase) || (!string.IsNullOrEmpty(c.DisplayName) && c.DisplayName.ToLower().Contains(args.Filter, StringComparison.OrdinalIgnoreCase)));
             }
             users = list;
             InvokeAsync(StateHasChanged);
