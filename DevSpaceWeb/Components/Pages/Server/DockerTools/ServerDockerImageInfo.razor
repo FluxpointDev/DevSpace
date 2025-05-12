@@ -659,18 +659,17 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
-        bool Confirm = await Dialogs.ShowConfirmAsync(option + " Image", $"Are you sure you want to {option.ToLower()} this image?" + (option == "Force Remove" ? "\nThis will stop any running containers using this image." : null), "Yes", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
-                return;
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Image: " + Image?.Name,
+            "Are you sure you want to remove this image?", "Confirm", ButtonStyle.Success);
 
-            IsActionLoading = true;
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+            return;
 
-            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, ImageId, imageType: option == "Force Remove" ? ControlImageType.ForceRemove : ControlImageType.Remove));
-            if (Result.IsSuccess)
-                Image = null;
-        }
+        IsActionLoading = true;
+
+        SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, ImageId, imageType: option == "Force Remove" ? ControlImageType.ForceRemove : ControlImageType.Remove));
+        if (Result.IsSuccess)
+            Image = null;
     }
 
     public bool CanManageContainer;
