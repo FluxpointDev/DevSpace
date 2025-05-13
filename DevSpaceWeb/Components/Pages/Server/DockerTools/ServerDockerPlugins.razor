@@ -235,7 +235,7 @@
         }
     }
 
-    void RunSelectedPluginsAction(ControlPluginType type)
+    async Task RunSelectedPluginsAction(ControlPluginType type)
     {
         if (Program.IsPreviewMode)
         {
@@ -246,9 +246,16 @@
         if (Member == null || Server == null || SelectedPlugins == null)
             return;
 
-
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
             return;
+
+        if (type == ControlPluginType.Remove)
+        {
+
+
+            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
+                return;
+        }
 
         _ = Task.Run(async () =>
         {
@@ -382,6 +389,15 @@
                     break;
                 case "remove":
                     {
+                        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
+                            return;
+
+                        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Plugin: " + item?.Name,
+                            "Are you sure you want to remove this plugin?", "Confirm", ButtonStyle.Success);
+
+                        if (!Confirm)
+                            return;
+
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
                             return;
 
