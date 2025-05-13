@@ -316,40 +316,38 @@ else
         </RadzenTable>
                 </RadzenTabsItem>
                 @if (Image.Config != null && Image.Config.Labels != null && Image.Config.Labels.Any())
-    {
-                <RadzenTabsItem Text="Labels">
+                {
+                    <RadzenTabsItem Text="Labels">
                     @foreach (KeyValuePair<string, string> i in Image.Config.Labels)
-            {
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">
-                    @i.Value
-                </RadzenText>
-                <br />
-            }
-                </RadzenTabsItem>
-    }
+                    {
+                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            @i.Value
+                        </RadzenText>
+                        <br />
+                    }
+                    </RadzenTabsItem>
+                }
                 @if (Image.Config != null && Image.Config.Environment != null && Image.Config.Environment.Any())
                 {
-                <RadzenTabsItem Text="Environment">
-                    @if (ShowEnvironment)
-            {
-                foreach (KeyValuePair<string, string?> i in ParseEnvironment(Image.Config.Environment!))
-                {
-                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        @i.Value
-                    </RadzenText>
-                    <br />
-                }
-
-            }
-            else
-            {
-                <RadzenText TextStyle="TextStyle.Body2">Environment is hidden by default</RadzenText>
-                <RadzenButton Text="Show Environment" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@(() => ShowEnvironment = true)" />
-
-            }
-                </RadzenTabsItem>
+                    <RadzenTabsItem Text="Environment">
+                        @if (ShowEnvironment)
+                        {
+                            foreach (KeyValuePair<string, string?> i in ParseEnvironment(Image.Config.Environment!))
+                            {
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    @i.Value
+                                </RadzenText>
+                                <br />
+                            }
+                        }
+                        else
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2">Environment is hidden by default</RadzenText>
+                            <RadzenButton Text="Show Environment" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@(() => ShowEnvironment = true)" />
+                        }
+                    </RadzenTabsItem>
                 }
              </Tabs>
         </RadzenTabs>
