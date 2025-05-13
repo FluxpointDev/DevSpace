@@ -5,6 +5,7 @@
 @using DevSpaceShared.WebSocket
 @using Docker.DotNet.Models
 @using System.Linq.Dynamic.Core
+@inject DialogService Dialogs
 @inject ContextMenuService ContextMenuService
 @inject TooltipService tooltipService
 @inject NavigationManager Nav
@@ -208,7 +209,7 @@
     RadzenDataGrid<DockerContainerInfo> Grid;
     public bool IsLoading = true;
     public bool IsActionRunning { get; set; }
-    
+
     public string? SearchText { get; set; }
     public async Task SetNameFilter(string? text)
     {
@@ -424,9 +425,18 @@
                     if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
                         return;
 
+                    bool Confirm = await Dialogs.ShowConfirmAsync("Remove Container: " + item?.Name,
+                            item.IsRunning() ? "This container is running are you sure you want to remove it?" : "Are you sure you want to remove this container?", "Confirm", ButtonStyle.Success);
+
+                    if (!Confirm)
+                        return;
+
+                    if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                        return;
+
                     IsActionRunning = true;
                     await InvokeAsync(StateHasChanged);
-                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Remove));
+                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.ForceRemove));
                     IsActionRunning = false;
                     await InvokeAsync(RefreshContainers);
                     break;
@@ -436,7 +446,7 @@
         ContextMenuService.Close();
     }
 
-    void RunSelectedContainersAction(ControlContainerType type)
+    async Task RunSelectedContainersAction(ControlContainerType type)
     {
         if (Program.IsPreviewMode)
         {
@@ -449,6 +459,33 @@
 
         if (type == ControlContainerType.Remove || type == ControlContainerType.ForceRemove)
         {
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                return;
+
+            if (SelectedContainers.Any(x => x.IsRunning()))
+            {
+                bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedContainers.Count} container" + (SelectedContainers.Count != 1 ? "s" : ""), (SelectedContainers.Count == 1 ? "This container is" : "Some containers are") + $" running would you like to force remove the selected container{(SelectedContainers.Count != 1 ? "s" : "")}.", "Confirm", ButtonStyle.Success);
+
+                if (!Confirm)
+                    return;
+
+                type = ControlContainerType.ForceRemove;
+
+                if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                    return;
+            }
+            else
+            {
+                bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedContainers.Count} container" + (SelectedContainers.Count != 1 ? "s" : ""),
+                    $"Are you sure you want to remove {(SelectedContainers.Count == 1 ? "this container" : "these containers")}: " + string.Join(", ", SelectedContainers.Select(x => x.Name)), "Confirm", ButtonStyle.Success);
+
+                if (!Confirm)
+                    return;
+
+                if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                    return;
+            }
+
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
                 return;
         }

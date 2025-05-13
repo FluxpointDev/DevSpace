@@ -251,7 +251,11 @@
 
         if (type == ControlPluginType.Remove)
         {
+            bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedPlugins.Count} plugin" + (SelectedPlugins.Count != 1 ? "s" : ""),
+                $"Are you sure you want to remove these {(SelectedPlugins.Count == 1 ? "this plugin" : "these plugins")}: " + string.Join(", ", SelectedPlugins.Select(x => x.Name.Split(':').First())), "Confirm", ButtonStyle.Success);
 
+            if (!Confirm)
+                return;
 
             if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
                 return;
@@ -366,7 +370,7 @@
 
                             if (Perms.Any())
                             {
-                                bool Confirm = await Dialogs.ShowConfirmAsync($"{item.Name} Requires Permissions", $"This plugin requires permissions.\n\n" + string.Join("\n\n", Perms), "Accept", ButtonStyle.Success);
+                                bool Confirm = await Dialogs.ShowConfirmAsync($"{item.Name.Split(':').First()} Requires Permissions", $"This plugin requires permissions.\n\n" + string.Join("\n\n", Perms), "Accept", ButtonStyle.Success);
                                 if (!Confirm)
                                     if (!Response.IsSuccess)
                                     {
@@ -392,7 +396,7 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
                             return;
 
-                        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Plugin: " + item?.Name,
+                        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Plugin: " + item?.Name.Split(':').First(),
                             "Are you sure you want to remove this plugin?", "Confirm", ButtonStyle.Success);
 
                         if (!Confirm)
@@ -447,7 +451,7 @@
                 List<string> Perms = new List<string>();
                 foreach (PluginPrivilege i in list.ToObject<IList<PluginPrivilege>>())
                 {
-                    Perms.Add($"{i.Name}: {string.Join(",", i.Value)}");
+                    Perms.Add($"{i.Name}: {string.Join(", ", i.Value)}");
                 }
 
                 if (Perms.Any())

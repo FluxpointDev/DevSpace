@@ -239,7 +239,7 @@
         }
     }
 
-    void RunSelectedNetworksAction(ControlNetworkType type)
+    async Task RunSelectedNetworksAction(ControlNetworkType type)
     {
         if (Program.IsPreviewMode)
         {
@@ -252,6 +252,15 @@
 
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
             return;
+
+        if (type == ControlNetworkType.Remove)
+        {
+            bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedNetworks.Count} network" + (SelectedNetworks.Count != 1 ? "s" : ""),
+                $"Are you sure you want to remove {(SelectedNetworks.Count == 1 ? "this network" : "these networks")}: " + string.Join(", ", SelectedNetworks.Select(x => x.Name)), "Confirm", ButtonStyle.Success);
+            
+            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
+                return;
+        }
 
         _ = Task.Run(async () =>
         {
@@ -303,11 +312,18 @@
                     if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
                         return;
 
+                    bool Confirm = await Dialogs.ShowConfirmAsync("Remove Network: " + item?.Name,
+                        "Are you sure you want to remove this network?", "Confirm", ButtonStyle.Success);
+
+                    if (!Confirm)
+                        return;
+
+                    if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
+                        return;
+
                     IsActionRunning = true;
                     await InvokeAsync(StateHasChanged);
-
                     await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, item.Id, networkType: ControlNetworkType.Remove));
-
                     IsActionRunning = false;
                     await InvokeAsync(RefreshNetworks);
                     break;

@@ -837,11 +837,11 @@ else
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
                 return;
 
-            
-
             bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedContainers.Count()} container" + (SelectedContainers.Count() > 1 ? "s" : ""),
             SelectedContainers.Any(x => x.IsRunning) ? "Some containers are still running, are you sure you want to remove?" :
             "Are you sure you want to remove containers?", "Confirm", ButtonStyle.Success);
+
+            type = ControlContainerType.ForceRemove;
 
             if (!Confirm)
                 return;

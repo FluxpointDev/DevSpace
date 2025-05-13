@@ -248,12 +248,23 @@
 
         if (SelectedVolumes.Any(x => x.ContainersCount != 0))
         {
-            bool Confirm = await Dialogs.ShowConfirmAsync("Volume Conflict", "Some volumes are being used by containers would you like to force remove the selected volumes and stop running containers.", "Confirm", ButtonStyle.Success);
+            bool Confirm = await Dialogs.ShowConfirmAsync("Volume Conflict", (SelectedVolumes.Count == 1 ? "This volume is" : "Some volumes are") + $" being used by containers would you like to force remove the selected volume{(SelectedVolumes.Count != 1 ? "s" : "")} and stop running containers.", "Confirm", ButtonStyle.Success);
 
             if (!Confirm)
                 return;
 
             type = ControlVolumeType.ForceRemove;
+
+            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
+                return;
+        }
+        else
+        {
+            bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedVolumes.Count} volume" + (SelectedVolumes.Count != 1 ? "s" : ""),
+                $"Are you sure you want to remove {(SelectedVolumes.Count == 1 ? "this volume" : "these volumes")}: " + string.Join(", ", SelectedVolumes.Select(x => x.Name)), "Confirm", ButtonStyle.Success);
+
+            if (!Confirm)
+                return;
 
             if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
                 return;

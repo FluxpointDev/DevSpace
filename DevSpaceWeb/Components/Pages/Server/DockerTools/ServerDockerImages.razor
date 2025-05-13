@@ -318,11 +318,20 @@
             _ = Dialogs.ShowInfoAsync("Unavailable", "The export feature is not available yet.");
             return;
         }
-        else
+        else if (type == ControlImageType.Remove)
         {
+            bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedImages.Count} image" + (SelectedImages.Count != 1 ? "s" : ""),
+                $"Are you sure you want to remove these {(SelectedImages.Count == 1 ? "this image" : "these images")}: " + string.Join(", ", SelectedImages.Select(x => x.Name)), "Confirm", ButtonStyle.Success);
+
+            if (!Confirm)
+                return;
+
+            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+                return;
+
             if (SelectedImages.Any(x => x.ContainersCount != 0 || x.IsParent))
             {
-                bool Confirm = await Dialogs.ShowConfirmAsync("Image Conflict", "Some images are being used by containers would you like to force remove the selected images and stop running containers.", "Confirm", ButtonStyle.Success);
+                Confirm = await Dialogs.ShowConfirmAsync("Image Conflict", "Some images are being used by containers would you like to force remove the selected images and stop running containers.", "Confirm", ButtonStyle.Success);
 
                 if (!Confirm)
                     return;
@@ -393,6 +402,15 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
                             return;
 
+                        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Image: " + item?.Name,
+                            "Are you sure you want to remove this image?", "Confirm", ButtonStyle.Success);
+
+                        if (!Confirm)
+                            return;
+
+                        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
+                            return;
+
                         IsActionRunning = true;
                         await InvokeAsync(StateHasChanged);
                         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.Remove) { ResourceList = new string[] { item.ID } }, (response) =>
@@ -408,7 +426,7 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
                             return;
 
-                        bool Confirm = await Dialogs.ShowConfirmAsync("Force Remove Image", "This will stop any running containers using this image.", "Confirm", ButtonStyle.Success);
+                        bool Confirm = await Dialogs.ShowConfirmAsync("Force Remove Image:" + item?.Name, "This will stop any running containers using this image.", "Confirm", ButtonStyle.Success);
 
                         if (!Confirm)
                             return;

@@ -6,7 +6,7 @@ public static class DockerExtensions
 {
     public static bool IsRunning(this DockerContainerInfo container)
     {
-        switch (container.Status)
+        switch (container.State)
         {
             case "running":
             case "restarting":

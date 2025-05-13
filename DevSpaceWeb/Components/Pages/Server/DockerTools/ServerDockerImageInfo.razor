@@ -644,8 +644,8 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
-        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Image: " + Image?.Name,
-            "Are you sure you want to remove this image?", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync($"{option} Image: " + Image?.Name,
+            option == "Force Remove" ? "This will stop any running containers using this image." : "Are you sure you want to remove this image?", "Confirm", ButtonStyle.Success);
 
         if (!Confirm)
             return;
