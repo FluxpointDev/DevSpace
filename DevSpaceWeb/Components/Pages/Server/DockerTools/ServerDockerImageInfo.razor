@@ -214,51 +214,14 @@ else
 
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
-            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:build"></span></div>
-            <RadzenText TextStyle="TextStyle.H6">Build</RadzenText>
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Details</RadzenText>
         </div>
-        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
-            <RadzenTableBody>
-                <RadzenTableRow>
-                    <RadzenTableCell>
-                        Comment
-                    </RadzenTableCell>
-                    <RadzenTableCell>
-                        @Image.Comment
-                    </RadzenTableCell>
-                </RadzenTableRow>
-
-                <RadzenTableRow>
-                    <RadzenTableCell>
-                        Docker
-                    </RadzenTableCell>
-                    <RadzenTableCell>
-                        @if (!string.IsNullOrEmpty(Image.DockerVersion))
-                        {
-                            @("Version " + Image.DockerVersion)
-
-                        }
-                    </RadzenTableCell>
-                </RadzenTableRow>
-
-                <RadzenTableRow>
-                    <RadzenTableCell>
-                        OS
-                    </RadzenTableCell>
-                    <RadzenTableCell>
-                        @Image.Os (@Image.Architecture)
-                    </RadzenTableCell>
-                </RadzenTableRow>
-            </RadzenTableBody>
-        </RadzenTable>
-    </div>
-
-    <div class="dash-box dash-box-content">
-        <div class="dash-box-header">
-            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:file-document"></span></div>
-            <RadzenText TextStyle="TextStyle.H6">Dockerfile</RadzenText>
-        </div>
-        <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+        <br />
+        <RadzenTabs RenderMode="TabRenderMode.Server">
+            <Tabs>
+                <RadzenTabsItem Text="Info">
+                    <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
             <RadzenTableBody>
                 <RadzenTableRow>
                     <RadzenTableCell>
@@ -313,20 +276,62 @@ else
                         </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
-
             </RadzenTableBody>
         </RadzenTable>
-    </div>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="Build">
+                    <RadzenTable GridLines="DataGridGridLines.Horizontal" class="table-properties">
+            <RadzenTableBody>
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Comment
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.Comment
+                    </RadzenTableCell>
+                </RadzenTableRow>
 
-    @if (Image.Config != null && Image.Config.Environment != null && Image.Config.Environment.Any())
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Docker
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (!string.IsNullOrEmpty(Image.DockerVersion))
+                        {
+                            @("Version " + Image.DockerVersion)
+
+                        }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        OS
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Image.Os (@Image.Architecture)
+                    </RadzenTableCell>
+                </RadzenTableRow>
+            </RadzenTableBody>
+        </RadzenTable>
+                </RadzenTabsItem>
+                @if (Image.Config != null && Image.Config.Labels != null && Image.Config.Labels.Any())
     {
-        <div class="dash-box dash-box-content">
-            <div class="dash-box-header">
-                <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
-                <RadzenText TextStyle="TextStyle.H6">Environment</RadzenText>
-            </div>
-            <br />
-            @if (ShowEnvironment)
+                <RadzenTabsItem Text="Labels">
+                    @foreach (KeyValuePair<string, string> i in Image.Config.Labels)
+            {
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @i.Value
+                </RadzenText>
+                <br />
+            }
+                </RadzenTabsItem>
+    }
+                @if (Image.Config != null && Image.Config.Environment != null && Image.Config.Environment.Any())
+                {
+                <RadzenTabsItem Text="Environment">
+                    @if (ShowEnvironment)
             {
                 foreach (KeyValuePair<string, string?> i in ParseEnvironment(Image.Config.Environment!))
                 {
@@ -344,95 +349,16 @@ else
                 <RadzenButton Text="Show Environment" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@(() => ShowEnvironment = true)" />
 
             }
-        </div>
-    }
-
-    @if (Image.Config != null && Image.Config.Labels != null && Image.Config.Labels.Any())
-    {
-        <div class="dash-box dash-box-content">
-            <div class="dash-box-header">
-                <div class="dash-box-icon"><span class="iconify" data-icon="mdi:tag"></span></div>
-                <RadzenText TextStyle="TextStyle.H6">Labels</RadzenText>
-            </div>
-            <br />
-            @foreach (KeyValuePair<string, string> i in Image.Config.Labels)
-            {
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-                <RadzenText TextStyle="TextStyle.Body2">
-                    @i.Value
-                </RadzenText>
-                <br />
-            }
-        </div>
-    }
-
-    <div class="dash-box dash-box-content">
-        <div class="dash-box-header">
-            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:format-list-numbered"></span></div>
-            <RadzenText TextStyle="TextStyle.H6">Layers</RadzenText>
-        </div>
-        <br />
-        @if (ShowLayers)
-        {
-            <RadzenTabs RenderMode="TabRenderMode.Server">
-                <Tabs>
-                    <RadzenTabsItem Text="List">
-                        <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false" class="table-properties">
-                            <RadzenTableHeader>
-                                <RadzenTableHeaderRow>
-                                    <RadzenTableHeaderCell Style="width: 60px !important;">
-                                        Order
-                                    </RadzenTableHeaderCell>
-                                    <RadzenTableHeaderCell Style="width: 100px !important;">
-                                        Size
-                                    </RadzenTableHeaderCell>
-                                    <RadzenTableHeaderCell>
-                                        Data
-                                    </RadzenTableHeaderCell>
-                                </RadzenTableHeaderRow>
-                            </RadzenTableHeader>
-                            <RadzenTableBody>
-                                @if (Layers != null)
-                                {
-                                    @for (int col = 0; col < Layers.Count(); col++)
-                                    {
-                                        int index = col;
-                                        <RadzenTableRow>
-                                            <RadzenTableCell>
-                                                @index
-                                            </RadzenTableCell>
-                                            <RadzenTableCell>
-                                                @Utils.SizeSuffix(Layers[index].Size)
-                                            </RadzenTableCell>
-                                            <RadzenTableCell>
-                                                @Layers[index].CreatedBy
-                                            </RadzenTableCell>
-                                        </RadzenTableRow>
-                                    }
-                                }
-                            </RadzenTableBody>
-                        </RadzenTable>
-                    </RadzenTabsItem>
-                    <RadzenTabsItem Text="File">
-                        <Editor @ref="@_editor" Value="@LayersText" FileName="Dockerfile" Language="dockerfile" ReadOnly="true"></Editor>
-                    </RadzenTabsItem>
-                </Tabs>
-            </RadzenTabs>
-
-        }
-        else
-        {
-            <RadzenText TextStyle="TextStyle.Body2">Layers is hidden by default</RadzenText>
-            <RadzenButton Text="Show Layers" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@(() => ShowLayers = true)" />
-
-        }
+                </RadzenTabsItem>
+                }
+             </Tabs>
+        </RadzenTabs>
     </div>
 
     <div class="dash-box">
         <div class="dash-box-header dash-box-content">
-            <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <div class="dash-box-icon">
                 <span class="iconify" data-icon="ri:box-3-fill"></span>
-                <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
             </div>
             <RadzenText TextStyle="TextStyle.H6">Containers</RadzenText>
             @if ((IsLoading || IsActionRunning) && Member != null && Member != null && Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
@@ -460,7 +386,6 @@ else
                     <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                     <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                     <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected || IsActionRunning || !CanManageContainer)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
-                    <RadzenButton Variant="Variant.Filled" Text="Create Container (Not Available Yet)" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(true || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" />
                     <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@IsLoading" />
                 </ActionBar>
             </div>
@@ -556,6 +481,68 @@ else
                     </RadzenDataGridColumn>
                 </Columns>
             </RadzenDataGrid>
+        }
+    </div>
+
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:format-list-numbered"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Layers</RadzenText>
+        </div>
+        <br />
+        @if (ShowLayers)
+        {
+            <RadzenTabs RenderMode="TabRenderMode.Server">
+                <Tabs>
+                    <RadzenTabsItem Text="List">
+                        <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false" class="table-properties">
+                            <RadzenTableHeader>
+                                <RadzenTableHeaderRow>
+                                    <RadzenTableHeaderCell Style="width: 60px !important;">
+                                        Order
+                                    </RadzenTableHeaderCell>
+                                    <RadzenTableHeaderCell Style="width: 100px !important;">
+                                        Size
+                                    </RadzenTableHeaderCell>
+                                    <RadzenTableHeaderCell>
+                                        Data
+                                    </RadzenTableHeaderCell>
+                                </RadzenTableHeaderRow>
+                            </RadzenTableHeader>
+                            <RadzenTableBody>
+                                @if (Layers != null)
+                                {
+                                    @for (int col = 0; col < Layers.Count(); col++)
+                                    {
+                                        int index = col;
+                                        <RadzenTableRow>
+                                            <RadzenTableCell>
+                                                @index
+                                            </RadzenTableCell>
+                                            <RadzenTableCell>
+                                                @Utils.SizeSuffix(Layers[index].Size)
+                                            </RadzenTableCell>
+                                            <RadzenTableCell>
+                                                @Layers[index].CreatedBy
+                                            </RadzenTableCell>
+                                        </RadzenTableRow>
+                                    }
+                                }
+                            </RadzenTableBody>
+                        </RadzenTable>
+                    </RadzenTabsItem>
+                    <RadzenTabsItem Text="File">
+                        <Editor @ref="@_editor" Value="@LayersText" FileName="Dockerfile" Language="dockerfile" ReadOnly="true"></Editor>
+                    </RadzenTabsItem>
+                </Tabs>
+            </RadzenTabs>
+
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Body2">Layers is hidden by default</RadzenText>
+            <RadzenButton Text="Show Layers" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@(() => ShowLayers = true)" />
+
         }
     </div>
 }
