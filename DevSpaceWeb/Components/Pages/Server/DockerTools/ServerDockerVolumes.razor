@@ -86,11 +86,11 @@
                 <Template>
                     @if (context.Containers != null && context.Containers.Any() && context.Containers.First().Value == "registry")
                     {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">docker_registry</RadzenLink>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">docker_registry</RadzenLink>
                     }
                     else
                     {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
                     }
                         
                 </Template>
@@ -248,27 +248,25 @@
 
         if (SelectedVolumes.Any(x => x.ContainersCount != 0))
         {
-            bool Confirm = await Dialogs.ShowConfirmAsync("Volume Conflict", (SelectedVolumes.Count == 1 ? "This volume is" : "Some volumes are") + $" being used by containers would you like to force remove the selected volume{(SelectedVolumes.Count != 1 ? "s" : "")} and stop running containers.", "Confirm", ButtonStyle.Success);
+            bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedVolumes.Count} volume" + (SelectedVolumes.Count != 1 ? "s" : ""),
+                $"Some volumes are being used by containers, are you sure you want to remove {(SelectedVolumes.Count == 1 ? "this volume" : "these volumes")}: " + string.Join(", ", SelectedVolumes.Select(x => x.Name)), "Confirm", ButtonStyle.Success);
 
             if (!Confirm)
                 return;
 
             type = ControlVolumeType.ForceRemove;
-
-            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
-                return;
         }
         else
         {
             bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedVolumes.Count} volume" + (SelectedVolumes.Count != 1 ? "s" : ""),
-                $"Are you sure you want to remove {(SelectedVolumes.Count == 1 ? "this volume" : "these volumes")}: " + string.Join(", ", SelectedVolumes.Select(x => x.Name)), "Confirm", ButtonStyle.Success);
+                $"These volumes are unused, are you sure you want to remove {(SelectedVolumes.Count == 1 ? "this volume" : "these volumes")}: " + string.Join(", ", SelectedVolumes.Select(x => x.Name)), "Confirm", ButtonStyle.Success);
 
             if (!Confirm)
                 return;
-
-            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
-                return;
         }
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
+            return;
 
         _ = Task.Run(async () =>
         {
@@ -322,6 +320,16 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
                             return;
 
+                        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Volume: " + item.Name, item.ContainersCount != 0 ? 
+                            "This volume is being used by containers, are you sure you want to remove?." :
+                            "Unused volume are you sure you want to remove?", "Confirm", ButtonStyle.Success);
+
+                        if (!Confirm)
+                            return;
+
+                        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
+                            return;
+
                         IsActionRunning = true;
                         await InvokeAsync(StateHasChanged);
                         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, item.Name, volumeType: ControlVolumeType.Remove), (response) =>
@@ -337,7 +345,9 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
                             return;
 
-                        bool Confirm = await Dialogs.ShowConfirmAsync("Force Remove Volume", "This will stop any running containers using this volume.", "Confirm", ButtonStyle.Success);
+                        bool Confirm = await Dialogs.ShowConfirmAsync("Force Remove Volume: " + item.Name, item.ContainersCount != 0 ? 
+                            "This volume is being used by containers, are you sure you want to remove?." :
+                            "Unused volume are you sure you want to remove?", "Confirm", ButtonStyle.Success);
 
                         if (!Confirm)
                             return;
@@ -373,6 +383,7 @@
             return;
 
         await Dialogs.OpenAsync<CreateVolumeDialog>("Create Docker Volume");
+        await RefreshVolume();
     }
 
     public async Task RefreshVolume()

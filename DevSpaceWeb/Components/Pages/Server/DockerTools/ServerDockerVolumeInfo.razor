@@ -311,8 +311,9 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
             return;
 
-        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Volume: " + Volume?.Name,
-            "Are you sure you want to remove this volume?", "Confirm", ButtonStyle.Success);
+        bool Confirm = await Dialogs.ShowConfirmAsync(option + " Volume: " + Volume?.Name,
+            Volume.ContainersCount != 0 ? "This volume is being used by containers, are you sure you want to remove?" :
+            "This volume is unused, are you sure you want to remove?", "Confirm", ButtonStyle.Success);
 
         if (!Confirm)
             return;
