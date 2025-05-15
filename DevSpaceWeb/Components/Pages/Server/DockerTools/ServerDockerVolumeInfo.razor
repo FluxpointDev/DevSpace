@@ -112,7 +112,7 @@ else
                                 </ChildContent>
                             </RadzenSplitButton>
                         </RadzenStack>
-                        
+
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -155,34 +155,36 @@ else
         </RadzenTable>
     </div>
 
+    @if (Volume != null && Volume.Labels != null)
+    {
         <div class="dash-box dash-box-content">
             <div class="dash-box-header">
                 <div class="dash-box-icon"><span class="iconify" data-icon="mdi:tag"></span></div>
                 <RadzenText TextStyle="TextStyle.H6">Labels</RadzenText>
             </div>
             <br />
-            @if (Volume != null && Volume.Labels != null)
+
+            @foreach (KeyValuePair<string, string> i in Volume.Labels)
             {
-                    foreach (KeyValuePair<string, string> i in Volume.Labels)
-                    {
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                @i.Value
-                            </RadzenText>
-                            <br />
-                    }
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @i.Value
+                </RadzenText>
+                <br />
             }
+
         </div>
+    }
 
     @if (Volume != null && Volume.Status != null)
     {
-    <div class="dash-box dash-box-content">
-        <div class="dash-box-header">
+        <div class="dash-box dash-box-content">
+            <div class="dash-box-header">
                 <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
-            <RadzenText TextStyle="TextStyle.H6">Status</RadzenText>
-        </div>
-        <br />
-        
+                <RadzenText TextStyle="TextStyle.H6">Status</RadzenText>
+            </div>
+            <br />
+
             @foreach (KeyValuePair<string, object> i in Volume.Status)
             {
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
@@ -191,8 +193,8 @@ else
                 </RadzenText>
                 <br />
             }
-        
-    </div>
+
+        </div>
     }
 
     @if (Volume != null && Volume.Options != null)
