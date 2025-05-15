@@ -149,6 +149,10 @@ public static class DockerHandler
             case DockerEventType.ListNetworks:
                 return await DockerNetworks.ListNetworksAsync(Client);
 
+            case DockerEventType.CreateNetwork:
+                await DockerNetworks.CreateNetworkAsync(Client, @event.Data.ToObject<CreateNetworkEvent>());
+                break;
+
             case DockerEventType.ControlNetwork:
                 if (@event.ResourceList == null)
                     return await DockerNetworks.ControlNetworkAsync(Client, @event, @event.ResourceId);

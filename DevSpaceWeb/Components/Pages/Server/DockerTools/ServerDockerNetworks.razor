@@ -257,7 +257,7 @@
         {
             bool Confirm = await Dialogs.ShowConfirmAsync($"Remove {SelectedNetworks.Count} network" + (SelectedNetworks.Count != 1 ? "s" : ""),
                 $"Are you sure you want to remove {(SelectedNetworks.Count == 1 ? "this network" : "these networks")}: " + string.Join(", ", SelectedNetworks.Select(x => x.Name)), "Confirm", ButtonStyle.Success);
-            
+
             if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
                 return;
         }
@@ -345,6 +345,7 @@
             return;
 
         await Dialogs.OpenAsync<CreateNetworkDialog>("Create Docker Network");
+        await RefreshNetworks();
     }
 
     public async Task RefreshNetworks()

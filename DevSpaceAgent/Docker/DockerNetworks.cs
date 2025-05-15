@@ -33,6 +33,24 @@ public static class DockerNetworks
         return List;
     }
 
+    public static async Task CreateNetworkAsync(DockerClient client, CreateNetworkEvent? data)
+    {
+        if (data == null)
+            throw new Exception("Network creation options is missing.");
+
+        NetworksCreateParameters Create = new NetworksCreateParameters
+        {
+            Name = data.Name,
+            Driver = data.DriverType,
+            Options = data.DriverOptions,
+            Labels = data.Labels,
+            Attachable = data.IsManualAttach,
+            Internal = data.IsIsolated
+        };
+
+        await client.Networks.CreateNetworkAsync(Create);
+    }
+
     public static async Task<object?> ControlNetworkAsync(DockerClient client, DockerEvent @event, string id)
     {
         switch (@event.NetworkType)
