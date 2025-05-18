@@ -1,4 +1,5 @@
 ﻿@using System.Net.WebSockets
+@using DevSpaceShared.Events.Docker
 @using DevSpaceShared.WebSocket
 @using Docker.DotNet.Models
 @using System.Linq.Dynamic.Core
@@ -111,15 +112,34 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Pickable="false">
-                <Template>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                    </RadzenStack>
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
+                <RadzenDataGridColumn Title="Pull Limit" Filterable="false" Width="100px">
+                    <Template>
+                    @if (Program.IsPreviewMode)
+                    {
+                        @("69/100")
+                    }
+                    else
+                    {
+                        if (AnonymousPullLimit == null)
+                        {
+                            @("Unknown")
+                        }
+                        else
+                        {
+                            @($"{AnonymousPullLimit.CurrentLimit}/{AnonymousPullLimit.MaxLimit}")
+                        }
+                    }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Action" Filterable="false">
+                    <Template>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
     }
 </div>
 
@@ -146,6 +166,7 @@
     public bool AnySelected => selectedEmployees != null ? selectedEmployees.Any() : false;
     RadzenDataGrid<DockerRegistry> grid = null!;
     public bool IsLoading = true;
+    public RegistryLimitResponse? AnonymousPullLimit;
 
     public async Task LoadData(LoadDataArgs args)
     {
@@ -168,6 +189,10 @@
             {
                 new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }
             }.AsQueryable();
+
+            SocketResponse<RegistryLimitResponse?> Response = await Server.RecieveJsonAsync<RegistryLimitResponse>(new DockerEvent(DockerEventType.GetPullLimit));
+            if (Response.Data != null)
+                AnonymousPullLimit = Response.Data;
 
             if (!string.IsNullOrEmpty(args.Filter))
                 query = query.Where(args.Filter);
