@@ -485,7 +485,14 @@ else
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn Title="Image" Width="280px" Filterable="false">
                         <Template>
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + context.ImageId)" Text="@context.ImageName" />
+                            @if (!string.IsNullOrEmpty(context.ImageName) && context.ImageName.StartsWith("sha256:"))
+                            {
+                                <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + context.ImageId)" Text="@context.ImageName.Substring(7, 10)" />
+                            }
+                            else
+                            {
+                                <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + context.ImageId)" Text="@context.ImageName" />
+                            }
                         </Template>
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn Title="Created" Filterable="false">
