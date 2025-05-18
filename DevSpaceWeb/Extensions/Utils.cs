@@ -197,7 +197,7 @@ public static class Utils
         if (!string.IsNullOrEmpty(context.Request.Headers["X-Forwarded-For"]))
             return context.Request.Headers["X-Forwarded-For"];
 
-        return null;
+        return context.Connection.RemoteIpAddress?.ToString();
     }
 
     internal static string GetStringSha256Hash(string text)
