@@ -52,7 +52,7 @@
                         <RadzenIcon Icon="search" />
                     </Start>
                     <ChildContent>
-                        <RadzenTextBox id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                        <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
                                        autocapitalize="none" MaxLength="100" inputmode="search"
                                        @oninput="@(args => SetNameFilter(args.Value as string))" />
                     </ChildContent>
@@ -151,6 +151,13 @@
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
+
+    public RadzenTextBox SearchBox { get; set; } = null!;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SearchBox != null)
+            _ = SearchBox.FocusAsync();
+    }
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
