@@ -18,6 +18,15 @@
             </Template>
         </RadzenPanelMenuItem>
 
+        @if (Program.IsDevMode)
+        {
+            <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/debug")" Match="NavLinkMatch.All">
+                <Template>
+                    <span class="iconify" data-icon="mdi:bug"></span>
+                    <p>Debug</p>
+                </Template>
+            </RadzenPanelMenuItem>
+        }
         <RadzenPanelMenuItem @bind-Expanded="DockerExpanded" Click="(() => ToolsExpanded = false)"  Match="NavLinkMatch.Prefix">
             <Template>
                 <span class="iconify" data-icon="mdi:docker"></span>

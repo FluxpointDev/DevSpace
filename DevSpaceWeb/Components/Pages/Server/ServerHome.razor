@@ -28,224 +28,24 @@
             Failed to connect to the server.
         </RadzenAlert>
     }
-    <br />
-    <RadzenRow Gap="10px" RowGap="10px">
-        <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
-            <h6>System</h6>
-            <RadzenRow Gap="10px" RowGap="10px" class="mt-4">
-                <RadzenColumn SizeSM="12">
-                    <RadzenStack Orientation="Orientation.Horizontal">
-                        <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:information"></span>
-                        <div>
-                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
-                                Version
-                            </RadzenText>
-                            @if (Data != null)
-                            {
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @Data.OperatingSystem
-                                </RadzenText>
-                            }
-                            else
-                            {
-                                <RadzenSkeleton></RadzenSkeleton>
-                            }
-
-                        </div>
-                    </RadzenStack>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
-                        <div>
-                            <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:timer"></span>
-                        </div>
-                        <div style="overflow: hidden;">
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                Uptime
-                            </RadzenText>
-                            @if (Data != null)
-                            {
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @Data.GetUptimeText()
-                                </RadzenText>
-                            }
-                            else
-                            {
-                                <RadzenSkeleton></RadzenSkeleton>
-                            }
-                        </div>
-                    </RadzenStack>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
-                        <div>
-                            <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:wide-area-network"></span>
-                        </div>
-                        <div>
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                IP
-                            </RadzenText>
-                            @if (Data != null)
-                            {
-                                @if (Member != null && (Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo) || Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection)))
-                                {
-                                    <RadzenTextMask Value="@Server?.AgentIp" IsIp="true"></RadzenTextMask>
-                                }
-                                else
-                                {
-                                    <RadzenText TextStyle="TextStyle.Body2">
-                                        Hidden
-                                    </RadzenText>
-                                }
-                            }
-                            else
-                            {
-                                <RadzenSkeleton></RadzenSkeleton>
-                            }
-
-                        </div>
-                    </RadzenStack>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
-                        <div>
-                            <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:cpu-64-bit"></span>
-                        </div>
-                        <div>
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                CPU
-                            </RadzenText>
-                            @if (Data != null)
-                            {
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @Data.CpuCount
-                                </RadzenText>
-                            }
-                            else
-                            {
-                                <RadzenSkeleton></RadzenSkeleton>
-                            }
-
-                        </div>
-                    </RadzenStack>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
-                        <div>
-                            <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:memory"></span>
-                        </div>
-                        <div>
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                Memory
-                            </RadzenText>
-                            @if (Data != null)
-                            {
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @Utils.ToPrettySize(Data.RamTotal)
-                                </RadzenText>
-                            }
-                            else
-                            {
-                                <RadzenSkeleton></RadzenSkeleton>
-                            }
-
-                        </div>
-                    </RadzenStack>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
-                        <div>
-                            <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:storage"></span>
-                        </div>
-                        <div>
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                Storage
-                            </RadzenText>
-                            @if (Data != null)
-                            {
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @($"{Utils.SizeSuffix(Data.StorageTotalSize - Data.StorageFreeSize, 0)} / {Utils.SizeSuffix(Data.StorageTotalSize, 0)} ({100 * (Data.StorageTotalSize - Data.StorageFreeSize) / Data.StorageTotalSize}%)")
-                                </RadzenText>
-                            }
-                            else
-                            {
-                                <RadzenSkeleton></RadzenSkeleton>
-                            }
-
-                        </div>
-                    </RadzenStack>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
-                        <div>
-                            <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:dot-net"></span>
-                        </div>
-                        <div>
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                Agent
-                            </RadzenText>
-                            @if (Data != null)
-                            {
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @($"v{Data.AgentVersion} (.NET {Data.AgentNET})")
-                                </RadzenText>
-                            }
-                            else
-                            {
-                                <RadzenSkeleton></RadzenSkeleton>
-                            }
-
-                        </div>
-                    </RadzenStack>
-                </RadzenColumn>
-            </RadzenRow>
-            @if (Data != null && !string.IsNullOrEmpty(Program.LatestAgentVersion) && Program.LatestAgentVersion != Data.AgentVersion)
-            {
-                <a target="_blank" href="https://docs.fluxpoint.dev/devspace/guides/agent-guides/install-dev-space-agent#update-dev-space-agent">
-                    <RadzenAlert AlertStyle="AlertStyle.Success" class="mt-4" Icon="download" Size="AlertSize.Small" AllowClose="false" Variant="Variant.Filled" Shade="Shade.Darker">
-                        <strong>@("v" + Program.LatestAgentVersion)</strong> agent is available to install on this server.
-                    </RadzenAlert>
-                </a>
-            }
-        </RadzenColumn>
-        <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
-            <h6>Docker</h6>
-            <RadzenRow Gap="10px" RowGap="10px" class="mt-4">
-                <RadzenColumn SizeSM="12">
-                    <RadzenStack Orientation="Orientation.Horizontal">
-                        <span class="iconify settings-icon" style="color: var();" data-icon="mdi:docker"></span>
-                        <div>
-                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
-                                Version
-                            </RadzenText>
-                            @if (Data != null)
-                            {
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @Data.Docker.DockerVersion
-                                </RadzenText>
-                            }
-                            else
-                            {
-                                <RadzenSkeleton></RadzenSkeleton>
-                            }
-
-                        </div>
-                    </RadzenStack>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks")">
-                        <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+    else
+    {
+        <br />
+        <RadzenRow Gap="10px" RowGap="10px">
+            <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
+                <h6>System</h6>
+                <RadzenRow Gap="10px" RowGap="10px" class="mt-4">
+                    <RadzenColumn SizeSM="12">
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                            <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:information"></span>
                             <div>
-                                <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="ri:stack-fill"></span>
-                            </div>
-                            <div>
-                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                    Stacks
+                                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                                    Version
                                 </RadzenText>
                                 @if (Data != null)
                                 {
                                     <RadzenText TextStyle="TextStyle.Body2">
-                                        @Data.Docker.Stacks
+                                        @Data.OperatingSystem
                                     </RadzenText>
                                 }
                                 else
@@ -255,32 +55,50 @@
 
                             </div>
                         </RadzenStack>
-                    </a>
-
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")">
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                             <div>
-                                <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="ri:box-3-fill"></span>
+                                <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:timer"></span>
                             </div>
-                            <div>
+                            <div style="overflow: hidden;">
                                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                    Containers
+                                    Uptime
                                 </RadzenText>
                                 @if (Data != null)
                                 {
                                     <RadzenText TextStyle="TextStyle.Body2">
-                                        @Data.Docker.AllContainers
+                                        @Data.GetUptimeText()
                                     </RadzenText>
-                                    <div class="session-item-stat">
+                                }
+                                else
+                                {
+                                    <RadzenSkeleton></RadzenSkeleton>
+                                }
+                            </div>
+                        </RadzenStack>
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+                        <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                            <div>
+                                <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:wide-area-network"></span>
+                            </div>
+                            <div>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
+                                    IP
+                                </RadzenText>
+                                @if (Data != null)
+                                {
+                                    @if (Member != null && (Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo) || Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection)))
+                                    {
+                                        <RadzenTextMask Value="@Server?.AgentIp" IsIp="true"></RadzenTextMask>
+                                    }
+                                    else
+                                    {
                                         <RadzenText TextStyle="TextStyle.Body2">
-                                            <RadzenIcon Icon="power_settings_new" IconStyle="IconStyle.Success"></RadzenIcon> @Data.Docker.RunningContainers
+                                            Hidden
                                         </RadzenText>
-                                        <RadzenText TextStyle="TextStyle.Body2">
-                                            <RadzenIcon Icon="power_settings_new" IconStyle="IconStyle.Danger"></RadzenIcon> @Data.Docker.StoppedContainers
-                                        </RadzenText>
-                                    </div>
+                                    }
                                 }
                                 else
                                 {
@@ -289,22 +107,20 @@
 
                             </div>
                         </RadzenStack>
-                    </a>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images")">
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                             <div>
-                                <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:folder-image"></span>
+                                <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:cpu-64-bit"></span>
                             </div>
                             <div>
                                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                    Images
+                                    CPU
                                 </RadzenText>
                                 @if (Data != null)
                                 {
                                     <RadzenText TextStyle="TextStyle.Body2">
-                                        @Data.Docker.Images
+                                        @Data.CpuCount
                                     </RadzenText>
                                 }
                                 else
@@ -314,22 +130,43 @@
 
                             </div>
                         </RadzenStack>
-                    </a>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes")">
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+                        <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                            <div>
+                                <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:memory"></span>
+                            </div>
+                            <div>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
+                                    Memory
+                                </RadzenText>
+                                @if (Data != null)
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        @Utils.ToPrettySize(Data.RamTotal)
+                                    </RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenSkeleton></RadzenSkeleton>
+                                }
+
+                            </div>
+                        </RadzenStack>
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                             <div>
                                 <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:storage"></span>
                             </div>
                             <div>
                                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                    Volumes
+                                    Storage
                                 </RadzenText>
                                 @if (Data != null)
                                 {
                                     <RadzenText TextStyle="TextStyle.Body2">
-                                        @Data.Docker.Volumes
+                                        @($"{Utils.SizeSuffix(Data.StorageTotalSize - Data.StorageFreeSize, 0)} / {Utils.SizeSuffix(Data.StorageTotalSize, 0)} ({100 * (Data.StorageTotalSize - Data.StorageFreeSize) / Data.StorageTotalSize}%)")
                                     </RadzenText>
                                 }
                                 else
@@ -339,22 +176,20 @@
 
                             </div>
                         </RadzenStack>
-                    </a>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks")">
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
                         <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
                             <div>
-                                <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:local-area-network"></span>
+                                <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:dot-net"></span>
                             </div>
                             <div>
                                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                    Networks
+                                    Agent
                                 </RadzenText>
                                 @if (Data != null)
                                 {
                                     <RadzenText TextStyle="TextStyle.Body2">
-                                        @Data.Docker.Networks
+                                        @($"v{Data.AgentVersion} (.NET {Data.AgentNET})")
                                     </RadzenText>
                                 }
                                 else
@@ -364,22 +199,31 @@
 
                             </div>
                         </RadzenStack>
+                    </RadzenColumn>
+                </RadzenRow>
+                @if (Data != null && !string.IsNullOrEmpty(Program.LatestAgentVersion) && Program.LatestAgentVersion != Data.AgentVersion)
+                {
+                    <a target="_blank" href="https://docs.fluxpoint.dev/devspace/guides/agent-guides/install-dev-space-agent#update-dev-space-agent">
+                        <RadzenAlert AlertStyle="AlertStyle.Success" class="mt-4" Icon="download" Size="AlertSize.Small" AllowClose="false" Variant="Variant.Filled" Shade="Shade.Darker">
+                            <strong>@("v" + Program.LatestAgentVersion)</strong> agent is available to install on this server.
+                        </RadzenAlert>
                     </a>
-                </RadzenColumn>
-                <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
-                    <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/plugins")">
-                        <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                }
+            </RadzenColumn>
+            <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
+                <h6>Docker</h6>
+                <RadzenRow Gap="10px" RowGap="10px" class="mt-4">
+                    <RadzenColumn SizeSM="12">
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                            <span class="iconify settings-icon" style="color: var();" data-icon="mdi:docker"></span>
                             <div>
-                                <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:power-plug"></span>
-                            </div>
-                            <div>
-                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
-                                    Plugins
+                                <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                                    Version
                                 </RadzenText>
                                 @if (Data != null)
                                 {
                                     <RadzenText TextStyle="TextStyle.Body2">
-                                        @Data.Docker.Plugins
+                                        @Data.Docker.DockerVersion
                                     </RadzenText>
                                 }
                                 else
@@ -389,11 +233,170 @@
 
                             </div>
                         </RadzenStack>
-                    </a>
-                </RadzenColumn>
-            </RadzenRow>
-        </RadzenColumn>
-    </RadzenRow>
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks")">
+                            <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                                <div>
+                                    <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="ri:stack-fill"></span>
+                                </div>
+                                <div>
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
+                                        Stacks
+                                    </RadzenText>
+                                    @if (Data != null)
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            @Data.Docker.Stacks
+                                        </RadzenText>
+                                    }
+                                    else
+                                    {
+                                        <RadzenSkeleton></RadzenSkeleton>
+                                    }
+
+                                </div>
+                            </RadzenStack>
+                        </a>
+
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")">
+                            <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                                <div>
+                                    <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="ri:box-3-fill"></span>
+                                </div>
+                                <div>
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
+                                        Containers
+                                    </RadzenText>
+                                    @if (Data != null)
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            @Data.Docker.AllContainers
+                                        </RadzenText>
+                                        <div class="session-item-stat">
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                <RadzenIcon Icon="power_settings_new" IconStyle="IconStyle.Success"></RadzenIcon> @Data.Docker.RunningContainers
+                                            </RadzenText>
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                <RadzenIcon Icon="power_settings_new" IconStyle="IconStyle.Danger"></RadzenIcon> @Data.Docker.StoppedContainers
+                                            </RadzenText>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <RadzenSkeleton></RadzenSkeleton>
+                                    }
+
+                                </div>
+                            </RadzenStack>
+                        </a>
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images")">
+                            <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                                <div>
+                                    <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:folder-image"></span>
+                                </div>
+                                <div>
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
+                                        Images
+                                    </RadzenText>
+                                    @if (Data != null)
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            @Data.Docker.Images
+                                        </RadzenText>
+                                    }
+                                    else
+                                    {
+                                        <RadzenSkeleton></RadzenSkeleton>
+                                    }
+
+                                </div>
+                            </RadzenStack>
+                        </a>
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes")">
+                            <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                                <div>
+                                    <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:storage"></span>
+                                </div>
+                                <div>
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
+                                        Volumes
+                                    </RadzenText>
+                                    @if (Data != null)
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            @Data.Docker.Volumes
+                                        </RadzenText>
+                                    }
+                                    else
+                                    {
+                                        <RadzenSkeleton></RadzenSkeleton>
+                                    }
+
+                                </div>
+                            </RadzenStack>
+                        </a>
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks")">
+                            <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                                <div>
+                                    <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:local-area-network"></span>
+                                </div>
+                                <div>
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
+                                        Networks
+                                    </RadzenText>
+                                    @if (Data != null)
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            @Data.Docker.Networks
+                                        </RadzenText>
+                                    }
+                                    else
+                                    {
+                                        <RadzenSkeleton></RadzenSkeleton>
+                                    }
+
+                                </div>
+                            </RadzenStack>
+                        </a>
+                    </RadzenColumn>
+                    <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/plugins")">
+                            <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                                <div>
+                                    <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:power-plug"></span>
+                                </div>
+                                <div>
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
+                                        Plugins
+                                    </RadzenText>
+                                    @if (Data != null)
+                                    {
+                                        <RadzenText TextStyle="TextStyle.Body2">
+                                            @Data.Docker.Plugins
+                                        </RadzenText>
+                                    }
+                                    else
+                                    {
+                                        <RadzenSkeleton></RadzenSkeleton>
+                                    }
+
+                                </div>
+                            </RadzenStack>
+                        </a>
+                    </RadzenColumn>
+                </RadzenRow>
+            </RadzenColumn>
+        </RadzenRow>
+    }
 </div>
 
 

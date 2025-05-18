@@ -1,0 +1,66 @@
+﻿@using DevSpaceShared.Events.Docker
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:bug"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Debug</RadzenText>
+    </div>
+    <br />
+    @if (Permissions.CheckFailedServerPermissions(Member, Team, Server, ServerPermission.ServerAdministrator, out ServerPermission? failedPerm))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for @Utils.FriendlyName(failedPerm.ToString()!)
+        </RadzenAlert>
+    }
+    else
+    {
+        <div>
+            <RadzenDropDown @bind-Value="@SelectedEvent" Data="@(Enum.GetValues<DockerEventType>())" Style="width: 100%; max-width: 400px;">
+                <Template>
+                    @Utils.FriendlyName(((DockerEventType)context).ToString())
+                </Template>
+            </RadzenDropDown>
+        </div>
+        <br />
+        <RadzenButton Variant="Variant.Filled" Text="Run" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@Run" />
+        <br />
+        <br />
+        <Editor @ref="@Editor" Language="json" FileName="debug.json" ReadOnly="true" Value="@Data"></Editor>
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ServerData? Server => Session.Selected.Server;
+
+    public DockerEventType SelectedEvent { get; set; }
+    public string Data { get; set; }
+    public Editor Editor { get; set; } = null!;
+
+    public async Task Run()
+    {
+        if (Member == null || Server == null || !Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator))
+            return;
+
+        try
+        {
+            var Response = await Server.RecieveJsonAsync<dynamic>(new DockerEvent(SelectedEvent));
+            if (Response.IsSuccess)
+            {
+                Data = Newtonsoft.Json.JsonConvert.SerializeObject(Response.Data, Newtonsoft.Json.Formatting.Indented);
+                await Editor.SetValue(Data);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+            return;
+        }
+    }
+}
