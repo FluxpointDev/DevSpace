@@ -1,4 +1,14 @@
-﻿const Utils = {
+﻿Blazor.registerCustomEventType('custompaste', {
+    browserEventName: 'paste',
+    createEventArgs: event => {
+        let text = event.clipboardData.getData('text');
+        return {
+            text
+        };
+    }
+});
+
+const Utils = {
 };
 
 Object.defineProperty(window, 'Utils', {
