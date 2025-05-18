@@ -11,6 +11,7 @@
 @inject TooltipService tooltipService
 @inject NavigationManager Nav
 @inject NotificationService Notifications
+@inject IJSRuntime JS
 
 <PageTitle>Docker Networks | @_Data.Config.Instance.Name</PageTitle>
 
@@ -291,6 +292,7 @@
             new List<ContextMenuItem> {
                 new ContextMenuItem(){ Text = "View", Value = "view", Icon = "lan", Disabled = Member == null ||  !Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks) },
                 new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = Member == null || item.IsNetworkSystem() || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks) },
+                new ContextMenuItem() { Text = "Copy Network ID", Value = "copy", Icon = "content_copy" }
                                                      }, x => MenuItemClick(x, item));
     }
 
@@ -333,6 +335,15 @@
                     await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, item.Id, networkType: ControlNetworkType.Remove));
                     IsActionRunning = false;
                     await InvokeAsync(RefreshNetworks);
+                    break;
+                    case "copy":
+                    {
+                        try
+                        {
+                            await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.Id);
+                        }
+                        catch { }
+                    }
                     break;
             }
         });

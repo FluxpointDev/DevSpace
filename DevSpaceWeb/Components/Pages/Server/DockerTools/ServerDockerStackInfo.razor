@@ -7,6 +7,7 @@
 @inject TooltipService tooltipService
 @inject NavigationManager Nav
 @inject DialogService Dialogs
+@inject IJSRuntime JS
 
 @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
 {
@@ -697,6 +698,7 @@ else
                 new ContextMenuItem(){ Text = "Stats", Value = "stats", Icon = "bar_chart_4_bars", Disabled = !CanViewStats },
                 new ContextMenuItem(){ Text = "Changes", Value = "changes", Icon = "topic", Disabled = !CanViewChanges },
                 new ContextMenuItem(){ Text = "Inspect", Value = "inspect", Icon = "info", Disabled = !CanInspect },
+                new ContextMenuItem() { Text = "Copy Container ID", Value = "copy", Icon = "content_copy" }
                                              }, x => MenuItemClick(x, item));
     }
 
@@ -826,6 +828,15 @@ else
                     await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Remove));
                     IsActionRunning = false;
                     await InvokeAsync(RefreshContainers);
+                    break;
+                case "copy":
+                    {
+                        try
+                        {
+                            await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.Id);
+                        }
+                        catch { }
+                    }
                     break;
             }
         });

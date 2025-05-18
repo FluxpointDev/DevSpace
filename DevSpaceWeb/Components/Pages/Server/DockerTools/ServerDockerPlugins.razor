@@ -9,6 +9,7 @@
 @inject ContextMenuService ContextMenuService
 @inject NotificationService Notifications
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <PageTitle>Docker Plugins | @_Data.Config.Instance.Name</PageTitle>
 
@@ -290,6 +291,7 @@
                 new ContextMenuItem(){ Text = item.Enabled ? "Disable" : "Enable", Value = item.Enabled ? "disable" : "enable", Icon = item.Enabled ? "stop" : "power_settings_new", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins) },
                 new ContextMenuItem() { Text = "Upgrade", Value = "upgrade", Icon = "upgrade", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins) },
                 new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins) },
+                new ContextMenuItem() { Text = "Copy Plugin ID", Value = "copy", Icon = "content_copy" }
                                                  }, x => MenuItemClick(x, item));
     }
 
@@ -420,6 +422,15 @@
                         });
                         IsActionRunning = false;
                         await InvokeAsync(RefreshPlugins);
+                    }
+                    break;
+                    case "copy":
+                    {
+                        try
+                        {
+                            await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.ID);
+                        }
+                        catch { }
                     }
                     break;
             }

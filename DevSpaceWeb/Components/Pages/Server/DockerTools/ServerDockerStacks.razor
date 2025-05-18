@@ -12,6 +12,7 @@
 @inject TooltipService tooltipService
 @inject NavigationManager Nav
 @inject NotificationService Notifications
+@inject IJSRuntime JS
 
 <PageTitle>Docker Stacks | @_Data.Config.Instance.Name</PageTitle>
 
@@ -298,6 +299,7 @@
                 new ContextMenuItem() { Text = "View", Value = "view", Icon = "stacks", Disabled = Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks)  },
                 new ContextMenuItem() { Text = "Edit", Value = "edit", Icon = "edit_square", Disabled = Member == null || item.ControlType != DockerStackControl.Full || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks) },
                 new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = Member == null || item.ControlType != DockerStackControl.Full || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks) },
+                new ContextMenuItem() { Text = "Copy Stack ID", Value = "copy", Icon = "content_copy" }
                                                          }, x => MenuItemClick(x, item));
     }
 
@@ -341,6 +343,16 @@
                     IsActionRunning = false;
                     await InvokeAsync(RefreshStacks);
                     break;
+                    case "copy":
+                    {
+                        try
+                        {
+                            await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.Id);
+                        }
+                        catch { }
+                    }
+                    break;
+
             }
         });
 
