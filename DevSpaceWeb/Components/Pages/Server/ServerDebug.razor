@@ -25,6 +25,10 @@
         </div>
         <br />
         <RadzenButton Variant="Variant.Filled" Text="Run" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@Run" />
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Email Code</RadzenText>
+        <div>
+            <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@InputEmailCode" Count="6" aria-label="Email Code" autofocus />
+        </div>
         <br />
         <br />
         <Editor @ref="@Editor" Language="json" FileName="debug.json" ReadOnly="true" Value="@Data"></Editor>
@@ -42,12 +46,15 @@
     public DockerEventType SelectedEvent { get; set; }
     public string Data { get; set; }
     public Editor Editor { get; set; } = null!;
+    public string? InputEmailCode { get; set; }
 
     public async Task Run()
     {
         if (Member == null || Server == null || !Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator))
             return;
 
+        Console.WriteLine("Code: " + InputEmailCode);
+        return;
         try
         {
             var Response = await Server.RecieveJsonAsync<dynamic>(new DockerEvent(SelectedEvent));
