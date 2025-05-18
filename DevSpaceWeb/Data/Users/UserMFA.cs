@@ -1,5 +1,4 @@
 ﻿using DevSpaceWeb.Fido2;
-using Fido2NetLib;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Bson;
 
@@ -20,6 +19,7 @@ public class UserMfa
             return true;
         return false;
     }
+
     public void Disable2FA(AuthUser user)
     {
         IsTwoFactorEnabled = false;
@@ -51,10 +51,8 @@ public class UserMfa
 
     public async Task<FidoStoredCredential?> GetPasskeyByIdAsync(byte[] id)
     {
-        string credentialIdString = Base64Url.Encode(id);
-
         FidoStoredCredential? cred = Passkeys
-            .Where(c => c.DescriptorJson != null && c.DescriptorJson.Contains(credentialIdString))
+            .Where(c => c.Descriptor.Id.AsSpan().SequenceEqual(id))
             .FirstOrDefault();
 
         return cred;

@@ -1,12 +1,12 @@
-﻿using Fido2NetLib;
+﻿namespace DevSpaceWeb.Fido2;
 
-namespace DevSpaceWeb.Fido2;
-
-public class Fido2Error : Fido2ResponseBase
+public class Fido2Error
 {
-    public Fido2Error(string message) : base()
+    public Fido2Error(string message)
     {
-        Status = "error";
         ErrorMessage = message;
     }
+
+    public string Status { get; set; } = "error";
+    public string ErrorMessage { get; set; }
 }

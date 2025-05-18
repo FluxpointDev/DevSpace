@@ -221,6 +221,7 @@
 
     public DateTime? TwoFactorTimeout = null;
 
+
     public async Task<bool> TriggerTwoFactorAuthentication(AuthUser? user, bool logUsage, bool forceVerify)
     {
         if (user == null)
@@ -265,11 +266,15 @@
         catch (Exception ex)
         {
             Logger.LogMessage(ex.ToString(), LogSeverity.Error);
+            return false;
         }
         AuthRequest? Data = Cache.Get<AuthRequest>("passkey-" + PasskeyRequestId);
-        user = await GetCurrentUserAsync();
-        if (user != null && IsSuccess && Data != null && Data.IsSuccess && Data.UserId == user.Id)
-            IsSuccess = Data.IsSuccess;
+        if (IsSuccess && Data != null && Data.IsSuccess)
+        {
+            user = await GetCurrentUserAsync();
+            if (user != null && Data.UserId == user.Id)
+                IsSuccess = true;
+        }
         return IsSuccess;
     }
 
