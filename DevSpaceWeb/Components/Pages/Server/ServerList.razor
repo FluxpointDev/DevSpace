@@ -53,18 +53,47 @@
                             <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" class="ml-2" />
                         }
                     </RadzenText>
-                    <RadzenStack Orientation="Orientation.Horizontal" class="pb-3 ml-2">
+                    <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
                         @if (i.GetWebSocket() != null && i.GetWebSocket()!.Discover != null)
                         {
-                            <RadzenText TextStyle="TextStyle.Body2">@("Agent v" + i.GetWebSocket()!.Discover!.Version)</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Agent v" + i.GetWebSocket()!.Discover!.Version)</RadzenText>
+                            @if (i.GetWebSocket() != null && i.GetWebSocket()!.Client != null && i.GetWebSocket()!.Client!.Stats != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker v" + i.GetWebSocket().Client.Stats.DockerVersion)</RadzenText>
+                            }
                         }
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
                         @if (i.WebSocketError.HasValue)
                         {
                             <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(i.WebSocketError.Value.ToString())</RadzenText>
                         }
+                        @if (i.GetWebSocket() != null && i.GetWebSocket()!.Client != null && i.GetWebSocket()!.Client.Stats != null)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:stack-fill"></span> @i.GetWebSocket().Client.Stats.StacksCount stacks</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:box-3-fill"></span> @i.GetWebSocket().Client.Stats.ContainersCount containers</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2">
+                                <span class="iconify" data-icon="mdi:power" style="color: var(--rz-success);"></span> @i.GetWebSocket().Client.Stats.ContainersRunningCount
+                                <span class="iconify" data-icon="mdi:heart-outline" style="color: var(--rz-warning); margin-left: 8px;"></span> @i.GetWebSocket().Client.Stats.ContainersUnhealthyCount
+                                <span class="iconify" data-icon="mdi:power" style="color: var(--rz-danger); margin-left: 8px;"></span> @i.GetWebSocket().Client.Stats.ContainersDownCount
+                            </RadzenText>
+                        }
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
+                        @if (i.WebSocketError.HasValue)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(i.WebSocketError.Value.ToString())</RadzenText>
+                        }
+                        @if (i.GetWebSocket() != null && i.GetWebSocket()!.Client != null && i.GetWebSocket()!.Client!.Stats != null)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:storage"></span> @i.GetWebSocket().Client.Stats.VolumesCount volumes</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:local-area-network"></span> @i.GetWebSocket().Client.Stats.NetworksCount networks</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:folder-image"></span> @i.GetWebSocket().Client.Stats.ImagesCount images</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:cpu-64-bit"></span> @i.GetWebSocket().Client.Stats.CpuCount CPU</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:memory"></span> @Utils.ToPrettySize(i.GetWebSocket().Client.Stats.TotalMemory) RAM</RadzenText>
+                        }
                     </RadzenStack>
                     </div>
-                    
                 </div>
             </a>
         
@@ -146,6 +175,13 @@
     .server-item-buttons:hover p {
     display: inline-block !important;
     }
+
+    .server-item .rz-stack .iconify {
+    height: 16px;
+    width: 16px;
+    margin-right: 2px;
+    margin-bottom: 2px;
+}
 </style>
 
 

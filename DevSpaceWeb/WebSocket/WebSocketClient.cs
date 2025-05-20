@@ -1,4 +1,5 @@
-﻿using DevSpaceShared.Responses;
+﻿using DevSpaceShared;
+using DevSpaceShared.Responses;
 using DevSpaceShared.WebSocket;
 using NetCoreServer;
 using Newtonsoft.Json;
@@ -24,6 +25,8 @@ public class WebSocketClient : WssClient
 
     public WebSocketBase WebSocket = new WebSocketBase();
     public string Key;
+    public AgentStatsResponse? Stats;
+
     public void DisconnectAndStop()
     {
         _stop = true;
@@ -62,7 +65,6 @@ public class WebSocketClient : WssClient
         Logger.LogMessage("WebSocket", "Got MESSAGE", LogSeverity.Info);
         _ = WebSocketMessage(WebSocket, Encoding.UTF8.GetString(buffer, (int)offset, (int)size));
     }
-
 
     protected override void OnDisconnected()
     {
@@ -108,6 +110,16 @@ public class WebSocketClient : WssClient
                             else
                                 task.SetCanceled();
                         }
+                    }
+                    break;
+                case EventType.AgentStats:
+                    {
+                        Console.WriteLine("Got agent stats");
+                        AgentStatsResponse? Data = payload.ToObject<AgentStatsResponse>();
+                        if (Data == null)
+                            return;
+
+                        Stats = Data;
                     }
                     break;
 

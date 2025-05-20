@@ -1,6 +1,7 @@
 ﻿using DevSpaceAgent.Data;
 using DevSpaceAgent.Json;
 using DevSpaceAgent.Server;
+using DevSpaceShared;
 using DevSpaceShared.Data;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -11,6 +12,7 @@ using System.Net.Http.Json;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Timers;
 
 namespace DevSpaceAgent;
 
@@ -19,7 +21,7 @@ public class Program
     /// <summary>
     /// Version of DevSpace Agent.
     /// </summary>
-    public static string Version => Assembly.GetExecutingAssembly().GetName().Version.ToString(3);
+    public static string? Version => Assembly.GetExecutingAssembly().GetName().Version?.ToString(3);
 
     public static string CurrentDirectory = AppDomain.CurrentDomain.BaseDirectory;
 
@@ -61,7 +63,7 @@ public class Program
 
     public static Dictionary<string, string> ContainerCache = [];
     public static Dictionary<string, StackFile> Stacks = [];
-
+    private static AgentServer Server;
     static async Task Main(string[] args)
     {
         if (!_Data.LoadConfig())
@@ -123,15 +125,30 @@ public class Program
 
         SslContext context = new SslContext(SslProtocols.None, Certificate);
         context.CertificateValidationCallback = (x, s, t, b) => { return true; };
-        AgentServer server = new AgentServer(context, IPAddress.Any, 5555);
+        Server = new AgentServer(context, IPAddress.Any, 5555);
 
-        if (!server.Start())
+        if (!Server.Start())
             throw new Exception("Failed to start websocket server.");
 
         Console.WriteLine("[Agent] Loaded websocket server");
 
+        timer.Elapsed += new ElapsedEventHandler(RunChecks);
+        timer.Start();
+
         await Task.Delay(-1);
     }
+
+    public static async void RunChecks(object? sender, ElapsedEventArgs? e)
+    {
+        if (DockerClient == null || Server == null)
+            return;
+
+        SystemInfoResponse HostInfo = await DockerClient.System.GetSystemInfoAsync();
+        AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
+        Server.MulticastText(JsonConvert.SerializeObject(Stats));
+    }
+
+    public static System.Timers.Timer timer = new System.Timers.Timer(new TimeSpan(0, 5, 0));
 
     private static void Progress_ProgressChanged(object? sender, Message e)
     {

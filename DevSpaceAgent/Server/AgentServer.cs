@@ -1,6 +1,8 @@
 ﻿using DevSpaceAgent.Client;
 using DevSpaceAgent.Data;
+using DevSpaceShared;
 using DevSpaceShared.Data;
+using Docker.DotNet.Models;
 using NetCoreServer;
 using System.Net;
 using System.Net.Sockets;
@@ -16,6 +18,10 @@ public class AgentSession : WssSession
     public override async void OnWsConnected(HttpRequest request)
     {
         AgentWebSocket = new AgentWebSocket { Session = this };
+        SystemInfoResponse HostInfo = await Program.DockerClient.System.GetSystemInfoAsync();
+        AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
+        SendTextAsync(Newtonsoft.Json.JsonConvert.SerializeObject(Stats));
+
         Console.WriteLine($"WebSocket session with Id {Id} connected!");
 
     }
