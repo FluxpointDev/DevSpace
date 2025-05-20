@@ -115,6 +115,18 @@ public class ServerWebSocket
     public ServerWebSocketErrorType? Error;
     public DiscoverAgentInfo? Discover;
     public bool StopReconnect;
+
+    public string GetAgentVersion()
+    {
+        if (Client != null && Client.Stats != null)
+            return "v" + Client.Stats.AgentVersion;
+
+        if (Discover != null && !string.IsNullOrEmpty(Discover.Version))
+            return "v" + Discover.Version;
+
+        return "Unknown";
+    }
+
     public async Task DiscoverAsync(ServerData server)
     {
         HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + server.AgentIp + ":" + server.AgentPort + "/discover");
