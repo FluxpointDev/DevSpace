@@ -114,7 +114,6 @@ public class WebSocketClient : WssClient
                     break;
                 case EventType.AgentStats:
                     {
-                        Console.WriteLine("Got agent stats");
                         AgentStatsResponse? Data = payload.ToObject<AgentStatsResponse>();
                         if (Data == null)
                             return;

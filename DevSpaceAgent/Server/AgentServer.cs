@@ -18,9 +18,12 @@ public class AgentSession : WssSession
     public override async void OnWsConnected(HttpRequest request)
     {
         AgentWebSocket = new AgentWebSocket { Session = this };
-        SystemInfoResponse HostInfo = await Program.DockerClient.System.GetSystemInfoAsync();
-        AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
-        SendTextAsync(Newtonsoft.Json.JsonConvert.SerializeObject(Stats));
+        if (Program.DockerClient != null)
+        {
+            SystemInfoResponse HostInfo = await Program.DockerClient.System.GetSystemInfoAsync();
+            AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
+            SendTextAsync(Newtonsoft.Json.JsonConvert.SerializeObject(Stats));
+        }
 
         Console.WriteLine($"WebSocket session with Id {Id} connected!");
 

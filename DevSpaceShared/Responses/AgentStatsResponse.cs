@@ -10,7 +10,7 @@ public class AgentStatsResponse : IWebSocketEvent
 
     }
 
-    public static async Task<AgentStatsResponse> Create(string agentVersion, DockerClient client, SystemInfoResponse systemInfo)
+    public static async Task<AgentStatsResponse> Create(string? agentVersion, DockerClient client, SystemInfoResponse systemInfo)
     {
         IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
         {
@@ -46,6 +46,6 @@ public class AgentStatsResponse : IWebSocketEvent
     public long NetworksCount { get; set; }
     public long CpuCount { get; set; }
     public long TotalMemory { get; set; }
-    public string AgentVersion { get; set; }
+    public string? AgentVersion { get; set; }
     public string DockerVersion { get; set; }
 }

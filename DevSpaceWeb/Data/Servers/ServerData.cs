@@ -118,7 +118,7 @@ public class ServerWebSocket
 
     public string GetAgentVersion()
     {
-        if (Client != null && Client.Stats != null)
+        if (Client != null && Client.Stats != null && !string.IsNullOrEmpty(Client.Stats.AgentVersion))
             return "v" + Client.Stats.AgentVersion;
 
         if (Discover != null && !string.IsNullOrEmpty(Discover.Version))
