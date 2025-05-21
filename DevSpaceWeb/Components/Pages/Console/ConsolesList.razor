@@ -44,9 +44,22 @@
                 <div class="server-item-icon flex-none d-flex">
                     <span class="iconify" data-icon="mdi:console-line"></span>
                 </div>
-                <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
-                    @i.Name
-                </RadzenText>
+                <div>
+                    <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
+                        @i.Name
+                        @if (i.IsOnline())
+                        {
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Online" IsPill="true" class="ml-2" />
+                        }
+                        else
+                        {
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" class="ml-2" />
+                        }
+                    </RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
+                        <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@(i.Type == ConsoleType.Battleye ? "Battleye" : "Minecraft")</RadzenText>
+                    </RadzenStack>
+                </div>
                 
             </div>
         </a>

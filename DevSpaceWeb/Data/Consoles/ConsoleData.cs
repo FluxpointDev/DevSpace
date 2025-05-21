@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
+using LibMCRcon.RCon;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
@@ -30,6 +31,27 @@ public class ConsoleData : ITeamResource
         return EncryptedPassword;
 
         return DecryptedPassword;
+    }
+
+    public bool IsOnline()
+    {
+        switch (Type)
+        {
+            case ConsoleType.Battleye:
+                {
+                    if (_Data.BattleyeRcons.TryGetValue(Id, out DaRT.RCon? rcon) && rcon.BEResult == BattleNET.BattlEyeConnectionResult.Success)
+                        return true;
+                }
+                break;
+            case ConsoleType.Minecraft:
+                {
+                    if (_Data.MinecraftRcons.TryGetValue(Id, out TCPRconAsync? rcon) && rcon.IsConnected)
+                        return true;
+                }
+                break;
+        }
+
+        return false;
     }
 
     public List<DaRT.Player> RconPlayers()
