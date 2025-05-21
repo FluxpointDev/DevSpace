@@ -34,7 +34,7 @@
                 </RadzenFormField>
     </ActionBar>
     <br />
-    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase)) && Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer)).OrderBy(x => x.Name))
+    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))).OrderBy(x => x.Name))
     {
         <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
                 <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
