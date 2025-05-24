@@ -3,7 +3,7 @@ USER root
 WORKDIR /app
 EXPOSE 5555
 
-LABEL org.opencontainers.image.source=https://github.com/Misha-133/DevSpace
+LABEL org.opencontainers.image.source=https://github.com/FluxpointDev/DevSpace
 
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
