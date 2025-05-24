@@ -7,6 +7,6 @@ public class Template
 
     public string GetIcon()
     {
-        return "https://cdn.fluxpoint.dev/devspace/user_avatar.webp";
+        return "https://cdn.fluxpoint.dev/devspace/default_avatar.webp";
     }
 }

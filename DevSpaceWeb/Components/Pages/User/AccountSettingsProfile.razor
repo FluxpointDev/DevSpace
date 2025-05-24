@@ -130,6 +130,34 @@
 </div>
 
 <div class="settings-box">
+    <h6>Gravatar</h6>
+    <RadzenText TextStyle="TextStyle.Body1">
+        This will be used as your avatar if you don't have one set.
+    </RadzenText>
+    <a href="https://gravatar.com" target="_blank">https://gravatar.com</a>
+    <br />
+    <br />
+        <RadzenStack Orientation="Orientation.Horizontal" Gap="10px" AlignItems="AlignItems.Center">
+            @if (AuthUser != null)
+            {
+                <img class="rz-gravatar" src="@AuthUser.GetGravatarOrDefault()" style="height: 64px; width: 64px;" />
+            }
+            else
+            {
+                <RadzenSkeleton Width="64" Height="64" Style="border-radius: 50%;"></RadzenSkeleton>
+            }
+        <div>
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Use Avatar</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                @(AuthUser == null || AuthUser.UseGravatar ? "Enabled" : "Disabled")
+            </RadzenText>
+        </div>
+        </RadzenStack>
+        <br />
+    <RadzenButton Text="Toggle" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Click="@ToggleGravatar" Disabled="@(AuthUser == null)" />
+</div>
+
+<div class="settings-box">
     <h6>Settings</h6>
     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1 mt-2">Date Format</RadzenText>
     <RadzenDropDown TValue="DateFormatLang" Data="@(Enum.GetValues(typeof(DateFormatLang)).Cast<Enum>())" @bind-Value="@UserDateFormat" Style="width: 100%;" Disabled="@(AuthUser == null)">
@@ -343,6 +371,17 @@
                 await Dialogs.ShowInfoAsync("Check your Emails", $"We have sent a confirmation link so you can change your account email address.");
             }
         }
+    }
+
+    public async Task ToggleGravatar()
+    {
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+        AuthUser.UseGravatar = !AuthUser.UseGravatar;
+        await UserManager.UpdateAsync(AuthUser);
+        AuthUser.UpdatePartial();
+        Session.TriggerChange();
     }
 
     public async Task ChangePassword()

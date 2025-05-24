@@ -33,7 +33,7 @@ public class TeamData : IResource
     public string GetIconOrDefault(bool usePng = false)
     {
         if (!HasIcon)
-            return "https://cdn.fluxpoint.dev/devspace/user_avatar." + (usePng ? "png" : "webp");
+            return "https://cdn.fluxpoint.dev/devspace/default_avatar." + (usePng ? "png" : "webp");
 
         return Icon.Url(usePng ? "png" : "webp");
     }

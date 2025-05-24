@@ -3,6 +3,7 @@ using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDbGenericRepository.Attributes;
+using Radzen;
 
 namespace DevSpaceWeb.Data.Users;
 
@@ -32,9 +33,23 @@ public class AuthUser : MongoIdentityUser<ObjectId>
     public string GetAvatarOrDefault(bool usePng = false)
     {
         if (!HasAvatar)
-            return "https://cdn.fluxpoint.dev/devspace/user_avatar." + (usePng ? "png" : "webp");
+        {
+            if (UseGravatar)
+                return GetGravatarOrDefault();
+
+            return "https://cdn.fluxpoint.dev/devspace/default_avatar." + (usePng ? "png" : "webp");
+        }
 
         return Avatar.Url(usePng ? "png" : "webp");
+    }
+
+    public bool UseGravatar { get; set; } = true;
+
+    public string GetGravatarOrDefault()
+    {
+        string md5Email = MD5.Calculate(System.Text.Encoding.ASCII.GetBytes(Email != null ? Email : ""));
+
+        return $"https://secure.gravatar.com/avatar/{md5Email}?d=mp&s=128";
     }
 
     public string? GetBackground()

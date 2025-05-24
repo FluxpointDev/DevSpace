@@ -3,6 +3,7 @@ using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using Radzen;
 
 namespace DevSpaceWeb.Data;
 
@@ -31,15 +32,28 @@ public class PartialUserData
     public string GetAvatarOrDefault(bool usePng = false)
     {
         if (!AvatarId.HasValue)
-            return "https://cdn.fluxpoint.dev/devspace/user_avatar." + (usePng ? "png" : "webp");
+        {
+            if (UseGravatar)
+                return GetGravatarOrDefault();
+
+            return "https://cdn.fluxpoint.dev/devspace/default_avatar." + (usePng ? "png" : "webp");
+        }
 
         return _Data.Config.Instance.GetPublicUrl() + "/public/files/" + ResourceId.ToString() + "/Avatar_" + AvatarId.ToString() + ".webp";
+    }
+
+    public string GetGravatarOrDefault()
+    {
+        string md5Email = MD5.Calculate(System.Text.Encoding.ASCII.GetBytes(Email != null ? Email : ""));
+
+        return $"https://secure.gravatar.com/avatar/{md5Email}?d=mp&s=128";
     }
 
     public Guid? ResourceId { get; set; }
     public ObjectId? ManagedAccountTeamId { get; set; }
     public bool HasNotifications { get; set; }
     public bool Has2FA { get; set; }
+    public bool UseGravatar { get; set; }
 
     public void Update(AuthUser user)
     {
@@ -48,6 +62,7 @@ public class PartialUserData
         DisplayName = user.DisplayName;
         Email = user.Email;
         AvatarId = user.AvatarId;
+        UseGravatar = user.UseGravatar;
         ResourceId = user.ResourceId;
         ManagedAccountTeamId = user.Account.ManagedAccountTeamId;
         HasNotifications = user.Account.HasNotifications;

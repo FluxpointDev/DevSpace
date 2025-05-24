@@ -75,7 +75,7 @@ public class TeamMemberData
             return user.GetAvatarOrDefault(false);
         }
 
-        return "https://cdn.fluxpoint.dev/devspace/user_avatar.webp";
+        return "https://cdn.fluxpoint.dev/devspace/default_avatar.webp";
     }
 
     public bool CanOwn(ITeamResource? resource)
