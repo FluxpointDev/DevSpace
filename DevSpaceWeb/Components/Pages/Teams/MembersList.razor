@@ -1,18 +1,44 @@
 ﻿@using System.Linq.Dynamic.Core
 @using DevSpaceWeb.Components.Dialogs.Members
+@using DevSpaceWeb.Extensions.Filters
 @using DevSpaceWeb.Models.Defaults
+@using DevSpaceWeb.Models.Teams
 @inject ContextMenuService ContextMenuService
 @inject DialogService Dialogs
 @inject IJSRuntime JS
 
+
+<ActionBar>
+    @if (ShowAddMember)
+    {
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" Disabled="@(Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))" Size="ButtonSize.Small" />
+    }
+    <RadzenFormField Variant="Variant.Outlined">
+        <Start>
+            <RadzenIcon Icon="search" />
+        </Start>
+        <ChildContent>
+            <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                           autocapitalize="none" MaxLength="100" inputmode="search"
+                           @oninput="@(args => SetNameFilter(args.Value as string))" />
+        </ChildContent>
+        <End>
+            @if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+            }
+        </End>
+    </RadzenFormField>
+</ActionBar>
+<br />
 <RadzenDataGrid @ref="@Grid" Data="@Members" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                 AllowRowSelectOnRowClick="false" EmptyText="No members."
                 PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
                 ShowPagingSummary="true" PagingSummaryFormat="@(Count + " member" + (Count != 1 ? "s" : "") )"
-                AllowSorting="false" AllowFiltering="false"
+                AllowSorting="false" AllowFiltering="true"
                 TItem="TeamMemberData" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
     <Columns>
-        <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true">
+        <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(TeamMemberData.FilterUsername)">
             <Template>
                 <RadzenImage Path="@context.GetCurrentAvatar()"></RadzenImage>
                 <div class="members-item-names">
@@ -25,17 +51,17 @@
                 </div>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Created" Width="100px">
+        <RadzenDataGridColumn Title="Created" Width="100px" Filterable="false">
             <Template>
                 @Utils.GetLocalDate(Session, _DB.Users[context.UserId].Id.CreationTime)
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Joined" Width="100px">
+        <RadzenDataGridColumn Title="Joined" Width="100px" Filterable="false">
             <Template>
                 @Utils.GetLocalDate(Session, context.JoinedAt)
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Roles" Width="200px">
+        <RadzenDataGridColumn Title="Roles" Width="200px" Filterable="false">
             <Template>
                 @if (!context.Roles.Any())
                 {
@@ -51,7 +77,7 @@
                 }
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Status" Width="100px">
+        <RadzenDataGridColumn Title="Status" Width="100px" FilterMode="FilterMode.CheckBoxList" Property="@nameof(TeamMemberData.IsEnabled)" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
             <Template>
                 @if (context.Disabled == null)
                 {
@@ -66,7 +92,7 @@
                 }
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Type" Width="100px">
+        <RadzenDataGridColumn Title="Type" Width="100px" FilterMode="FilterMode.CheckBoxList" Property="@nameof(TeamMemberData.MemberType)">
             <Template>
                 @if (Team != null && context.UserId == Team.OwnerId)
                 {
@@ -86,7 +112,7 @@
                 }
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="2FA" Width="100px">
+        <RadzenDataGridColumn Title="2FA" Width="100px" FilterMode="FilterMode.CheckBoxList" Property="@nameof(TeamMemberData.Has2FA)" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
             <Template>
                 @if (_DB.Users.TryGetValue(context.UserId, out PartialUserData? user) && user.Has2FA)
                 {
@@ -101,7 +127,7 @@
                 }
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Actions" Width="200px">
+        <RadzenDataGridColumn Title="Actions" Width="200px" Filterable="false">
             <Template>
                 <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
                     <RadzenButton Click="@(args => ShowContextMenuWithViewItems(context, args))" Icon="visibility" Text="View" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />
@@ -153,6 +179,9 @@
     [Parameter]
     public TeamRoleData? SelectedRole { get; set; }
 
+    [Parameter]
+    public bool ShowAddMember { get; set; }
+
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
 
@@ -165,6 +194,24 @@
     {
         if (!IsLoading)
             await Grid.RefreshDataAsync();
+    }
+
+    public RadzenTextBox SearchBox { get; set; } = null!;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SearchBox != null)
+            _ = SearchBox.FocusAsync();
+    }
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(0).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
     }
 
     public async Task LoadData(LoadDataArgs args)
@@ -191,6 +238,69 @@
 
         IsLoading = false;
     }
+
+    public async Task AddMember()
+    {
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
+            return;
+        }
+
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, false);
+        if (!twoFactorConfirm)
+            return;
+
+        await Dialogs.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), async (TeamAddUserModel data) =>
+        {
+            if (!Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
+                return "You do not have permission for Manage Members";
+
+            PartialUserData? user = _DB.Users.Values.FirstOrDefault(x => x.Email.Equals(data.Email, StringComparison.OrdinalIgnoreCase));
+            if (user == null)
+                return "Could not find a user account with that email address.";
+
+            if (user.ManagedAccountTeamId.HasValue)
+                return "This user account is managed by another team.";
+
+            if (Team.Members.ContainsKey(user.Id))
+                return "This user account has already been added to the team.";
+
+            TeamMemberData memberData = new TeamMemberData
+            {
+                TeamId = Team.Id,
+                UserId = user.Id
+            };
+
+            try
+            {
+                await _DB.Members.CreateAsync(memberData);
+            }
+            catch
+            {
+                return "Failed to create member.";
+            }
+            Dictionary<ObjectId, ObjectId> Clone = Team.Members.ToDictionary(x => x.Key, x => x.Value);
+            Clone.Add(memberData.UserId, memberData.Id);
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Clone), () =>
+        {
+            _DB.Members.Cache.TryAdd(memberData.Id, memberData);
+            Team.Members.Add(user.Id, memberData.Id);
+            Team.CachedMembers.Add(memberData.Id, memberData);
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.MemberAdded)
+            .SetTarget(user)
+            .AddProperty("User", user.UserName)
+            .AddProperty("ID", user.Id.ToString()));
+        });
+
+            return string.Empty;
+        });
+    }
+
 
     public void ChangeState()
     {

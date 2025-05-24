@@ -25,6 +25,9 @@ public class TeamMemberData
     [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
+    [BsonIgnore]
+    public string FilterUsername => _DB.Users.TryGetValue(UserId, out PartialUserData user) ? user.UserName : null;
+
     public string GetUsername()
     {
         if (_DB.Users.TryGetValue(UserId, out PartialUserData? user))
@@ -114,6 +117,33 @@ public class TeamMemberData
         if (currentMember.GetRank() > this.GetRank())
             return true;
         return false;
+    }
+
+    [BsonIgnore]
+    public bool IsEnabled => Disabled == null;
+
+    [BsonIgnore]
+    public bool Has2FA => _DB.Users.TryGetValue(UserId, out PartialUserData user) && user.Has2FA;
+
+    [BsonIgnore]
+    public string MemberType => GetMemberType();
+
+    private string GetMemberType()
+    {
+        TeamData GetTeam = Team;
+        if (GetTeam == null)
+            return "Member";
+
+        if (GetTeam.OwnerId == UserId)
+            return "Owner";
+
+        if (HasTeamPermission(GetTeam, TeamPermission.GlobalAdministrator))
+            return "Global Admin";
+
+        if (HasTeamPermission(GetTeam, TeamPermission.TeamAdministrator))
+            return "Team Admin";
+
+        return "Member";
     }
 
     public UserDisabled? Disabled { get; set; }

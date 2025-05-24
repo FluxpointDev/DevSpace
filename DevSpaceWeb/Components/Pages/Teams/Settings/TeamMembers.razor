@@ -26,10 +26,7 @@
     else
     {
         <br />
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Add Member" Click="@AddMember" Disabled="@(Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))" />
-        <br />
-        <br />
-        <MembersList></MembersList>
+        <MembersList ShowAddMember="true"></MembersList>
     }
 </div>
 
@@ -40,68 +37,4 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-
-    public async Task AddMember()
-    {
-        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
-        {
-            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageMembers);
-            return;
-        }
-
-        AuthUser? User = await Session.GetCurrentUserAsync();
-        if (User == null)
-            return;
-
-        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, false);
-        if (!twoFactorConfirm)
-            return;
-
-        await Dialogs.ShowDynamicFormAsync<TeamAddUserModel>("Add Team User", new TeamAddUserModel(), async (TeamAddUserModel data) =>
-        {
-            if (!Member.HasTeamPermission(Team, TeamPermission.ManageMembers))
-                return "You do not have permission for Manage Members";
-
-            PartialUserData? user = _DB.Users.Values.FirstOrDefault(x => x.Email.Equals(data.Email, StringComparison.OrdinalIgnoreCase));
-            if (user == null)
-                return "Could not find a user account with that email address.";
-
-            if (user.ManagedAccountTeamId.HasValue)
-                return "This user account is managed by another team.";
-
-            if (Team.Members.ContainsKey(user.Id))
-                return "This user account has already been added to the team.";
-
-            TeamMemberData memberData = new TeamMemberData
-            {
-                TeamId = Team.Id,
-                UserId = user.Id
-            };
-
-            try
-            {
-                await _DB.Members.CreateAsync(memberData);
-            }
-            catch
-            {
-                return "Failed to create member.";
-            }
-            Dictionary<ObjectId, ObjectId> Clone = Team.Members.ToDictionary(x => x.Key, x => x.Value);
-            Clone.Add(memberData.UserId, memberData.Id);
-            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Members, Clone), () =>
-        {
-            _DB.Members.Cache.TryAdd(memberData.Id, memberData);
-            Team.Members.Add(user.Id, memberData.Id);
-            Team.CachedMembers.Add(memberData.Id, memberData);
-            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.MemberAdded)
-            .SetTarget(user)
-            .AddProperty("User", user.UserName)
-            .AddProperty("ID", user.Id.ToString()));
-        });
-
-            return string.Empty;
-        });
-    }
-
-    
 }
