@@ -6,6 +6,12 @@ on:
       - 'DevSpaceWeb/**'
   workflow_dispatch:
 
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/website
+
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,18 +25,24 @@ jobs:
         password: ${{ secrets.GITHUB_TOKEN }}
     
     - uses: actions/checkout@v4
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
+          
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v5
       with:
-        dotnet-version: 9.x
-        
-    - name: Restore dependencies
-      run: dotnet restore "DevSpaceWeb/DevSpaceWeb.csproj" -r linux-x64
-      
-    - name: Build
-      run: dotnet build "DevSpaceWeb/DevSpaceWeb.csproj" --no-restore -r linux-x64 -c Release
-      
-    - name: Publish
-      if: github.ref == 'refs/heads/master'
-      run: dotnet publish "DevSpaceWeb/DevSpaceWeb.csproj" --no-build -r linux-x64 -c Release /p:PublishProfile=Github
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+    
+    - name: Build and push Docker image
+      id: build-and-push
+      uses: docker/build-push-action@v6
+      with:
+        context: .
+        file: DevSpaceWebsite/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
