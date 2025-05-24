@@ -1,6 +1,5 @@
 FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine AS base
 USER $APP_UID
-RUN ln -sf /usr/libexec/docker/cli-plugins/docker-compose /usr/bin/docker-compose
 WORKDIR /app
 EXPOSE 5555
 
