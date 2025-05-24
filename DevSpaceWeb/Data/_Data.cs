@@ -21,7 +21,7 @@ public static class _Data
             {
                 Program.Directory = new DirectoryStructureMain(AppDomain.CurrentDomain.BaseDirectory);
             }
-            catch (Exception ex)
+            catch
             {
                 Logger.LogMessage($"Failed to write data to the program path: {Program.Directory?.Path}", LogSeverity.Error);
                 Environment.Exit(1);
