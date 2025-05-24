@@ -32,21 +32,58 @@ namespace DevSpaceShared.Data
 
             };
 
-            string? Version = null;
+            string? Desc = null;
+            string? AltVersion = null;
             string? Website = null;
+            string? Docs = null;
             string? Source = null;
+            if (image.Config.Env != null)
+            {
+                foreach (string? i in image.Config.Env)
+                {
+                    if (i.StartsWith("DOTNET_VERSION"))
+                        AltVersion = i.Substring(15);
+                    else if (i.StartsWith("MONGO_VERSION"))
+                        AltVersion = i.Substring(14);
+                    else if (i.StartsWith("NODE_VERSION"))
+                        AltVersion = i.Substring(13);
+                    else if (i.StartsWith("PG_VERSION"))
+                        AltVersion = i.Substring(11);
+                }
+            }
+
             if (image.Config.Labels != null)
             {
-                image.Config.Labels.TryGetValue("org.opencontainers.image.url", out Website);
-                image.Config.Labels.TryGetValue("org.opencontainers.image.source", out Source);
-                image.Config.Labels.TryGetValue("com.docker.compose.version", out Version);
-            }
-            if (string.IsNullOrEmpty(Version) && image.RepoTags != null && image.RepoTags.Any())
-                Version = image.RepoTags.First().Split(':').Last();
+                image.Config.Labels.TryGetValue("org.opencontainers.image.description", out Desc);
+                if (string.IsNullOrEmpty(Desc))
+                    image.Config.Labels.TryGetValue("org.label-schema.description", out Desc);
 
+                image.Config.Labels.TryGetValue("org.opencontainers.image.url", out Website);
+                if (string.IsNullOrEmpty(Website))
+                    image.Config.Labels.TryGetValue("org.label-schema.url", out Website);
+
+                image.Config.Labels.TryGetValue("org.opencontainers.image.documentation", out Docs);
+                image.Config.Labels.TryGetValue("org.opencontainers.image.source", out Source);
+                if (string.IsNullOrEmpty(Source))
+                    image.Config.Labels.TryGetValue("org.label-schema.vcs-url", out Source);
+
+                if (string.IsNullOrEmpty(AltVersion))
+                    image.Config.Labels.TryGetValue("org.opencontainers.image.version", out AltVersion);
+                if (string.IsNullOrEmpty(AltVersion))
+                    image.Config.Labels.TryGetValue("com.docker.compose.version", out AltVersion);
+                if (string.IsNullOrEmpty(AltVersion))
+                    image.Config.Labels.TryGetValue("org.label-schema.version", out AltVersion);
+            }
+
+
+            if (image.RepoTags != null && image.RepoTags.Any())
+                Info.Version = image.RepoTags.First().Split(':').Last();
+
+            Info.Description = Desc;
             Info.Website = Website;
+            Info.Docs = Docs;
             Info.Source = Source;
-            Info.Version = Version;
+            Info.AltVersion = AltVersion;
 
             return Info;
         }
@@ -68,27 +105,43 @@ namespace DevSpaceShared.Data
                 Size = image.Size
             };
 
-            string? Version = null;
+            string? Desc = null;
             string? Website = null;
+            string? Docs = null;
             string? Source = null;
             if (image.Labels != null)
             {
-                image.Labels.TryGetValue("org.opencontainers.image.url", out Website);
-                image.Labels.TryGetValue("org.opencontainers.image.source", out Source);
-                image.Labels.TryGetValue("com.docker.compose.version", out Version);
-            }
-            if (string.IsNullOrEmpty(Version) && image.RepoTags != null && image.RepoTags.Any())
-                Version = image.RepoTags.First().Split(':').Last();
+                image.Labels.TryGetValue("org.opencontainers.image.description", out Desc);
+                if (string.IsNullOrEmpty(Desc))
+                    image.Labels.TryGetValue("org.label-schema.description", out Desc);
 
-            Info.Version = Version;
+                image.Labels.TryGetValue("org.opencontainers.image.url", out Website);
+                if (string.IsNullOrEmpty(Website))
+                    image.Labels.TryGetValue("org.label-schema.url", out Website);
+
+                image.Labels.TryGetValue("org.opencontainers.image.documentation", out Docs);
+                image.Labels.TryGetValue("org.opencontainers.image.source", out Source);
+                if (string.IsNullOrEmpty(Source))
+                    image.Labels.TryGetValue("org.label-schema.vcs-url", out Source);
+            }
+            if (image.RepoTags != null && image.RepoTags.Any())
+                Info.Version = image.RepoTags.First().Split(':').Last();
+
+            Info.Description = Desc;
+            Info.Website = Website;
+            Info.Docs = Docs;
+            Info.Source = Source;
 
             return Info;
         }
 
         public required string ID { get; set; }
+
         public required string Name { get; set; }
 
         public string? Version { get; set; }
+
+        public string? AltVersion { get; set; }
 
         public DateTime Created { get; set; }
 
@@ -100,10 +153,12 @@ namespace DevSpaceShared.Data
 
         public long Size { get; set; }
 
-        public Dictionary<string, string> Containers { get; set; } = new Dictionary<string, string>();
+        public Dictionary<string, string> Containers { get; set; } = [];
         public int ContainersCount { get; set; }
 
         public string? Website { get; set; }
+
+        public string? Docs { get; set; }
 
         public string? Source { get; set; }
 
@@ -122,6 +177,8 @@ namespace DevSpaceShared.Data
         public string? Comment { get; set; }
 
         public string? Driver { get; set; }
+
+        public string? Description { get; set; }
 
         public DockerImageConfig? Config { get; set; }
     }

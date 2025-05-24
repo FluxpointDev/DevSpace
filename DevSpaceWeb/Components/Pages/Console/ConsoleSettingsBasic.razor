@@ -29,7 +29,10 @@
     else
     {
         <br />
-        <DynamicFormDialog Model="@ModifyConsoleModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        @if (Data != null)
+        {
+            <DynamicFormDialog Model="@ModifyConsoleModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        }
     }
 </div>
 
@@ -43,28 +46,28 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Data = new ModifyConsoleModel
-        {
-            Name = Console.Name,
-            VanityUrl = Console.VanityUrl
-        };
+        if (Console != null)
+            Data = new ModifyConsoleModel
+            {
+                Name = Console.Name,
+                VanityUrl = Console.VanityUrl
+            };
     }
 
-    public ModifyConsoleModel Data { get; set; }
+    public ModifyConsoleModel? Data { get; set; }
 
     public async Task<string?> UpdateSettings(ModifyConsoleModel model)
     {
         if (Team == null || Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole))
             return "You do not have Manage Console permissions.";
 
-        VanityUrlData Vanity = Team.GetVanityUrlData();
-        if (!string.IsNullOrEmpty(model.VanityUrl))
-            model.VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+        string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
 
-        if (Vanity.CheckAlreadyExists(Console, model.VanityUrl))
+        VanityUrlData Vanity = Team.GetVanityUrlData();
+        if (Vanity.CheckAlreadyExists(Console, VanityUrl))
             return Lang.Errors.vanity_url_already_taken;
 
-        string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+        
 
         await Console.UpdateAsync(new UpdateDefinitionBuilder<ConsoleData>()
         .Set(x => x.Name, model.Name)
@@ -76,11 +79,12 @@
                 .AddPropertyChange("Name", Console.Name, model.Name)
                 .AddPropertyChange("Vanity URL", Console.VanityUrl, VanityUrl));
 
-            Console.Name = model.Name;
-            Console.VanityUrl = model.VanityUrl;
+            Console.Name = model.Name!;
             VanityUrlData Vanity = Team.GetVanityUrlData();
             await Vanity.UpdateAsync(Console, VanityUrl);
-            Session.Selected.Team.Console.VanityUrl = Console.GetVanityUrlOrId();
+
+            if (Session.Selected.Team != null && Session.Selected.Team.Console != null)
+                Session.Selected.Team.Console.VanityUrl = Console.GetVanityUrlOrId();
             Session.TriggerNavMenuChange();
         });
         return null;

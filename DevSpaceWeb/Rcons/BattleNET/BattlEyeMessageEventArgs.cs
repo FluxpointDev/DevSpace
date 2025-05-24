@@ -13,6 +13,7 @@ public delegate void BattlEyeMessageEventHandler(BattlEyeMessageEventArgs args);
 
 public class BattlEyeMessageEventArgs : EventArgs
 {
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
     public BattlEyeMessageEventArgs(string message, int id)
     {
         Message = message;
@@ -24,6 +25,8 @@ public class BattlEyeMessageEventArgs : EventArgs
 
         Time = (formattedTime.ToString() + " ").Replace(":00 ", " ");
     }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+
 
     public string Message { get; }
     public string FilteredMessage { get; set; }

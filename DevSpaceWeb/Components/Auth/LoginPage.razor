@@ -23,7 +23,7 @@
 @inject IMemoryCache Cache
 @inject NavigationManager NavigationManager
 @inject EmailService Email
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <div class="dash-box dash-box-content dash-center" style="max-width: 700px !important;">
     <div class="flex-center" style="text-align: center !important;">
@@ -260,7 +260,17 @@
                     <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
                         You need to create an account to connect your social login.
                     </RadzenAlert>
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                        If you use Zoho mail please add fluxpoint.dev to your whitelist.
+                    </RadzenAlert>
                 }
+                else
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                        If you use Zoho mail please add fluxpoint.dev to your whitelist.
+                    </RadzenAlert>
+                }
+
                 <EditForm Model="@RegisterForm" OnValidSubmit="@RegisterAccount">
                     <DataAnnotationsValidator />
 
@@ -525,7 +535,7 @@
         }
         if (!_Data.Config.Auth.AllowRegister)
         {
-            await Dialog.ShowInfoAsync("Register Disabled", "You can't create an account on this dev space instance.");
+            await Dialogs.ShowInfoAsync("Register Disabled", "You can't create an account on this dev space instance.");
             return;
         }
         if (string.IsNullOrEmpty(RegisterForm.Username))
@@ -536,7 +546,7 @@
             return;
 
         FormDisabled = true;
-        var User = new AuthUser
+        AuthUser User = new AuthUser
             {
                 UserName = RegisterForm.Username.ToLower(),
                 Email = RegisterForm.Email
@@ -597,7 +607,15 @@
         if (string.IsNullOrEmpty(LoginForm.Email))
             return;
 
-        if (!Program.IsPreviewMode && LoginForm.Email.Equals("test@test.com", StringComparison.OrdinalIgnoreCase))
+        if (Program.IsPreviewMode)
+        {
+            if (!LoginForm.Email.Equals("test@test.com", StringComparison.OrdinalIgnoreCase))
+            {
+                _ = Dialogs.ShowInfoAsync("Login Disabled", "You can't login with other accounts in preview mode.");
+                return;
+            }
+        }
+        else if (LoginForm.Email.Equals("test@test.com", StringComparison.OrdinalIgnoreCase))
         {
             Session.Notifications.ShowErrorWarning(NotificationErrorType.PreviewNotEnabled);
             return;
@@ -605,7 +623,7 @@
 
         if (!_Data.Config.Auth.AllowInternalLogin)
         {
-            _ = Dialog.ShowInfoAsync("Login Disabled", "Internal login as been disabled.");
+            _ = Dialogs.ShowInfoAsync("Login Disabled", "Internal login as been disabled.");
             return;
         }
 
@@ -640,13 +658,13 @@
 
         if (!_Data.Config.Auth.AllowExternalLogin)
         {
-            _ = Dialog.ShowInfoAsync("Login Disabled", "External login as been disabled on this instance.");
+            _ = Dialogs.ShowInfoAsync("Login Disabled", "External login as been disabled on this instance.");
             return;
         }
 
         if (IsProviderDisabled(provider))
         {
-            _ = Dialog.ShowInfoAsync("Login Disabled", $"The {provider} login as been disabled on this instance.");
+            _ = Dialogs.ShowInfoAsync("Login Disabled", $"The {provider} login as been disabled on this instance.");
             return;
         }
 

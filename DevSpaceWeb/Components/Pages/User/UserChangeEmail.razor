@@ -3,11 +3,12 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using System.Collections.Specialized
 @inject UserManager<AuthUser> UserManager
+@inject SignInManager<AuthUser> SignInManager
 @inject NavigationManager NavigationManager
-@inject IdentityOptions IdentityOptions
 @inject EmailService Email
 
-<PageTitle>Change Email | @_Data.Config.Instance.Name</PageTitle>
+<PageTitle>Account Change Email | @_Data.Config.Instance.Name</PageTitle>
+
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -27,7 +28,7 @@
             </RadzenAlert>
         }
 
-        <RadzenLabel Text="Email" class="rz-my-0"></RadzenLabel>
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Email</RadzenText>
         <RadzenTextBox @bind-Value="@ChangeEmailForm.Email" Style="width: 100%" aria-label="Email TextBox" AutoCompleteType="AutoCompleteType.Off" autofocus inputmode="email"
                        autocapitalize="none" MaxLength="100" Disabled="!string.IsNullOrEmpty(CodeGenerated)" />
         <ValidationMessage For="() => ChangeEmailForm.Email" style="color: var(--rz-danger);" />
@@ -40,9 +41,9 @@
                     An email code has been sent to @ChangeEmailForm.Email you will need to enter this below.
                 </RadzenAlert>
 
-                <RadzenLabel Text="Code" class="rz-my-0"></RadzenLabel>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Code</RadzenText>
                 <div>
-                    <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@ChangeEmailForm.Code" Count="6" aria-label="Email Code" autofocus />
+                    <RadzenSecurityCode Type="SecurityCodeType.Numeric" @bind-Value="@ChangeEmailForm.Code" Count="6" aria-label="Email Code" autofocus @oncustompaste="@((evnt) => ChangeEmailForm.Code = evnt.GetCode(6))" />
                 </div>
                 <br />
             }
@@ -131,7 +132,7 @@
             return;
         }
 
-        bool TokenValidate = await UserManager.VerifyUserTokenAsync(user, IdentityOptions.Tokens.ChangeEmailTokenProvider, UserManager<AuthUser>.GetChangeEmailTokenPurpose(ChangeEmailForm.Email), Token);
+        bool TokenValidate = await UserManager.VerifyUserTokenAsync(user, UserManager.Options.Tokens.ChangeEmailTokenProvider, UserManager<AuthUser>.GetChangeEmailTokenPurpose(ChangeEmailForm.Email!), Token);
         if (!TokenValidate)
         {
             IsLoading = false;

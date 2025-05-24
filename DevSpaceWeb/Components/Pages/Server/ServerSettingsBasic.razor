@@ -1,5 +1,6 @@
 ﻿@using DevSpaceWeb.Models.Consoles
-<PageTitle>Server Settings | @_Data.Config.Instance.Name</PageTitle>
+
+<PageTitle>@(Server?.Name ?? "Server") Settings | @_Data.Config.Instance.Name</PageTitle>
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -10,6 +11,7 @@
         <RadzenText TextStyle="TextStyle.H6">Server Settings</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
         <RadzenBreadCrumbItem Text="Settings" />
     </RadzenBreadCrumb>
@@ -22,7 +24,10 @@
     else
     {
         <br />
-        <DynamicFormDialog Model="@ModifyServerModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        @if (Data != null)
+        {
+            <DynamicFormDialog Model="@ModifyServerModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        }
     }
     
 </div>
@@ -37,14 +42,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Data = new ModifyServerModel
+        if (Server != null)
+            Data = new ModifyServerModel
             {
                 Name = Server.Name,
                 VanityUrl = Server.VanityUrl
             };
     }
 
-    public ModifyServerModel Data { get; set; }
+    public ModifyServerModel? Data { get; set; }
 
     public async Task<string?> UpdateSettings(ModifyServerModel model)
     {
@@ -52,13 +58,11 @@
             return "You do not have Manage Server permissions.";
 
         VanityUrlData Vanity = Team.GetVanityUrlData();
-        if (!string.IsNullOrEmpty(model.VanityUrl))
-            model.VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
-
-        if (Vanity.CheckAlreadyExists(Server, model.VanityUrl))
-            return Lang.Errors.vanity_url_already_taken;
 
         string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+
+        if (Vanity.CheckAlreadyExists(Server, VanityUrl))
+            return Lang.Errors.vanity_url_already_taken;
 
         await Server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>()
         .Set(x => x.Name, model.Name)

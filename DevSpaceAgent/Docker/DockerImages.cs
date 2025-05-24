@@ -1,4 +1,5 @@
-﻿using DevSpaceShared.Data;
+﻿using DevSpaceShared;
+using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -20,8 +21,8 @@ public static class DockerImages
         {
             All = true
         });
-        List<DockerImageInfo> Response = new List<DockerImageInfo>();
-        HashSet<string> ParentMap = new HashSet<string>();
+        List<DockerImageInfo> Response = [];
+        HashSet<string> ParentMap = [];
         foreach (ImagesListResponse i in List)
         {
             DockerImageInfo Image = DockerImageInfo.Create(i);
@@ -66,8 +67,11 @@ public static class DockerImages
         });
     }
 
-    public static async Task PullImageAsync(DockerClient client, string name)
+    public static async Task PullImageAsync(DockerClient client, string? name)
     {
+        if (string.IsNullOrEmpty(name))
+            throw new Exception("Image name is missing.");
+
         string? TagName = null;
         string[] split = name.Split(':');
         string ImageName = split[0];
@@ -82,8 +86,11 @@ public static class DockerImages
 
     }
 
-    public static async Task CreateImageAsync(DockerClient client, CreateImageEvent build)
+    public static async Task CreateImageAsync(DockerClient client, CreateImageEvent? build)
     {
+        if (build == null)
+            throw new Exception("Invalid image creation options.");
+
         switch (build.Type)
         {
             case CreateImageType.Editor:
@@ -93,6 +100,7 @@ public static class DockerImages
                     try
                     {
                         FileStream tarball = new FileStream(TarFile, FileMode.Create);
+#pragma warning disable CS0618 // Type or member is obsolete
                         using (TarOutputStream tarArchive = new TarOutputStream(tarball))
                         {
                             TarEntry tarEntry = TarEntry.CreateTarEntry("Dockerfile");
@@ -102,6 +110,7 @@ public static class DockerImages
                             tarArchive.Write(fileBytes, 0, fileBytes.Length);
                             tarArchive.CloseEntry();
                         }
+#pragma warning restore CS0618 // Type or member is obsolete
                         tarball.Close();
                         tarball = new FileStream(TarFile, FileMode.Open);
 
@@ -156,17 +165,36 @@ public static class DockerImages
             case ControlImageType.Remove:
             case ControlImageType.ForceRemove:
                 {
+                    if (@event.ImageType == ControlImageType.ForceRemove)
+                    {
+                        IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                        {
+                            All = true,
+                            Filters = new Dictionary<string, IDictionary<string, bool>>
+                            {
+                                { "ancestor", new Dictionary<string, bool>
+                                { { id, true }}
+                                }
+                            }
+                        });
+                        foreach (ContainerListResponse? i in Containers)
+                        {
+                            if (i.IsRunning())
+                            {
+                                await client.Containers.StopContainerAsync(i.ID, new ContainerStopParameters());
+                            }
+                        }
+                    }
+
                     await client.Images.DeleteImageAsync(id, new ImageDeleteParameters
                     {
                         Force = @event.ImageType == ControlImageType.ForceRemove
                     });
-
                 }
                 break;
             case ControlImageType.View:
                 {
                     ImageInspectResponse Image = await client.Images.InspectImageAsync(id);
-
                     return DockerImageInfo.Create(Image);
                 }
             case ControlImageType.Layers:

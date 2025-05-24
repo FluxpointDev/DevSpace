@@ -9,8 +9,9 @@
 
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
+@inject NotificationService Notifications
 
-<PageTitle>Create Docker Volume | @_Data.Config.Instance.Name</PageTitle>
+<PageTitle>Create Volume | @_Data.Config.Instance.Name</PageTitle>
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
@@ -22,14 +23,14 @@
         }
 
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Name</RadzenText>
-        <RadzenTextBox MaxLength="100" Value="@VolumeNameInput" @oninput="@(arg => VolumeNameInput = arg.Value as string)" />
+        <RadzenTextBox MaxLength="100" Value="@VolumeNameInput" Disabled="@IsLoading" @oninput="@(arg => VolumeNameInput = arg.Value as string)" />
 
         <br />
         <br />
         <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">Driver Configuration</RadzenText>
 
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Driver</RadzenText>
-        <RadzenDropDown TValue="string" Value="@("local")" Data="@Drivers" />
+        <RadzenDropDown TValue="string" Value="@("local")" Data="@Drivers" Disabled="@IsLoading" />
 
         <br />
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Driver Options</RadzenText>
@@ -37,7 +38,7 @@
         <br />
         <br />
         <RadzenStack>
-            @foreach (var i in DriverOptionsInputs)
+            @foreach (KeyValuePair<string, Tuple<string, string>> i in DriverOptionsInputs)
             {
                 @DockerNameValueInput.RenderElement(this, DriverOptionsInputs, "Option", i.Key, i.Value, IsLoading)
             }
@@ -50,7 +51,7 @@
         <br />
         <br />
         <RadzenStack>
-            @foreach (var i in LabelInputs)
+            @foreach (KeyValuePair<string, Tuple<string, string>> i in LabelInputs)
             {
                 @DockerNameValueInput.RenderElement(this, LabelInputs, "Label", i.Key, i.Value, IsLoading)
             }
@@ -86,7 +87,7 @@
     };
 
     public string? VolumeNameInput { get; set; }
-    public string VolumeDriverType { get; set; } = "default";
+    public string VolumeDriverType { get; set; } = "local";
 
     public bool Failed = false;
     public bool IsLoading = false;
@@ -106,7 +107,7 @@
             return;
 
         IsLoading = true;
-        var Response = await Server.RecieveJsonAsync<VolumeResponse>(new DockerEvent(DockerEventType.CreateVolume)
+        SocketResponse<VolumeResponse?> Response = await Server.RunJsonAsync<VolumeResponse>(Notifications, new DockerEvent(DockerEventType.CreateVolume)
         {
             Data = JObject.FromObject(new VolumesCreateParameters
             {

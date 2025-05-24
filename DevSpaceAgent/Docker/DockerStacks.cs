@@ -1,4 +1,6 @@
-﻿using DevSpaceShared.Data;
+﻿using CliWrap;
+using CliWrap.Buffered;
+using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -13,7 +15,7 @@ public static class DockerStacks
 {
     public static async Task<List<DockerStackInfo>> ListStacksAsync(DockerClient client)
     {
-        List<DockerStackInfo> Stacks = new List<DockerStackInfo>();
+        List<DockerStackInfo> Stacks = [];
         IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
         {
             Size = true,
@@ -22,7 +24,7 @@ public static class DockerStacks
 
         foreach (ContainerListResponse? c in containers)
         {
-            if (c.Labels == null || !c.Labels.TryGetValue("com.docker.compose.project", out string? label))
+            if (c.Labels == null || !c.Labels.TryGetValue("com.docker.compose.project", out string? label) || string.IsNullOrEmpty(label))
                 continue;
 
             bool IsRunning = false;
@@ -138,14 +140,14 @@ public static class DockerStacks
                     Name = label,
                     CreatedAt = CreatedAt,
                     ContainersCount = 1,
-                    Containers = new HashSet<DockerContainerInfo>
-                        {
+                    Containers =
+                        [
                             new DockerContainerInfo
                             {
                                 Id = c.ID,
                                 Name = (c.Names != null && c.Names.Any()) ? c.Names.First().Substring(1) : c.ID
                             }
-                        },
+                        ],
                     Version = Version,
                     IsRunning = IsRunning,
                     ControlType = Type,
@@ -162,7 +164,7 @@ public static class DockerStacks
                 {
                     ControlType = DockerStackControl.Full,
                     Id = i.Key,
-                    Containers = new HashSet<DockerContainerInfo>(),
+                    Containers = [],
                     Name = i.Value.Name,
                     CreatedAt = i.Value.CreatedAt,
                     UpdatedAt = i.Value.UpdatedAt,
@@ -204,6 +206,22 @@ public static class DockerStacks
 
         try
         {
+            BufferedCommandResult result = await Cli.Wrap("docker")
+                .WithArguments(["compose", "config", "--quiet"])
+                .WithValidation(CommandResultValidation.None)
+                .WithWorkingDirectory(Dir)
+                .ExecuteBufferedAsync();
+
+
+            string error = result.StandardError;
+            if (!string.IsNullOrEmpty(error))
+            {
+                if (error.StartsWith("validating"))
+                    error = string.Join("", error.Split(": ").Last().Split(") ").Last());
+
+                throw new Exception(error);
+            }
+
             using (ICompositeService build = new Builder()
                 .UseContainer()
                 .UseCompose()
@@ -245,12 +263,12 @@ public static class DockerStacks
 
     public static async Task<List<DockerStackInfo>> ListPortainerStacks(DockerClient client)
     {
-        List<DockerStackInfo> Stacks = new List<DockerStackInfo>();
+        List<DockerStackInfo> Stacks = [];
         IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
         {
             All = true
         });
-        foreach (var i in containers)
+        foreach (ContainerListResponse i in containers)
         {
             if (i.Labels != null)
             {
@@ -260,7 +278,7 @@ public static class DockerStacks
                 else if (i.Labels.TryGetValue("com.docker.compose.project.working_dir", out string? workDir) && !string.IsNullOrEmpty(workDir))
                     Directory = workDir;
 
-                if (!i.Labels.TryGetValue("com.docker.compose.project", out string? label))
+                if (!i.Labels.TryGetValue("com.docker.compose.project", out string? label) || string.IsNullOrEmpty(label))
                     continue;
 
                 if (!string.IsNullOrEmpty(Directory) && !string.IsNullOrEmpty(label) && Directory.StartsWith("/data/compose/"))
@@ -279,17 +297,17 @@ public static class DockerStacks
 
     private static void CloneDirectory(string root, string dest)
     {
-        foreach (var directory in Directory.GetDirectories(root))
+        foreach (string directory in Directory.GetDirectories(root))
         {
             //Get the path of the new directory
-            var newDirectory = Path.Combine(dest, Path.GetFileName(directory));
+            string newDirectory = Path.Combine(dest, Path.GetFileName(directory));
             //Create the directory if it doesn't already exist
             Directory.CreateDirectory(newDirectory);
             //Recursively clone the directory
             CloneDirectory(directory, newDirectory);
         }
 
-        foreach (var file in Directory.GetFiles(root))
+        foreach (string file in Directory.GetFiles(root))
         {
             File.Copy(file, Path.Combine(dest, Path.GetFileName(file)));
         }
@@ -308,7 +326,7 @@ public static class DockerStacks
 
         int Version = -1;
 
-        foreach (var d in Directory.GetDirectories("/var/lib/docker/volumes/portainer_data/_data/compose/" + stack.Id))
+        foreach (string d in Directory.GetDirectories("/var/lib/docker/volumes/portainer_data/_data/compose/" + stack.Id))
         {
             string Split = d.Split('/').Last();
             if (Split.StartsWith("v") && int.TryParse(Split.Substring(1), out int stackNumber) && stackNumber > Version)
@@ -355,7 +373,7 @@ public static class DockerStacks
                 Filters = new Dictionary<string, IDictionary<string, bool>>
                 { { "label", new Dictionary<string, bool> { { "com.docker.compose.project=" + stack.Name, true } } } }
             });
-            foreach (var i in Containers)
+            foreach (ContainerListResponse i in Containers)
             {
                 await client.Containers.RemoveContainerAsync(i.ID, new ContainerRemoveParameters
                 {
@@ -413,8 +431,14 @@ public static class DockerStacks
         };
     }
 
-    public static async Task<DockerStackCreate> RecreateContainer(DockerClient client, string id, CreateStackEvent create)
+    public static async Task<DockerStackCreate> RecreateStack(DockerClient client, string? id, CreateStackEvent? create)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Stack id is missing.");
+
+        if (create == null)
+            throw new Exception("Invalid container creation options.");
+
         if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
             throw new Exception("Stack does not exist.");
 
@@ -441,15 +465,32 @@ public static class DockerStacks
         ServiceRunningState? CurrentState = null;
         try
         {
+            BufferedCommandResult result = await Cli.Wrap("docker")
+                .WithArguments(["compose", "config", "--quiet"])
+                .WithValidation(CommandResultValidation.None)
+                .WithWorkingDirectory(Dir)
+                .ExecuteBufferedAsync();
+
+
+            string error = result.StandardError;
+            if (!string.IsNullOrEmpty(error))
+            {
+                if (error.StartsWith("validating"))
+                    error = string.Join("", error.Split(": ").Last().Split(") ").Last());
+
+                throw new Exception(error);
+            }
+
             using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
             {
-                ComposeFilePath = new List<string> { File },
+                ComposeFilePath = [File],
                 ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                 StopOnDispose = false,
                 KeepContainers = true,
                 RemoveOrphans = true,
                 AlternativeServiceName = stack.Name,
-                KeepVolumes = true
+                KeepVolumes = true,
+                AlwaysPull = create.PullImage
             }))
             {
                 CurrentState = svc.State;
@@ -474,7 +515,7 @@ public static class DockerStacks
                 {
                     using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
                     {
-                        ComposeFilePath = new List<string> { File },
+                        ComposeFilePath = [File],
                         ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                         StopOnDispose = false,
                         AlternativeServiceName = stack.Name,
@@ -504,7 +545,7 @@ public static class DockerStacks
                 {
                     using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
                     {
-                        ComposeFilePath = new List<string> { File },
+                        ComposeFilePath = [File],
                         ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                         StopOnDispose = false,
                         AlternativeServiceName = stack.Name,
@@ -531,8 +572,11 @@ public static class DockerStacks
         };
     }
 
-    public static async Task<DockerStackInfo> ViewStack(DockerClient client, string id)
+    public static async Task<DockerStackInfo> ViewStack(DockerClient client, string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Stack id is missing.");
+
         if (Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
         {
             DockerStackInfo Info = new DockerStackInfo
@@ -612,16 +656,16 @@ public static class DockerStacks
                     string? DataPath = null;
                     if (c.Labels != null)
                     {
-                        if (c.Labels.TryGetValue("com.docker.compose.project.config_files", out string confFile))
+                        if (c.Labels.TryGetValue("com.docker.compose.project.config_files", out string? confFile))
                             DataPath = confFile;
-                        if (string.IsNullOrEmpty(DataPath) && c.Labels.TryGetValue("com.docker.compose.project.working_dir", out string workDir))
+                        if (string.IsNullOrEmpty(DataPath) && c.Labels.TryGetValue("com.docker.compose.project.working_dir", out string? workDir))
                             DataPath = workDir;
                     }
 
                     if (string.IsNullOrEmpty(DataPath) || !DataPath.StartsWith("/data/compose/" + id))
                         continue;
 
-                    if (string.IsNullOrEmpty(Info.Name) && c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project", out string name))
+                    if (string.IsNullOrEmpty(Info.Name) && c.Labels != null && c.Labels.TryGetValue("com.docker.compose.project", out string? name))
                         Info.Name = name;
 
                     if (Info.Version == 0)
@@ -739,33 +783,93 @@ public static class DockerStacks
         }
     }
 
-    public static async Task<DockerStackComposeInfo> StackCompose(DockerClient client, string id)
+    public static async Task<DockerStackComposeInfo> StackCompose(DockerClient client, string? id)
     {
-        if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
-            throw new Exception("Stack does not exist.");
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Stack id is missing.");
 
-        if (!File.Exists(Program.CurrentDirectory + $"Data/Stacks/{id}/docker-compose.yml"))
-            return new DockerStackComposeInfo
-            {
-                Name = stack.Name
-            };
-
-        try
+        if (int.TryParse(id, out _))
         {
-            return new DockerStackComposeInfo
+            string ComposeDir = $"/var/lib/docker/volumes/portainer_data/_data/compose/{id}/";
+            if (!Directory.Exists(ComposeDir))
+                throw new Exception("Can't access stack compose file due to missing portainer data volume mount.");
+
+            int Version = -1;
+
+            foreach (string d in Directory.GetDirectories(ComposeDir))
             {
-                Name = stack.Name,
-                Content = File.ReadAllText(Program.CurrentDirectory + $"Data/Stacks/{id}/docker-compose.yml")
-            };
+                string Split = d.Split('/').Last();
+                if (Split.StartsWith("v") && int.TryParse(Split.Substring(1), out int stackNumber) && stackNumber > Version)
+                    Version = stackNumber;
+            }
+
+            if (Version == -1)
+                throw new Exception("Could not find stack compose file in portainer data.");
+
+            string ComposeFile = ComposeDir + $"v{Version}/docker-compose.yml";
+
+            if (!File.Exists(ComposeFile))
+                throw new Exception("Failed to get compose content.");
+
+            string ContainerWorkDir = $"/data/compose/{id}v{Version}";
+
+            string? Name = null;
+
+            try
+            {
+                IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                {
+                    All = true,
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
+                        { { "label", new Dictionary<string, bool> { { $"com.docker.compose.project.working_dir={ContainerWorkDir}", true } } } }
+                });
+                if (Containers.Any() && Containers.First().Labels != null && Containers.First().Labels.TryGetValue("com.docker.compose.project", out string? proj))
+                    Name = proj;
+
+            }
+            catch { }
+
+            try
+            {
+                return new DockerStackComposeInfo
+                {
+                    Name = Name,
+                    Content = File.ReadAllText(ComposeFile)
+                };
+            }
+            catch
+            {
+                throw new Exception("Failed to get compose content.");
+            }
         }
-        catch
+        else
         {
-            throw new Exception("Failed to get compose content.");
+            if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
+                throw new Exception("Stack does not exist or trying to access a system controlled stack.");
+
+            if (!File.Exists(Program.CurrentDirectory + $"Data/Stacks/{id}/docker-compose.yml"))
+                throw new Exception("Failed to get compose file or content.");
+
+            try
+            {
+                return new DockerStackComposeInfo
+                {
+                    Name = stack.Name,
+                    Content = File.ReadAllText(Program.CurrentDirectory + $"Data/Stacks/{id}/docker-compose.yml")
+                };
+            }
+            catch
+            {
+                throw new Exception("Failed to get compose content.");
+            }
         }
     }
 
-    public static async Task ControlStack(DockerClient client, string id, ControlStackType type)
+    public static async Task ControlStack(DockerClient client, string? id, ControlStackType type)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Stack id is missing.");
+
         if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
             throw new Exception("Stack does not exist.");
 
@@ -775,7 +879,7 @@ public static class DockerStacks
         string File = Dir + "docker-compose.yml";
         using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
         {
-            ComposeFilePath = new List<string> { File },
+            ComposeFilePath = [File],
             ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
             StopOnDispose = false,
             AlternativeServiceName = stack.Name,
@@ -803,8 +907,11 @@ public static class DockerStacks
         }
     }
 
-    public static async Task RemoveStack(DockerClient client, string id)
+    public static async Task RemoveStack(DockerClient client, string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Stack id is missing.");
+
         string Dir = Program.CurrentDirectory + $"Data/Stacks/{id}/";
         if (Directory.Exists(Dir))
         {
@@ -815,7 +922,7 @@ public static class DockerStacks
                 {
                     using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
                     {
-                        ComposeFilePath = new List<string> { File },
+                        ComposeFilePath = [File],
                         ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                         StopOnDispose = false,
                         RemoveOrphans = true,

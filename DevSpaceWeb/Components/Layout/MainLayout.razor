@@ -10,8 +10,6 @@
 
 <RadzenLayout>
     <RadzenHeader>
-
-
         @if (Session.State.User.Identity != null && Session.State.User.Identity.IsAuthenticated)
         {
             <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceBetween" Wrap="FlexWrap.NoWrap" Gap="4px" Style="width: 100%;">
@@ -43,13 +41,9 @@
                             <NavTools></NavTools>
                         </div>
                         
-                        <div class="pc-only">
+                        @* <div class="pc-only">
                             <NavBookmarks></NavBookmarks>
-                        </div>
-
-                        <div class="pc-only">
-                            <NavTasks></NavTasks>
-                        </div>
+                        </div> *@
                         
                         <div class="pc-only">
                             <NavNotifications></NavNotifications>
@@ -57,7 +51,7 @@
                         <RadzenMenu ClickToOpen="false" Responsive="false" Style="margin-right: 10px;">
                             <RadzenMenuItem id="NavUser">
                                 <Template>
-                                    <img class="img-round" src="@Session.CurrentUser.GetAvatarOrDefault()" /> @Session.CurrentUser.GetCurrentName()
+                                    <img class="img-round" src="@Session.CurrentUser?.GetAvatarOrDefault()" /> @Session.CurrentUser?.GetCurrentName()
                                 </Template>
                                 <ChildContent>
                                     <RadzenMenuItem Path="/user/account">
@@ -198,6 +192,15 @@
 
     .rz-dialog {
         max-height: calc(100vh - 110px) !important;
+    }
+
+    .rz-text-body2:before {
+        content: "";
+        display: inline-block;
+    }
+
+    .rz-popup .rz-navigation-item-wrapper .rzi {
+        font-variation-settings: 'FILL' 1;
     }
 </style>
 

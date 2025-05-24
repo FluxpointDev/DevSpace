@@ -20,7 +20,7 @@ public class DockerContainerInfo
         if (data.Labels != null)
         {
             string? Id = null;
-            if (data.Labels.TryGetValue("com.docker.compose.project", out string? label))
+            if (data.Labels.TryGetValue("com.docker.compose.project", out string? label) && !string.IsNullOrEmpty(label))
             {
                 Info.StackName = label;
                 Id = label;
@@ -54,7 +54,7 @@ public class DockerContainerInfo
     }
 
     public required string Id { get; set; }
-    public required string Name { get; set; }
+    public string Name { get; set; }
     public string ImageId { get; set; }
     public string ImageName { get; set; }
     public string? StackId { get; set; }
@@ -66,14 +66,4 @@ public class DockerContainerInfo
     public bool IsRestarting => State != null && State == "restarting";
     public bool IsPaused => State != null && State == "paused";
 
-    public bool IsOnline()
-    {
-        if (State == null)
-            return false;
-
-        if (State.StartsWith("running") || State == "restarting")
-            return true;
-
-        return false;
-    }
 }

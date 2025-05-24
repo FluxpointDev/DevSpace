@@ -22,7 +22,7 @@ public class MCHelper
                 list_players = list_cmd[1].Replace(" ", string.Empty).Split(',');
 
             }
-            catch (Exception ee)
+            catch
             {
                 list_players = [];
 

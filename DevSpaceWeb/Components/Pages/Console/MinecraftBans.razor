@@ -5,7 +5,7 @@
 @using LibMCRcon.RCon
 @using Newtonsoft.Json.Linq
 @using System.Text
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <PageTitle>Console Bans | @_Data.Config.Instance.Name</PageTitle>
 
@@ -22,7 +22,6 @@
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl)" Text="@Session.Selected.Team?.Console?.Data.Name" />
         <RadzenBreadCrumbItem Text="Bans" />
     </RadzenBreadCrumb>
-    <br />
     @if (Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewBans))
     {
         <div class="dash-box-content">
@@ -34,10 +33,33 @@
     }
     else
     {
-        <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+        <br />
+        <div class="dash-box-content">
+            <ActionBar>
+                <RadzenFormField Variant="Variant.Outlined">
+                    <Start>
+                        <RadzenIcon Icon="search" />
+                    </Start>
+                    <ChildContent>
+                        <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                       autocapitalize="none" MaxLength="100" inputmode="search"
+                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
+                    </ChildContent>
+                    <End>
+                        @if (!string.IsNullOrWhiteSpace(SearchText))
+                        {
+                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        }
+                    </End>
+                </RadzenFormField>
+            </ActionBar>
+        </div>
+        <RadzenDataGrid @ref="@Grid" Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        EmptyText="No bans." PageSizeOptions="@Static.PageSizeOptions" ShowPagingSummary="true"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
-                <RadzenDataGridColumn Title="Name" Width="200px">
+                <RadzenDataGridColumn Title="Name" Width="200px" Property="@nameof(Player.name)">
                     <Template>
                         @if (context.number == 0)
                         {
@@ -49,18 +71,12 @@
                             @if (Member.HasConsolePermission(Team, Console, ConsolePermission.ViewIPs))
                             {
                                 <RadzenTextMask Value="@context.name" IsIp="true"></RadzenTextMask>
+                                <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="IP" IsPill="true" />
                             }
-                            else
-                            {
-                                <RadzenText TextStyle="TextStyle.Body2">
-                                    @GetMask(context.name)
-                                </RadzenText>
-                            }
-                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="IP" IsPill="true" />
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Actions" Width="80px">
+                <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                     <Template>
                         <RadzenButton Icon="hardware" Click="@(() => Unban(context))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
                     </Template>
@@ -76,15 +92,38 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
+    public RadzenTextBox SearchBox { get; set; } = null!;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SearchBox != null)
+            _ = SearchBox.FocusAsync();
+    }
+
     public TeamData? Team => Session.Selected.Team?.Data;
     public ConsoleData? Console => Session.Selected.Console;
     public TeamMemberData? Member => Session.Selected.Member;
 
+    public RadzenDataGrid<Player> Grid { get; set; }
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(0).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
+    }
+
     public IEnumerable<Player> Players { get; set; }
     public int PlayerCount { get; set; }
 
-    public string GetMask(string value)
+    public string? GetMask(string? value)
     {
+        if (string.IsNullOrEmpty(value))
+            return null;
         bool FirstDot = false;
         StringBuilder result = new StringBuilder();
         foreach (char c in value)
@@ -124,11 +163,11 @@
                 string[] lines = ListCommand.SplitNewlines(trim: true);
                 List<Player> list = new List<Player>();
 
-                foreach (var i in lines.First().Split(", ").Select(x => new Player(1, null, null, null, x, null)))
+                foreach (Player i in lines.First().Split(", ").Select(x => new Player(1, null, null, null, x, null)))
                 {
                     if (i.name.Contains(" and "))
                     {
-                        var SplitAnd = lines.First().Split(" and ");
+                        string[] SplitAnd = lines.First().Split(" and ");
                         list.Add(new Player(0, null, null, null, SplitAnd[0], null));
                         list.Add(new Player(0, null, null, null, SplitAnd[1], null));
                     }
@@ -146,11 +185,11 @@
                     }
                     catch { }
                     lines = ListCommand.SplitNewlines(trim: true);
-                    foreach (var i in lines.First().Split(", ").Select(x => new Player(1, null, null, null, x, null)))
+                    foreach (Player i in lines.First().Split(", ").Select(x => new Player(1, null, null, null, x, null)))
                     {
                         if (i.name.Contains(" and "))
                         {
-                            var SplitAnd = lines.First().Split(" and ");
+                            string[] SplitAnd = lines.First().Split(" and ");
                             list.Add(new Player(1, null, null, null, SplitAnd[0], null));
                             list.Add(new Player(1, null, null, null, SplitAnd[1], null));
                         }
@@ -161,10 +200,8 @@
                 }
                 catch { }
 
-                var query = list;
-
-                PlayerCount = query.Count();
-                Players = query.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
+                PlayerCount = list.Count();
+                Players = list.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
             }
             else
             {
@@ -186,27 +223,28 @@
     {
         if (Member == null || Console == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
             return;
         }
 
         if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
             return;
         }
 
-        bool Confirm = await Dialog.ShowConfirmAsync($"Unban {player.name}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+        bool Confirm = await Dialogs.ShowConfirmAsync($"Unban {player.name}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        if (rcon.IsConnected)
         {
-            if (rcon.IsConnected)
-            {
-                var Result = await rcon.ExecuteCmd("pardon " + player.name);
-                await Dialog.ShowInfoAsync("Unban Result", Result);
-            }
-            else
-                await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+            string Result = await rcon.ExecuteCmd("pardon " + player.name);
+            await Dialogs.ShowInfoAsync("Unban Result", Result);
         }
+        else
+            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
     }
 
 }

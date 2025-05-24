@@ -28,12 +28,9 @@ public class Program
     public static string GetVersionText()
     {
         if (string.IsNullOrEmpty(Version))
-            return "Unknown";
+            return "Unknown Version";
 
-        if (Version.StartsWith("1."))
-            return Version + " Beta";
-
-        return Version + " Release";
+        return Version + " Beta";
     }
 
     public static InteractiveServerRenderMode RenderMode = new InteractiveServerRenderMode(prerender: false);
@@ -57,7 +54,7 @@ public class Program
         }
     });
 
-    public static IServiceCollection? Services;
+    public static IServiceCollection Services = null!;
 
     public static MemoryCache Cache = new MemoryCache(new MemoryCacheOptions());
 
@@ -172,7 +169,7 @@ public class Program
                 Console.WriteLine("PINGED DOCKER");
 
 
-                var Volume = await InternalDocker.Volumes.InspectAsync("3d725f9fc66894e63b81e8a2843f1cab06283d78ca0b92246240b291e7184258");
+                Docker.DotNet.Models.VolumeResponse Volume = await InternalDocker.Volumes.InspectAsync("3d725f9fc66894e63b81e8a2843f1cab06283d78ca0b92246240b291e7184258");
                 Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Volume, Newtonsoft.Json.Formatting.Indented));
 
                 //DockerStatJson? Stats = null;
@@ -260,10 +257,8 @@ public class Program
 
         Services = builder.Services;
 
-        builder.AddServiceDefaults();
-
         WebApplication app = builder.Build();
-        
+
         // Configure the HTTP request pipeline.
         //if (!app.Environment.IsDevelopment())
         //{

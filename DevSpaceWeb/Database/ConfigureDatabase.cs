@@ -16,7 +16,7 @@ public class ConfigureDatabase
     {
         if (!string.IsNullOrEmpty(ConnectionString))
             return ConnectionString;
-        
+
         if (string.IsNullOrEmpty(User) || string.IsNullOrEmpty(Password))
             return $"mongodb://{Host}:{Port}";
 

@@ -1,4 +1,6 @@
-﻿using DevSpaceWeb.API;
+﻿using DevSpaceShared.Events.Docker;
+using DevSpaceShared.Responses;
+using DevSpaceWeb.API;
 using DevSpaceWeb.API.Servers;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Database;
@@ -11,7 +13,7 @@ using System.Data;
 namespace DevSpaceWeb.Controllers.API;
 
 [ShowInSwagger]
-[SwaggerTag("Requires permission View Servers")]
+[SwaggerTag("Manage Team servers and information.")]
 [IsAuthenticated]
 [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized", typeof(ResponseUnauthorized))]
 [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
@@ -36,17 +38,53 @@ public class ServersController : APIController
             return NotFound("Could not find server.");
 
         if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         if (showIp)
         {
             if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewHostInfo, out perm))
-                return PermissionFailed(perm);
+                return PermissionFailed(perm!);
         }
 
         return Ok(new ServerJson(server, showIp));
     }
 
+    [HttpGet("/api/servers/{serverId?}/system")]
+    [SwaggerOperation("Get server system info.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ServerSystemJson>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetServerSystem([FromRoute] string serverId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
 
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
+            return PermissionFailed(perm!);
+
+        SocketResponse<DevSpaceShared.Responses.SystemInfoResponse?> Response = await server.RecieveJsonAsync<DevSpaceShared.Responses.SystemInfoResponse>(new DockerEvent(DockerEventType.SystemInfo));
+        if (!Response.IsSuccess || Response.Data == null)
+            return Conflict("Failed to get server data, " + Response.Message);
+
+        return Ok(new ServerSystemJson(server, Response.Data));
+    }
+
+    [HttpGet("/api/servers/{serverId?}/host")]
+    [SwaggerOperation("Get server host details.", "")]
+    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ServerHostJson>))]
+    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    public async Task<IActionResult> GetServerHost([FromRoute] string serverId = "")
+    {
+        if (string.IsNullOrEmpty(serverId) || !ObjectId.TryParse(serverId, out ObjectId obj) || !_DB.Servers.Cache.TryGetValue(obj, out Data.Servers.ServerData? server) || !(server.TeamId == Client.TeamId))
+            return NotFound("Could not find server.");
+
+        if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer | ServerPermission.ViewHostInfo, out ServerPermission? perm))
+            return PermissionFailed(perm!);
+
+        SocketResponse<SystemInfoFullResponse?> Response = await server.RecieveJsonAsync<SystemInfoFullResponse>(new DockerEvent(DockerEventType.HostInfo));
+        if (!Response.IsSuccess || Response.Data == null)
+            return Conflict("Failed to get server data, " + Response.Message);
+
+        return Ok(new ServerHostJson(server, Response.Data));
+    }
 
 }

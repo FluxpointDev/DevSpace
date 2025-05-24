@@ -5,7 +5,6 @@
 @using Newtonsoft.Json.Linq
 @using System.Text
 @inject ContextMenuService ContextMenuService
-@inject DialogService Dialog
 
 <PageTitle>Console Admins | @_Data.Config.Instance.Name</PageTitle>
 
@@ -35,6 +34,7 @@
     {
         <br />
         <RadzenDataGrid Count="@ConnectionCount" Data="@Connections" LoadData="@LoadData"
+                        EmptyText="No admins." PageSizeOptions="@Static.PageSizeOptions" ShowPagingSummary="true"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
                 <RadzenDataGridColumn Title="ID" Width="60px">
@@ -96,7 +96,7 @@
         {
             if (rc.IsConnected)
             {
-                var query = rc.GetAdmins()?.AsQueryable();
+                IQueryable<RconAdmin>? query = rc.GetAdmins()?.AsQueryable();
                 if (query == null)
                     return;
                 ConnectionCount = query.Count();

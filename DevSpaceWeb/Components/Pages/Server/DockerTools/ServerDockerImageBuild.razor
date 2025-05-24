@@ -1,9 +1,10 @@
-﻿@using BlazorMonaco.Editor
-@using DevSpaceShared.Events.Docker
+﻿@using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using Newtonsoft.Json.Linq
 @inject NavigationManager Nav
 @inject NotificationService Notifications
+
+<PageTitle>Docker Build Image | @_Data.Config.Instance.Name</PageTitle>
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -46,7 +47,7 @@
             </RadzenText>
         }
         <RadzenStack>
-            @foreach (var i in NameInputs)
+            @foreach (KeyValuePair<string, string> i in NameInputs)
             {
                 @RenderFormElement(i.Key, i.Value)
             }
@@ -65,7 +66,7 @@
         {
             case CreateImageType.Editor:
                 {
-                    <StandaloneCodeEditor @ref="_editor" OnDidChangeModelContent="@(arg => IsValueSet = true)" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@LoadEditor" />
+                    <Editor @ref="@_editor" Value="@("")" FileName="Dockerfile" Language="dockerfile" HideDiff="true"></Editor>
                 }
                 break;
             case CreateImageType.Upload:
@@ -112,19 +113,6 @@
     }
 </div>
 
-<style>
-    .monaco-editor, .monaco-diff-editor {
-        background-color: #1e1e1e !important;
-    }
-
-    .monaco-editor-container, .monaco-diff-editor {
-        min-height: 400px !important;
-        max-height: calc(100vh - 140px) !important;
-        padding-top: 6px;
-        padding-bottom: 10px;
-    }
-</style>
-
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
@@ -133,12 +121,12 @@
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
-    public CreateImageType SelectedType { get; set; }
+    public CreateImageType SelectedType { get; set; } = CreateImageType.Editor;
 
     public string? RemoteUrl { get; set; }
     public string? DockerfileName { get; set; } = "Dockerfile";
 
-    public bool IsValueSet = false;
+    //public bool IsValueSet = false;
 
     public bool IsInvalid()
     {
@@ -146,7 +134,7 @@
             return true;
 
 
-        foreach (var i in NameInputs)
+        foreach (KeyValuePair<string, string> i in NameInputs)
         {
             if (!Utils.IsDockerImageNameValid(i.Value))
                 return true;
@@ -155,11 +143,11 @@
         @switch (SelectedType)
         {
             case CreateImageType.Editor:
-                if (!IsValueSet)
-                    return true;
+                //if (!IsValueSet)
+                //return true;
                 break;
             case CreateImageType.Upload:
-                if (!upload.HasValue)
+                if (upload != null && !upload.HasValue)
                     return true;
                 return true;
             case CreateImageType.Remote:
@@ -177,12 +165,6 @@
         }
 
         return false;
-    }
-
-    public async Task LoadEditor()
-    {
-        var Model = await _editor.GetModel();
-        await Model.SetValue("");
     }
 
     Dictionary<string, string> NameInputs = new Dictionary<string, string>
@@ -206,20 +188,7 @@
         builder.CloseComponent();
     };
 
-    private StandaloneCodeEditor _editor = null!;
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "dockerfile",
-            Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
-            Folding = false,
-            Value = ""
-        };
-    }
+    private Editor _editor = null!;
 
     public bool IsLoading { get; set; }
     public bool Failed { get; set; }
@@ -231,15 +200,18 @@
         if (Server == null || Member == null || Team == null)
             return;
 
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
         IsLoading = true;
         if (_editor != null)
-            await _editor.UpdateOptions(new EditorUpdateOptions
-            {
-                ReadOnly = true
-            });
+            await _editor.SetReadOnly(true);
 
         CreateImageEvent Data = new CreateImageEvent
         {
@@ -250,7 +222,7 @@
         switch (SelectedType)
         {
             case CreateImageType.Editor:
-                Data.Content = await _editor.GetValue();
+                Data.Content = await _editor!.GetValue();
                 break;
             case CreateImageType.Upload:
                 break;
@@ -261,7 +233,7 @@
         }
 
 
-        var Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.CreateImage)
+        SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.CreateImage)
         {
             Data = JObject.FromObject(Data)
         });
@@ -270,10 +242,7 @@
             Failed = true;
             IsLoading = false;
             if (_editor != null)
-                await _editor.UpdateOptions(new EditorUpdateOptions
-                {
-                    ReadOnly = false
-                });
+                await _editor.SetReadOnly(false);
             return;
         }
 

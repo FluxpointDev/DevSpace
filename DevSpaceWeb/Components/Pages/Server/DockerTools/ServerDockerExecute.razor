@@ -15,6 +15,11 @@
         </div>
         <RadzenText TextStyle="TextStyle.H6">Docker Execute</RadzenText>
     </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
+        <RadzenBreadCrumbItem Text="Execute" />
+    </RadzenBreadCrumb>
     <RadzenRow Gap="0.5rem">
         <RadzenColumn class="rz-p-1">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
@@ -29,14 +34,14 @@
                 <RadzenTextBox @bind-Value="@Endpoint" Style="width: 100%;" Placeholder="/" />
                 <RadzenButton Shade="Shade.Dark" Click="@SendRequest" Text="Send" Icon="play_arrow" ButtonStyle="ButtonStyle.Primary" />
             </RadzenStack>
-            <StandaloneCodeEditor @ref="InputEditor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
-
+            @* <StandaloneCodeEditor @ref="InputEditor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" />
+ *@
         </RadzenColumn>
         <RadzenColumn class="rz-p-1">
             <RadzenStack Orientation="Orientation.Horizontal" Gap="4px">
 
             </RadzenStack>
-            <StandaloneCodeEditor @ref="OutputEditor" Id="my-editor-instance-id2" ConstructionOptions="EditorConstructionOptions" />
+            @* <StandaloneCodeEditor @ref="OutputEditor" Id="my-editor-instance-id2" ConstructionOptions="EditorConstructionOptions" /> *@
         </RadzenColumn>
     </RadzenRow>
 
@@ -77,7 +82,7 @@
 
     private StandaloneCodeEditor InputEditor = null!;
 
-    private StandaloneCodeEditor OutputEditor = null!;
+    //private StandaloneCodeEditor OutputEditor = null!;
 
     private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
     {
@@ -109,7 +114,7 @@
             Request += $" --header 'Content-Type: application/json' --data '{InputText}'";
         }
 
-        Request += " http:/localhost" + Endpoint;
+        Request += " http://localhost" + Endpoint;
         //await OutputEditor.Trigger(data.Data.Output, "editor.action.formatDocument");
     }
 }

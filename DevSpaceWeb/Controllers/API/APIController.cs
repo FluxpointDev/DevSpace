@@ -14,7 +14,7 @@ public class APIController : ControllerBase
     public TeamMemberData CurrentOwner = null!;
 
     [NonAction]
-    public JsonResult Ok()
+    public new JsonResult Ok()
     {
         Response.ContentType = "application/json";
         Response.StatusCode = 200;
@@ -34,7 +34,7 @@ public class APIController : ControllerBase
     {
         Response.ContentType = "application/json";
         Response.StatusCode = 200;
-        JObject JObject = new JObject();
+        JObject JObject = [];
         if (obj != null)
         {
             Type type = obj.GetType();

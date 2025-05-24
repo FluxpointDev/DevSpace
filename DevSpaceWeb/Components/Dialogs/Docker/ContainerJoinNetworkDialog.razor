@@ -1,0 +1,122 @@
+﻿@using DevSpaceShared.Data
+@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@using Newtonsoft.Json.Linq
+@using global::Docker.DotNet.Models
+
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+@inject NotificationService Notifications
+
+<PageTitle>Container Join Network | @_Data.Config.Instance.Name</PageTitle>
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        @if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                        Failed to join network, @ErrorMessage
+                </RadzenAlert>
+        }
+
+        @if (Networks != null)
+        {
+            <RadzenDropDown @bind-Value="@SelectedNetwork" Data="@Networks.Data" Placeholder="Select a network" TextProperty="@nameof(DockerNetworkInfo.Name)" Style="width: 100%; max-width: 400px;" />
+        }
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close())" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@IsLoading" />
+        <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Join" Style="width: 120px" Disabled="@(IsLoading || SelectedNetwork == null)" IsBusy="@IsLoading" />
+    </RadzenStack>
+</RadzenStack>
+
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    [Parameter]
+    public string? ContainerId { get; set; }
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ServerData? Server => Session.Selected.Server;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Team == null || Server == null || Member == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerPermission.ViewNetworks);
+            return;
+        }
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.ManageContainerNetworks);
+            return;
+        }
+
+        Networks = await Server.RunJsonAsync<List<DockerNetworkInfo>>(Notifications, new DockerEvent(DockerEventType.ListNetworks));
+        if (Networks.Data != null)
+            Networks.Data = Networks.Data.Where(x => x.Name != "host" && x.Name != "none").OrderBy(x => x.Name).ToList();
+    }
+
+    public SocketResponse<List<DockerNetworkInfo>?>? Networks = null;
+    public DockerNetworkInfo? SelectedNetwork = null;
+
+    public string? ErrorMessage;
+    public bool IsSuccess;
+    public bool IsLoading = false;
+
+
+    async Task Submit()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Team == null || Server == null || Member == null || SelectedNetwork == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerPermission.ViewNetworks);
+            return;
+        }
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.ManageContainerNetworks);
+            return;
+        }
+
+        IsLoading = true;
+
+        SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, SelectedNetwork.Id, networkType: ControlNetworkType.JoinNetwork)
+        {
+            Data = JObject.FromObject(new DockerContainerInfo
+            {
+                Id = ContainerId
+            })
+        });
+
+        if (Response.IsSuccess)
+        {
+            dialogService.Close(true);
+        }
+        else
+        {
+            ErrorMessage = Response.Message;
+        }
+    }
+}

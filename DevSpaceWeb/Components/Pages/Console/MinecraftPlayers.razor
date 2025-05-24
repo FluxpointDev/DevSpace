@@ -5,7 +5,7 @@
 @using LibMCRcon.RCon
 @using Newtonsoft.Json.Linq
 @inject ContextMenuService ContextMenuService
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <PageTitle>Console Players | @_Data.Config.Instance.Name</PageTitle>
 
@@ -22,7 +22,6 @@
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl)" Text="@Session.Selected.Team?.Console?.Data.Name" />
         <RadzenBreadCrumbItem Text="Players" />
     </RadzenBreadCrumb>
-    <br />
     @if (Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPlayers))
     {
         <div class="dash-box-content">
@@ -34,15 +33,38 @@
     }
     else
     {
-        <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+        <br />
+        <div class="dash-box-content">
+            <ActionBar>
+                <RadzenFormField Variant="Variant.Outlined">
+                    <Start>
+                        <RadzenIcon Icon="search" />
+                    </Start>
+                    <ChildContent>
+                        <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                       autocapitalize="none" MaxLength="100" inputmode="search"
+                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
+                    </ChildContent>
+                    <End>
+                        @if (!string.IsNullOrWhiteSpace(SearchText))
+                        {
+                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        }
+                    </End>
+                </RadzenFormField>
+            </ActionBar>
+        </div>
+        <RadzenDataGrid @ref="@Grid" Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        EmptyText="No players." PageSizeOptions="@Static.PageSizeOptions" ShowPagingSummary="true"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
-                <RadzenDataGridColumn Title="Name" Width="200px">
+                <RadzenDataGridColumn Title="Name" Width="200px" Property="@nameof(Player.name)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.name</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Actions" Width="80px">
+                <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                     <Template>
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                             <RadzenButton Icon="build" Click="@(args => ShowContextMenuWithManageItems(context, args))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
@@ -60,9 +82,30 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
+    public RadzenTextBox SearchBox { get; set; } = null!;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SearchBox != null)
+            _ = SearchBox.FocusAsync();
+    }
+
     public TeamData? Team => Session.Selected.Team?.Data;
     public ConsoleData? Console => Session.Selected.Console;
     public TeamMemberData? Member => Session.Selected.Member;
+
+    public RadzenDataGrid<Player> Grid { get; set; }
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(0).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
+    }
 
     public IEnumerable<Player> Players { get; set; }
     public int PlayerCount { get; set; }
@@ -85,11 +128,11 @@
 
                 List<Player> list = new List<Player>();
 
-                foreach (var i in ListCommand.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(x => new Player(0, null, null, null, x, null)))
+                foreach (Player i in ListCommand.Split(",", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(x => new Player(0, null, null, null, x, null)))
                 {
-                    if (i.name.Contains(" and "))
+                    if (!string.IsNullOrEmpty(i.name) && i.name.Contains(" and "))
                     {
-                        var SplitAnd = i.name.Split(" and ");
+                        string[] SplitAnd = i.name.Split(" and ");
                         list.Add(new Player(0, null, null, null, SplitAnd[0], null));
                         list.Add(new Player(0, null, null, null, SplitAnd[1], null));
                     }
@@ -97,10 +140,9 @@
                         list.Add(i);
                 }
 
-                var query = list;
 
-                PlayerCount = query.Count();
-                Players = query.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
+                PlayerCount = list.Count();
+                Players = list.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
             }
             else
             {
@@ -148,17 +190,17 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
                             return;
                         }
 
                         if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
                             return;
                         }
 
-                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                                 return "You do not have permission for Ban Players";
@@ -166,8 +208,8 @@
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";
 
-                            var Result = await rcon.ExecuteCmd("ban " + item.name);
-                            await Dialog.ShowInfoAsync("Ban Result", Result);
+                            string Result = await rcon.ExecuteCmd("ban " + item.name);
+                            await Dialogs.ShowInfoAsync("Ban Result", Result);
                             return null;
                         });
                     }
@@ -176,17 +218,17 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.KickPlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.KickPlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.KickPlayers);
                             return;
                         }
 
                         if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
                             return;
                         }
 
-                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.KickPlayers))
                                 return "You do not have permission for Kick Players";
@@ -194,8 +236,8 @@
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";
 
-                            var Result = await rcon.ExecuteCmd("kick " + item.name);
-                            await Dialog.ShowInfoAsync("Kick Result", Result);
+                            string Result = await rcon.ExecuteCmd("kick " + item.name);
+                            await Dialogs.ShowInfoAsync("Kick Result", Result);
                             return null;
                         });
                     }
@@ -204,17 +246,17 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
                             return;
                         }
 
                         if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
                             return;
                         }
 
-                        await Dialog.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                                 return "You do not have permission for Message Players";
@@ -222,8 +264,8 @@
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";
 
-                            var Result = await rcon.ExecuteCmd("tell " + item.name + " " + data.Message);
-                            await Dialog.ShowInfoAsync("Message Result", Result);
+                            string Result = await rcon.ExecuteCmd("tell " + item.name + " " + data.Message);
+                            await Dialogs.ShowInfoAsync("Message Result", Result);
                             return null;
                         });
                     }

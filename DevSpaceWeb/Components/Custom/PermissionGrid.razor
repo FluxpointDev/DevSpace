@@ -1,7 +1,7 @@
 ﻿@using DevSpaceWeb.Components.Dialogs
 @using DevSpaceWeb.Components.Dialogs.Members
 @using DevSpaceWeb.Components.Pages.Teams
-@inject DialogService DialogService
+@inject DialogService Dialogs
 
 @if (Permissions != null)
 {
@@ -18,7 +18,7 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="ResourceGrid.Grid" @bind-Value="@ResourceGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })"
+                    <RadzenDropDown @ref="ResourceGrid.Grid" @bind-Value="@ResourceGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })"
                                     Disabled="@(!PermissionsLoaded || GlobalAdministrator || IsDisabled)" ReadOnly="@CheckReadOnly()" Placeholder="Select permission..." AllowFiltering="true" Chips="true"
                                     Data="@ResourceGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Multiple="true" AllowSelectAll="false" TextProperty="Name"
                                     Style="width: 100%;">
@@ -45,7 +45,7 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="TeamGrid.Grid" @bind-Value="@TeamGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })"
+                    <RadzenDropDown @ref="TeamGrid.Grid" @bind-Value="@TeamGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })"
                                     Disabled="@(!PermissionsLoaded || GlobalAdministrator || TeamAdministrator || IsDisabled)" ReadOnly="@CheckReadOnly()" Placeholder="Select permission..." AllowFiltering="true" Chips="true"
                                     Data="@TeamGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Multiple="true" AllowSelectAll="false" TextProperty="Name"
                                     ItemRender="@((evnt) => TeamItemRender(evnt))" Style="width: 100%;">
@@ -72,7 +72,7 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="APIGrid.Grid" @bind-Value="@APIGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })"
+                    <RadzenDropDown @ref="APIGrid.Grid" @bind-Value="@APIGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })"
                                     Disabled="@(!PermissionsLoaded || GlobalAdministrator || APIAdministrator || IsDisabled)" ReadOnly="@CheckReadOnly()" Placeholder="Select permission..." AllowFiltering="true" Chips="true"
                                     Data="@APIGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Multiple="true" AllowSelectAll="false" TextProperty="Name"
                                     ItemRender="@((evnt) => APIItemRender(evnt))" Style="width: 100%;">
@@ -120,7 +120,7 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="ServerGrid.Grid" @bind-Value="@ServerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                    <RadzenDropDown @ref="ServerGrid.Grid" @bind-Value="@ServerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                                     AllowFiltering="true" Chips="true" Data="@ServerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ServerItemRender(evnt))"
                                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(ServerAdministrator || !ViewServer)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
                         <Template>
@@ -152,7 +152,7 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="DockerGrid.Grid" @bind-Value="@DockerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                    <RadzenDropDown @ref="DockerGrid.Grid" @bind-Value="@DockerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                                     AllowFiltering="true" Chips="true" Data="@DockerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => DockerItemRender(evnt))"
                                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || (DockerAdministrator) || ServerAdministrator)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
                         <Template>
@@ -185,7 +185,7 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="DockerContainerGrid.Grid" @bind-Value="@DockerContainerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                    <RadzenDropDown @ref="DockerContainerGrid.Grid" @bind-Value="@DockerContainerGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                                     AllowFiltering="true" Chips="true" Data="@DockerContainerGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => DockerContainerItemRender(evnt))"
                                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || DockerAdministrator || ServerAdministrator || (!ViewStacks && !ViewContainers))" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
                         <Template>
@@ -230,7 +230,7 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="ConsoleGrid.Grid" @bind-Value="@ConsoleGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                    <RadzenDropDown @ref="ConsoleGrid.Grid" @bind-Value="@ConsoleGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                                     AllowFiltering="true" Chips="true" Data="@ConsoleGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ConsoleItemRender(evnt))"
                                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || ConsoleAdministrator || !ViewConsole)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
                         <Template>
@@ -272,7 +272,7 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="WebsiteGrid.Grid" @bind-Value="@WebsiteGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                    <RadzenDropDown @ref="WebsiteGrid.Grid" @bind-Value="@WebsiteGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                                     AllowFiltering="true" Chips="true" Data="@WebsiteGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => WebsiteItemRender(evnt))"
                                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || WebsiteAdministrator || !ViewWebsite)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
                         <Template>
@@ -314,7 +314,7 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="ProjectGrid.Grid" @bind-Value="@ProjectGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                    <RadzenDropDown @ref="ProjectGrid.Grid" @bind-Value="@ProjectGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                                     AllowFiltering="true" Chips="true" Data="@ProjectGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ProjectItemRender(evnt))"
                                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || ProjectAdministrator || !ViewProject)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
                         <Template>
@@ -356,7 +356,7 @@
                 </div>
 
                 <div>
-                    <RadzenDropDown @ref="LogGrid.Grid" @bind-Value="@LogGrid.Selected" Change="@(() => { if (PermissionsLoaded) { TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                    <RadzenDropDown @ref="LogGrid.Grid" @bind-Value="@LogGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
                                     AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => LogItemRender(evnt))"
                                     Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || LogAdministrator || !ViewLog)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
                         <Template>
@@ -415,7 +415,6 @@
         padding-right: 10px;
         border-radius: 4px;
         margin-bottom: 10px;
-        max-width: 796px;
         margin-left: auto;
         margin-right: auto;
     }
@@ -493,9 +492,9 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamMemberData? Member => Session.Selected.Member;
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public PermissionsSet? Permissions { get; set; }
 
     [Parameter]
@@ -579,8 +578,9 @@
     public void LoadPerms()
     {
         PermissionsLoaded = false;
-        if (Permissions == null)
+        if (Permissions == null || Member == null)
             return;
+
         CalculatedPermissions = Member.CalculatePermissions(Resource);
 
         GlobalAdministrator = Permissions.TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator);
@@ -666,54 +666,54 @@
     public EventCallback OnLoad { get; set; }
 
     private bool _globalAdministrator;
-    public bool GlobalAdministrator { get { return _globalAdministrator; } set { _globalAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool GlobalAdministrator { get { return _globalAdministrator; } set { _globalAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _teamAdministrator;
-    public bool TeamAdministrator { get { return _teamAdministrator; } set { _teamAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool TeamAdministrator { get { return _teamAdministrator; } set { _teamAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _apiAdministrator;
-    public bool APIAdministrator { get { return _apiAdministrator; } set { _apiAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool APIAdministrator { get { return _apiAdministrator; } set { _apiAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
 
     private bool _serverAdministrator;
-    public bool ServerAdministrator { get { return _serverAdministrator; } set { _serverAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool ServerAdministrator { get { return _serverAdministrator; } set { _serverAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _viewServer;
-    public bool ViewServer { get { return _viewServer; } set { _viewServer = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool ViewServer { get { return _viewServer; } set { _viewServer = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _dockerAdministrator;
-    public bool DockerAdministrator { get { return _dockerAdministrator; } set { _dockerAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool DockerAdministrator { get { return _dockerAdministrator; } set { _dockerAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _viewStacks;
-    public bool ViewStacks { get { return _viewStacks; } set { _viewStacks = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool ViewStacks { get { return _viewStacks; } set { _viewStacks = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _viewContainers;
-    public bool ViewContainers { get { return _viewContainers; } set { _viewContainers = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool ViewContainers { get { return _viewContainers; } set { _viewContainers = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
 
     private bool _websiteAdministrator;
-    public bool WebsiteAdministrator { get { return _websiteAdministrator; } set { _websiteAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool WebsiteAdministrator { get { return _websiteAdministrator; } set { _websiteAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _viewWebsite;
-    public bool ViewWebsite { get { return _viewWebsite; } set { _viewWebsite = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool ViewWebsite { get { return _viewWebsite; } set { _viewWebsite = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _projectAdministrator;
-    public bool ProjectAdministrator { get { return _projectAdministrator; } set { _projectAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool ProjectAdministrator { get { return _projectAdministrator; } set { _projectAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _viewProject;
-    public bool ViewProject { get { return _viewProject; } set { _viewProject = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool ViewProject { get { return _viewProject; } set { _viewProject = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _logAdministrator;
-    public bool LogAdministrator { get { return _logAdministrator; } set { _logAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool LogAdministrator { get { return _logAdministrator; } set { _logAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _viewLog;
-    public bool ViewLog { get { return _viewLog; } set { _viewLog = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool ViewLog { get { return _viewLog; } set { _viewLog = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _consoleAdministrator;
-    public bool ConsoleAdministrator { get { return _consoleAdministrator; } set { _consoleAdministrator = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool ConsoleAdministrator { get { return _consoleAdministrator; } set { _consoleAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _viewConsole;
-    public bool ViewConsole { get { return _viewConsole; } set { _viewConsole = value; if (PermissionsLoaded) { TriggerUnsavedDialog(); } } }
+    public bool ViewConsole { get { return _viewConsole; } set { _viewConsole = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     public PermissionGrid<PermissionItem<ResourcePermission>> ResourceGrid = new PermissionGrid<PermissionItem<ResourcePermission>>
     {
@@ -729,7 +729,7 @@
     public PermissionGrid<PermissionItem<DockerContainerPermission>> DockerContainerGrid;
     public PermissionGrid<PermissionItem<ConsolePermission>> ConsoleGrid;
 
-    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<TeamPermission>>> TeamItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<TeamPermission>>> data)
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<TeamPermission>>> TeamItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<TeamPermission>>?> data)
     {
         PermissionItem<TeamPermission> item = (PermissionItem<TeamPermission>)data.Item;
         if (!CalculatedPermissions.TeamPermissions.HasFlag(item.Flag))
@@ -772,7 +772,7 @@
         return data;
     }
 
-    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<APIPermission>>> APIItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<APIPermission>>> data)
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<APIPermission>>> APIItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<APIPermission>>?> data)
     {
         PermissionItem<APIPermission> item = (PermissionItem<APIPermission>)data.Item;
         if (!CalculatedPermissions.APIPermissions.HasFlag(item.Flag))
@@ -790,7 +790,7 @@
         return data;
     }
 
-    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ServerPermission>>> ServerItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ServerPermission>>> data)
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ServerPermission>>> ServerItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ServerPermission>>?> data)
     {
         PermissionItem<ServerPermission> item = (PermissionItem<ServerPermission>)data.Item;
         if (!CalculatedPermissions.ServerPermissions.HasFlag(item.Flag))
@@ -804,7 +804,7 @@
         return data;
     }
 
-    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<WebsitePermission>>> WebsiteItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<WebsitePermission>>> data)
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<WebsitePermission>>> WebsiteItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<WebsitePermission>>?> data)
     {
         PermissionItem<WebsitePermission> item = (PermissionItem<WebsitePermission>)data.Item;
         if (!CalculatedPermissions.WebsitePermissions.HasFlag(item.Flag))
@@ -818,7 +818,7 @@
         return data;
     }
 
-    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ProjectPermission>>> ProjectItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ProjectPermission>>> data)
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ProjectPermission>>> ProjectItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ProjectPermission>>?> data)
     {
         PermissionItem<ProjectPermission> item = (PermissionItem<ProjectPermission>)data.Item;
         if (!CalculatedPermissions.ProjectPermissions.HasFlag(item.Flag))
@@ -832,7 +832,7 @@
         return data;
     }
 
-    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<LogPermission>>> LogItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<LogPermission>>> data)
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<LogPermission>>> LogItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<LogPermission>>?> data)
     {
         PermissionItem<LogPermission> item = (PermissionItem<LogPermission>)data.Item;
         if (!CalculatedPermissions.LogPermissions.HasFlag(item.Flag))
@@ -846,7 +846,7 @@
         return data;
     }
 
-    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerPermission>>> DockerItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerPermission>>> data)
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerPermission>>> DockerItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerPermission>>?> data)
     {
         PermissionItem<DockerPermission> item = (PermissionItem<DockerPermission>)data.Item;
         if (!CalculatedPermissions.DockerPermissions.HasFlag(item.Flag))
@@ -871,7 +871,7 @@
         return data;
     }
 
-    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerContainerPermission>>> DockerContainerItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerContainerPermission>>> data)
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerContainerPermission>>> DockerContainerItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<DockerContainerPermission>>?> data)
     {
         PermissionItem<DockerContainerPermission> item = (PermissionItem<DockerContainerPermission>)data.Item;
         if (!CalculatedPermissions.DockerContainerPermissions.HasFlag(item.Flag))
@@ -914,7 +914,7 @@
         return data;
     }
 
-    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ConsolePermission>>> ConsoleItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ConsolePermission>>> data)
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ConsolePermission>>> ConsoleItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<ConsolePermission>>?> data)
     {
         PermissionItem<ConsolePermission> item = (PermissionItem<ConsolePermission>)data.Item;
         if (!CalculatedPermissions.ConsolePermissions.HasFlag(item.Flag))
@@ -940,9 +940,12 @@
             Set.TeamPermissions |= TeamPermission.TeamAdministrator;
         else
         {
-            foreach (PermissionItem<TeamPermission> i in TeamGrid.Selected)
+            if (TeamGrid.Selected != null)
             {
-                Set.TeamPermissions |= i.Flag;
+                foreach (PermissionItem<TeamPermission> i in TeamGrid.Selected)
+                {
+                    Set.TeamPermissions |= i.Flag;
+                }
             }
         }
 
@@ -950,9 +953,12 @@
             Set.APIPermissions |= APIPermission.APIAdministrator;
         else
         {
-            foreach (PermissionItem<APIPermission> i in APIGrid.Selected)
+            if (APIGrid.Selected != null)
             {
-                Set.APIPermissions |= i.Flag;
+                foreach (PermissionItem<APIPermission> i in APIGrid.Selected)
+                {
+                    Set.APIPermissions |= i.Flag;
+                }
             }
         }
 
@@ -963,9 +969,12 @@
             if (ViewServer)
                 Set.ServerPermissions |= ServerPermission.ViewServer;
 
-            foreach (PermissionItem<ServerPermission> i in ServerGrid.Selected)
+            if (ServerGrid.Selected != null)
             {
-                Set.ServerPermissions |= i.Flag;
+                foreach (PermissionItem<ServerPermission> i in ServerGrid.Selected)
+                {
+                    Set.ServerPermissions |= i.Flag;
+                }
             }
         }
 
@@ -973,9 +982,12 @@
             Set.DockerPermissions |= DockerPermission.DockerAdministrator;
         else
         {
-            foreach (PermissionItem<DockerPermission> i in DockerGrid.Selected)
+            if (DockerGrid.Selected != null)
             {
-                Set.DockerPermissions |= i.Flag;
+                foreach (PermissionItem<DockerPermission> i in DockerGrid.Selected)
+                {
+                    Set.DockerPermissions |= i.Flag;
+                }
             }
         }
 
@@ -985,11 +997,13 @@
         if (ViewContainers)
             Set.DockerContainerPermissions |= DockerContainerPermission.ViewContainers;
 
-        foreach(var i in DockerContainerGrid.Selected)
+        if (DockerContainerGrid.Selected != null)
         {
-            Set.DockerContainerPermissions |= i.Flag;
+            foreach(PermissionItem<DockerContainerPermission> i in DockerContainerGrid.Selected)
+            {
+                Set.DockerContainerPermissions |= i.Flag;
+            }
         }
-
         if (WebsiteAdministrator)
             Set.WebsitePermissions |= WebsitePermission.WebsiteAdministrator;
         else
@@ -997,9 +1011,12 @@
             if (ViewWebsite)
                 Set.WebsitePermissions |= WebsitePermission.ViewWebsite;
 
-            foreach (PermissionItem<WebsitePermission> i in WebsiteGrid.Selected)
+            if (WebsiteGrid.Selected != null)
             {
-                Set.WebsitePermissions |= i.Flag;
+                foreach (PermissionItem<WebsitePermission> i in WebsiteGrid.Selected)
+                {
+                    Set.WebsitePermissions |= i.Flag;
+                }
             }
         }
 
@@ -1010,9 +1027,12 @@
             if (ViewProject)
                 Set.ProjectPermissions |= ProjectPermission.ViewProject;
 
-            foreach (PermissionItem<ProjectPermission> i in ProjectGrid.Selected)
+            if (ProjectGrid.Selected != null)
             {
-                Set.ProjectPermissions |= i.Flag;
+                foreach (PermissionItem<ProjectPermission> i in ProjectGrid.Selected)
+                {
+                    Set.ProjectPermissions |= i.Flag;
+                }
             }
         }
 
@@ -1023,9 +1043,12 @@
             if (ViewLog)
                 Set.LogPermissions |= LogPermission.ViewLog;
 
-            foreach (PermissionItem<LogPermission> i in LogGrid.Selected)
+            if (LogGrid.Selected != null)
             {
-                Set.LogPermissions |= i.Flag;
+                foreach (PermissionItem<LogPermission> i in LogGrid.Selected)
+                {
+                    Set.LogPermissions |= i.Flag;
+                }
             }
         }
 
@@ -1036,37 +1059,42 @@
             if (ViewConsole)
                 Set.ConsolePermissions |= ConsolePermission.ViewConsole;
 
-            foreach (PermissionItem<ConsolePermission> i in ConsoleGrid.Selected)
+            if (ConsoleGrid.Selected != null)
             {
-                Set.ConsolePermissions |= i.Flag;
+                foreach (PermissionItem<ConsolePermission> i in ConsoleGrid.Selected)
+                {
+                    Set.ConsolePermissions |= i.Flag;
+                }
             }
         }
 
-        foreach(var i in ResourceGrid.Selected)
+        if (ResourceGrid.Selected != null)
         {
-            switch (i.Flag)
+            foreach (PermissionItem<ResourcePermission> i in ResourceGrid.Selected)
             {
-                case ResourcePermission.CreateAPIs:
-                    Set.APIPermissions |= APIPermission.CreateOwnAPIs;
-                    break;
-                case ResourcePermission.CreateServers:
-                    Set.ServerPermissions |= ServerPermission.CreateServerResource;
-                    break;
-                case ResourcePermission.CreateConsoles:
-                    Set.ConsolePermissions |= ConsolePermission.CreateConsoleResource;
-                    break;
-                case ResourcePermission.CreateWebsites:
-                    Set.WebsitePermissions |= WebsitePermission.CreateWebsiteResource;
-                    break;
-                case ResourcePermission.CreateProjects:
-                    Set.ProjectPermissions |= ProjectPermission.CreateProjectResource;
-                    break;
-                case ResourcePermission.CreateLogs:
-                    Set.LogPermissions |= LogPermission.CreateLogResource;
-                    break;
+                switch (i.Flag)
+                {
+                    case ResourcePermission.CreateAPIs:
+                        Set.APIPermissions |= APIPermission.CreateOwnAPIs;
+                        break;
+                    case ResourcePermission.CreateServers:
+                        Set.ServerPermissions |= ServerPermission.CreateServerResource;
+                        break;
+                    case ResourcePermission.CreateConsoles:
+                        Set.ConsolePermissions |= ConsolePermission.CreateConsoleResource;
+                        break;
+                    case ResourcePermission.CreateWebsites:
+                        Set.WebsitePermissions |= WebsitePermission.CreateWebsiteResource;
+                        break;
+                    case ResourcePermission.CreateProjects:
+                        Set.ProjectPermissions |= ProjectPermission.CreateProjectResource;
+                        break;
+                    case ResourcePermission.CreateLogs:
+                        Set.LogPermissions |= LogPermission.CreateLogResource;
+                        break;
+                }
             }
         }
-
         return Set;
     }
 
@@ -1075,7 +1103,7 @@
         if (!UnsavedPermissions)
         {
             UnsavedPermissions = true;
-            dynamic Result = await DialogService.OpenSideAsync<PermissionChangesDialog>("Unsaved Changes", options: new SideDialogOptions
+            dynamic Result = await Dialogs.OpenSideAsync<PermissionChangesDialog>("Unsaved Changes", options: new SideDialogOptions
             {
                 CloseDialogOnOverlayClick = false,
                 Position = DialogPosition.Bottom,

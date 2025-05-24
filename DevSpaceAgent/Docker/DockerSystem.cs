@@ -65,11 +65,11 @@ public static class DockerSystem
             LoggingDriver = Info.LoggingDriver,
             SystemDriver = Info.CgroupDriver,
             Uptime = Environment.TickCount64,
-            Warnings = Info.Warnings != null ? Info.Warnings : new List<string>(),
-            LogPlugins = Info.Plugins.Log != null ? Info.Plugins.Log : new List<string>(),
-            NetworkPlugins = Info.Plugins.Network != null ? Info.Plugins.Network : new List<string>(),
-            VolumePlugins = Info.Plugins.Volume != null ? Info.Plugins.Volume : new List<string>(),
-            AuthPlugins = Info.Plugins.Authorization != null ? Info.Plugins.Authorization : new List<string>(),
+            Warnings = Info.Warnings != null ? Info.Warnings : [],
+            LogPlugins = Info.Plugins.Log != null ? Info.Plugins.Log : [],
+            NetworkPlugins = Info.Plugins.Network != null ? Info.Plugins.Network : [],
+            VolumePlugins = Info.Plugins.Volume != null ? Info.Plugins.Volume : [],
+            AuthPlugins = Info.Plugins.Authorization != null ? Info.Plugins.Authorization : [],
         };
     }
 
@@ -89,15 +89,15 @@ public static class DockerSystem
             All = true
         });
 
-        List<string> Stacks = new List<string>();
+        List<string> Stacks = [];
 
         foreach (ContainerListResponse? c in containers)
         {
-            if (c.Labels.TryGetValue("com.docker.compose.project", out string? label))
+            if (c.Labels.TryGetValue("com.docker.compose.project", out string? label) && !string.IsNullOrEmpty(label))
             {
                 try
                 {
-                    Stacks.Add(label!);
+                    Stacks.Add(label);
                 }
                 catch { }
             }

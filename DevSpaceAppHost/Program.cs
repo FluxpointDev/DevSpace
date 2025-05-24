@@ -1,11 +1,11 @@
 using Projects;
 
-var builder = DistributedApplication.CreateBuilder(args);
+IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
-var db = builder.AddMongoDB("dev-space-db")
+IResourceBuilder<MongoDBServerResource> db = builder.AddMongoDB("dev-space-db")
     .WithDbGate();
 
-var web = builder.AddProject<DevSpaceWeb>("dev-space-web")
+IResourceBuilder<ProjectResource> web = builder.AddProject<DevSpaceWeb>("dev-space-web")
     .WithEnvironment("ASPIRE", "true")
     .WithEnvironment("DB_NAME", "dev-space")
     .WithHttpsEndpoint()
@@ -14,7 +14,7 @@ var web = builder.AddProject<DevSpaceWeb>("dev-space-web")
     .WithReference(db)
     .WaitFor(db);
 
-var agent = builder.AddProject<DevSpaceAgent>("dev-space-agent")
+IResourceBuilder<ProjectResource> agent = builder.AddProject<DevSpaceAgent>("dev-space-agent")
     .WithEnvironment("ASPIRE", "true")
     .WaitFor(web);
 

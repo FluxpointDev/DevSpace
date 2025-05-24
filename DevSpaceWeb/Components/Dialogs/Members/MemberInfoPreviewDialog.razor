@@ -5,11 +5,45 @@
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
 
-<PageTitle>Member Permissions | @_Data.Config.Instance.Name</PageTitle>
+<PageTitle>Member Info | @_Data.Config.Instance.Name</PageTitle>
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
+        @if (CurrentMember == null || Member.TeamId != CurrentMember.TeamId && !CurrentMember.HasTeamPermission(Member.Team, TeamPermission.ViewMembers))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for View Members
+            </RadzenAlert>
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">ID</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                @Member.UserId.ToString()
+                <CopyClipboard Value="@Member.UserId.ToString()"></CopyClipboard>
+            </RadzenText>
 
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Username</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                @Member.GetUsername()
+                <CopyClipboard Value="@Member.GetUsername()"></CopyClipboard>
+            </RadzenText>
+
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Nickname</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">
+                @Member.NickName
+            </RadzenText>
+
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Email</RadzenText>
+            @if (CurrentMember.HasTeamPermission(Member.Team, TeamPermission.TeamAdministrator))
+            {
+                <RadzenTextMask Value="@_DB.Users[Member.UserId].Email" IsEmail="true" ShowCopy="true"></RadzenTextMask>
+            }
+            else
+            {
+                <RadzenText TextStyle="TextStyle.Body2">Hidden</RadzenText>
+            }
+        }
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" />
@@ -19,6 +53,8 @@
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
+
+    public TeamMemberData? CurrentMember => Session.Selected.Member;
 
     [Parameter]
     public required TeamMemberData Member { get; set; }

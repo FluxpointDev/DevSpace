@@ -9,5 +9,5 @@ public class WebSocketBase<T> where T : System.Net.WebSockets.WebSocket
     public string? Id;
     public T? Socket;
     public ConcurrentDictionary<string, TaskCompletionSource<JToken>> TaskCollection = new ConcurrentDictionary<string, TaskCompletionSource<JToken>>();
-    public WebSocketState State => Socket.State;
+    public WebSocketState? State => Socket?.State;
 }

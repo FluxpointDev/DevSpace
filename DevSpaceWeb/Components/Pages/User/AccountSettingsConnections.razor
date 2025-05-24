@@ -1,6 +1,7 @@
 ﻿@inject UserManager<AuthUser> UserManager
 
 <PageTitle>Account Connections | @_Data.Config.Instance.Name</PageTitle>
+
 <div class="settings-box">
     <h6>Current Connections</h6>
 
@@ -18,7 +19,7 @@
     else
     {
         <RadzenStack Orientation="Orientation.Vertical" Gap="10px" class="mt-4">
-            @foreach(var i in AuthUser.Logins)
+            @foreach(UserLoginInfo i in AuthUser.Logins)
             {
                 <div class="passkey-item">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
@@ -36,7 +37,7 @@
                             </RadzenText>
                         </RadzenStack>
                         <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
-                            <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveConnection(i))" />
+                            <RadzenButton Text="Remove" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveConnection(i))" />
                         </RadzenStack>
 
                     </RadzenStack>
@@ -61,7 +62,7 @@
     else
     {
         <RadzenStack Orientation="Orientation.Vertical" Gap="10px" class="mt-4">
-            @foreach (var i in ValidConnections)
+            @foreach (KeyValuePair<string, string> i in ValidConnections)
             {
                 <div class="passkey-item">
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
@@ -123,7 +124,7 @@
             ValidConnections.Add("microsoft", "Microsoft");
 
 
-        foreach(var i in AuthUser.Logins)
+        foreach(UserLoginInfo i in AuthUser.Logins)
         {
             ValidConnections.Remove(i.LoginProvider);
         }
@@ -133,6 +134,9 @@
 
     public bool IsDisabled(string provider)
     {
+        if (Program.IsPreviewMode)
+            return true;
+
         switch (provider)
         {
             case "fluxpoint":
@@ -160,6 +164,11 @@
 
     public async Task RemoveConnection(UserLoginInfo login)
     {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser != null && AuthUser.Logins.RemoveAll(x => x.LoginProvider == login.LoginProvider) != 0)
         {

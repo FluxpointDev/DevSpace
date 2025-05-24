@@ -4,6 +4,7 @@ using System.Net;
 
 namespace DaRT;
 
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
 public class RCon
 {
     private BattlEyeClient _client;
@@ -15,8 +16,8 @@ public class RCon
     private string _pending = "";
     private bool _pendingLeft = false;
 
-    private List<int> _sent = new List<int>();
-    private Dictionary<int, string> _received = new Dictionary<int, string>();
+    private List<int> _sent = [];
+    private Dictionary<int, string> _received = [];
 
 
     public int SetPlayerTicks = 1000;
@@ -85,7 +86,7 @@ public class RCon
             _received.Add(id, response);
         }
     }
-    private string GetResponse(int id)
+    private string? GetResponse(int id)
     {
         // Polling for response
         if (_received.ContainsKey(id))
@@ -160,7 +161,7 @@ public class RCon
 
     public List<string> GetRawBans()
     {
-        return null;
+        return [];
         /*
         List<String> bans = new List<String>();
 
@@ -203,7 +204,7 @@ public class RCon
 
             StringReader reader = new StringReader(banResult);
 
-            String line;
+            string line;
             while ((line = reader.ReadLine()) != null && !abort)
             {
                 bans.Add(line);
@@ -232,17 +233,19 @@ public class RCon
     }
     public List<Player> GetPlayers()
     {
-        List<Player> players = new List<Player>();
+        List<Player> players = [];
 
         int id = this.Send(BattlEyeCommand.Players);
 
         string response;
         int ticks = 0;
+
         while ((response = this.GetResponse(id)) == null && ticks < SetPlayerTicks)
         {
             Thread.Sleep(10);
             ticks++;
         }
+
 
         if (response == null)
         {
@@ -253,24 +256,24 @@ public class RCon
 
         using (StringReader reader = new StringReader(response))
         {
-            string line;
+            string? line;
             int row = 0;
             while ((line = reader.ReadLine()) != null)
             {
 
                 row++;
-                if (row > 3 && !line.StartsWith("(") && line.Length > 0)
+                if (row > 3 && !line.StartsWith('(') && line.Length > 0)
                 {
                     String[] items = line.Split([' '], 5, StringSplitOptions.RemoveEmptyEntries);
 
                     if (items.Length == 5)
                     {
-                        int number = items[0].StartsWith("#") ? Int32.Parse(items[0].Substring(1)) : Int32.Parse(items[0]);
-                        String ip = items[1].Split(':')[0];
-                        String ping = items[2];
-                        String guid = items[3].Replace("(OK)", "").Replace("(?)", "");
-                        String name = items[4];
-                        String status = "Unknown";
+                        int number = items[0].StartsWith('#') ? Int32.Parse(items[0].Substring(1)) : Int32.Parse(items[0]);
+                        string ip = items[1].Split(':')[0];
+                        string ping = items[2];
+                        string guid = items[3].Replace("(OK)", "").Replace("(?)", "");
+                        string name = items[4];
+                        string status = "Unknown";
 
                         if (guid.Length == 32)
                         {
@@ -292,13 +295,13 @@ public class RCon
                         else
                         {
                             // Received malformed player list
-                            return new List<Player>();
+                            return [];
                         }
                     }
                     else
                     {
                         // Received malformed player list
-                        return new List<Player>();
+                        return [];
                     }
                 }
             }
@@ -309,7 +312,7 @@ public class RCon
 
     public List<Ban> GetBans()
     {
-        List<Ban> bans = new List<Ban>();
+        List<Ban> bans = [];
 
         int id = this.Send(BattlEyeCommand.Bans);
 
@@ -330,7 +333,7 @@ public class RCon
 
         using (StringReader reader = new StringReader(response))
         {
-            String line;
+            String? line;
             int row = 0;
             while ((line = reader.ReadLine()) != null)
             {
@@ -341,10 +344,10 @@ public class RCon
 
                     if (items.Length == 4)
                     {
-                        String number = items[0];
-                        String ipguid = items[1];
-                        String time = items[2];
-                        String reason = items[3];
+                        string number = items[0];
+                        string ipguid = items[1];
+                        string time = items[2];
+                        string? reason = items[3];
 
                         if (time == "-")
                             time = "expired";
@@ -353,9 +356,9 @@ public class RCon
                     }
                     else if (items.Length == 3)
                     {
-                        String number = items[0];
-                        String ipguid = items[1];
-                        String time = items[2];
+                        string number = items[0];
+                        string ipguid = items[1];
+                        string time = items[2];
 
                         if (time == "-")
                             time = "expired";
@@ -371,7 +374,7 @@ public class RCon
 
     public List<string> GetRawPlayers()
     {
-        return null;
+        return [];
         /*
         List<String> players = new List<String>();
 
@@ -435,7 +438,7 @@ public class RCon
         }
         */
     }
-    public List<RconAdmin>? GetAdmins()
+    public List<RconAdmin> GetAdmins()
     {
         int packetId = this.Send(BattlEyeCommand.Admins);
         string response;
@@ -448,13 +451,13 @@ public class RCon
 
         if (response == null)
         {
-            return null;
+            return [];
         }
 
-        List<RconAdmin> admins = new List<RconAdmin>();
+        List<RconAdmin> admins = [];
         using (StringReader reader = new StringReader(response))
         {
-            string line;
+            string? line;
             int row = 0;
             while ((line = reader.ReadLine()) != null)
             {
@@ -496,7 +499,7 @@ public class RCon
 
         using (StringReader reader = new StringReader(response))
         {
-            string line;
+            string? line;
             int row = 0;
             while ((line = reader.ReadLine()) != null)
             {
@@ -612,10 +615,10 @@ public class RCon
     }
 
     public event EventHandler<BattlEyeMessageEventArgs> OnMessage;
-    public event EventHandler<Player> PlayerEvent;
+    //public event EventHandler<Player> PlayerEvent;
 
     public Stack<BattlEyeMessageEventArgs> CachedMessages = new Stack<BattlEyeMessageEventArgs>(100);
-    public List<Player> CachedPlayers = new List<Player>();
+    public List<Player> CachedPlayers = [];
 
 
     private void HandleMessage(BattlEyeMessageEventArgs args)
@@ -953,7 +956,7 @@ public class RCon
     }
 
 
-    Thread reconnectThread = null;
+    Thread? reconnectThread = null;
 
     private void Reconnect()
     {
@@ -986,3 +989,4 @@ public class RCon
         }
     }
 }
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.

@@ -1,5 +1,4 @@
 ﻿using DevSpaceWeb.Fido2;
-using Fido2NetLib;
 using Microsoft.AspNetCore.Identity;
 using MongoDB.Bson;
 
@@ -12,7 +11,7 @@ public class UserMfa
     public DateTime? EmailCodeLastUsedAt { get; set; }
     public DateTime? AuthenticatorLastRegisteredAt { get; set; }
     public DateTime? AuthenticatorLastUsedAt { get; set; }
-    public Dictionary<string, bool> AuthenticatorDevices { get; set; } = new Dictionary<string, bool>();
+    public Dictionary<string, bool> AuthenticatorDevices { get; set; } = [];
 
     public bool HasAny2FA()
     {
@@ -20,6 +19,7 @@ public class UserMfa
             return true;
         return false;
     }
+
     public void Disable2FA(AuthUser user)
     {
         IsTwoFactorEnabled = false;
@@ -43,7 +43,7 @@ public class UserMfa
     public DateTime? PasskeyLastRegisteredAt { get; set; }
     public DateTime? PasskeyLastUsedAt { get; set; }
     public string? PasskeyLastUsedDevice { get; set; }
-    public List<FidoStoredCredential> Passkeys { get; set; } = new List<FidoStoredCredential>();
+    public List<FidoStoredCredential> Passkeys { get; set; } = [];
 
     public DateTime? RecoveryCodeCreatedAt { get; set; }
     public DateTime? RecoveryCodeLastUsedAt { get; set; }
@@ -51,10 +51,8 @@ public class UserMfa
 
     public async Task<FidoStoredCredential?> GetPasskeyByIdAsync(byte[] id)
     {
-        string credentialIdString = Base64Url.Encode(id);
-
         FidoStoredCredential? cred = Passkeys
-            .Where(c => c.DescriptorJson != null && c.DescriptorJson.Contains(credentialIdString))
+            .Where(c => c.Descriptor.Id.AsSpan().SequenceEqual(id))
             .FirstOrDefault();
 
         return cred;

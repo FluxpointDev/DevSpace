@@ -95,8 +95,7 @@ public class EmailService
 
         if (_Data.Config.Email.Type == ConfigEmailType.FluxpointManaged && !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
         {
-            if (ManagedEmailSystem == null)
-                ManagedEmailSystem = new HttpClient();
+            ManagedEmailSystem ??= new HttpClient();
 
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/send")
             {
@@ -116,7 +115,7 @@ public class EmailService
                     reason = reason
                 })
             };
-            message.Headers.Add("Authorization", _Data.Config.Email.ManagedEmailToken);
+            message.Headers.TryAddWithoutValidation("Authorization", _Data.Config.Email.ManagedEmailToken);
             HttpResponseMessage Res = await ManagedEmailSystem.SendAsync(message);
 
             if (Res.IsSuccessStatusCode)

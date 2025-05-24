@@ -15,7 +15,7 @@ using Swashbuckle.AspNetCore.Annotations;
 namespace DevSpaceWeb.Controllers.API;
 
 [ShowInSwagger]
-[SwaggerTag("Requires permission View Own APIs or View All APIs")]
+[SwaggerTag("Manage Team API clients.")]
 [IsAuthenticated]
 [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized", typeof(ResponseUnauthorized))]
 [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
@@ -23,7 +23,7 @@ namespace DevSpaceWeb.Controllers.API;
 public class ClientController : APIController
 {
     [HttpGet("/api/clients")]
-    [SwaggerOperation("Get a list of API clients.")]
+    [SwaggerOperation("Get a list of API clients.", "Requires View API Client or View All API Clients permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ClientJson[]>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetClients()
@@ -35,7 +35,7 @@ public class ClientController : APIController
     }
 
     [HttpGet("/api/clients/{clientId}")]
-    [SwaggerOperation("Get an API clients.")]
+    [SwaggerOperation("Get an API clients.", "Requires View API Client or View All API Clients permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<ClientJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetClient([FromRoute] string clientId = "")
@@ -84,7 +84,7 @@ public class ClientController : APIController
     }
 
     [HttpPatch("/api/clients/{clientId}/enable")]
-    [SwaggerOperation("Enable the API clients.")]
+    [SwaggerOperation("Enable the API clients.", "Requires Manage API Client or Manage All API Clients permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> EnableClient([FromRoute] string clientId = "")
@@ -114,36 +114,36 @@ public class ClientController : APIController
             return Conflict("Failed to enable API Client.");
     }
 
-    [HttpPatch("/api/clients/{clientId}/owner")]
-    [SwaggerOperation("Get the owner of a client.")]
-    [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<UserJson>))]
-    [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
-    public async Task<IActionResult> GetClientOwner([FromRoute] string clientId = "")
-    {
-        if (!Client.HasAPIPermission(CurrentTeam, APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(CurrentTeam, APIPermission.ViewAllAPIs))
-            return PermissionFailed(APIPermission.ViewOwnAPIs);
+    //[HttpPatch("/api/clients/{clientId}/owner")]
+    //[SwaggerOperation("Update the owner of the API client.")]
+    //[SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<UserJson>))]
+    //[SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
+    //public async Task<IActionResult> GetClientOwner([FromRoute] string clientId = "")
+    //{
+    //    if (!Client.HasAPIPermission(CurrentTeam, APIPermission.ViewOwnAPIs) && !Client.HasAPIPermission(CurrentTeam, APIPermission.ViewAllAPIs))
+    //        return PermissionFailed(APIPermission.ViewOwnAPIs);
 
-        if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out APIClient? client))
-            return NotFound("Could not find API client.");
+    //    if (string.IsNullOrEmpty(clientId) || !ObjectId.TryParse(clientId, out ObjectId obj) || !_DB.API.Cache.TryGetValue(obj, out APIClient? client))
+    //        return NotFound("Could not find API client.");
 
-        if (Client.TeamId != client.TeamId)
-            return NotFound("Could not find API client.");
+    //    if (Client.TeamId != client.TeamId)
+    //        return NotFound("Could not find API client.");
 
-        if (client.Id != obj && !(Client.HasAPIPermission(CurrentTeam, APIPermission.ViewAllAPIs) || Client.OwnerId == client.OwnerId))
-            return PermissionFailed(APIPermission.ViewOwnAPIs);
+    //    if (client.Id != obj && !(Client.HasAPIPermission(CurrentTeam, APIPermission.ViewAllAPIs) || Client.OwnerId == client.OwnerId))
+    //        return PermissionFailed(APIPermission.ViewOwnAPIs);
 
-        if (client.Id != obj && !Client.HasTeamPermission(CurrentTeam, TeamPermission.ViewMembers))
-            return PermissionFailed(TeamPermission.ViewMembers);
+    //    if (client.Id != obj && !Client.HasTeamPermission(CurrentTeam, TeamPermission.ViewMembers))
+    //        return PermissionFailed(TeamPermission.ViewMembers);
 
-        AuthUser? user = await _DB.Run.GetCollection<AuthUser>("users").Find(new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, client.OwnerId)).FirstOrDefaultAsync();
-        if (user == null)
-            return Conflict("Could not find owner user.");
+    //    AuthUser? user = await _DB.Run.GetCollection<AuthUser>("users").Find(new FilterDefinitionBuilder<AuthUser>().Eq(x => x.Id, client.OwnerId)).FirstOrDefaultAsync();
+    //    if (user == null)
+    //        return Conflict("Could not find owner user.");
 
-        return Ok(new UserJson(user));
-    }
+    //    return Ok(new UserJson(user));
+    //}
 
     [HttpPatch("/api/clients/{clientId}/disable")]
-    [SwaggerOperation("Disable the API clients.")]
+    [SwaggerOperation("Disable the API clients.", "Requires Manage API Client or Manage All API Clients permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> DisableClient([FromRoute] string clientId = "")
@@ -174,7 +174,7 @@ public class ClientController : APIController
     }
 
     [HttpDelete("/api/clients/{clientId}/delete")]
-    [SwaggerOperation("Delete the API clients.")]
+    [SwaggerOperation("Delete the API clients.", "Requires Manage API Client or Manage All API Clients permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> DeleteClient([FromRoute] string clientId = "")

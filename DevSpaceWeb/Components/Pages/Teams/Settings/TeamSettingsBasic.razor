@@ -1,0 +1,196 @@
+﻿@using DevSpaceWeb.Models.Teams
+@using Microsoft.AspNetCore.Components.Forms
+
+<PageTitle>Team Settings | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:gear"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Team Settings</RadzenText>
+    </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams")" Text="Teams" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" Text="@Session.Selected.Team?.Data.Name" />
+        <RadzenBreadCrumbItem Text="Settings" />
+    </RadzenBreadCrumb>
+
+    @if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for Manage Team
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        @if (Data != null)
+        {
+            <DynamicFormDialog Model="@TeamBasicModel" Description="2FA Restriction will not effect the owner." ModelData="@Data" OnSubmit="@UpdateTeamSettings"></DynamicFormDialog>
+        }
+        <br />
+        <br />
+
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Team Icon</RadzenText>
+        <RadzenUpload id="ddUpload" @ref="IconUploader" Icon="add_photo_alternate" ChooseText="   Click here or drop to upload file" Auto="false" Multiple="false" Url="@("/upload/icon?teamId=" + Team?.Id)" Accept="image/png, image/webp, image/jpeg" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select file" } })"
+                      Style="width: 100%" MaxFileCount="1" Complete="@UploadComplete" Error="@UploadError" Disabled="@IsUploadDisabled" />
+        <br />
+        <br />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save Icon" Click="@ChangeIcon" ButtonType="ButtonType.Submit" />
+        <RadzenButton ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Text="Remove Icon" Click="@RemoveIcon" Disabled="@(Team == null || !Team.HasIcon)" />
+    }
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    public TeamBasicModel? Data;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Team != null)
+            Data = new TeamBasicModel
+            {
+                Name = Team.Name,
+                VanityUrl = Team.VanityUrl,
+                MembersRequire2FA = Team.Require2FA
+            };
+    }
+
+    public async Task<string?> UpdateTeamSettings(TeamBasicModel model)
+    {
+        if (Member == null || Team == null || Session.Selected.Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
+            return "You do not have Manage Team permissions.";
+
+        string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.Name, model.Name).Set(x => x.VanityUrl, VanityUrl), () =>
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.TeamSettingsChanged)
+            .SetTarget(Team)
+            .AddPropertyChange("Name", Team.Name, model.Name)
+            .AddPropertyChange("Require 2FA", Team.Require2FA, model.MembersRequire2FA)
+        .AddPropertyChange("Vanity Url", Team.VanityUrl, VanityUrl));
+
+            Team.Name = model.Name;
+            Team.Require2FA = model.MembersRequire2FA;
+            if (Team.VanityUrl != VanityUrl)
+            {
+                if (string.IsNullOrEmpty(VanityUrl))
+                {
+                    if (!string.IsNullOrEmpty(Team.VanityUrl))
+                    {
+                        Session.Selected.Team.VanityUrl = Team.Id.ToString();
+                        _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
+                        Team.VanityUrl = string.Empty;
+                        StateHasChanged();
+                    }
+                }
+                else
+                {
+                    if (VanityUrl != Team.VanityUrl)
+                    {
+                        if (!string.IsNullOrEmpty(Team.VanityUrl))
+                            _DB.TeamsVanityCache.TryRemove(Team.VanityUrl, out _);
+
+                        _DB.TeamsVanityCache.TryAdd(VanityUrl, Team);
+                        Team.VanityUrl = VanityUrl;
+                        Session.Selected.Team.VanityUrl = VanityUrl;
+                        StateHasChanged();
+                    }
+                }
+            }
+            Session.TriggerNavMenuChange();
+        });
+
+
+
+        return null;
+    }
+
+    public RadzenUpload IconUploader { get; set; }
+    public bool IsUploadDisabled { get; set; }
+
+    public async Task ChangeIcon()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
+            return;
+        }
+
+        IsUploadDisabled = true;
+
+        await IconUploader.Upload();
+
+    }
+
+    async Task UploadComplete(UploadCompleteEventArgs args)
+    {
+        Session.TriggerNavMenuChange();
+    }
+
+    public string? ErrorMessage { get; set; }
+
+    async Task UploadError(UploadErrorEventArgs args)
+    {
+        ErrorMessage = args.Message;
+        IsUploadDisabled = false;
+    }
+
+    public async Task RemoveIcon()
+    {
+        if (Team == null || Member == null)
+            return;
+
+        if (!Team.HasIcon)
+            return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageTeam))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageTeam);
+            return;
+        }
+
+        await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.IconId, null), () =>
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.IconRemoved)
+            .SetTarget(Team));
+            try
+            {
+                if (File.Exists(Team.Icon.Path("webp")))
+                    File.Delete(Team.Icon.Path("webp"));
+            }
+            catch { }
+
+            try
+            {
+                if (File.Exists(Team.Icon.Path("png")))
+                    File.Delete(Team.Icon.Path("png"));
+            }
+            catch { }
+
+            Team.IconId = null;
+            Session.TriggerNavMenuChange();
+        });
+        
+    }
+}

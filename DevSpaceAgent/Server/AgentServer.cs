@@ -1,6 +1,8 @@
 ﻿using DevSpaceAgent.Client;
 using DevSpaceAgent.Data;
+using DevSpaceShared;
 using DevSpaceShared.Data;
+using Docker.DotNet.Models;
 using NetCoreServer;
 using System.Net;
 using System.Net.Sockets;
@@ -16,6 +18,13 @@ public class AgentSession : WssSession
     public override async void OnWsConnected(HttpRequest request)
     {
         AgentWebSocket = new AgentWebSocket { Session = this };
+        if (Program.DockerClient != null)
+        {
+            SystemInfoResponse HostInfo = await Program.DockerClient.System.GetSystemInfoAsync();
+            AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
+            SendTextAsync(Newtonsoft.Json.JsonConvert.SerializeObject(Stats));
+        }
+
         Console.WriteLine($"WebSocket session with Id {Id} connected!");
 
     }
@@ -24,7 +33,7 @@ public class AgentSession : WssSession
     {
         if (request.Url == "/")
         {
-            string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
+            string? Ip = Socket.RemoteEndPoint?.ToString()?.Split(':').First();
             bool IsLocal = false;
             if (Ip == "127.0.0.1" || Ip == "localhost")
                 IsLocal = true;
@@ -74,7 +83,7 @@ public class AgentSession : WssSession
             else
             {
                 bool IsWhitelisted = false;
-                string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
+                string? Ip = Socket.RemoteEndPoint?.ToString()?.Split(':').First();
                 bool IsLocal = false;
                 if (Ip == "127.0.0.1" || Ip == "localhost")
                     IsLocal = true;
@@ -161,7 +170,7 @@ public class AgentSession : WssSession
     {
         Console.WriteLine("Connecting...");
 
-        string Ip = Socket.RemoteEndPoint.ToString().Split(':').First();
+        string? Ip = Socket.RemoteEndPoint?.ToString()?.Split(':').First();
         bool IsLocal = false;
         if (Ip == "127.0.0.1" || Ip == "localhost")
             IsLocal = true;
@@ -212,7 +221,7 @@ public class AgentSession : WssSession
 
     public override void OnWsReceived(byte[] buffer, long offset, long size)
     {
-        ServerEventHandler.RecieveAsync(AgentWebSocket, buffer, offset, size);
+        _ = ServerEventHandler.RecieveAsync(AgentWebSocket, buffer, offset, size);
     }
 
     protected override void OnError(SocketError error)

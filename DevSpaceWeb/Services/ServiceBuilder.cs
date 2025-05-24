@@ -54,17 +54,33 @@ public static class ServiceBuilder
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
 
+        // Add website health check
         AddHealth(services, HealthService);
+
+        // Add webauthn/passkey support
         AddFido2(services);
+
+        // Add asp.net identity
         AddIdentity(services);
+
+        // Add database storage
         AddMongoDb(services);
+
+        // Add email sending and services
         AddEmail(services, HealthService);
+
+        // Add Oauth Providers
         AddProviders(services);
 
         if (_Data.Config.Instance.Features.SwaggerEnabled)
             AddSwagger(services);
 
+        // Add MVC core services and blazor pages
         AddPages(services);
+
+        // Add Aspire .net support
+        if (Program.IsUsingAspire)
+            builder.AddServiceDefaults();
     }
 
     public static void AddPages(IServiceCollection services)
@@ -77,7 +93,8 @@ public static class ServiceBuilder
                 opt.DetailedErrors = Program.IsDevMode;
             });
 
-        var MvcBuilder = services.AddMvcCore(opt =>
+        services.AddMvc();
+        IMvcCoreBuilder MvcBuilder = services.AddMvcCore(opt =>
         {
             opt.RequireHttpsPermanent = true;
             opt.Filters.Add<ControllerExceptionFilter>();
@@ -174,7 +191,7 @@ public static class ServiceBuilder
                     {
                         Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "key" }
                     },
-                    new string[] {  }
+                    Array.Empty<string>()
                 }
             });
             c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
@@ -422,7 +439,7 @@ public static class ServiceBuilder
 
     public static void AddFido2(IServiceCollection services)
     {
-        HashSet<string> Origins = new HashSet<string>();
+        HashSet<string> Origins = [];
         if (Program.IsDevMode)
         {
             Origins.Add("https://localhost:5149");

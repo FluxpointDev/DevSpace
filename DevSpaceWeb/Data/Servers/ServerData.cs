@@ -17,12 +17,12 @@ public class ServerData : ITeamResource
 {
     public ServerData() : base(ResourceType.Server) { }
 
-    public string AgentId { get; set; }
-    public string AgentIp { get; set; }
-    public string AgentKey { get; set; }
-    public short AgentPort { get; internal set; }
+    public string? AgentId { get; set; }
+    public required string AgentIp { get; set; }
+    public required string AgentKey { get; set; }
+    public short AgentPort { get; set; }
 
-    private ServerWebSocket WebSocket;
+    private ServerWebSocket? WebSocket;
 
     [BsonIgnore]
     [JsonIgnore]
@@ -99,8 +99,7 @@ public class ServerData : ITeamResource
         if (Result.IsAcknowledged)
         {
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.ServerDeleted)
-                .SetTarget(Team)
-                .AddProperty("Name", Name));
+                .SetTarget(this));
 
             _DB.Servers.Cache.TryRemove(Id, out _);
 
@@ -116,6 +115,18 @@ public class ServerWebSocket
     public ServerWebSocketErrorType? Error;
     public DiscoverAgentInfo? Discover;
     public bool StopReconnect;
+
+    public string GetAgentVersion()
+    {
+        if (Client != null && Client.Stats != null && !string.IsNullOrEmpty(Client.Stats.AgentVersion))
+            return "v" + Client.Stats.AgentVersion;
+
+        if (Discover != null && !string.IsNullOrEmpty(Discover.Version))
+            return "v" + Discover.Version;
+
+        return "Unknown";
+    }
+
     public async Task DiscoverAsync(ServerData server)
     {
         HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + server.AgentIp + ":" + server.AgentPort + "/discover");

@@ -1,0 +1,108 @@
+﻿@using DevSpaceWeb.Models.Teams
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+
+<PageTitle>Edit Member Nickname | @_Data.Config.Instance.Name</PageTitle>
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <EditForm Model="@AccountForm" OnValidSubmit="@Submit">
+        <DataAnnotationsValidator />
+
+        <RadzenStack JustifyContent="JustifyContent.Start">
+            <RadzenText TextStyle="TextStyle.Body2">
+                Nickname can be set to anything and is visible to everyone in your team.
+            </RadzenText>
+            <br />
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Nickname</RadzenText>
+            <RadzenTextBox @bind-Value="@AccountForm.Nickname" Style="width: 100%" aria-label="Nickname TextBox" AutoCompleteType="AutoCompleteType.Off"
+            autocapitalize="none" MaxLength="32" />
+            <ValidationMessage For="() => AccountForm.Nickname" style="color: var(--rz-danger);" />
+        </RadzenStack>
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+            <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" />
+            <RadzenButton ButtonType="ButtonType.Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
+        </RadzenStack>
+    </EditForm>
+</RadzenStack>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    [Parameter, EditorRequired]
+    public TeamMemberData SelectedMember { get; set; }
+
+    [Parameter]
+    public TeamData Team { get; set; }
+
+    public TeamNicknameModel AccountForm = new TeamNicknameModel();
+
+    protected override void OnInitialized()
+    {
+        AccountForm.Nickname = SelectedMember.NickName;
+    }
+
+    async Task Submit()
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Member == null || Team == null)
+            return;
+
+        if (SelectedMember.UserId != Member.UserId)
+        {
+            if (!Member.HasTeamPermission(Team, TeamPermission.ManageNicknames))
+                return;
+
+            if (SelectedMember.GetRank() >= Member.GetRank())
+                return;
+        }
+        else
+        {
+            if (!Member.HasTeamPermission(Team, TeamPermission.ChangeNickname))
+                return;
+        }
+
+        bool ShouldUpdate = false;
+
+        if (string.IsNullOrEmpty(AccountForm.Nickname))
+        {
+            if (!string.IsNullOrEmpty(SelectedMember.NickName))
+                ShouldUpdate = true;
+        }
+        else
+        {
+            if (string.IsNullOrEmpty(SelectedMember.NickName) || !SelectedMember.NickName.Equals(AccountForm.Nickname, StringComparison.OrdinalIgnoreCase))
+                ShouldUpdate = true;
+        }
+
+        if (ShouldUpdate)
+        {
+            FilterDefinition<TeamMemberData> filter = Builders<TeamMemberData>.Filter.Eq(r => r.Id, SelectedMember.Id);
+            UpdateDefinition<TeamMemberData> update = new UpdateDefinitionBuilder<TeamMemberData>()
+                .Set(x => x.NickName, AccountForm.Nickname);
+
+            UpdateResult Result = _DB.Members.Collection.UpdateOne(filter, update);
+            if (Result.IsAcknowledged)
+            {
+                SelectedMember.NickName = AccountForm.Nickname;
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.MemberNicknameChanged)
+                       .SetTarget(SelectedMember)
+                       .AddProperty("Nickname", AccountForm.Nickname));
+
+                dialogService.Close(true);
+                return;
+            }
+        }
+
+        dialogService.Close();
+    }
+}

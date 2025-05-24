@@ -1,0 +1,88 @@
+﻿<div class="member-strip">
+    <div class="member-strip-item">
+        @if (Member != null)
+        {
+            <RadzenImage Path="@Member.GetCurrentAvatar()"></RadzenImage>
+            <RadzenText @ref="@Text" TextStyle="TextStyle.Body1" Style="@($"color: {Member.GetCurrentColor()};")">
+                @Member.GetCurrentName()
+            </RadzenText>
+        }
+        else
+        {
+            <RadzenImage Path="https://cdn.fluxpoint.dev/devspace/user_avatar.webp"></RadzenImage>
+            <RadzenText @ref="@Text" TextStyle="TextStyle.Body1" Style="@($"color: {Static.DefaultRoleColor};")">
+                @($"{UserId.ToString()} (Unknown)")
+            </RadzenText>
+        }
+        
+    </div>
+    @if (Action != null)
+    {
+        <RadzenText TextStyle="TextStyle.Body2">
+            <span class="rz-link ml-2" @onclick="@RunAction">@ActionText</span>
+        </RadzenText>
+    }
+</div>
+
+<style>
+    .member-strip-item {
+        padding-top: 8px;
+        padding-bottom: 2px;
+        padding-left: 20px;
+        padding-right: 20px;
+        display: inline-block;
+        border-radius: var(--rz-card-border-radius);
+        background-color: var(--rz-card-background-color);
+        cursor: pointer;
+    }
+
+        .member-strip-item:hover {
+            background-color: rgba(173, 173, 177, 0.15) !important;
+        }
+
+    .member-strip img {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        margin-right: 4px;
+    }
+
+    .member-strip .rz-text-body1, .member-strip .rz-text-body2 {
+        display: inline-block !important;
+    }
+</style>
+
+@code {
+    [Parameter, EditorRequired]
+    public TeamData? Team { get; set; }
+
+    [Parameter, EditorRequired]
+    public ObjectId? UserId { get; set; }
+
+    [Parameter]
+    public string? ActionText { get; set; }
+
+    [Parameter]
+    public Func<MemberStrip, Task>? Action { get; set; }
+
+    [Parameter]
+    public bool ActionDisabled { get; set; }
+
+    private TeamMemberData? Member { get; set; }
+
+    public RadzenText Text { get; set; } = null!;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (UserId.HasValue && Team != null && Team.Members.TryGetValue(UserId.Value, out ObjectId memberId) && _DB.Members.Cache.TryGetValue(memberId, out TeamMemberData? member) && member.TeamId == Team.Id)
+            Member = member;
+    }
+
+    public async Task RunAction()
+    {
+        if (ActionDisabled)
+            return;
+
+        Action?.Invoke(this);
+    }
+}

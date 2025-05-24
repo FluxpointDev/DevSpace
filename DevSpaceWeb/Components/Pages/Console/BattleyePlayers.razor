@@ -4,7 +4,7 @@
 @using DevSpaceWeb.Models.Consoles
 @using Newtonsoft.Json.Linq
 @inject ContextMenuService ContextMenuService
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <PageTitle>Console Players | @_Data.Config.Instance.Name</PageTitle>
 
@@ -29,40 +29,61 @@
                 You do not have permission for View Players
             </RadzenAlert>
         </div>
-
     }
     else
     {
         <br />
-        <RadzenDataGrid Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+        <div class="dash-box-content">
+            <ActionBar>
+                <RadzenFormField Variant="Variant.Outlined">
+                    <Start>
+                        <RadzenIcon Icon="search" />
+                    </Start>
+                    <ChildContent>
+                        <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                       autocapitalize="none" MaxLength="100" inputmode="search"
+                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
+                    </ChildContent>
+                    <End>
+                        @if (!string.IsNullOrWhiteSpace(SearchText))
+                        {
+                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        }
+                    </End>
+                </RadzenFormField>
+            </ActionBar>
+        </div>
+        <RadzenDataGrid @ref="@Grid" Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        EmptyText="No players." PageSizeOptions="@Static.PageSizeOptions" ShowPagingSummary="true"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
-                <RadzenDataGridColumn Title="ID" Width="60px">
+                <RadzenDataGridColumn Title="ID" Width="60px" Property="@nameof(Player.number)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.number</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="GUID" Width="240px">
+                <RadzenDataGridColumn Title="GUID" Width="240px" Property="@nameof(Player.guid)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.guid</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Name">
+                <RadzenDataGridColumn Title="Name" Property="@nameof(Player.name)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.name</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Ping" Width="80px">
+                <RadzenDataGridColumn Title="Ping" Width="80px" Filterable="false">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.ping ms</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Status" Width="100px">
+                <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(Player.status)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.status</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Actions" Width="80px">
+                <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                     <Template>
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                             <RadzenButton Icon="build" Click="@(args => ShowContextMenuWithManageItems(context, args))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
@@ -80,12 +101,33 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
+    public RadzenTextBox SearchBox { get; set; } = null!;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SearchBox != null)
+            _ = SearchBox.FocusAsync();
+    }
+
     public TeamData? Team => Session.Selected.Team?.Data;
     public ConsoleData? Console => Session.Selected.Console;
     public TeamMemberData? Member => Session.Selected.Member;
 
     public IEnumerable<Player>? Players { get; set; }
     public int PlayerCount { get; set; }
+
+    public RadzenDataGrid<Player> Grid { get; set; }
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(2).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
+    }
 
     void LoadData(LoadDataArgs args)
     {
@@ -96,7 +138,7 @@
         {
             if (rc.IsConnected)
             {
-                var query = rc.GetPlayers().AsQueryable();
+                IQueryable<Player> query = rc.GetPlayers().AsQueryable();
                 rc.GetMissions();
 
                 PlayerCount = query.Count();
@@ -162,17 +204,17 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
                             return;
                         }
 
                         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
                             return;
                         }
 
-                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                                 return "You do not have permission for Ban Players";
@@ -181,7 +223,7 @@
                                 return "Could not connect to server.";
 
                             rc.BanPlayer(new Ban(item.guid, 0, data.Reason));
-                            await Dialog.ShowInfoAsync("Ban Result", $"{item.name} has been banned.");
+                            await Dialogs.ShowInfoAsync("Ban Result", $"{item.name} has been banned.");
                             return null;
                         });
                     }
@@ -190,17 +232,17 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
                             return;
                         }
 
                         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Ban IP", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Ban IP", "Could not connect to server.");
                             return;
                         }
 
-                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Ban IP " + item.ip, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Ban IP " + item.ip, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                                 return "You do not have permission for Ban Players";
@@ -209,7 +251,7 @@
                                 return "Could not connect to server.";
 
                             rc.BanIP(new BanIP(item.number, item.name, "0", data.Reason));
-                            await Dialog.ShowInfoAsync("IP Ban Result", $"{item.name}'s IP has been banned.");
+                            await Dialogs.ShowInfoAsync("IP Ban Result", $"{item.name}'s IP has been banned.");
                             return null;
                         });
                     }
@@ -218,16 +260,16 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.KickPlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.KickPlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.KickPlayers);
                             return;
                         }
 
                         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Kick", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Kick", "Could not connect to server.");
                             return;
                         }
-                        await Dialog.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Kick " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.KickPlayers))
                                 return "You do not have permission for Kick Players";
@@ -236,7 +278,7 @@
                                 return "Could not connect to server.";
 
                             rc.KickPlayer(new Kick(item.number, item.name, data.Reason));
-                            await Dialog.ShowInfoAsync("Kick Result", $"{item.name} has been kicked.");
+                            await Dialogs.ShowInfoAsync("Kick Result", $"{item.name} has been kicked.");
                             return null;
                         });
                     }
@@ -245,17 +287,17 @@
                     {
                         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                         {
-                            await Dialog.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.MessagePlayers);
                             return;
                         }
 
                         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                         {
-                            await Dialog.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                             return;
                         }
 
-                        await Dialog.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
+                        await Dialogs.ShowDynamicFormAsync<ConsoleMessageModel>("Message " + item.name, new ConsoleMessageModel(), async (ConsoleMessageModel data) =>
                         {
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                                 return "You do not have permission for Message Players";
@@ -264,7 +306,7 @@
                                 return "Could not connect to server.";
 
                             rc.SayPrivate(new Message(item.number, item.name, data.Message));
-                            await Dialog.ShowInfoAsync("Message Result", $"Message sent to {item.name}");
+                            await Dialogs.ShowInfoAsync("Message Result", $"Message sent to {item.name}");
                             return null;
                         });
                     }

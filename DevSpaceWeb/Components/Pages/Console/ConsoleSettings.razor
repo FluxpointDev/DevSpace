@@ -1,5 +1,5 @@
 ﻿@using DevSpaceWeb.Data.Consoles
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject NavigationManager Nav
 
 <div class="dash-box dash-box-content">
@@ -38,8 +38,14 @@
         <RadzenText TextStyle="TextStyle.H6">Manage</RadzenText>
     </div>
     <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">ID</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body2">
+        @Console?.Id
+        <CopyClipboard Value="@Console?.Id.ToString()"></CopyClipboard>
+    </RadzenText>
+
     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
-    <RadzenUserSelector Value="@OwnerUser" Disabled="@(Member == null || !Member.CanOwn(Console))" OnSelected="@ChangeOwner"></RadzenUserSelector>
+    <RadzenUserSelector Team="@Team" UserId="@Console?.OwnerId" ActionDisabled="@(Member == null || !Member.CanOwn(Console))" OnSelected="@ChangeOwner"></RadzenUserSelector>
     <br />
     <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Console" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.DeleteConsoleResource))" />
 </div>
@@ -86,7 +92,7 @@
     public ConsoleData? Console => Session.Selected.Console;
     public TeamMemberData? Member => Session.Selected.Member;
 
-    public string OwnerUser { get; set; }
+    public string? OwnerUser { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -105,17 +111,18 @@
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.DeleteConsoleResource))
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Delete Console", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.DeleteConsoleResource))
-                return;
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete Console", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
 
-            await Console.DeleteAsync(Member, () =>
-            {
-                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles");
-            });
-        }
+        if (!Confirm)
+            return;
+
+        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.DeleteConsoleResource))
+            return;
+
+        await Console.DeleteAsync(Member, () =>
+        {
+            Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles");
+        });
     }
 
 
@@ -124,25 +131,26 @@
         if (Member == null || Console == null || !Member.CanOwn(Console))
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+        bool Confirm = await Dialogs.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        if (!Member.CanOwn(Console))
+            return;
+
+        await Console.UpdateAsync(new UpdateDefinitionBuilder<ConsoleData>()
+        .Set(x => x.OwnerId, user.Id), () =>
         {
-            if (!Member.CanOwn(Console))
-                 return;
+            Console.OwnerId = user.Id;
+            OwnerUser = user.UserName;
 
-            await Console.UpdateAsync(new UpdateDefinitionBuilder<ConsoleData>()
-            .Set(x => x.OwnerId, user.Id), () =>
-            {
-                Console.OwnerId = user.Id;
-                OwnerUser = user.UserName;
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.ConsoleOwnershipChanged)
+            .SetTarget(Console)
+            .AddProperty("User", user.UserName)
+            .AddProperty("ID", user.Id.ToString()));
 
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.ConsoleOwnershipChanged)
-                .SetTarget(Console)
-                .AddProperty("User", user.UserName)
-                .AddProperty("ID", user.Id.ToString()));
-
-                StateHasChanged();
-            });
-        }
+            StateHasChanged();
+        });
     }
 }

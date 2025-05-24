@@ -19,6 +19,9 @@ public class DatabaseHealthCheck : IHealthCheck
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
     {
+        if (!_Data.Config.IsFullySetup)
+            return HealthCheckResult.Healthy();
+
         if (_DB.HasException)
             return HealthCheckResult.Degraded("Database failed to load data.");
 
@@ -43,6 +46,9 @@ public class EmailHealthCheck : IHealthCheck
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = new CancellationToken())
     {
+        if (!_Data.Config.IsFullySetup)
+            return HealthCheckResult.Healthy();
+
         if (!HealthService.IsEmailOnline)
             return HealthCheckResult.Degraded("Email service is down.");
 
@@ -61,7 +67,7 @@ public class HealthCheckService
     public System.Timers.Timer timer = new System.Timers.Timer(new TimeSpan(0, 5, 0));
     public HealthCheckService()
     {
-        if (!Program.IsDevMode)
+        if (!Program.IsDevMode && _Data.Config.IsFullySetup)
         {
             Logger.LogMessage("Starting health check service", LogSeverity.Debug);
             timer.Elapsed += new ElapsedEventHandler(RunChecks);
@@ -91,7 +97,7 @@ public class HealthCheckService
         if (_Data.Config.Email.Type == ConfigEmailType.FluxpointManaged)
         {
             HttpRequestMessage Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/test");
-            Message.Headers.Add("Authorization", _Data.Config.Email.ManagedEmailToken);
+            Message.Headers.TryAddWithoutValidation("Authorization", _Data.Config.Email.ManagedEmailToken);
 
             HttpResponseMessage Res = await Program.Http.SendAsync(Message);
             IsEmailOnline = Res.IsSuccessStatusCode;

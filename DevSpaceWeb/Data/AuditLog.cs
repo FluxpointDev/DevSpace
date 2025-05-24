@@ -153,7 +153,7 @@ public class AuditLog
     public AuditLogTargetType TargetType;
     public ObjectId? TargetId;
     public string? TargetName;
-    public Dictionary<string, string?> Properties = new Dictionary<string, string?>();
+    public Dictionary<string, string?> Properties = [];
     public bool IsSensitive;
     public PermissionsSet? Permissions;
 
@@ -177,5 +177,6 @@ public enum AuditLogEventType
     APIClientCreated, APIClientDeleted, APIClientPermissionsChanged, APIClientTokenGenerated, APIClientEnabled, APIClientDisabled, APIClientSettingsChanged,
     ServerCreated, ServerDeleted, ServerPermissionsChanged, ServerSettingsChanged,
     ConsoleCreated, ConsoleDeleted, ConsolePermissionsChanged, ConsoleSettingsChanged, ConsoleRconChanged,
-    RoleSettingsChanged, ServerOwnershipChanged, APIClientOwnershipChanged, ConsoleOwnershipChanged, RolePositionChanged
+    RoleSettingsChanged, ServerOwnershipChanged, APIClientOwnershipChanged, ConsoleOwnershipChanged, RolePositionChanged,
+    MemberNicknameChanged
 }

@@ -5,16 +5,16 @@
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
 
-<PageTitle>Member Permissions | @_Data.Config.Instance.Name</PageTitle>
+<PageTitle>Member Roles | @_Data.Config.Instance.Name</PageTitle>
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
         <RadzenStack Orientation="Orientation.Horizontal" Gap="6px">
             @if (Member.Roles.Any())
             {
-                @foreach (var i in Member.GetCachedRoles().OrderBy(x => x.GetPosition()))
+                @foreach (TeamRoleData i in Member.GetCachedRoles().OrderByDescending(x => x.GetPosition()))
                 {
-                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Info" Text="@i.Name" />
+                    <RoleBadge Role="@i"></RoleBadge>
                 }
             }
             else
@@ -34,6 +34,6 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public TeamMemberData Member { get; set; }
 }

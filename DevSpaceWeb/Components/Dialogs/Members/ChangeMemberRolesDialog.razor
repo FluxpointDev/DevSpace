@@ -5,6 +5,8 @@
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
 
+<PageTitle>Change Member Roles | @_Data.Config.Instance.Name</PageTitle>
+
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
         <RoleSelector @bind-Source="@AllRoles" @bind-Target="@SelectedRoles" Style="height:500px; width:100%;"
@@ -19,7 +21,8 @@
                 Current Roles
             </TargetHeader>
             <Template>
-                @if (Team.OwnerId != Session.CurrentUser.Id && context.GetPosition() >= CurrentRank)
+                <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData))};")"></span>
+                @if (Session.CurrentUser == null || Team.OwnerId != Session.CurrentUser.Id && context.GetPosition() >= CurrentRank)
                 {
                     <span class="iconify" data-icon="mdi:lock"></span> @context.Name
                 }
@@ -35,6 +38,17 @@
         <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" />
     </RadzenStack>
 </RadzenStack>
+
+<style>
+    .rz-multiselect-item-content span {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        margin-bottom: -3px;
+        margin-right: 6px;
+    }
+</style>
 
 @code {
     [CascadingParameter]
@@ -54,12 +68,16 @@
 
     public async Task SourceChanged(IEnumerable<TeamRoleData> roles)
     {
-        
+
     }
 
     protected override void OnParametersSet()
     {
-        CurrentRank = Session.Selected.Member.GetRank();
+        if (Session.Selected.Member == null)
+            CurrentRank = 0;
+        else
+            CurrentRank = Session.Selected.Member.GetRank();
+
         List<TeamRoleData> list = new List<TeamRoleData>();
         foreach(ObjectId i in Member.Roles)
         {
@@ -72,8 +90,8 @@
 
     public ListBoxItemRenderEventArgs<object> ItemRenderAction(ListBoxItemRenderEventArgs<object> data)
     {
-        TeamRoleData role = data.Item as TeamRoleData;
-        if (Team.OwnerId != Session.CurrentUser.Id && role.GetPosition() >= CurrentRank)
+        TeamRoleData? role = data.Item as TeamRoleData;
+        if (role == null || Session.CurrentUser == null || Team.OwnerId != Session.CurrentUser.Id && role.GetPosition() >= CurrentRank)
             data.Disabled = true;
         return data;
     }

@@ -1,0 +1,707 @@
+﻿@using DevSpaceWeb.Components.Dialogs
+@using DevSpaceWeb.Components.Dialogs.Members
+@using DevSpaceWeb.Data.Consoles
+@using DevSpaceWeb.Models
+@using DevSpaceWeb.Models.Teams
+@inject DialogService Dialogs
+@inject ContextMenuService ContextMenuService
+@inject IJSRuntime JS
+
+<PageTitle>Team Permissions | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:shield-key"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Team Roles</RadzenText>
+    </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams")" Text="Teams" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" Text="@Session.Selected.Team?.Data.Name" />
+        <RadzenBreadCrumbItem Text="Roles" />
+    </RadzenBreadCrumb>
+    @if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Roles
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <RadzenRow Gap="0.2rem">
+            <RadzenColumn Size="3" class="rz-py-2 pr-2">
+                <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
+                    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Role" Click="@CreateRole" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Update Positions" Click="@UpdateRolePositions" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))" />
+                </RadzenStack>
+                <br />
+                <br />
+                <RadzenListBox @bind-Value="@SelectedRole" Change="@(() => { CurrentRank = Member.GetRank(); Permissions = SelectedRole.Permissions.Clone(); })" Data="@Roles" Disabled="@UnsavedPermissions"
+                               TextProperty="@nameof(TeamRoleData.Name)" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterOperator="StringFilterOperator.StartsWith" AllowFiltering="true"
+                               Style="width: 100%; max-width: 400px; height: calc(100vh - 200px); min-height:400px;" class="mt-1" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select role" } })">
+                    <Template>
+                        <div @oncontextmenu="@((args) => ShowContextMenuWithManageItems(context, args))" @oncontextmenu:preventDefault="true">
+                        <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData))};")"></span>
+                        @if ((context as TeamRoleData)!.Team != null && Team.OwnerId != Member.UserId && (context as TeamRoleData).GetPosition() >= CurrentRank)
+                        {
+                            <span class="iconify" data-icon="mdi:lock"></span>
+                            @context.Name
+                        }
+                        else
+                        {
+                            @context.Name
+                        }
+                        </div>
+                    </Template>
+                </RadzenListBox>
+            </RadzenColumn>
+            <RadzenColumn class="rz-py-2">
+                @if (SelectedRole != null)
+                {
+                    <div class="role-info">
+                        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-display-flex rz-mt-2 rz-my-0">@SelectedRole.Name Role</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            @SelectedRole.Description
+                        </RadzenText>
+                    </div>
+
+                    <RadzenTabs>
+                        <Tabs>
+                            <RadzenTabsItem Text="Display" Disabled="@UnsavedPermissions">
+                                <div style="padding: 10px;">
+                                    @if (SelectedRole.Team == null)
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                                            You can't edit the default members role except for color.
+                                        </RadzenAlert>
+                                    }
+                                    @if (!SelectedRoleCanManage)
+                                    {
+                                        if (Team != null && Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank)
+                                        {
+                                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                                                You can't edit this because of your current role access.
+                                            </RadzenAlert>
+                                        }
+                                        else
+                                        {
+                                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                                                You do not have permission for Manage Roles
+                                            </RadzenAlert>
+                                        }
+                                        
+                                    }
+
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">ID</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2">
+                                        @SelectedRole?.Id
+                                    <CopyClipboard Value="@SelectedRole?.Id.ToString()"></CopyClipboard>
+                                    </RadzenText>
+
+                                    <DynamicFormDialog @ref="@RoleForm" Model="@TeamRoleModel" ModelData="@SelectedRoleModel" OnSubmit="@EditRole" Disabled="@(!SelectedRoleCanManage || SelectedRole.Team == null)"></DynamicFormDialog>
+                                    
+                                    <br style="margin-bottom: 6px;" />
+                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Color</RadzenText>
+                                    <div>
+                                        <RadzenColorPicker Value="@RoleBadge.GetColor(SelectedRole)" ShowHSV="true" ShowRGBA="true" ShowColors="true" ShowButton="true" Change="@EditRoleColor" ButtonText="Save" Disabled="@(!SelectedRoleCanManage)">
+                                            <RadzenColorPickerItem Value="#d7c730"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#f1ba26"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#f5ce67"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#d88838"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#ff3535"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#19b8b8"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#0096ff"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#00ffff"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#1ABC9C"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#6dce64"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#7fffd4"></RadzenColorPickerItem>
+
+                                            <RadzenColorPickerItem Value="#ff7c7c"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#fd7c6e"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#ff69b4"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#E91E63"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#9B59B6"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#9269fc"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#f47fff"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#ed80a7"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#c13bce"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#849beb"></RadzenColorPickerItem>
+                                            <RadzenColorPickerItem Value="#fffb96"></RadzenColorPickerItem>
+                                        </RadzenColorPicker>
+                                        <RadzenButton Click="@(() => EditRoleColor(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Info" Text="Reset Color" Disabled="@(string.IsNullOrEmpty(SelectedRole.Color) || !SelectedRoleCanManage)" />
+                                    </div>
+                                    <br style="margin-bottom: 6px;" />
+                                    <RadzenButton Text="Delete Role" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@DeleteRole" Disabled="@(!SelectedRoleCanManage)" />
+                                </div>
+                            </RadzenTabsItem>
+                            <RadzenTabsItem Text="Permissions">
+                                @if (Member.HasTeamPermission(Team, TeamPermission.ViewPermissions))
+                                {
+                                    @if (Team != null && Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank)
+                                    {
+                                        <div class="role-info" style="background: none !important;">
+                                            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                                                You can't edit these permissions because of your current role access.
+                                            </RadzenAlert>
+                                        </div>
+                                    }
+
+                                    <PermissionGrid PermissionType="PermissionType.All" Permissions="@Permissions" UnsavedPermissionsChanged="@((arg) => UnsavedPermissions = arg)" OnSave="@SavePermissions" OnLoad="@LoadPermissions" IsDisabled="@(Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManagePermissions) || (Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank))"></PermissionGrid>
+                                }
+                                else
+                                {
+                                    <div class="role-info" style="background: none !important;">
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                                            You do not have permission for View Permissions
+                                        </RadzenAlert>
+                                    </div>
+                                }
+                            </RadzenTabsItem>
+                            <RadzenTabsItem Text="Members" Disabled="@(UnsavedPermissions || SelectedRole.Team == null)">
+                                <div style="padding: 10px;">
+                                    <MembersList @ref="@MembersList" SelectedRole="@SelectedRole"></MembersList>
+                                </div>
+                            </RadzenTabsItem>
+                            <RadzenTabsItem Text="Resources" Disabled="@(UnsavedPermissions || SelectedRole.Team == null)">
+                                <div style="padding: 10px;">
+                                    @if (Member == null || !Member.IsGlobalAdministrator(Team))
+                                    {
+                                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false" Size="AlertSize.Small">
+                                            Some resources may not be listed with your current access.
+                                        </RadzenAlert>
+                                    }
+
+                                    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Left" Wrap="FlexWrap.Wrap" Gap="0.2rem">
+                                    <RadzenStack Gap="6px" class="permission-grid-box">
+                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:server"></span> Servers</RadzenText>
+
+                                    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (Team != null && Team.DefaultPermissions.HasServerPermission(ServerPermission.ViewServer)) || SelectedRole.HasServerPermission(Team, x, ServerPermission.ViewServer)))
+                                    {
+                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
+                                        <div class="server-item">
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                        </div>
+                                        </a>
+                                    }
+                                    </RadzenStack>
+
+                                    <RadzenStack Gap="6px" class="permission-grid-box">
+                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:docker"></span> Docker</RadzenText>
+
+                                    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (Team != null && (Team.DefaultPermissions.HasDockerContainerPermission(DockerContainerPermission.ViewStacks) || Team.DefaultPermissions.HasDockerContainerPermission(DockerContainerPermission.ViewContainers))) || SelectedRole.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewStacks) || SelectedRole.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewContainers)))
+                                    {
+                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
+                                        <div class="server-item">
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                        </div>
+                                        </a>
+                                    }
+                                    </RadzenStack>
+
+                                    <RadzenStack Gap="6px" class="permission-grid-box">
+                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:web"></span> Websites</RadzenText>
+
+                                    @foreach (WebsiteData i in _DB.Websites.Cache.Values.Where(x => Member != null && Member.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite) && (Team != null && Team.DefaultPermissions.HasWebsitePermission(WebsitePermission.ViewWebsite)) || SelectedRole.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite)))
+                                    {
+                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/websites/" + i.GetVanityUrlOrId() + "/home")">
+                                        <div class="server-item">
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                        </div>
+                                        </a>
+                                    }
+                                    </RadzenStack>
+
+                                    <RadzenStack Gap="6px" class="permission-grid-box">
+                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:lightbulb"></span> Projects</RadzenText>
+
+                                    @foreach (ProjectData i in _DB.Projects.Cache.Values.Where(x => Member != null && Member.HasProjectPermission(Team, x, ProjectPermission.ViewProject) && (Team != null && Team.DefaultPermissions.HasProjectPermission(ProjectPermission.ViewProject)) || SelectedRole.HasProjectPermission(Team, x, ProjectPermission.ViewProject)))
+                                    {
+                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + i.GetVanityUrlOrId() + "/home")">
+                                        <div class="server-item">
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                        </div>
+                                        </a>
+                                    }
+                                    </RadzenStack>
+
+                                    <RadzenStack Gap="6px" class="permission-grid-box">
+                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:warning"></span> Logs</RadzenText>
+
+                                    @foreach (LogData i in _DB.Logs.Cache.Values.Where(x => Member != null && Member.HasLogPermission(Team, x, LogPermission.ViewLog) && (Team != null && Team.DefaultPermissions.HasLogPermission(LogPermission.ViewLog)) || SelectedRole.HasLogPermission(Team, x, LogPermission.ViewLog)))
+                                    {
+                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/logs/" + i.GetVanityUrlOrId() + "/home")">
+                                        <div class="server-item">
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                        </div>
+                                        </a>
+                                    }
+                                    </RadzenStack>
+
+                                    <RadzenStack Gap="6px" class="permission-grid-box">
+                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05"><span class="iconify" data-icon="mdi:console"></span> Consoles</RadzenText>
+
+                                    @foreach (ConsoleData i in _DB.Consoles.Cache.Values.Where(x => Member != null && Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole) && (Team != null && Team.DefaultPermissions.HasConsolePermission(ConsolePermission.ViewConsole)) || SelectedRole.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)))
+                                    {
+                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + i.GetVanityUrlOrId() + "/home")">
+                                        <div class="server-item">
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                        </div>
+                                        </a>
+                                    }
+                                    </RadzenStack>
+                                    </RadzenStack>
+
+                                </div>
+                            </RadzenTabsItem>
+                        </Tabs>
+                    </RadzenTabs>
+
+                    
+                }
+            </RadzenColumn>
+        </RadzenRow>
+    }
+</div>
+
+
+<style>
+    .role-info {
+        background-color: var(--rz-info-darker) !important;
+        padding: 6px;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .role-box .rz-dropdown {
+        width: 100% !important;
+    }
+
+    .rz-tabview-panel .pr-2 {
+        max-width: 200px;
+    }
+
+    .rz-multiselect-item {
+        cursor: pointer;
+    }
+
+    .mt-1 .rz-multiselect-item-content span {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        margin-bottom: -3px;
+        margin-right: 6px;
+    }
+
+    .rz-listbox {
+        background: none !important;
+    }
+
+    .rz-listbox, .rz-listbox:active {
+        box-shadow: none !important;
+        border: none !important;
+    }
+
+    .rz-listbox-header {
+        background-color: var(--rz-listbox-background-color) !important;
+        margin-bottom: 6px;
+    }
+
+    .rz-multiselect-item {
+        margin-top: 2px;
+        margin-bottom: 2px;
+        border-radius: 4px !important;
+    }
+
+    .rz-colorpicker-popup {
+    padding: 6px;
+}
+.rz-colorpicker-popup .rz-hue-picker {
+    margin-top: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+.rz-colorpicker-popup .rz-alpha-picker {
+    display: none;
+}
+.rz-colorpicker-popup .rz-color-box:last-child {
+    display: none;
+}
+.rz-py-2:last-child {
+    max-width: calc(100% - 300px) !important;
+}
+</style>
+
+<style>
+    .permission-grid-box {
+        width: 260px;
+        padding: 4px;
+        padding-left: 8px;
+        padding-right: 8px !important;
+        padding-bottom: 16px;
+        background-color: #242527 !important;
+        margin-right: 4px;
+        margin-bottom: 4px;
+        box-shadow: var(--rz-card-shadow);
+        min-height: 80px;
+        
+    }
+
+        .permission-grid-box .rz-text-subtitle1 {
+            text-align: center !important;
+            display: inline-block !important;
+            margin-bottom: 14px !important;
+        }
+
+        .permission-grid-box span {
+            display: block;
+        }
+
+        .permission-grid-box .iconify {
+            width: 22px;
+            height: 22px;
+            margin-right: 6px;
+            margin-top: -2px;
+        }
+
+    .server-item {
+        background-color: #21262d !important;
+        border-radius: 6px;
+        border: 1px solid rgba(0,135,201,0.3) !important;
+        padding: 6px;
+        padding-left: 10px;
+        cursor: pointer;
+    }
+
+        .server-item:hover {
+            border-color: rgba(0,135,201,0.5) !important;
+        }
+</style>
+
+@code {
+    public List<TeamRoleData> Roles { get; set; }
+    private TeamRoleData? _selectedRole = null;
+    public TeamRoleData? SelectedRole { get { return _selectedRole; } set { _selectedRole = value; if (value != null) { SelectedRoleModel = new TeamRoleModel { Name = value.Name, Description = value.Description }; UpdateCanManage(); RoleForm?.LoadModel(SelectedRoleModel); } } }
+    public TeamRoleModel? SelectedRoleModel { get; set; }
+    public DynamicFormDialog<TeamRoleModel> RoleForm { get; set; } = null!;
+    public MembersList MembersList { get; set; }
+    public bool SelectedRoleCanManage { get; set; }
+    public void UpdateCanManage()
+    {
+        if (Member == null || SelectedRole == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+            SelectedRoleCanManage = false;
+        else
+        {
+            if (Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank)
+                SelectedRoleCanManage = false;
+            else
+                SelectedRoleCanManage = true;
+        }
+    }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    public int CurrentRank;
+
+    public bool UnsavedPermissions { get; set; }
+    public PermissionsSet? Permissions { get; set; }
+
+
+    public void LoadPermissions()
+    {
+        if (SelectedRole != null)
+            Permissions = SelectedRole.Permissions.Clone();
+    }
+
+    public async Task SavePermissions(PermissionsSet perms)
+    {
+        if (Program.IsPreviewMode)
+        {
+            if (SelectedRole != null)
+                Permissions = SelectedRole.Permissions.Clone();
+
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Member == null || SelectedRole == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManagePermissions))
+        {
+            Permissions = SelectedRole?.Permissions.Clone();
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManagePermissions);
+            return;
+        }
+
+        if (SelectedRole.Team == null)
+        {
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultPermissions, perms), () =>
+            {
+                Team.DefaultPermissions = perms;
+                SelectedRole.Permissions = perms;
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Permission, AuditLogEventType.DefaultPermissionsChanged)
+                .SetTarget(Team)
+                .SetPermissions(perms));
+            });
+
+        }
+        else
+        {
+            CurrentRank = Member.GetRank();
+            if (Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank)
+                return;
+
+            await SelectedRole.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Permissions, perms), () =>
+            {
+                SelectedRole.Permissions = perms;
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Permission, AuditLogEventType.RolePermissionsChanged)
+                .SetTarget(SelectedRole)
+                .SetPermissions(perms));
+            });
+
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Member == null || Team == null)
+            return;
+
+        CurrentRank = Member.GetRank();
+        if (Roles == null)
+        {
+            Roles = Team.CachedRoles.Values.OrderByDescending(x => x.GetPosition()).ToList();
+            Roles = Roles.Append(new TeamRoleData { Name = "Default Members", Description = "Default role for all members in the team", Permissions = Team.DefaultPermissions, Color = Team.DefaultMembersColor, CreatedAt = Team.CreatedAt }).ToList();
+            if (Roles.Any())
+            {
+                SelectedRole = Roles.First();
+                Permissions = SelectedRole.Permissions.Clone();
+                UpdateCanManage();
+            }
+        }
+    }
+
+    public async Task<string?> EditRole(TeamRoleModel data)
+    {
+        if (Member == null || SelectedRole == null || SelectedRole.Team == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+            return "You do not have permission for Manage Roles";
+
+        CurrentRank = Member.GetRank();
+        if (Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank)
+            return "You do not have access to manage this role.";
+
+        await SelectedRole.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Name, data.Name).Set(x => x.Description, data.Description), () =>
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.RoleSettingsChanged)
+                .SetTarget(SelectedRole)
+                .AddPropertyChange(nameof(TeamRoleData.Name), SelectedRole.Name, data.Name)
+                .AddPropertyChange(nameof(TeamRoleData.Description), SelectedRole.Description, data.Description));
+            SelectedRole.Name = data.Name;
+            SelectedRole.Description = data.Description;
+            InvokeAsync(StateHasChanged);
+        });
+
+        return null;
+    }
+
+    public async Task EditRoleColor(string? hex)
+    {
+        if (Member == null || SelectedRole == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(hex))
+        {
+            string RGB = hex.Substring(4, hex.Length - 5);
+            string[] Colors = RGB.Split(", ");
+            hex = "#" + int.Parse(Colors[0]).ToString("X2") + int.Parse(Colors[1]).ToString("X2") + int.Parse(Colors[2]).ToString("X2");
+        }
+
+        if (SelectedRole.Team == null)
+        {
+            await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.DefaultMembersColor, hex), () =>
+            {
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.TeamSettingsChanged)
+                .SetTarget(SelectedRole)
+                .AddPropertyChange(Utils.FriendlyName(nameof(TeamData.DefaultMembersColor)), Team.DefaultMembersColor, hex));
+
+                Roles.First(x => x.Team == null).Color = hex;
+                Team.DefaultMembersColor = hex;
+                InvokeAsync(StateHasChanged);
+            });
+        }
+        else
+        {
+            CurrentRank = Member.GetRank();
+            if (Team.OwnerId != Member.UserId && SelectedRole.GetPosition() >= CurrentRank)
+                return;
+
+            await SelectedRole.UpdateAsync(new UpdateDefinitionBuilder<TeamRoleData>().Set(x => x.Color, hex), () =>
+            {
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.RoleSettingsChanged)
+                .SetTarget(SelectedRole)
+                .AddPropertyChange(nameof(TeamRoleData.Color), SelectedRole.Color, hex));
+
+                SelectedRole.Color = hex;
+                InvokeAsync(StateHasChanged);
+            });
+        }
+    }
+
+    public async Task CreateRole()
+    {
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
+            return;
+        }
+
+        await Dialogs.ShowDynamicFormAsync<TeamRoleModel>("Create Team Role", new TeamRoleModel(), async (TeamRoleModel data) =>
+        {
+            if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+                return "You do not have permission for Manage Roles";
+
+            if (string.IsNullOrEmpty(data.Name))
+                return "Role name can't be empty.";
+
+            if (data.Name.Equals("Default"))
+                return "You can't name the role default";
+
+
+            foreach (TeamRoleData r in Team.CachedRoles.Values)
+            {
+                if (!string.IsNullOrEmpty(r.Name) && r.Name.Equals(data.Name, StringComparison.OrdinalIgnoreCase))
+                    return "A role with this name already exists.";
+            }
+
+            TeamRoleData role = new TeamRoleData
+            {
+                TeamId = Team.Id,
+                Name = data.Name,
+                Description = data.Description
+            };
+
+            try
+            {
+                await _DB.Roles.CreateAsync(role);
+            }
+            catch
+            {
+                return "Failed to create role.";
+            }
+            Team.AddRole(Member, role);
+            Roles.Add(role);
+            Roles = Roles.OrderByDescending(x => x.Team == null ? -1 : x.GetPosition()).ToList();
+            return string.Empty;
+        });
+    }
+
+    public async Task DeleteRole()
+    {
+        await DeleteRoleInternal(SelectedRole);
+    }
+
+    private async Task DeleteRoleInternal(TeamRoleData role)
+    {
+        if (Member == null || Team == null)
+            return;
+
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+            return;
+
+        if (role == null || role.GetPosition() >= Member.GetRank())
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete Role", "Are you sure your want to delete " + role.Name, "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+            return;
+
+        if (role.GetPosition() >= Member.GetRank())
+            return;
+
+        FilterDefinition<TeamRoleData> filter = Builders<TeamRoleData>.Filter.Eq(r => r.Id, role.Id);
+        DeleteResult Result = await _DB.Roles.Collection.DeleteOneAsync(filter);
+        if (Result.IsAcknowledged)
+        {
+            Roles.Remove(role);
+            Roles = Roles.OrderByDescending(x => x.Team == null ? -1 : x.GetPosition()).ToList();
+            Team.DeleteRole(Member, role);
+            if (SelectedRole != null && SelectedRole.Id == role.Id)
+                SelectedRole = null;
+        }
+    }
+
+    public async Task UpdateRolePositions()
+    {
+        if (Member == null || Team == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+        {
+            Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
+            return;
+        }
+
+        await Dialogs.OpenAsync<ChangeRolesPositionDialog>($"Update Roles Position", new Dictionary<string, object>()
+        {
+            { "Team", Team }
+        });
+        Roles = Roles.OrderByDescending(x => x.Team == null ? -1 : x.GetPosition()).ToList();
+    }
+
+    object ShowContextMenuWithManageItems(TeamRoleData item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem>
+            {
+                new ContextMenuItem() { Text = "Delete Role", Icon = "delete", Disabled = Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles) || item.GetPosition() >= Member.GetRank() },
+                new ContextMenuItem() { Text = "Copy Role ID", Icon = "content_copy" }
+
+            }, e => MenuItemClick(item, e));
+
+        return null;
+    }
+
+    void MenuItemClick(TeamRoleData item, MenuItemEventArgs args)
+    {
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Member == null || Team == null)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            switch (args.Text)
+            {
+                case "Delete Role":
+                    {
+                        await DeleteRoleInternal(item);
+                    }
+                    break;
+                case "Copy Role ID":
+                    {
+                        await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.Id.ToString());
+                    }
+                    break;
+            }
+        });
+
+        ContextMenuService.Close();
+    }
+}

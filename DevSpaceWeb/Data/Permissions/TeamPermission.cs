@@ -47,14 +47,21 @@ public enum TeamPermission : ulong
     /// All permissions for the team and resources.
     /// </summary>
     GlobalAdministrator = 1L << 8,
-    UNUSED_ = 1L << 9,
+
+    /// <summary>
+    /// Lets members change their nickname
+    /// </summary>
+    ChangeNickname = 1L << 9,
 
     /// <summary>
     /// View changes to the team and resources.
     /// </summary>
     ViewAuditLogs = 1L << 10,
 
-    UNUSED1_ = 1L << 11,
+    /// <summary>
+    /// Lets members manage nicknames for members below their role rank.
+    /// </summary>
+    ManageNicknames = 1L << 11,
     UNUSED2_ = 1L << 12,
     UNUSED3_ = 1L << 13,
 

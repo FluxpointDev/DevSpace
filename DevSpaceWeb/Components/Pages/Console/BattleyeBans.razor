@@ -3,7 +3,7 @@
 @using DevSpaceWeb.Data.Consoles
 @using Newtonsoft.Json.Linq
 @using System.Text
-@inject DialogService Dialog
+@inject DialogService Dialogs
 
 <PageTitle>Console Bans | @_Data.Config.Instance.Name</PageTitle>
 
@@ -33,12 +33,34 @@
     else
     {
         <br />
-        <RadzenDataGrid Count="@BanCount" Data="@Bans" LoadData="@LoadData"
+        <div class="dash-box-content">
+            <ActionBar>
+                <RadzenFormField Variant="Variant.Outlined">
+                    <Start>
+                        <RadzenIcon Icon="search" />
+                    </Start>
+                    <ChildContent>
+                        <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                       autocapitalize="none" MaxLength="100" inputmode="search"
+                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
+                    </ChildContent>
+                    <End>
+                        @if (!string.IsNullOrWhiteSpace(SearchText))
+                        {
+                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        }
+                    </End>
+                </RadzenFormField>
+            </ActionBar>
+        </div>
+        <RadzenDataGrid @ref="@Grid" Count="@BanCount" Data="@Bans" LoadData="@LoadData"
+                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        EmptyText="No bans." PageSizeOptions="@Static.PageSizeOptions" ShowPagingSummary="true"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
             <Columns>
-                <RadzenDataGridColumn Title="ID/IP" Width="120px">
+                <RadzenDataGridColumn Title="ID/IP" Width="120px" Filterable="@Member.HasConsolePermission(Team, Console, ConsolePermission.ViewIPs)" Property="@nameof(Ban.ipguid)">
                     <Template>
-                        @if (context.ipguid.Contains('.'))
+                        @if (!string.IsNullOrEmpty(context.ipguid) && context.ipguid.Contains('.'))
                         {
                             @if (Member.HasConsolePermission(Team, Console, ConsolePermission.ViewIPs))
                             {
@@ -49,7 +71,7 @@
                                 <RadzenText TextStyle="TextStyle.Body2">
                                     @GetMask(context.ipguid)
                                 </RadzenText>
-                            }
+                        }
                         }
                         else
                         {
@@ -57,17 +79,17 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Reason">
+                <RadzenDataGridColumn Title="Reason" Property="@nameof(Ban.reason)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.reason</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Duration" Width="100px">
+                <RadzenDataGridColumn Title="Duration" Width="100px" Filterable="false">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@ParseTime(context.Duration)</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Action" Width="80px">
+                <RadzenDataGridColumn Title="Action" Width="80px" Filterable="false">
                     <Template>
                         <RadzenButton Text="Unban" Click="@(() => UnbanPlayer(context))" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" />
                     </Template>
@@ -83,12 +105,33 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
+    public RadzenTextBox SearchBox { get; set; } = null!;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SearchBox != null)
+            _ = SearchBox.FocusAsync();
+    }
+
     public TeamData? Team => Session.Selected.Team?.Data;
     public ConsoleData? Console => Session.Selected.Console;
     public TeamMemberData? Member => Session.Selected.Member;
 
     public IEnumerable<Ban>? Bans { get; set; }
     public int BanCount { get; set; }
+
+    public RadzenDataGrid<Ban> Grid { get; set; }
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(0).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
+    }
 
     public string GetMask(string value)
     {
@@ -121,7 +164,7 @@
         {
             if (rc.IsConnected)
             {
-                var query = rc.GetBans().AsQueryable();
+                IQueryable<Ban> query = rc.GetBans().AsQueryable();
 
                 BanCount = query.Count();
                 Bans = query.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
@@ -165,31 +208,32 @@
 
         if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
         {
-            await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
             return;
         }
 
         if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
         {
-            await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
             return;
         }
 
-        bool Confirm = await Dialog.ShowConfirmAsync($"Unban {ban.ipguid}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
-            {
-                await Dialog.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
-                return;
-            }
+        bool Confirm = await Dialogs.ShowConfirmAsync($"Unban {ban.ipguid}", "Are you sure you want to unban?", "Confirm", ButtonStyle.Success);
 
-            if (!rc.IsConnected)
-            {
-                await Dialog.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
-                return;
-            }
-            rc.UnbanPlayer(ban.GUID);
+        if (!Confirm)
+            return;
+
+        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
+        {
+            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+            return;
         }
+
+        if (!rc.IsConnected)
+        {
+            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+            return;
+        }
+        rc.UnbanPlayer(ban.GUID);
     }
 }

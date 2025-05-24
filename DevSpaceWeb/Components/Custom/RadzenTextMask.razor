@@ -9,18 +9,26 @@ else if (IsVisible)
 {
     <RadzenText TextStyle="TextStyle.Body2">
         @Value <span class="rz-link ml-1" @onclick="@(() => IsVisible = false)">Hide</span>
+        @if (ShowCopy)
+        {
+            <CopyClipboard Value="@Value"></CopyClipboard>
+        }
     </RadzenText>
 }
 else
 {
     <RadzenText TextStyle="TextStyle.Body2">
         @GetMask() <span class="rz-link ml-1" @onclick="@(() => IsVisible = true)">Show</span>
+        @if (ShowCopy)
+        {
+            <CopyClipboard Value="@Value"></CopyClipboard>
+        }
     </RadzenText>
 }
 
 @code {
     [Parameter]
-    public string Value { get; set; }
+    public string? Value { get; set; }
 
     [Parameter]
     public bool IsEmail { get; set; }
@@ -28,10 +36,16 @@ else
     [Parameter]
     public bool IsIp { get; set; }
 
+    [Parameter]
+    public bool ShowCopy { get; set; }
+
     private bool IsVisible { get; set; }
 
-    public string GetMask()
+    public string? GetMask()
     {
+        if (string.IsNullOrEmpty(Value))
+            return Value;
+
         if (IsIp)
         {
             bool FirstDot = false;

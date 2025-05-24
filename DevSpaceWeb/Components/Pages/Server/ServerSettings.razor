@@ -1,5 +1,6 @@
-﻿@using DevSpaceWeb.Data.Consoles
-@inject DialogService DialogService
+﻿@using DevSpaceWeb.Components.Dialogs.Servers
+@using DevSpaceWeb.Data.Consoles
+@inject DialogService Dialogs
 @inject NavigationManager Nav
 
 <div class="dash-box dash-box-content">
@@ -33,6 +34,10 @@
                 <RadzenText TextStyle="TextStyle.H6">Connection</RadzenText>
             </RadzenCard>
         </a>
+        @* <RadzenCard @onclick="@OpenUpdater" class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator) ? "" : " settings-item-disabled"))">
+            <span class="iconify" data-icon="mdi:cloud-upload"></span>
+            <RadzenText TextStyle="TextStyle.H6">Update Agent</RadzenText>
+        </RadzenCard> *@
     </RadzenStack>
 </div>
 
@@ -42,8 +47,14 @@
         <RadzenText TextStyle="TextStyle.H6">Manage</RadzenText>
     </div>
     <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">ID</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body2">
+        @Server?.Id
+        <CopyClipboard Value="@Server?.Id.ToString()"></CopyClipboard>
+    </RadzenText>
+
     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
-    <RadzenUserSelector Value="@OwnerUser" Disabled="@(Member == null || !Member.CanOwn(Server))" OnSelected="@ChangeOwner"></RadzenUserSelector>
+    <RadzenUserSelector Team="@Team" UserId="@Server?.OwnerId" ActionDisabled="@(Member == null || Program.IsPreviewMode || !Member.CanOwn(Server))" OnSelected="@ChangeOwner"></RadzenUserSelector>
     <br />
     <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Server" Disabled="@(Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.DeleteServerResource))" />
 </div>
@@ -52,6 +63,7 @@
     .settings-item {
         width: 120px;
         height: 120px;
+        cursor: pointer;
     }
 
         .settings-item .iconify {
@@ -92,6 +104,8 @@
 
     public string? OwnerUser { get; set; }
 
+
+
     protected override async Task OnParametersSetAsync()
     {
         if (Server != null)
@@ -109,17 +123,32 @@
         if (Server == null || Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.DeleteServerResource))
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Delete Server", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasServerPermission(Team, Server, ServerPermission.DeleteServerResource))
-                return;
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete Server", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
 
-            await Server.DeleteAsync(Member, () =>
-            {
-                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers");
-            });
-        }
+        if (!Confirm)
+            return;
+
+        if (!Member.HasServerPermission(Team, Server, ServerPermission.DeleteServerResource))
+            return;
+
+        await Server.DeleteAsync(Member, () =>
+        {
+            Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers");
+        });
+
+    }
+
+    public async Task OpenUpdater()
+    {
+        if (Server == null || Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator))
+            return;
+
+        await Dialogs.OpenAsync<ServerUpdateDialog>("Agent Updater", options: new DialogOptions
+        {
+            CloseDialogOnEsc = false,
+            CloseDialogOnOverlayClick = false,
+            ShowClose = false
+        });
     }
 
 
@@ -128,25 +157,26 @@
         if (Server == null || Member == null || !Member.CanOwn(Server))
             return;
 
-        bool Confirm = await DialogService.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+        bool Confirm = await Dialogs.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        if (!Member.CanOwn(Server))
+            return;
+
+        await Server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>()
+        .Set(x => x.OwnerId, user.Id), () =>
         {
-            if (!Member.CanOwn(Server))
-                return;
+            Server.OwnerId = user.Id;
+            OwnerUser = user.UserName;
 
-            await Server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>()
-            .Set(x => x.OwnerId, user.Id), () =>
-            {
-                Server.OwnerId = user.Id;
-                OwnerUser = user.UserName;
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.ServerOwnershipChanged)
+            .SetTarget(Server)
+            .AddProperty("User", user.UserName)
+            .AddProperty("ID", user.Id.ToString()));
 
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.ServerOwnershipChanged)
-                .SetTarget(Server)
-                .AddProperty("User", user.UserName)
-                .AddProperty("ID", user.Id.ToString()));
-
-                StateHasChanged();
-            });
-        }
+            StateHasChanged();
+        });
     }
 }

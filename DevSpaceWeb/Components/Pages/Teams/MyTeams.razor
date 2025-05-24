@@ -1,8 +1,9 @@
 ﻿@page "/teams"
 @using DevSpaceWeb.Models.Teams
-@inject DialogService DialogService
+@inject DialogService Dialogs
 
 <PageTitle>My Teams | @_Data.Config.Instance.Name</PageTitle>
+
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -14,7 +15,7 @@
         <br />
     </div>
     <br />
-    <div style="display: flex; align-items: flex-start;">
+    <div style="display: flex; align-items: flex-start; flex-wrap: wrap;">
         @foreach (TeamData i in _DB.Teams.Cache.Values.Where(x => Session.CurrentUser != null &&x.Members.ContainsKey(Session.CurrentUser.Id)).OrderBy(x => x.Name))
         {
             <a href="teams/@i.GetVanityUrlOrId()" style="color: cornflowerblue">
@@ -77,7 +78,10 @@
 
     public async Task CreateTeam()
     {
-        await DialogService.ShowDynamicFormAsync<TeamBasicModel>("Create Team", new TeamBasicModel(), async (TeamBasicModel data) =>
+        if (Session.CurrentUser == null)
+            return;
+
+        await Dialogs.ShowDynamicFormAsync<TeamBasicModel>("Create Team", new TeamBasicModel(), async (TeamBasicModel data) =>
             {
                 string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
                 if (!string.IsNullOrEmpty(VanityUrl) && _DB.TeamsVanityCache.ContainsKey(VanityUrl))
@@ -87,7 +91,8 @@
                 {
                     Name = data.Name,
                     VanityUrl = VanityUrl,
-                    OwnerId = Session.CurrentUser.Id
+                    OwnerId = Session.CurrentUser.Id,
+                    Require2FA = data.MembersRequire2FA
                 };
                 await _DB.Teams.CreateAsync(Team);
                 TeamMemberData Member = new TeamMemberData()
@@ -124,7 +129,7 @@
                 _DB.Teams.Cache.TryAdd(Team.Id, Team);
 
 
-                InvokeAsync(StateHasChanged);
+                _ = InvokeAsync(StateHasChanged);
                 return null;
             });
     }

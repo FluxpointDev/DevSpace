@@ -5,7 +5,7 @@ using MongoDbGenericRepository.Attributes;
 using MongoDbGenericRepository.Utils;
 using System.Reflection;
 
-namespace AspNetCore.Identity.MongoDbCore;
+namespace DevSpaceWeb.Database;
 
 public class CustomMongoDbContext : IMongoDbContext
 {
@@ -94,7 +94,7 @@ public class CustomMongoDbContext : IMongoDbContext
     // Type parameters:
     //   TDocument:
     //     The type representing a Document.
-    public virtual IMongoCollection<TDocument> GetCollection<TDocument>(string partitionKey = null)
+    public virtual IMongoCollection<TDocument> GetCollection<TDocument>(string partitionKey)
     {
         return Database.GetCollection<TDocument>(GetCollectionName<TDocument>(partitionKey));
     }
@@ -106,7 +106,7 @@ public class CustomMongoDbContext : IMongoDbContext
     // Type parameters:
     //   TDocument:
     //     The type representing a Document.
-    public virtual void DropCollection<TDocument>(string partitionKey = null)
+    public virtual void DropCollection<TDocument>(string partitionKey)
     {
         Database.DropCollection(GetCollectionName<TDocument>(partitionKey));
     }
@@ -135,7 +135,9 @@ public class CustomMongoDbContext : IMongoDbContext
     //     The name of the collection in which the TDocument is stored.
     protected virtual string GetAttributeCollectionName<TDocument>()
     {
+#pragma warning disable CS8603 // Possible null reference return.
         return (typeof(TDocument).GetTypeInfo().GetCustomAttributes(typeof(CollectionNameAttribute)).FirstOrDefault() as CollectionNameAttribute)?.Name;
+#pragma warning restore CS8603 // Possible null reference return.
     }
 
     //

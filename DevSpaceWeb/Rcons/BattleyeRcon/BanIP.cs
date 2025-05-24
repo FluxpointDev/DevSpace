@@ -3,11 +3,11 @@
 public class BanIP
 {
     public int id = 0;
-    public String name = "";
-    public String duration = "";
-    public String reason = "";
+    public string name = "";
+    public string duration = "";
+    public string? reason = "";
 
-    public BanIP(int id, String name, String duration, String reason)
+    public BanIP(int id, string name, string duration, string? reason)
     {
         this.id = id;
         this.name = name;

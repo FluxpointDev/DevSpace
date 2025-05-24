@@ -22,30 +22,34 @@
 
         @if (!string.IsNullOrEmpty(ErrorMessage))
         {
-                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-                        Failed to import stack, @ErrorMessage
-                </RadzenAlert>
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Failed to import stack, @ErrorMessage
+            </RadzenAlert>
         }
 
         @if (Stacks != null)
         {
-                @if (!Stacks.IsSuccess)
-                {
-                        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-                            Failed to list portainer stacks.
-                        </RadzenAlert>
-                }
-                else
-                {
-                        <RadzenDropDown @bind-Value="@SelectedStack" Data="@Stacks.Data" Placeholder="Select a stack" TextProperty="@nameof(DockerStackInfo.Name)" Style="width: 100%; max-width: 400px;" />
-                }
+            @if (!Stacks.IsSuccess)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                    Failed to list portainer stacks.
+                </RadzenAlert>
+            }
+            else
+            {
+                <RadzenDropDown @bind-Value="@SelectedStack" Data="@Stacks.Data" Placeholder="Select a stack" TextProperty="@nameof(DockerStackInfo.Name)" Style="width: 100%; max-width: 400px;" />
+            }
 
-                @if (IsSuccess)
-                {
-                        <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
-                            Stack has been imported, you can view the new stack now and delete the old one from portainer.
-                        </RadzenAlert>
-                }
+            @if (IsSuccess)
+            {
+                <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                    Stack has been imported, you can view the new stack now and delete the old one from portainer.
+                </RadzenAlert>
+            }
+        }
+        else
+        {
+            <RadzenSkeleton Width="400" Height="36"></RadzenSkeleton>
         }
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
@@ -66,14 +70,26 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (Team == null && Server == null || Member == null)
+        if (Team == null || Server == null || Member == null)
             return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.ViewStacks);
             return;
+        }
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.CreateStacks);
             return;
+        }
 
         Stacks = await Server.RunJsonAsync<List<DockerStackInfo>>(Notifications, new DockerEvent(DockerEventType.ListPortainerStacks));
     }
@@ -94,18 +110,24 @@
             return;
         }
 
-        if (Team == null && Server == null || Member == null || SelectedStack == null)
+        if (Team == null || Server == null || Member == null || SelectedStack == null)
             return;
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.ViewStacks);
             return;
+        }
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
+        {
+            await dialogService.ShowPermissionErrorAsync(DockerContainerPermission.CreateStacks);
             return;
+        }
 
         IsLoading = true;
 
-        SocketResponse<DockerStackCreate> Response = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.ControlStack, SelectedStack.Id, stackType: ControlStackType.ImportPortainer)
+        SocketResponse<DockerStackCreate?> Response = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.ControlStack, SelectedStack.Id, stackType: ControlStackType.ImportPortainer)
         {
             Data = JObject.FromObject(new DockerStackInfo
             {

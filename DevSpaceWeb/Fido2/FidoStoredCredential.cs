@@ -22,7 +22,6 @@ public class FidoStoredCredential
     /// </summary>
     public byte[]? UserHandle { get; set; }
 
-
     /// <summary>
     /// Gets or sets the registration date for this user.
     /// </summary>

@@ -1,6 +1,7 @@
 ﻿@page "/teams/{team_id?}/{service?}/{service_id?}/{resource_type?}/{resource_data?}/{resource_feature?}"
 @using DevSpaceWeb.Components.Pages.Console
 @using DevSpaceWeb.Components.Pages.Server.DockerTools
+@using DevSpaceWeb.Components.Pages.Teams.Settings
 @using DevSpaceWeb.Data.Consoles
 
 @if (Team == null || Member == null)
@@ -13,6 +14,13 @@ else if (Member.Disabled != null)
     <PageTitle>Member Restricted | @_Data.Config.Instance.Name</PageTitle>
     <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
         Your account has been restricted from accessing this team.
+    </RadzenAlert>
+}
+else if (Team.Require2FA && Member.UserId != Team.OwnerId && !Session.CurrentUser!.Has2FA)
+{
+    <PageTitle>Member Restricted | @_Data.Config.Instance.Name</PageTitle>
+    <RadzenAlert AlertStyle="AlertStyle.Danger" Shade="Shade.Dark" AllowClose="false" ShowIcon="false">
+        This team and resources requires 2FA to access, setup 2FA for your account.
     </RadzenAlert>
 }
 else
@@ -37,22 +45,22 @@ else
                         <TeamSettings></TeamSettings>
                         break;
                     case "basic":
-                        <TeamBasicSettings></TeamBasicSettings>
+                        <TeamSettingsBasic></TeamSettingsBasic>
                         break;
                     case "members":
-                        <TeamMembersSettings></TeamMembersSettings>
+                        <TeamMembers></TeamMembers>
                         break;
                     case "roles":
-                        <TeamRolesSettings></TeamRolesSettings>
-                        break;
-                    case "permissions":
-                        <TeamPermissionsSettings></TeamPermissionsSettings>
+                        <TeamRoles></TeamRoles>
                         break;
                     case "audit":
                         <TeamAuditLogs></TeamAuditLogs>
                         break;
                     case "api":
                         <TeamAPISettings></TeamAPISettings>
+                        break;
+                    case "delete":
+                        <TeamDelete></TeamDelete>
                         break;
                 }
 
@@ -101,6 +109,9 @@ else
                                 break; *@
                         case "host":
                             <ServerDockerHostInfo></ServerDockerHostInfo>
+                            break;
+                        case "debug":
+                            <ServerDebug></ServerDebug>
                             break;
                         case "stacks":
                             if (string.IsNullOrEmpty(resource_data))
@@ -471,12 +482,12 @@ else
 
             if (GotTeam != null && (Session.Selected.Team == null || Session.Selected.Team.Data.Id != GotTeam.Id))
             {
-                var Member = GotTeam.GetMember(Session);
-                if (Member != null && GotTeam.Id == Member.TeamId)
+                TeamMemberData? Member = GotTeam.GetMember(Session);
+                if (Session.CurrentUser?.Id == GotTeam.OwnerId || (Member != null && GotTeam.Id == Member.TeamId))
                 {
                     Session.Selected.Team = new SelectedTeamData(GotTeam)
                     {
-                        Member = Member
+                        Member = Member!
                     };
                 }
                 else

@@ -6,6 +6,8 @@
 
 @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
 {
+    <PageTitle>Network Info | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -25,6 +27,8 @@
 }
 else if (Network == null)
 {
+    <PageTitle>Network Info | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -57,6 +61,8 @@ else if (Network == null)
 }
 else
 {
+    <PageTitle>@Network.Name Network | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -77,9 +83,9 @@ else
                         Name
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
-                            <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@Network.Name</RadzenText>
-                            <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@Remove" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap" AlignItems="AlignItems.Center">
+                            <RadzenText TextStyle="TextStyle.Body2">@Network.Name</RadzenText>
+                            <RadzenButton Text="Remove" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@Remove" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
                         </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
@@ -90,6 +96,7 @@ else
                     </RadzenTableCell>
                     <RadzenTableCell>
                         @Network.Id
+                        <CopyClipboard Value="@Network.Id"></CopyClipboard>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -239,7 +246,7 @@ else
             </div>
             <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
                 <RadzenTableBody>
-                    @foreach (var i in Network.Options)
+                    @foreach (KeyValuePair<string, string> i in Network.Options)
                     {
                         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                         <RadzenText TextStyle="TextStyle.Body2">
@@ -252,15 +259,15 @@ else
         </div>
     }
 
-    <div class="dash-box dash-box-content">
-        <div class="dash-box-header">
-            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:tag"></span></div>
-            <RadzenText TextStyle="TextStyle.H6">Labels</RadzenText>
-        </div>
-        <br />
-        @if (Network.Labels != null)
-        {
-            foreach (var i in Network.Labels)
+    @if (Network.Labels != null)
+    {
+        <div class="dash-box dash-box-content">
+            <div class="dash-box-header">
+                <div class="dash-box-icon"><span class="iconify" data-icon="mdi:tag"></span></div>
+                <RadzenText TextStyle="TextStyle.H6">Labels</RadzenText>
+            </div>
+            <br />
+            @foreach (KeyValuePair<string, string> i in Network.Labels)
             {
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
@@ -268,8 +275,8 @@ else
                 </RadzenText>
                 <br />
             }
-        }
-    </div>
+        </div>
+    }
 
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -279,7 +286,7 @@ else
         <br />
         <RadzenDataGrid Data="@Network.ContainersList"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-                        ShowPagingSummary="true"
+                        ShowPagingSummary="true" EmptyText="No containers."
                         PagingSummaryFormat="@(Network.ContainersCount + " " + (Network.ContainersCount != 1 ? "containers" : "container"))" Density="Density.Default"
                         AllowSorting="false" AllowFiltering="false">
             <Columns>
@@ -336,12 +343,31 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
             return;
 
+        if (Program.IsPreviewMode && NetworkId != "devspace_demo_network" && NetworkId != "d38254f7c4f952d6cc32c059e3aaf5993c304163880d179c14de81e60eecbb0c")
+        {
+            Failed = true;
+            return;
+        }
+
 
         try
         {
-            var Result = await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.View));
+            SocketResponse<DockerNetworkInfo?> Result = await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.View));
             Failed = !Result.IsSuccess;
             Network = Result.Data;
+            if (Network != null && Program.IsPreviewMode && (NetworkId == "devspace-demo" || NetworkId == "d38254f7c4f952d6cc32c059e3aaf5993c304163880d179c14de81e60eecbb0c"))
+            {
+                Network.Labels["com.docker.compose.project"] = "devspace-demo";
+                Network.ContainersList = new Dictionary<string, Docker.DotNet.Models.EndpointResource>
+                {
+                    { "devspace-demo", new Docker.DotNet.Models.EndpointResource
+                    {
+                        Name = "devspace-demo",
+                        IPv4Address = "172.21.0.2/16",
+                        MacAddress = "02:42:ac:15:00:02"
+                    }}
+                };
+            }
         }
         catch (Exception ex)
         {
@@ -375,17 +401,19 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
             return;
 
-        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Network", $"Are you sure you want to remove this network?", "Yes", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
-                return;
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Network: " + Network?.Name,
+            "Are you sure you want to remove this network?", "Confirm", ButtonStyle.Success);
 
-            IsActionLoading = true;
+        if (!Confirm)
+            return;
 
-            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.Remove));
-            if (Result.IsSuccess)
-                Network = null;
-        }
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
+            return;
+
+        IsActionLoading = true;
+
+        SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.Remove));
+        if (Result.IsSuccess)
+            Network = null;
     }
 }

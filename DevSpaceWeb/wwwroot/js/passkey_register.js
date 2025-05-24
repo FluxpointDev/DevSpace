@@ -23,7 +23,7 @@
 
 
 
-        if (makeCredentialOptions.status !== "ok") {
+        if (makeCredentialOptions.status === "error") {
             console.log("Error creating credential options");
             console.log(makeCredentialOptions.errorMessage);
             return false;
@@ -89,7 +89,7 @@ Object.defineProperty(window.Passkey, 'fetchMakeCredentialOptions', {
     writable: false,
     value: async function (requestId) {
         let response = await fetch('/auth/passkey/register/makeCredentialOptions', {
-            method: 'POST', // or 'PUT'
+            method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'RequestId': requestId
@@ -121,7 +121,8 @@ Object.defineProperty(window.Passkey, 'registerNewCredential', {
                 extensions: newCredential.getClientExtensionResults(),
                 response: {
                     AttestationObject: window.Passkey.coerceToBase64Url(attestationObject),
-                    clientDataJson: window.Passkey.coerceToBase64Url(clientDataJSON)
+                    clientDataJson: window.Passkey.coerceToBase64Url(clientDataJSON),
+                    transports: newCredential.response.getTransports()
                 }
             }
         };
@@ -143,7 +144,7 @@ Object.defineProperty(window.Passkey, 'registerNewCredential', {
 
 
         // show error
-        if (response.status !== "ok") {
+        if (response.status === "error") {
             console.log("Error creating credential");
             console.log(response.errorMessage);
             return;

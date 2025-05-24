@@ -1,5 +1,6 @@
 ﻿@inject ContextMenuService ContextMenuService
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <div class="nav-list nav-list-sub nav-team">
     <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
@@ -27,14 +28,7 @@
                 </p>
             </Template>
         </RadzenPanelMenuItem>
-            <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/links")" class="nav-link-server" Match="NavLinkMatch.All">
-            <Template>
-                <span class="iconify" data-icon="mdi:link-variant"></span>
-                <p>
-                    Links
-                </p>
-            </Template>
-        </RadzenPanelMenuItem>
+            
             @* <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/websites")" class="nav-link-web" Match="NavLinkMatch.All">
         <Template>
             <span class="iconify" data-icon="mdi:web"></span>
@@ -71,9 +65,9 @@
     void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
                 new ContextMenuItem(){ Text = "Members", Icon = "group", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewMembers) },
                 new ContextMenuItem(){ Text = "Roles", Icon = "sell", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewRoles) },
-                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewPermissions) },
                 new ContextMenuItem(){ Text = "Audit Logs", Icon = "format_list_bulleted", Disabled = Member == null || !Member.HasTeamPermission(Team, TeamPermission.ViewAuditLogs) },
                 new ContextMenuItem(){ Text = "API", Icon = "smart_toy", Disabled = Member == null || !Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(Team, APIPermission.ViewAllAPIs) },
+                new ContextMenuItem() { Text = "Copy Team ID", Icon = "content_copy" }
          }, OnMenuItemClick);
 
     void OnMenuItemClick(MenuItemEventArgs arg)
@@ -94,6 +88,9 @@
                 break;
             case "API":
                 Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/api");
+                break;
+            case "Copy Team ID":
+                JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", Session.Selected.Team?.Id);
                 break;
         }
         ContextMenuService.Close();

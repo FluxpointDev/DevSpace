@@ -23,20 +23,20 @@ public class ServerSystemJson
         docker = new ServerDockerJson(system.Docker);
     }
 
-    public string id;
-    public string name;
-    public string? agent_version;
-    public string? agent_net;
-    public string uptime_text;
-    public long uptime_number;
-    public string? operating_system;
-    public long cpu_count;
-    public long storage_total_size;
-    public long storage_free_size;
-    public string storage_text;
-    public long ram_total;
-    public string ram_text;
-    public ServerDockerJson docker;
+    public string id { get; set; }
+    public string name { get; set; }
+    public string? agent_version { get; set; }
+    public string? agent_net { get; set; }
+    public string uptime_text { get; set; }
+    public long uptime_number { get; set; }
+    public string? operating_system { get; set; }
+    public long cpu_count { get; set; }
+    public long storage_total_size { get; set; }
+    public long storage_free_size { get; set; }
+    public string storage_text { get; set; }
+    public long ram_total { get; set; }
+    public string ram_text { get; set; }
+    public ServerDockerJson docker { get; set; }
 }
 public class ServerHostJson : ServerSystemJson
 {
@@ -66,18 +66,18 @@ public class ServerHostJson : ServerSystemJson
         hostname = host.Hostname;
         warnings = host.Warnings;
     }
-    public string ip;
-    public string? kernel_version;
-    public string? root_directory;
-    public string? storage_driver;
-    public string? logging_driver;
-    public string? system_driver;
-    public IList<string>? volume_plugins;
-    public IList<string>? network_plugins;
-    public IList<string>? log_plugins;
-    public IList<string>? auth_plugins;
-    public string? hostname;
-    public IList<string>? warnings;
+    public string ip { get; set; }
+    public string? kernel_version { get; set; }
+    public string? root_directory { get; set; }
+    public string? storage_driver { get; set; }
+    public string? logging_driver { get; set; }
+    public string? system_driver { get; set; }
+    public IList<string>? volume_plugins { get; set; }
+    public IList<string>? network_plugins { get; set; }
+    public IList<string>? log_plugins { get; set; }
+    public IList<string>? auth_plugins { get; set; }
+    public string? hostname { get; set; }
+    public IList<string>? warnings { get; set; }
 }
 public class ServerDockerJson
 {
@@ -95,14 +95,14 @@ public class ServerDockerJson
         plugins_count = docker.Plugins;
     }
 
-    public int networks_count;
-    public string? docker_version;
-    public string? api_version;
-    public int stacks_count;
-    public long all_containers_count;
-    public long running_containers_count;
-    public long stopped_containers_count;
-    public long images_count;
-    public int volumes_count;
-    public int plugins_count;
+    public int networks_count { get; set; }
+    public string? docker_version { get; set; }
+    public string? api_version { get; set; }
+    public int stacks_count { get; set; }
+    public long all_containers_count { get; set; }
+    public long running_containers_count { get; set; }
+    public long stopped_containers_count { get; set; }
+    public long images_count { get; set; }
+    public int volumes_count { get; set; }
+    public int plugins_count { get; set; }
 }

@@ -1,0 +1,150 @@
+﻿@page "/previews"
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:lightbulb"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Previews</RadzenText>
+    </div>
+    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+        These features are not functional and are meant to show previews of future features that can be added to Dev Space.
+    </RadzenAlert>
+    <RadzenText TextStyle="TextStyle.Body2">Only links feature works at the moment!</RadzenText>
+    <div style="display: flex; align-items: flex-start; flex-wrap: wrap;">
+        @foreach (Feature i in Features)
+        {
+            <a href="@i.Path" style="color: cornflowerblue">
+                <div Class="team-item">
+                    <RadzenText TextStyle="TextStyle.Subtitle1">@i.Name</RadzenText>
+                    <span class="iconify" data-icon="@i.Icon"></span>
+                    <RadzenText TextStyle="TextStyle.Body2">@i.Desc</RadzenText>
+                </div>
+            </a>
+        }
+    </div>
+</div>
+
+<style>
+    .team-item {
+        display: inline-block !important;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        margin-top: 4px;
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #2f2f31 !important;
+        background-color: #161617 !important;
+        width: 10rem;
+        height: 10rem;
+        text-align: center;
+    }
+
+        .team-item:hover {
+            background-color: #1b1b1c !important;
+            border: 1px solid #3b3b3e !important;
+        }
+
+        .team-item .iconify {
+            width: 20px;
+            height: 20px;
+        }
+
+        .team-item .iconify {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 10px;
+        }
+</style>
+
+@code {
+    public class Feature
+    {
+        public string? Name;
+        public string? Icon;
+        public string? Desc;
+        public string? Path;
+    }
+
+    public Feature[] Features = new Feature[]
+    {
+        new Feature
+        {
+            Name = "Links",
+            Icon = "mdi:link-variant",
+            Desc = "Shortlinks with customization.",
+            Path = "/previews/links"
+        },
+        new Feature
+        {
+            Name = "Private Pastes",
+            Icon = "mdi:file-document",
+            Desc = "Pastebin-like service with encryption and privacy options.",
+            Path = "/previews"
+        },
+        new Feature
+        {
+            Name = "Calendar",
+            Icon = "mdi:calendar-month",
+            Desc = "Schedule with reminders, events and appointments.",
+            Path = "/previews"
+        },
+        new Feature
+        {
+            Name = "Projects",
+            Icon = "mdi:bulletin-board",
+            Desc = "Kanban style boards, ideas, notes and documentation.",
+            Path = "/previews"
+        },
+        new Feature
+        {
+            Name = "Image Editing",
+            Icon = "mdi:image-size-select-large",
+            Desc = "Edit, convert and resize images.",
+            Path = "/previews"
+        },
+        new Feature
+        {
+            Name = "Editor",
+            Icon = "mdi:receipt-text-edit",
+            Desc = "Text and code editor with formatting.",
+            Path = "/previews"
+        },
+        new Feature
+        {
+            Name = "Status",
+            Icon = "mdi:order-checkbox-ascending",
+            Desc = "Monitor your services with uptime and status pages.",
+            Path = "/previews"
+        },
+        new Feature
+        {
+            Name = "Notifications",
+            Icon = "mdi:message-notification",
+            Desc = "Send and receive notifications for web, desktop and mobile.",
+            Path = "/previews"
+        },
+        new Feature
+        {
+            Name = "Webhooks",
+            Icon = "mdi:webhook",
+            Desc = "Send or relay webhook messages to Discord, Slack, etc.",
+            Path = "/previews"
+        },
+        new Feature
+        {
+            Name = "Dashboards",
+            Icon = "mdi:view-dashboard",
+            Desc = "Create custom dashboards with info, data and actions.",
+            Path = "/previews"
+        },
+        new Feature
+        {
+            Name = "Requests",
+            Icon = "mdi:web",
+            Desc = "Send http requests, create collections or manage APIs.",
+            Path = "/previews"
+        }
+    };
+}

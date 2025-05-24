@@ -61,8 +61,7 @@ public class PasskeyAuthController : AuthControllerContext
             AuthenticationExtensionsClientInputs exts = new AuthenticationExtensionsClientInputs
             {
                 Extensions = true,
-                UserVerificationMethod = true,
-                DevicePubKey = new AuthenticationExtensionsDevicePublicKeyInputs()
+                UserVerificationMethod = true
             };
 
             // 3. Create options
@@ -82,7 +81,7 @@ public class PasskeyAuthController : AuthControllerContext
 
         catch (Exception e)
         {
-            return Json(new AssertionOptions { Status = "error", ErrorMessage = FormatException(e) });
+            return Json(new Fido2Error(FormatException(e)));
         }
     }
 
@@ -116,6 +115,8 @@ public class PasskeyAuthController : AuthControllerContext
             if (creds == null)
                 return Json(new Fido2Error("Unknown credentials."));
 
+            if (creds.PublicKey == null)
+                return Json(new Fido2Error("No public key."));
 
             // 4. Create callback to check if userhandle owns the credentialId
             IsUserHandleOwnerOfCredentialIdAsync callback = async (args, cancellationToken) =>
@@ -124,45 +125,47 @@ public class PasskeyAuthController : AuthControllerContext
                 return storedCreds.Any(c => c.Descriptor != null && c.Descriptor.Id.SequenceEqual(args.CredentialId));
             };
 
-            if (creds.PublicKey == null)
-                return Json(new Fido2Error("No public key."));
+
 
             // 5. Make the assertion
-            VerifyAssertionResult res = await _fido2Service._lib.MakeAssertionAsync(
-                clientResponse, options, creds.PublicKey, null, 0, callback);
-
-            if (res.Status == "ok")
+            VerifyAssertionResult res = await _fido2Service._lib.MakeAssertionAsync(new MakeAssertionParams
             {
-                // 6. Store the updated counter
-                if (Data.LogRequest)
+                AssertionResponse = clientResponse,
+                OriginalOptions = options,
+                StoredPublicKey = creds.PublicKey,
+                IsUserHandleOwnerOfCredentialIdCallback = callback,
+                StoredSignatureCounter = 0
+            });
+
+            // 6. Store the updated counter
+            if (Data.LogRequest)
+            {
+                identityUser = await GetCurrentUserAsync();
+                if (identityUser == null)
+                    return Json(new Fido2Error("User data failed."));
+
+                FidoStoredCredential? passkeyUsed = await identityUser.Mfa.GetPasskeyByIdAsync(res.CredentialId);
+                if (passkeyUsed != null)
                 {
-                    identityUser = await GetCurrentUserAsync();
-                    if (identityUser == null)
-                        return Json(new Fido2Error("User data failed."));
-
-                    FidoStoredCredential? passkeyUsed = await identityUser.Mfa.GetPasskeyByIdAsync(res.CredentialId);
-                    if (passkeyUsed != null)
-                    {
-                        passkeyUsed.LastUsedAt = DateTime.UtcNow;
-                        identityUser.Mfa.PasskeyLastUsedDevice = passkeyUsed.Name;
-                    }
-                    else
-                        identityUser.Mfa.PasskeyLastUsedDevice = "Unknown";
-                    identityUser.Mfa.PasskeyLastUsedAt = DateTime.UtcNow;
-                    await _userManager.UpdateAsync(identityUser);
+                    passkeyUsed.LastUsedAt = DateTime.UtcNow;
+                    identityUser.Mfa.PasskeyLastUsedDevice = passkeyUsed.Name;
                 }
-
-                Logger.LogMessage("Passkey SUCCESS! - " + RequestId, LogSeverity.Debug);
-
-                Data.IsSuccess = true;
-                Cache.Set("passkey-" + RequestId, Data, new TimeSpan(0, 5, 0));
+                else
+                    identityUser.Mfa.PasskeyLastUsedDevice = "Unknown";
+                identityUser.Mfa.PasskeyLastUsedAt = DateTime.UtcNow;
+                await _userManager.UpdateAsync(identityUser);
             }
-            return Json(res);
 
+            Logger.LogMessage("Passkey SUCCESS! - " + RequestId, LogSeverity.Debug);
+
+            Data.IsSuccess = true;
+            Cache.Set("passkey-" + RequestId, Data, new TimeSpan(0, 5, 0));
+
+            return Json(res);
         }
         catch (Exception e)
         {
-            return Json(new MakeNewCredentialResult("error", FormatException(e), null));
+            return Json(new Fido2Error(FormatException(e)));
         }
     }
 }

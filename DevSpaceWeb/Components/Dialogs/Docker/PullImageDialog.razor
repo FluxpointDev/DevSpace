@@ -6,8 +6,9 @@
 @using Microsoft.AspNetCore.Identity
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
+@inject NotificationService Notifications
 
-<PageTitle>Pull Docker Image | @_Data.Config.Instance.Name</PageTitle>
+<PageTitle>Pull Image | @_Data.Config.Instance.Name</PageTitle>
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
@@ -81,11 +82,12 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+
         if (Server == null)
             return;
 
         IsLoading = true;
-        var Response = await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.PullImage, ImageNameInput));
+        SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.PullImage, ImageNameInput));
         if (!Response.IsSuccess)
         {
             Failed = true;

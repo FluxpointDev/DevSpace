@@ -8,6 +8,7 @@
 @inject NavigationManager Nav
 
 <PageTitle>Admin Email Settings | @_Data.Config.Instance.Name</PageTitle>
+
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -16,8 +17,12 @@
         </div>
         <RadzenText TextStyle="TextStyle.H6">Admin Instance Settings</RadzenText>
     </div>
+    <RadzenBreadCrumb class="mt-2">
+            <RadzenBreadCrumbItem Path="@("/admin")" Text="Admin" />
+            <RadzenBreadCrumbItem Text="Email" />
+        </RadzenBreadCrumb>
     <br />
-    <RadzenLabel Text="Email Type" class="rz-my-0"></RadzenLabel>
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Email Type</RadzenText>
     <RadzenSelectBar TValue="ConfigEmailType" Value="@(IsManaged ? ConfigEmailType.FluxpointManaged : ConfigEmailType.Custom)" ValueChanged="@(value => { IsManaged = value == ConfigEmailType.FluxpointManaged; })" Style="width: 100%">
         <Items>
             <RadzenSelectBarItem Value="@ConfigEmailType.FluxpointManaged" Text="Fluxpoint Managed" />
@@ -31,13 +36,13 @@
             You will not be able to use custom email templates with this option to prevent abuse.
         </RadzenAlert>
 
-        <RadzenLabel Text="Email API Key" class="rz-my-0"></RadzenLabel>
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Email API Key</RadzenText>
         <RadzenTextBox @bind-Value="@ManagedEmailToken" Style="width: 100%" aria-label="Email API Key" AutoCompleteType="AutoCompleteType.Off" MaxLength="100" />
 
         <br />
         <br />
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Submit" Click="@(() => Submit(null))" />
-        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Test" Click="@(() => TestEmail(null))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Submit" Click="@(() => Submit(null!))" />
+        <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Test" Click="@(() => TestEmail(null!))" />
     }
     else
     {
@@ -86,8 +91,8 @@
     }
 
     public bool IsManaged { get; set; }
-    public string ManagedEmailToken { get; set; }
-    public string TestEmailAddress { get; set; }
+    public string? ManagedEmailToken { get; set; }
+    public string? TestEmailAddress { get; set; }
 
     public async Task TestEmail(SmtpModel data)
     {
@@ -97,7 +102,7 @@
                 return;
 
             HttpRequestMessage Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/send");
-            Message.Headers.Add("Authorization", ManagedEmailToken);
+            Message.Headers.TryAddWithoutValidation("Authorization", ManagedEmailToken);
             Message.Content = JsonContent.Create(new EmailService.SendMailJson
                 {
                     instance_name = _Data.Config.Instance.Name,

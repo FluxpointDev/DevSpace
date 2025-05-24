@@ -5,6 +5,8 @@
 
 @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
 {
+    <PageTitle>Volume Info | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -24,6 +26,8 @@
 }
 else if (Volume == null)
 {
+    <PageTitle>Volume Info | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -56,6 +60,15 @@ else if (Volume == null)
 }
 else
 {
+    @if (Volume.ContainersList != null && Volume.ContainersList.Any() && Volume.ContainersList.First().Value.Name == "registry")
+    {
+        <PageTitle>docker_registry Volume | @_Data.Config.Instance.Name</PageTitle>
+    }
+    else
+    {
+        <PageTitle>@(Volume.Name ?? VolumeId) Volume | @_Data.Config.Instance.Name</PageTitle>
+    }
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -72,7 +85,7 @@ else
             }
             else
             {
-                <RadzenBreadCrumbItem Text="@Volume.Name" />
+                <RadzenBreadCrumbItem Text="@(Volume.Name ?? VolumeId)" />
             }
         </RadzenBreadCrumb>
         <br />
@@ -83,22 +96,23 @@ else
                         Name
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap" AlignItems="AlignItems.Center">
                             @if (Volume.ContainersList != null && Volume.ContainersList.Any() && Volume.ContainersList.First().Value.Name == "registry")
                             {
-                                <RadzenText TextStyle="TextStyle.Body2" class="mt-2">docker_registry</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">docker_registry (@Volume.Name)</RadzenText>
                             }
                             else
                             {
-                                <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@Volume.Name</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">@Volume.Name</RadzenText>
                             }
-                            <RadzenSplitButton Text="Remove" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="((args) => Remove(args?.Text))" Size="ButtonSize.Small" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))">
+                            <CopyClipboard Value="@Volume.Name"></CopyClipboard>
+                            <RadzenSplitButton Text="Remove" Icon="delete" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="((args) => Remove(args?.Text))" Size="ButtonSize.Small" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))">
                                 <ChildContent>
                                     <RadzenSplitButtonItem Text="Force Remove" Style="cursor: pointer;" />
                                 </ChildContent>
                             </RadzenSplitButton>
                         </RadzenStack>
-                        
+
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -141,35 +155,37 @@ else
         </RadzenTable>
     </div>
 
+    @if (Volume != null && Volume.Labels != null)
+    {
         <div class="dash-box dash-box-content">
             <div class="dash-box-header">
                 <div class="dash-box-icon"><span class="iconify" data-icon="mdi:tag"></span></div>
                 <RadzenText TextStyle="TextStyle.H6">Labels</RadzenText>
             </div>
             <br />
-            @if (Volume != null && Volume.Labels != null)
+
+            @foreach (KeyValuePair<string, string> i in Volume.Labels)
             {
-                    foreach (var i in Volume.Labels)
-                    {
-                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                @i.Value
-                            </RadzenText>
-                            <br />
-                    }
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body2">
+                    @i.Value
+                </RadzenText>
+                <br />
             }
+
         </div>
+    }
 
     @if (Volume != null && Volume.Status != null)
     {
-    <div class="dash-box dash-box-content">
-        <div class="dash-box-header">
+        <div class="dash-box dash-box-content">
+            <div class="dash-box-header">
                 <div class="dash-box-icon"><span class="iconify" data-icon="mdi:view-list"></span></div>
-            <RadzenText TextStyle="TextStyle.H6">Status</RadzenText>
-        </div>
-        <br />
-        
-            @foreach (var i in Volume.Status)
+                <RadzenText TextStyle="TextStyle.H6">Status</RadzenText>
+            </div>
+            <br />
+
+            @foreach (KeyValuePair<string, object> i in Volume.Status)
             {
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
@@ -177,8 +193,8 @@ else
                 </RadzenText>
                 <br />
             }
-        
-    </div>
+
+        </div>
     }
 
     @if (Volume != null && Volume.Options != null)
@@ -190,7 +206,7 @@ else
             </div>
             <br />
 
-            @foreach (var i in Volume.Options)
+            @foreach (KeyValuePair<string, string> i in Volume.Options)
             {
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                 <RadzenText TextStyle="TextStyle.Body2">
@@ -208,10 +224,10 @@ else
             <RadzenText TextStyle="TextStyle.H6">Containers</RadzenText>
         </div>
         <br />
-        <RadzenDataGrid Data="@Volume.ContainersList"
+        <RadzenDataGrid Data="@Volume?.ContainersList"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-                        ShowPagingSummary="true"
-                        PagingSummaryFormat="@(Volume.ContainersCount + " " + (Volume.ContainersCount != 1 ? "containers" : "container"))" Density="Density.Default"
+                        ShowPagingSummary="true" EmptyText="No containers."
+                        PagingSummaryFormat="@(Volume?.ContainersCount + " " + (Volume?.ContainersCount != 1 ? "containers" : "container"))" Density="Density.Default"
                         AllowSorting="false" AllowFiltering="false">
             <Columns>
                 <RadzenDataGridColumn Title="Name" Width="200px">
@@ -264,9 +280,15 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
             return;
 
+        if (Program.IsPreviewMode && VolumeId != "3d725f9fc66894e63b81e8a2843f1cab06283d78ca0b92246240b291e7184258")
+        {
+            Failed = true;
+            return;
+        }
+
         try
         {
-            var Result = await Server.RunJsonAsync<DockerVolumeInfo>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: ControlVolumeType.View));
+            SocketResponse<DockerVolumeInfo?> Result = await Server.RunJsonAsync<DockerVolumeInfo>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: ControlVolumeType.View));
             Failed = !Result.IsSuccess;
             Volume = Result.Data;
 
@@ -291,17 +313,21 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
             return;
 
-        bool Confirm = await Dialogs.ShowConfirmAsync(option + " Volume", $"Are you sure you want to {option.ToLower()} this volume?", "Yes", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
-                return;
+        bool Confirm = await Dialogs.ShowConfirmAsync(option + " Volume: " + Volume?.Name,
+            Volume.ContainersCount != 0 ? "This volume is being used by containers, are you sure you want to remove?" :
+            "This volume is unused, are you sure you want to remove?", "Confirm", ButtonStyle.Success);
 
-            IsActionLoading = true;
+        if (!Confirm)
+            return;
 
-            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: option == "Force Remove" ? ControlVolumeType.ForceRemove : ControlVolumeType.Remove));
-            if (Result.IsSuccess)
-                Volume = null;
-        }
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
+            return;
+
+        IsActionLoading = true;
+
+        SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: option == "Force Remove" ? ControlVolumeType.ForceRemove : ControlVolumeType.Remove));
+        if (Result.IsSuccess)
+            Volume = null;
+
     }
 }

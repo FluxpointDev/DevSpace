@@ -1,18 +1,17 @@
-﻿@using BlazorMonaco.Editor
-@using DevSpaceShared.Data
+﻿@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
 @using Docker.DotNet.Models
 @using System.Linq.Dynamic.Core
 @using Newtonsoft.Json.Linq
 @using static DevSpaceWeb.Components.Pages.Server.DockerTools.ServerDockerContainers
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject ContextMenuService ContextMenuService
 @inject TooltipService tooltipService
 @inject NavigationManager Nav
 @inject NotificationService Notifications
 
-<PageTitle>Docker Stacks Build | @_Data.Config.Instance.Name</PageTitle>
+<PageTitle>Docker Build Stack | @_Data.Config.Instance.Name</PageTitle>
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -38,19 +37,17 @@
     else
     {
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Name</RadzenText>
-        <RadzenTextBox @bind-Value="@StackName" Style="width: 100%" aria-label="Email TextBox" AutoCompleteType="AutoCompleteType.Off" autofocus
-                autocapitalize="none" MaxLength="100" />
-
-                        <RadzenText TextStyle="TextStyle.Body2">
-                    Stack name need to be all lowercase, 2-255 characters and optionally include special characters such as <code>.</code> <code>-</code> <code>_</code>
-                </RadzenText>
-            <br />
-            <br />
-            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Editor</RadzenText>
-            <StandaloneCodeEditor @ref="_editor" Id="my-editor-instance-id" ConstructionOptions="EditorConstructionOptions" OnDidInit="@LoadEditor" />
-            <br />
+        <RadzenTextBox @bind-Value="@StackName" Style="width: 100%" aria-label="Email TextBox" AutoCompleteType="AutoCompleteType.Off" autofocus autocapitalize="none" MaxLength="100" />
+        <RadzenText TextStyle="TextStyle.Body2">
+            Stack name need to be all lowercase, 2-255 characters and optionally include special characters such as <code>.</code> <code>-</code> <code>_</code>
+        </RadzenText>
+        <br />
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Editor</RadzenText>
+        <Editor @ref="@_editor" Value="@("")" FileName="compose.yml" Language="yaml" HideDiff="true"></Editor>
+        <br />
         <RadzenButton Text="Build Stack" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@BuildStack" Disabled="@(IsBuilding || Success || StartFailed)" />
-            <br />
+        <br />
         if (Success)
         {
             <div><span class="iconify" data-icon="mdi:docker" style="color: var(--rz-success);"></span></div>
@@ -72,7 +69,7 @@
             <h6>Start Failed</h6>
             <p>One or more of your containers failed to start.</p>
             <br />
-            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId)"><RadzenButton Text="View Stack" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
         }
         else if (IsBuilding)
         {
@@ -112,29 +109,9 @@
     public ServerData? Server => Session.Selected.Server;
 
     public string? StackName { get; set; }
-    private StandaloneCodeEditor _editor = null;
-
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "yaml",
-            Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
-            Folding = false,
-            Value = ""
-        };
-    }
-
-    public async Task LoadEditor()
-    {
-        var Model = await _editor.GetModel();
-        await Model.SetValue("");
-    }
+    private Editor _editor = null!;
 
     public bool IsBuilding { get; set; }
-    public bool IsReady { get; set; }
     public bool BuildFailed { get; set; }
     public bool StartFailed { get; set; }
     public bool Success { get; set; }
@@ -144,6 +121,12 @@
     {
         if (Member == null || Server == null)
             return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))
             return;
@@ -159,7 +142,7 @@
             return;
         }
 
-        var Data = await _editor.GetValue();
+        string Data = await _editor.GetValue();
         if (string.IsNullOrEmpty(Data))
         {
             Notifications.Notify(NotificationSeverity.Error, "Compose Error", "Compose content is empty.");
@@ -167,7 +150,7 @@
         }
         IsBuilding = true;
 
-        var res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
+        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
         {
             Data = JObject.FromObject(new CreateStackEvent
             {
@@ -178,16 +161,21 @@
             })
         }, async (res) =>
         {
-            IsReady = true;
-            StateHasChanged();
-            StackId = res.Data.Id;
-            var Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
-            if (Res.IsSuccess)
-                Success = true;
-            else
+            if (res.Data == null)
             {
-                StartFailed = true;
+                BuildFailed = true;
+                IsBuilding = false;
+                return;
             }
+
+            StateHasChanged();
+            StackId = res.Data?.Id;
+            SocketResponse<object?> Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
+            if (!Res.IsSuccess)
+                StartFailed = true;
+            else
+                Success = true;
+
             StateHasChanged();
         });
         if (!res.IsSuccess)

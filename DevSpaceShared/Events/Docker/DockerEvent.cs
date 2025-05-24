@@ -55,29 +55,83 @@ public enum DockerEventType
 }
 public enum ControlContainerType
 {
-    View, Inspect, Update, Kill, Start, Stop, Pause, UnPause, Restart, Remove, ForceRemove, Changes, Logs, Processes, Rename, Scan, ScanReport, Stats, Recreate
+    View,
+    Inspect,
+    Update,
+    Kill,
+    Start,
+    Stop,
+    Pause,
+    UnPause,
+    Restart,
+    Remove,
+    ForceRemove,
+    Changes,
+    Logs,
+    Processes,
+    Rename,
+    Scan,
+    ScanReport,
+    Stats,
+    Recreate
 }
 public enum ControlPluginType
 {
-    View, Inspect, Enable, Disable, Remove, ForceRemove, InstallCheck, InstallFull, Update
+    View,
+    Inspect,
+    Enable,
+    Disable,
+    Remove,
+    ForceRemove,
+    InstallCheck,
+    InstallFull,
+    Update
 }
 public enum ControlImageType
 {
-    View, Inspect, Layers, Export, Remove, ForceRemove
+    View,
+    Inspect,
+    Layers,
+    Export,
+    Remove,
+    ForceRemove
 }
 public enum ControlStackType
 {
-    View, Inspect, Start, Stop, Remove, Restart, Pause, Resume, ReCreate, ComposeInfo, ImportPortainer
+    View,
+    Inspect,
+    Start,
+    Stop,
+    Remove,
+    Restart,
+    Pause,
+    Resume,
+    ReCreate,
+    ComposeInfo,
+    ImportPortainer
 }
 public enum ControlNetworkType
 {
-    View, Inspect, Remove, LeaveNetwork
+    View,
+    Inspect,
+    Remove,
+    LeaveNetwork,
+    JoinNetwork
 }
 public enum ControlVolumeType
 {
-    View, Inspect, Remove, ForceRemove
+    View,
+    Inspect,
+    Remove,
+    ForceRemove
 }
 public enum ControlCustomTemplateType
 {
-    ViewInfo, ViewFull, Inspect, ComposeInfo, EditInfo, EditCompose, Delete
+    ViewInfo,
+    ViewFull,
+    Inspect,
+    ComposeInfo,
+    EditInfo,
+    EditCompose,
+    Delete
 }

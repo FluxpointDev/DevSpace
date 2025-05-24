@@ -38,9 +38,8 @@ public class PartialUserData
 
     public Guid? ResourceId { get; set; }
     public ObjectId? ManagedAccountTeamId { get; set; }
-
     public bool HasNotifications { get; set; }
-    public List<SessionTask> Tasks { get; set; } = new List<SessionTask>();
+    public bool Has2FA { get; set; }
 
     public void Update(AuthUser user)
     {
@@ -52,6 +51,7 @@ public class PartialUserData
         ResourceId = user.ResourceId;
         ManagedAccountTeamId = user.Account.ManagedAccountTeamId;
         HasNotifications = user.Account.HasNotifications;
+        Has2FA = user.Mfa.HasAny2FA();
     }
 
     public event NotificationEventHandler NotificationTriggered;

@@ -19,8 +19,8 @@ public class TeamRoleData
     public ObjectId TeamId { get; set; }
     public string? Name { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-
     public string? Description { get; set; }
+    public string? Color { get; set; }
 
     [Obsolete]
     [BsonIgnoreIfNull]
@@ -40,9 +40,9 @@ public class TeamRoleData
         return 0;
     }
 
-    public bool CanManage(TeamMemberData currentMember)
+    public bool CanManage(TeamMemberData? currentMember)
     {
-        if (TeamId != currentMember.TeamId)
+        if (currentMember == null || TeamId != currentMember.TeamId)
             return false;
 
         if (Team != null && Team.OwnerId == currentMember.UserId)

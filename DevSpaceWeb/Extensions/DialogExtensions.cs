@@ -28,7 +28,7 @@ public static class DialogExtensions
     {
         DialogOptions options = new DialogOptions() { AutoFocusFirstElement = true };
 
-        dynamic dialog = await service.OpenAsync<DynamicFormDialog<Model>>(title, new Dictionary<string, object>()
+        dynamic dialog = await service.OpenAsync<DynamicFormDialog<Model>>(title, new Dictionary<string, object?>()
         {
             { "ModelData", model },
             { "OnSubmit", function },
@@ -68,11 +68,17 @@ public static class DialogExtensions
     public static Task ShowPermissionErrorAsync(this DialogService service, ConsolePermission flag)
         => InternalShowPermissionErrorAsync(service, flag);
 
+    public static Task ShowPermissionErrorAsync(this DialogService service, DockerPermission flag)
+        => InternalShowPermissionErrorAsync(service, flag);
+
+    public static Task ShowPermissionErrorAsync(this DialogService service, DockerContainerPermission flag)
+        => InternalShowPermissionErrorAsync(service, flag);
+
     private static async Task InternalShowPermissionErrorAsync(this DialogService service, Enum flag)
     {
         DialogOptions options = new DialogOptions() { };
 
-        dynamic Dialog = await service.OpenAsync<ConfirmInfoDialog>("Permission Error", new Dictionary<string, object>()
+        await service.OpenAsync<ConfirmInfoDialog>("Permission Error", new Dictionary<string, object>()
         {
             { "ContentText", $"You do not have permission for {Utils.FriendlyName(flag.ToString())}" },
             { "ButtonText", "Ok" },

@@ -33,7 +33,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var User = await Session.GetCurrentUserAsync();
+        AuthUser? User = await Session.GetCurrentUserAsync();
         if (User != null)
             AccountUsername = User.UserName;
     }
@@ -59,7 +59,9 @@
             if (User == null)
                 return;
 
-            string Ip = Utils.GetUserIpAddress(Http.HttpContext);
+            string? Ip = Utils.GetUserIpAddress(Http.HttpContext);
+            if (string.IsNullOrEmpty(Ip))
+                return;
 
             string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
             if (!string.IsNullOrEmpty(SessionId))

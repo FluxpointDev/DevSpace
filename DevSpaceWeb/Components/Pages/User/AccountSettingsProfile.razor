@@ -1,13 +1,15 @@
-﻿@using DevSpaceWeb.Models.Account
+﻿@using DevSpaceWeb.Components.Dialogs.Users
+@using DevSpaceWeb.Models.Account
 @using System.Reflection
 @implements IDisposable
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject UserManager<AuthUser> UserManager
 @inject NavigationManager NavigationManager
 @inject EmailService Email
 @inject IJSRuntime JS
 
 <PageTitle>Account Profile | @_Data.Config.Instance.Name</PageTitle>
+
 <div class="settings-box">
     <h6>Profile</h6>
 
@@ -176,7 +178,7 @@
     public AuthUser? AuthUser { get; set; }
 
     private DateFormatLang _userDateFormat = DateFormatLang.Automatic;
-    public DateFormatLang UserDateFormat { get { return _userDateFormat; } set { _userDateFormat = value; Session.UserDateFormat = value; SaveUser(); } }
+    public DateFormatLang UserDateFormat { get { return _userDateFormat; } set { _userDateFormat = value; Session.UserDateFormat = value; _ = SaveUser(); } }
 
     public bool ShowEmailAddress { get; set; }
 
@@ -199,9 +201,9 @@
 
     public string GetDisplayName(Enum enumValue)
     {
-        var enumValueAsString = enumValue.ToString();
-        var val = enumValue.GetType().GetMember(enumValueAsString).FirstOrDefault();
-        var enumVal = val?.GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetDescription() ?? enumValueAsString;
+        string enumValueAsString = enumValue.ToString();
+        MemberInfo? val = enumValue.GetType().GetMember(enumValueAsString).FirstOrDefault();
+        string? enumVal = val?.GetCustomAttribute<System.ComponentModel.DataAnnotations.DisplayAttribute>()?.GetDescription() ?? enumValueAsString;
 
         return enumVal;
     }
@@ -226,19 +228,18 @@
 
     public async void SessionChangedEvent(ObjectId user, SessionEventType type)
     {
-        if (AuthUser.Id != user || type != SessionEventType.AccountUpdate)
+        if (AuthUser == null || AuthUser.Id != user || type != SessionEventType.AccountUpdate)
             return;
 
         AuthUser = await Session.GetCurrentUserAsync();
         _ = InvokeAsync(StateHasChanged);
-
     }
 
 
 
     public async Task EditAccountUsername()
     {
-        await DialogService.OpenAsync<EditAccountUsernameDialog>("Edit Username", options: new DialogOptions
+        await Dialogs.OpenAsync<EditAccountUsernameDialog>("Edit Username", options: new DialogOptions
         {
             AutoFocusFirstElement = true
         });
@@ -246,7 +247,7 @@
 
     public async Task EditAccountDisplayName()
     {
-        await DialogService.OpenAsync<EditAccountDisplayNameDialog>("Edit Display Name", options: new DialogOptions
+        await Dialogs.OpenAsync<EditAccountDisplayNameDialog>("Edit Display Name", options: new DialogOptions
         {
             AutoFocusFirstElement = true
         });
@@ -254,7 +255,7 @@
 
     public async Task EditAvatar()
     {
-        dynamic Dialog = await DialogService.OpenAsync<ChangeAccountAvatarDialog>("Change Avatar", options: new DialogOptions
+        dynamic Dialog = await Dialogs.OpenAsync<ChangeAccountAvatarDialog>("Change Avatar", options: new DialogOptions
         {
 
         });
@@ -269,41 +270,43 @@
 
     public async Task RemoveAvatar()
     {
-        bool Confirm = await DialogService.ShowConfirmAsync("Remove Avatar", "Are you sure you want to remove your avatar?", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Avatar", "Are you sure you want to remove your avatar?", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        if (!AuthUser.HasAvatar)
+            return;
+
+        Guid? CurrentAvatar = AuthUser.AvatarId.GetValueOrDefault();
+
+        AuthUser.AvatarId = null;
+
+        IdentityResult Result = await UserManager.UpdateAsync(AuthUser);
+        if (Result.Succeeded)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            if (!AuthUser.HasAvatar)
-                return;
-
-            Guid? CurrentAvatar = AuthUser.AvatarId.GetValueOrDefault();
-
-            AuthUser.AvatarId = null;
-
-            var Result = await UserManager.UpdateAsync(AuthUser);
-            if (Result.Succeeded)
+            try
             {
-                try
-                {
-                    File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("webp"));
-                }
-                catch { }
-
-                try
-                {
-                    File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("png"));
-                }
-                catch { }
-
-                Session.CurrentUser.AvatarId = null;
-
-                AuthUser.UpdatePartial();
-                Session.TriggerChange();
+                File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("webp"));
             }
+            catch { }
+
+            try
+            {
+                File.Delete(new FileResource("Avatar", AuthUser.ResourceId, CurrentAvatar).Path("png"));
+            }
+            catch { }
+
+            Session.CurrentUser!.AvatarId = null;
+
+            AuthUser.UpdatePartial();
+            Session.TriggerChange();
         }
+
     }
 
     public async Task ChangeEmail()
@@ -314,20 +317,20 @@
 
         if (!AuthUser.EmailConfirmed)
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't change your email because your current email is not verified.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't change your email because your current email is not verified.");
             return;
         }
         bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
         if (!TwoFactorValid)
         {
-            await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
             return;
         }
 
 
         DialogOptions options = new DialogOptions() { };
 
-        dynamic Dialog = await DialogService.OpenAsync<ChangeAccountEmailDialog>("Change Account Email", new Dictionary<string, object>(), options);
+        dynamic Dialog = await Dialogs.OpenAsync<ChangeAccountEmailDialog>("Change Account Email", new Dictionary<string, object>(), options);
 
         if (Dialog != null)
         {
@@ -337,24 +340,27 @@
                 if (AuthUser == null)
                     return;
 
-                await DialogService.ShowInfoAsync("Check your Emails", $"We have sent a confirmation link so you can change your account email address.");
+                await Dialogs.ShowInfoAsync("Check your Emails", $"We have sent a confirmation link so you can change your account email address.");
             }
         }
     }
 
     public async Task ChangePassword()
     {
+        if (AuthUser == null)
+            return;
+
         if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
 
-        await DialogService.OpenAsync<ChangeAccountPasswordDialog>("Change Account Password", new Dictionary<string, object>(), new DialogOptions { });
+        await Dialogs.OpenAsync<ChangeAccountPasswordDialog>("Change Account Password", new Dictionary<string, object>(), new DialogOptions { });
 
     }
 
@@ -366,16 +372,16 @@
 
         if (AuthUser.IsInstanceAdmin)
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't disable your instance admin account.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't disable your instance admin account.");
             return;
         }
         if (!AuthUser.EmailConfirmed)
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't disable your account because your email is not verified.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't disable your account because your email is not verified.");
             return;
         }
 
-        bool Result = await DialogService.ShowConfirmAsync("Disable Account", "Are you sure you want to disable your account?", "Confirm Disable", ButtonStyle.Warning);
+        bool Result = await Dialogs.ShowConfirmAsync("Disable Account", "Are you sure you want to disable your account?", "Confirm Disable", ButtonStyle.Warning);
         if (Result)
         {
             AuthUser = await Session.GetCurrentUserAsync();
@@ -385,7 +391,7 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
 
@@ -417,16 +423,16 @@
 
         if (AuthUser.IsInstanceAdmin)
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't delete your instance admin account.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't delete your instance admin account.");
             return;
         }
         if (_DB.Teams.Cache.Values.Any(x => x.OwnerId == AuthUser.Id))
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't delete your account with owned teams.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't delete your account with owned teams.");
             return;
         }
 
-        bool Result = await DialogService.ShowConfirmAsync("Delete Account", "Are you sure you want to delete your account?", "Confirm Delete", ButtonStyle.Warning);
+        bool Result = await Dialogs.ShowConfirmAsync("Delete Account", "Are you sure you want to delete your account?", "Confirm Delete", ButtonStyle.Warning);
         if (Result)
         {
             AuthUser = await Session.GetCurrentUserAsync();
@@ -438,7 +444,7 @@
                 bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
                 if (!TwoFactorValid)
                 {
-                    await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                    await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                     return;
                 }
             }
@@ -467,7 +473,7 @@
     {
         if (Program.IsPreviewMode)
         {
-            await DialogService.ShowDynamicFormAsync<AccountBackgroundModel>("Change Background", new AccountBackgroundModel() { BackgroundUrl = Session.BackgroundUrl }, (AccountBackgroundModel data) =>
+            await Dialogs.ShowDynamicFormAsync<AccountBackgroundModel>("Change Background", new AccountBackgroundModel() { BackgroundUrl = Session.BackgroundUrl }, (AccountBackgroundModel data) =>
             {
                 Session.BackgroundUrl = data.BackgroundUrl;
                 Session.TriggerChange();
@@ -476,37 +482,38 @@
         }
         else
         {
-            await DialogService.OpenAsync<ChangeAccountBackgroundDialog>("Change Background");
+            await Dialogs.OpenAsync<ChangeAccountBackgroundDialog>("Change Background");
         }
     }
 
     public async Task RemoveBackground()
     {
-        bool Confirm = await DialogService.ShowConfirmAsync("Remove Background", "Are you sure you want to remove your background?", "Confirm", ButtonStyle.Success);
-        if (Confirm)
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Background", "Are you sure you want to remove your background?", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        if (!AuthUser.BackgroundId.HasValue)
+            return;
+
+        Guid? CurrentBackground = AuthUser.BackgroundId.GetValueOrDefault();
+
+        AuthUser.BackgroundId = null;
+
+        IdentityResult Result = await UserManager.UpdateAsync(AuthUser);
+        if (Result.Succeeded)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            if (!AuthUser.BackgroundId.HasValue)
-                return;
-
-            Guid? CurrentBackground = AuthUser.BackgroundId.GetValueOrDefault();
-
-            AuthUser.BackgroundId = null;
-
-            var Result = await UserManager.UpdateAsync(AuthUser);
-            if (Result.Succeeded)
+            try
             {
-                try
-                {
-                    File.Delete(new FileResource("Background", AuthUser.ResourceId, CurrentBackground).Path("webp"));
-                }
-                catch{ }
-                Session.BackgroundUrl = "https://cdn.fluxpoint.dev/devspace/background.webp";
-                Session.TriggerChange();
+                File.Delete(new FileResource("Background", AuthUser.ResourceId, CurrentBackground).Path("webp"));
             }
+            catch { }
+            Session.BackgroundUrl = Static.DefaultBackgroundUrl;
+            Session.TriggerChange();
         }
     }
 }

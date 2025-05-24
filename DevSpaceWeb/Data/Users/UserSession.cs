@@ -6,7 +6,7 @@ public class UserSession
     public SessionBrowserType BrowserType { get; private set; }
     public string? Country { get; private set; }
     public string? Name;
-    public HashSet<string> AuthorizedIps { get; private set; } = new HashSet<string>();
+    public HashSet<string> AuthorizedIps { get; private set; } = [];
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
     public DateTime? LastLoginAt;
 

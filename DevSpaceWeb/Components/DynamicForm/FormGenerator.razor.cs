@@ -13,7 +13,7 @@ public class FormGeneratorComponent : OwningComponentBase
 
     protected override void OnParametersSet()
     {
-        if (FormItems == null)
+        if (FormItems == null && DataContext != null)
             FormItems = DataContext.GetType().GetProperties().Select(x => new DynamicFormItem(DataContext, x));
     }
 

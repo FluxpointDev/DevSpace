@@ -6,11 +6,12 @@
 @using Newtonsoft.Json.Linq
 @using System.Text
 @inject NotificationService Notifications
-@inject DialogService Dialog
+@inject DialogService Dialogs
 @inject NavigationManager Nav
 
 @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
 {
+    <PageTitle>Container Info | @_Data.Config.Instance.Name</PageTitle>
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -30,6 +31,8 @@
 }
 else if (Container == null)
 {
+    <PageTitle>Container Info | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -56,6 +59,8 @@ else if (Container == null)
 }
 else
 {
+    <PageTitle>@Container.Name.Substring(1) Container | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -73,20 +78,16 @@ else
             <RadzenBreadCrumbItem Text="@Container.Name.Substring(1)" />
         </RadzenBreadCrumb>
         <br />
-        <RadzenStack Gap="2px;" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-        <div class="action-bar">
-            <RadzenStack Gap="2px;" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-                <RadzenButton Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: var(--rz-button-border-radius) 0 0 var(--rz-button-border-radius) !important;" />
-                <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(Container.State.Paused || !Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Paused || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!CanManageContainer || IsActionLoading)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Style="border-radius: 0 var(--rz-button-border-radius) var(--rz-button-border-radius) 0 !important; margin-right: 4px !important;" />
-            </RadzenStack>
-            </div>
+        <ActionBar>
+            <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(Container.State.Paused || !Container.State.Running || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!Container.State.Paused || IsActionLoading || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!CanManageContainer || IsActionLoading)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
             <RadzenButton Variant="Variant.Filled" Text="Recreate" Icon="autorenew" ButtonStyle="ButtonStyle.Light" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RecreateContainer" Disabled="@(IsActionLoading || Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))" />
-        </RadzenStack>
+        </ActionBar>
     </div>
 
     <div class="dash-box dash-box-content">
@@ -101,9 +102,9 @@ else
                         Name
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
-                            <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@Container.Name.Substring(1)</RadzenText>
-                            <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@UpdateName" Disabled="@(IsActionLoading || !CanManageContainer)" />
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap" AlignItems="AlignItems.Center">
+                            @Container.Name.Substring(1)
+                            <RadzenButton Text="Edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@UpdateName" Disabled="@(IsActionLoading || !CanManageContainer)" />
                         </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
@@ -114,6 +115,19 @@ else
                     </RadzenTableCell>
                     <RadzenTableCell>
                         @Container.ID
+                        <CopyClipboard Value="@Container.ID"></CopyClipboard>
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Description
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @if (Container.Config.Labels != null && Container.Config.Labels.TryGetValue("org.opencontainers.image.description", out string? desc))
+                        {
+                            @desc
+                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -122,30 +136,51 @@ else
                         Status
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @switch (Container.State.Status)
-                        {
-                            case "running":
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Running" IsPill="true" />
-                                break;
-                            case "created":
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Created" IsPill="true" />
-                                break;
-                            case "restarting":
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Restarting" IsPill="true" />
-                                break;
-                            case "removing":
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Removing" IsPill="true" />
-                                break;
-                            case "paused":
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Paused" IsPill="true" />
-                                break;
-                            case "exited":
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Exited" IsPill="true" />
-                                break;
-                            case "dead":
-                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" />
-                                break;
-                        }
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
+                            @switch (Container.State.Status)
+                            {
+                                case "running":
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Running" IsPill="true" />
+                                    break;
+                                case "created":
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Created" IsPill="true" />
+                                    break;
+                                case "restarting":
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Restarting" IsPill="true" />
+                                    break;
+                                case "removing":
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Secondary" Text="Removing" IsPill="true" />
+                                    break;
+                                case "paused":
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Paused" IsPill="true" />
+                                    break;
+                                case "exited":
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Exited" IsPill="true" />
+                                    break;
+                                case "dead":
+                                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" />
+                                    break;
+                            }
+                            @if (CanViewContainerDetails)
+                            {
+                                if (Container.HostConfig.OomKillDisable.GetValueOrDefault())
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="OOM Disabled" IsPill="true" />
+                                }
+                                if (Container.HostConfig.Privileged)
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Privileged" IsPill="true" />
+                                }
+                                if (Container.HostConfig.ReadonlyRootfs)
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Read-Only" IsPill="true" />
+                                }
+                                if (Container.Config.NetworkDisabled)
+                                {
+                                    <RadzenBadge BadgeStyle="BadgeStyle.Base" Text="Network Disabled" IsPill="true" />
+                                }
+                            }
+                        </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -193,7 +228,7 @@ else
                         <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/logs")"><RadzenButton Icon="description" Variant="Variant.Text" Text="Logs" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewLogs)" /></a>
                         <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/stats")"><RadzenButton Icon="bar_chart_4_bars" Variant="Variant.Text" Text="Stats" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewStats)" /></a>
                         <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/changes")"><RadzenButton Icon="topic" Variant="Variant.Text" Text="Changes" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewChanges)" /></a>
-                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/console")"><RadzenButton Icon="terminal" Variant="Variant.Text" Text="Console" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanUseConsole)" /></a>
+                        @* <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/console")"><RadzenButton Icon="terminal" Variant="Variant.Text" Text="Console" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanUseConsole)" /></a> *@
                         <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/inspect")"><RadzenButton Icon="info" Variant="Variant.Text" Text="Inspect" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanInspect)" /></a>
                     </RadzenStack>
                 </RadzenTableRow>
@@ -214,7 +249,10 @@ else
                         Started
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @ParseDate(Container.State.StartedAt)
+                        @if (!string.IsNullOrEmpty(Container.State.StartedAt))
+                        {
+                            @ParseDate(Container.State.StartedAt)
+                        }
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -223,7 +261,7 @@ else
                         Stopped
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @if (Container.State.FinishedAt != "01/01/0001 00:00:00")
+                        @if (!string.IsNullOrEmpty(Container.State.FinishedAt) && Container.State.StartedAt != Container.State.FinishedAt)
                         {
                             @ParseDate(Container.State.FinishedAt)
                         }
@@ -235,33 +273,7 @@ else
                         Error
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @if (!Container.State.Running)
-                        {
-                            @if (Container.State.OOMKilled)
-                            {
-                                @("Out of memory")
-                            }
-                            else if (Container.State.Paused)
-                            {
-                                @("Container paused")
-                            }
-                            else if (Container.State.ExitCode == 0)
-                            {
-                                @("Process finished")
-                            }
-                            else if (Container.State.ExitCode == 137)
-                            {
-                                @("Container stopped")
-                            }
-                            else if (string.IsNullOrEmpty(Container.State.Error))
-                            {
-                                @("Code " + Container.State.ExitCode)
-                            }
-                            else
-                            {
-                                @($"Code {Container.State.ExitCode} - {Container.State.Error}")
-                            }
-                        }
+                        @Container.GetExitMessage()
                     </RadzenTableCell>
                 </RadzenTableRow>
                 <RadzenTableRow>
@@ -271,7 +283,7 @@ else
                     <RadzenTableCell>
                         @if (Container.State.Health == null || Container.State.Health.Status == "none")
                         {
-                            @("No health check setup")
+                            @("No health check")
                         }
                         else
                         {
@@ -395,7 +407,7 @@ else
                                         Network
                                     </RadzenTableCell>
                                     <RadzenTableCell>
-                                        @Container.HostConfig.NetworkMode
+                                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + Container.HostConfig.NetworkMode)">@Container.HostConfig.NetworkMode</RadzenLink>
                                     </RadzenTableCell>
                                 </RadzenTableRow>
 
@@ -404,9 +416,9 @@ else
                                         Ports
                                     </RadzenTableCell>
                                     <RadzenTableCell>
-                                        @foreach (var p in Container.HostConfig.PortBindings)
+                                        @foreach (KeyValuePair<string, IList<PortBinding>> p in Container.HostConfig.PortBindings)
                                         {
-                                            foreach (var i in p.Value)
+                                            foreach (PortBinding i in p.Value)
                                             {
                                                 if (string.IsNullOrEmpty(i.HostIP))
                                                 {
@@ -444,7 +456,7 @@ else
                     else if (Container.Config.Labels != null)
                     {
                         <div class="dash-box-content">
-                            @foreach (var i in Container.Config.Labels)
+                            @foreach (KeyValuePair<string, string> i in Container.Config.Labels)
                             {
                                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body2">
@@ -455,7 +467,7 @@ else
                         </div>
                     }
                 </RadzenTabsItem>
-
+                 
                 <RadzenTabsItem Text="Environment">
                     @if (!CanViewContainerEnvironment)
                     {
@@ -467,7 +479,7 @@ else
                     {
                         <div class="dash-box-content">
 
-                            @foreach (var i in ParseEnvironment(Container.Config.Env))
+                            @foreach (KeyValuePair<string, string> i in Container.Config.Env.ParseEnvironment())
                             {
                                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body2">
@@ -500,7 +512,7 @@ else
                                 }
                                 else
                                 {
-                                    <div class="security-bar-ok"><span class="iconify" data-icon="mdi:security"></span></div>                                    
+                                    <div class="security-bar-ok"><span class="iconify" data-icon="mdi:security"></span></div>
                                 }
                                 <div>
                                     <h6>Security Report</h6>
@@ -552,120 +564,123 @@ else
                             {
                                 <RadzenStack Style="width: 100%; max-width: 200px; max-height: 200px;" class="ml-4">
                                     <RadzenChart>
-                                    <RadzenPieSeries Data="@SecurityCounts" CategoryProperty="Severity" ValueProperty="Count" TItem="SecurityResultsCount">
-                                        <RadzenSeriesDataLabels Visible="true" />
-                                    </RadzenPieSeries>
-                                </RadzenChart>
+                                        <RadzenPieSeries Data="@SecurityCounts" CategoryProperty="Severity" ValueProperty="Count" TItem="SecurityResultsCount">
+                                            <RadzenSeriesDataLabels Visible="true" />
+                                        </RadzenPieSeries>
+                                    </RadzenChart>
                                 </RadzenStack>
                             }
                         </RadzenColumn>
                     </RadzenRow>
                     @if (SecurityHasIssues)
                     {
-                    <RadzenRow class="security-details">
-                        <RadzenColumn SizeMD="6" SizeSM="12">
+                        <RadzenRow class="security-details">
+                            <RadzenColumn SizeMD="6" SizeSM="12">
                                 <RadzenText TextStyle="TextStyle.Subtitle1" class="ml-2">
                                     Files
                                 </RadzenText>
-                                <RadzenDataGrid AllowFiltering="false" Density="Density.Compact" AllowPaging="true" PageSize="10" AllowSorting="false" Data="@SecurityResults" @bind-Value="@SelectedOrders" TItem="SecurityResult">
+                                <RadzenDataGrid AllowFiltering="false" Density="Density.Compact" AllowPaging="true"
+                                PageSize="10" AllowSorting="false" Data="@SecurityResults" @bind-Value="@SelectedOrders"
+                                TItem="SecurityResult" EmptyText="No results.">
                                     <Columns>
-                                    <RadzenDataGridColumn Title="Severity" Width="70px">
-                                        <Template>
-                                            @context.CurrentSeverity
-                                        </Template>
-                                    </RadzenDataGridColumn>
-                                    <RadzenDataGridColumn Title="Type" Width="100px">
-                                        <Template>
-                                            @context.Type
-                                        </Template>
-                                    </RadzenDataGridColumn>
-                                    <RadzenDataGridColumn Title="Target">
-                                        <Template>
-                                            @context.Target
-                                        </Template>
-                                    </RadzenDataGridColumn>
-                                </Columns>
-                            </RadzenDataGrid>
-                        </RadzenColumn>
-                        <RadzenColumn SizeMD="6" SizeSM="12">
-                            <RadzenText TextStyle="TextStyle.Subtitle1" class="ml-2">
-                                Vulnerabilities
-                            </RadzenText>
-                            <RadzenDataGrid AllowFiltering="false" Density="Density.Compact" AllowPaging="true" PageSize="10" AllowSorting="false" Data="@Vulnerabilities">
-                                <Template>
-                                    <div class="security-vulnerability">
-                                        @if (context.DataSource != null)
+                                        <RadzenDataGridColumn Title="Severity" Width="70px">
+                                            <Template>
+                                                @context.CurrentSeverity
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn Title="Type" Width="100px">
+                                            <Template>
+                                                @context.Type
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn Title="Target">
+                                            <Template>
+                                                @context.Target
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </RadzenColumn>
+                            <RadzenColumn SizeMD="6" SizeSM="12">
+                                <RadzenText TextStyle="TextStyle.Subtitle1" class="ml-2">
+                                    Vulnerabilities
+                                </RadzenText>
+                                <RadzenDataGrid AllowFiltering="false" Density="Density.Compact" AllowPaging="true" PageSize="10"
+                                AllowSorting="false" Data="@Vulnerabilities" EmptyText="No results.">
+                                    <Template>
+                                        <div class="security-vulnerability">
+                                            @if (context.DataSource != null)
                                             {
 
                                                 <a href="@context.DataSource.GetUrl(context)" target="_blank"><RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark">Source</RadzenButton></a>
                                             }
                                             <RadzenText TextStyle="TextStyle.Subtitle2" class="ml-2">
-                                            @context.VulnerabilityID
-                                        </RadzenText>
-                                        @if (context.DataSource != null)
-                                        {
-                                            <RadzenText TextStyle="TextStyle.Subtitle2" class="ml-2" Style="color: var(--rz-text-tertiary-color);">
-                                            @context.DataSource.Name
+                                                @context.VulnerabilityID
+                                            </RadzenText>
+                                            @if (context.DataSource != null)
+                                            {
+                                                <RadzenText TextStyle="TextStyle.Subtitle2" class="ml-2" Style="color: var(--rz-text-tertiary-color);">
+                                                    @context.DataSource.Name
                                                 </RadzenText>
                                             }
                                             else
                                             {
-                                                    <RadzenText TextStyle="TextStyle.Subtitle2" class="ml-2" Style="color: var(--rz-text-tertiary-color);">
-                                                        No Source
+                                                <RadzenText TextStyle="TextStyle.Subtitle2" class="ml-2" Style="color: var(--rz-text-tertiary-color);">
+                                                    No Source
+                                                </RadzenText>
+                                            }
+
+                                            <RadzenText TextStyle="TextStyle.Body2">
+                                                @context.Description
+                                            </RadzenText>
+                                            <RadzenStack Orientation="Orientation.Horizontal">
+                                                @if (context.Status == "fixed")
+                                                {
+                                                    <RadzenText TextStyle="TextStyle.Body2">
+                                                        @context.Status in @context.FixedVersion
                                                     </RadzenText>
-                                            }
+                                                }
+                                                else
+                                                {
+                                                    <RadzenText TextStyle="TextStyle.Body2">
+                                                        @context.Status
+                                                    </RadzenText>
+                                                }
 
-                                        <RadzenText TextStyle="TextStyle.Body2">
-                                            @context.Description
-                                        </RadzenText>
-                                        <RadzenStack Orientation="Orientation.Horizontal">
-                                            @if (context.Status == "fixed")
-                                            {
-                                                <RadzenText TextStyle="TextStyle.Body2">
-                                                    @context.Status in @context.FixedVersion
-                                                </RadzenText>
-                                            }
-                                            else
-                                            {
-                                                <RadzenText TextStyle="TextStyle.Body2">
-                                                    @context.Status
-                                                </RadzenText>
-                                            }
-
-                                            @if (context.PublishedDate.HasValue)
-                                            {
-                                                <RadzenText TextStyle="TextStyle.Body2">
-                                                    @Utils.GetLocalDate(Session, context.PublishedDate.Value)
-                                                </RadzenText>
-                                            }
-                                        </RadzenStack>
-                                    </div>
-                                </Template>
-                                <Columns>
-                                    <RadzenDataGridColumn Title="Severity" Width="70px">
-                                        <Template>
-                                            @context.Severity
-                                        </Template>
-                                    </RadzenDataGridColumn>
-                                    <RadzenDataGridColumn Title="Name">
-                                        <Template>
-                                            @context.PkgName
-                                        </Template>
-                                    </RadzenDataGridColumn>
-                                    <RadzenDataGridColumn Title="Version" Width="70px">
-                                        <Template>
-                                            @context.InstalledVersion
-                                        </Template>
-                                    </RadzenDataGridColumn>
-                                    <RadzenDataGridColumn Title="Info">
-                                        <Template>
-                                            @context.Title
-                                        </Template>
-                                    </RadzenDataGridColumn>
-                                </Columns>
-                            </RadzenDataGrid>
-                        </RadzenColumn>
-                    </RadzenRow>
+                                                @if (context.PublishedDate.HasValue)
+                                                {
+                                                    <RadzenText TextStyle="TextStyle.Body2">
+                                                        @Utils.GetLocalDate(Session, context.PublishedDate.Value)
+                                                    </RadzenText>
+                                                }
+                                            </RadzenStack>
+                                        </div>
+                                    </Template>
+                                    <Columns>
+                                        <RadzenDataGridColumn Title="Severity" Width="70px">
+                                            <Template>
+                                                @context.Severity
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn Title="Name">
+                                            <Template>
+                                                @context.PkgName
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn Title="Version" Width="70px">
+                                            <Template>
+                                                @context.InstalledVersion
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                        <RadzenDataGridColumn Title="Info">
+                                            <Template>
+                                                @context.Title
+                                            </Template>
+                                        </RadzenDataGridColumn>
+                                    </Columns>
+                                </RadzenDataGrid>
+                            </RadzenColumn>
+                        </RadzenRow>
                     }
                 </RadzenTabsItem>
             </Tabs>
@@ -688,7 +703,7 @@ else
         {
             <RadzenDataGrid AllowRowSelectOnRowClick="false" Data="@Container.Mounts" AllowPaging="true" PageSize="15"
                             PagerHorizontalAlign="HorizontalAlign.Center" GridLines="DataGridGridLines.Horizontal"
-                            AllowSorting="false"
+                            AllowSorting="false" EmptyText="No volumes."
                             AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
@@ -796,7 +811,7 @@ else
         <div class="dash-box-header">
             <div class="dash-box-icon"><span class="iconify" data-icon="mdi:local-area-network"></span></div>
             <RadzenText TextStyle="TextStyle.H6">Networks</RadzenText>
-            <RadzenButton Variant="Variant.Filled" Text="Join Network" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(IsActionLoading || (Container.NetworkSettings.Networks.Any() && Container.NetworkSettings.Networks.First().Key == "host") || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks))" />
+            <RadzenButton class="ml-2" Variant="Variant.Filled" Text="Join Network" Icon="add" Click="@JoinNetwork" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(IsActionLoading || (Container.NetworkSettings.Networks.Any() && Container.NetworkSettings.Networks.First().Key == "host") || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks) || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks))" />
         </div>
         <br />
         @if (!CanViewContainerNetworks)
@@ -809,15 +824,15 @@ else
         {
             <RadzenDataGrid AllowRowSelectOnRowClick="false" Data="@Container.NetworkSettings.Networks"
                             PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-                            AllowSorting="false"
+                            AllowSorting="false" EmptyText="No networks."
                             AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
                             FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                             LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
                 <Columns>
                     <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
                         <Template>
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + context.Value.NetworkID)">@context.Key</RadzenLink>
-                            @if (IsNetworkSystem(context.Key))
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + (string.IsNullOrEmpty(context.Value.NetworkID) ? context.Key : context.Value.NetworkID))">@context.Key</RadzenLink>
+                            @if (DockerExtensions.IsNetworkSystem(context.Key))
                             {
                                 <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
                             }
@@ -840,7 +855,7 @@ else
                     </RadzenDataGridColumn>
                     <RadzenDataGridColumn Title="Action">
                         <Template>
-                            <RadzenButton Click="@(() => LeaveNetwork(context.Value.NetworkID))" Text="Leave Network" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(context.Key == "host" || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks) || IsActionLoading)" />
+                            <RadzenButton Click="@(() => LeaveNetwork(string.IsNullOrEmpty(context.Value.NetworkID) ? context.Key : context.Value.NetworkID))" Text="Leave Network" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Size="ButtonSize.Small" Disabled="@(context.Key == "host" || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks) || IsActionLoading)" />
                         </Template>
                     </RadzenDataGridColumn>
                 </Columns>
@@ -850,18 +865,6 @@ else
 }
 
 <style>
-    .action-bar .rz-button:not(.rz-button.rz-info):not(.rz-button.rz-success):not(.rz-button.rz-warning) {
-        border-radius: 0px !important;
-        margin-right: -4px !important;
-        box-shadow: inset 0 0 0 var(--rz-border-width) rgb(150,150,150) !important;
-    }
-
-    .action-bar .rz-button-sm .rzi {
-        font-size: 1.15rem !important;
-        width: 1.15rem !important;
-        height: 1.15rem !important;
-    }
-
     .rz-series-item-0 {
         fill: #e94861 !important;
     }
@@ -944,17 +947,20 @@ else
     }
 
     .rz-progressbar {
-    width: 100%;
-}
-.security-bar-bad .iconify {
-    color: var(--rz-warning-dark) !important;
-}
-.security-bar-ok .iconify {
-    color: var(--rz-success) !important;
-}
-.rz-legend {
-    margin-right: -30px !important;
-}
+        width: 100%;
+    }
+
+    .security-bar-bad .iconify {
+        color: var(--rz-warning-dark) !important;
+    }
+
+    .security-bar-ok .iconify {
+        color: var(--rz-success) !important;
+    }
+
+    .rz-legend {
+        margin-right: -30px !important;
+    }
 
 </style>
 
@@ -967,7 +973,7 @@ else
     public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
-    public string ContainerId { get; set; }
+    public string? ContainerId { get; set; }
 
     public ContainerInspectResponse? Container { get; set; }
     public bool Failed { get; set; }
@@ -987,33 +993,6 @@ else
         return timestamp;
     }
 
-    public List<KeyValuePair<string, string?>> ParseEnvironment(IList<string> variables)
-    {
-        List<KeyValuePair<string, string?>> List = new List<KeyValuePair<string, string?>>();
-        foreach (var i in variables)
-        {
-            string[] Split = i.Split('=');
-            if (Split.Length == 1)
-                List.Add(new KeyValuePair<string, string?>(Split[0], null));
-            else
-                List.Add(new KeyValuePair<string, string?>(Split[0], Split[1]));
-        }
-        return List;
-    }
-
-    public bool IsNetworkSystem(string name)
-    {
-        switch (name)
-        {
-            case "host":
-            case "bridge":
-            case "none":
-                return true;
-        }
-
-        return false;
-    }
-
     public string SelectedRestartMode { get; set; } = "None";
 
     public long RestartCount { get; set; } = 0;
@@ -1028,18 +1007,18 @@ else
 
     public async Task UpdateName()
     {
-        if (Member == null || Server == null)
+        if (Member == null || Server == null || Container == null)
             return;
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
             return;
 
-        await Dialog.ShowDynamicFormAsync<ContainerRenameModel>("Rename Container", new ContainerRenameModel { Name = Container.Name.Substring(1) }, async (ContainerRenameModel data) =>
+        await Dialogs.ShowDynamicFormAsync<ContainerRenameModel>("Rename Container", new ContainerRenameModel { Name = Container.Name.Substring(1) }, async (ContainerRenameModel data) =>
         {
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
                 return "You do not have permission for Manage Containers";
 
-            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Rename)
+            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Rename)
             {
                 Data = JObject.FromObject(new CreateContainerEvent
                 {
@@ -1130,16 +1109,35 @@ else
 
     protected override async Task OnParametersSetAsync()
     {
+        LoadPerms();
         if (Member == null || Server == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainers))
             return;
 
-        LoadPerms();
+        if (Program.IsPreviewMode && ContainerId != "devspace-demo")
+        {
+            Failed = true;
+            return;
+        }
 
         try
         {
-            var Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
+            SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
             Failed = !Result.IsSuccess;
             Container = Result.Data;
+
+            if (Container != null && Program.IsPreviewMode && ContainerId == "devspace-demo")
+            {
+                Container.HostConfig.NetworkMode = "devspace_demo_network";
+                Container.NetworkSettings.Networks = new Dictionary<string, Docker.DotNet.Models.EndpointSettings>
+                {
+                    { "devspace_demo_network", new Docker.DotNet.Models.EndpointSettings
+                    {
+                        NetworkID = "d38254f7c4f952d6cc32c059e3aaf5993c304163880d179c14de81e60eecbb0c",
+                        IPAddress = "172.21.0.2/16",
+                        MacAddress = "02:42:ac:15:00:02"
+                    }}
+                };
+            }
 
             if (Result.IsSuccess && Container != null)
             {
@@ -1177,7 +1175,7 @@ else
             Session.ShowPreviewModeNotice();
             return;
         }
-        
+
         if (Member == null || Server == null)
             return;
 
@@ -1187,12 +1185,25 @@ else
         {
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
                 return;
+
+            bool Confirm = await Dialogs.ShowConfirmAsync("Remove Container: " + Container?.Name, Container!.State.Running ?
+            "This container is still running, are you sure you want to remove it?." :
+            "Are you sure you want to remove this container?", "Confirm", ButtonStyle.Success);
+
+            type = ControlContainerType.ForceRemove;
+
+            if (!Confirm)
+                return;
+
+            if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+                return;
         }
         else
         {
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ControlContainers))
                 return;
         }
+
         IsActionLoading = true;
         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, type), async (res) =>
         {
@@ -1242,17 +1253,17 @@ else
         SecurityScanRunning = true;
         try
         {
-            var Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Scan));
+            SocketResponse<CreateContainerResponse?> Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Scan));
             if (Result.IsSuccess && Result.Data != null)
             {
                 await Task.Delay(new TimeSpan(0, 0, 15));
-                var ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
+                SocketResponse<SecurityData?> ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
+                {
+                    Data = JObject.FromObject(new CreateContainerResponse
                     {
-                        Data = JObject.FromObject(new CreateContainerResponse
-                        {
-                            ID = Result.Data.ID
-                        })
-                    });
+                        ID = Result.Data.ID
+                    })
+                });
 
                 if (ScanResult.Data != null && ScanResult.Data.IsComplete.HasValue && !ScanResult.Data.IsComplete.Value)
                 {
@@ -1284,7 +1295,7 @@ else
                     if (lines.Any())
                     {
                         StringBuilder builder = new StringBuilder();
-                        foreach(var i in lines)
+                        foreach (string i in lines)
                         {
                             if (builder.Length != 0 || i.StartsWith("{"))
                                 builder.Append(i);
@@ -1329,12 +1340,12 @@ else
                                     if (SecurityResults.Any())
                                     {
                                         SecurityHasIssues = true;
-                                        foreach (var i in SecurityResults)
+                                        foreach (SecurityResult i in SecurityResults)
                                         {
-                                            if (i.Vulnerabilities != null)
+                                            if (i.Vulnerabilities == null)
                                                 continue;
 
-                                            foreach (var v in i.Vulnerabilities)
+                                            foreach (SecurityVulnerability v in i.Vulnerabilities)
                                             {
                                                 if (string.IsNullOrEmpty(i.CurrentSeverity))
                                                     i.CurrentSeverity = v.Severity;
@@ -1411,7 +1422,7 @@ else
         //SecurityReport
     }
 
-    private IList<SecurityResult>? _selected;
+    private IList<SecurityResult> _selected;
     IList<SecurityResult> SelectedOrders { get { return _selected; } set { if (value.Any()) { _selected = value; Vulnerabilities = _selected.First().Vulnerabilities; } else { _selected = null; Vulnerabilities = new SecurityVulnerability[0]; } } }
 
     SecurityVulnerability[] Vulnerabilities { get; set; } = new SecurityVulnerability[0];
@@ -1422,15 +1433,16 @@ else
 
     public async Task OpenContainerHealthLogs()
     {
-        if (Member == null || Server == null)
+        if (Member == null || Server == null || Container == null)
             return;
 
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerHealthLogs))
             return;
 
-        await Dialog.OpenAsync<ContainerHealthLogsDialog>("Container Health Logs", new Dictionary<string, object>()
+        await Dialogs.OpenAsync<ContainerHealthLogsDialog>("Container Health Logs", new Dictionary<string, object>()
         {
-            { "Json", Container.State.Health.Log.Last().Output }
+            { "Json", Container.State.Health.Log.Last().Output },
+            { "ContainerName", Container.Name.Substring(1) }
         }, new DialogOptions());
     }
 
@@ -1442,10 +1454,47 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))
             return;
 
-        var Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Recreate));
+        bool Confirm = await Dialogs.ShowConfirmAsync("Recreate Container", "You are about to recreate this container, volumes and networks which will reset any changes and files that are not using volumes.", "Confirm", ButtonStyle.Success);
+        
+        if (!Confirm)
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))
+            return;
+
+        SocketResponse<CreateContainerResponse?> Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Recreate));
         if (Result.IsSuccess && Result.Data != null)
         {
             Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + Result.Data.ID);
+        }
+    }
+
+    public async Task JoinNetwork()
+    {
+        if (Member == null || Server == null || Container == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
+        {
+            await Dialogs.ShowPermissionErrorAsync(DockerPermission.ViewNetworks);
+            return;
+        }
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainerNetworks))
+        {
+            await Dialogs.ShowPermissionErrorAsync(DockerContainerPermission.ManageContainerNetworks);
+            return;
+        }
+
+        dynamic Result = await Dialogs.OpenAsync<ContainerJoinNetworkDialog>("Container Join Network", new Dictionary<string, object>()
+        {
+            { "ContainerId", Container.ID }
+        }, new DialogOptions());
+
+        if (Result != null && (bool)Result)
+        {
+            await Task.Delay(new TimeSpan(0, 0, 1));
+            await InvokeAsync(OnParametersSetAsync);
         }
     }
 
@@ -1458,7 +1507,13 @@ else
             return;
 
         IsActionLoading = true;
-        await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.LeaveNetwork) { ResourceList = new string[] { ContainerId } }, (response) =>
+        await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.LeaveNetwork)
+        {
+            Data = JObject.FromObject(new DockerContainerInfo
+            {
+                Id = ContainerId
+            })
+        }, (response) =>
         {
 
         });

@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
+using LibMCRcon.RCon;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
@@ -9,9 +10,9 @@ public class ConsoleData : ITeamResource
 {
     public ConsoleData() : base(ResourceType.Console) { }
 
-    public string Ip { get; set; }
-    public short Port { get; set; }
-    public string EncryptedPassword { get; set; }
+    public required string Ip { get; set; }
+    public required short Port { get; set; }
+    public required string EncryptedPassword { get; set; }
     public ConsoleType Type { get; set; }
     public DateTime ConnectedAt { get; set; } = DateTime.UtcNow;
 
@@ -32,6 +33,27 @@ public class ConsoleData : ITeamResource
         return DecryptedPassword;
     }
 
+    public bool IsOnline()
+    {
+        switch (Type)
+        {
+            case ConsoleType.Battleye:
+                {
+                    if (_Data.BattleyeRcons.TryGetValue(Id, out DaRT.RCon? rcon) && rcon.BEResult == BattleNET.BattlEyeConnectionResult.Success)
+                        return true;
+                }
+                break;
+            case ConsoleType.Minecraft:
+                {
+                    if (_Data.MinecraftRcons.TryGetValue(Id, out TCPRconAsync? rcon) && rcon.IsConnected)
+                        return true;
+                }
+                break;
+        }
+
+        return false;
+    }
+
     public List<DaRT.Player> RconPlayers()
     {
         if (_Data.BattleyeRcons.TryGetValue(Id, out DaRT.RCon? rcon))
@@ -39,7 +61,7 @@ public class ConsoleData : ITeamResource
             return rcon.CachedPlayers;
         }
 
-        return new List<DaRT.Player>();
+        return [];
     }
 
     public RconStatusType RconStatus()
@@ -78,8 +100,7 @@ public class ConsoleData : ITeamResource
         if (Result.IsAcknowledged)
         {
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.ConsoleDeleted)
-                .SetTarget(Team)
-                .AddProperty("Name", Name));
+                .SetTarget(this));
 
             _DB.Consoles.Cache.TryRemove(Id, out _);
             switch (Type)
@@ -98,7 +119,7 @@ public class ConsoleData : ITeamResource
                         if (_Data.MinecraftRcons.TryGetValue(Id, out LibMCRcon.RCon.TCPRconAsync? rcon))
                         {
                             _Data.MinecraftRcons.Remove(Id);
-                            rcon.StopComms();
+                            await rcon.StopComms();
                         }
                     }
                     break;

@@ -4,7 +4,7 @@
 @using DevSpaceWeb.Models.Setup
 @using System.Net
 @using LibMCRcon.RCon
-@inject DialogService DialogService
+@inject DialogService Dialogs
 
 <PageTitle>My Consoles | @_Data.Config.Instance.Name</PageTitle>
 
@@ -17,18 +17,49 @@
         <RadzenText TextStyle="TextStyle.H6">Consoles</RadzenText>
     </div>
     <br />
-
-    <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Console" Click="@SetupConsole" Disabled="(Member == null || !Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))" />
+    <ActionBar>
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Console" Click="@SetupConsole" Disabled="(Member == null || !Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))" Size="ButtonSize.Small" />
+        <RadzenFormField Variant="Variant.Outlined">
+            <Start>
+                <RadzenIcon Icon="search" />
+            </Start>
+            <ChildContent>
+                <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                               autocapitalize="none" MaxLength="100" inputmode="search"
+                               @oninput="@(args => SetNameFilter(args.Value as string))" />
+            </ChildContent>
+            <End>
+                @if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                }
+            </End>
+        </RadzenFormField>
+    </ActionBar>
     <br />
-    <br />
-    @foreach (ConsoleData i in _DB.Consoles.Cache.Values.Where(x => Member != null && Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)).OrderBy(x => x.Name))
+    @foreach (ConsoleData i in _DB.Consoles.Cache.Values.Where(x => Member != null && Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole) && (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))).OrderBy(x => x.Name))
     {
         <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + i.GetVanityUrlOrId() + "/home")">
             <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
                 <div class="server-item-icon flex-none d-flex">
                     <span class="iconify" data-icon="mdi:console-line"></span>
                 </div>
-                <RadzenText TextStyle="TextStyle.H6" class="mt-5 ml-2">@i.Name</RadzenText>
+                <div>
+                    <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
+                        @i.Name
+                        @if (i.IsOnline())
+                        {
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Online" IsPill="true" class="ml-2" />
+                        }
+                        else
+                        {
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" class="ml-2" />
+                        }
+                    </RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
+                        <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@(i.Type == ConsoleType.Battleye ? "Battleye" : "Minecraft")</RadzenText>
+                    </RadzenStack>
+                </div>
                 
             </div>
         </a>
@@ -119,18 +150,31 @@
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
 
+    public RadzenTextBox SearchBox { get; set; } = null!;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SearchBox != null)
+            _ = SearchBox.FocusAsync();
+    }
+
+    public string? SearchText { get; set; }
+    public void SetNameFilter(string? text)
+    {
+        SearchText = text;
+    }
+
     public async Task SetupConsole()
     {
         if (Member == null || Team == null)
             return;
 
-        await DialogService.ShowDynamicFormAsync<SetupConsoleModel>("Setup Console", new SetupConsoleModel(), async (SetupConsoleModel data) =>
+        await Dialogs.ShowDynamicFormAsync<SetupConsoleModel>("Setup Console", new SetupConsoleModel(), async (SetupConsoleModel data) =>
         {
             if (Member == null || Team == null || !Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))
                 return "You do not have permission for Create Console Resources";
 
-                if (string.IsNullOrEmpty(data.Ip))
-                    return "Console ip is required.";
+            if (string.IsNullOrEmpty(data.Ip))
+                return "Console ip is required.";
 
             if (Uri.CheckHostName(data.Ip) == UriHostNameType.Unknown)
                 return "Console ip has invalid format.";
@@ -155,21 +199,27 @@
             if (address == null)
                 return "Console ip invalid.";
 
+            if (Session.CurrentUser == null)
+                return "Session user is invalid.";
+
+            if (Session.Selected.Team == null)
+                return "Selected team is invalid.";
 
             ConsoleData NewConsole = new ConsoleData
             {
                 Ip = data.Ip,
                 Port = data.Port,
-                Name = data.Name,
+                Name = data.Name!,
                 OwnerId = Session.CurrentUser.Id,
                 TeamId = Session.Selected.Team.Data.Id,
-                Type = Enum.Parse<ConsoleType>(data.Type),
-                EncryptedPassword = data.Password,
-                VanityUrl = data.VanityUrl
+                Type = Enum.Parse<ConsoleType>(data.Type!),
+                EncryptedPassword = data.Password!
             };
 
-            VanityUrlData Vanity = Member.Team.GetVanityUrlData();
-            if (Vanity.CheckAlreadyExists(null, NewConsole.VanityUrl))
+            string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
+
+            VanityUrlData Vanity = Session.Selected.Team.Data.GetVanityUrlData();
+            if (Vanity.CheckAlreadyExists(null, VanityUrl))
                 return Lang.Errors.vanity_url_already_taken;
 
             switch (NewConsole.Type)
@@ -177,7 +227,7 @@
                 case ConsoleType.Battleye:
                     {
                         RCon rcon = new RCon();
-                        rcon.Connect(address, data.Port, data.Password);
+                        rcon.Connect(address, data.Port, data.Password!);
                         if (!rcon.IsConnected)
                             return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
 
@@ -190,7 +240,7 @@
                             {
                                 RConHost = data.Ip,
                                 RConPort = data.Port,
-                                RConPass = data.Password
+                                RConPass = data.Password!
                             };
                         bool Success = await rcon.StartComms();
                         if (!Success)
@@ -207,12 +257,12 @@
             _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ConsoleCreated)
                 .SetTarget(NewConsole)
                 .SetSensitive()
-                .AddProperty("Name", data.Name)
                 .AddProperty("IP", data.Ip)
-                .AddProperty("Port", data.Port));
+                .AddProperty("Port", data.Port)
+                .AddProperty("Vanity URL", VanityUrl));
 
             _DB.Consoles.Cache.TryAdd(NewConsole.Id, NewConsole);
-            await Vanity.UpdateAsync(NewConsole, NewConsole.VanityUrl);
+            await Vanity.UpdateAsync(NewConsole, VanityUrl);
             return null;
         });
     }

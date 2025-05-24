@@ -39,13 +39,15 @@ public class TeamData : IResource
     }
 
     public PermissionsSet DefaultPermissions { get; set; } = new PermissionsSet();
+    public string? DefaultMembersColor { get; set; }
+    public bool Require2FA { get; set; }
 
-    [Obsolete]
+    [Obsolete("Use cached roles")]
     [BsonIgnoreIfNull]
     public HashSet<ObjectId>? Roles = null;
 
     [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-    public Dictionary<ObjectId, ObjectId> Members = new Dictionary<ObjectId, ObjectId>();
+    public Dictionary<ObjectId, ObjectId> Members = [];
 
     public TeamMemberData? GetMember(PartialUserData user)
     {
@@ -72,11 +74,11 @@ public class TeamData : IResource
 
     [JsonIgnore]
     [BsonIgnore]
-    public Dictionary<ObjectId, TeamRoleData> CachedRoles = new Dictionary<ObjectId, TeamRoleData>();
+    public Dictionary<ObjectId, TeamRoleData> CachedRoles = [];
 
     [JsonIgnore]
     [BsonIgnore]
-    public Dictionary<ObjectId, TeamMemberData> CachedMembers = new Dictionary<ObjectId, TeamMemberData>();
+    public Dictionary<ObjectId, TeamMemberData> CachedMembers = [];
 
     public string GetVanityUrlOrId()
     {
@@ -112,13 +114,13 @@ public class TeamData : IResource
     public object RolePositionLock = new object();
 
     [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
-    public Dictionary<ObjectId, int> RolePositions = new Dictionary<ObjectId, int>();
+    public Dictionary<ObjectId, int> RolePositions = [];
 
     public bool AddRole(TeamMemberData member, TeamRoleData role)
     {
         lock (RolePositionLock)
         {
-            Dictionary<ObjectId, int> UpdatedPositions = new Dictionary<ObjectId, int>();
+            Dictionary<ObjectId, int> UpdatedPositions = [];
             int Position = 1;
             foreach (KeyValuePair<ObjectId, int> i in RolePositions.OrderBy(x => x.Value))
             {
@@ -138,7 +140,6 @@ public class TeamData : IResource
             {
                 _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.RoleCreated)
                     .SetTarget(role)
-                    .AddProperty("Name", role.Name)
                     .AddProperty("Description", role.Description));
 
                 _DB.Roles.Cache.TryAdd(role.Id, role);
@@ -157,7 +158,7 @@ public class TeamData : IResource
     {
         lock (RolePositionLock)
         {
-            Dictionary<ObjectId, int> UpdatedPositions = new Dictionary<ObjectId, int>();
+            Dictionary<ObjectId, int> UpdatedPositions = [];
             int Position = 0;
             foreach (TeamRoleData? i in CachedRoles.Values.OrderBy(x => x.GetPosition()))
             {
@@ -176,8 +177,7 @@ public class TeamData : IResource
             if (Result.IsAcknowledged)
             {
                 _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.RoleDeleted)
-                .SetTarget(this)
-                .AddProperty("Name", Name));
+                .SetTarget(role));
 
                 CachedRoles.Remove(role.Id);
                 RolePositions = UpdatedPositions;
@@ -211,7 +211,7 @@ public class TeamData : IResource
 
 
             int Position = 0;
-            Dictionary<ObjectId, int> UpdatedPositions = new Dictionary<ObjectId, int>();
+            Dictionary<ObjectId, int> UpdatedPositions = [];
             ObjectId? LastRoleId = null;
             bool CheckLastRole = true;
             ObjectId? NextRoleId = null;

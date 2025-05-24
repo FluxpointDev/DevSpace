@@ -1,9 +1,10 @@
 ﻿@using System.Net.WebSockets
+@using DevSpaceShared.Events.Docker
 @using DevSpaceShared.WebSocket
 @using Docker.DotNet.Models
 @using System.Linq.Dynamic.Core
 @using Newtonsoft.Json.Linq
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject ContextMenuService ContextMenuService
 
 <PageTitle>Docker Registry | @_Data.Config.Instance.Name</PageTitle>
@@ -20,7 +21,11 @@
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
     </div>
-
+    <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important; margin-bottom: 10px;">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
+        <RadzenBreadCrumbItem Text="Registry" />
+    </RadzenBreadCrumb>
     @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewRegistries))
     {
         <div class="dash-box-content">
@@ -39,10 +44,11 @@
 
     <RadzenDataGrid @ref="@grid" Data="@employees" LoadData="@LoadData" Count="@count" IsLoading="@IsLoading"
                     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-                    @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple" ShowPagingSummary="true"
+                    @bind-Value="@selectedEmployees" SelectionMode="DataGridSelectionMode.Multiple"
                     PagingSummaryFormat="@(count + " " + (count != 1 ? "registries" : "registry") )" Density="Density.Compact"
-                    AllowSorting="false"
+                    AllowSorting="false" AllowRowSelectOnRowClick="false" EmptyText="No registries."
                     AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                    PageSizeOptions="@Static.PageSizeOptions" ShowPagingSummary="true"
                     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                     GotoFirstPageOnSort="true" TItem="DockerRegistry" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))"
                     LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
@@ -107,15 +113,34 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Sortable="false" Filterable="false" Pickable="false">
-                <Template>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                        <RadzenButton Click=@(args => ShowContextMenuWithManageItems(context, args)) Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                    </RadzenStack>
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
+                <RadzenDataGridColumn Title="Pull Limit" Filterable="false" Width="100px">
+                    <Template>
+                    @if (Program.IsPreviewMode)
+                    {
+                        @("69/100")
+                    }
+                    else
+                    {
+                        if (AnonymousPullLimit == null)
+                        {
+                            @("Unknown")
+                        }
+                        else
+                        {
+                            @($"{AnonymousPullLimit.CurrentLimit}/{AnonymousPullLimit.MaxLimit}")
+                        }
+                    }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Action" Filterable="false">
+                    <Template>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
+                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
     }
 </div>
 
@@ -142,6 +167,7 @@
     public bool AnySelected => selectedEmployees != null ? selectedEmployees.Any() : false;
     RadzenDataGrid<DockerRegistry> grid = null!;
     public bool IsLoading = true;
+    public RegistryLimitResponse? AnonymousPullLimit;
 
     public async Task LoadData(LoadDataArgs args)
     {
@@ -164,6 +190,10 @@
             {
                 new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }
             }.AsQueryable();
+
+            SocketResponse<RegistryLimitResponse?> Response = await Server.RecieveJsonAsync<RegistryLimitResponse>(new DockerEvent(DockerEventType.GetPullLimit));
+            if (Response.Data != null)
+                AnonymousPullLimit = Response.Data;
 
             if (!string.IsNullOrEmpty(args.Filter))
                 query = query.Where(args.Filter);
@@ -206,12 +236,12 @@
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageRegistries))
             return;
 
-        _ = Task.Run(async () =>
-        {
-            switch (args.Value.ToString())
-            {
-            }
-        });
+        // _ = Task.Run(async () =>
+        // {
+        //     switch (args.Value.ToString())
+        //     {
+        //     }
+        // });
 
         ContextMenuService.Close();
     }

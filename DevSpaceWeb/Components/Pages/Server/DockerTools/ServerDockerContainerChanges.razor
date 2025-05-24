@@ -7,6 +7,8 @@
 
 @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges))
 {
+    <PageTitle>Container Changes | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -27,6 +29,9 @@
 }
 else if (Changes == null)
 {
+
+    <PageTitle>Container Changes | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -44,13 +49,7 @@ else if (Changes == null)
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@ContainerId" />
             <RadzenBreadCrumbItem Text="Changes" />
         </RadzenBreadCrumb>
-        @if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerChanges))
-        {
-            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-                You do not have permission for View Container Changes
-            </RadzenAlert>
-        }
-        else if (Failed)
+        @if (Failed)
         {
             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false">
                 Failed to get container logs.
@@ -60,6 +59,8 @@ else if (Changes == null)
 }
 else
 {
+    <PageTitle>@(Changes.ContainerName ?? ContainerId) Changes | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box">
         <div class="dash-box-header dash-box-content">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -70,7 +71,7 @@ else
         </div>
         <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@Changes.ContainerName" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@(Changes.ContainerName ?? ContainerId)" />
             <RadzenBreadCrumbItem Text="Changes"></RadzenBreadCrumbItem>
         </RadzenBreadCrumb>
         <br />
@@ -78,7 +79,7 @@ else
             <RadzenTableBody>
                 @if (Changes != null && Changes.Changes != null)
                 {
-                    foreach (var c in Changes.Changes.OrderBy(x => x.Path))
+                    foreach (ContainerFileSystemChangeResponse c in Changes.Changes.OrderBy(x => x.Path))
                     {
                         <RadzenTableRow>
                             <RadzenTableCell>
@@ -95,10 +96,6 @@ else
     </div>
 }
 
-<style>
-
-</style>
-
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
@@ -108,7 +105,7 @@ else
     public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
-    public string ContainerId { get; set; }
+    public string? ContainerId { get; set; }
 
     DockerContainerChanges? Changes { get; set; }
     public bool Failed { get; set; }
@@ -121,7 +118,7 @@ else
 
         try
         {
-            var Result = await Server.RunJsonAsync<DockerContainerChanges>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Changes));
+            SocketResponse<DockerContainerChanges?> Result = await Server.RunJsonAsync<DockerContainerChanges>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Changes));
             Failed = !Result.IsSuccess;
             Changes = Result.Data;
         }

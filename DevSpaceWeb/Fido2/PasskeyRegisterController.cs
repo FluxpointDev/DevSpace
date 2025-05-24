@@ -58,7 +58,7 @@ public class PasskeyRegisterController : AuthControllerContext
 
 
             // 2. Get user existing keys by username
-            List<PublicKeyCredentialDescriptor> existingKeys = new List<PublicKeyCredentialDescriptor>();
+            List<PublicKeyCredentialDescriptor> existingKeys = [];
             foreach (FidoStoredCredential credential in AuthUser.Mfa.Passkeys)
             {
                 if (credential.Descriptor != null)
@@ -75,11 +75,16 @@ public class PasskeyRegisterController : AuthControllerContext
             {
                 Extensions = true,
                 UserVerificationMethod = true,
-                CredProps = true,
-                DevicePubKey = new AuthenticationExtensionsDevicePublicKeyInputs { }
+                CredProps = true
             };
-            CredentialCreateOptions options = _fido2Service._lib.RequestNewCredential(user, existingKeys, authenticatorSelection, AttestationConveyancePreference.Direct, exts);
-
+            CredentialCreateOptions options = _fido2Service._lib.RequestNewCredential(new RequestNewCredentialParams
+            {
+                User = user,
+                ExcludeCredentials = existingKeys,
+                AuthenticatorSelection = authenticatorSelection,
+                AttestationPreference = AttestationConveyancePreference.Direct,
+                Extensions = exts
+            });
 
             // 4. Temporarily store options, session/in-memory cache/redis/db
             HttpContext.Session.SetString("fido2.attestationOptions", options.ToJson());
@@ -126,38 +131,37 @@ public class PasskeyRegisterController : AuthControllerContext
             };
 
             // 2. Verify and make the credentials
-            MakeNewCredentialResult success = await _fido2Service._lib.MakeNewCredentialAsync(attestationResponse.data, options, callback);
-            if (success.Result != null)
+            RegisteredPublicKeyCredential success = await _fido2Service._lib.MakeNewCredentialAsync(new MakeNewCredentialParams
             {
+                AttestationResponse = attestationResponse.data,
+                OriginalOptions = options,
+                IsCredentialIdUniqueToUserCallback = callback
+            });
 
-                if (_fido2Service._metadata != null)
+            if (_fido2Service._metadata != null)
+            {
+                MetadataBLOBPayloadEntry? Metadata = await _fido2Service._metadata.GetEntryAsync(success.AaGuid);
+                if (Metadata != null)
                 {
-                    MetadataBLOBPayloadEntry? Metadata = await _fido2Service._metadata.GetEntryAsync(success.Result.AaGuid);
-                    if (Metadata != null)
-                    {
-                        Logger.LogMessage("Metadata: " + Metadata.MetadataStatement.Description, LogSeverity.Debug);
-                    }
+                    Logger.LogMessage("Metadata: " + Metadata.MetadataStatement.Description, LogSeverity.Debug);
                 }
-                // 3. Store the credentials in db
-                user.Mfa.Passkeys.Add(new FidoStoredCredential
-                {
-                    Name = attestationResponse.name,
-                    Descriptor = new PublicKeyCredentialDescriptor(success.Result.Id),
-                    PublicKey = success.Result.PublicKey,
-                    UserHandle = success.Result.User.Id,
-                    AaGuid = success.Result.AaGuid
-                });
-
-                Data.IsSuccess = true;
-                Cache.Set("passkey-" + RequestId, Data, new TimeSpan(0, 5, 0));
-
-                user.Mfa.PasskeyLastRegisteredAt = DateTime.UtcNow;
-                user.Mfa.IsTwoFactorEnabled = true;
-                await _userManager.UpdateAsync(user);
-
-
-
             }
+            // 3. Store the credentials in db
+            user.Mfa.Passkeys.Add(new FidoStoredCredential
+            {
+                Name = attestationResponse.name,
+                Descriptor = new PublicKeyCredentialDescriptor(success.Id),
+                PublicKey = success.PublicKey,
+                UserHandle = success.User.Id,
+                AaGuid = success.AaGuid
+            });
+
+            Data.IsSuccess = true;
+            Cache.Set("passkey-" + RequestId, Data, new TimeSpan(0, 5, 0));
+
+            user.Mfa.PasskeyLastRegisteredAt = DateTime.UtcNow;
+            user.Mfa.IsTwoFactorEnabled = true;
+            await _userManager.UpdateAsync(user);
 
             return Json(success);
         }

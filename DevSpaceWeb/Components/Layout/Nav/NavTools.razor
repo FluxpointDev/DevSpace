@@ -1,10 +1,23 @@
-﻿<RadzenButton id="buttonTools" Disabled="true" @ref="@ToolsButton" Icon="build" IconColor="var(--rz-header-color)" class="rz-button-icon-only" Click="@(() => ToolsPopup.ToggleAsync(ToolsButton.Element))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text">
+﻿<RadzenButton id="buttonTools" @ref="@ToolsButton" Icon="build" IconColor="var(--rz-header-color)" class="rz-button-icon-only" Click="@(() => ToolsPopup.ToggleAsync(ToolsButton.Element))" ButtonStyle="ButtonStyle.Base" Variant="Variant.Text">
 </RadzenButton>
 
 <Popup @ref="@ToolsPopup" class="rz-popup popup-tools" Lazy="true" AutoFocusFirstElement="false">
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.SpaceBetween">
         <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Tools</RadzenText>
     </RadzenStack>
+    <div>
+        @foreach (Pages.Previews.PreviewsPage.Feature i in Pages.Home.Features.OrderBy(x => x.Name))
+        {
+            <a href="@i.Path" target="_blank" style="color: cornflowerblue">
+                <div Class="tool-item">
+                    <RadzenText TextStyle="TextStyle.Subtitle1">@i.Name</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Overline">@i.Desc</RadzenText>
+                    <span class="iconify" data-icon="@i.Icon"></span>
+
+                </div>
+            </a>
+        }
+    </div>
 </Popup>
 
 <style>
@@ -20,12 +33,65 @@
             left: 10px !important;
         }
     }
+
+    .popup-tools > div:last-child {
+        overflow: scroll !important;
+        height: 100%;
+        padding-bottom: 36px;
+        align-self: start;
+        display: flex;
+        flex-wrap: wrap;
+    }
+</style>
+
+<style>
+    .tool-item {
+        display: inline-block !important;
+        margin-right: 6px;
+        margin-bottom: 2px;
+        margin-top: 6px;
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #2f2f31 !important;
+        background-color: #161617 !important;
+        width: 8.4rem;
+        height: 8.4rem;
+        text-align: center;
+    }
+
+        .tool-item:hover {
+            background-color: #1b1b1c !important;
+            border: 1px solid #3b3b3e !important;
+        }
+
+        .tool-item .rz-text-subtitle1 {
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .tool-item .rz-text-subtitle2 {
+            color: var(--rz-text-overline-color) !important;
+        }
+
+        .tool-item .rz-text-overline {
+            display: block;
+            font-size: 0.7rem;
+            letter-spacing: var(--rz-text-subtitle2-letter-spacing);
+            color: var(--rz-text-tertiary-color);
+            margin-bottom: 12px;
+        }
+
+
+        .tool-item .iconify {
+            width: 36px;
+            height: 36px;
+        }
 </style>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
-    public Popup ToolsPopup { get; set; }
-    public RadzenButton ToolsButton { get; set; }
+    public Popup ToolsPopup { get; set; } = null!;
+    public RadzenButton ToolsButton { get; set; } = null!;
 }

@@ -11,8 +11,8 @@ public class RconPacket
 {
     Int32 size;
     Int32 packettype;
-    String cmd;
-    String response;
+    string cmd;
+    string response;
     bool isBadPacket;
 
     /// <summary>
@@ -305,7 +305,7 @@ public class RconPacket
     /// <summary>
     /// Returns the current response stored.
     /// </summary>
-    public String Response { get { return response; } }
+    public string Response { get { return response; } }
     /// <summary>
     /// Generally bad packets/communication won't automatically close the connection.  The packet is marked bad if something wrong happens.
     /// </summary>
@@ -321,6 +321,6 @@ public class RconPacket
     /// <summary>
     /// The payload of an RCon packet, in this case expected to be a minecraft command.
     /// </summary>
-    public String Cmd { get { return cmd; } }
+    public string Cmd { get { return cmd; } }
 
 }

@@ -3,7 +3,7 @@
 public enum EventType
 {
     Invalid,
-    UNUSED,
+    AgentStats,
     Ping,
     Pong,
     TaskResponse,

@@ -9,7 +9,7 @@ public static class DockerNetworks
 {
     public static async Task<IList<DockerNetworkInfo>> ListNetworksAsync(DockerClient client)
     {
-        IList<DockerNetworkInfo> List = new List<DockerNetworkInfo>();
+        IList<DockerNetworkInfo> List = [];
         IList<NetworkResponse> Networks = await client.Networks.ListNetworksAsync();
         IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
         {
@@ -31,6 +31,24 @@ public static class DockerNetworks
             List.Add(Network);
         }
         return List;
+    }
+
+    public static async Task CreateNetworkAsync(DockerClient client, CreateNetworkEvent? data)
+    {
+        if (data == null)
+            throw new Exception("Network creation options is missing.");
+
+        NetworksCreateParameters Create = new NetworksCreateParameters
+        {
+            Name = data.Name,
+            Driver = data.DriverType,
+            Options = data.DriverOptions,
+            Labels = data.Labels,
+            Attachable = data.IsManualAttach,
+            Internal = data.IsIsolated
+        };
+
+        await client.Networks.CreateNetworkAsync(Create);
     }
 
     public static async Task<object?> ControlNetworkAsync(DockerClient client, DockerEvent @event, string id)
@@ -63,11 +81,11 @@ public static class DockerNetworks
                                 }
                 });
 
-                foreach (var i in containers)
+                foreach (ContainerListResponse i in containers)
                 {
                     if (!Data.ContainersList.ContainsKey(i.ID))
                     {
-                        if (i.NetworkSettings.Networks.TryGetValue(Network.Name, out var endpoint))
+                        if (i.NetworkSettings.Networks.TryGetValue(Network.Name, out EndpointSettings? endpoint))
                         {
                             Data.ContainersList.Add(i.ID, new EndpointResource
                             {
@@ -92,14 +110,33 @@ public static class DockerNetworks
             case ControlNetworkType.Remove:
                 await client.Networks.DeleteNetworkAsync(id);
                 break;
-            case ControlNetworkType.LeaveNetwork:
-                if (@event.ResourceList == null)
-                    throw new Exception("Networks list is missing.");
-
-                await client.Networks.DisconnectNetworkAsync(id, new NetworkDisconnectParameters
+            case ControlNetworkType.JoinNetwork:
                 {
-                    Container = @event.ResourceList.First()
-                });
+                    DockerContainerInfo? Container = @event.Data?.ToObject<DockerContainerInfo>();
+                    if (Container == null)
+                        throw new Exception("Container id is missing.");
+
+                    await client.Networks.ConnectNetworkAsync(id, new NetworkConnectParameters
+                    {
+                        Container = Container.Id,
+                        EndpointConfig = new EndpointSettings
+                        {
+                            NetworkID = id
+                        }
+                    });
+                }
+                break;
+            case ControlNetworkType.LeaveNetwork:
+                {
+                    DockerContainerInfo? Container = @event.Data?.ToObject<DockerContainerInfo>();
+                    if (Container == null)
+                        throw new Exception("Container id is missing.");
+
+                    await client.Networks.DisconnectNetworkAsync(id, new NetworkDisconnectParameters
+                    {
+                        Container = Container.Id
+                    });
+                }
                 break;
         }
         return null;

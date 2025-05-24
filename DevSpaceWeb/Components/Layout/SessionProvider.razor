@@ -1,5 +1,6 @@
 ﻿@using DevSpaceWeb.Components.Auth
 @using DevSpaceWeb.Components.Dialogs
+@using DevSpaceWeb.Components.Dialogs.Users
 @using DevSpaceWeb.Data.Users
 @using DevSpaceWeb.Database
 @using DevSpaceWeb.Fido2
@@ -14,7 +15,7 @@
 @inject IJSRuntime JS
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpContextAccessor Http
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject NotificationService NotificationService
 @implements IDisposable
 @inject IMemoryCache Cache
@@ -174,11 +175,11 @@
     [Parameter]
     public RenderFragment ChildContent { get; set; }
 
-    public event EventHandler EventNavMenuChange;
+    public event EventHandler? EventNavMenuChange;
 
     public void TriggerNavMenuChange()
     {
-        EventNavMenuChange?.Invoke(this, null);
+        EventNavMenuChange?.Invoke(this, null!);
     }
 
     public NotificationService Notifications => NotificationService;
@@ -187,7 +188,7 @@
 
     public SelectedSessionData Selected = new SelectedSessionData();
 
-    public string BackgroundUrl { get; set; } = "https://cdn.fluxpoint.dev/devspace/background.webp";
+    public string BackgroundUrl { get; set; } = Static.DefaultBackgroundUrl;
 
     public int UserDateOffset { get; set; }
     public DateFormatLang UserDateFormat { get; set; } = DateFormatLang.MDY_Slash;
@@ -215,10 +216,11 @@
 
     public void ShowPreviewModeNotice()
     {
-        _ = DialogService.ShowInfoAsync("Preview Mode", "This feature is not available in preview mode.");
+        _ = Dialogs.ShowInfoAsync("Preview Mode", "This feature is not available in preview mode.");
     }
 
     public DateTime? TwoFactorTimeout = null;
+
 
     public async Task<bool> TriggerTwoFactorAuthentication(AuthUser? user, bool logUsage, bool forceVerify)
     {
@@ -230,7 +232,7 @@
 
         DialogOptions options = new DialogOptions() { };
 
-        dynamic Dialog = await DialogService.OpenAsync<TwoFactorVerifyDialog>("2FA Verification", new Dictionary<string, object>()
+        dynamic Dialog = await Dialogs.OpenAsync<TwoFactorVerifyDialog>("2FA Verification", new Dictionary<string, object>()
         {
             { "LogUsage", logUsage }
         }, options);
@@ -264,11 +266,15 @@
         catch (Exception ex)
         {
             Logger.LogMessage(ex.ToString(), LogSeverity.Error);
+            return false;
         }
         AuthRequest? Data = Cache.Get<AuthRequest>("passkey-" + PasskeyRequestId);
-        user = await GetCurrentUserAsync();
-        if (user != null && IsSuccess && Data != null && Data.IsSuccess && Data.UserId == user.Id)
-            IsSuccess = Data.IsSuccess;
+        if (IsSuccess && Data != null && Data.IsSuccess)
+        {
+            user = await GetCurrentUserAsync();
+            if (user != null && Data.UserId == user.Id)
+                IsSuccess = true;
+        }
         return IsSuccess;
     }
 
@@ -289,14 +295,14 @@
             return;
         }
 
-        if (!Program.IsUsingAspire && !HttpContext.Request.IsHttps)
+        if (!Program.IsUsingAspire && !_Data.Config.Instance.Features.AllowLocalhost && !HttpContext.Request.IsHttps)
         {
             SessionError = SessionErrorType.HttpsRequired;
             return;
         }
 
 
-        string Ip = Utils.GetUserIpAddress(HttpContext);
+        string? Ip = Utils.GetUserIpAddress(HttpContext);
         if (!Program.IsUsingAspire && !_Data.Config.Instance.Features.AllowLocalhost && (string.IsNullOrEmpty(Ip) || Ip == "127.0.0.1"))
         {
             SessionError = SessionErrorType.SessionSecurityError;
@@ -411,16 +417,16 @@
                 if (User.Background.Id.HasValue)
                     BackgroundUrl = User.Background.Url("webp");
 
+                string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
+                if (string.IsNullOrEmpty(SessionId))
+                {
+                    NavigationManager.NavigateTo("/logout", true);
+                    return;
+                }
+                CurrentSessionId = SessionId;
+
                 if (!Program.IsPreviewMode)
                 {
-                    string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
-                    if (string.IsNullOrEmpty(SessionId))
-                    {
-                        NavigationManager.NavigateTo("/logout", true);
-                        return;
-                    }
-                    CurrentSessionId = SessionId;
-
                     bool NewLogin = !User.Account.Sessions.TryGetValue(SessionId, out UserSession? session);
                     if (!NewLogin && session != null && !session.AuthorizedIps.Contains(Utils.GetStringSha256Hash(Ip)))
                     {

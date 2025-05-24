@@ -1,0 +1,402 @@
+﻿@using DevSpaceWeb.Data.API
+@inject DialogService Dialogs
+
+<PageTitle>Team API Client | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:robot"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">API Client</RadzenText>
+    </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" Text="@Session.Selected.Team?.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/settings/api")" Text="API" />
+        <RadzenBreadCrumbItem Text="@((!NoAccess && Client != null ? Client.Name : ClientId))" />
+    </RadzenBreadCrumb>
+    @if (Client == null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            Unknown API client.
+        </RadzenAlert>
+    }
+    else if (NoAccess)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have access to this API client.
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
+        <RadzenUserSelector Team="@Team" UserId="@Client?.OwnerId" ActionDisabled="@(!CanManage || Program.IsPreviewMode)" OnSelected="@ChangeOwner"></RadzenUserSelector>
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Created</RadzenText>
+        <RadzenText Text="@Utils.GetLocalDate(Session, Client?.CreatedAt)" TextStyle="TextStyle.Body2"></RadzenText>
+
+        <br />
+        <a href="/swagger/index.html" target="_blank"><RadzenButton Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Text="Docs" /></a>
+        <RadzenButton Click="@ToggleClientDisable" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="@((Client == null || Client.IsDisabled ? "Enable" : "Disable") + " Client")" Disabled="@(!CanManage)" />
+        <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Client" Disabled="@(!CanManage)" />
+    }
+</div>
+
+@if (Client != null)
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:form-textbox-password"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Token</RadzenText>
+        </div>
+        <br />
+        @if (string.IsNullOrEmpty(Client.TokenHash))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Token has not been generated.
+            </RadzenAlert>
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Generated</RadzenText>
+            <RadzenText Text="@("By " + GeneratedUser)" TextStyle="TextStyle.Body2"></RadzenText>
+            <RadzenText Text="@("At " + Utils.GetLocalDate(Session, Client.CreatedAt))" TextStyle="TextStyle.Body2"></RadzenText>
+        }
+        <br />
+        <RadzenButton Click="@GenerateToken" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Generate Token" Disabled="@(!CanGenerate)" />
+    </div>
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:lock"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Allowed Permissions</RadzenText>
+        </div>
+        <br />
+        <RadzenText Text="The API client will inherit permissions from the owner user but need to be allowed first." TextStyle="TextStyle.Body1"></RadzenText>
+        <br />
+        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+            Only global administrators can change permission type.
+        </RadzenAlert>
+        <br />
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Permission Type</RadzenText>
+        <RadzenDropDown Value="@(Client.UseCustomPermissions ? "Custom Permissions" : "Owner Permissions")" TValue="string" Data="PermissionTypes" Style="width: 100%; max-width: 400px;" Change="((arg) => ChangePermissionType(arg as string))" Disabled="@(DisableChangeType || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" />
+        <br />
+        <br />
+        <br />
+
+        @if (Client.UseCustomPermissions)
+        {
+            <PermissionGrid IsDisabled="@(Member == null || Program.IsPreviewMode ||!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Permissions="@CustomPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
+        }
+        else
+        {
+            <PermissionGrid IsDisabled="@(Member == null || Program.IsPreviewMode || !Client.CanManage(Member, false))" Permissions="@AllowedPermissions" PermissionType="PermissionType.All" OnLoad="@LoadPermissions" OnSave="@SavePermissions" UnsavedPermissionsChanged="@((arg) => DisableChangeType = arg)"></PermissionGrid>
+        }
+
+    </div>
+}
+
+<style>
+    .rz-tabview-panel .pr-2 {
+    max-width: 200px;
+    }
+
+
+</style>
+
+
+@code {
+    [Parameter]
+    public string? ClientId { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    public APIClient? Client { get; set; }
+    public bool NoAccess { get; set; }
+    public bool CanGenerate { get; set; }
+    public bool CanManage { get; set; }
+    public string? OwnerUser { get; set; }
+    public string? GeneratedUser { get; set; }
+
+    public bool DisableChangeType { get; set; }
+    public PermissionsSet? AllowedPermissions;
+    public PermissionsSet? CustomPermissions;
+
+    public string[] PermissionTypes = new string[]
+    {
+        "Owner Permissions",
+        "Custom Permissions"
+    };
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrEmpty(ClientId) && ObjectId.TryParse(ClientId, out ObjectId id) && _DB.API.Cache.TryGetValue(id, out APIClient? client))
+            Client = client;
+        else
+            Client = null;
+
+        if (Client != null)
+        {
+            if (_DB.Users.TryGetValue(Client.OwnerId, out PartialUserData? user))
+                OwnerUser = user.UserName;
+            else
+                OwnerUser = "Unknown?";
+
+            if (Client.GeneratedBy.HasValue && _DB.Users.TryGetValue(Client.GeneratedBy.Value, out PartialUserData? user2))
+                GeneratedUser = user2.UserName;
+            else
+                GeneratedUser = "Unknown?";
+
+
+            NoAccess = !Client.HasAccess(Member, false);
+            CanGenerate = Client.CanGenerate(Member);
+            CanManage = Client.CanManage(Member, false);
+
+            LoadPermissions();
+        }
+    }
+
+    public async Task ChangePermissionType(string? value)
+    {
+        if (Member == null || Client == null || string.IsNullOrEmpty(value))
+            return;
+
+        if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+            return;
+
+        bool UseCustomPermissions = value == "Custom Permissions";
+
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.UseCustomPermissions, UseCustomPermissions), () =>
+        {
+            Client.UseCustomPermissions = UseCustomPermissions;
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientSettingsChanged)
+                .SetTarget(Client)
+                .AddProperty("Use Custom Permissions", value.ToString()));
+        });
+    }
+
+    public async Task Delete()
+    {
+        if (Member == null || Client == null || Team == null)
+            return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        CanManage = Client.CanManage(Member, false);
+        if (!CanManage)
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete API Client", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        DeleteResult Result = await Client.DeleteAsync(() =>
+        {
+            Client = null;
+        });
+        if (Result.IsAcknowledged)
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.APIClientDeleted)
+            .SetTarget(Client));
+        }
+
+    }
+
+    public async Task ChangeOwner(PartialUserData user)
+    {
+        if (Member == null || Client == null)
+            return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        CanManage = Client.CanManage(Member, false);
+        if (!CanManage)
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Change Ownership", "Change API client owner, this will also reset the token.", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        AuthUser? AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null || Client == null || Member == null)
+            return;
+
+        CanManage = Client.CanManage(Member, false);
+        if (!CanManage)
+            return;
+
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
+        .Set(x => x.OwnerId, user.Id).Set(x => x.TokenHash, null).Set(x => x.GeneratedAt, null).Set(x => x.GeneratedBy, null), () =>
+        {
+            Client.TokenHash = null;
+            Client.GeneratedBy = null;
+            Client.GeneratedAt = null;
+            Client.OwnerId = user.Id;
+            OwnerUser = user.UserName;
+            GeneratedUser = null;
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.APIClientOwnershipChanged)
+            .SetTarget(Client)
+            .AddProperty("User", user.UserName)
+            .AddProperty("ID", user.Id.ToString()));
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientTokenGenerated)
+            .SetTarget(Client));
+
+            StateHasChanged();
+        });
+    }
+
+    public void LoadPermissions()
+    {
+        if (Client == null)
+            return;
+
+        AllowedPermissions = Client.AllowedPermissions.Clone();
+        CustomPermissions = Client.CustomPermissions.Clone();
+    }
+
+    public async Task SavePermissions(PermissionsSet perms)
+    {
+        if (Member == null || Client == null)
+            return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (Client.UseCustomPermissions)
+        {
+            if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                return;
+
+            await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.CustomPermissions, perms), () =>
+            {
+                Client.CustomPermissions = perms;
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Permission, AuditLogEventType.APIClientPermissionsChanged)
+                    .SetTarget(Client)
+                    .SetPermissions(perms));
+            });
+        }
+        else
+        {
+            if (!Client.CanManage(Member, false))
+                return;
+
+            await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.AllowedPermissions, perms), () =>
+            {
+                Client.AllowedPermissions = perms;
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Permission, AuditLogEventType.APIClientPermissionsChanged)
+                    .SetTarget(Client)
+                    .SetPermissions(perms));
+            });
+        }
+    }
+
+    public async Task GenerateToken()
+    {
+        if (Member == null || Client == null)
+            return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        CanGenerate = Client!.CanGenerate(Member);
+        if (!CanGenerate)
+            return;
+
+        AuthUser? AuthUser = await Session.GetCurrentUserAsync();
+        bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, true);
+        if (!TwoFactorValid)
+        {
+            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            return;
+        }
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        CanGenerate = Client!.CanGenerate(Member);
+        if (!CanGenerate)
+            return;
+
+        string Token = "DSA-" + _Data.GetRandomString(new Random().Next(30, 50));
+        string Hash = Utils.Hasher.HashPassword(null!, Token);
+        
+
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>()
+        .Set(x => x.TokenHash, Hash).Set(x => x.GeneratedAt, DateTime.UtcNow).Set(x => x.GeneratedBy, AuthUser.Id), async () =>
+        {
+            Client.TokenHash = Hash;
+            Client.GeneratedAt = DateTime.UtcNow;
+            Client.GeneratedBy = AuthUser.Id;
+            GeneratedUser = AuthUser.UserName;
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientTokenGenerated)
+                .SetTarget(Client));
+
+            StateHasChanged();
+            _ = Dialogs.ShowInfoAsync("API Token", Client.Id.ToString() + "." + Token);
+        });
+
+
+    }
+
+    public async Task ToggleClientDisable()
+    {
+        if (Member == null || Client == null)
+            return;
+
+        if (Program.IsPreviewMode)
+        {
+            Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        CanManage = Client!.CanManage(Member, false);
+        if (!CanManage)
+            return;
+
+        await Client.UpdateAsync(new UpdateDefinitionBuilder<APIClient>().Set(x => x.IsDisabled, !Client.IsDisabled), () =>
+        {
+            if (Client.IsDisabled)
+            {
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientEnabled)
+                .SetTarget(Client));
+
+                Client.IsDisabled = false;
+                _ = Dialogs.ShowInfoAsync("API Client", "This client has been enabled.");
+            }
+            else
+            {
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.APIClientDisabled)
+                .SetTarget(Client));
+
+                Client.IsDisabled = true;
+                _  = Dialogs.ShowInfoAsync("API Client", "This client has been disabled.");
+            }
+        });
+        
+    }
+}

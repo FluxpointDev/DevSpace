@@ -4,6 +4,8 @@
 @using Swashbuckle.AspNetCore.Swagger
 @inject EmailService EmailService
 @inject ISwaggerProvider Swagger
+@inject DialogService Dialogs
+@inject UserManager<AuthUser> UserManager
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -13,6 +15,10 @@
         </div>
         <RadzenText TextStyle="TextStyle.H6">Admin Settings</RadzenText>
     </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/")" Text="Dashboard" />
+        <RadzenBreadCrumbItem Text="Admin" />
+    </RadzenBreadCrumb>
     <br />
     <h6>Stats</h6>
     <p>Teams: @_DB.Teams.Cache.Keys.Count()</p>
@@ -21,7 +27,14 @@
     <p>Projects: @_DB.Projects.Cache.Keys.Count()</p>
     <p>Logs: @_DB.Logs.Cache.Keys.Count()</p>
     <br />
-    <RadzenStack Gap="10px" JustifyContent="JustifyContent.Center" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Email</RadzenText>
+    <RadzenTextBox @bind-Value="@EmailInput" Style="width: 100%" aria-label="Email TextBox" AutoCompleteType="AutoCompleteType.Off" inputmode="email"
+                   autocapitalize="none" MaxLength="100" />
+    <br />
+    <br />
+    <RadzenButton Text="Verify Email" ButtonStyle="ButtonStyle.Light" Click="@VerifyEmail" />
+    <RadzenStack Gap="10px" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Style="margin-top: 20px;">
         <a href="@("/admin/instance")">
             <RadzenCard class="rz-p-1 rz-text-align-center settings-item">
                 <span class="iconify" data-icon="mdi:list-box"></span>
@@ -101,6 +114,36 @@
 
     public string Value { get; set; }
 
+    public string EmailInput { get; set; }
+
+    public async Task VerifyEmail()
+    {
+        if (string.IsNullOrEmpty(EmailInput))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Verify Email", $"Are you sure you want to verify the account for {EmailInput}", "Confirm", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        AuthUser? user = await UserManager.FindByEmailAsync(EmailInput);
+        if (user == null)
+        {
+            await Dialogs.ShowInfoAsync("Unknown Account", "Could not find account for " + EmailInput);
+            return;
+        }
+
+        if (user.EmailConfirmed)
+        {
+            await Dialogs.ShowInfoAsync("Email Verified", $"This account email has already been verified.");
+            return;
+        }
+
+        user.EmailConfirmed = true;
+        await UserManager.UpdateAsync(user);
+
+        await Dialogs.ShowInfoAsync("Email Verified", EmailInput);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         EmailType = _Data.Config.Email.Type;
@@ -148,7 +191,7 @@
                 return;
 
             HttpRequestMessage Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/test");
-            Message.Headers.Add("Authorization", ManagedEmailToken);
+            Message.Headers.TryAddWithoutValidation("Authorization", ManagedEmailToken);
 
 
             HttpResponseMessage Res = await Program.Http.SendAsync(Message);
@@ -198,7 +241,7 @@
                 return;
 
             HttpRequestMessage Message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/send");
-            Message.Headers.Add("Authorization", ManagedEmailToken);
+            Message.Headers.TryAddWithoutValidation("Authorization", ManagedEmailToken);
             Message.Content = JsonContent.Create(new EmailService.SendMailJson
                 {
                     instance_name = _Data.Config.Instance.Name,

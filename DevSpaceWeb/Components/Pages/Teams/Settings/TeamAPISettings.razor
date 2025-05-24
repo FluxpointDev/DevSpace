@@ -1,0 +1,93 @@
+﻿@using DevSpaceWeb.Data.API
+@using DevSpaceWeb.Models.Teams
+@inject Radzen.DialogService dialogService
+
+<PageTitle>Team API Settings | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:robot"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Team API</RadzenText>
+    </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams")" Text="Teams" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" Text="@Session.Selected.Team?.Data.Name" />
+        <RadzenBreadCrumbItem Text="API" />
+    </RadzenBreadCrumb>
+
+    @if (Member == null || !Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(Team, APIPermission.ViewAllAPIs))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View APIs
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create API Client" Click="@CreateApi" Disabled="(!(Member.HasAPIPermission(Team, APIPermission.CreateOwnAPIs)))" />
+        <br />
+        <br />
+        <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
+            @foreach (APIClient i in _DB.API.Cache.Values.Where(x => x.HasAccess(Member, false)))
+            {
+                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/api/" + i.Id.ToString())">
+                    <div class="api-item">
+                        <h6>@i.Name</h6>
+                    </div>
+                </a>
+            }
+        </RadzenStack>
+    }
+
+</div>
+
+<style>
+    .api-item {
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    border-radius: 8px;
+    background-color: rgba(52,53,63,0.8) !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    public async Task CreateApi()
+    {
+        if (Member == null || Team == null)
+            return;
+
+        if (!(Member.HasAPIPermission(Team, APIPermission.CreateOwnAPIs)))
+            return;
+
+        await dialogService.ShowDynamicFormAsync<TeamCreateAPIModel>("Create API Client", new TeamCreateAPIModel() { }, async (TeamCreateAPIModel data) =>
+        {
+            if (!(Member.HasAPIPermission(Team, APIPermission.CreateOwnAPIs)))
+                return "You do not have Create Own APIs permission.";
+
+            APIClient client = new APIClient
+                {
+                    Name = data.Name,
+                    OwnerId = Member.UserId,
+                    TeamId = Member.TeamId
+                };
+            await _DB.API.CreateAsync(client);
+            _DB.API.Cache.TryAdd(client.Id, client);
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.APIClientCreated)
+            .SetTarget(client));
+
+            StateHasChanged();
+            return null;
+        });
+    }
+}

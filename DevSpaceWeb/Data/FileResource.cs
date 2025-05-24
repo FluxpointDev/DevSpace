@@ -17,6 +17,9 @@ public class FileResource
 
     public string Path(string fileType)
     {
+        if (!Id.HasValue)
+            throw new ArgumentException("Invalid file path for missing id.");
+
         return Program.Directory.Public.Files.Path + Resource.ToString() + $"/{Tag}_" + Id.Value.ToString() + "." + fileType;
     }
 

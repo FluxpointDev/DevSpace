@@ -11,7 +11,7 @@ public class DockerContainerNetwork
             Name = name,
             Gateway = network.Gateway,
             IPAddress = network.IPAddress,
-            MacAddress = network.MacAddress,
+            MacAddress = network.MacAddress
         };
     }
 

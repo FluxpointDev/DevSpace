@@ -7,6 +7,8 @@
 
 @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
 {
+    <PageTitle>Container Stats | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -27,6 +29,8 @@
 }
 else if (Container == null)
 {
+    <PageTitle>Container Stats | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -54,6 +58,9 @@ else if (Container == null)
 }
 else if (Container.IsNotRunning)
 {
+
+    <PageTitle>@(Container.ContainerName ?? ContainerId) Stats | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -75,6 +82,8 @@ else if (Container.IsNotRunning)
 }
 else
 {
+    <PageTitle>Container Logs | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box">
         <div class="dash-box-header dash-box-content">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -96,17 +105,18 @@ else
     </div>
 
     <div class="dash-box dash-box-content">
-                <div class="dash-box-header">
-                        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:format-list-bulleted-square"></span></div>
-                    <RadzenText TextStyle="TextStyle.H6">Processes</RadzenText>
-                </div>
-                <br />
-                    <RadzenDataGrid Data="@Container.Data.Processes"
-                            PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
-                            AllowSorting="false" AllowFiltering="false">
-                <Columns>
-                    <RadzenDataGridColumn Title="User" Width="120px">
-                        <Template>
+        <div class="dash-box-header">
+            <div class="dash-box-icon"><span class="iconify" data-icon="mdi:format-list-bulleted-square"></span></div>
+            <RadzenText TextStyle="TextStyle.H6">Processes</RadzenText>
+        </div>
+        <br />
+        <RadzenDataGrid Data="@Container.Data.Processes"
+                        EmptyText="No processes."
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
+                        AllowSorting="false" AllowFiltering="false">
+            <Columns>
+                <RadzenDataGridColumn Title="User" Width="120px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -115,11 +125,11 @@ else
                         {
                             @context[0]
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
+                    </Template>
+                </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn Title="Process ID" Width="90px">
-                        <Template>
+                <RadzenDataGridColumn Title="Process ID" Width="90px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -128,11 +138,11 @@ else
                         {
                             @context[1]
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
+                    </Template>
+                </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn Title="Parent ID" Width="90px">
-                        <Template>
+                <RadzenDataGridColumn Title="Parent ID" Width="90px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -141,11 +151,11 @@ else
                         {
                             @context[2]
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
+                    </Template>
+                </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn Title="Threads" Width="70px">
-                        <Template>
+                <RadzenDataGridColumn Title="Threads" Width="70px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -154,11 +164,11 @@ else
                         {
                             @context[3]
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
+                    </Template>
+                </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn Title="Total CPU" Width="90px">
-                        <Template>
+                <RadzenDataGridColumn Title="Total CPU" Width="90px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -167,11 +177,11 @@ else
                         {
                             @(context[4] + "%")
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
+                    </Template>
+                </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn Title="Current CPU" Width="100px">
-                        <Template>
+                <RadzenDataGridColumn Title="Current CPU" Width="100px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -180,11 +190,11 @@ else
                         {
                             @(context[5] + "%")
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
+                    </Template>
+                </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn Title="Current Memory" Width="120px">
-                        <Template>
+                <RadzenDataGridColumn Title="Current Memory" Width="120px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -193,10 +203,10 @@ else
                         {
                             @(context[6] + "%")
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Title="Start Time" Width="140px">
-                        <Template>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Start Time" Width="140px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -205,10 +215,10 @@ else
                         {
                             @context[7]
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
-                    <RadzenDataGridColumn Title="Elapsed Time" Width="100px">
-                        <Template>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Elapsed Time" Width="100px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -217,11 +227,11 @@ else
                         {
                             @context[8]
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
+                    </Template>
+                </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn Title="Name" Width="100px">
-                        <Template>
+                <RadzenDataGridColumn Title="Name" Width="100px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -230,11 +240,11 @@ else
                         {
                             @context[9]
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
+                    </Template>
+                </RadzenDataGridColumn>
 
-                    <RadzenDataGridColumn Title="Command" Width="1000px">
-                        <Template>
+                <RadzenDataGridColumn Title="Command" Width="1000px">
+                    <Template>
                         @if (IsLoading)
                         {
                             <RadzenSkeleton></RadzenSkeleton>
@@ -243,10 +253,10 @@ else
                         {
                             @context[10]
                         }
-                        </Template>
-                    </RadzenDataGridColumn>
-                </Columns>
-            </RadzenDataGrid>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
     </div>
 
     <RadzenRow Gap="18px" RowGap="18px">
@@ -303,7 +313,7 @@ else
                     <RadzenText TextStyle="TextStyle.H6">Network Usage (Total)</RadzenText>
                     @if (Stats != null && Stats.Any() && Stats.First().Networks != null && Stats.First().Networks.Any())
                     {
-                        <RadzenDropDown class="ml-2" @bind-Value="@SelectedNetwork" Data="@Stats.First().Networks" TextProperty="key" ValueProperty="key" Style="" Change="@(() => { foreach (var i in Stats) { i.SelectedNetwork = SelectedNetwork; } })" />
+                        <RadzenDropDown class="ml-2" @bind-Value="@SelectedNetwork" Data="@Stats.First().Networks" TextProperty="key" ValueProperty="key" Style="" Change="@(() => { foreach (DockerContainerStats i in Stats) { i.SelectedNetwork = SelectedNetwork; } })" />
                     }
                 </div>
                 @if (Stats != null && Stats.Any() && Stats.First().Networks == null)
@@ -369,9 +379,10 @@ else
         white-space: pre !important;
         text-overflow: unset !important;
     }
+
     .rz-legend-items {
-    margin-top: -16px;
-}
+        margin-top: -16px;
+    }
 </style>
 
 @code {
@@ -385,10 +396,10 @@ else
     [Parameter]
     public required string ContainerId { get; set; }
 
-    public DockerContainerProcesses Container { get; set; } = new DockerContainerProcesses { Data = new ContainerProcessesResponse {  Processes = new List<IList<string>>() { new List<string> { } } } };
+    public DockerContainerProcesses? Container { get; set; } = new DockerContainerProcesses { Data = new ContainerProcessesResponse { Processes = new List<IList<string>>() { new List<string> { } } } };
     public bool Failed { get; set; }
     public bool IsLoading { get; set; } = true;
-    public System.Timers.Timer StatsTimer = null;
+    public System.Timers.Timer? StatsTimer = null;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -398,9 +409,15 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
             return;
 
+        if (Program.IsPreviewMode && ContainerId != "devspace-demo")
+        {
+            Failed = true;
+            return;
+        }
+
         try
         {
-            var Result = await Server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
+            SocketResponse<DockerContainerProcesses?> Result = await Server.RunJsonAsync<DockerContainerProcesses>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
             Failed = !Result.IsSuccess;
             Container = Result.Data;
 
@@ -420,13 +437,13 @@ else
 
                 if (Result.Data.Stats.Networks != null)
                 {
-                    foreach(var i in Result.Data.Stats.Networks)
+                    foreach (KeyValuePair<string, DockerContainerStatsNetwork> i in Result.Data.Stats.Networks)
                     {
                         i.Value.NetworkReceive = i.Value.NetworkReceive.RoundNearestBytes();
                         i.Value.NetworkTransmit = i.Value.NetworkTransmit.RoundNearestBytes();
                     }
                 }
-                
+
 
                 Stats.Add(Result.Data.Stats);
                 if (StatsTimer == null)
@@ -462,7 +479,7 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
             return;
 
-        var Result = await Server.RecieveJsonAsync<DockerContainerStats>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Stats));
+        SocketResponse<DockerContainerStats?> Result = await Server.RecieveJsonAsync<DockerContainerStats>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Stats));
         if (Result.IsSuccess && Result.Data != null)
         {
             Result.Data.SelectedNetwork = SelectedNetwork;
@@ -471,13 +488,13 @@ else
             Result.Data.IOWrite = Result.Data.IOWrite.RoundNearestBytes();
 
             if (Result.Data.Networks != null)
+            {
+                foreach (KeyValuePair<string, DockerContainerStatsNetwork> i in Result.Data.Networks)
                 {
-                    foreach(var i in Result.Data.Networks)
-                    {
-                        i.Value.NetworkReceive = i.Value.NetworkReceive.RoundNearestBytes();
-                        i.Value.NetworkTransmit = i.Value.NetworkTransmit.RoundNearestBytes();
-                    }
+                    i.Value.NetworkReceive = i.Value.NetworkReceive.RoundNearestBytes();
+                    i.Value.NetworkTransmit = i.Value.NetworkTransmit.RoundNearestBytes();
                 }
+            }
 
             if (Stats.Count == 8)
             {
@@ -502,16 +519,20 @@ else
 
         await InvokeAsync(StateHasChanged);
 
-        StatsTimer.Start();
+        if (StatsTimer != null)
+            StatsTimer.Start();
     }
 
-    private string FormatMemory(object value)
+    private string FormatMemory(object? value)
     {
+        if (value == null)
+            return "0 B";
+
         try
         {
-            return Utils.SizeSuffix(Convert.ToInt64(value.ToString().Split('.').First()), 0);
+            return Utils.SizeSuffix(Convert.ToInt64(value.ToString()?.Split('.').First()), 0);
         }
-        catch (Exception ex)
+        catch
         {
             return "0 B";
         }

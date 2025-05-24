@@ -2,7 +2,7 @@
 
 public class Location
 {
-    public String location = "";
+    public string location = "";
     //public Image flag = null;
 
     public Location(String location)

@@ -19,7 +19,7 @@
             <RadzenSelectBarItem Value="@("jpg")" Text="Jpg" />
         </Items>
     </RadzenSelectBar>
-    <RadzenButton Text="Start Converting" Click=@(args => Uploader.Upload()) class="rz-mt-4" Disabled="@Program.IsPreviewMode" />
+    <RadzenButton Text="Start Converting" Click="@(args => Uploader.Upload())" class="rz-mt-4" Disabled="@Program.IsPreviewMode" />
     <br />
     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Drag and drop files to upload</RadzenText>
     <RadzenUpload @ref="@Uploader" ChooseText="Click here or drop to upload files" Auto="false" Multiple="true" Url="upload/multiple" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "select file" }})"
@@ -65,15 +65,15 @@
 
     private HashSet<FileConvert> selectedItems = new HashSet<FileConvert>();
     private IEnumerable<FileConvert> Elements = new List<FileConvert>();
-    private bool _selectOnRowClick = true;
-    private bool _selectionChangeable = true;
+    //private bool _selectOnRowClick = true;
+    //private bool _selectionChangeable = true;
     //private MudTable<FileConvert> _table;
-    private string _selectedItemText = "No row clicked";
+    //private string _selectedItemText = "No row clicked";
 
     public class FileConvert
     {
-        public string Name;
-        public string Type;
+        public string? Name;
+        public string? Type;
     }
 
     public async Task GenerateImage()

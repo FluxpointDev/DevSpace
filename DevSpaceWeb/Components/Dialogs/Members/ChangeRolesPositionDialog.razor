@@ -6,6 +6,8 @@
 @inject Radzen.DialogService dialogService
 @implements IDisposable
 
+<PageTitle>Change Role Positions | @_Data.Config.Instance.Name</PageTitle>
+
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
         <RadzenStack class="rz-picklist-wrapper" Orientation="Orientation.Horizontal" Style="height:500px; width:100%;">
@@ -14,7 +16,8 @@
                 <RadzenListBox @bind-Value="@SelectedRole" Data="@RolesList" ItemRender="@((x) => RenderItem(x))"
                 LoadData="@LoadData" TextProperty="@nameof(TeamRoleData.Name)" Disabled="@IsUpdating">
                     <Template>
-                        @if (Program.IsPreviewMode || Team.OwnerId == Member.UserId || (context as TeamRoleData)!.GetPosition() < CurrentRank)
+                        <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData)!)};")"></span>
+                        @if (Program.IsPreviewMode || Team.OwnerId == Member?.UserId || (context as TeamRoleData)!.GetPosition() < CurrentRank)
                         {
                             @((context as TeamRoleData)!.Name)
                         }
@@ -22,7 +25,6 @@
                         {
                             <span class="iconify" data-icon="mdi:lock"></span> @((context as TeamRoleData)!.Name)
                         }
-
                     </Template>
                 </RadzenListBox>
             </RadzenStack>
@@ -39,14 +41,25 @@
     </RadzenStack>
 </RadzenStack>
 
+<style>
+    .rz-dialog .rz-multiselect-item-content span {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        margin-bottom: -2px;
+        margin-right: 6px;
+    }
+</style>
+
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
-    [Parameter]
+    [Parameter, EditorRequired]
     public TeamData Team { get; set; }
 
-    public TeamMemberData Member => Session.Selected.Member;
+    public TeamMemberData? Member => Session.Selected.Member;
 
     public IList<TeamRoleData> RolesList { get; set; }
     public TeamRoleData? SelectedRole { get; set; }
@@ -57,7 +70,7 @@
         Team.RoleChangeEvent += RoleChanged;
     }
 
-    public ListBoxItemRenderEventArgs<TeamRoleData> RenderItem(ListBoxItemRenderEventArgs<TeamRoleData> data)
+    public ListBoxItemRenderEventArgs<TeamRoleData> RenderItem(ListBoxItemRenderEventArgs<TeamRoleData?> data)
     {
         if (!Program.IsPreviewMode && Team.OwnerId != Member.UserId)
             data.Disabled = (data.Item as TeamRoleData)!.GetPosition() >= CurrentRank;
@@ -69,7 +82,7 @@
         Team.RoleChangeEvent -= RoleChanged;
     }
 
-    public void RoleChanged(object sender, Tuple<TeamRoleData?, bool> role)
+    public void RoleChanged(object? sender, Tuple<TeamRoleData?, bool> role)
     {
         if (role.Item1 == null)
             RolesList = Team.CachedRoles.Values.OrderByDescending(x => x.GetPosition()).ToList();
@@ -106,7 +119,10 @@
             return;
         }
 
-        if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+        if (SelectedRole == null)
+            return;
+
+        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
             return;
@@ -132,7 +148,10 @@
             return;
         }
 
-        if (!Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
+        if (SelectedRole == null)
+            return;
+
+        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.ManageRoles))
         {
             Session.Notifications.ShowPermissionWarning(TeamPermission.ManageRoles);
             return;

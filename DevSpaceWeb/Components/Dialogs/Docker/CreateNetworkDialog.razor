@@ -7,8 +7,9 @@
 @using Newtonsoft.Json.Linq
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
+@inject NotificationService Notifications
 
-<PageTitle>Pull Docker Image | @_Data.Config.Instance.Name</PageTitle>
+<PageTitle>Create Network | @_Data.Config.Instance.Name</PageTitle>
 
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
@@ -35,12 +36,12 @@
         <br />
         <br />
         <RadzenStack>
-            @foreach (var i in DriverOptionsInputs)
+            @foreach (KeyValuePair<string, Tuple<string, string>> i in DriverOptionsInputs)
             {
                 @DockerNameValueInput.RenderElement(this, DriverOptionsInputs, "Option", i.Key, i.Value, IsLoading)
             }
         </RadzenStack>
-        <br />
+        @* <br />
         <br />
         <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">IPv4 Network</RadzenText>
 
@@ -76,7 +77,7 @@
                 <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">IP Range</RadzenText>
                 <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Range" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::/64" />
             </RadzenColumn>
-        </RadzenRow>
+        </RadzenRow> *@
 
         <br />
         <br />
@@ -85,7 +86,7 @@
         <br />
         <br />
         <RadzenStack>
-            @foreach (var i in LabelInputs)
+            @foreach (KeyValuePair<string, Tuple<string, string>> i in LabelInputs)
             {
                 @DockerNameValueInput.RenderElement(this, LabelInputs, "Label", i.Key, i.Value, IsLoading)
             }
@@ -122,17 +123,17 @@
     public bool Failed = false;
     public bool IsLoading = false;
 
-    public string NetworkNameInput { get; set; }
+    public string?NetworkNameInput { get; set; }
 
     public string NetworkDriverInput { get; set; } = "bridge";
 
-    public string IPv4Subnet { get; set; }
-    public string IPv4Gateway { get; set; }
-    public string IPv4Range { get; set; }
+    public string? IPv4Subnet { get; set; }
+    public string? IPv4Gateway { get; set; }
+    public string? IPv4Range { get; set; }
 
-    public string IPv6Subnet { get; set; }
-    public string IPv6Gateway { get; set; }
-    public string IPv6Range { get; set; }
+    public string? IPv6Subnet { get; set; }
+    public string? IPv6Gateway { get; set; }
+    public string? IPv6Range { get; set; }
 
     public bool IsIsolated { get; set; }
     public bool IsManualAttach { get; set; }
@@ -159,8 +160,24 @@
         if (Server == null)
             return;
 
+        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(new CreateNetworkEvent
+            {
+                Name = NetworkNameInput,
+                DriverOptions = DriverOptionsInputs.Values.ToDictionary(x => x.Item1, x => x.Item2),
+                DriverType = NetworkDriverInput,
+                IsIsolated = IsIsolated,
+                IsManualAttach = IsManualAttach,
+                Labels = LabelInputs.Values.ToDictionary(x => x.Item1, x => x.Item2),
+                IPv4Subnet = IPv4Subnet,
+                IPv4Gateway = IPv4Gateway,
+                IPv4Range = IPv4Range,
+                IPv6Subnet = IPv6Subnet,
+                IPv6Gateway = IPv6Gateway,
+                IPv6Range = IPv6Range
+            }, Newtonsoft.Json.Formatting.Indented));
+
         IsLoading = true;
-        var Response = await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.CreateNetwork)
+        SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.CreateNetwork)
         {
             Data = JObject.FromObject(new CreateNetworkEvent
             {

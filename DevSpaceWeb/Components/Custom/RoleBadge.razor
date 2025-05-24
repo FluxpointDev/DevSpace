@@ -1,0 +1,33 @@
+﻿<RadzenBadge BadgeStyle="BadgeStyle.Base" Variant="Variant.Outlined" Text="Outlined" Style="@($"color: {Static.DefaultRoleColor}; text-transform: none; font-size: 13px !important; font-weight: 500 !important;")">
+    <span style="@($"background-color: {GetColor(Role)};")"></span> @Role.Name
+</RadzenBadge>
+
+<style>
+    .rz-badge-base span {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        margin-bottom: -3px;
+        margin-right: 4px;
+    }
+
+    .rz-badge-base {
+        padding: 4px;
+        padding-left: 6px;
+        padding-right: 6px;
+    }
+</style>
+
+@code {
+    [Parameter, EditorRequired]
+    public TeamRoleData Role { get; set; }
+
+    public static string GetColor(TeamRoleData role)
+    {
+        if (!string.IsNullOrEmpty(role.Color))
+            return role.Color;
+
+        return Static.DefaultRoleColor;
+    }
+}

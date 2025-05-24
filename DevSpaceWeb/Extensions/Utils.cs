@@ -197,7 +197,7 @@ public static class Utils
         if (!string.IsNullOrEmpty(context.Request.Headers["X-Forwarded-For"]))
             return context.Request.Headers["X-Forwarded-For"];
 
-        return null;
+        return context.Connection.RemoteIpAddress?.ToString();
     }
 
     internal static string GetStringSha256Hash(string text)
@@ -205,12 +205,14 @@ public static class Utils
         if (String.IsNullOrEmpty(text))
             return String.Empty;
 
+#pragma warning disable SYSLIB0021 // Type or member is obsolete
         using (SHA256Managed sha = new SHA256Managed())
         {
             byte[] textData = Encoding.UTF8.GetBytes(text);
             byte[] hash = sha.ComputeHash(textData);
             return BitConverter.ToString(hash).Replace("-", String.Empty);
         }
+#pragma warning restore SYSLIB0021 // Type or member is obsolete
     }
 
 
@@ -268,7 +270,7 @@ public static class Utils
                     newText.Append(' ');
             newText.Append(text[i]);
         }
-        return newText.ToString();
+        return newText.ToString().Replace("2 FA", " 2FA");
     }
 
     private static readonly char[] AllowedChars = "23456789BCDFGHJKMNPQRTVWXY_-.<>+=!?$*[]()%".ToCharArray();
@@ -304,6 +306,9 @@ public static class Utils
     public static string GetLocalDate(SessionProvider session, DateTime? date, bool isMini = true, bool showTime = false, bool showSeconds = false)
     {
         if (!date.HasValue)
+            return "";
+
+        if (date.Value.Year == 0001 || date.Value.Year == 1601)
             return "";
 
         DateTimeOffset MessageOffset = date.Value.AddMinutes(session.UserDateOffset);

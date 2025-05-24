@@ -15,7 +15,7 @@ using System.Data;
 namespace DevSpaceWeb.Controllers.API;
 
 [ShowInSwagger]
-[SwaggerTag("Requires permission View Members")]
+[SwaggerTag("Manage Team Members and information.")]
 [IsAuthenticated]
 [SwaggerResponse(StatusCodes.Status401Unauthorized, "Unauthorized", typeof(ResponseUnauthorized))]
 [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
@@ -23,12 +23,12 @@ namespace DevSpaceWeb.Controllers.API;
 public class MembersController : APIController
 {
     [HttpGet("/api/members")]
-    [SwaggerOperation("Get a list of members.", "")]
+    [SwaggerOperation("Get a list of members.", "Requires View Members permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<MemberJson[]>))]
     public async Task<IActionResult> GetMembers()
     {
         if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out TeamPermission? perm))
-            return PermissionFailed(perm);
+            return PermissionFailed(perm!);
 
         bool ViewPerms = Client.HasTeamPermission(CurrentTeam, TeamPermission.ViewPermissions);
 
@@ -36,32 +36,32 @@ public class MembersController : APIController
     }
 
     [HttpGet("/api/members/{userId?}")]
-    [SwaggerOperation("Get a member.", "")]
+    [SwaggerOperation("Get a member.", "Requires View Members permission.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseData<MemberJson>))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> GetMember([FromRoute] string userId = "")
     {
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out TeamPermission? perm))
+            return PermissionFailed(perm!);
+
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
-
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers, out TeamPermission? perm))
-            return PermissionFailed(perm);
 
         return Ok(new MemberJson(member, Client.HasTeamPermission(CurrentTeam, TeamPermission.ViewPermissions)));
     }
 
     [HttpPatch("/api/members/{userId?}/enable")]
-    [SwaggerOperation("Enable a member.", "")]
+    [SwaggerOperation("Enable a member.", "Requires View Members and Manage Members permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> EnableMember([FromRoute] string userId = "")
     {
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
+            return PermissionFailed(perm!);
+
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
-
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
-            return PermissionFailed(perm);
 
         if (member.GetRank() >= Client.GetRank())
             return RankFailed();
@@ -87,17 +87,19 @@ public class MembersController : APIController
     }
 
     [HttpPatch("/api/members/{userId?}/disable")]
-    [SwaggerOperation("Disable a member.", "")]
+    [SwaggerOperation("Disable a member.", "Requires View Members and Manage Members permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> DisableMember([FromRoute] string userId = "")
     {
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
+            return PermissionFailed(perm!);
+
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
 
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
-            return PermissionFailed(perm);
+
 
         if (member.GetRank() >= Client.GetRank())
             return RankFailed();
@@ -129,17 +131,17 @@ public class MembersController : APIController
     }
 
     [HttpDelete("/api/members/{userId?}/remove")]
-    [SwaggerOperation("Remove a member.", "")]
+    [SwaggerOperation("Remove a member.", "Requires View Members and Manage Members permissions.")]
     [SwaggerResponse(StatusCodes.Status200OK, "Success", typeof(ResponseSuccess))]
     [SwaggerResponse(StatusCodes.Status403Forbidden, "Forbidden", typeof(ResponseForbidden))]
     [SwaggerResponse(StatusCodes.Status404NotFound, "Not Found", typeof(ResponseNotFound))]
     public async Task<IActionResult> RemoveMember([FromRoute] string userId = "")
     {
+        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
+            return PermissionFailed(perm!);
+
         if (string.IsNullOrEmpty(userId) || !ObjectId.TryParse(userId, out ObjectId obj2) || !CurrentTeam.Members.TryGetValue(obj2, out ObjectId memberObj) || !CurrentTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
             return NotFound("Could not find member.");
-
-        if (Client.CheckFailedTeamPermissions(TeamPermission.ViewMembers | TeamPermission.ManageMembers, out TeamPermission? perm))
-            return PermissionFailed(perm);
 
         if (member.GetRank() >= Client.GetRank())
             return RankFailed();

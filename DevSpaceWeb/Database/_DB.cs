@@ -17,7 +17,9 @@ using System.Net;
 
 namespace DevSpaceWeb.Database;
 
+#pragma warning disable IDE1006 // Naming Styles
 public static class _DB
+#pragma warning restore IDE1006 // Naming Styles
 {
     public static ConfigureDatabase? Configure;
 
@@ -27,7 +29,7 @@ public static class _DB
 
     public static bool HasException;
 
-    public static event SessionEventHandler SessionUpdated;
+    public static event SessionEventHandler? SessionUpdated;
 
     public static void TriggerSessionEvent(ObjectId user, SessionEventType type)
     {
@@ -114,8 +116,6 @@ public static class _DB
 
             if (string.IsNullOrEmpty(Configure.User))
                 throw new ArgumentException("Database user not configured in appsettings.json");
-
-            throw new ArgumentException("ConnectionString not configured");
         }
 
         Client = new MongoClient(Configure.GetConnectionString());
@@ -167,6 +167,17 @@ public static class _DB
             return false;
         }
 
+        try
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            _ = Run.GetCollection<AuditLog>("audit").Indexes.CreateOne(Builders<AuditLog>.IndexKeys.Ascending("CreatedAt"),
+                new CreateIndexOptions { ExpireAfter = new TimeSpan(30, 0, 0, 0), Name = "_expire_at_" });
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+        catch
+        {
+
+        }
 
         try
         {
@@ -218,6 +229,8 @@ public static class _DB
                         {
                             Logger.LogMessage("Database", "- Roles: Migrating " + i.Name, LogSeverity.Info);
 
+#pragma warning disable CS0612 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
                             if (i.Roles != null)
                             {
                                 _ = i.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Unset(x => x.Roles), () =>
@@ -226,8 +239,9 @@ public static class _DB
                                 });
                             }
 
+
                             int Position = 0;
-                            Dictionary<ObjectId, int> UpdatedPositions = new Dictionary<ObjectId, int>();
+                            Dictionary<ObjectId, int> UpdatedPositions = [];
                             foreach (TeamRoleData? r in i.CachedRoles.Values.OrderBy(x => x.Position.GetValueOrDefault()))
                             {
 
@@ -238,6 +252,9 @@ public static class _DB
 
                                 });
                             }
+#pragma warning restore CS0618 // Type or member is obsolete
+#pragma warning restore CS0612 // Type or member is obsolete
+
                             await i.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.RolePositions, UpdatedPositions), () =>
                             {
 
@@ -382,7 +399,7 @@ public static class _DB
                     Servers.Cache.TryAdd(x.Id, x);
                     bool IsDev = Program.IsDevMode || Program.IsPreviewMode;
                     if (!IsDev || x.OwnerId.ToString() == "6757b63be964c430187491bb")
-                        x.StartWebSocket(true);
+                        _ = x.StartWebSocket(true);
                 });
                 Logger.LogMessage("Database", "- Servers: " + Servers.Cache.Keys.Count, LogSeverity.Info);
             }
@@ -462,7 +479,7 @@ public static class _DB
                                     RConPort = x.Port,
                                     RConPass = x.GetDecryptedPassword()
                                 };
-                                rcon.StartComms();
+                                _ = rcon.StartComms();
                                 _Data.MinecraftRcons.Add(x.Id, rcon);
                             }
                             break;
@@ -515,7 +532,7 @@ public static class _DB
 
     public static ICacheCollection<ServerData> Servers = null!;
 
-    public static Dictionary<ObjectId, PartialUserData> Users = new Dictionary<ObjectId, PartialUserData>();
+    public static Dictionary<ObjectId, PartialUserData> Users = [];
 
     public static ICacheCollection<ConsoleData> Consoles = null!;
 

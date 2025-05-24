@@ -235,7 +235,9 @@ public static class _Data
 
         byte[] bytes = new byte[length * 8];
 
+#pragma warning disable SYSLIB0023 // Type or member is obsolete
         new RNGCryptoServiceProvider().GetBytes(bytes);
+#pragma warning restore SYSLIB0023 // Type or member is obsolete
         char[] result = new char[length];
         for (int i = 0; i < length; i++)
         {

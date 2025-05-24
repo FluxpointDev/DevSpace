@@ -1,5 +1,4 @@
-﻿@using BlazorMonaco.Editor
-@using DevSpaceShared.Data
+﻿@using DevSpaceShared.Data
 @using DevSpaceShared.Events.Docker
 @using Docker.DotNet.Models
 @using Newtonsoft.Json.Linq
@@ -8,6 +7,8 @@
 
 @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))
 {
+    <PageTitle>Container Inspect | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -28,6 +29,8 @@
 }
 else
 {
+    <PageTitle>@(ContainerName ?? ContainerId) Inspect | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box">
         <div class="dash-box-header dash-box-content">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -42,7 +45,7 @@ else
         </div>
         <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@(string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName)" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId)" Text="@(ContainerName ?? ContainerId)" />
             <RadzenBreadCrumbItem Text="Inspect" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -56,11 +59,11 @@ else
             <br />
             @if (GotInspect)
             {
-                <StandaloneCodeEditor @ref="_editor" Id="editorContainerInspect" ConstructionOptions="EditorConstructionOptions" OnDidInit="@Init" />
+                <Editor Value="@InspectData" FileName="@((string.IsNullOrEmpty(ContainerName) ? ContainerId : ContainerName) + ".json")" Language="json" ReadOnly="true" HeightOverflow="240"></Editor>
             }
             else
             {
-                <div class="monaco-editor">
+                <div class="monaco-editor-placeholder">
 
                 </div>
             }
@@ -69,13 +72,13 @@ else
 }
 
 <style>
-    .monaco-editor, .monaco-diff-editor {
+    .monaco-editor-placeholder {
         background-color: #1e1e1e !important;
     }
 
-    .monaco-editor-container, .monaco-diff-editor {
+    .monaco-editor-placeholder  {
         min-height: 400px !important;
-        max-height: calc(100vh - 140px) !important;
+        max-height: calc(100vh - 210px) !important;
         padding-top: 6px;
         padding-bottom: 10px;
     }
@@ -90,33 +93,14 @@ else
     public ServerData? Server => Session.Selected.Server;
 
     [Parameter]
-    public string ContainerId { get; set; }
+    public string? ContainerId { get; set; }
 
-    public string? InspectData { get; set; } = "";
+    public string? InspectData { get; set; }
     public bool GotInspect { get; set; }
     public string? ContainerName { get; set; }
     public bool Failed { get; set; }
 
-    private StandaloneCodeEditor _editor = null;
 
-    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
-    {
-        return new StandaloneEditorConstructionOptions
-        {
-            AutomaticLayout = true,
-            Language = "json",
-            Theme = "vs-dark",
-            ScrollBeyondLastLine = false,
-            Folding = false,
-            ReadOnly = true
-        };
-    }
-
-    public async Task Init()
-    {
-        var Model = await _editor.GetModel();
-        await Model.SetValue(InspectData);
-    }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -128,7 +112,7 @@ else
 
         try
         {
-            var Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
+            SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
             Failed = !Result.IsSuccess;
             if (Failed || Result.Data == null)
                 return;

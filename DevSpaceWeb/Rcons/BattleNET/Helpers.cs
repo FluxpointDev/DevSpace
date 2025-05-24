@@ -44,9 +44,13 @@ internal class Helpers
 
     public static string StringValueOf(Enum value)
     {
+#pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
         FieldInfo fi = value.GetType().GetField(value.ToString());
+#pragma warning restore CS8600 // Converting null literal or possible null value to non-nullable type.
+#pragma warning disable CS8602 // Dereference of a possibly null reference.
         DescriptionAttribute[] attributes =
             (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+#pragma warning restore CS8602 // Dereference of a possibly null reference.
         if (attributes.Length > 0)
         {
             return attributes[0].Description;

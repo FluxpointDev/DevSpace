@@ -35,7 +35,7 @@ public class VanityUrlData
         return false;
     }
 
-    public async Task UpdateAsync(ServerData server, string vanityUrl)
+    public async Task UpdateAsync(ServerData server, string? vanityUrl)
     {
         if (string.IsNullOrEmpty(vanityUrl))
         {
@@ -105,5 +105,29 @@ public class VanityUrlData
         UpdateResult Result = await _DB.TeamVanityUrls.Collection.UpdateOneAsync(filter, update);
         if (Result.IsAcknowledged)
             action?.Invoke();
+    }
+
+    public void ClearCache()
+    {
+        foreach (KeyValuePair<string, ObjectId> i in ServerVanityUrls)
+        {
+            _DB.VanityUrlCache.TryAdd(i.Value, i.Key);
+        }
+        foreach (KeyValuePair<string, ObjectId> i in LogVanityUrls)
+        {
+            _DB.VanityUrlCache.TryAdd(i.Value, i.Key);
+        }
+        foreach (KeyValuePair<string, ObjectId> i in ProjectVanityUrls)
+        {
+            _DB.VanityUrlCache.TryAdd(i.Value, i.Key);
+        }
+        foreach (KeyValuePair<string, ObjectId> i in ConsoleVanityUrls)
+        {
+            _DB.VanityUrlCache.TryAdd(i.Value, i.Key);
+        }
+        foreach (KeyValuePair<string, ObjectId> i in WebsiteVanityUrls)
+        {
+            _DB.VanityUrlCache.TryAdd(i.Value, i.Key);
+        }
     }
 }

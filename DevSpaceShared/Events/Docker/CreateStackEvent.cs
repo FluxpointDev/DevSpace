@@ -5,4 +5,5 @@ public class CreateStackEvent
     public string? Content { get; set; }
     public string? DockerfileName { get; set; }
     public bool IsAdministrator { get; set; }
+    public bool PullImage { get; set; }
 }

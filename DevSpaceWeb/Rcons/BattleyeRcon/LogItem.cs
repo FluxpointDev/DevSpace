@@ -6,7 +6,7 @@ struct LogItem
     {
         get { return _type; }
     }
-    public string Message
+    public string? Message
     {
         get { return _message.ToString(); }
     }

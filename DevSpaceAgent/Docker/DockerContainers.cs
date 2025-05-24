@@ -8,22 +8,42 @@ namespace DevSpaceAgent.Docker;
 
 public static class DockerContainers
 {
-    public static async Task<IList<DockerContainerInfo>> ListContainersAsync(DockerClient client)
+    public static async Task<IList<DockerContainerInfo>> ListContainersAsync(DockerClient client, DockerEvent @event)
     {
         try
         {
-            IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
+            ContainersListParameters Parameters = new ContainersListParameters()
             {
-                Size = true,
-                All = true
-            });
+                All = true,
+            };
+            Dictionary<string, string>? Filters = null;
+            if (@event.Data != null)
+            {
+                ListContainersEvent? Data = @event.Data.ToObject<ListContainersEvent>();
+                if (Data != null)
+                {
+                    if (Data.Filters != null)
+                    {
+                        Parameters.Filters = new Dictionary<string, IDictionary<string, bool>>();
+                        foreach (KeyValuePair<string, string> i in Data.Filters)
+                        {
+                            Parameters.Filters.Add(i.Key, new Dictionary<string, bool>
+                            {
+                                { i.Value, true }
+                            });
+                        }
+                    }
+                }
+            }
+
+            IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(Parameters);
             return Containers.Select(x => DockerContainerInfo.Create(x)).ToList();
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex);
         }
-        return null;
+        return [];
     }
 
     public static async Task<ContainerListResponse?> GetContainerAsync(DockerClient client, string? id)
@@ -104,7 +124,7 @@ public static class DockerContainers
             }, CancellationToken.None);
             RenameDone = true;
 
-            foreach (var i in Info.NetworkSettings.Networks)
+            foreach (KeyValuePair<string, EndpointSettings> i in Info.NetworkSettings.Networks)
             {
                 await client.Networks.DisconnectNetworkAsync(i.Value.NetworkID, new NetworkDisconnectParameters
                 {
@@ -124,7 +144,7 @@ public static class DockerContainers
             };
             CreateContainerResponse CreateContainer = await client.Containers.CreateContainerAsync(Config);
 
-            foreach (var i in Info.NetworkSettings.Networks)
+            foreach (KeyValuePair<string, EndpointSettings> i in Info.NetworkSettings.Networks)
             {
                 _ = client.Networks.ConnectNetworkAsync(i.Value.NetworkID, new NetworkConnectParameters
                 {
@@ -168,7 +188,7 @@ public static class DockerContainers
                 }, CancellationToken.None);
             }
 
-            foreach (var i in Info.NetworkSettings.Networks)
+            foreach (KeyValuePair<string, EndpointSettings> i in Info.NetworkSettings.Networks)
             {
                 _ = client.Networks.ConnectNetworkAsync(i.Value.NetworkID, new NetworkConnectParameters
                 {
@@ -234,6 +254,14 @@ public static class DockerContainers
                 break;
             case ControlContainerType.ForceRemove:
             case ControlContainerType.Remove:
+                if (@event.ContainerType == ControlContainerType.ForceRemove)
+                {
+                    await client.Containers.StopContainerAsync(id, new ContainerStopParameters
+                    {
+
+                    });
+                }
+
                 await client.Containers.RemoveContainerAsync(id, new ContainerRemoveParameters
                 {
                     Force = @event.ContainerType == ControlContainerType.ForceRemove
@@ -254,20 +282,32 @@ public static class DockerContainers
                     DockerContainerLogs Logs = new DockerContainerLogs();
                     Logs.ContainerName = Program.ContainerCache.GetValueOrDefault(id, id);
 
-                    MultiplexedStream Stream = await client.Containers.GetContainerLogsAsync(id, false, new ContainerLogsParameters
+                    try
                     {
-                        Tail = Data.Limit.ToString(),
-                        Timestamps = Data.ShowTimestamp,
-                        ShowStdout = true,
-                        ShowStderr = true,
-                        Since = Data.SinceDate.HasValue ? ((DateTimeOffset)Data.SinceDate.Value).ToUnixTimeSeconds().ToString() : null,
-                        Until = Data.UntilDate.HasValue ? ((DateTimeOffset)Data.UntilDate.Value).ToUnixTimeSeconds().ToString() : null,
-                    }, CancellationToken.None);
-
-                    (string stdout, string stderr) DataStream = await Stream.ReadOutputToEndAsync(CancellationToken.None);
+                        using (MultiplexedStream Stream = await client.Containers.GetContainerLogsAsync(id, false, new ContainerLogsParameters
+                        {
+                            Tail = Data.Limit.ToString(),
+                            Timestamps = Data.ShowTimestamp,
+                            ShowStdout = true,
+                            ShowStderr = true,
+                            Since = Data.SinceDate.HasValue ? ((DateTimeOffset)Data.SinceDate.Value).ToUnixTimeSeconds().ToString() : null,
+                            Until = Data.UntilDate.HasValue ? ((DateTimeOffset)Data.UntilDate.Value).ToUnixTimeSeconds().ToString() : null,
+                        }, CancellationToken.None))
+                        {
+                            (string stdout, string stderr) DataStream = await Stream.ReadOutputToEndAsync(CancellationToken.None);
+                            Logs.Logs = DataStream.stdout;
+                            if (!string.IsNullOrEmpty(DataStream.stderr))
+                            {
+                                Logs.Logs += (!string.IsNullOrEmpty(Logs.Logs) ? "\n" : "") + DataStream.stderr;
+                            }
+                        }
+                    }
+                    catch (DockerApiException de) when (de.StatusCode == System.Net.HttpStatusCode.NotImplemented)
+                    {
+                        Logs.NotEnabled = true;
+                        return Logs;
+                    }
                     Logs.SinceDate = DateTime.UtcNow;
-                    Logs.Logs = DataStream.stdout;
-
                     return Logs;
                 }
             case ControlContainerType.Processes:
@@ -281,6 +321,7 @@ public static class DockerContainers
                         DockerStatJson? Stats = null;
                         try
                         {
+#pragma warning disable CS0618 // Type or member is obsolete
                             using (Stream StatsStream = await client.Containers.GetContainerStatsAsync(id, new ContainerStatsParameters
                             {
                                 Stream = false
@@ -292,6 +333,7 @@ public static class DockerContainers
                                     Stats = Newtonsoft.Json.JsonConvert.DeserializeObject<DockerStatJson>(Json);
                                 }
                             }
+#pragma warning restore CS0618 // Type or member is obsolete
                         }
                         catch { }
 
@@ -318,6 +360,7 @@ public static class DockerContainers
                     DockerStatJson? Stats = null;
                     try
                     {
+#pragma warning disable CS0618 // Type or member is obsolete
                         using (Stream StatsStream = await client.Containers.GetContainerStatsAsync(id, new ContainerStatsParameters
                         {
                             Stream = false
@@ -329,6 +372,7 @@ public static class DockerContainers
                                 Stats = Newtonsoft.Json.JsonConvert.DeserializeObject<DockerStatJson>(Json);
                             }
                         }
+#pragma warning restore CS0618 // Type or member is obsolete
                     }
                     catch { }
                     return Stats != null ? DockerContainerStats.Create(Stats) : null;
@@ -347,7 +391,7 @@ public static class DockerContainers
                 break;
             case ControlContainerType.Scan:
                 {
-                    var CurrentContainer = await client.Containers.InspectContainerAsync(id);
+                    ContainerInspectResponse CurrentContainer = await client.Containers.InspectContainerAsync(id);
                     if (!CurrentContainer.Mounts.Any() || !CurrentContainer.Mounts.Any(x => x.Type == "bind" || x.Type == "volume"))
                         return new CreateContainerResponse()
                         {
@@ -360,12 +404,12 @@ public static class DockerContainers
                         Tag = "latest"
                     }, null, new Progress<JSONMessage>());
 
-                    var Binds = new List<string>
-                    {
+                    List<string> Binds =
+                    [
                         "/var/trivy:/root/.cache:rw"
-                    };
+                    ];
 
-                    foreach (var i in CurrentContainer.Mounts)
+                    foreach (MountPoint? i in CurrentContainer.Mounts)
                     {
                         if (i.Type == "volume")
                         {
@@ -379,8 +423,8 @@ public static class DockerContainers
 
                     CreateContainerResponse Container = await client.Containers.CreateContainerAsync(new CreateContainerParameters
                     {
-                        Cmd = new List<string>
-                        {
+                        Cmd =
+                        [
                             "filesystem",
                             "/root/mount/",
                             "--skip-files",
@@ -390,7 +434,7 @@ public static class DockerContainers
                             "json",
                             "--scanners",
                             "vuln"
-                        },
+                        ],
                         Image = "docker.io/aquasec/trivy",
                         Name = "security-scan-" + Guid.NewGuid().ToString().Replace("-", ""),
                         HostConfig = new HostConfig
@@ -423,7 +467,7 @@ public static class DockerContainers
                     if (Container == null)
                         throw new Exception("Failed to parse container scan options.");
 
-                    var GetContainer = await client.Containers.InspectContainerAsync(Container.ID);
+                    ContainerInspectResponse GetContainer = await client.Containers.InspectContainerAsync(Container.ID);
                     if (GetContainer == null || GetContainer.State.ExitCode != 0)
                         return new SecurityData { IsComplete = false };
 

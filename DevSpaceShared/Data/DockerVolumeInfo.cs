@@ -33,7 +33,7 @@ public class DockerVolumeInfo
     public IDictionary<string, object>? Status { get; set; }
     public IDictionary<string, string>? Labels { get; set; }
     public IDictionary<string, string>? Options { get; set; }
-    public Dictionary<string, string> Containers { get; set; } = new Dictionary<string, string>();
-    public Dictionary<string, DockerMountContainer> ContainersList { get; set; } = new Dictionary<string, DockerMountContainer>();
+    public Dictionary<string, string> Containers { get; set; } = [];
+    public Dictionary<string, DockerMountContainer> ContainersList { get; set; } = [];
     public int ContainersCount { get; set; }
 }

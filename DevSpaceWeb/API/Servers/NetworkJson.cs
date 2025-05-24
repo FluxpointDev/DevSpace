@@ -14,9 +14,28 @@ public class NetworkJson
         scope = network.Scope;
         ingress = network.Ingress;
         config_only = network.ConfigOnly;
+
+        if (network.ConfigFrom != null)
+            config_from = new NetworkFromJson
+            {
+                id = network.ConfigFrom.Id,
+                name = network.ConfigFrom.Name,
+            };
+
         created_at = network.Created;
-        labels = network.Labels;
-        options = network.Options;
+
+        if (network.Labels != null)
+            labels = network.Labels;
+        else
+            labels = new Dictionary<string, string>();
+
+        if (network.Options != null)
+            options = network.Options;
+        else
+            options = new Dictionary<string, string>();
+
+        containers_list = network.Containers;
+        containers_count = containers_list.Count;
     }
 
     public string id { get; set; }
@@ -27,7 +46,15 @@ public class NetworkJson
     public string? scope { get; set; }
     public bool ingress { get; set; }
     public bool config_only { get; set; }
+    public NetworkFromJson? config_from { get; set; }
     public DateTime created_at { get; set; }
-    public IDictionary<string, string>? labels { get; set; }
-    public IDictionary<string, string>? options { get; set; }
+    public IDictionary<string, string> labels { get; set; }
+    public IDictionary<string, string> options { get; set; }
+    public Dictionary<string, string> containers_list { get; set; }
+    public int containers_count { get; set; }
+}
+public class NetworkFromJson
+{
+    public string? id { get; set; }
+    public string? name { get; set; }
 }

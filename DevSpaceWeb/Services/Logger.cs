@@ -51,7 +51,7 @@ public static class Logger
 
     private static LogSeverity LogMode { get; set; }
 
-    private static BlockingCollection<LogJsonMessage> MessageQueue = new BlockingCollection<LogJsonMessage>();
+    private static BlockingCollection<LogJsonMessage> MessageQueue = [];
 
 #pragma warning disable IDE0051 // Remove unused private members
 

@@ -2,8 +2,8 @@
 
 public static class SearchData
 {
-    public static List<SearchDataItem> List = new List<SearchDataItem>
-    {
+    public static List<SearchDataItem> List =
+    [
         new SearchDataItem("Change Username", "account", "/user/account"),
         new SearchDataItem("Change Display Name", "account", "/user/account"),
         new SearchDataItem("Change Email", "account", "/user/account"),
@@ -19,7 +19,7 @@ public static class SearchData
         new SearchDataItem("Passkeys", "account", "/user/account"),
         new SearchDataItem("WebAuthn", "account", "/user/account"),
 
-    };
+    ];
 }
 public class SearchDataItem
 {

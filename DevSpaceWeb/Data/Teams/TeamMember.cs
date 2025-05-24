@@ -25,6 +25,9 @@ public class TeamMemberData
     [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
+    [BsonIgnore]
+    public string FilterUsername => _DB.Users.TryGetValue(UserId, out PartialUserData user) ? user.UserName : null;
+
     public string GetUsername()
     {
         if (_DB.Users.TryGetValue(UserId, out PartialUserData? user))
@@ -33,7 +36,7 @@ public class TeamMemberData
         return "Unknown User";
     }
 
-    public string GetCurrentName()
+    public string? GetCurrentName()
     {
         if (!string.IsNullOrEmpty(NickName))
             return NickName;
@@ -42,6 +45,22 @@ public class TeamMemberData
             return user.GetCurrentName();
 
         return "Unknown User";
+    }
+
+    public string GetCurrentColor()
+    {
+        if (Team != null)
+        {
+            foreach (ObjectId i in Roles.OrderByDescending(x => Team.RolePositions.GetValueOrDefault(x)))
+            {
+                if (_DB.Roles.Cache.TryGetValue(i, out TeamRoleData? role) && !string.IsNullOrEmpty(role.Color))
+                    return role.Color;
+            }
+
+            if (!string.IsNullOrEmpty(Team.DefaultMembersColor))
+                return Team.DefaultMembersColor;
+        }
+        return Static.DefaultRoleColor;
     }
 
     public string GetCurrentAvatar()
@@ -83,9 +102,9 @@ public class TeamMemberData
         return false;
     }
 
-    public bool CanManage(TeamMemberData currentMember)
+    public bool CanManage(TeamMemberData? currentMember)
     {
-        if (TeamId != currentMember.TeamId)
+        if (currentMember == null || TeamId != currentMember.TeamId)
             return false;
 
         TeamData? CurrentTeam = Team;
@@ -98,6 +117,33 @@ public class TeamMemberData
         if (currentMember.GetRank() > this.GetRank())
             return true;
         return false;
+    }
+
+    [BsonIgnore]
+    public bool IsEnabled => Disabled == null;
+
+    [BsonIgnore]
+    public bool Has2FA => _DB.Users.TryGetValue(UserId, out PartialUserData user) && user.Has2FA;
+
+    [BsonIgnore]
+    public string MemberType => GetMemberType();
+
+    private string GetMemberType()
+    {
+        TeamData GetTeam = Team;
+        if (GetTeam == null)
+            return "Member";
+
+        if (GetTeam.OwnerId == UserId)
+            return "Owner";
+
+        if (HasTeamPermission(GetTeam, TeamPermission.GlobalAdministrator))
+            return "Global Admin";
+
+        if (HasTeamPermission(GetTeam, TeamPermission.TeamAdministrator))
+            return "Team Admin";
+
+        return "Member";
     }
 
     public UserDisabled? Disabled { get; set; }
@@ -484,13 +530,13 @@ public class TeamMemberData
         return CurrentRank;
     }
 
-    public HashSet<ObjectId> Roles { get; set; } = new HashSet<ObjectId>();
+    public HashSet<ObjectId> Roles { get; set; } = [];
 
     public IEnumerable<TeamRoleData> GetCachedRoles()
     {
         TeamData? selectedTeam = Team;
         if (selectedTeam == null)
-            return new List<TeamRoleData>();
+            return [];
         return (IEnumerable<TeamRoleData>)Roles.Select(x => selectedTeam.CachedRoles.GetValueOrDefault(x)).Where(x => x != null);
     }
     public string? NickName { get; set; }
@@ -582,7 +628,7 @@ public class TeamMemberData
                 {
                     _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Role, AuditLogEventType.MemberRolesChanged)
                         .SetTarget(this)
-                        .AddProperty("Roles", ""));
+                        .AddProperty("Roles", null));
                 }
             }
         }

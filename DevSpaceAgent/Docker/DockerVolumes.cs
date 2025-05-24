@@ -1,4 +1,5 @@
-﻿using DevSpaceShared.Data;
+﻿using DevSpaceShared;
+using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
@@ -9,7 +10,7 @@ public static class DockerVolumes
 {
     public static async Task<IList<DockerVolumeInfo>> ListVolumesAsync(DockerClient client)
     {
-        IList<DockerVolumeInfo> List = new List<DockerVolumeInfo>();
+        IList<DockerVolumeInfo> List = [];
         VolumesListResponse Volumes = await client.Volumes.ListAsync();
         IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
         {
@@ -38,8 +39,11 @@ public static class DockerVolumes
         return await client.Volumes.CreateAsync(param);
     }
 
-    public static async Task<object?> ControlVolumeAsync(DockerClient client, DockerEvent @event, string id)
+    public static async Task<object?> ControlVolumeAsync(DockerClient client, DockerEvent @event, string? id)
     {
+        if (string.IsNullOrEmpty(id))
+            throw new Exception("Volume id is missing.");
+
         switch (@event.VolumeType)
         {
             case ControlVolumeType.View:
@@ -66,6 +70,27 @@ public static class DockerVolumes
                 return Data;
             case ControlVolumeType.Remove:
             case ControlVolumeType.ForceRemove:
+                if (@event.VolumeType == ControlVolumeType.ForceRemove)
+                {
+                    IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                    {
+                        All = true,
+                        Filters = new Dictionary<string, IDictionary<string, bool>>
+                            {
+                                { "volume", new Dictionary<string, bool>
+                                { { id, true }}
+                                }
+                            }
+                    });
+                    foreach (ContainerListResponse? i in Containers)
+                    {
+                        if (i.IsRunning())
+                        {
+                            await client.Containers.StopContainerAsync(i.ID, new ContainerStopParameters());
+                        }
+                    }
+                }
+
                 await client.Volumes.RemoveAsync(id, @event.VolumeType == ControlVolumeType.ForceRemove);
                 break;
         }

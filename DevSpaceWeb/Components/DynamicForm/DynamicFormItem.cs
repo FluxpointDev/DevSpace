@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Reflection;
-using System.Text;
 
 namespace DevSpaceWeb.Components.DynamicForm;
 
@@ -24,29 +23,7 @@ public class DynamicFormItem
 
     private string SetLabelText(PropertyInfo prop)
     {
-        bool IsUppercase = false;
-        StringBuilder str = new StringBuilder();
-        foreach (char i in prop.Name)
-        {
-            if (Char.IsUpper(i))
-            {
-                if (!IsUppercase)
-                {
-                    str.Append(' ');
-                    IsUppercase = true;
-                }
-
-            }
-            else
-            {
-                if (IsUppercase)
-                {
-                    IsUppercase = false;
-                }
-            }
-            str.Append(i);
-        }
-        Label = str.ToString();
+        Label = Utils.FriendlyName(prop.Name, true);
         DisplayAttribute? DisplayName = prop.GetCustomAttribute<DisplayAttribute>();
         if (DisplayName != null && !string.IsNullOrEmpty(DisplayName.Name))
             Label = DisplayName.Name;
@@ -55,10 +32,10 @@ public class DynamicFormItem
 
     public PropertyInfo Property { get; set; }
 
-    public string Label { get; set; }
+    public string? Label { get; set; }
     public DynamicFormType Type { get; set; }
 
-    public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
 
     public bool Validate(object model)
     {

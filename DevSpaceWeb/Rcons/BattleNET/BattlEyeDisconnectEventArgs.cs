@@ -30,7 +30,9 @@ public class BattlEyeDisconnectEventArgs : EventArgs
     {
         LoginDetails = loginDetails;
         DisconnectionType = disconnectionType;
+#pragma warning disable CS8604 // Possible null reference argument.
         Message = Helpers.StringValueOf(disconnectionType);
+#pragma warning restore CS8604 // Possible null reference argument.
     }
 
     public BattlEyeLoginCredentials LoginDetails { get; }

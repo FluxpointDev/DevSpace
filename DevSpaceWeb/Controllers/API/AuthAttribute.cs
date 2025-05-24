@@ -73,7 +73,7 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
             return;
         }
 
-        Microsoft.AspNetCore.Identity.PasswordVerificationResult Validate = Utils.Hasher.VerifyHashedPassword(null, controller.Client.TokenHash, Auth);
+        Microsoft.AspNetCore.Identity.PasswordVerificationResult Validate = Utils.Hasher.VerifyHashedPassword(null!, controller.Client.TokenHash, Auth);
 
         if (Validate == Microsoft.AspNetCore.Identity.PasswordVerificationResult.Failed)
         {
@@ -106,6 +106,12 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
         if (controller.CurrentOwner == null)
         {
             filterContext.Result = controller.CustomStatus(403, "Owner has been removed from the team for this client.");
+            return;
+        }
+
+        if (controller.CurrentTeam.Require2FA && controller.CurrentTeam.OwnerId != user.Id && !user.Has2FA)
+        {
+            filterContext.Result = controller.CustomStatus(403, "Owner does not have 2FA to access this team or resources.");
             return;
         }
 

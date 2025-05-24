@@ -1,9 +1,10 @@
-﻿@using DevSpaceWeb.Fido2
+﻿@using DevSpaceWeb.Components.Dialogs.Users
+@using DevSpaceWeb.Fido2
 @using DevSpaceWeb.Models.Accounts
 @using Microsoft.Extensions.Caching.Distributed
 @using System.Globalization
 @inject IJSRuntime JS
-@inject DialogService DialogService
+@inject DialogService Dialogs
 @inject HttpContextAccessor Http
 @inject UserManager<AuthUser> UserManager
 @inject NavigationManager Nav
@@ -400,8 +401,107 @@
         else
         {
             <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
-                @foreach (KeyValuePair<string, UserSession> i in AuthUser.Account.Sessions.OrderByDescending(x => x.Value.CreatedAt))
+                @if (Program.IsPreviewMode)
                 {
+                    if (AuthUser.Account.Sessions.TryGetValue(Session.CurrentSessionId, out UserSession? currentSession))
+                    {
+                        <div class="session-item">
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                            <div>
+                                @switch (currentSession.BrowserType)
+                                {
+                                    case SessionBrowserType.Firefox:
+                                        <span class="iconify" data-icon="logos:firefox"></span>
+                                        break;
+                                    case SessionBrowserType.Chrome:
+                                        <span class="iconify" data-icon="logos:chrome"></span>
+                                        break;
+                                    case SessionBrowserType.Edge:
+                                        <span class="iconify" data-icon="logos:microsoft-edge"></span>
+                                        break;
+                                    case SessionBrowserType.InternetExplorer:
+                                        <span class="iconify" data-icon="logos:internetexplorer"></span>
+                                        break;
+                                    case SessionBrowserType.Opera:
+                                        <span class="iconify" data-icon="logos:opera"></span>
+                                        break;
+                                    case SessionBrowserType.Safari:
+                                        <span class="iconify" data-icon="logos:safari"></span>
+                                        break;
+                                    case SessionBrowserType.Vivaldi:
+                                        <span class="iconify" data-icon="logos:vivaldi-icon"></span>
+                                        break;
+                                    case SessionBrowserType.Unknown:
+                                        <span class="iconify" data-icon="mdi:web"></span>
+                                        break;
+                                }
+                                @if (currentSession.IsMobile)
+                                {
+                                    <span class="iconify" data-icon="mdi:mobile-phone"></span>
+                                }
+                                else
+                                {
+                                    <span class="iconify" data-icon="mdi:computer-classic"></span>
+                                }
+                            </div>
+
+                            <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">
+                                    <span>@(currentSession.Name) <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" Text="Current Session" class="ml-1" /></span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Created: @(Utils.GetLocalDate(Session, currentSession.CreatedAt, true))</span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Last Login: @(Utils.GetLocalDate(Session, currentSession.LastLoginAt, true))</span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Region: @currentSession.Country</span>
+                                </RadzenText>
+                            </RadzenStack>
+                            <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                                <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditSession(null!))" />
+                                <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveSession(null!))" />
+                            </RadzenStack>
+                        </RadzenStack>
+                    </div>
+                    }
+                    else
+                    {
+                        <div class="session-item">
+                            <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
+                            <div>
+                                <span class="iconify" data-icon="logos:firefox"></span>
+                                <span class="iconify" data-icon="mdi:computer-classic"></span>
+                            </div>
+
+                            <RadzenStack Gap="0px" Style="flex-grow: 2;">
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">
+                                    <span>Firefox <RadzenBadge BadgeStyle="BadgeStyle.Info" Shade="Shade.Darker" Text="Current Session" class="ml-1" /></span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Created: @(Utils.GetLocalDate(Session, DateTime.Now.AddDays(-5), true))</span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Last Login: @(Utils.GetLocalDate(Session, DateTime.Now.AddDays(-3), true))</span>
+                                </RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span>Region: England (GB)</span>
+                                </RadzenText>
+                            </RadzenStack>
+                            <RadzenStack Gap="10px" AlignItems="AlignItems.Stretch" JustifyContent="JustifyContent.Center">
+                                <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditSession(null!))" />
+                                <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveSession(null!))" />
+                            </RadzenStack>
+
+                        </RadzenStack>
+                        </div>
+                    }
+                }
+                else
+                {
+                    foreach (KeyValuePair<string, UserSession> i in AuthUser.Account.Sessions.OrderByDescending(x => x.Value.CreatedAt))
+                    {
                     <div class="session-item">
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.SpaceAround">
                             <div>
@@ -467,14 +567,9 @@
                                 <RadzenButton Text="Edit" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => EditSession(i.Key))" />
                                 <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@(() => RemoveSession(i.Key))" />
                             </RadzenStack>
-
                         </RadzenStack>
-
-
-
-
-
                     </div>
+                    }
                 }
             </RadzenStack>
             <br />
@@ -689,12 +784,12 @@
                 bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
                 if (!TwoFactorValid)
                 {
-                    await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                    await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                     return;
                 }
             }
 
-            await DialogService.ShowDynamicFormAsync<AccountItemEditModel>("Edit Session", new AccountItemEditModel { Name = session.Name }, async (AccountItemEditModel data) =>
+            await Dialogs.ShowDynamicFormAsync<AccountItemEditModel>("Edit Session", new AccountItemEditModel { Name = session.Name }, async (AccountItemEditModel data) =>
             {
                 AuthUser = await Session.GetCurrentUserAsync();
                 if (AuthUser != null && AuthUser.Account.Sessions.TryGetValue(id, out UserSession? session))
@@ -720,7 +815,7 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
@@ -745,32 +840,34 @@
 
     public async Task RemoveAllSessions()
     {
-        bool Confirm = await DialogService.ShowConfirmAsync("Remove All Sessions", "This will remove all login sessions except the current one.", "Confirm", ButtonStyle.Warning);
-        if (Confirm)
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove All Sessions", "This will remove all login sessions except the current one.", "Confirm", ButtonStyle.Warning);
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        if (AuthUser.Mfa.IsTwoFactorEnabled)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            if (AuthUser.Mfa.IsTwoFactorEnabled)
+            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
+            if (!TwoFactorValid)
             {
-                bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
-                if (!TwoFactorValid)
-                {
-                    await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
-                    return;
-                }
-            }
-
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
-
-            AuthUser.Account.Sessions = AuthUser.Account.Sessions.Where(x => x.Key == Session.CurrentSessionId).ToDictionary();
-            await UserManager.UpdateAsync(AuthUser);
-            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
-            StateHasChanged();
+            }
         }
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        AuthUser.Account.Sessions = AuthUser.Account.Sessions.Where(x => x.Key == Session.CurrentSessionId).ToDictionary();
+        await UserManager.UpdateAsync(AuthUser);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        StateHasChanged();
+
     }
 
     public async Task RegisterPasskey()
@@ -784,7 +881,7 @@
         catch { }
         if (!DetectPasskeyAllow)
         {
-            await DialogService.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
+            await Dialogs.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
             return;
         }
 
@@ -794,7 +891,7 @@
 
         if (!AuthUser.EmailConfirmed)
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
             return;
         }
 
@@ -805,14 +902,14 @@
             if (!TwoFactorValid)
             {
 
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
 
         DialogOptions options = new DialogOptions() { };
 
-        await DialogService.OpenAsync<RegisterPasskeyDialog>("Register Passkey", new Dictionary<string, object>(), options);
+        await Dialogs.OpenAsync<RegisterPasskeyDialog>("Register Passkey", new Dictionary<string, object>(), options);
 
     }
 
@@ -826,21 +923,21 @@
         catch { }
         if (!DetectPasskeyAllow)
         {
-            await DialogService.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
+            await Dialogs.ShowInfoAsync("Passkey Info", "This device does not support passkeys.");
             return;
         }
 
         bool Result = await Session.TestPasskey(false);
         if (Result)
-            await DialogService.ShowInfoAsync("Passkey Test", "Your passkey was successful");
+            await Dialogs.ShowInfoAsync("Passkey Test", "Your passkey was successful");
         else
-            await DialogService.ShowInfoAsync("Passkey Test", "Your passkey failed to validate");
+            await Dialogs.ShowInfoAsync("Passkey Test", "Your passkey failed to validate");
     }
 
     public async Task EditPasskey(FidoStoredCredential cred)
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
+        if (AuthUser == null || cred.Descriptor == null)
             return;
 
         if (AuthUser.Mfa.IsTwoFactorEnabled)
@@ -848,17 +945,18 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
-        await DialogService.ShowDynamicFormAsync<AccountItemEditModel>("Edit Passkey", new AccountItemEditModel { Name = cred.Name }, async (AccountItemEditModel data) =>
+
+        await Dialogs.ShowDynamicFormAsync<AccountItemEditModel>("Edit Passkey", new AccountItemEditModel { Name = cred.Name }, async (AccountItemEditModel data) =>
         {
             AuthUser = await Session.GetCurrentUserAsync();
             if (AuthUser != null)
             {
                 string Key = System.Text.Encoding.UTF8.GetString(cred.Descriptor.Id);
-                FidoStoredCredential? Cred = AuthUser.Mfa.Passkeys.FirstOrDefault(x => System.Text.Encoding.UTF8.GetString(x.Descriptor.Id) == Key);
+                FidoStoredCredential? Cred = AuthUser.Mfa.Passkeys.FirstOrDefault(x => x.Descriptor != null && System.Text.Encoding.UTF8.GetString(x.Descriptor.Id) == Key);
                 if (Cred != null)
                 {
                     Cred.Name = data.Name;
@@ -875,7 +973,7 @@
     public async Task RemovePasskey(FidoStoredCredential cred)
     {
         AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
+        if (AuthUser == null || cred.Descriptor == null)
             return;
 
         if (AuthUser.Mfa.IsTwoFactorEnabled)
@@ -883,14 +981,15 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser == null)
             return;
-        AuthUser.Mfa.Passkeys = AuthUser.Mfa.Passkeys.Where(x => System.Text.Encoding.UTF8.GetString(x.Descriptor.Id) != System.Text.Encoding.UTF8.GetString(cred.Descriptor.Id)).ToList();
+
+        AuthUser.Mfa.Passkeys = AuthUser.Mfa.Passkeys.Where(x => x.Descriptor != null && System.Text.Encoding.UTF8.GetString(x.Descriptor.Id) != System.Text.Encoding.UTF8.GetString(cred.Descriptor.Id)).ToList();
         if (!AuthUser.Mfa.HasAny2FA())
             AuthUser.Mfa.Disable2FA(AuthUser);
 
@@ -908,7 +1007,7 @@
 
         if (!AuthUser.EmailConfirmed)
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
             return;
         }
         if (AuthUser.Mfa.IsTwoFactorEnabled)
@@ -916,7 +1015,7 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
@@ -933,7 +1032,7 @@
 
         DialogOptions options = new DialogOptions() { };
 
-        dynamic Dialog = await DialogService.OpenAsync<RegisterAuthenticatorDialog>("Register Authenticator", new Dictionary<string, object>()
+        dynamic Dialog = await Dialogs.OpenAsync<RegisterAuthenticatorDialog>("Register Authenticator", new Dictionary<string, object>()
         {
             { "SetupKey", Key },
             { "SetupUrl", $"otpauth://totp/{Uri.EscapeDataString(_Data.Config.Instance.Name)}:{Uri.EscapeDataString(AuthUser.Email)}?secret={Key}" },
@@ -941,7 +1040,7 @@
 
         if (Dialog != null && Dialog == true)
         {
-            await DialogService.ShowInfoAsync("Authenticator Verified", "The authenticator app has now been verified.");
+            await Dialogs.ShowInfoAsync("Authenticator Verified", "The authenticator app has now been verified.");
             StateHasChanged();
         }
     }
@@ -957,13 +1056,13 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
         if (AuthUser != null)
         {
-            await DialogService.ShowDynamicFormAsync<AccountItemEditModel>("Edit Authenticator", new AccountItemEditModel { Name = name }, async (AccountItemEditModel data) =>
+            await Dialogs.ShowDynamicFormAsync<AccountItemEditModel>("Edit Authenticator", new AccountItemEditModel { Name = name }, async (AccountItemEditModel data) =>
             {
                 AuthUser = await Session.GetCurrentUserAsync();
                 if (AuthUser != null)
@@ -990,35 +1089,38 @@
 
         if (!AuthUser.Mfa.Passkeys.Any())
         {
-            await DialogService.ShowInfoAsync("Passkey Info", "You do not have any passkeys registered");
+            await Dialogs.ShowInfoAsync("Passkey Info", "You do not have any passkeys registered");
             return;
         }
-        bool Confirm = await DialogService.ShowConfirmAsync("Remove All Passkeys", "Are you sure you want to remove all passkeys?", "Confirm", ButtonStyle.Warning);
-        if (Confirm)
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove All Passkeys", "Are you sure you want to remove all passkeys?", "Confirm", ButtonStyle.Warning);
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
+        if (!TwoFactorValid)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
-            if (!TwoFactorValid)
-            {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
-                return;
-            }
-
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            AuthUser.Mfa.Passkeys.Clear();
-            if (!AuthUser.Mfa.HasAny2FA())
-                AuthUser.Mfa.Disable2FA(AuthUser);
-
-            await UserManager.UpdateAsync(AuthUser);
-            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
-            StateHasChanged();
+            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            return;
         }
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        AuthUser.Mfa.Passkeys.Clear();
+        if (!AuthUser.Mfa.HasAny2FA())
+            AuthUser.Mfa.Disable2FA(AuthUser);
+
+        await UserManager.UpdateAsync(AuthUser);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        StateHasChanged();
+
     }
 
     public async Task RemoveAllAuthenticators()
@@ -1029,32 +1131,37 @@
 
         if (!AuthUser.Mfa.AuthenticatorDevices.Any())
         {
-            await DialogService.ShowInfoAsync("Authenticator Info", "You do not have any authenticators registered");
+            await Dialogs.ShowInfoAsync("Authenticator Info", "You do not have any authenticators registered");
             return;
         }
-        bool Confirm = await DialogService.ShowConfirmAsync("Remove All Authenticators", "Are you sure you want to remove all authenticators?", "Confirm", ButtonStyle.Warning);
-        if (Confirm)
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove All Authenticators", "Are you sure you want to remove all authenticators?", "Confirm", ButtonStyle.Warning);
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
+        if (!TwoFactorValid)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
-            if (!TwoFactorValid)
-            {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
-                return;
-            }
-
-            AuthUser = await Session.GetCurrentUserAsync();
-            IdentityUserToken<ObjectId>? Token = AuthUser.GetToken("[AspNetUserStore]", "AuthenticatorKey");
-            if (Token != null)
-                AuthUser.RemoveUserToken(Token);
-            AuthUser.Mfa.AuthenticatorDevices.Clear();
-            if (!AuthUser.Mfa.HasAny2FA())
-                AuthUser.Mfa.Disable2FA(AuthUser);
-
-            await UserManager.UpdateAsync(AuthUser);
-            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
-            StateHasChanged();
+            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            return;
         }
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        IdentityUserToken<ObjectId>? Token = AuthUser.GetToken("[AspNetUserStore]", "AuthenticatorKey");
+        if (Token != null)
+            AuthUser.RemoveUserToken(Token);
+        AuthUser.Mfa.AuthenticatorDevices.Clear();
+        if (!AuthUser.Mfa.HasAny2FA())
+            AuthUser.Mfa.Disable2FA(AuthUser);
+
+        await UserManager.UpdateAsync(AuthUser);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        StateHasChanged();
+
     }
 
     public async Task GenerateBackupCodes()
@@ -1065,7 +1172,7 @@
 
         if (!AuthUser.EmailConfirmed)
         {
-            await DialogService.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
+            await Dialogs.ShowInfoAsync("Account Info", "You can't setup 2FA because your email is not verified.");
             return;
         }
 
@@ -1074,7 +1181,7 @@
             bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
             if (!TwoFactorValid)
             {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+                await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
                 return;
             }
         }
@@ -1095,7 +1202,7 @@
 
         DialogOptions options = new DialogOptions() { };
 
-        dynamic Dialog = await DialogService.OpenAsync<ShowRecoveryCodesDialog>("Recovery Codes", new Dictionary<string, object>()
+        dynamic Dialog = await Dialogs.OpenAsync<ShowRecoveryCodesDialog>("Recovery Codes", new Dictionary<string, object>()
         {
             { "Code", Code },
             { "DownloadToken", Key }
@@ -1112,28 +1219,28 @@
 
     public async Task Disable2FA()
     {
-        bool Confirm = await DialogService.ShowConfirmAsync("Disable 2FA", "This will remove all authenticator apps and passkeys?", "Confirm", ButtonStyle.Warning);
-        if (Confirm)
+        bool Confirm = await Dialogs.ShowConfirmAsync("Disable 2FA", "This will remove all authenticator apps and passkeys?", "Confirm", ButtonStyle.Warning);
+
+        if (!Confirm)
+            return;
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
+        if (!TwoFactorValid)
         {
-            AuthUser = await Session.GetCurrentUserAsync();
-            bool TwoFactorValid = await Session.TriggerTwoFactorAuthentication(AuthUser, true, false);
-            if (!TwoFactorValid)
-            {
-                await DialogService.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
-                return;
-            }
-
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
-
-            AuthUser.Mfa.Disable2FA(AuthUser);
-
-            await UserManager.UpdateAsync(AuthUser);
-            _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
-            StateHasChanged();
-            await DialogService.ShowInfoAsync("2FA Disabled", "2FA has been disabled for your account including backup code.");
-
+            await Dialogs.ShowInfoAsync("2FA Failed", "Your Two-factor authentication method failed to verify.");
+            return;
         }
+
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        AuthUser.Mfa.Disable2FA(AuthUser);
+
+        await UserManager.UpdateAsync(AuthUser);
+        _DB.TriggerSessionEvent(AuthUser.Id, SessionEventType.AccountUpdate);
+        StateHasChanged();
+        await Dialogs.ShowInfoAsync("2FA Disabled", "2FA has been disabled for your account including backup code.");
     }
 }

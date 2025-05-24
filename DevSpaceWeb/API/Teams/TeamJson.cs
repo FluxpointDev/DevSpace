@@ -16,6 +16,8 @@ public class TeamJson
             icon_url = data.GetIconOrDefault();
         if (viewPermissions)
             default_permissions = data.DefaultPermissions;
+        default_members_color = data.DefaultMembersColor;
+        require_2fa = data.Require2FA;
         roles = data.CachedRoles.Values.Select(x => x.Id.ToString()).ToArray();
     }
 
@@ -23,8 +25,10 @@ public class TeamJson
     public string name;
     public DateTime created_at;
     public string owner_id;
-    public string vanity_url;
-    public string icon_url;
+    public string? vanity_url;
+    public string? icon_url;
     public PermissionsSet? default_permissions;
+    public string? default_members_color;
+    public bool require_2fa;
     public string[] roles;
 }

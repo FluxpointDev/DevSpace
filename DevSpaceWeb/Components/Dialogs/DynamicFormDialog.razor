@@ -10,6 +10,8 @@
 @inject Radzen.DialogService dialogService
 @typeparam Model
 
+<PageTitle>@(ModelData != null ? Utils.FriendlyName(ModelData.GetType().Name.Replace("Model", "")) : "Data") Form | @_Data.Config.Instance.Name</PageTitle>
+
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical">
     <EditForm @ref="@Form" Model="@CloneData"
               OnSubmit="@(context => Submit())">
@@ -31,7 +33,7 @@
 
             @foreach (DynamicFormItem field in FormItems)
             {
-                <RadzenLabel Text="@field.Label" class="rz-my-0"></RadzenLabel>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@field.Label</RadzenText>
                 @RenderFormElement(CloneData, field, field.Property)
                 @if (!string.IsNullOrEmpty(field.ErrorMessage))
                 {
@@ -45,19 +47,25 @@
             @if (IsDialog)
             {
                 <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@LoadingSubmit" />
-                <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" Disabled="@LoadingSubmit" />
+                <RadzenButton Click="@Submit" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Submit" Style="width: 90px" Disabled="@(LoadingSubmit || Disabled)" />
             }
             else
             {
-                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" Click="@Submit" />
+                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Save" Click="@Submit" Disabled="@(LoadingSubmit || Disabled)" />
                 @if (OnTest != null)
                 {
-                    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Test" Click="@Test" />
+                    <RadzenButton ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Test" Click="@Test" Disabled="@(LoadingSubmit)" />
                 }
             }
         </RadzenStack>
     </EditForm>
 </RadzenStack>
+
+<style>
+    .rz-switch {
+        max-width: 0% !important;
+    }
+</style>
 
 @code {
 
@@ -68,6 +76,9 @@
     public Model ModelData { get; set; }
 
     public Model CloneData { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
 
     public EditForm Form { get; internal set; }
 
@@ -100,9 +111,18 @@
             builder.OpenComponent(0, typeof(RadzenTextBox));
             builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
             builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<string>(this, (value) =>
+            {
+                propInfoValue.SetValue(model, value);
+            }));
+        }
+        else if (propInfoValue.PropertyType == typeof(bool))
         {
-            propInfoValue.SetValue(model, value);
-        }));
+            builder.OpenComponent(0, typeof(RadzenSwitch));
+            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<bool>(this, (value) =>
+            {
+                propInfoValue.SetValue(model, value);
+            }));
         }
         else if (propInfoValue.PropertyType == typeof(int))
         {
@@ -157,6 +177,8 @@
             builder.AddAttribute(7, "ShowUpDown", false);
         }
 
+        builder.AddAttribute(8, "ReadOnly", Disabled);
+
         builder.CloseComponent();
     };
 
@@ -165,9 +187,14 @@
         if (IsLoaded)
             return;
         IsLoaded = true;
+        LoadModel(ModelData);
+    }
+
+    public void LoadModel(Model data)
+    {
+        ModelData = data;
         CloneData = JsonConvert.DeserializeObject<Model>(JsonConvert.SerializeObject(ModelData));
         FormItems = CloneData.GetType().GetProperties().Select(x => new DynamicFormItem(CloneData, x)).ToList();
-
     }
 
     public async Task Submit()
@@ -208,7 +235,9 @@
 
         LoadingSubmit = true;
 
-        await OnTest.Invoke(CloneData);
+        if (OnTest != null)
+            await OnTest.Invoke(CloneData);
+
         LoadingSubmit = false;
     }
 }

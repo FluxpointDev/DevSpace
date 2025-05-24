@@ -6,6 +6,8 @@
 
 @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewPlugins))
 {
+    <PageTitle>Plugin Info | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -25,6 +27,8 @@
 }
 else if (Plugin == null)
 {
+    <PageTitle>Plugin Info | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -57,6 +61,8 @@ else if (Plugin == null)
 }
 else
 {
+    <PageTitle>@Plugin.Name.Split(':').First() Plugin | @_Data.Config.Instance.Name</PageTitle>
+
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -77,9 +83,9 @@ else
                         Name
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap">
-                            <RadzenText TextStyle="TextStyle.Body2" class="mt-2">@Plugin.Name.Split(':').First()</RadzenText>
-                            <RadzenButton Text="Remove" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@Remove" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" />
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap" AlignItems="AlignItems.Center">
+                            <RadzenText TextStyle="TextStyle.Body2">@Plugin.Name.Split(':').First()</RadzenText>
+                            <RadzenButton Text="Remove" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@Remove" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" />
                         </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
@@ -99,6 +105,7 @@ else
                     </RadzenTableCell>
                     <RadzenTableCell>
                         @Plugin.ID
+                        <CopyClipboard Value="@Plugin.ID"></CopyClipboard>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -125,26 +132,20 @@ else
                         Links
                     </RadzenTableCell>
                     <RadzenTableCell>
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
                         @if (Plugin.PluginReference.StartsWith("docker.io"))
                         {
-                            <a href="@("https://hub.docker.com/r/" + Plugin.Name.Split(':').First())" target="_blank"><RadzenButton Text="Plugin" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" /></a>
+                            <a href="@("https://hub.docker.com/r/" + Plugin.Name.Split(':').First())" target="_blank"><RadzenButton Text="Plugin" Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
                         }
                         else
                         {
-                            <a href="@("https://" + Plugin.PluginReference.Split(':').First())" target="_blank"><RadzenButton Text="Plugin" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" /></a>
+                            <a href="@("https://" + Plugin.PluginReference.Split(':').First())" target="_blank"><RadzenButton Text="Plugin" Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
                         }
-                    </RadzenTableCell>
-                </RadzenTableRow>
-
-                <RadzenTableRow>
-                    <RadzenTableCell>
-                        Docs
-                    </RadzenTableCell>
-                    <RadzenTableCell>
                         @if (!string.IsNullOrEmpty(Plugin.Config.Documentation) && Plugin.Config.Documentation != "-")
                         {
-                            <a href="@Plugin.Config.Documentation" target="_blank"><RadzenButton Icon="book" Text="Docs" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" /></a>
+                            <a href="@Plugin.Config.Documentation" target="_blank"><RadzenButton Icon="book" Text="Docs" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
                         }
+                        </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -174,11 +175,9 @@ else
                         Network
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Plugin.Config.Network.Type
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + Plugin.Config.Network.Type)">@Plugin.Config.Network.Type</RadzenLink>
                     </RadzenTableCell>
                 </RadzenTableRow>
-
-
             </RadzenTableBody>
         </RadzenTable>
     </div>
@@ -190,7 +189,7 @@ else
         </div>
         <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
             <RadzenTableBody>
-                @foreach (var i in Plugin.Config.Linux.Capabilities)
+                @foreach (string i in Plugin.Config.Linux.Capabilities)
                 {
                     <RadzenTableRow>
                         <RadzenTableCell>
@@ -222,9 +221,18 @@ else
         if (Member == null || Server == null)
             return;
 
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewPlugins))
+            return;
+
+        if (Program.IsPreviewMode && PluginId != "2d421985d32be33c53393366bf6ed7740c5d3e478fe1c9db3371446ca3f09019")
+        {
+            Failed = true;
+            return;
+        }
+
         try
         {
-            var Result = await Server.RunJsonAsync<Plugin>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Inspect));
+            SocketResponse<Plugin?> Result = await Server.RunJsonAsync<Plugin>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Inspect));
             Failed = !Result.IsSuccess;
             Plugin = Result.Data;
         }
@@ -245,17 +253,19 @@ else
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
             return;
 
-        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Plugin", $"Are you sure you want to remove this plugin?", "Yes", ButtonStyle.Success);
-        if (Confirm)
-        {
-            if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
-                return;
+        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Plugin: " + Plugin?.Name.Split(':').First(),
+                            "Are you sure you want to remove this plugin?", "Confirm", ButtonStyle.Success);
 
-            IsActionLoading = true;
+        if (!Confirm)
+            return;
 
-            var Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Remove));
-            if (Result.IsSuccess)
-                Plugin = null;
-        }
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
+            return;
+
+        IsActionLoading = true;
+
+        SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Remove));
+        if (Result.IsSuccess)
+            Plugin = null;
     }
 }

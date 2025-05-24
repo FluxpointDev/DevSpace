@@ -5,10 +5,10 @@ namespace DevSpaceWeb.Models.Servers;
 public class ModifyServerConnectionModel
 {
     [Required(ErrorMessage = "Server IP address is required")]
-    public string? Ip { get; set; }
+    public string Ip { get; set; } = null!;
 
     public short Port { get; set; }
 
     [Required(ErrorMessage = "Agent key is required")]
-    public string? AgentKey { get; set; }
+    public string AgentKey { get; set; } = null!;
 }

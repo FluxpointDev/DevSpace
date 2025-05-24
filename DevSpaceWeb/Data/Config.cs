@@ -9,7 +9,6 @@ namespace DevSpaceWeb;
 public class Config
 {
     public bool IsFullySetup = false;
-    public string? AdminKey;
     public ConfigAdmin Admin = new ConfigAdmin();
     public ConfigAuth Auth = new ConfigAuth();
     public ConfigInstance Instance = new ConfigInstance();
@@ -30,12 +29,12 @@ public class Config
 }
 public class ConfigInstance
 {
-    public string Name = "Dev Space Self-hosted";
+    public string? Name = "Dev Space Self-hosted";
     public string? Description;
     public string? Email;
     public bool HasIcon;
     public int IconVersion;
-    public string PublicDomain = "example.com";
+    public string? PublicDomain = "example.com";
 
     public string GetPublicUrl()
     {
@@ -117,7 +116,7 @@ public class ConfigEmail
         return "Default " + new EmailTemplateData { Type = type }.GetTypeName();
     }
 
-    public Dictionary<EmailTemplateType, ObjectId> ActiveEmailTemplates = new Dictionary<EmailTemplateType, ObjectId>();
+    public Dictionary<EmailTemplateType, ObjectId> ActiveEmailTemplates = [];
 
     public EmailTemplateData GetActiveTemplateOrDefault(EmailTemplateType type)
     {
