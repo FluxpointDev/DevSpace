@@ -213,12 +213,13 @@
                 OwnerId = Session.CurrentUser.Id,
                 TeamId = Session.Selected.Team.Data.Id,
                 Type = Enum.Parse<ConsoleType>(data.Type!),
-                EncryptedPassword = data.Password!,
-                VanityUrl = data.VanityUrl
+                EncryptedPassword = data.Password!
             };
 
+            string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
+
             VanityUrlData Vanity = Session.Selected.Team.Data.GetVanityUrlData();
-            if (Vanity.CheckAlreadyExists(null, NewConsole.VanityUrl))
+            if (Vanity.CheckAlreadyExists(null, VanityUrl))
                 return Lang.Errors.vanity_url_already_taken;
 
             switch (NewConsole.Type)
@@ -258,10 +259,10 @@
                 .SetSensitive()
                 .AddProperty("IP", data.Ip)
                 .AddProperty("Port", data.Port)
-                .AddProperty("Vanity URL", data.VanityUrl));
+                .AddProperty("Vanity URL", VanityUrl));
 
             _DB.Consoles.Cache.TryAdd(NewConsole.Id, NewConsole);
-            await Vanity.UpdateAsync(NewConsole, NewConsole.VanityUrl);
+            await Vanity.UpdateAsync(NewConsole, VanityUrl);
             return null;
         });
     }

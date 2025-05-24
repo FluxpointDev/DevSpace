@@ -251,11 +251,12 @@
                     Name = ":)",
                     AgentIp = data.Ip,
                     AgentPort = data.Port,
-                    AgentKey = data.AgentKey,
-                    VanityUrl = data.VanityUrl
+                    AgentKey = data.AgentKey
                 };
 
-                if (Vanity.CheckAlreadyExists(null, TempServer.VanityUrl))
+                string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
+
+                if (Vanity.CheckAlreadyExists(null, VanityUrl))
                     return Lang.Errors.vanity_url_already_taken;
 
                 await Client.DiscoverAsync(TempServer);
@@ -292,24 +293,26 @@
                         AgentId = Client.Discover.Id,
                         AgentIp = data.Ip,
                         AgentPort = data.Port,
-                        AgentKey = data.AgentKey,
-                        VanityUrl = data.VanityUrl
+                        AgentKey = data.AgentKey
                     };
 
-                if (Vanity.CheckAlreadyExists(null, Server.VanityUrl))
+                if (Vanity.CheckAlreadyExists(null, VanityUrl))
                     return Lang.Errors.vanity_url_already_taken;
                 
 
                 await _DB.Servers.CreateAsync(Server);
                 Server.SetWebSocket(Client);
                 _DB.Servers.Cache.TryAdd(Server.Id, Server);
-                await Vanity.UpdateAsync(Server, Server.VanityUrl);
+                await Vanity.UpdateAsync(Server, VanityUrl);
+
                 _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ServerCreated)
                 .SetTarget(Server)
                 .SetSensitive()
                 .AddProperty("IP", data.Ip)
                 .AddProperty("Port", data.Port)
-                .AddProperty("Vanity URL", data.VanityUrl));
+                .AddProperty("Vanity URL", VanityUrl));
+
+
 
                 _ =  InvokeAsync(StateHasChanged);
                 return null;

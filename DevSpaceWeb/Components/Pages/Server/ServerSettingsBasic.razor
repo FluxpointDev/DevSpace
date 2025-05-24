@@ -58,13 +58,11 @@
             return "You do not have Manage Server permissions.";
 
         VanityUrlData Vanity = Team.GetVanityUrlData();
-        if (!string.IsNullOrEmpty(model.VanityUrl))
-            model.VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
-
-        if (Vanity.CheckAlreadyExists(Server, model.VanityUrl))
-            return Lang.Errors.vanity_url_already_taken;
 
         string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+
+        if (Vanity.CheckAlreadyExists(Server, VanityUrl))
+            return Lang.Errors.vanity_url_already_taken;
 
         await Server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>()
         .Set(x => x.Name, model.Name)
