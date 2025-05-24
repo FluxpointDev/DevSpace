@@ -1,5 +1,5 @@
 FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine AS base
-USER $APP_UID
+USER root
 WORKDIR /app
 EXPOSE 5555
 
