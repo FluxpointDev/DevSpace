@@ -23,7 +23,7 @@ public static class _Data
             }
             catch (Exception ex)
             {
-                Logger.LogMessage($"Failed to write data to the program path: {Program.Directory.Path}\nException:{ex}\n{ex.StackTrace}", LogSeverity.Error);
+                Logger.LogMessage($"Failed to write data to the program path: {Program.Directory?.Path}\nException:{ex}\n{ex.StackTrace}", LogSeverity.Error);
                 Environment.Exit(1);
             }
 
