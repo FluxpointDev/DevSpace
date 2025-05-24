@@ -78,6 +78,9 @@ public class Program
     public static async Task Main(string[] args)
     {
         WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+        builder.Configuration
+            .AddJsonFile("appsettings.Production.json");
+
         ShowDemoLink = builder.Configuration.GetValue<bool>("ShowDemoLink");
         IsDevMode = Environment.GetEnvironmentVariable("DEVSPACE") == "Development";
         IsPreviewMode = Environment.GetEnvironmentVariable("PREVIEW") == "true";
