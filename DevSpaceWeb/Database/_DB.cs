@@ -90,18 +90,20 @@ public static class _DB
         {
             Configure = new ConfigureDatabase
             {
-                Host = configuration.GetSection("Database").GetValue<string>("Host"),
-                Port = configuration.GetSection("Database").GetValue<short>("Port"),
-                Name = configuration.GetSection("Database").GetValue<string>("Name"),
-                User = configuration.GetSection("Database").GetValue<string>("User"),
-                Password = configuration.GetSection("Database").GetValue<string>("Password"),
+                Host = configuration["Database:Host"],
+                Port = short.Parse(configuration["Database:Port"]),
+                Name = configuration["Database:Name"],
+                User = configuration["Database:User"],
+                Password = configuration["Database:Password"],
             };
+
+            Configure.ConnectionString = Configure.GetConnectionString();
         }
 
         if (Configure == null)
             throw new Exception("Database configuration is invalid.");
 
-        if (String.IsNullOrEmpty(Configure.ConnectionString))
+        if (string.IsNullOrEmpty(Configure.ConnectionString))
         {
             if (string.IsNullOrEmpty(Configure.Host))
                 throw new ArgumentException("Database host not configured in appsettings.json");

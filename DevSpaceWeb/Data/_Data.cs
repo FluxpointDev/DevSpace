@@ -23,7 +23,7 @@ public static class _Data
             }
             catch
             {
-                Logger.LogMessage("Failed to write data to the program path: " + Program.Directory?.Path, LogSeverity.Error);
+                Logger.LogMessage($"Failed to write data to the program path: {Program.Directory?.Path}", LogSeverity.Error);
                 Environment.Exit(1);
             }
 
