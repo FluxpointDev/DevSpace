@@ -416,28 +416,30 @@ else
                                         Ports
                                     </RadzenTableCell>
                                     <RadzenTableCell>
-                                        @foreach (KeyValuePair<string, IList<PortBinding>> p in Container.HostConfig.PortBindings)
+                                        @if (Container.HostConfig.PortBindings != null)
                                         {
-                                            foreach (PortBinding i in p.Value)
+                                            foreach (KeyValuePair<string, IList<PortBinding>> p in Container.HostConfig.PortBindings)
                                             {
-                                                if (string.IsNullOrEmpty(i.HostIP))
+                                                foreach (PortBinding i in p.Value)
                                                 {
-                                                    <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="@($"Host 0.0.0.0:{i.HostPort} to {p.Key}")" IsPill="true" />
-                                                }
-                                                else
-                                                {
-                                                    <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="@($"Host {i.HostIP}:{i.HostPort} to {p.Key}")" IsPill="true" />
-                                                }
+                                                    if (string.IsNullOrEmpty(i.HostIP))
+                                                    {
+                                                        <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="@($"Host 0.0.0.0:{i.HostPort} to {p.Key}")" IsPill="true" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Base" Text="@($"Host {i.HostIP}:{i.HostPort} to {p.Key}")" IsPill="true" />
+                                                    }
 
+                                                }
                                             }
-
                                         }
                                     </RadzenTableCell>
                                 </RadzenTableRow>
 
                             </RadzenTableBody>
                         </RadzenTable>
-                        @if (Container.HostConfig.PortBindings.Any(x => x.Value.Any(x => string.IsNullOrEmpty(x.HostIP) || x.HostIP == "0.0.0.0")))
+                        @if (Container.HostConfig.PortBindings != null && Container.HostConfig.PortBindings.Any(x => x.Value.Any(x => string.IsNullOrEmpty(x.HostIP) || x.HostIP == "0.0.0.0")))
                         {
                             <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" Size="AlertSize.Small" AllowClose="false" Style="width: 100%;">
                                 Some ports are publicly open to the internet and will not be protected by the host firewall settings.
