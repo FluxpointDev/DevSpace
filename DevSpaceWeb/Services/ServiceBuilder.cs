@@ -10,6 +10,7 @@ using DevSpaceWeb.Extensions;
 using DevSpaceWeb.Fido2;
 using DevSpaceWeb.Models.Validation;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -53,6 +54,8 @@ public static class ServiceBuilder
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
+        builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/Data/DataProtection-Keys"));
 
         // Add website health check
         AddHealth(services, HealthService);
