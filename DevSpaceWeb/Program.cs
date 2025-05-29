@@ -125,7 +125,6 @@ public class Program
 
         Logger.LogMessage("Running connection test...", LogSeverity.Info);
 
-
         // Don't run connection test in development
         if (!IsDevMode)
         {
