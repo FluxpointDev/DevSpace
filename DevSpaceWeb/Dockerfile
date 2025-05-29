@@ -28,7 +28,7 @@ RUN dotnet publish "./DevSpaceWeb.csproj" -c $BUILD_CONFIGURATION -o /app/publis
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-RUN apk add fontconfig
-RUN apk add curl
+RUN apk add fontconfig curl
+RUN mkdir -p /Data/DataProtection-Keys
 RUN ln -s /app/DataProtection-Keys /Data/DataProtection-Keys
 ENTRYPOINT ["dotnet", "DevSpaceWeb.dll"]
