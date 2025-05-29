@@ -18,9 +18,13 @@ namespace DevSpaceShared.Data
                 Scope = network.Scope,
                 Ingress = network.Ingress,
                 ConfigOnly = network.ConfigOnly,
-                ContainersCount = network.Containers.Keys.Count(),
-                Containers = network.Containers.ToDictionary(x => x.Key, x => x.Value.Name)
             };
+
+            if (network.Containers != null)
+            {
+                Info.ContainersCount = network.Containers.Keys.Count();
+                Info.Containers = network.Containers.ToDictionary(x => x.Key, x => x.Value.Name);
+            }
 
             if (inspect)
             {
@@ -39,15 +43,6 @@ namespace DevSpaceShared.Data
 
             return Info;
         }
-
-        //public static DockerNetworkInfo Create(string name, EndpointSettings network)
-        //{
-        //    return new DockerNetworkInfo
-        //    {
-        //        Name = name,
-        //        Id = network.NetworkID
-        //    };
-        //}
 
         public required string Id { get; set; }
         public required string Name { get; set; }
@@ -69,8 +64,11 @@ namespace DevSpaceShared.Data
 }
 public class DockerNetworkIPAM
 {
-    public static DockerNetworkIPAM Create(IPAM ipam)
+    public static DockerNetworkIPAM? Create(IPAM? ipam)
     {
+        if (ipam == null)
+            return null;
+
         DockerNetworkIPAM Info = new DockerNetworkIPAM
         {
             Driver = ipam.Driver,
