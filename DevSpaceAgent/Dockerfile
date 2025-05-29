@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine AS base
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 USER root
 WORKDIR /app
 EXPOSE 5555

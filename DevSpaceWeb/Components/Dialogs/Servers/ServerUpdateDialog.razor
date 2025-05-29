@@ -38,10 +38,10 @@
                         An update for the Dev Space Agent service on this server is available, press Update to start the process.
                     </RadzenText>
                     <RadzenText TextStyle="TextStyle.Body2">
-                        Current: @Server?.GetWebSocket()?.Discover?.Version
+                        Current: @Server?.GetAgentVersion()
                     </RadzenText>
                     <RadzenText TextStyle="TextStyle.Body2">
-                        Current: @Version!.AgentVersion
+                        Latest: @("v" + Version!.AgentVersion)
                     </RadzenText>
                 }
                 break;
@@ -49,7 +49,7 @@
                 {
                     <h6>Already Updated</h6>
                     <RadzenText TextStyle="TextStyle.Body2">
-                        This server already has the latest version @Version!.AgentVersion for the Dev Space Agent.
+                        This server already has the latest version @("v" + Version!.AgentVersion) for the Dev Space Agent.
                     </RadzenText>
                 }
                 break;
@@ -70,10 +70,18 @@
                     </RadzenText>
                 }
                 break;
+            case UpdateStatusType.UpdateFailed:
+                {
+                    <h6>Update Failed!</h6>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        :( something broke when trying to update the agent.
+                    </RadzenText>
+                }
+                break;
         }
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Click="@((args) => { if (UpdateStatus == UpdateStatusType.UpdateSuccess) InvokeAsync(Session.TriggerChange); else dialogService.Close(false); })" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" Disabled="@(UpdateStatus == UpdateStatusType.UpdatingNow)" />
+        <RadzenButton Click="@((args) => { dialogService.Close(false); })" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" Disabled="@(UpdateStatus == UpdateStatusType.UpdatingNow)" />
         <RadzenButton Click="@RunUpdate" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Update" Style="width: 100px" Disabled="@(UpdateStatus != UpdateStatusType.UpdateAvailable || UpdateStatus == UpdateStatusType.UpdateSuccess)" />
     </RadzenStack>
 </RadzenStack>
@@ -98,7 +106,7 @@
                 string Test = await Program.Http.GetStringAsync("https://devspacesmtp.fluxpoint.dev/version");
                 Version = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionCheck>(Test);
                 string? ServerVersion = Server?.GetWebSocket()?.Discover?.Version;
-                if (ServerVersion == Version!.AgentVersion)
+                if (ServerVersion != Version!.AgentVersion)
                     UpdateStatus = UpdateStatusType.UpdateAvailable;
                 else
                     UpdateStatus = UpdateStatusType.AlreadyUpdated;
@@ -132,63 +140,92 @@
             return;
         }
 
-        string? UpdatePath = Result.Data.HostConfig.Binds.FirstOrDefault(x => x.Contains(":/app:ro"));
+        string? UpdatePath = Result.Data.HostConfig.Binds.FirstOrDefault(x => x.Contains(":/app/Data"));
         if (string.IsNullOrEmpty(UpdatePath))
         {
             UpdateStatus = UpdateStatusType.UpdateFailed;
             return;
         }
-        UpdatePath = UpdatePath.Split(':').First();
-        if (!UpdatePath.StartsWith('/'))
+
+        List<string> Volumes = new List<string>();
+        foreach(var i in Result.Data.Mounts)
         {
-            UpdateStatus = UpdateStatusType.UpdateFailed;
-            return;
+            if (i.Type == "volume")
+            {
+                Volumes.Add($"{i.Name}:{i.Destination}" + (i.RW == false ? ":ro" : null));
+            }
+            else
+            {
+                if (i.Destination == "/app")
+                    continue;
+
+                Volumes.Add($"{i.Source}:{i.Destination}" + (i.RW == false ? ":ro" : null));
+            }
         }
+
+        string HostPort = Result.Data.HostConfig.PortBindings.First().Value.First().HostPort;
+
+        string RunCommand = "docker run -d \\ " +
+        $"-p {HostPort}:5555 \\ " +
+        "--name devspace-agent-new \\ " +
+        "--pull always \\ -v " +
+        string.Join(" \\ -v ", Volumes) + " \\ " +
+        "ghcr.io/fluxpointdev/devspace/agent:latest";
 
         string Compose = @"services:
   devspace-agent-updater:
     container_name: devspace-agent-updater
     image: docker:dind
-    command: sh -c ""cat DevSpaceAgent && docker container stop devspace-agent && apk add unzip wget && rm -f agent_update.zip && wget https://cdn.fluxpoint.dev/devspace/agent_update.zip && unzip -o agent_update.zip && rm -f agent_update.zip && docker container start devspace-agent && docker rm -f devspace-agent-updater && echo Update Done""
+    command: sh -c ""docker container stop devspace-agent && docker rm -f devspace-agent-new && " + RunCommand + @" && docker rm -f devspace-agent && docker container rename devspace-agent-new devspace-agent && docker rm -f devspace-agent-updater""
     volumes:
-        - {0}:/app:rw
         - /var/run/docker.sock:/var/run/docker.sock:ro
-    working_dir: /app
     network_mode: bridge
     dns:
       - 1.1.1.2
-      - 1.0.0.2".Replace("{0}", UpdatePath);
+      - 1.0.0.2";
 
         Console.WriteLine("Compose: " + Compose);
 
-        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
+        SocketResponse<DockerStackInfo?> CurrentUpdater = await Server.RecieveJsonAsync<DockerStackInfo>(new DockerEvent(DockerEventType.ControlStack, "devspace-agent-updater", stackType: ControlStackType.View));
+        if (CurrentUpdater.Data == null || CurrentUpdater.Data.ControlType != DockerStackControl.Full)
         {
-            Data = JObject.FromObject(new CreateStackEvent
+            SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
             {
-                Name = "devspace-agent-updater",
-                DockerfileName = "devspace-agent-updater",
-                Content = Compose,
-                IsAdministrator = Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator)
-            })
-        }, async (res) =>
-        {
-            SocketResponse<object?> Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data?.Id, stackType: ControlStackType.Start));
-            if (Res.IsSuccess)
-            {
-                Console.WriteLine("Waiting");
-                await Task.Delay(new TimeSpan(0, 0, 10));
-                while (CheckingUpdate)
+                Data = JObject.FromObject(new CreateStackEvent
                 {
-                    Console.WriteLine("Checking update status");
-                    if (Server.IsConnected)
-                    {
-                        Console.WriteLine("Update Done");
-                        await InvokeAsync(Session.TriggerChange);
-                        return;
-                    }
-                    await Task.Delay(new TimeSpan(0, 0, 3));
-                }
+                    Name = "devspace-agent-updater",
+                    DockerfileName = "devspace-agent-updater",
+                    Content = Compose,
+                    IsAdministrator = Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator)
+                })
+            });
+        }
+
+        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, "devspace-agent-updater", stackType: ControlStackType.Start));
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(new TimeSpan(0, 0, 10));
+            bool IsSuccess = Server.IsConnected;
+            if (!IsSuccess)
+            {
+                await Task.Delay(new TimeSpan(0, 0, 10));
+                IsSuccess = Server.IsConnected;
             }
+            if (!IsSuccess)
+            {
+                await Task.Delay(new TimeSpan(0, 0, 10));
+                IsSuccess = Server.IsConnected;
+            }
+
+            if (IsSuccess)
+            {
+                UpdateStatus = UpdateStatusType.UpdateSuccess;
+            }
+            else
+            {
+                UpdateStatus = UpdateStatusType.UpdateFailed;
+            }
+            InvokeAsync(StateHasChanged);
         });
     }
 
