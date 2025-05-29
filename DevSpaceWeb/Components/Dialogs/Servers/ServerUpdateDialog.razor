@@ -57,7 +57,7 @@
                 {
                     <h6>Updating...</h6>
                     <RadzenText TextStyle="TextStyle.Body2">
-                        Please wait this will take a minutes.
+                        Please wait this will take a minute.
                     </RadzenText>
                     <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" />
                 }
@@ -156,7 +156,7 @@
             }
             else
             {
-                if (i.Destination == "/app")
+                if (i.Destination == "/app" || i.Destination == "/usr/bin/docker" || i.Destination == "/usr/libexec/docker/cli-plugins/docker-compose")
                     continue;
 
                 Volumes.Add($"{i.Source}:{i.Destination}" + (i.RW == false ? ":ro" : null));
@@ -176,7 +176,7 @@
   devspace-agent-updater:
     container_name: devspace-agent-updater
     image: docker:dind
-    command: sh -c ""docker container stop devspace-agent && docker rm -f devspace-agent-new && " + RunCommand + @" && docker rm -f devspace-agent && docker container rename devspace-agent-new devspace-agent && docker rm -f devspace-agent-updater""
+    command: sh -c ""docker container stop devspace-agent && docker rm -f devspace-agent-new && " + RunCommand + @" && docker rm -f devspace-agent && docker container rename devspace-agent-new devspace-agent""
     volumes:
         - /var/run/docker.sock:/var/run/docker.sock:ro
     network_mode: bridge
@@ -186,45 +186,59 @@
 
         Console.WriteLine("Compose: " + Compose);
 
-        SocketResponse<DockerStackInfo?> CurrentUpdater = await Server.RecieveJsonAsync<DockerStackInfo>(new DockerEvent(DockerEventType.ControlStack, "devspace-agent-updater", stackType: ControlStackType.View));
-        if (CurrentUpdater.Data == null || CurrentUpdater.Data.ControlType != DockerStackControl.Full)
+        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
         {
-            SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
+            Data = JObject.FromObject(new CreateStackEvent
             {
-                Data = JObject.FromObject(new CreateStackEvent
-                {
-                    Name = "devspace-agent-updater",
-                    DockerfileName = "devspace-agent-updater",
-                    Content = Compose,
-                    IsAdministrator = Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator)
-                })
-            });
-        }
+                Name = "devspace-agent-updater-" + ObjectId.GenerateNewId().ToString(),
+                PullImage = true,
+                Content = Compose,
+                IsAdministrator = Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator)
+            })
+        });
 
-        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, "devspace-agent-updater", stackType: ControlStackType.Start));
+        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
+
         _ = Task.Run(async () =>
-        {
-            await Task.Delay(new TimeSpan(0, 0, 10));
-            bool IsSuccess = Server.IsConnected;
-            if (!IsSuccess)
             {
-                await Task.Delay(new TimeSpan(0, 0, 10));
-                IsSuccess = Server.IsConnected;
-            }
-            if (!IsSuccess)
-            {
-                await Task.Delay(new TimeSpan(0, 0, 10));
-                IsSuccess = Server.IsConnected;
-            }
+                await Task.Delay(new TimeSpan(0, 0, 5));
+                bool IsSuccess = Server.IsConnected;
+                if (!IsSuccess)
+                {
+                    await Task.Delay(new TimeSpan(0, 0, 5));
+                    IsSuccess = Server.IsConnected;
+                }
+                if (!IsSuccess)
+                {
+                    await Task.Delay(new TimeSpan(0, 0, 5));
+                    IsSuccess = Server.IsConnected;
+                }
+                if (!IsSuccess)
+                {
+                    await Task.Delay(new TimeSpan(0, 0, 5));
+                    IsSuccess = Server.IsConnected;
+                }
 
-            if (IsSuccess)
-            {
-                UpdateStatus = UpdateStatusType.UpdateSuccess;
-            }
-            else
-            {
-                UpdateStatus = UpdateStatusType.UpdateFailed;
-            }
+                if (IsSuccess)
+                {
+                    UpdateStatus = UpdateStatusType.UpdateSuccess;
+                }
+                else
+                {
+                    UpdateStatus = UpdateStatusType.UpdateFailed;
+                }
+                try
+                {
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, "devspace-agent-updater", containerType: ControlContainerType.ForceRemove));
+                }
+                catch { }
+
+                try
+                {
+                    await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Remove));
+                }
+                catch { }
+
             InvokeAsync(StateHasChanged);
         });
     }
