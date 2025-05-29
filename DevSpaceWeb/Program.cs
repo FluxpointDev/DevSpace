@@ -235,7 +235,7 @@ public class Program
         }
 
 
-        _DB.Init(builder.Configuration);
+        _DB.Init();
 
         _ = Task.Run(async () =>
         {

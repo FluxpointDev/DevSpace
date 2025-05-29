@@ -36,7 +36,7 @@ public static class _DB
         SessionUpdated?.Invoke(user, type);
     }
 
-    public static void Init(ConfigurationManager configuration)
+    public static void Init()
     {
         if (Program.IsDevMode)
         {
@@ -119,30 +119,30 @@ public static class _DB
             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(config, Formatting.Indented));
 
             Configure = config;
-            Configure.ConnectionString = Configure.GetConnectionString();
+            Configure.Database.ConnectionString = Configure.GetConnectionString();
         }
 
         if (Configure == null)
             throw new Exception("Database configuration is invalid.");
 
-        if (string.IsNullOrEmpty(Configure.ConnectionString))
+        if (string.IsNullOrEmpty(Configure.Database.ConnectionString))
         {
-            if (string.IsNullOrEmpty(Configure.Host))
+            if (string.IsNullOrEmpty(Configure.Database.Host))
                 throw new ArgumentException("Database host not configured in appsettings.json");
 
-            if (Configure.Port == 0)
+            if (Configure.Database.Port == 0)
                 throw new ArgumentException("Database port not configured in appsettings.json");
 
-            if (string.IsNullOrEmpty(Configure.Name))
+            if (string.IsNullOrEmpty(Configure.Database.Name))
                 throw new ArgumentException("Database name not configured in appsettings.json");
 
-            if (string.IsNullOrEmpty(Configure.User))
+            if (string.IsNullOrEmpty(Configure.Database.User))
                 throw new ArgumentException("Database user not configured in appsettings.json");
         }
 
         Client = new MongoClient(Configure.GetConnectionString());
 
-        Run = Client.GetDatabase(Configure.Name);
+        Run = Client.GetDatabase(Configure.Database.Name);
         Teams = new ICacheCollection<TeamData>("teams");
         Roles = new ICacheCollection<TeamRoleData>("roles");
         Members = new ICacheCollection<TeamMemberData>("members");
