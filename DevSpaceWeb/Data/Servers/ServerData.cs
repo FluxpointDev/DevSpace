@@ -116,6 +116,22 @@ public class ServerWebSocket
     public DiscoverAgentInfo? Discover;
     public bool StopReconnect;
 
+    public bool HasVersionOrHigher(Version version)
+    {
+        Version? ver = null;
+
+        if (Client != null && Client.Stats != null && !string.IsNullOrEmpty(Client.Stats.AgentVersion))
+            Version.TryParse(Client.Stats.AgentVersion, out ver);
+
+        if (ver == null && Discover != null && !string.IsNullOrEmpty(Discover.Version))
+            Version.TryParse(Discover.Version, out ver);
+
+        if (ver == null)
+            return false;
+
+        return ver >= version;
+    }
+
     public string GetAgentVersion()
     {
         if (Client != null && Client.Stats != null && !string.IsNullOrEmpty(Client.Stats.AgentVersion))
