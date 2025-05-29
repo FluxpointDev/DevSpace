@@ -1,8 +1,12 @@
-﻿namespace DevSpaceWeb.Database;
+﻿using Newtonsoft.Json;
+
+namespace DevSpaceWeb.Database;
 
 public class ConfigDatabase
 {
+    [JsonIgnore]
     public string? Name => Database.Name;
+
     public InlineDatabase Database = new InlineDatabase();
 
     public string GetConnectionString()
