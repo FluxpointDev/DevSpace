@@ -29,6 +29,5 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 RUN apk add fontconfig curl
-RUN mkdir -p /Data/DataProtection-Keys
-RUN ln -s /root/.aspnet/DataProtection-Keys /Data/DataProtection-Keys
+RUN ln /Data/DataProtection-Keys /root/.aspnet/DataProtection-Keys
 ENTRYPOINT ["dotnet", "DevSpaceWeb.dll"]
