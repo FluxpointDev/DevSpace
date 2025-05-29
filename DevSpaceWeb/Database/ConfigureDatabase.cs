@@ -1,12 +1,12 @@
 ﻿namespace DevSpaceWeb.Database;
 
-public class ConfigureDatabase
+public class ConfigDatabase
 {
-    public string? Name;
-    public string? Host;
-    public short Port;
-    public string? User;
-    public string? Password;
+    public string? Host = "devspace-mongodb";
+    public short Port = 5557;
+    public string? Name = "devspace";
+    public string? User = "root";
+    public string? Password = "";
     /// <summary>
     /// priority
     /// </summary>

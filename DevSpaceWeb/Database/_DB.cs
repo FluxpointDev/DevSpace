@@ -21,7 +21,7 @@ namespace DevSpaceWeb.Database;
 public static class _DB
 #pragma warning restore IDE1006 // Naming Styles
 {
-    public static ConfigureDatabase? Configure;
+    public static ConfigDatabase? Configure;
 
     public static MongoClient Client = null!;
 
@@ -38,15 +38,7 @@ public static class _DB
 
     public static void Init(ConfigurationManager configuration)
     {
-        if (Program.IsUsingAspire)
-        {
-            Configure = new ConfigureDatabase
-            {
-                ConnectionString = _Data.Config.Database.ConnectionString,
-                Name = _Data.Config.Database.Name
-            };
-        }
-        else if (Program.IsDevMode)
+        if (Program.IsDevMode)
         {
             if (!File.Exists(Program.Directory.Data.Path + "Dev.json"))
             {
@@ -56,12 +48,12 @@ public static class _DB
                     {
                         Formatting = Formatting.Indented
                     };
-                    serializer.Serialize(file, new ConfigureDatabase());
+                    serializer.Serialize(file, new ConfigDatabase());
                 }
             }
             else
             {
-                ConfigureDatabase? config = null;
+                ConfigDatabase? config = null;
                 try
                 {
                     using (StreamReader reader = new StreamReader(Program.Directory.Data.Path + "Dev.json"))
@@ -70,7 +62,7 @@ public static class _DB
                         {
                             NullValueHandling = NullValueHandling.Ignore
                         };
-                        config = (ConfigureDatabase?)serializer.Deserialize(reader, typeof(ConfigureDatabase));
+                        config = (ConfigDatabase?)serializer.Deserialize(reader, typeof(ConfigDatabase));
                     }
                 }
                 catch (Exception ex)
@@ -88,15 +80,28 @@ public static class _DB
         }
         else
         {
-            Configure = new ConfigureDatabase
+            ConfigDatabase? config = null;
+            try
             {
-                Host = _Data.Config.Database.Host,
-                Port = _Data.Config.Database.Port,
-                Name = _Data.Config.Database.Name,
-                User = _Data.Config.Database.User,
-                Password = _Data.Config.Database.Password,
-            };
+                using (StreamReader reader = new StreamReader(Program.Directory.Data.Path + "Database.json"))
+                {
+                    JsonSerializer serializer = new JsonSerializer
+                    {
+                        NullValueHandling = NullValueHandling.Ignore
+                    };
+                    config = (ConfigDatabase?)serializer.Deserialize(reader, typeof(ConfigDatabase));
+                }
 
+            }
+            catch (Exception ex)
+            {
+                Logger.LogMessage("Failed to parse Database.json file, " + ex.Message, LogSeverity.Error);
+            }
+
+            if (config == null)
+                throw new ArgumentException("Failed to parse Database.json file.");
+
+            Configure = config;
             Configure.ConnectionString = Configure.GetConnectionString();
         }
 
