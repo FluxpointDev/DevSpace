@@ -19,10 +19,12 @@ RUN dotnet build "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+RUN ln -sf /usr/libexec/docker/cli-plugins/docker-compose /usr/bin/docker-compose
 RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 
 FROM base AS final
 WORKDIR /app
+
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "DevSpaceAgent.dll"]
