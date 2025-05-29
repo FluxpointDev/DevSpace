@@ -106,12 +106,60 @@ public static class DockerContainers
         if (CurrentContainer == null)
             throw new Exception("Failed to get container info.");
 
+        ContainerRecreateEvent? Data = @event.Data != null ? @event.Data.ToObject<ContainerRecreateEvent>() : null;
+        if (Data != null)
+        {
+            if (!string.IsNullOrEmpty(Data.NewName))
+            {
+                try
+                {
+                    await client.Containers.InspectContainerAsync(Data.NewName);
+                    throw new Exception("Container name already exists for " + Data.NewName);
+                }
+                catch { }
+            }
+
+            try
+            {
+                if (!string.IsNullOrEmpty(Data.NewImage))
+                {
+                    string? TagName = null;
+                    string[] split = Data.NewImage.Split(':');
+                    string ImageName = split[0];
+                    if (split.Length > 1)
+                        TagName = split[1];
+
+                    await client.Images.CreateImageAsync(new ImagesCreateParameters
+                    {
+                        FromImage = ImageName,
+                        Tag = TagName
+                    }, null, new Progress<JSONMessage>());
+                }
+                else
+                {
+                    string? TagName = null;
+                    string[] split = CurrentContainer.Config.Image.Split(':');
+                    string ImageName = split[0];
+                    if (split.Length > 1)
+                        TagName = split[1];
+
+                    await client.Images.CreateImageAsync(new ImagesCreateParameters
+                    {
+                        FromImage = ImageName,
+                        Tag = TagName
+                    }, null, new Progress<JSONMessage>());
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Failed to pull image, " + ex.Message);
+            }
+        }
 
         bool ContainerRunning = false;
         bool RenameDone = false;
         try
         {
-
             await client.Containers.StopContainerAsync(@event.ResourceId, new ContainerStopParameters
             {
 
@@ -156,6 +204,14 @@ public static class DockerContainers
                         { FirstNetwork.Value.Key, FirstNetwork.Value.Value }
                     }
                 };
+            }
+            if (Data != null)
+            {
+                if (!string.IsNullOrEmpty(Data.NewName))
+                    Config.Name = Data.NewName;
+
+                if (!string.IsNullOrEmpty(Data.NewImage))
+                    Config.Image = Data.NewImage;
             }
             CreateContainerResponse CreateContainer = await client.Containers.CreateContainerAsync(Config);
             if (CurrentContainer.NetworkSettings != null && CurrentContainer.NetworkSettings.Networks != null)
