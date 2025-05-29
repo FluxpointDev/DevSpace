@@ -147,7 +147,7 @@ public static class DockerContainers
                 Platform = CurrentContainer.Platform,
                 HostConfig = CurrentContainer.HostConfig,
             };
-            if (FirstNetwork != null)
+            if (FirstNetwork.HasValue)
             {
                 Config.NetworkingConfig = new NetworkingConfig
                 {
