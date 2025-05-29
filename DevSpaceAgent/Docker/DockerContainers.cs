@@ -180,15 +180,6 @@ public static class DockerContainers
 
             try
             {
-                await client.Containers.StopContainerAsync(@event.ResourceId, new ContainerStopParameters
-                {
-
-                });
-            }
-            catch { }
-
-            try
-            {
                 await client.Containers.RemoveContainerAsync(@event.ResourceId, new ContainerRemoveParameters
                 {
                     Force = true
