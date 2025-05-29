@@ -81,21 +81,36 @@ public static class _DB
         else
         {
             ConfigDatabase? config = null;
-            try
+            if (!File.Exists(Program.Directory.Data.Path + "Database.json"))
             {
-                using (StreamReader reader = new StreamReader(Program.Directory.Data.Path + "Database.json"))
+                config = new ConfigDatabase();
+                using (StreamWriter file = File.CreateText(Program.Directory.Data.Path + "Database.json"))
                 {
                     JsonSerializer serializer = new JsonSerializer
                     {
-                        NullValueHandling = NullValueHandling.Ignore
+                        Formatting = Formatting.Indented
                     };
-                    config = (ConfigDatabase?)serializer.Deserialize(reader, typeof(ConfigDatabase));
+                    serializer.Serialize(file, config);
                 }
-
             }
-            catch (Exception ex)
+            else
             {
-                Logger.LogMessage("Failed to parse Database.json file, " + ex.Message, LogSeverity.Error);
+                try
+                {
+                    using (StreamReader reader = new StreamReader(Program.Directory.Data.Path + "Database.json"))
+                    {
+                        JsonSerializer serializer = new JsonSerializer
+                        {
+                            NullValueHandling = NullValueHandling.Ignore
+                        };
+                        config = (ConfigDatabase?)serializer.Deserialize(reader, typeof(ConfigDatabase));
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogMessage("Failed to parse Database.json file, " + ex.Message, LogSeverity.Error);
+                }
             }
 
             if (config == null)

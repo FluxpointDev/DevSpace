@@ -28,8 +28,6 @@ RUN dotnet publish "./DevSpaceWeb.csproj" -c $BUILD_CONFIGURATION -o /app/publis
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-COPY --from=publish /app/Database-Template.json /Data/Database-Template.json
-CMD cp -n /Data/Database-Template.json /Data/Database.json
 RUN apk add fontconfig curl
 RUN mkdir -p /Data/DataProtection-Keys
 RUN ln -s /root/DataProtection-Keys /Data/DataProtection-Keys
