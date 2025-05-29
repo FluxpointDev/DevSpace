@@ -20,6 +20,11 @@ RUN dotnet build "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/build
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN ln -sf /usr/libexec/docker/cli-plugins/docker-compose /usr/bin/docker-compose
+RUN wget -O "docker.tgz" "https://download.docker.com/linux/static/stable/x86_64/docker-27.0.3.tgz"
+RUN tar -xf docker.tgz docker
+RUN rm docker.tgz
+RUN mv docker/docker /usr/bin/docker
+RUN rm -rf docker
 RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 
