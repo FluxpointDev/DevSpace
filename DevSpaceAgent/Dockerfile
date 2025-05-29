@@ -31,5 +31,6 @@ RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publ
 FROM base AS final
 WORKDIR /app
 
+COPY --from=publish /usr/bin/docker /usr/bin/docker
 COPY --from=publish /app/publish .
 CMD sh -c "dotnet DevSpaceAgent.dll"
