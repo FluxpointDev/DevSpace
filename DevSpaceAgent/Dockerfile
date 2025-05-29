@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
+FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine AS base
 USER root
 WORKDIR /app
 EXPOSE 5555
@@ -38,4 +38,4 @@ COPY --from=publish /usr/bin/docker-compose /usr/local/lib/docker/cli-plugins/do
 RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/bin/docker-compose
 COPY --from=publish /app/publish .
-CMD sh -c "dotnet DevSpaceAgent.dll"
+ENTRYPOINT ["dotnet", "DevSpaceAgent.dll"]
