@@ -21,10 +21,13 @@ RUN dotnet build "./DevSpaceWeb.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
+
 RUN dotnet publish "./DevSpaceWeb.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN apt-get install -y fontconfig curl
+RUN ln -s /app/DataProtection-Keys /Data/DataProtection-Keys
 ENTRYPOINT ["dotnet", "DevSpaceWeb.dll"]

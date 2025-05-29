@@ -19,7 +19,7 @@ public static class _Data
         {
             try
             {
-                Program.Directory = new DirectoryStructureMain(AppDomain.CurrentDomain.BaseDirectory);
+                Program.Directory = new DirectoryStructureMain("/Data/");
             }
             catch
             {
