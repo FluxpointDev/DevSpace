@@ -102,8 +102,8 @@ public static class DockerContainers
 
     public static async Task<CreateContainerResponse?> RecreateContainerAsync(DockerClient client, DockerEvent @event)
     {
-        ContainerInspectResponse? Info = await client.Containers.InspectContainerAsync(@event.ResourceId);
-        if (Info == null)
+        ContainerInspectResponse? CurrentContainer = await client.Containers.InspectContainerAsync(@event.ResourceId);
+        if (CurrentContainer == null)
             throw new Exception("Failed to get container info.");
 
 
@@ -116,41 +116,61 @@ public static class DockerContainers
             {
 
             });
-            ContainerRunning = Info.State.Running;
+            ContainerRunning = CurrentContainer.State.Running;
 
             await client.Containers.RenameContainerAsync(@event.ResourceId, new ContainerRenameParameters
             {
-                NewName = Info.Name + "-old"
+                NewName = CurrentContainer.Name + "-old"
             }, CancellationToken.None);
             RenameDone = true;
 
-            foreach (KeyValuePair<string, EndpointSettings> i in Info.NetworkSettings.Networks)
+            KeyValuePair<string, EndpointSettings>? FirstNetwork = null;
+
+            if (CurrentContainer.NetworkSettings != null && CurrentContainer.NetworkSettings.Networks != null)
             {
-                await client.Networks.DisconnectNetworkAsync(i.Value.NetworkID, new NetworkDisconnectParameters
+                foreach (KeyValuePair<string, EndpointSettings> i in CurrentContainer.NetworkSettings.Networks)
                 {
-                    Container = @event.ResourceId,
-                    Force = true
-                });
+                    if (FirstNetwork == null)
+                        FirstNetwork = i;
+
+                    await client.Networks.DisconnectNetworkAsync(i.Value.NetworkID, new NetworkDisconnectParameters
+                    {
+                        Container = @event.ResourceId,
+                        Force = true
+                    });
+                }
             }
 
-
-
-            CreateContainerParameters Config = new CreateContainerParameters(Info.Config)
+            CreateContainerParameters Config = new CreateContainerParameters(CurrentContainer.Config)
             {
-                Name = Info.Name,
-                Platform = Info.Platform,
-                HostConfig = null,
-                NetworkingConfig = null
+                Name = CurrentContainer.Name,
+                Platform = CurrentContainer.Platform,
+                HostConfig = CurrentContainer.HostConfig,
             };
-            CreateContainerResponse CreateContainer = await client.Containers.CreateContainerAsync(Config);
-
-            foreach (KeyValuePair<string, EndpointSettings> i in Info.NetworkSettings.Networks)
+            if (FirstNetwork != null)
             {
-                _ = client.Networks.ConnectNetworkAsync(i.Value.NetworkID, new NetworkConnectParameters
+                Config.NetworkingConfig = new NetworkingConfig
                 {
-                    Container = CreateContainer.ID,
-                    EndpointConfig = i.Value
-                });
+                    EndpointsConfig = new Dictionary<string, EndpointSettings>
+                    {
+                        { FirstNetwork.Value.Key, FirstNetwork.Value.Value }
+                    }
+                };
+            }
+            CreateContainerResponse CreateContainer = await client.Containers.CreateContainerAsync(Config);
+            if (CurrentContainer.NetworkSettings != null && CurrentContainer.NetworkSettings.Networks != null)
+            {
+                foreach (KeyValuePair<string, EndpointSettings> i in CurrentContainer.NetworkSettings.Networks)
+                {
+                    if (FirstNetwork.HasValue && FirstNetwork.Value.Key == i.Key)
+                        continue;
+
+                    _ = client.Networks.ConnectNetworkAsync(i.Value.NetworkID, new NetworkConnectParameters
+                    {
+                        Container = CreateContainer.ID,
+                        EndpointConfig = i.Value
+                    });
+                }
             }
 
             await client.Containers.StartContainerAsync(CreateContainer.ID, new ContainerStartParameters
@@ -184,11 +204,11 @@ public static class DockerContainers
             {
                 _ = client.Containers.RenameContainerAsync(@event.ResourceId, new ContainerRenameParameters
                 {
-                    NewName = Info.Name
+                    NewName = CurrentContainer.Name
                 }, CancellationToken.None);
             }
 
-            foreach (KeyValuePair<string, EndpointSettings> i in Info.NetworkSettings.Networks)
+            foreach (KeyValuePair<string, EndpointSettings> i in CurrentContainer.NetworkSettings.Networks)
             {
                 _ = client.Networks.ConnectNetworkAsync(i.Value.NetworkID, new NetworkConnectParameters
                 {
