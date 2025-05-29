@@ -20,6 +20,7 @@ RUN dotnet build "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/build
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN ln -sf /usr/libexec/docker/cli-plugins/docker-compose /usr/bin/docker-compose
+RUN apk add bash
 RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 
