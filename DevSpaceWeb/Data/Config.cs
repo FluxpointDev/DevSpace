@@ -14,6 +14,7 @@ public class Config
     public ConfigInstance Instance = new ConfigInstance();
     public ConfigEmail Email = new ConfigEmail();
     public ConfigProviders Providers = new ConfigProviders();
+    public ConfigDatabase Database = new ConfigDatabase();
 
     public void Save()
     {
@@ -26,6 +27,15 @@ public class Config
             serializer.Serialize(file, this);
         }
     }
+}
+public class ConfigDatabase
+{
+    public string ConnectionString;
+    public string Host = "devspace-mongodb";
+    public short Port = 5557;
+    public string Name = "devspace";
+    public string User = "root";
+    public string Password = "";
 }
 public class ConfigInstance
 {

@@ -42,8 +42,8 @@ public static class _DB
         {
             Configure = new ConfigureDatabase
             {
-                ConnectionString = Environment.GetEnvironmentVariable("ConnectionStrings__dev-space-db"),
-                Name = Environment.GetEnvironmentVariable("DB_NAME")
+                ConnectionString = _Data.Config.Database.ConnectionString,
+                Name = _Data.Config.Database.Name
             };
         }
         else if (Program.IsDevMode)
@@ -90,11 +90,11 @@ public static class _DB
         {
             Configure = new ConfigureDatabase
             {
-                Host = configuration["Database:Host"],
-                Port = short.Parse(configuration["Database:Port"]),
-                Name = configuration["Database:Name"],
-                User = configuration["Database:User"],
-                Password = configuration["Database:Password"],
+                Host = _Data.Config.Database.Host,
+                Port = _Data.Config.Database.Port,
+                Name = _Data.Config.Database.Name,
+                User = _Data.Config.Database.User,
+                Password = _Data.Config.Database.Password,
             };
 
             Configure.ConnectionString = Configure.GetConnectionString();
