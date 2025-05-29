@@ -203,11 +203,18 @@
                 </RadzenRow>
                 @if (Data != null && !string.IsNullOrEmpty(Program.LatestAgentVersion) && Program.LatestAgentVersion != Data.AgentVersion)
                 {
-                    <a target="_blank" href="https://docs.fluxpoint.dev/devspace/guides/agent-guides/install-dev-space-agent#update-dev-space-agent">
-                        <RadzenAlert AlertStyle="AlertStyle.Success" class="mt-4" Icon="download" Size="AlertSize.Small" AllowClose="false" Variant="Variant.Filled" Shade="Shade.Darker">
-                            <strong>@("v" + Program.LatestAgentVersion)</strong> agent is available to install on this server.
-                        </RadzenAlert>
-                    </a>
+                    <RadzenAlert @onclick="@OpenUpdater" AlertStyle="AlertStyle.Success" class="mt-4" Icon="download" Size="AlertSize.Small" AllowClose="false" Variant="Variant.Filled" Shade="Shade.Darker">
+                        @if (Server.GetWebSocket() != null && Server.HasVersionOrHigher(new Version(1, 0, 42)))
+                        {
+                            <strong>@("v" + Program.LatestAgentVersion)</strong> 
+                            @("agent is available to auto update on this server.")
+                        }
+                        else
+                        {
+                            <strong>@("v" + Program.LatestAgentVersion)</strong>
+                            @("agent is available to install on this server.")
+                        }
+                    </RadzenAlert>
                 }
             </RadzenColumn>
             <RadzenColumn SizeMD="6" SizeSM="12" class="settings-box">
@@ -531,5 +538,10 @@
             StateHasChanged();
         }
 
+    }
+
+    public async Task OpenUpdater()
+    {
+        
     }
 }

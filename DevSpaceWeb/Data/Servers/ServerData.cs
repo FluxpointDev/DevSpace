@@ -43,6 +43,41 @@ public class ServerData : ITeamResource
         WebSocket = socket;
     }
 
+    public bool HasVersionOrHigher(Version version)
+    {
+        Version? ver = null;
+
+        ServerWebSocket? WebSocket = GetWebSocket();
+        if (WebSocket == null)
+            return false;
+
+        if (WebSocket.Client != null && WebSocket.Client.Stats != null && !string.IsNullOrEmpty(WebSocket.Client.Stats.AgentVersion))
+            Version.TryParse(WebSocket.Client.Stats.AgentVersion, out ver);
+
+        if (ver == null && WebSocket.Discover != null && !string.IsNullOrEmpty(WebSocket.Discover.Version))
+            Version.TryParse(WebSocket.Discover.Version, out ver);
+
+        if (ver == null)
+            return false;
+
+        return ver >= version;
+    }
+
+    public string GetAgentVersion()
+    {
+        ServerWebSocket? WebSocket = GetWebSocket();
+        if (WebSocket == null)
+            return "Unknown";
+
+        if (WebSocket.Client != null && WebSocket.Client.Stats != null && !string.IsNullOrEmpty(WebSocket.Client.Stats.AgentVersion))
+            return "v" + WebSocket.Client.Stats.AgentVersion;
+
+        if (WebSocket.Discover != null && !string.IsNullOrEmpty(WebSocket.Discover.Version))
+            return "v" + WebSocket.Discover.Version;
+
+        return "Unknown";
+    }
+
     public void RemoveWebSocket()
     {
         if (WebSocket != null)
@@ -115,33 +150,6 @@ public class ServerWebSocket
     public ServerWebSocketErrorType? Error;
     public DiscoverAgentInfo? Discover;
     public bool StopReconnect;
-
-    public bool HasVersionOrHigher(Version version)
-    {
-        Version? ver = null;
-
-        if (Client != null && Client.Stats != null && !string.IsNullOrEmpty(Client.Stats.AgentVersion))
-            Version.TryParse(Client.Stats.AgentVersion, out ver);
-
-        if (ver == null && Discover != null && !string.IsNullOrEmpty(Discover.Version))
-            Version.TryParse(Discover.Version, out ver);
-
-        if (ver == null)
-            return false;
-
-        return ver >= version;
-    }
-
-    public string GetAgentVersion()
-    {
-        if (Client != null && Client.Stats != null && !string.IsNullOrEmpty(Client.Stats.AgentVersion))
-            return "v" + Client.Stats.AgentVersion;
-
-        if (Discover != null && !string.IsNullOrEmpty(Discover.Version))
-            return "v" + Discover.Version;
-
-        return "Unknown";
-    }
 
     public async Task DiscoverAsync(ServerData server)
     {
