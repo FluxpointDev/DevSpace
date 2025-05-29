@@ -25,7 +25,8 @@ RUN tar -xf docker.tgz docker
 RUN rm docker.tgz
 RUN mv docker/docker /usr/bin/docker
 RUN rm -rf docker
-RUN curl -SL https://github.com/docker/compose/releases/download/v2.36.2/docker-compose-linux-x86_64 -o /usr/bin/docker-compose
+RUN wget -O "docker-compose" "https://github.com/docker/compose/releases/download/v2.36.2/docker-compose-linux-x86_64"
+run mv docker-compose /usr/bin/docker-compose
 RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 
@@ -33,5 +34,6 @@ FROM base AS final
 WORKDIR /app
 
 COPY --from=publish /usr/bin/docker /usr/bin/docker
+COPY --from=publish /usr/bin/docker-compose /usr/bin/docker-compose
 COPY --from=publish /app/publish .
 CMD sh -c "dotnet DevSpaceAgent.dll"
