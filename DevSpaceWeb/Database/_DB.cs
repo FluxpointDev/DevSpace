@@ -116,6 +116,8 @@ public static class _DB
             if (config == null)
                 throw new ArgumentException("Failed to parse Database.json file.");
 
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(config, Formatting.Indented));
+
             Configure = config;
             Configure.ConnectionString = Configure.GetConnectionString();
         }
