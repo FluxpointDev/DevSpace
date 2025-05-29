@@ -34,6 +34,7 @@ FROM base AS final
 WORKDIR /app
 
 COPY --from=publish /usr/bin/docker /usr/bin/docker
-COPY --from=publish /usr/bin/docker-compose /usr/bin/docker-compose
+COPY --from=publish /usr/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
+RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 COPY --from=publish /app/publish .
 CMD sh -c "dotnet DevSpaceAgent.dll"
