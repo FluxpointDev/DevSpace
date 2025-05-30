@@ -34,6 +34,7 @@ public static class DockerSystem
             }
             Console.WriteLine("--- --- ---");
             Console.WriteLine($"{i.Name} | {i.VolumeLabel} | {i.DriveType} | {i.DriveFormat} | {i.RootDirectory}");
+            Console.WriteLine($"{i.TotalFreeSpace} | {i.AvailableFreeSpace} | {i.TotalSize}");
             Console.WriteLine("--- --- ---");
         }
         return new SystemInfoFullResponse
