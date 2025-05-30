@@ -54,8 +54,8 @@ public static class ServiceBuilder
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
-        builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo("/Data/DataProtection-Keys"));
+        if (!Program.IsDevMode)
+            builder.Services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo("/Data/DataProtection-Keys"));
 
         // Add website health check
         AddHealth(services, HealthService);
