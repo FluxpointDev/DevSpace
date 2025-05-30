@@ -15,7 +15,10 @@ public static class DockerSystem
         DriveInfo CurrentDrive = Drives.First(x => x.DriveType == DriveType.Fixed || x.DriveType == DriveType.Network);
         foreach (DriveInfo i in Drives)
         {
-            if (i.DriveType == DriveType.Fixed || i.DriveType == DriveType.Ram)
+            if (i.DriveType == DriveType.Ram)
+                continue;
+
+            if (i.DriveType == DriveType.Fixed)
             {
                 switch (i.RootDirectory.ToString())
                 {

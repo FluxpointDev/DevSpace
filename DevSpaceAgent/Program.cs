@@ -178,6 +178,8 @@ public class Program
                         ContainerCache[e.ID] = e.Actor.Attributes["name"];
                     }
                 }
+                else if (e.Action.StartsWith("exec_start:"))
+                    return;
                 break;
             case "image":
                 switch (e.Action)
