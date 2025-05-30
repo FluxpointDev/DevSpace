@@ -61,6 +61,8 @@ https://docs.fluxpoint.dev/devspace
 
 JMPJNS - Add Aspire .net support for Dev Space web deployment, stats and logging.
 
+Misha-133 - Github workflows, actions and runner to pre-build packages for web and agent including version and latest releases.
+
 ---
 
 ### Inspiration/Ideas
