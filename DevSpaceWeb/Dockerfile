@@ -5,6 +5,7 @@ EXPOSE 5556
 
 
 LABEL org.opencontainers.image.source=https://github.com/FluxpointDev/DevSpace
+LABEL org.opencontainers.image.documentation=https://docs.fluxpoint.dev/devspace
 
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0-alpine AS build
