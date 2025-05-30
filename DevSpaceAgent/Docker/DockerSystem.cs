@@ -11,9 +11,24 @@ public static class DockerSystem
         global::Docker.DotNet.Models.SystemInfoResponse Info = await client.System.GetSystemInfoAsync();
         VersionResponse Version = await client.System.GetVersionAsync();
         DriveInfo[] Drives = DriveInfo.GetDrives();
+        List<DriveInfo> SelectedDrives = new List<DriveInfo>();
         DriveInfo CurrentDrive = Drives.First(x => x.DriveType == DriveType.Fixed || x.DriveType == DriveType.Network);
         foreach (DriveInfo i in Drives)
         {
+            if (i.DriveType == DriveType.Fixed || i.DriveType == DriveType.Ram)
+            {
+                switch (i.RootDirectory.ToString())
+                {
+                    case "/var/lib/docker/volumes/portainer_data/_data/custom_templates":
+                    case "/var/lib/docker/volumes/portainer_data/_data/compose":
+                    case "/etc/hosts":
+                    case "/etc/hostname":
+                    case "/etc/resolv.conf":
+                    case "/app/Data":
+                    case "/app":
+                        continue;
+                }
+            }
             Console.WriteLine("--- --- ---");
             Console.WriteLine($"{i.Name} | {i.VolumeLabel} | {i.DriveType} | {i.DriveFormat} | {i.RootDirectory}");
             Console.WriteLine("--- --- ---");
