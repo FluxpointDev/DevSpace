@@ -12,7 +12,7 @@ public static class DockerSystem
         VersionResponse Version = await client.System.GetVersionAsync();
         DriveInfo[] Drives = DriveInfo.GetDrives();
         DriveInfo CurrentDrive = Drives.First();
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Drives, Newtonsoft.Json.Formatting.Indented));
+        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Drives.First(), Newtonsoft.Json.Formatting.Indented));
         return new SystemInfoFullResponse
         {
             Docker = new SystemDockerInfo
