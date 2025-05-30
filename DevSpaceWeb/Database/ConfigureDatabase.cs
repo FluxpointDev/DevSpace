@@ -26,7 +26,7 @@ public class InlineDatabase
     public short Port = 5557;
     public string? Name = "devspace";
     public string? User = "root";
-    public string? Password = "";
+    public string? Password = null;
     /// <summary>
     /// priority
     /// </summary>
