@@ -1,4 +1,6 @@
-﻿namespace DevSpaceShared.Responses;
+﻿using Newtonsoft.Json;
+
+namespace DevSpaceShared.Responses;
 public class SystemInfoResponse
 {
     public string? AgentVersion { get; set; }
@@ -11,6 +13,9 @@ public class SystemInfoResponse
     public long RamTotal { get; set; }
 
     public required SystemDockerInfo Docker { get; set; }
+
+    [JsonIgnore]
+    public bool IsWindows => OperatingSystem == "Docker Desktop";
 
     public string GetUptimeText()
     {

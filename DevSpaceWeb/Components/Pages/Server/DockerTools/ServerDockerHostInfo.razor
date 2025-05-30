@@ -173,7 +173,7 @@ else
                         CPU
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Host.CpuCount
+                        @(Host.IsWindows ? "Unavailable" : Host.CpuCount)
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -182,7 +182,7 @@ else
                         Memory
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Utils.ToPrettySize(Host.RamTotal)
+                        @(Host.IsWindows ? "Unavailable" : Utils.ToPrettySize(Host.RamTotal))
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -191,7 +191,7 @@ else
                         Storage
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @($"{Utils.SizeSuffix(Host.StorageTotalSize - Host.StorageFreeSize, 0)} / {Utils.SizeSuffix(Host.StorageTotalSize, 0)} ({100 * (Host.StorageTotalSize - Host.StorageFreeSize) / Host.StorageTotalSize}%)")
+                        @(Host.IsWindows ? "Unavailable" : $"{Utils.SizeSuffix(Host.StorageTotalSize - Host.StorageFreeSize, 0)} / {Utils.SizeSuffix(Host.StorageTotalSize, 0)} ({100 * (Host.StorageTotalSize - Host.StorageFreeSize) / Host.StorageTotalSize}%)")
                     </RadzenTableCell>
                 </RadzenTableRow>
             </RadzenTableBody>

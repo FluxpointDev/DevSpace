@@ -33,7 +33,8 @@ public class AgentStatsResponse : IWebSocketEvent
             TotalMemory = systemInfo.MemTotal,
             ImagesCount = systemInfo.Images,
             AgentVersion = agentVersion,
-            DockerVersion = systemInfo.ServerVersion
+            DockerVersion = systemInfo.ServerVersion,
+            IsWindows = systemInfo.OperatingSystem == "Docker Desktop"
         };
     }
     public long StacksCount { get; set; }
@@ -48,4 +49,5 @@ public class AgentStatsResponse : IWebSocketEvent
     public long TotalMemory { get; set; }
     public string? AgentVersion { get; set; }
     public string DockerVersion { get; set; }
+    public bool IsWindows { get; set; }
 }
