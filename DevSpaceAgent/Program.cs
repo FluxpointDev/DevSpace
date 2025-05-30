@@ -102,6 +102,32 @@ public class Program
         if (DockerFailed)
             Console.WriteLine("[Docker] Failed to connect to socket!");
 
+        // Cleanup Dev Space images.
+        _ = Task.Run(async () =>
+        {
+            IList<ImagesListResponse> Images = await DockerClient.Images.ListImagesAsync(new ImagesListParameters
+            {
+                All = true
+            });
+            foreach (ImagesListResponse? i in Images)
+            {
+                if (i.RepoTags != null)
+                    continue;
+
+                if (i.RepoDigests != null && i.RepoDigests.Any() && i.RepoDigests.First().StartsWith("ghcr.io/fluxpointdev/devspace"))
+                {
+                    try
+                    {
+                        await DockerClient.Images.DeleteImageAsync(i.ID, new ImageDeleteParameters
+                        {
+
+                        });
+                    }
+                    catch { }
+                }
+            }
+        });
+
         try
         {
             DockerAuthJson? Auth = await UnAuthenticatedClient.GetFromJsonAsync<DockerAuthJson>("https://auth.docker.io/token?service=registry.docker.io&scope=repository:ratelimitpreview/test:pull");
