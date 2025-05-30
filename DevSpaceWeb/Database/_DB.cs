@@ -38,22 +38,11 @@ public static class _DB
 
     public static void Init()
     {
+        ConfigDatabase? config = null;
         if (Program.IsDevMode)
         {
-            if (!File.Exists(Program.Directory.Data.Path + "Dev.json"))
+            if (File.Exists(Program.Directory.Data.Path + "Dev.json"))
             {
-                using (StreamWriter file = File.CreateText(Program.Directory.Data.Path + "Dev.json"))
-                {
-                    JsonSerializer serializer = new JsonSerializer
-                    {
-                        Formatting = Formatting.Indented
-                    };
-                    serializer.Serialize(file, new ConfigDatabase());
-                }
-            }
-            else
-            {
-                ConfigDatabase? config = null;
                 try
                 {
                     using (StreamReader reader = new StreamReader(Program.Directory.Data.Path + "Dev.json"))
@@ -70,17 +59,15 @@ public static class _DB
                     Logger.LogMessage("Failed to parse Dev.json file, " + ex.Message, LogSeverity.Error);
                 }
 
-                if (config == null)
-                {
-                    Logger.LogMessage("Failed to load Dev.json file.", LogSeverity.Error);
-                }
+            }
 
-                Configure = config;
+            if (config == null)
+            {
+                Logger.LogMessage("Failed to load Dev.json file.", LogSeverity.Error);
             }
         }
         else
         {
-            ConfigDatabase? config = null;
             if (!File.Exists(Program.Directory.Data.Path + "Database.json"))
             {
                 config = new ConfigDatabase();
@@ -114,16 +101,12 @@ public static class _DB
             }
 
             if (config == null)
-                throw new ArgumentException("Failed to parse Database.json file.");
+                throw new ArgumentException("Failed to load Database.json file.");
 
-            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(config, Formatting.Indented));
-
-            Configure = config;
-            Configure.Database.ConnectionString = Configure.GetConnectionString();
         }
 
-        if (Configure == null)
-            throw new Exception("Database configuration is invalid.");
+        Configure = config;
+        Configure.Database.ConnectionString = Configure.GetConnectionString();
 
         if (string.IsNullOrEmpty(Configure.Database.ConnectionString))
         {
