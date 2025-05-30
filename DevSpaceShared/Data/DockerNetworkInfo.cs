@@ -79,7 +79,7 @@ public class DockerNetworkIPAM
         {
             foreach (IPAMConfig? i in ipam.Config)
             {
-                if (i.Gateway.Contains(':'))
+                if (!string.IsNullOrWhiteSpace(i.Gateway) && i.Gateway.Contains(':'))
                 {
                     Info.IPv6Subnet = i.Subnet;
                     Info.IPv6Gateway = i.Gateway;
