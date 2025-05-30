@@ -109,21 +109,25 @@ public class Program
             {
                 All = true
             });
+            Console.WriteLine("Testing cleanup");
             foreach (ImagesListResponse? i in Images)
             {
-                if (i.RepoTags != null)
-                    continue;
+                string Name = "Unknown";
+                if (i.RepoTags != null && i.RepoTags.Any())
+                    Name = i.RepoTags.First();
 
+                Console.WriteLine("Image Name: " + Name);
                 if (i.RepoDigests != null && i.RepoDigests.Any() && i.RepoDigests.First().StartsWith("ghcr.io/fluxpointdev/devspace"))
                 {
-                    try
-                    {
-                        await DockerClient.Images.DeleteImageAsync(i.ID, new ImageDeleteParameters
-                        {
+                    Console.WriteLine("Digest: " + i.RepoDigests.First());
+                    //try
+                    //{
+                    //    await DockerClient.Images.DeleteImageAsync(i.ID, new ImageDeleteParameters
+                    //    {
 
-                        });
-                    }
-                    catch { }
+                    //    });
+                    //}
+                    //catch { }
                 }
             }
         });
