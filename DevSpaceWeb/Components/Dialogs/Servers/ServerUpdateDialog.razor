@@ -51,6 +51,8 @@
                     <RadzenText TextStyle="TextStyle.Body2">
                         This server already has the latest version @("v" + Version!.AgentVersion) for the Dev Space Agent.
                     </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1 mt-2">Select Version</RadzenText>
+                    <RadzenDropDown @bind-Value="@SelectedVersionType" Data="@VersionTypes" Style="width: 100%; max-width: 400px;" />
                 }
                 break;
             case UpdateStatusType.UpdatingNow:
@@ -82,7 +84,7 @@
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         <RadzenButton Click="@((args) => { dialogService.Close(false); })" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" Disabled="@(UpdateStatus == UpdateStatusType.UpdatingNow)" />
-        <RadzenButton Click="@RunUpdate" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Update" Style="width: 100px" Disabled="@(UpdateStatus != UpdateStatusType.UpdateAvailable || UpdateStatus == UpdateStatusType.UpdateSuccess)" />
+        <RadzenButton Click="@RunUpdate" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Update" Style="width: 100px" Disabled="@((UpdateStatus != UpdateStatusType.UpdateAvailable && UpdateStatus != UpdateStatusType.AlreadyUpdated) || UpdateStatus == UpdateStatusType.UpdateSuccess)" />
     </RadzenStack>
 </RadzenStack>
 
@@ -96,6 +98,13 @@
     public ServerData? Server => Session.Selected.Server;
 
     public VersionCheck? Version;
+
+    public string SelectedVersionType = "Release";
+    public string[] VersionTypes = new string[]
+    {
+        "Release",
+        "Development"
+    };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
