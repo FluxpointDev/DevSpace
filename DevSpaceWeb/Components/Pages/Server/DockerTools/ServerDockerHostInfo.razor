@@ -97,7 +97,7 @@ else
                         Uptime
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Host.GetUptimeText()
+                        @(Host.IsWindows ? "Unavailable" : Host.GetUptimeText())
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -106,7 +106,7 @@ else
                         OS
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @Host.OperatingSystem
+                        @(Host.IsWindows ? "Windows (Docker Desktop)" : Host.OperatingSystem)
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -173,7 +173,7 @@ else
                         CPU
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @(Host.IsWindows ? "Unavailable" : Host.CpuCount)
+                        @(Host.CpuCount + (Host.IsWindows ? " Estimate (Not Accurate)" : null))
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -182,7 +182,7 @@ else
                         Memory
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @(Host.IsWindows ? "Unavailable" : Utils.ToPrettySize(Host.RamTotal))
+                        @(Utils.ToPrettySize(Host.RamTotal) + (Host.IsWindows ? " Estimate (Not Accurate)" : null))
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -191,7 +191,7 @@ else
                         Storage
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        @(Host.IsWindows ? "Unavailable" : $"{Utils.SizeSuffix(Host.StorageTotalSize - Host.StorageFreeSize, 0)} / {Utils.SizeSuffix(Host.StorageTotalSize, 0)} ({100 * (Host.StorageTotalSize - Host.StorageFreeSize) / Host.StorageTotalSize}%)")
+                        @($"{Utils.SizeSuffix(Host.StorageTotalSize - Host.StorageFreeSize, 0)} / {Utils.SizeSuffix(Host.StorageTotalSize, 0)} ({100 * (Host.StorageTotalSize - Host.StorageFreeSize) / Host.StorageTotalSize}%)" + (Host.IsWindows ? " Estimate (Not Accurate)" : null))
                     </RadzenTableCell>
                 </RadzenTableRow>
             </RadzenTableBody>
