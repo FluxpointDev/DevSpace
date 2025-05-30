@@ -11,8 +11,13 @@ public static class DockerSystem
         global::Docker.DotNet.Models.SystemInfoResponse Info = await client.System.GetSystemInfoAsync();
         VersionResponse Version = await client.System.GetVersionAsync();
         DriveInfo[] Drives = DriveInfo.GetDrives();
-        DriveInfo CurrentDrive = Drives.First();
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Drives.First(), Newtonsoft.Json.Formatting.Indented));
+        DriveInfo CurrentDrive = Drives.First(x => x.DriveType == DriveType.Fixed || x.DriveType == DriveType.Network);
+        foreach (DriveInfo i in Drives)
+        {
+            Console.WriteLine("--- --- ---");
+            Console.WriteLine($"{i.Name} | {i.VolumeLabel} | {i.DriveType} | {i.DriveFormat} | {i.RootDirectory}");
+            Console.WriteLine("--- --- ---");
+        }
         return new SystemInfoFullResponse
         {
             Docker = new SystemDockerInfo
