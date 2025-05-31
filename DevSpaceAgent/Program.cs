@@ -109,7 +109,7 @@ public class Program
             {
                 All = true
             });
-            Console.WriteLine("Testing cleanup");
+
             foreach (ImagesListResponse? i in Images)
             {
                 if (i.RepoTags != null && i.RepoTags.Any())
