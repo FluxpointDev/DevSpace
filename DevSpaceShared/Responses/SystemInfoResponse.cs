@@ -7,10 +7,15 @@ public class SystemInfoResponse
     public string? AgentNET { get; set; }
     public long Uptime { get; set; }
     public string? OperatingSystem { get; set; }
+    public string Architecture { get; set; }
     public long CpuCount { get; set; }
     public long StorageTotalSize { get; set; }
     public long StorageFreeSize { get; set; }
     public long RamTotal { get; set; }
+    public bool LiveRestoreEnabled { get; set; }
+    public bool ExperimentalEnabled { get; set; }
+    public bool DebugEnabled { get; set; }
+    public string License { get; set; }
 
     public required SystemDockerInfo Docker { get; set; }
 

@@ -63,6 +63,11 @@ public static class DockerSystem
             NetworkPlugins = Info.Plugins.Network != null ? Info.Plugins.Network : [],
             VolumePlugins = Info.Plugins.Volume != null ? Info.Plugins.Volume : [],
             AuthPlugins = Info.Plugins.Authorization != null ? Info.Plugins.Authorization : [],
+            LiveRestoreEnabled = Info.LiveRestoreEnabled,
+            Architecture = Info.Architecture,
+            ExperimentalEnabled = Info.ExperimentalBuild,
+            DebugEnabled = Info.Debug,
+            License = Info.ProductLicense
         };
     }
 
