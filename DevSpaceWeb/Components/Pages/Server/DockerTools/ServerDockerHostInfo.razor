@@ -112,6 +112,15 @@ else
 
                 <RadzenTableRow>
                     <RadzenTableCell>
+                        Architecture
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.Architecture
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
                         Kernal
                     </RadzenTableCell>
                     <RadzenTableCell>
@@ -194,6 +203,15 @@ else
                         @($"{Utils.SizeSuffix(Host.StorageTotalSize - Host.StorageFreeSize, 0)} / {Utils.SizeSuffix(Host.StorageTotalSize, 0)} ({100 * (Host.StorageTotalSize - Host.StorageFreeSize) / Host.StorageTotalSize}%)" + (Host.IsWindows ? " Estimate (Not Accurate)" : null))
                     </RadzenTableCell>
                 </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Live Restore
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.LiveRestoreEnabled.ToEnabledString()
+                    </RadzenTableCell>
+                </RadzenTableRow>
             </RadzenTableBody>
         </RadzenTable>
     </div>
@@ -220,6 +238,15 @@ else
                     </RadzenTableCell>
                     <RadzenTableCell>
                         @Host.Docker.APIVersion
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        License
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.License
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -295,6 +322,24 @@ else
                         {
                             @string.Join(", ", Host.AuthPlugins)
                         }
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Experimental
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.ExperimentalEnabled.ToEnabledString()
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
+                        Debug
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        @Host.DebugEnabled.ToEnabledString()
                     </RadzenTableCell>
                 </RadzenTableRow>
             </RadzenTableBody>

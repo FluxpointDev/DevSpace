@@ -6,6 +6,11 @@ namespace DevSpaceWeb;
 
 public static class ExtensionMethods
 {
+    public static string ToEnabledString(this bool value)
+    {
+        return value ? "Enabled" : "Disabled";
+    }
+
     public static List<KeyValuePair<string, string?>> ParseEnvironment(this IList<string> variables)
     {
         List<KeyValuePair<string, string?>> List = [];
