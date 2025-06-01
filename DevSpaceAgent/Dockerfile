@@ -39,6 +39,11 @@ RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publ
 FROM base AS final
 WORKDIR /app
 
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install -y python3
+RUN apt-get install -y pip
+RUN apt-get install -y curl
 COPY --from=publish /usr/bin/containerd /usr/bin/containerd
 COPY --from=publish /usr/bin/containerd-shim-runc-v2 /usr/bin/containerd-shim-runc-v2
 COPY --from=publish /usr/bin/ctr /usr/bin/ctr
