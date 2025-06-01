@@ -22,7 +22,7 @@ ARG BUILD_CONFIGURATION=Release
 RUN wget -O "docker.tgz" "https://download.docker.com/linux/static/stable/x86_64/docker-27.0.3.tgz"
 RUN tar -xf docker.tgz docker
 RUN rm docker.tgz
-RUN mv docker/docker /usr/bin/docker
+RUN mv docker/* /usr/bin/docker/docker
 RUN rm -rf docker
 RUN wget -O "docker-compose" "https://github.com/docker/compose/releases/download/v2.36.2/docker-compose-linux-x86_64"
 RUN mv docker-compose /usr/bin/docker-compose
@@ -32,9 +32,9 @@ RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publ
 FROM base AS final
 WORKDIR /app
 
-COPY --from=publish /usr/bin/docker /usr/bin/docker
+COPY --from=publish /usr/bin/docker/* /usr/bin
 COPY --from=publish /usr/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-#RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/bin/docker-compose
+RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/bin/docker-compose
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "DevSpaceAgent.dll"]
