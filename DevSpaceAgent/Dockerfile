@@ -36,6 +36,5 @@ WORKDIR /app
 #COPY --from=publish /usr/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 #RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 #RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/bin/docker-compose
-RUN apt-get install wget
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "DevSpaceAgent.dll"]
