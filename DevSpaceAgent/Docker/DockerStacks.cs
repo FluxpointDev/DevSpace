@@ -877,6 +877,7 @@ public static class DockerStacks
         if (!Directory.Exists(Dir))
             throw new Exception("This stack does not exist anymore.");
         string File = Dir + "docker-compose.yml";
+
         using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
         {
             ComposeFilePath = [File],
@@ -912,6 +913,9 @@ public static class DockerStacks
         if (string.IsNullOrEmpty(id))
             throw new Exception("Stack id is missing.");
 
+        if (!Program.Stacks.TryGetValue(id, out Data.StackFile? stack))
+            throw new Exception("Stack does not exist.");
+
         string Dir = Program.CurrentDirectory + $"Data/Stacks/{id}/";
         if (Directory.Exists(Dir))
         {
@@ -923,6 +927,7 @@ public static class DockerStacks
                     using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
                     {
                         ComposeFilePath = [File],
+                        AlternativeServiceName = stack.Name,
                         ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                         StopOnDispose = true,
                         RemoveOrphans = true,
@@ -935,7 +940,6 @@ public static class DockerStacks
                     {
                         svc.Stop();
                         svc.Remove(true);
-                        svc.Dispose();
                     }
                 }
                 catch { }
