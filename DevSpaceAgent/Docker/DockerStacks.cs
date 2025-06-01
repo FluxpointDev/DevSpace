@@ -926,19 +926,21 @@ public static class DockerStacks
                         ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
                         StopOnDispose = false,
                         RemoveOrphans = true,
-                        KeepContainers = false,
+                        KeepContainers = true,
                         KeepVolumes = true
                     }))
                     {
-                        foreach (IContainerService? i in svc.Containers)
-                        {
-                            i.Remove(true);
-                        }
+                        Console.WriteLine($"Containers: {svc.Containers.Count} | Services: {svc.Services.Count}");
                         svc.Remove(true);
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Remove stack error: ");
+                    Console.WriteLine(ex);
+                }
             }
+
             try
             {
                 Directory.Delete(Dir, true);
