@@ -22,18 +22,33 @@ ARG BUILD_CONFIGURATION=Release
 RUN wget -O "docker.tgz" "https://download.docker.com/linux/static/stable/x86_64/docker-27.0.3.tgz"
 RUN tar -xf docker.tgz docker
 
-#RUN rm docker.tgz
-#RUN mv docker/* /usr/bin/docker/docker
-#RUN rm -rf docker
+RUN mv docker/containerd /usr/bin/containerd
+RUN mv docker/containerd-shim-runc-v2 /usr/bin/containerd-shim-runc-v2
+RUN mv docker/ctr /usr/bin/ctr
+RUN mv docker/docker /usr/bin/docker
+RUN mv docker/docker-init /usr/bin/docker-init
+RUN mv docker/docker-proxy /usr/bin/docker-proxy
+RUN mv docker/dockerd /usr/bin/dockerd
+RUN mv docker/runc /usr/bin/runc
+
 RUN wget -O "docker-compose" "https://github.com/docker/compose/releases/download/v2.36.2/docker-compose-linux-x86_64"
+RUN mv docker-compose /usr/bin/docker-compose
 RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 
 FROM base AS final
 WORKDIR /app
 
-COPY --from=publish docker/ /app/docker
-COPY --from=publish docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
+COPY --from=publish /usr/bin/containerd /usr/bin/containerd
+COPY --from=publish /usr/bin/containerd-shim-runc-v2 /usr/bin/containerd-shim-runc-v2
+COPY --from=publish /usr/bin/ctr /usr/bin/ctr
+COPY --from=publish /usr/bin/docker /usr/bin/docker
+COPY --from=publish /usr/bin/docker-init /usr/bin/docker-init
+COPY --from=publish /usr/bin/docker-proxy /usr/bin/docker-proxy
+COPY --from=publish /usr/bin/dockerd /usr/bin/dockerd
+COPY --from=publish /usr/bin/runc /usr/bin/runc
+
+COPY --from=publish /usr/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/bin/docker-compose
 COPY --from=publish /app/publish .
