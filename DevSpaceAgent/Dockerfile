@@ -19,7 +19,6 @@ RUN dotnet build "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN ln -sf /usr/libexec/docker/cli-plugins/docker-compose /usr/bin/docker-compose
 RUN wget -O "docker.tgz" "https://download.docker.com/linux/static/stable/x86_64/docker-27.0.3.tgz"
 RUN tar -xf docker.tgz docker
 RUN rm docker.tgz
@@ -36,6 +35,6 @@ WORKDIR /app
 COPY --from=publish /usr/bin/docker /usr/bin/docker
 COPY --from=publish /usr/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/bin/docker-compose
+#RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/bin/docker-compose
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "DevSpaceAgent.dll"]
