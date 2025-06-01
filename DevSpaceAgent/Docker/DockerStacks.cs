@@ -5,9 +5,7 @@ using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Ductus.FluentDocker.Builders;
-using Ductus.FluentDocker.Model.Compose;
 using Ductus.FluentDocker.Services;
-using Ductus.FluentDocker.Services.Impl;
 
 namespace DevSpaceAgent.Docker;
 
@@ -462,7 +460,6 @@ public static class DockerStacks
         }
 
         bool IsSuccess = false;
-        ServiceRunningState? CurrentState = null;
         try
         {
             BufferedCommandResult result = await Cli.Wrap("docker")
@@ -481,22 +478,20 @@ public static class DockerStacks
                 throw new Exception(error);
             }
 
-            using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
+            using (ICompositeService build = new Builder()
+                .UseContainer()
+                .UseCompose()
+                .ServiceName(stack.Name)
+                .KeepContainer()
+                .KeepVolumes()
+                .AlwaysPull()
+                .KeepOnDispose()
+                .FromFile(File)
+                .Build())
             {
-                ComposeFilePath = [File],
-                ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
-                StopOnDispose = false,
-                KeepContainers = true,
-                RemoveOrphans = true,
-                AlternativeServiceName = stack.Name,
-                KeepVolumes = true,
-                AlwaysPull = create.PullImage
-            }))
-            {
-                CurrentState = svc.State;
-                svc.Stop();
-                svc.Remove();
-                svc.Start();
+                build.Stop();
+                build.Remove(true);
+                build.Start();
                 IsSuccess = true;
             }
             ;
@@ -509,25 +504,6 @@ public static class DockerStacks
             }
             catch { }
 
-            if (CurrentState.HasValue && CurrentState.Value == ServiceRunningState.Running)
-            {
-                try
-                {
-                    using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
-                    {
-                        ComposeFilePath = [File],
-                        ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
-                        StopOnDispose = false,
-                        AlternativeServiceName = stack.Name,
-                        KeepContainers = true,
-                        KeepVolumes = true
-                    }))
-                    {
-                        svc.Start();
-                    }
-                }
-                catch { }
-            }
 
             throw;
         }
@@ -538,26 +514,6 @@ public static class DockerStacks
                 System.IO.File.WriteAllText(File, CurrentData);
             }
             catch { }
-
-            if (CurrentState.HasValue && CurrentState.Value == ServiceRunningState.Running)
-            {
-                try
-                {
-                    using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
-                    {
-                        ComposeFilePath = [File],
-                        ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
-                        StopOnDispose = false,
-                        AlternativeServiceName = stack.Name,
-                        KeepContainers = true,
-                        KeepVolumes = true
-                    }))
-                    {
-                        svc.Start();
-                    }
-                }
-                catch { }
-            }
 
             throw new Exception("Failed to create stack.");
         }
@@ -878,34 +834,35 @@ public static class DockerStacks
             throw new Exception("This stack does not exist anymore.");
         string File = Dir + "docker-compose.yml";
 
-        using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
-        {
-            ComposeFilePath = [File],
-            ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
-            StopOnDispose = false,
-            AlternativeServiceName = stack.Name,
-            KeepContainers = true,
-            KeepVolumes = true
-        }))
+        using (ICompositeService build = new Builder()
+                .UseContainer()
+                .UseCompose()
+                .ServiceName(stack.Name)
+                .KeepContainer()
+                .KeepVolumes()
+                .KeepOnDispose()
+                .FromFile(File)
+                .Build())
         {
             switch (type)
             {
                 case ControlStackType.Start:
                 case ControlStackType.Resume:
-                    svc.Start();
+                    build.Start();
                     break;
                 case ControlStackType.Stop:
-                    svc.Stop();
+                    build.Stop();
                     break;
                 case ControlStackType.Pause:
-                    svc.Pause();
+                    build.Pause();
                     break;
                 case ControlStackType.Restart:
-                    svc.Stop();
-                    svc.Start();
+                    build.Stop();
+                    build.Start();
                     break;
             }
         }
+        ;
     }
 
     public static async Task RemoveStack(DockerClient client, string? id)
@@ -924,23 +881,19 @@ public static class DockerStacks
             {
                 try
                 {
-                    using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
+                    using (ICompositeService build = new Builder()
+                .UseContainer()
+                .UseCompose()
+                .ServiceName(stack.Name)
+                .KeepContainer()
+                .KeepVolumes()
+                .KeepOnDispose()
+                .FromFile(File)
+                .Build())
                     {
-                        ComposeFilePath = [File],
-                        AlternativeServiceName = stack.Name,
-                        ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
-                        StopOnDispose = true,
-                        RemoveOrphans = true,
-                        KeepContainers = false,
-                        NoBuild = false,
-                        NoRecreate = false,
-                        AlwaysPull = false,
-                        KeepVolumes = true
-                    }))
-                    {
-                        svc.Stop();
-                        svc.Remove(true);
+                        build.Remove(true);
                     }
+                    ;
                 }
                 catch { }
             }
