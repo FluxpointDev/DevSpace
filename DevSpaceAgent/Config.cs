@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using DevSpaceShared.Agent;
+using Newtonsoft.Json;
 
 namespace DevSpaceAgent;
 
@@ -8,6 +9,7 @@ public class Config
     public string? AgentId;
     public string? AgentKey;
     public HashSet<string> AllowedIPs = [];
+    public AgentOptions Options = new AgentOptions();
     public void Save()
     {
         using (StreamWriter file = File.CreateText(Program.CurrentDirectory + $"Data/Config.json"))

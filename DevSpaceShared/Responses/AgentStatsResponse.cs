@@ -5,7 +5,7 @@ using Docker.DotNet.Models;
 namespace DevSpaceShared;
 public class AgentStatsResponse : IWebSocketEvent
 {
-    public AgentStatsResponse() : base(EventType.AgentStats)
+    public AgentStatsResponse() : base(EventType.GetAgentStats)
     {
 
     }

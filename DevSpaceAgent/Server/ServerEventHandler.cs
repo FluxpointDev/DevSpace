@@ -1,4 +1,6 @@
-﻿using DevSpaceAgent.Server;
+﻿using DevSpaceAgent.Data;
+using DevSpaceAgent.Server;
+using DevSpaceShared.Agent;
 using DevSpaceShared.Events.Docker;
 using DevSpaceShared.Responses;
 using DevSpaceShared.WebSocket;
@@ -32,9 +34,31 @@ public static class ServerEventHandler
                         Console.WriteLine("PONG");
                     }
                     break;
+                case EventType.GetAgentOptions:
+                    {
+                        IWebSocketTask? task = payload.ToObject<IWebSocketTask>();
+                        if (task == null)
+                            return;
+
+                        await ws.RespondAsync(task.TaskId, _Data.Config.Options);
+                    }
+                    break;
+                case EventType.UpdateAgentOptions:
+                    {
+                        AgentOptionsUpdate? data = payload.ToObject<AgentOptionsUpdate>();
+                        if (data == null)
+                            return;
+
+                        _Data.Config.Options.Update(data);
+                        _Data.Config.Save();
+                    }
+                    break;
                 case EventType.Docker:
                     {
-                        DockerEvent @event = payload.ToObject<DockerEvent>()!;
+                        DockerEvent @event = payload.ToObject<DockerEvent>();
+                        if (@event == null)
+                            return;
+
                         SocketResponse<object?> response = new SocketResponse<object?>();
                         if (Program.DockerFailed || Program.DockerClient == null)
                         {

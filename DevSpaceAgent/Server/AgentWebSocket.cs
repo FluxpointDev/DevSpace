@@ -21,6 +21,7 @@ public class AgentWebSocket
     {
         if (!noResponse)
             Console.WriteLine("Respond with: \n" + JsonConvert.SerializeObject(json, Formatting.Indented));
+
         string message = JsonConvert.SerializeObject(new IWebSocketResponse<dynamic>() { IsSuccess = true, TaskId = taskId, Data = json });
         Session.SendTextAsync(message);
     }

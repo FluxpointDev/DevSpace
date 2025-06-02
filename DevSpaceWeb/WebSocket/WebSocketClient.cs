@@ -112,7 +112,7 @@ public class WebSocketClient : WssClient
                         }
                     }
                     break;
-                case EventType.AgentStats:
+                case EventType.GetAgentStats:
                     {
                         AgentStatsResponse? Data = payload.ToObject<AgentStatsResponse>();
                         if (Data == null)

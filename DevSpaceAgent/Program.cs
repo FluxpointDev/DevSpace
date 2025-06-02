@@ -180,10 +180,15 @@ public class Program
 
     private static void Progress_ProgressChanged(object? sender, Message e)
     {
-        if (e.Action.EndsWith("healthcheck") || e.Action.StartsWith("exec_die") || e.Action.StartsWith("exec_start"))
+        if (e.Action.EndsWith("healthcheck") || e.Action.StartsWith("exec_die") || e.Action.StartsWith("exec_create") || e.Action.StartsWith("exec_start"))
             return;
-        Console.WriteLine("--- Docker Message ---");
-        Console.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
+
+        if (_Data.Config.Options.LogDockerEvents)
+        {
+            Console.WriteLine("--- Docker Event ---");
+            Console.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
+            Console.WriteLine("--- --- --- --- ---");
+        }
         switch (e.Type)
         {
             case "container":

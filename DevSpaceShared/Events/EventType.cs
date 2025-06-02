@@ -3,9 +3,11 @@
 public enum EventType
 {
     Invalid,
-    AgentStats,
+    GetAgentStats,
     Ping,
     Pong,
     TaskResponse,
     Docker,
+    GetAgentOptions,
+    UpdateAgentOptions
 }
