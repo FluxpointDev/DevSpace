@@ -1,4 +1,5 @@
-﻿using DevSpaceShared.WebSocket;
+﻿using DevSpaceAgent.Data;
+using DevSpaceShared.WebSocket;
 using Newtonsoft.Json;
 
 namespace DevSpaceAgent.Server;
@@ -17,9 +18,9 @@ public class AgentWebSocket
     //    Session.SendTextAsync(message);
     //}
 
-    public async Task RespondAsync(string taskId, object json, bool noResponse = false, CancellationToken token = default)
+    public async Task RespondAsync(string taskId, object? json, bool noResponse = false, CancellationToken token = default)
     {
-        if (!noResponse)
+        if (!noResponse && json != null && _Data.Config.Options.LogAgentEvents)
             Console.WriteLine("Respond with: \n" + JsonConvert.SerializeObject(json, Formatting.Indented));
 
         string message = JsonConvert.SerializeObject(new IWebSocketResponse<dynamic>() { IsSuccess = true, TaskId = taskId, Data = json });

@@ -70,9 +70,7 @@
         {
             LogAgentEvents = value
         });
-        await OnInitializedAsync();
-
-        IsActionLoading = false;
+        await LoadOptions();
     }
 
     public async Task ToggleDockerEvents(bool value)
@@ -89,9 +87,7 @@
         {
             LogAgentEvents = value
         });
-        await OnInitializedAsync();
-
-        IsActionLoading = false;
+        await LoadOptions();
     }
 
     protected override async Task OnInitializedAsync()
@@ -102,7 +98,12 @@
         if (Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator))
             return;
 
-        var Repsonse = await Server.RunJsonAsync<AgentOptions>(Notifications, new DevSpaceShared.WebSocket.IWebSocketTask(DevSpaceShared.WebSocket.EventType.GetAgentOptions));
+        await LoadOptions();
+    }
+
+    public async Task LoadOptions()
+    {
+        var Repsonse = await Server!.RunJsonAsync<AgentOptions>(Notifications, new DevSpaceShared.WebSocket.IWebSocketTask(DevSpaceShared.WebSocket.EventType.GetAgentOptions));
         if (Repsonse.Data != null)
             Options = Repsonse.Data;
 

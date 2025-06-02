@@ -55,6 +55,8 @@ public static class ServerEventHandler
 
                         _Data.Config.Options.Update(data);
                         _Data.Config.Save();
+
+                        await ws.RespondAsync(data.TaskId, null);
                     }
                     break;
                 case EventType.Docker:
