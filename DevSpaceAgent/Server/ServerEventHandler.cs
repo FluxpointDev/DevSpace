@@ -56,7 +56,10 @@ public static class ServerEventHandler
                         _Data.Config.Options.Update(data);
                         _Data.Config.Save();
 
-                        await ws.RespondAsync(data.TaskId, new { });
+                        await ws.RespondAsync(data.TaskId, new SocketResponse<object?>()
+                        {
+                            IsSuccess = true
+                        });
                     }
                     break;
                 case EventType.Docker:
