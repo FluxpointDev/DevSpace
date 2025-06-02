@@ -40,7 +40,11 @@ public static class ServerEventHandler
                         if (task == null)
                             return;
 
-                        await ws.RespondAsync(task.TaskId, _Data.Config.Options);
+                        await ws.RespondAsync(task.TaskId, new SocketResponse
+                        {
+                            IsSuccess = true,
+                            Data = _Data.Config.Options
+                        });
                     }
                     break;
                 case EventType.UpdateAgentOptions:
@@ -55,7 +59,7 @@ public static class ServerEventHandler
                     break;
                 case EventType.Docker:
                     {
-                        DockerEvent @event = payload.ToObject<DockerEvent>();
+                        DockerEvent? @event = payload.ToObject<DockerEvent>();
                         if (@event == null)
                             return;
 

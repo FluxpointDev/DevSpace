@@ -23,7 +23,7 @@ public class AgentOptions
         Console.WriteLine("--- --- --- --- ---");
     }
 }
-public class AgentOptionsUpdate : IWebSocketEvent
+public class AgentOptionsUpdate : IWebSocketTask
 {
     public AgentOptionsUpdate() : base(EventType.UpdateAgentOptions)
     {

@@ -2,6 +2,7 @@
 @using DevSpaceWeb.Models.Consoles
 @using DevSpaceWeb.Models.Servers
 @using System.Net
+@inject NotificationService Notifications
 
 <PageTitle>@(Server?.Name ?? "Server") Agent Options | @_Data.Config.Instance.Name</PageTitle>
 
@@ -12,6 +13,10 @@
             <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
         </div>
         <RadzenText TextStyle="TextStyle.H6">Agent Options</RadzenText>
+        @if (IsActionLoading)
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+        }
     </div>
     <RadzenBreadCrumb class="mt-2">
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
@@ -36,7 +41,7 @@
 
         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Log Docker Events</RadzenText>
         <RadzenText TextStyle="TextStyle.Body2">This will log docker real-time events to the console/container log of devspace-agent.</RadzenText>
-        <RadzenSwitch Value="@(Options?.LogDockerEvents ?? false)" ValueChanged="@ToggleAgentEvents" Disabled="@(Options == null || IsActionLoading)" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Log Docker Events Switch" } })" />
+        <RadzenSwitch Value="@(Options?.LogDockerEvents ?? false)" ValueChanged="@ToggleDockerEvents" Disabled="@(Options == null || IsActionLoading)" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Log Docker Events Switch" } })" />
     }
 </div>
 
@@ -49,112 +54,58 @@
     public ServerData? Server => Session.Selected.Server;
 
     public AgentOptions Options { get; set; }
-    public bool IsActionLoading { get; set; }
+    public bool IsActionLoading { get; set; } = true;
 
-    public void ToggleAgentEvents(bool value)
+    public async Task ToggleAgentEvents(bool value)
     {
+        if (Server == null)
+            return;
+
         if (Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator))
             return;
 
         IsActionLoading = true;
+
+        await Server.RunJsonAsync<AgentOptions>(Notifications, new AgentOptionsUpdate
+        {
+            LogAgentEvents = value
+        });
+        await OnInitializedAsync();
+
+        IsActionLoading = false;
+    }
+
+    public async Task ToggleDockerEvents(bool value)
+    {
+        if (Server == null)
+            return;
+
+        if (Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator))
+            return;
+
+        IsActionLoading = true;
+
+        await Server.RunJsonAsync<AgentOptions>(Notifications, new AgentOptionsUpdate
+        {
+            LogAgentEvents = value
+        });
+        await OnInitializedAsync();
 
         IsActionLoading = false;
     }
 
     protected override async Task OnInitializedAsync()
     {
-        if (Server != null)
-            Data = new ModifyServerConnectionModel
-            {
-                Ip = Server.AgentIp,
-                Port = Server.AgentPort
-            };
-    }
+        if (Server == null)
+            return;
 
-    public ModifyServerConnectionModel? Data { get; set; }
+        if (Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator))
+            return;
 
-    public async Task<string?> UpdateSettings(ModifyServerConnectionModel model)
-    {
-        if (Server == null || Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection))
-            return "You do not have Manage Connection permissions.";
+        var Repsonse = await Server.RunJsonAsync<AgentOptions>(Notifications, new DevSpaceShared.WebSocket.IWebSocketTask(DevSpaceShared.WebSocket.EventType.GetAgentOptions));
+        if (Repsonse.Data != null)
+            Options = Repsonse.Data;
 
-        if (model.Port == 0)
-            return "Server port is required.";
-
-        if (string.IsNullOrEmpty(model.Ip))
-            return "Server ip is required.";
-
-        if (Uri.CheckHostName(model.Ip) == UriHostNameType.Unknown)
-            return "Server ip has invalid format.";
-
-        IPAddress? address = null;
-        if (!IPAddress.TryParse(model.Ip, out address))
-        {
-            IPHostEntry? Host = null;
-            try
-            {
-                Host = Dns.GetHostEntry(model.Ip);
-            }
-            catch { }
-            if (Host != null)
-                address = Host.AddressList.FirstOrDefault();
-        }
-
-        if (address == null)
-            return "Server ip is invalid.";
-
-        ServerWebSocket Client = new ServerWebSocket();
-        ServerData TempServer = new ServerData
-        {
-            Name = ":)",
-            AgentIp = model.Ip,
-            AgentPort = model.Port,
-            AgentKey = model.AgentKey,
-            OwnerId = Member.UserId
-        };
-        await Client.DiscoverAsync(TempServer);
-        if (Client.Discover == null)
-            return "Failed to discover server.";
-
-        TempServer.AgentId = Client.Discover.Id;
-
-        HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + TempServer.AgentIp + ":" + TempServer.AgentPort + "/setup");
-        Req.Headers.TryAddWithoutValidation("Authorization", TempServer.AgentKey);
-        HttpResponseMessage DiscoverResponse = await Program.AgentDiscoverHttp.SendAsync(Req);
-        if (!DiscoverResponse.IsSuccessStatusCode)
-        {
-            return "Failed to setup server.";
-        }
-
-        await Client.RunAsync(TempServer);
-
-        await Task.Delay(new TimeSpan(0, 0, 2));
-
-        if (Client.Client == null || !Client.Client.IsConnected)
-            return "Failed to connect to server: " + Client.Error.ToString();
-
-        await Server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>()
-        .Set(x => x.AgentId, Client.Discover.Id)
-        .Set(x => x.AgentIp, model.Ip)
-        .Set(x => x.AgentPort, model.Port)
-        .Set(x => x.AgentKey, model.AgentKey),
-        async () =>
-        {
-            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.ServerSettingsChanged)
-                .SetTarget(Server)
-                .SetSensitive()
-                .AddPropertyChange("IP", Server.AgentIp, model.Ip)
-                .AddPropertyChange("Port", Server.AgentPort, model.Port));
-
-            Server.AgentIp = model.Ip;
-            Server.AgentPort = model.Port;
-            Server.AgentKey = model.AgentKey;
-
-            Server.RemoveWebSocket();
-
-            Server.SetWebSocket(Client);
-            Session.TriggerNavMenuChange();
-        });
-        return null;
+        IsActionLoading = false;
     }
 }
