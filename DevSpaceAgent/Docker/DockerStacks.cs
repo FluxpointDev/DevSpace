@@ -5,7 +5,9 @@ using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Ductus.FluentDocker.Builders;
+using Ductus.FluentDocker.Model.Compose;
 using Ductus.FluentDocker.Services;
+using Ductus.FluentDocker.Services.Impl;
 
 namespace DevSpaceAgent.Docker;
 
@@ -836,31 +838,29 @@ public static class DockerStacks
 
         try
         {
-            using (ICompositeService build = new Builder()
-        .UseContainer()
-        .UseCompose()
-        .ServiceName(stack.Name)
-        .KeepContainer()
-        .KeepVolumes()
-        .KeepOnDispose()
-        .FromFile(File)
-        .Build())
+            using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Native(), new DockerComposeConfig
+            {
+                ComposeFilePath = new List<string> { File },
+                ForceRecreate = true,
+                RemoveOrphans = true,
+                StopOnDispose = true
+            }))
             {
                 switch (type)
                 {
                     case ControlStackType.Start:
                     case ControlStackType.Resume:
-                        build.Start();
+                        svc.Start();
                         break;
                     case ControlStackType.Stop:
-                        build.Stop();
+                        svc.Stop();
                         break;
                     case ControlStackType.Pause:
-                        build.Pause();
+                        svc.Pause();
                         break;
                     case ControlStackType.Restart:
-                        build.Stop();
-                        build.Start();
+                        svc.Stop();
+                        svc.Start();
                         break;
                 }
             }
