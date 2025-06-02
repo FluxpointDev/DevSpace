@@ -407,6 +407,7 @@ public static class DockerStacks
                 }
             }
            ;
+            ;
         }
         catch
         {
@@ -480,20 +481,21 @@ public static class DockerStacks
                 throw new Exception(error);
             }
 
-            using (ICompositeService build = new Builder()
-                .UseContainer()
-                .UseCompose()
-                .ServiceName(stack.Name)
-                .KeepContainer()
-                .KeepVolumes()
-                .AlwaysPull()
-                .KeepOnDispose()
-                .FromFile(File)
-                .Build())
+            using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
             {
-                build.Stop();
-                build.Remove(true);
-                build.Start();
+                ComposeFilePath = [File],
+                ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
+                StopOnDispose = false,
+                KeepContainers = true,
+                RemoveOrphans = true,
+                AlternativeServiceName = stack.Name,
+                KeepVolumes = true,
+                AlwaysPull = create.PullImage
+            }))
+            {
+                svc.Stop();
+                svc.Remove();
+                svc.Start();
                 IsSuccess = true;
             }
             ;
@@ -838,13 +840,15 @@ public static class DockerStacks
 
         try
         {
-            using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Native(), new DockerComposeConfig
-            {
-                ComposeFilePath = new List<string> { File },
-                ForceRecreate = true,
-                RemoveOrphans = true,
-                StopOnDispose = true
-            }))
+            using (ICompositeService svc = new Builder()
+                .UseContainer()
+                .UseCompose()
+                .ServiceName(stack.Name)
+                .KeepContainer()
+                .KeepVolumes()
+                .KeepOnDispose()
+                .FromFile(File)
+                .Build())
             {
                 switch (type)
                 {
