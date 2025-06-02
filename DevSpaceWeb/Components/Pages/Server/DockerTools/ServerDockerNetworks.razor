@@ -117,7 +117,10 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Stack" Width="200px" Property="@nameof(DockerNetworkInfo.Stack)" FilterMode="FilterMode.CheckBoxList">
                 <Template>
-                    @context.Stack
+                    @if (!string.IsNullOrEmpty(context.Stack))
+                    {
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + context.Stack)" Text="@context.Stack" />
+                    }
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Driver" Width="80px" Property="@nameof(DockerNetworkInfo.Driver)" FilterMode="FilterMode.CheckBoxList">
