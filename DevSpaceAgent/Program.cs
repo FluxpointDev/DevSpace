@@ -163,8 +163,6 @@ public class Program
         timer.Elapsed += new ElapsedEventHandler(RunChecks);
         timer.Start();
 
-        Ductus.FluentDocker.Services.Logging.Enabled();
-
         await Task.Delay(-1);
     }
 

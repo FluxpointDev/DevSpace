@@ -552,7 +552,7 @@ public static class DockerStacks
                 {
                     All = true,
                     Filters = new Dictionary<string, IDictionary<string, bool>>
-                { { "label", new Dictionary<string, bool> { { "com.docker.compose.project=" + stack.Name, true } } } }
+                { { "label", new Dictionary<string, bool> { { $"com.docker.compose.project.working_dir=/app/Data/Stacks/{stack.Id}", true } } } }
                 });
 
                 foreach (ContainerListResponse? c in Containers)
@@ -842,7 +842,6 @@ public static class DockerStacks
                 .KeepVolumes()
                 .KeepOnDispose()
                 .FromFile(File)
-                .NoBuild()
                 .Build())
         {
             switch (type)
