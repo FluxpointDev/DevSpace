@@ -19,6 +19,8 @@ namespace DevSpaceShared.Data
                 Ingress = network.Ingress,
                 ConfigOnly = network.ConfigOnly,
             };
+            if (Info.Labels != null && Info.Labels.TryGetValue("com.docker.compose.project", out string? project))
+                Info.Stack = project;
 
             if (network.Containers != null)
             {
@@ -46,6 +48,7 @@ namespace DevSpaceShared.Data
 
         public required string Id { get; set; }
         public required string Name { get; set; }
+        public string? Stack { get; set; }
         public string? Driver { get; set; }
         public bool IsInternal { get; set; }
         public bool IsAttachable { get; set; }

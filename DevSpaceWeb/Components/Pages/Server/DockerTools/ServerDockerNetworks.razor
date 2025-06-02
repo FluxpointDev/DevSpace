@@ -115,6 +115,11 @@
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Stack" Width="80px" Property="@nameof(DockerNetworkInfo.Stack)" FilterMode="FilterMode.CheckBoxList">
+                <Template>
+                    @context.Stack
+                </Template>
+            </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Driver" Width="80px" Property="@nameof(DockerNetworkInfo.Driver)" FilterMode="FilterMode.CheckBoxList">
                 <Template>
                     @context.Driver
@@ -140,9 +145,29 @@
                     <RadzenContent MouseEnter="@(args => ShowUptimeTooltip(args, $"{(int)(DateTime.Now - context.Created).TotalDays} Days ago"))">@context.Created.ToString("dd'/'MM'/'yyyy")</RadzenContent>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="IPAM" Filterable="false">
+            <RadzenDataGridColumn Title="IPAM" Width="90px" Filterable="false">
                 <Template>
                         @context.IPAM?.Driver
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="IPv4 Subnet" Width="120px" Filterable="false">
+                <Template>
+                        @context.IPAM?.IPv4Subnet
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="IPv4 Gateway" Width="120px" Filterable="false">
+                <Template>
+                        @context.IPAM?.IPv4Gateway
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="IPv6 Subnet" Width="300px" Filterable="false">
+                <Template>
+                        @context.IPAM?.IPv6Subnet
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="IPv6 Gateway" Width="300px" Filterable="false">
+                <Template>
+                        @context.IPAM?.IPv6Gateway
                 </Template>
             </RadzenDataGridColumn>
         </Columns>

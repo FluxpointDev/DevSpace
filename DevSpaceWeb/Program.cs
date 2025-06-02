@@ -93,21 +93,7 @@ public class Program
             }
         }
 
-        // TODO import portainer yml files
-        //string YmlText = "";
-        //var deserializer = new DeserializerBuilder().Build();
-        //var yamlObject = deserializer.Deserialize(YmlText);
-
-        //var serializer = new SerializerBuilder()
-        //    .JsonCompatible()
-        //    .Build();
-
-        //var json = serializer.Serialize(yamlObject);
-        //var JO = JObject.Parse(json);
-        //Console.WriteLine(JO["services"].First().Path.Replace("services.", ""));
-
         //WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
-
 
         Logger.RunLogger("Dev Space", DefaultLogMode);
         Logger.LogMessage("Dev Space v" + GetVersionText(), LogSeverity.Info);
@@ -148,9 +134,7 @@ public class Program
             if (ConnectionTest)
                 Logger.LogMessage("Connection test success", LogSeverity.Info);
             else
-            {
                 throw new Exception("Connection test failed");
-            }
         }
 
         if (IsDevMode)
@@ -158,17 +142,11 @@ public class Program
             InternalDocker = new DockerClientConfiguration(new Uri("tcp://127.0.0.1:2375"), null).CreateClient();
             try
             {
-                DriveInfo CurrentDrive = DriveInfo.GetDrives().First();
-
-                string Used = Utils.SizeSuffix(CurrentDrive.TotalSize - CurrentDrive.TotalFreeSpace, 0);
-                string Total = Utils.SizeSuffix(CurrentDrive.TotalSize, 0);
-
-
                 await InternalDocker.System.PingAsync();
                 Console.WriteLine("PINGED DOCKER");
 
 
-                Docker.DotNet.Models.ContainerInspectResponse Volume = await InternalDocker.Containers.InspectContainerAsync("bbc170e139fd6eb38770ebc95a6cf5ed5a14adbd9ef45498fa51301a119c8ba5");
+                IList<Docker.DotNet.Models.NetworkResponse> Volume = await InternalDocker.Networks.ListNetworksAsync();
                 Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Volume, Newtonsoft.Json.Formatting.Indented));
 
                 //DockerStatJson? Stats = null;
@@ -230,6 +208,7 @@ public class Program
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 Console.WriteLine("Failed " + ex.Message);
             }
         }
