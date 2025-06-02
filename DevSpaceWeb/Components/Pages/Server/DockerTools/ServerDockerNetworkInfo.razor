@@ -85,7 +85,14 @@ else
                     <RadzenTableCell>
                         <RadzenStack Orientation="Orientation.Horizontal" Gap="12px" Wrap="FlexWrap.Wrap" AlignItems="AlignItems.Center">
                             <RadzenText TextStyle="TextStyle.Body2">@Network.Name</RadzenText>
-                            <RadzenButton Text="Remove" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@Remove" Disabled="@(IsActionLoading || Network.IsNetworkSystem() || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
+                            @if (Network.IsNetworkSystem())
+                            {
+                                <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" />
+                            }
+                            else
+                            {
+                                <RadzenButton Text="Remove" Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@Remove" Disabled="@(IsActionLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
+                            }
                         </RadzenStack>
                     </RadzenTableCell>
                 </RadzenTableRow>
