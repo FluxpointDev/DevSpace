@@ -39,7 +39,7 @@ RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publ
 FROM base AS final
 WORKDIR /app
 
-#RUN apt-get update
+RUN apt-get update
 #RUN apt-get upgrade -y
 RUN apt-get install -y docker-compose
 COPY --from=publish /usr/bin/containerd /usr/bin/containerd
