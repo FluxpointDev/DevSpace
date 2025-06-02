@@ -19,7 +19,7 @@ namespace DevSpaceShared.Data
                 Ingress = network.Ingress,
                 ConfigOnly = network.ConfigOnly,
             };
-            if (Info.Labels != null && Info.Labels.TryGetValue("com.docker.compose.project", out string? project))
+            if (network.Labels != null && network.Labels.TryGetValue("com.docker.compose.project", out string? project))
                 Info.Stack = project;
 
             if (network.Containers != null)
