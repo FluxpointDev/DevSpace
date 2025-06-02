@@ -40,7 +40,7 @@ WORKDIR /app
 
 RUN apt-get update
 
-RUN apt-get install -y docker-compose
+#RUN apt-get install -y docker-compose
 COPY --from=publish /usr/bin/containerd /usr/bin/containerd
 COPY --from=publish /usr/bin/containerd-shim-runc-v2 /usr/bin/containerd-shim-runc-v2
 COPY --from=publish /usr/bin/ctr /usr/bin/ctr
