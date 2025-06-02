@@ -836,7 +836,7 @@ public static class DockerStacks
             throw new Exception("This stack does not exist anymore.");
         string File = Dir + "docker-compose.yml";
 
-        using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Discover().FirstOrDefault(), new DockerComposeConfig
+        using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Native(), new DockerComposeConfig
         {
             ComposeFilePath = [File],
             ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
