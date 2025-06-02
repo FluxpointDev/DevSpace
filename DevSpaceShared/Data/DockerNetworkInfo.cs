@@ -61,6 +61,7 @@ namespace DevSpaceShared.Data
         public IDictionary<string, string>? Options { get; set; }
         public DockerNetworkIPAM? IPAM { get; set; }
         public Dictionary<string, string> Containers { get; set; } = [];
+
         public IDictionary<string, EndpointResource> ContainersList = new Dictionary<string, EndpointResource>();
         public int ContainersCount { get; set; }
     }
