@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine AS base
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
 USER root
 WORKDIR /app
 EXPOSE 5555
@@ -32,7 +32,7 @@ RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publ
 FROM base AS final
 WORKDIR /app
 
-RUN apt-get update
+#RUN apt-get update
 
 COPY --from=publish /usr/bin/docker /usr/bin/docker
 
