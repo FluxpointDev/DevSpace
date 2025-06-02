@@ -5,9 +5,7 @@ using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Ductus.FluentDocker.Builders;
-using Ductus.FluentDocker.Model.Compose;
 using Ductus.FluentDocker.Services;
-using Ductus.FluentDocker.Services.Impl;
 
 namespace DevSpaceAgent.Docker;
 
@@ -836,33 +834,41 @@ public static class DockerStacks
             throw new Exception("This stack does not exist anymore.");
         string File = Dir + "docker-compose.yml";
 
-        using (DockerComposeCompositeService svc = new DockerComposeCompositeService(new Hosts().Native(), new DockerComposeConfig
+        try
         {
-            ComposeFilePath = [File],
-            ImageRemoval = Ductus.FluentDocker.Model.Images.ImageRemovalOption.None,
-            StopOnDispose = false,
-            AlternativeServiceName = stack.Id,
-            KeepContainers = true,
-            KeepVolumes = true
-        }))
-        {
-            switch (type)
+            using (ICompositeService build = new Builder()
+        .UseContainer()
+        .UseCompose()
+        .ServiceName(stack.Name)
+        .KeepContainer()
+        .KeepVolumes()
+        .KeepOnDispose()
+        .FromFile(File)
+        .Build())
             {
-                case ControlStackType.Start:
-                case ControlStackType.Resume:
-                    svc.Start();
-                    break;
-                case ControlStackType.Stop:
-                    svc.Stop();
-                    break;
-                case ControlStackType.Pause:
-                    svc.Pause();
-                    break;
-                case ControlStackType.Restart:
-                    svc.Stop();
-                    svc.Start();
-                    break;
+                switch (type)
+                {
+                    case ControlStackType.Start:
+                    case ControlStackType.Resume:
+                        build.Start();
+                        break;
+                    case ControlStackType.Stop:
+                        build.Stop();
+                        break;
+                    case ControlStackType.Pause:
+                        build.Pause();
+                        break;
+                    case ControlStackType.Restart:
+                        build.Stop();
+                        build.Start();
+                        break;
+                }
             }
+            ;
+        }
+        catch { }
+        {
+
         }
     }
 
