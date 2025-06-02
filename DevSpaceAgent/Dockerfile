@@ -31,8 +31,8 @@ RUN mv docker/docker-proxy /usr/bin/docker-proxy
 RUN mv docker/dockerd /usr/bin/dockerd
 RUN mv docker/runc /usr/bin/runc
 
-#RUN wget -O "docker-compose" "https://github.com/docker/compose/releases/download/v2.36.2/docker-compose-linux-x86_64"
-#RUN mv docker-compose /usr/bin/docker-compose
+RUN wget -O "docker-compose" "https://github.com/docker/compose/releases/download/v2.36.2/docker-compose-linux-x86_64"
+RUN mv docker-compose /usr/bin/docker-compose
 RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 
@@ -51,8 +51,8 @@ COPY --from=publish /usr/bin/docker-proxy /usr/bin/docker-proxy
 COPY --from=publish /usr/bin/dockerd /usr/bin/dockerd
 COPY --from=publish /usr/bin/runc /usr/bin/runc
 
-#COPY --from=publish /usr/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
-#RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-#RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
+COPY --from=publish /usr/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
+RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "DevSpaceAgent.dll"]
