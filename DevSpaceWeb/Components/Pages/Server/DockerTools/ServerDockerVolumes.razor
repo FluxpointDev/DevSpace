@@ -300,7 +300,8 @@
                 new ContextMenuItem(){ Text = "View", Value = "view", Icon = "database", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes) },
                 new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = Member == null || item.ContainersCount != 0 || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes) },
                 new ContextMenuItem() { Text = "Force Remove", Value = "force_remove", Icon = "delete_forever", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes) },
-                new ContextMenuItem() { Text = "Copy Volume ID", Value = "copy", Icon = "content_copy" }
+                new ContextMenuItem() { Text = "Copy Volume Path", Value = "copy_path", Icon = "folder_copy" },
+                new ContextMenuItem() { Text = "Copy Volume ID", Value = "copy_id", Icon = "content_copy" }
                                                          }, x => MenuItemClick(x, item));
     }
 
@@ -376,7 +377,16 @@
 
                     }
                     break;
-                case "copy":
+                case "copy_path":
+                    {
+                        try
+                        {
+                            await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.MountPoint);
+                        }
+                        catch { }
+                    }
+                    break;
+                case "copy_id":
                     {
                         try
                         {
