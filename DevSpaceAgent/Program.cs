@@ -180,7 +180,7 @@ public class Program
 
     private static void Progress_ProgressChanged(object? sender, Message e)
     {
-        if (e.Action.EndsWith("healthcheck") || e.Action == "exec_die")
+        if (e.Action.EndsWith("healthcheck") || e.Action.StartsWith("exec_die") || e.Action.StartsWith("exec_start"))
             return;
         Console.WriteLine("--- Docker Message ---");
         Console.WriteLine(JsonConvert.SerializeObject(e, Formatting.Indented));
@@ -205,8 +205,6 @@ public class Program
                         ContainerCache[e.ID] = e.Actor.Attributes["name"];
                     }
                 }
-                else if (e.Action.StartsWith("exec_start:"))
-                    return;
                 break;
             case "image":
                 switch (e.Action)
