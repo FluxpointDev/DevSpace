@@ -17,6 +17,12 @@ public class DockerContainerInfo
             CreatedAt = data.Created
         };
 
+        if (data.NetworkSettings.Networks.Any())
+            Info.InternalIP = data.NetworkSettings.Networks.First().Value.IPAddress;
+
+        if (data.Ports != null)
+            Info.Ports = data.Ports.ToDictionary(x => $"{x.PublicPort}:{x.PrivatePort}", x => x.IP);
+
         if (data.Labels != null)
         {
             string? Id = null;
@@ -61,6 +67,8 @@ public class DockerContainerInfo
     public string? StackName { get; set; }
     public string State { get; set; }
     public string Status { get; set; }
+    public string InternalIP { get; set; }
+    public Dictionary<string, string>? Ports { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsRunning => State != null && State.StartsWith("running");
     public bool IsRestarting => State != null && State == "restarting";
