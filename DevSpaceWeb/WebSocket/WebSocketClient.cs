@@ -6,7 +6,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Radzen;
 using System.Collections.Concurrent;
-using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -21,7 +20,7 @@ public class WebSocketBase
 }
 public class WebSocketClient : WssClient
 {
-    public WebSocketClient(SslContext context, IPAddress address, int port) : base(context, address, port) { }
+    public WebSocketClient(SslContext context, string host, int port) : base(context, host, port) { }
 
     public WebSocketBase WebSocket = new WebSocketBase();
     public string Key;
@@ -72,9 +71,11 @@ public class WebSocketClient : WssClient
         base.OnDisconnected();
         Thread.Sleep(TimeSpan.FromSeconds(15));
 
-        Logger.LogMessage("WebSocket", $"Reconnecting to {Address}", LogSeverity.Info);
+        Logger.LogMessage("WebSocket", $"Reconnecting to {Address}:{Port}", LogSeverity.Info);
         if (!_stop)
+        {
             ConnectAsync();
+        }
     }
 
     protected override void OnError(SocketError error)
