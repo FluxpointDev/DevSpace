@@ -36,6 +36,7 @@ public static class DockerContainers
                 }
             }
 
+
             IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(Parameters);
             return Containers.Select(x => DockerContainerInfo.Create(x)).ToList();
         }
