@@ -25,6 +25,9 @@ public class DockerContainerInfo
 
         if (data.Labels != null)
         {
+            if (data.Labels.TryGetValue("url", out string? url))
+                Info.Url = url;
+
             string? Id = null;
             if (data.Labels.TryGetValue("com.docker.compose.project", out string? label) && !string.IsNullOrEmpty(label))
             {
@@ -67,7 +70,8 @@ public class DockerContainerInfo
     public string? StackName { get; set; }
     public string State { get; set; }
     public string Status { get; set; }
-    public string InternalIP { get; set; }
+    public string? InternalIP { get; set; }
+    public string? Url { get; set; }
     public Dictionary<string, string>? Ports { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsRunning => State != null && State.StartsWith("running");
