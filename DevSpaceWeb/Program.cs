@@ -146,7 +146,10 @@ public class Program
                 Console.WriteLine("PINGED DOCKER");
 
 
-                IList<Docker.DotNet.Models.NetworkResponse> Volume = await InternalDocker.Networks.ListNetworksAsync();
+                IList<Docker.DotNet.Models.ContainerListResponse> Volume = await InternalDocker.Containers.ListContainersAsync(new Docker.DotNet.Models.ContainersListParameters
+                {
+                    All = true
+                });
                 Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Volume, Newtonsoft.Json.Formatting.Indented));
 
                 //DockerStatJson? Stats = null;

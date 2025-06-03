@@ -21,7 +21,7 @@ public class DockerContainerInfo
             Info.InternalIP = data.NetworkSettings.Networks.First().Value.IPAddress;
 
         if (data.Ports != null)
-            Info.Ports = data.Ports.ToDictionary(x => $"{x.PublicPort}:{x.PrivatePort}", x => x.IP);
+            Info.Ports = data.Ports.Where(x => x.PublicPort != 0).ToDictionary(x => $"{x.PublicPort}:{x.PrivatePort}", x => x.IP);
 
         if (data.Labels != null)
         {
