@@ -1,0 +1,82 @@
+﻿@inject ContextMenuService ContextMenuService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<div class="nav-list nav-list-sub">
+    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
+        <div class="nav-list-header">
+            <span class="iconify" data-icon="mdi:alert-circle" style="color: #a5a5a5 !important;"></span>
+            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Server?.Name</h5>
+        </div>
+    </RadzenLink>
+
+    <RadzenPanelMenu>
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+            <Template>
+                <span class="iconify" data-icon="mdi:home"></span>
+                <p>Home</p>
+            </Template>
+        </RadzenPanelMenuItem>
+
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+            <Template>
+                <span class="iconify" data-icon="mdi:cloud-alert"></span>
+                <p>Monitors</p>
+            </Template>
+        </RadzenPanelMenuItem>
+
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+            <Template>
+                <span class="iconify" data-icon="mdi:list-status"></span>
+                <p>Pages</p>
+            </Template>
+        </RadzenPanelMenuItem>
+
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+            <Template>
+                <span class="iconify" data-icon="mdi:message-notification"></span>
+                <p>Alerts</p>
+            </Template>
+        </RadzenPanelMenuItem>
+
+    </RadzenPanelMenu>
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ServerData? Server => Session.Selected.Server;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Close", Icon = "close"  },
+                new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ManageServer) },
+                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ViewPermissions) },
+                new ContextMenuItem() { Text = "Copy Server ID", Icon = "content_copy" }
+         }, OnMenuItemClick);
+
+    void OnMenuItemClick(MenuItemEventArgs arg)
+    {
+        switch (arg.Text)
+        {
+            case "Close":
+                if (Session.Selected.Team != null && Session.Selected.Team.Server != null)
+                    Session.Selected.Team.Server.IsVisible = false;
+
+                Session.TriggerNavMenuChange();
+                break;
+            case "Settings":
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/settings");
+                break;
+            case "Permissions":
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/permissions");
+                break;
+            case "Copy Server ID":
+                JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", Session.Selected.Server?.Id);
+                break;
+        }
+        ContextMenuService.Close();
+    }
+}
