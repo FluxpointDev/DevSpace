@@ -213,7 +213,10 @@ public static class DockerImages
                         });
                         Info.ContainersCount = Containers.Count;
                     }
-                    catch { }
+                    catch
+                    {
+                        Info.ContainersCount = -1;
+                    }
 
                     return Info;
                 }

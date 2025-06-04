@@ -149,13 +149,16 @@ else
                     </RadzenTableCell>
                     <RadzenTableCell>
                         <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
-                        @if (Image.ContainersCount == 0)
+                        @if (Image.ContainersCount != -1 && Server.HasVersionOrHigher(new System.Version(1, 0, 53)))
                         {
-                            <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Warning" Text="Unused" />
-                        }
-                        else
-                        {
-                            <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="@(Image.ContainersCount + " Container" + (Image.ContainersCount != 1 ? "s" : ""))" />
+                            @if (Image.ContainersCount == 0)
+                            {
+                                <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Warning" Text="Unused" />
+                            }
+                            else
+                            {
+                                <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="@(Image.ContainersCount + " Container" + (Image.ContainersCount != 1 ? "s" : ""))" />
+                            }
                         }
                         @if (Image.IsLocal)
                         {
