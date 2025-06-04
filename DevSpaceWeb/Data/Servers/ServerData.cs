@@ -280,7 +280,7 @@ public class ServerWebSocket
         }
 
         Logger.LogMessage($"Connecting to {server.AgentIp}:{server.AgentPort}", LogSeverity.Info);
-        Client = new WebSocketClient(context, server.AgentIp, server.AgentPort)
+        Client = new WebSocketClient(context, new DnsEndPoint(server.AgentIp, server.AgentPort, server.AgentIp.Contains(":") ? System.Net.Sockets.AddressFamily.InterNetworkV6 : System.Net.Sockets.AddressFamily.InterNetwork))
         {
             Key = server.AgentKey
         };
