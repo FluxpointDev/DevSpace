@@ -64,6 +64,7 @@ public static class DockerImages
     {
         await Cli.Wrap("docker")
             .WithArguments(["image", "prune", "-a", "-f"])
+            .WithValidation(CommandResultValidation.None)
             .ExecuteAsync();
     }
 
