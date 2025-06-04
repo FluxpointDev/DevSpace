@@ -244,7 +244,7 @@ public class ServerWebSocket
         SslContext context = new SslContext(SslProtocols.None, (e, b, l, m) =>
         {
             Console.WriteLine("SSL Context: " + m.ToString());
-            if (b != null && m == System.Net.Security.SslPolicyErrors.None)
+            if (b != null && m != System.Net.Security.SslPolicyErrors.RemoteCertificateNotAvailable)
             {
                 return true;
             }
