@@ -216,7 +216,10 @@ public class Program
                 {
                     case "pull":
                         if (e.Scope == "local")
-                            State.CurrentPullLimit -= 1;
+                        {
+                            if (e.ID.Count(x => x == '/') < 3)
+                                State.CurrentPullLimit -= 1;
+                        }
                         break;
                 }
                 break;
