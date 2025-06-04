@@ -86,8 +86,11 @@
                         </RadzenColumn>
                     </RadzenRow>
                 </RadzenTabsItem>
-                <RadzenTabsItem Text="IPv6">
-                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-2">IPv6 Network</RadzenText>
+               
+                    <RadzenTabsItem Text="IPv6" Disabled="@(NetworkDriverInput != "bridge")">
+                         @if (NetworkDriverInput == "bridge")
+                    {
+                        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-2">IPv6 Network</RadzenText>
 
                     <RadzenRow Gap="10px" RowGap="10px">
                         <RadzenColumn SizeMD="6" SizeSM="12">
@@ -103,6 +106,7 @@
                             <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Range" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::/64" />
                         </RadzenColumn>
                     </RadzenRow>
+                    }
                 </RadzenTabsItem>
             </Tabs>
         </RadzenTabs>
