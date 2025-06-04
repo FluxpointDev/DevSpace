@@ -66,7 +66,7 @@ public static class DockerImages
             Filters = new Dictionary<string, IDictionary<string, bool>> {
                 { "dangling", new Dictionary<string, bool>
                 {
-                    { "false", false }
+                    { "False", false }
                 }
                 }
             }
