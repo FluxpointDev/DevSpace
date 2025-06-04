@@ -14,7 +14,7 @@ COPY ["DevSpaceShared/DevSpaceShared.csproj", "DevSpaceShared/"]
 RUN dotnet restore "./DevSpaceAgent/DevSpaceAgent.csproj"
 COPY . .
 WORKDIR "/src/DevSpaceAgent"
-RUN dotnet build "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/build --nologo -property WarningLevel=0
 
 
 FROM build AS publish
