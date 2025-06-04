@@ -22,7 +22,7 @@ RUN dotnet build "./DevSpaceWeb.csproj" -c $BUILD_CONFIGURATION -o /app/build --
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 
-RUN dotnet publish "./DevSpaceWeb.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./DevSpaceWeb.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --nologo -property WarningLevel=0
 
 
 FROM base AS final

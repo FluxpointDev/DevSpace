@@ -26,7 +26,7 @@ RUN mv docker/docker /usr/bin/docker
 
 RUN wget -O "docker-compose" "https://github.com/docker/compose/releases/download/v2.36.2/docker-compose-linux-x86_64"
 RUN mv docker-compose /usr/bin/docker-compose
-RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --nologo -property WarningLevel=0
 
 
 FROM base AS final
