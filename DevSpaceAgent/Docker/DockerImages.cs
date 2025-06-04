@@ -1,4 +1,5 @@
-﻿using DevSpaceShared;
+﻿using CliWrap;
+using DevSpaceShared;
 using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
@@ -61,23 +62,9 @@ public static class DockerImages
 
     public static async Task PruneImagesAsync(DockerClient client)
     {
-        IList<ImagesListResponse> Images = await client.Images.ListImagesAsync(new ImagesListParameters
-        {
-            All = true
-        });
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Images, Newtonsoft.Json.Formatting.Indented));
-        foreach (ImagesListResponse? i in Images)
-        {
-            if (i.Containers == 0)
-                try
-                {
-                    await client.Images.DeleteImageAsync(i.ID, new ImageDeleteParameters
-                    {
-
-                    });
-                }
-                catch { }
-        }
+        await Cli.Wrap("docker")
+            .WithArguments(["image", "prune", "-a", "-f"])
+            .ExecuteAsync();
     }
 
     public static async Task PullImageAsync(DockerClient client, string? name)
