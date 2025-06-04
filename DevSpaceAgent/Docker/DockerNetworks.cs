@@ -45,8 +45,27 @@ public static class DockerNetworks
             Options = data.DriverOptions,
             Labels = data.Labels,
             Attachable = data.IsManualAttach,
-            Internal = data.IsIsolated
+            Internal = data.IsIsolated,
+            CheckDuplicate = true
         };
+        if (!string.IsNullOrEmpty(data.IPv4Gateway) || !string.IsNullOrEmpty(data.IPv4Range) || !string.IsNullOrEmpty(data.IPv4Subnet))
+        {
+            Create.IPAM.Config.Add(new IPAMConfig
+            {
+                IPRange = data.IPv4Range,
+                Gateway = data.IPv4Gateway,
+                Subnet = data.IPv4Subnet,
+            });
+        }
+        if (!string.IsNullOrEmpty(data.IPv6Gateway) || !string.IsNullOrEmpty(data.IPv6Range) || !string.IsNullOrEmpty(data.IPv6Subnet))
+        {
+            Create.IPAM.Config.Add(new IPAMConfig
+            {
+                IPRange = data.IPv6Range,
+                Gateway = data.IPv6Gateway,
+                Subnet = data.IPv6Subnet,
+            });
+        }
 
         await client.Networks.CreateNetworkAsync(Create);
     }
