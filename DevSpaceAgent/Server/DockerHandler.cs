@@ -111,7 +111,8 @@ public static class DockerHandler
                 return await DockerImages.SearchImagesAsync(Client, @event);
 
             case DockerEventType.PruneImages:
-                return await DockerImages.PruneImagesAsync(Client);
+                await DockerImages.PruneImagesAsync(Client);
+                break;
 
             case DockerEventType.GetPullLimit:
                 return new RegistryLimitResponse

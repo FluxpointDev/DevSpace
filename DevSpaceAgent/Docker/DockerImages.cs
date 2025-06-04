@@ -59,18 +59,24 @@ public static class DockerImages
         });
     }
 
-    public static async Task<ImagesPruneResponse> PruneImagesAsync(DockerClient client)
+    public static async Task PruneImagesAsync(DockerClient client)
     {
-        return await client.Images.PruneImagesAsync(new ImagesPruneParameters
+        IList<ImagesListResponse> Images = await client.Images.ListImagesAsync(new ImagesListParameters
         {
-            Filters = new Dictionary<string, IDictionary<string, bool>> {
-                { "dangling", new Dictionary<string, bool>
-                {
-                    { "False", false }
-                }
-                }
-            }
+            All = true
         });
+        foreach (ImagesListResponse? i in Images)
+        {
+            if (i.Containers == 0)
+                try
+                {
+                    await client.Images.DeleteImageAsync(i.ID, new ImageDeleteParameters
+                    {
+
+                    });
+                }
+                catch { }
+        }
     }
 
     public static async Task PullImageAsync(DockerClient client, string? name)
