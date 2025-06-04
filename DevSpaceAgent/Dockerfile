@@ -28,12 +28,15 @@ RUN wget -O "docker-compose" "https://github.com/docker/compose/releases/downloa
 RUN mv docker-compose /usr/bin/docker-compose
 RUN dotnet publish "./DevSpaceAgent.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false --nologo -property WarningLevel=0
 
+RUN wget -O "docker-buildx" "https://github.com/docker/buildx/releases/download/v0.24.0/buildx-v0.24.0.linux-arm64"
+RUN mv docker-buildx /usr/bin/docker-buildx
 
 FROM base AS final
 WORKDIR /app
 
 COPY --from=publish /usr/bin/docker /usr/bin/docker
 COPY --from=publish /usr/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
+COPY --from=publish /usr/bin/docker-buildx /usr/local/lib/docker/cli-plugins/docker-buildx
 RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
 COPY --from=publish /app/publish .
