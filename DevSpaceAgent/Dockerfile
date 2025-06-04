@@ -38,6 +38,7 @@ COPY --from=publish /usr/bin/docker /usr/bin/docker
 COPY --from=publish /usr/bin/docker-compose /usr/local/lib/docker/cli-plugins/docker-compose
 COPY --from=publish /usr/bin/docker-buildx /usr/local/lib/docker/cli-plugins/docker-buildx
 RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+RUN chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
 RUN ln -sf /usr/local/lib/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "DevSpaceAgent.dll"]
