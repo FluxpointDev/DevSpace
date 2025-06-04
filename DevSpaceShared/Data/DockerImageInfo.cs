@@ -29,7 +29,6 @@ namespace DevSpaceShared.Data
                 Comment = image.Comment,
                 Driver = image.GraphDriver.Name,
                 Config = DockerImageConfig.Create(image.Config)
-
             };
 
             string? Desc = null;

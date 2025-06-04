@@ -145,6 +145,32 @@ else
 
                 <RadzenTableRow>
                     <RadzenTableCell>
+                        Status
+                    </RadzenTableCell>
+                    <RadzenTableCell>
+                        <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
+                        @if (Image.ContainersCount == 0)
+                        {
+                            <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Warning" Text="Unused" />
+                        }
+                        else
+                        {
+                            <RadzenBadge Shade="Shade.Lighter" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="@(Image.ContainersCount + " Container" + (Image.ContainersCount != 1 ? "s" : ""))" />
+                        }
+                        @if (Image.IsLocal)
+                        {
+                            <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="Local" />
+                        }
+                        @if (Image.IsParent)
+                        {
+                            <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="Parent" />
+                        }
+                        </RadzenStack>
+                    </RadzenTableCell>
+                </RadzenTableRow>
+
+                <RadzenTableRow>
+                    <RadzenTableCell>
                         Links
                     </RadzenTableCell>
                     <RadzenTableCell>

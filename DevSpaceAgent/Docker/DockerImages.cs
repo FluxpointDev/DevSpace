@@ -196,7 +196,26 @@ public static class DockerImages
             case ControlImageType.View:
                 {
                     ImageInspectResponse Image = await client.Images.InspectImageAsync(id);
-                    return DockerImageInfo.Create(Image);
+
+                    DockerImageInfo Info = DockerImageInfo.Create(Image);
+
+                    try
+                    {
+                        IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
+                        {
+                            All = true,
+                            Filters = new Dictionary<string, IDictionary<string, bool>>
+                            {
+                                { "ancestor", new Dictionary<string, bool>
+                                { { id, true }}
+                                }
+                            }
+                        });
+                        Info.ContainersCount = Containers.Count;
+                    }
+                    catch { }
+
+                    return Info;
                 }
             case ControlImageType.Layers:
                 return await client.Images.GetImageHistoryAsync(id);
