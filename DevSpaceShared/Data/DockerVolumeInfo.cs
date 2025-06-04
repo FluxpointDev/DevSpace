@@ -14,6 +14,8 @@ public class DockerVolumeInfo
             Scope = volume.Scope,
             MountPoint = volume.Mountpoint
         };
+        if (volume.Labels != null && volume.Labels.TryGetValue("project", out string? project))
+            Info.Stack = project;
 
         if (inspect)
         {
@@ -36,4 +38,5 @@ public class DockerVolumeInfo
     public Dictionary<string, string> Containers { get; set; } = [];
     public Dictionary<string, DockerMountContainer> ContainersList { get; set; } = [];
     public int ContainersCount { get; set; }
+    public string Stack { get; set; }
 }

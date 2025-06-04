@@ -116,7 +116,15 @@
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Driver" Width="80px" Property="@nameof(DockerVolumeInfo.Driver)" FilterMode="FilterMode.CheckBoxList">
+                <RadzenDataGridColumn Title="Stack" Width="200px" Property="@nameof(DockerVolumeInfo.Stack)" FilterMode="FilterMode.CheckBoxList">
+                    <Template>
+                        @if (!string.IsNullOrEmpty(context.Stack))
+                        {
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + context.Stack)" Text="@context.Stack" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Driver" Width="80px" Property="@nameof(DockerVolumeInfo.Driver)" FilterMode="FilterMode.CheckBoxList">
                 <Template>
                     @context.Driver
                 </Template>
