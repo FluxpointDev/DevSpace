@@ -65,6 +65,7 @@ public static class DockerImages
         {
             All = true
         });
+        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Images, Newtonsoft.Json.Formatting.Indented));
         foreach (ImagesListResponse? i in Images)
         {
             if (i.Containers == 0)
