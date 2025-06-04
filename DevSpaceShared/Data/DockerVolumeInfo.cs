@@ -14,7 +14,7 @@ public class DockerVolumeInfo
             Scope = volume.Scope,
             MountPoint = volume.Mountpoint
         };
-        if (volume.Labels != null && volume.Labels.TryGetValue("project", out string? project))
+        if (volume.Labels != null && volume.Labels.TryGetValue("com.docker.compose.project", out string? project))
             Info.Stack = project;
 
         if (inspect)
