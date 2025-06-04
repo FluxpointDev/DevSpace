@@ -63,7 +63,13 @@ public static class DockerImages
     {
         return await client.Images.PruneImagesAsync(new ImagesPruneParameters
         {
-
+            Filters = new Dictionary<string, IDictionary<string, bool>> {
+                { "dangling", new Dictionary<string, bool>
+                {
+                    { "false", false }
+                }
+                }
+            }
         });
     }
 
