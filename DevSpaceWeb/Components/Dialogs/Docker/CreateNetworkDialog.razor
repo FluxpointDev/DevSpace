@@ -20,91 +20,92 @@
             </RadzenAlert>
         }
 
-        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Name</RadzenText>
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Name</RadzenText>
         <RadzenTextBox MaxLength="100" Value="@NetworkNameInput" @oninput="@(arg => NetworkNameInput = arg.Value as string)" Disabled="@IsLoading" Placeholder="my-network" />
 
         <br />
         <br />
-        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">Driver Configuration</RadzenText>
 
-        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Driver</RadzenText>
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Type</RadzenText>
         <RadzenDropDown TValue="string" @bind-Value="@NetworkDriverInput" Data="@NetworkDrivers" Disabled="@IsLoading" />
 
         <br />
-        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Driver Options</RadzenText>
-        <RadzenButton Click="@(() => DriverOptionsInputs.Add(Guid.NewGuid().ToString(), new Tuple<string, string>("", "")))" Text="Add Option" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" Style="width: 120px !important;" />
-        <br />
-        <br />
-        <RadzenStack>
-            @foreach (KeyValuePair<string, Tuple<string, string>> i in DriverOptionsInputs)
-            {
-                @DockerNameValueInput.RenderElement(this, DriverOptionsInputs, "Option", i.Key, i.Value, IsLoading)
-            }
-        </RadzenStack>
-        @* <br />
-        <br />
-        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">IPv4 Network</RadzenText>
+        <RadzenTabs>
+            <Tabs>
+                <RadzenTabsItem Text="Driver">
+                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-2">Options</RadzenText>
+                    <RadzenButton Click="@(() => DriverOptionsInputs.Add(Guid.NewGuid().ToString(), new Tuple<string, string>("", "")))" Text="Add Option" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" Style="width: 120px !important;" />
+                    <br />
+                    <br />
+                    <RadzenStack>
+                        @foreach (KeyValuePair<string, Tuple<string, string>> i in DriverOptionsInputs)
+                        {
+                            @DockerNameValueInput.RenderElement(this, DriverOptionsInputs, "Option", i.Key, i.Value, IsLoading)
+                        }
+                    </RadzenStack>
+                    <br />
+                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-2">Labels</RadzenText>
+                    <RadzenButton Click="@(() => LabelInputs.Add(Guid.NewGuid().ToString(), new Tuple<string, string>("", "")))" Text="Add Label" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" Style="width: 120px !important;" />
+                    <br />
+                    <br />
+                    <RadzenStack>
+                        @foreach (KeyValuePair<string, Tuple<string, string>> i in LabelInputs)
+                        {
+                            @DockerNameValueInput.RenderElement(this, LabelInputs, "Label", i.Key, i.Value, IsLoading)
+                        }
+                    </RadzenStack>
+                    <br />
 
-        <RadzenRow Gap="10px" RowGap="10px">
-            <RadzenColumn SizeMD="6" SizeSM="12">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Subnet</RadzenText>
-                <RadzenTextBox MaxLength="100" @bind-Value="@IPv4Subnet" Disabled="@IsLoading" Style="width: 100%;" Placeholder="172.20.0.0/16" />
-            </RadzenColumn>
-            <RadzenColumn SizeMD="6" SizeSM="12">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Gateway</RadzenText>
-                <RadzenTextBox MaxLength="100" @bind-Value="@IPv4Gateway" Disabled="@IsLoading" Style="width: 100%;" Placeholder="172.20.0.1" />
-            </RadzenColumn>
-            <RadzenColumn SizeMD="6" SizeSM="12">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">IP Range</RadzenText>
-                <RadzenTextBox MaxLength="100" @bind-Value="@IPv4Range" Disabled="@IsLoading" Style="width: 100%;" Placeholder="172.20.10.128/25" />
-            </RadzenColumn>
-        </RadzenRow>
+                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-2">Advanced</RadzenText>
 
-        <br />
-        <br />
-        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">IPv6 Network</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Isolated Network</RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                        <RadzenSwitch @bind-Value="@IsIsolated" Disabled="@IsLoading" />
+                        <RadzenLabel Text="No inbound or outbound connections." />
+                    </RadzenStack>
 
-        <RadzenRow Gap="10px" RowGap="10px">
-            <RadzenColumn SizeMD="6" SizeSM="12">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Subnet</RadzenText>
-                <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Subnet" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::/48" />
-            </RadzenColumn>
-            <RadzenColumn SizeMD="6" SizeSM="12">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Gateway</RadzenText>
-                <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Gateway" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::1" />
-            </RadzenColumn>
-            <RadzenColumn SizeMD="6" SizeSM="12">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">IP Range</RadzenText>
-                <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Range" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::/64" />
-            </RadzenColumn>
-        </RadzenRow> *@
-
-        <br />
-        <br />
-        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">Labels</RadzenText>
-        <RadzenButton Click="@(() => LabelInputs.Add(Guid.NewGuid().ToString(), new Tuple<string, string>("", "")))" Text="Add Label" Shade="Shade.Darker" ButtonStyle="ButtonStyle.Success" Size="ButtonSize.Small" Disabled="@IsLoading" Style="width: 120px !important;" />
-        <br />
-        <br />
-        <RadzenStack>
-            @foreach (KeyValuePair<string, Tuple<string, string>> i in LabelInputs)
-            {
-                @DockerNameValueInput.RenderElement(this, LabelInputs, "Label", i.Key, i.Value, IsLoading)
-            }
-        </RadzenStack>
-        <br />
-        <br />
-
-        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">Advanced</RadzenText>
-
-        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
-            <RadzenSwitch @bind-Value="@IsIsolated" Disabled="@IsLoading" Name="Isolated" />
-            <RadzenLabel Text="Isolated Network" Component="Isolated" />
-        </RadzenStack>
-
-        @* <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+                    @* <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
             <RadzenSwitch @bind-Value="@IsManualAttach" Disabled="@IsLoading" Name="Manual" />
             <RadzenLabel Text="Manual container attachment" Component="Manual" />
         </RadzenStack> *@
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="IPv4">
+                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-2">IPv4 Network</RadzenText>
+                    <RadzenRow Gap="10px" RowGap="10px">
+                        <RadzenColumn SizeMD="6" SizeSM="12">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Subnet</RadzenText>
+                            <RadzenTextBox MaxLength="100" @bind-Value="@IPv4Subnet" Disabled="@IsLoading" Style="width: 100%;" Placeholder="172.20.0.0/16" />
+                        </RadzenColumn>
+                        <RadzenColumn SizeMD="6" SizeSM="12">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Gateway</RadzenText>
+                            <RadzenTextBox MaxLength="100" @bind-Value="@IPv4Gateway" Disabled="@IsLoading" Style="width: 100%;" Placeholder="172.20.0.1" />
+                        </RadzenColumn>
+                        <RadzenColumn SizeMD="6" SizeSM="12">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">IP Range</RadzenText>
+                            <RadzenTextBox MaxLength="100" @bind-Value="@IPv4Range" Disabled="@IsLoading" Style="width: 100%;" Placeholder="172.20.10.128/25" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenTabsItem>
+                <RadzenTabsItem Text="IPv6">
+                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-2">IPv6 Network</RadzenText>
+
+                    <RadzenRow Gap="10px" RowGap="10px">
+                        <RadzenColumn SizeMD="6" SizeSM="12">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Subnet</RadzenText>
+                            <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Subnet" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::/48" />
+                        </RadzenColumn>
+                        <RadzenColumn SizeMD="6" SizeSM="12">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Gateway</RadzenText>
+                            <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Gateway" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::1" />
+                        </RadzenColumn>
+                        <RadzenColumn SizeMD="6" SizeSM="12">
+                            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">IP Range</RadzenText>
+                            <RadzenTextBox MaxLength="100" @bind-Value="@IPv6Range" Disabled="@IsLoading" Style="width: 100%;" Placeholder="2001:db8::/64" />
+                        </RadzenColumn>
+                    </RadzenRow>
+                </RadzenTabsItem>
+            </Tabs>
+        </RadzenTabs>
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
         <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Cancel" Style="width: 90px" Disabled="@IsLoading" />
@@ -158,22 +159,6 @@
         }
         if (Server == null)
             return;
-
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(new CreateNetworkEvent
-            {
-                Name = NetworkNameInput,
-                DriverOptions = DriverOptionsInputs.Values.ToDictionary(x => x.Item1, x => x.Item2),
-                DriverType = NetworkDriverInput,
-                IsIsolated = IsIsolated,
-                IsManualAttach = IsManualAttach,
-                Labels = LabelInputs.Values.ToDictionary(x => x.Item1, x => x.Item2),
-                IPv4Subnet = IPv4Subnet,
-                IPv4Gateway = IPv4Gateway,
-                IPv4Range = IPv4Range,
-                IPv6Subnet = IPv6Subnet,
-                IPv6Gateway = IPv6Gateway,
-                IPv6Range = IPv6Range
-            }, Newtonsoft.Json.Formatting.Indented));
 
         IsLoading = true;
         SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.CreateNetwork)
