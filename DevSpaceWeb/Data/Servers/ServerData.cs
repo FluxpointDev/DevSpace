@@ -243,12 +243,9 @@ public class ServerWebSocket
 
         SslContext context = new SslContext(SslProtocols.None, (e, b, l, m) =>
         {
-            if (b != null)
+            Console.WriteLine("SSL Context: " + m.ToString());
+            if (b != null && m == System.Net.Security.SslPolicyErrors.None)
             {
-                if (b.Subject == "CN=devspace")
-                {
-                    return true;
-                }
                 return true;
             }
             return false;
