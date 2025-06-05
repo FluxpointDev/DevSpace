@@ -91,7 +91,7 @@ public static class DockerSystem
 
         foreach (ContainerListResponse? c in containers)
         {
-            if (c.Labels.TryGetValue("com.docker.compose.project", out string? label) && !string.IsNullOrEmpty(label))
+            if (c.Labels.TryGetValue("com.docker.compose.project", out string? label) && !string.IsNullOrEmpty(label) && !Stacks.Contains(label))
             {
                 try
                 {
