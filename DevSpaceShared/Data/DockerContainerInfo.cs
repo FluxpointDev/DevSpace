@@ -25,7 +25,7 @@ public class DockerContainerInfo
             Info.Ports = new Dictionary<string, string>();
             foreach (Port? i in data.Ports)
             {
-                if (i.PublicPort != 0)
+                if (i.PublicPort != 0 && !Info.Ports.ContainsKey($"{i.PublicPort}:{i.PrivatePort}"))
                     Info.Ports.Add($"{i.PublicPort}:{i.PrivatePort}", i.IP);
             }
         }
