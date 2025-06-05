@@ -41,6 +41,7 @@ public class TeamData : IResource
     public PermissionsSet DefaultPermissions { get; set; } = new PermissionsSet();
     public string? DefaultMembersColor { get; set; }
     public bool Require2FA { get; set; }
+    public TeamProxmox? Proxmox { get; set; }
 
     [Obsolete("Use cached roles")]
     [BsonIgnoreIfNull]
@@ -276,4 +277,12 @@ public class TeamData : IResource
             }
         }
     }
+}
+public class TeamProxmox
+{
+    public string? Ip { get; set; }
+    public short Port { get; set; }
+    public string User { get; set; }
+    public string Token { get; set; }
+    public string? Secret { get; set; }
 }

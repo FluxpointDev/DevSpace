@@ -15,9 +15,11 @@ public class Fido2Service
     {
         HashSet<string> Origins = [Program.IsDevMode ? "https://localhost:5149" : "https://" + _Data.Config.Instance.PublicDomain];
 
+        Console.WriteLine("Fido2: " + _Data.Config.Instance.PublicDomain);
+
         _lib = new Fido2NetLib.Fido2(new Fido2Configuration
         {
-            ServerDomain = Program.IsDevMode ? "localhost" : _Data.Config.Instance.PublicDomain,
+            ServerDomain = Program.IsDevMode ? "localhost" : _Data.Config.Instance.PublicDomain.Split(':').First(),
             ServerName = _Data.Config.Instance.Name,
             Origins = Origins,
             TimestampDriftTolerance = 300000,

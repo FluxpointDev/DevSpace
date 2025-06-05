@@ -165,6 +165,20 @@ public static class Utils
         return chosenValue;
     }
 
+    public static string ToPrettySize(ulong value, int decimalPlaces = 0)
+    {
+        double asTb = Math.Round((double)value / OneTb, decimalPlaces);
+        double asGb = Math.Round((double)value / OneGb, decimalPlaces);
+        double asMb = Math.Round((double)value / OneMb, decimalPlaces);
+        double asKb = Math.Round((double)value / OneKb, decimalPlaces);
+        string chosenValue = asTb > 1 ? string.Format("{0} TB", asTb)
+            : asGb > 1 ? string.Format("{0} GB", asGb)
+            : asMb > 1 ? string.Format("{0} MB", asMb)
+            : asKb > 1 ? string.Format("{0} KB", asKb)
+            : string.Format("{0} B", Math.Round((double)value, decimalPlaces));
+        return chosenValue;
+    }
+
     public static CultureInfo? GetCultureFromTwoLetterCountryCode(string twoLetterISOCountryCode)
     {
         try

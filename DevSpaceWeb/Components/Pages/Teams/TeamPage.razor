@@ -1,5 +1,6 @@
 ﻿@page "/teams/{team_id?}/{service?}/{service_id?}/{resource_type?}/{resource_data?}/{resource_feature?}"
 @using DevSpaceWeb.Components.Pages.Console
+@using DevSpaceWeb.Components.Pages.Proxmox
 @using DevSpaceWeb.Components.Pages.Server.DockerTools
 @using DevSpaceWeb.Components.Pages.Teams.Settings
 @using DevSpaceWeb.Data.Consoles
@@ -345,6 +346,22 @@ else
 
                 }
 
+            }
+            break;
+        case "proxmox":
+            {
+                @if (string.IsNullOrEmpty(service_id))
+                {
+                    <ProxmoxList></ProxmoxList>
+                }
+                else if (Console == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                {
+                    <p>This node does not exist.</p>
+                }
+                else
+                {
+                    
+                }
             }
             break;
         case "consoles":

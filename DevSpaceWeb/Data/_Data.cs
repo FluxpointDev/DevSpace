@@ -1,4 +1,5 @@
 ﻿using DaRT;
+using DevSpaceWeb.Data.Proxmox;
 using LibMCRcon.RCon;
 using MongoDB.Bson;
 using Newtonsoft.Json;
@@ -11,6 +12,8 @@ public static class _Data
     public static Config Config = null!;
     public static Dictionary<ObjectId, RCon> BattleyeRcons = [];
     public static Dictionary<ObjectId, TCPRconAsync> MinecraftRcons = [];
+    public static Dictionary<ObjectId, ProxmoxAgent> ProxmoxAgents = [];
+
     public static bool LoadConfig()
     {
         bool SaveConfig = false;

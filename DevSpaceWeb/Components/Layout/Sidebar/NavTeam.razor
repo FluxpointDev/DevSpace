@@ -10,6 +10,17 @@
         </div>
     </RadzenLink>
     <RadzenPanelMenu>
+        @if (Team != null && Team.Proxmox != null && !string.IsNullOrEmpty(Team.Proxmox.Secret))
+        {
+            <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/proxmox")" class="nav-link-server" Match="NavLinkMatch.All">
+                <Template>
+                <span class="iconify" data-icon="mdi:network-pos"></span>
+                <p>
+                    Proxmox
+                </p>
+            </Template>
+        </RadzenPanelMenuItem>
+        }
         <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" class="nav-link-server" Match="NavLinkMatch.All">
         <Template>
             <span class="iconify" data-icon="mdi:server"></span>
@@ -20,7 +31,7 @@
     </RadzenPanelMenuItem>
     @if (!Program.LimitMode)
     {
-            <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" class="nav-link-server" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" class="nav-link-server" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:console-line"></span>
                 <p>

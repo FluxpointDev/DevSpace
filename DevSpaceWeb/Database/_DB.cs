@@ -161,6 +161,8 @@ public static class _DB
                     TeamsVanityCache.TryAdd(x.VanityUrl, x);
                     VanityUrlCache.TryAdd(x.Id, x.VanityUrl);
                 }
+                if (x.Proxmox != null && !string.IsNullOrEmpty(x.Proxmox.Secret))
+                    _Data.ProxmoxAgents.Add(x.Id, new Data.Proxmox.ProxmoxAgent(x.Proxmox));
             });
             Logger.LogMessage("Database", "- Teams: " + Teams.Cache.Keys.Count, LogSeverity.Info);
         }
