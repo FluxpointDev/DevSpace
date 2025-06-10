@@ -184,7 +184,7 @@ public class Program
 
             WebSocketClient Client = new WebSocketClient(_Data.Config.EdgeKey,
                 new EdgeClient(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeId, _Data.Config.EdgeKey),
-                _Data.Config.EdgeIp + "/edge/ws", _Data.Config.EdgePort);
+                new DnsEndPoint(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeIp.Contains(":") ? System.Net.Sockets.AddressFamily.InterNetworkV6 : System.Net.Sockets.AddressFamily.InterNetwork));
             bool Connected = Client.ConnectAsync();
 
             Console.WriteLine("Edge Connected: " + Connected);

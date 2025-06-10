@@ -26,19 +26,6 @@ public class WebSocketClient : WssClient
         Agent = agent;
     }
 
-    public WebSocketClient(string key, IAgent agent, string host, short port) : base(new SslContext(SslProtocols.None, (e, b, l, m) =>
-    {
-        if (b != null && m != System.Net.Security.SslPolicyErrors.RemoteCertificateNotAvailable)
-        {
-            return true;
-        }
-        return false;
-    }), host, port)
-    {
-        Key = key;
-        Agent = agent;
-    }
-
     public string Key;
 
     public IAgent Agent;
@@ -53,7 +40,10 @@ public class WebSocketClient : WssClient
 
     public override void OnWsConnecting(HttpRequest request)
     {
-        request.SetBegin("GET", "/");
+        if (Agent is EdgeClient)
+            request.SetBegin("GET", "/edge/ws");
+        else
+            request.SetBegin("GET", "/");
         request.SetHeader("Upgrade", "websocket");
         request.SetHeader("Connection", "Upgrade");
         request.SetHeader("Sec-WebSocket-Key", Convert.ToBase64String(WsNonce));
