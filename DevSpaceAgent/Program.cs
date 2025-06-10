@@ -182,9 +182,22 @@ public class Program
             if (string.IsNullOrEmpty(_Data.Config.EdgeId))
                 throw new Exception("Edge mode is missing the edge id.");
 
+            IPAddress? address = null;
+            if (!IPAddress.TryParse(_Data.Config.EdgeIp, out address))
+            {
+                IPHostEntry? Host = null;
+                try
+                {
+                    Host = Dns.GetHostEntry(_Data.Config.EdgeIp);
+                }
+                catch { }
+                if (Host != null)
+                    address = Host.AddressList.FirstOrDefault(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork || x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
+            }
+
             WebSocketClient Client = new WebSocketClient(_Data.Config.EdgeKey,
                 new EdgeClient(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeId, _Data.Config.EdgeKey),
-                _Data.Config.EdgeIp, _Data.Config.EdgePort);
+                address, _Data.Config.EdgePort);
             bool Connected = Client.ConnectAsync();
 
             Console.WriteLine("Edge Connected: " + Connected);

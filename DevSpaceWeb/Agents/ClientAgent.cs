@@ -120,7 +120,7 @@ public class ClientAgent : IAgent
             }
             catch { }
             if (Host != null)
-                address = Host.AddressList.FirstOrDefault();
+                address = Host.AddressList.FirstOrDefault(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork || x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
         }
 
         if (address == null)

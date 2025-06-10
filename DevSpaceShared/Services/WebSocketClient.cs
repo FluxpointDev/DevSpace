@@ -26,14 +26,14 @@ public class WebSocketClient : WssClient
         Agent = agent;
     }
 
-    public WebSocketClient(string key, IAgent agent, string host, short port) : base(new SslContext(SslProtocols.None, (e, b, l, m) =>
+    public WebSocketClient(string key, IAgent agent, IPAddress address, short port) : base(new SslContext(SslProtocols.None, (e, b, l, m) =>
     {
         if (b != null && m != System.Net.Security.SslPolicyErrors.RemoteCertificateNotAvailable)
         {
             return true;
         }
         return false;
-    }), host, port)
+    }), address, port)
     {
         Key = key;
         Agent = agent;
@@ -64,6 +64,7 @@ public class WebSocketClient : WssClient
         request.SetHeader("Sec-WebSocket-Version", "13");
         if (Agent is EdgeClient EC)
         {
+            request.SetHeader("Host", EC.Host);
             request.SetHeader("Edge-Id", EC.Id);
             request.SetHeader("Edge-Key", EC.Key);
         }
