@@ -70,6 +70,9 @@ public class Program
     {
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config data.");
+
+        Logger.RunLogger("Dev Space Agent", LogSeverity.Error);
+
         try
         {
             DockerClient = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
@@ -182,7 +185,9 @@ public class Program
             WebSocketClient Client = new WebSocketClient(_Data.Config.EdgeKey,
                 new EdgeClient(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeId, _Data.Config.EdgeKey),
                 new DnsEndPoint(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeIp.Contains(":") ? System.Net.Sockets.AddressFamily.InterNetworkV6 : System.Net.Sockets.AddressFamily.InterNetwork));
-            Client.ConnectAsync();
+            bool Connected = Client.ConnectAsync();
+
+            Console.WriteLine("Edge Connected: " + Connected);
         }
         else
         {
