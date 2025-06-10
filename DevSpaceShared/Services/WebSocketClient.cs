@@ -26,6 +26,19 @@ public class WebSocketClient : WssClient
         Agent = agent;
     }
 
+    public WebSocketClient(string key, IAgent agent, string host, short port) : base(new SslContext(SslProtocols.None, (e, b, l, m) =>
+    {
+        if (b != null && m != System.Net.Security.SslPolicyErrors.RemoteCertificateNotAvailable)
+        {
+            return true;
+        }
+        return false;
+    }), host, port)
+    {
+        Key = key;
+        Agent = agent;
+    }
+
     public string Key;
 
     public IAgent Agent;
