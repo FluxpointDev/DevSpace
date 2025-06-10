@@ -1,4 +1,5 @@
 ﻿using DaRT;
+using DevSpaceWeb.Agents;
 using DevSpaceWeb.Data.Proxmox;
 using LibMCRcon.RCon;
 using MongoDB.Bson;
@@ -13,6 +14,7 @@ public static class _Data
     public static Dictionary<ObjectId, RCon> BattleyeRcons = [];
     public static Dictionary<ObjectId, TCPRconAsync> MinecraftRcons = [];
     public static Dictionary<ObjectId, ProxmoxAgent> ProxmoxAgents = [];
+    public static Dictionary<ObjectId, EdgeAgent> EdgeAgents = [];
 
     public static bool LoadConfig()
     {

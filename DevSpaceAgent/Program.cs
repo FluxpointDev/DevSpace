@@ -3,6 +3,7 @@ using DevSpaceAgent.Json;
 using DevSpaceAgent.Server;
 using DevSpaceShared;
 using DevSpaceShared.Data;
+using DevSpaceShared.Services;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using NetCoreServer;
@@ -64,6 +65,7 @@ public class Program
     public static Dictionary<string, string> ContainerCache = [];
     public static Dictionary<string, StackFile> Stacks = [];
     private static AgentServer Server;
+    public static bool EdgeMode;
     static async Task Main(string[] args)
     {
         if (!_Data.LoadConfig())
@@ -149,16 +151,50 @@ public class Program
         }
 
 
-        Console.WriteLine("[Agent] Starting websocket server");
+        string? EdgeHost = Environment.GetEnvironmentVariable("EDGE_HOST");
+        if (!string.IsNullOrEmpty(EdgeHost))
+        {
+            string? EdgeId = Environment.GetEnvironmentVariable("EDGE_ID");
+            if (!string.IsNullOrEmpty(EdgeId))
+                _Data.Config.EdgeId = EdgeId;
 
-        SslContext context = new SslContext(SslProtocols.None, Certificate);
-        context.CertificateValidationCallback = (x, s, t, b) => { return true; };
-        Server = new AgentServer(context, IPAddress.Any, 5555);
+            string? EdgeToken = Environment.GetEnvironmentVariable("EDGE_KEY");
+            if (!string.IsNullOrEmpty(EdgeToken))
+                _Data.Config.EdgeKey = EdgeToken;
 
-        if (!Server.Start())
-            throw new Exception("Failed to start websocket server.");
+            string[] Split = EdgeHost.Split(":");
 
-        Console.WriteLine("[Agent] Loaded websocket server");
+            _Data.Config.EdgeIp = Split[0];
+            if (Split.Length == 2 && short.TryParse(Split[1], out short port))
+                _Data.Config.EdgePort = port;
+
+            _Data.Config.Save();
+        }
+        EdgeMode = !string.IsNullOrEmpty(_Data.Config.EdgeIp);
+
+        Console.WriteLine("[Agent] Starting with " + (EdgeMode ? "edge mode" : "websocket mode"));
+
+        if (EdgeMode)
+        {
+            if (string.IsNullOrEmpty(_Data.Config.EdgeId))
+                throw new Exception("Edge mode is missing the edge id.");
+
+            WebSocketClient Client = new WebSocketClient(_Data.Config.EdgeKey,
+                new EdgeClient(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeId, _Data.Config.EdgeKey),
+                new DnsEndPoint(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeIp.Contains(":") ? System.Net.Sockets.AddressFamily.InterNetworkV6 : System.Net.Sockets.AddressFamily.InterNetwork));
+            Client.ConnectAsync();
+        }
+        else
+        {
+            SslContext context = new SslContext(SslProtocols.None, Certificate);
+            context.CertificateValidationCallback = (x, s, t, b) => { return true; };
+            Server = new AgentServer(context, IPAddress.Any, 5555);
+
+            if (!Server.Start())
+                throw new Exception("Failed to start websocket server.");
+
+            Console.WriteLine("[Agent] Loaded websocket server");
+        }
 
         timer.Elapsed += new ElapsedEventHandler(RunChecks);
         timer.Start();

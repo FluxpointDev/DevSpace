@@ -7,17 +7,6 @@ public class AgentWebSocket
 {
     public AgentSession? Session;
 
-    //public async Task SendStringAsync(string message, CancellationToken token = default)
-    //{
-    //    Session.SendTextAsync(message);
-    //}
-
-    //public async Task SendJsonAsync(IWebSocketEvent json, CancellationToken token = default)
-    //{
-    //    string message = JsonConvert.SerializeObject(json);
-    //    Session.SendTextAsync(message);
-    //}
-
     public async Task RespondAsync(string taskId, object json, bool noResponse = false, CancellationToken token = default)
     {
         if (!noResponse && json != null && _Data.Config.Options.LogAgentEvents)

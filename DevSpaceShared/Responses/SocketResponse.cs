@@ -3,9 +3,9 @@
 public class SocketResponse : SocketResponse<object> { }
 public class SocketResponse<T>
 {
-    public bool IsSuccess;
-    public ClientError Error;
-    public DockerError DockerError;
+    public bool IsSuccess { get; set; }
+    public ClientError Error { get; set; }
+    public DockerError DockerError { get; set; }
     public T? Data { get; set; }
     public string? Message { get; set; }
 }

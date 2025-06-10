@@ -1,4 +1,6 @@
-﻿@using DevSpaceWeb.Models.Setup
+﻿@using DevSpaceShared.Services
+@using DevSpaceWeb.Agents
+@using DevSpaceWeb.Models.Setup
 @using System.Net
 @using Newtonsoft.Json
 @inject DialogService Dialogs
@@ -55,9 +57,9 @@
                     </RadzenText>
                     <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
                         <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Agent " + i.GetAgentVersion())</RadzenText>
-                            @if (i.GetWebSocket() != null && i.GetWebSocket()!.Client != null && i.GetWebSocket()!.Client!.Stats != null)
+                            @if (i.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
                             {
-                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker v" + i.GetWebSocket()!.Client!.Stats!.DockerVersion)</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker v" + agent.Stats.DockerVersion)</RadzenText>
                             }
                     </RadzenStack>
                     <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
@@ -65,25 +67,25 @@
                         {
                             <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(i.WebSocketError.Value.ToString())</RadzenText>
                         }
-                        @if (i.GetWebSocket() != null && i.GetWebSocket()!.Client != null && i.GetWebSocket()!.Client.Stats != null)
+                        @if (i.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
                         {
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:stack-fill"></span> @i.GetWebSocket().Client.Stats.StacksCount stacks</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:box-3-fill"></span> @i.GetWebSocket().Client.Stats.ContainersCount containers</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:stack-fill"></span> @agent.Stats.StacksCount stacks</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:box-3-fill"></span> @agent.Stats.ContainersCount containers</RadzenText>
                             <RadzenText TextStyle="TextStyle.Body2">
-                                <span class="iconify" data-icon="mdi:power" style="color: var(--rz-success);"></span> @i.GetWebSocket().Client.Stats.ContainersRunningCount
-                                <span class="iconify" data-icon="mdi:heart-outline" style="color: var(--rz-warning); margin-left: 8px;"></span> @i.GetWebSocket().Client.Stats.ContainersUnhealthyCount
-                                <span class="iconify" data-icon="mdi:power" style="color: var(--rz-danger); margin-left: 8px;"></span> @i.GetWebSocket().Client.Stats.ContainersDownCount
+                                <span class="iconify" data-icon="mdi:power" style="color: var(--rz-success);"></span> @agent.Stats.ContainersRunningCount
+                                <span class="iconify" data-icon="mdi:heart-outline" style="color: var(--rz-warning); margin-left: 8px;"></span> @agent.Stats.ContainersUnhealthyCount
+                                <span class="iconify" data-icon="mdi:power" style="color: var(--rz-danger); margin-left: 8px;"></span> @agent.Stats.ContainersDownCount
                             </RadzenText>
                         }
                     </RadzenStack>
                     <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
-                        @if (i.GetWebSocket() != null && i.GetWebSocket()!.Client != null && i.GetWebSocket()!.Client!.Stats != null)
+                        @if (i.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
                         {
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:storage"></span> @i.GetWebSocket().Client.Stats.VolumesCount volumes</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:local-area-network"></span> @i.GetWebSocket().Client.Stats.NetworksCount networks</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:folder-image"></span> @i.GetWebSocket().Client.Stats.ImagesCount images</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:cpu-64-bit"></span> @(i.GetWebSocket().Client.Stats.IsWindows ? "Unavailable" : i.GetWebSocket().Client.Stats.CpuCount) CPU</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:memory"></span> @(i.GetWebSocket().Client.Stats.IsWindows ? "Unavailable" : Utils.ToPrettySize(i.GetWebSocket().Client.Stats.TotalMemory)) RAM</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:storage"></span> @agent.Stats.VolumesCount volumes</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:local-area-network"></span> @agent.Stats.NetworksCount networks</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:folder-image"></span> @agent.Stats.ImagesCount images</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:cpu-64-bit"></span> @(agent.Stats.IsWindows ? "Unavailable" : agent.Stats.CpuCount) CPU</RadzenText>
+                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:memory"></span> @(agent.Stats.IsWindows ? "Unavailable" : Utils.ToPrettySize(agent.Stats.TotalMemory)) RAM</RadzenText>
                         }
                     </RadzenStack>
                     </div>
@@ -238,7 +240,10 @@
 
                 VanityUrlData Vanity = Team.GetVanityUrlData();
 
-                ServerWebSocket Client = new ServerWebSocket();
+                ClientAgent Client = new ClientAgent
+                {
+                    Server = null
+                };
                 ServerData TempServer = new ServerData
                 {
                     Name = ":)",
@@ -252,7 +257,7 @@
                 if (Vanity.CheckAlreadyExists(null, VanityUrl))
                     return Lang.Errors.vanity_url_already_taken;
 
-                await Client.DiscoverAsync(TempServer);
+                await Client.DiscoverAsync(data.Ip, data.Port);
                 if (Client.Discover == null)
                     return "Failed to discover server.";
 
@@ -266,14 +271,14 @@
                     return "Failed to setup server.";
                 }
 
-                await Client.RunAsync(TempServer);
+                await Client.Connect(data.Ip, data.Port, data.AgentKey, false);
                 await Task.Delay(new TimeSpan(0, 0, 2));
-                if (Client.Client == null || !Client.Client.IsConnected)
+                if (Client == null || !Client.IsConnected)
                 {
-                    if (Client.Client != null)
+                    if (Client.WebSocket != null)
                     {
-                        Client.Client.DisconnectAndStop();
-                        Client.Client.Dispose();
+                        Client.WebSocket.DisconnectAndStop();
+                        Client.WebSocket.Dispose();
                     }
                     return "Failed to connect to server: " + Client.Error.ToString();
                 }

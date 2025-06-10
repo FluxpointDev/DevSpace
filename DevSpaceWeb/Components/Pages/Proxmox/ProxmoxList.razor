@@ -1,4 +1,5 @@
 ﻿@using Corsinvest.ProxmoxVE.Api.Shared.Models.Cluster
+@using DevSpaceWeb.Agents
 @using DevSpaceWeb.Data.Proxmox
 @using DevSpaceWeb.Models.Setup
 @using System.Net
@@ -237,7 +238,10 @@
 
                 VanityUrlData Vanity = Team.GetVanityUrlData();
 
-                ServerWebSocket Client = new ServerWebSocket();
+                ClientAgent Client = new ClientAgent
+                {
+                    Server = null
+                };
                 ServerData TempServer = new ServerData
                 {
                     Name = ":)",
@@ -251,7 +255,7 @@
                 if (Vanity.CheckAlreadyExists(null, VanityUrl))
                     return Lang.Errors.vanity_url_already_taken;
 
-                await Client.DiscoverAsync(TempServer);
+                await Client.DiscoverAsync(data.Ip, data.Port);
                 if (Client.Discover == null)
                     return "Failed to discover server.";
 
@@ -265,14 +269,14 @@
                     return "Failed to setup server.";
                 }
 
-                await Client.RunAsync(TempServer);
+                await Client.Connect(data.Ip, data.Port, data.AgentKey, false);
                 await Task.Delay(new TimeSpan(0, 0, 2));
-                if (Client.Client == null || !Client.Client.IsConnected)
+                if (Client == null || !Client.IsConnected)
                 {
-                    if (Client.Client != null)
+                    if (Client.WebSocket != null)
                     {
-                        Client.Client.DisconnectAndStop();
-                        Client.Client.Dispose();
+                        Client.WebSocket.DisconnectAndStop();
+                        Client.WebSocket.Dispose();
                     }
                     return "Failed to connect to server: " + Client.Error.ToString();
                 }

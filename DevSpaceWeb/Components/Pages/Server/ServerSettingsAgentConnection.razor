@@ -1,4 +1,5 @@
-﻿@using DevSpaceWeb.Models.Consoles
+﻿@using DevSpaceWeb.Agents
+@using DevSpaceWeb.Models.Consoles
 @using DevSpaceWeb.Models.Servers
 @using System.Net
 
@@ -83,7 +84,10 @@
         if (address == null)
             return "Server ip is invalid.";
 
-        ServerWebSocket Client = new ServerWebSocket();
+        ClientAgent Client = new ClientAgent
+            {
+                Server = null
+            };
         ServerData TempServer = new ServerData
         {
             Name = ":)",
@@ -92,7 +96,7 @@
             AgentKey = model.AgentKey,
             OwnerId = Member.UserId
         };
-        await Client.DiscoverAsync(TempServer);
+        await Client.DiscoverAsync(model.Ip, model.Port);
         if (Client.Discover == null)
             return "Failed to discover server.";
 
@@ -106,11 +110,11 @@
             return "Failed to setup server.";
         }
 
-        await Client.RunAsync(TempServer);
+        await Client.Connect(model.Ip, model.Port, model.AgentKey, false);
 
         await Task.Delay(new TimeSpan(0, 0, 2));
 
-        if (Client.Client == null || !Client.Client.IsConnected)
+        if (Client == null || !Client.IsConnected)
             return "Failed to connect to server: " + Client.Error.ToString();
 
         await Server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>()

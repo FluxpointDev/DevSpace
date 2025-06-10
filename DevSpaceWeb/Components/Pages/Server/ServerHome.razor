@@ -1,5 +1,8 @@
 ﻿@using DevSpaceShared.Events.Docker
 @using DevSpaceShared.Responses
+@using DevSpaceShared.Services
+@using DevSpaceShared.WebSocket
+@using DevSpaceWeb.Agents
 @inject DialogService Dialogs
 @inject NavigationManager Nav
 @inject NotificationService Notifications
@@ -525,8 +528,8 @@
         if (Response.IsSuccess)
         {
             Data = Response.Data;
-            if (Data != null && Server.GetWebSocket() != null && Server.GetWebSocket()!.Discover != null && Server.GetWebSocket()!.Discover!.Version != Data.AgentVersion)
-                Server.GetWebSocket()!.Discover!.Version = Data.AgentVersion;
+            if (Server.TryGetWebSocket(out IAgent? agent) && agent is ClientAgent CA && CA.Discover != null && CA.Discover!.Version != Data.AgentVersion)
+                CA.Discover!.Version = Data.AgentVersion;
 
             StateHasChanged();
         }

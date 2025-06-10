@@ -147,7 +147,7 @@ public class Program
 
 
                 Docker.DotNet.Models.VolumesListResponse Volume = await InternalDocker.Volumes.ListAsync();
-                Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Volume, Newtonsoft.Json.Formatting.Indented));
+                //Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Volume, Newtonsoft.Json.Formatting.Indented));
 
                 //DockerStatJson? Stats = null;
                 //try
@@ -311,6 +311,7 @@ public class Program
         if (!LimitMode)
             app.MapRazorPages();
 
+        app.UseWebSockets();
         app.MapControllers();
         app.Run();
     }

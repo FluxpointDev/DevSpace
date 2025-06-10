@@ -195,7 +195,7 @@ public static class _Data
 
         if (string.IsNullOrEmpty(Config.AgentId))
         {
-            Config.AgentId = Guid.NewGuid().ToString().Replace("-", "");
+            Config.AgentId = Guid.NewGuid().ToString();
             SaveConfig = true;
         }
 

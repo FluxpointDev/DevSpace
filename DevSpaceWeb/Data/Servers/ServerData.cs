@@ -1,15 +1,12 @@
-﻿using DevSpaceShared.Data;
-using DevSpaceShared.Responses;
+﻿using DevSpaceShared.Responses;
+using DevSpaceShared.Services;
 using DevSpaceShared.WebSocket;
+using DevSpaceWeb.Agents;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
-using DevSpaceWeb.WebSocket;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
-using NetCoreServer;
 using Newtonsoft.Json;
-using System.Net;
-using System.Security.Authentication;
 
 namespace DevSpaceWeb.Data.Servers;
 
@@ -21,24 +18,43 @@ public class ServerData : ITeamResource
     public required string AgentIp { get; set; }
     public required string AgentKey { get; set; }
     public short AgentPort { get; set; }
+    public ServerAgentType AgentType { get; set; }
 
-    private ServerWebSocket? WebSocket;
-
-    [BsonIgnore]
-    [JsonIgnore]
-    public bool IsConnected => WebSocket != null && WebSocket.Client != null && WebSocket.Client.IsConnected;
+    private IAgent? WebSocket;
 
     [BsonIgnore]
     [JsonIgnore]
-    public ServerWebSocketErrorType? WebSocketError => WebSocket != null ? WebSocket.Error : ServerWebSocketErrorType.NoConnection;
+    public bool IsConnected => WebSocket != null && WebSocket.IsConnected;
+
+    [BsonIgnore]
+    [JsonIgnore]
+    public WebSocketErrorType? WebSocketError => WebSocket != null ? WebSocket.Error : WebSocketErrorType.NoConnection;
 
     public async Task StartWebSocket(bool reconnect = false)
     {
-        WebSocket = new ServerWebSocket();
-        await WebSocket.RunAsync(this, reconnect);
+        switch (AgentType)
+        {
+            case ServerAgentType.Client:
+                {
+                    WebSocket = new ClientAgent
+                    {
+                        Server = this
+                    };
+                }
+                break;
+            case ServerAgentType.Edge:
+                {
+                    WebSocket = new EdgeAgent
+                    {
+                        Server = this
+                    };
+                }
+                break;
+        }
+        await WebSocket.Connect(AgentIp, AgentPort, AgentKey, reconnect);
     }
 
-    public void SetWebSocket(ServerWebSocket socket)
+    public void SetWebSocket(IAgent socket)
     {
         WebSocket = socket;
     }
@@ -47,15 +63,15 @@ public class ServerData : ITeamResource
     {
         Version? ver = null;
 
-        ServerWebSocket? WebSocket = GetWebSocket();
+        IAgent? WebSocket = GetWebSocket();
         if (WebSocket == null)
             return false;
 
-        if (WebSocket.Client != null && WebSocket.Client.Stats != null && !string.IsNullOrEmpty(WebSocket.Client.Stats.AgentVersion))
-            Version.TryParse(WebSocket.Client.Stats.AgentVersion, out ver);
+        if (WebSocket.Stats != null && !string.IsNullOrEmpty(WebSocket.Stats.AgentVersion))
+            Version.TryParse(WebSocket.Stats.AgentVersion, out ver);
 
-        if (ver == null && WebSocket.Discover != null && !string.IsNullOrEmpty(WebSocket.Discover.Version))
-            Version.TryParse(WebSocket.Discover.Version, out ver);
+        if (ver == null && WebSocket is ClientAgent CA && CA.Discover != null && !string.IsNullOrEmpty(CA.Discover.Version))
+            Version.TryParse(CA.Discover.Version, out ver);
 
         if (ver == null)
             return false;
@@ -65,15 +81,15 @@ public class ServerData : ITeamResource
 
     public string GetAgentVersion()
     {
-        ServerWebSocket? WebSocket = GetWebSocket();
+        IAgent? WebSocket = GetWebSocket();
         if (WebSocket == null)
             return "Unknown";
 
-        if (WebSocket.Client != null && WebSocket.Client.Stats != null && !string.IsNullOrEmpty(WebSocket.Client.Stats.AgentVersion))
-            return "v" + WebSocket.Client.Stats.AgentVersion;
+        if (WebSocket.Stats != null && !string.IsNullOrEmpty(WebSocket.Stats.AgentVersion))
+            return "v" + WebSocket.Stats.AgentVersion;
 
-        if (WebSocket.Discover != null && !string.IsNullOrEmpty(WebSocket.Discover.Version))
-            return "v" + WebSocket.Discover.Version;
+        if (WebSocket is ClientAgent CA && CA.Discover != null && !string.IsNullOrEmpty(CA.Discover.Version))
+            return "v" + CA.Discover.Version;
 
         return "Unknown";
     }
@@ -82,20 +98,32 @@ public class ServerData : ITeamResource
     {
         if (WebSocket != null)
         {
-            WebSocket.StopReconnect = true;
-            if (WebSocket.Client != null)
+            if (WebSocket is ClientAgent CA)
             {
-                WebSocket.Client.DisconnectAndStop();
-                WebSocket.Client.Dispose();
+                CA.StopReconnect = true;
+                CA.WebSocket.DisconnectAndStop();
+                CA.WebSocket.Dispose();
             }
 
             WebSocket = null;
         }
     }
 
-    public ServerWebSocket? GetWebSocket()
+    public IAgent? GetWebSocket()
     {
         return WebSocket;
+    }
+
+    public bool TryGetWebSocket(out IAgent? agent)
+    {
+        if (WebSocket != null)
+        {
+            agent = WebSocket!;
+            return true;
+        }
+
+        agent = null;
+        return false;
     }
 
     public async Task<SocketResponse<T?>> RunJsonAsync<T>(Radzen.NotificationService notification, IWebSocketTask json, Action<SocketResponse<T?>>? action = null, CancellationToken token = default) where T : class
@@ -103,10 +131,15 @@ public class ServerData : ITeamResource
         if (WebSocket == null)
             await StartWebSocket();
 
-        if (WebSocket == null || WebSocket.Error.HasValue || WebSocket.Client == null)
+        if (WebSocket == null || WebSocket.Error.HasValue)
             return new SocketResponse<T?> { Error = ClientError.Exception };
 
-        return await WebSocket.Client.RunJsonAsync(notification, json, action, token);
+        if (WebSocket is ClientAgent CA && CA.WebSocket != null)
+            return await CA.WebSocket.RunJsonAsync(notification, json, action, token);
+        else if (WebSocket is EdgeAgent EA && EA.WebSocket != null)
+            return await EA.RunJsonAsync(notification, json, action, token);
+
+        return new SocketResponse<T?> { Error = ClientError.Exception };
     }
 
     public async Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
@@ -114,9 +147,10 @@ public class ServerData : ITeamResource
         if (WebSocket == null)
             await StartWebSocket();
 
-        if (WebSocket == null || WebSocket.Error.HasValue || WebSocket.Client == null)
+        if (WebSocket == null || WebSocket.Error.HasValue)
             return new SocketResponse<T?> { Error = ClientError.Exception };
-        return await WebSocket.Client.RecieveJsonAsync<T>(json, token);
+
+        return await WebSocket.RecieveJsonAsync<T>(json, token);
     }
 
     public async Task UpdateAsync(UpdateDefinition<ServerData> update, Action action)
@@ -144,150 +178,7 @@ public class ServerData : ITeamResource
         }
     }
 }
-public class ServerWebSocket
+public enum ServerAgentType
 {
-    public WebSocketClient? Client;
-    public ServerWebSocketErrorType? Error;
-    public DiscoverAgentInfo? Discover;
-    public bool StopReconnect;
-
-    public async Task DiscoverAsync(ServerData server)
-    {
-        HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + server.AgentIp + ":" + server.AgentPort + "/discover");
-        Req.Headers.Add("Connection", "Upgrade");
-        HttpResponseMessage? Response = null;
-        try
-        {
-            Response = await Program.AgentDiscoverHttp.SendAsync(Req);
-        }
-        catch (HttpRequestException he)
-        {
-            switch (he.HttpRequestError)
-            {
-                case HttpRequestError.ConnectionError:
-                case HttpRequestError.NameResolutionError:
-                case HttpRequestError.SecureConnectionError:
-                    {
-                        Error = ServerWebSocketErrorType.NoConnection;
-                    }
-                    return;
-            }
-        }
-        catch { }
-        if (Response == null)
-        {
-            Error = ServerWebSocketErrorType.ServerError;
-            return;
-        }
-        if (!Response.IsSuccessStatusCode)
-        {
-            switch (Response.StatusCode)
-            {
-                case HttpStatusCode.BadGateway:
-                case HttpStatusCode.RequestTimeout:
-                case HttpStatusCode.GatewayTimeout:
-                    Error = ServerWebSocketErrorType.NoConnection;
-                    break;
-                case HttpStatusCode.BadRequest:
-                    Error = ServerWebSocketErrorType.AgentUnsupported;
-                    break;
-                case HttpStatusCode.Unauthorized:
-                case HttpStatusCode.Forbidden:
-                    Error = ServerWebSocketErrorType.AuthFailed;
-                    break;
-                default:
-                    Error = ServerWebSocketErrorType.AgentError;
-                    break;
-            }
-
-            return;
-        }
-        try
-        {
-            using (Stream responseContent = await Response.Content.ReadAsStreamAsync())
-                Discover = await System.Text.Json.JsonSerializer.DeserializeAsync<DiscoverAgentInfo>(responseContent);
-        }
-        catch
-        {
-            Error = ServerWebSocketErrorType.ServerError;
-        }
-
-        if (Discover == null)
-            Error = ServerWebSocketErrorType.ServerError;
-    }
-
-    public async Task RunAsync(ServerData server, bool reconnect = false)
-    {
-        await DiscoverAsync(server);
-
-        if (Error.HasValue && Error != ServerWebSocketErrorType.NoConnection)
-            return;
-
-        if (Discover == null)
-        {
-            if (!StopReconnect && reconnect)
-            {
-                Thread.Sleep(TimeSpan.FromSeconds(30));
-                await RunAsync(server, true);
-            }
-            return;
-        }
-
-        if (Discover.Id != server.AgentId)
-        {
-            Error = ServerWebSocketErrorType.AgentError;
-
-            return;
-        }
-        Error = null;
-
-        SslContext context = new SslContext(SslProtocols.None, (e, b, l, m) =>
-        {
-            if (b != null && m != System.Net.Security.SslPolicyErrors.RemoteCertificateNotAvailable)
-            {
-                return true;
-            }
-            return false;
-
-        });
-
-        IPAddress? address = null;
-        if (!IPAddress.TryParse(server.AgentIp, out address))
-        {
-            IPHostEntry? Host = null;
-            try
-            {
-                Host = Dns.GetHostEntry(server.AgentIp);
-            }
-            catch { }
-            if (Host != null)
-                address = Host.AddressList.FirstOrDefault();
-        }
-
-        if (address == null)
-        {
-            Error = ServerWebSocketErrorType.NoConnection;
-            if (!StopReconnect && reconnect)
-            {
-                Thread.Sleep(TimeSpan.FromSeconds(30));
-                await RunAsync(server, true);
-            }
-            return;
-        }
-
-        Logger.LogMessage($"Connecting to {server.AgentIp}:{server.AgentPort}", LogSeverity.Info);
-        Client = new WebSocketClient(context, new DnsEndPoint(server.AgentIp, server.AgentPort, server.AgentIp.Contains(":") ? System.Net.Sockets.AddressFamily.InterNetworkV6 : System.Net.Sockets.AddressFamily.InterNetwork))
-        {
-            Key = server.AgentKey
-        };
-
-        Logger.LogMessage("Client connecting...", LogSeverity.Debug);
-        bool Connected = Client.ConnectAsync();
-        if (!Connected)
-            Error = ServerWebSocketErrorType.NoConnection;
-    }
-}
-public enum ServerWebSocketErrorType
-{
-    NoConnection, AgentUnsupported, AuthFailed, AgentError, ServerError
+    Client, Edge
 }
