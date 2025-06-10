@@ -22,6 +22,8 @@ public class EdgeController : Controller
         string? EdgeId = context.Request.Headers["Edge-Id"];
         string? EdgeToken = context.Request.Headers["Edge-Key"];
 
+        Console.WriteLine("Edge connection for: " + EdgeId);
+
         if (string.IsNullOrEmpty(EdgeId))
             return BadRequest("Missing edge id.");
 
@@ -47,6 +49,9 @@ public class EdgeController : Controller
                 edgeAgent.WebSocket.Dispose();
 
             edgeAgent.WebSocket = webSocket;
+
+            Console.WriteLine("Edge connection handle");
+
             await Handle(webSocket, edgeAgent, cancellationToken);
 
             return Ok();
