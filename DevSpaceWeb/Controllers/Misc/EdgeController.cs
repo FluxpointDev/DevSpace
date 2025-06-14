@@ -3,6 +3,7 @@ using DevSpaceWeb.Agents;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Database;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using Newtonsoft.Json;
@@ -18,11 +19,13 @@ public class EdgeController : Controller
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
         HttpContext context = ControllerContext.HttpContext;
+        IHttpResponseBodyFeature? bufferingFeature = context.Features.Get<IHttpResponseBodyFeature>();
+        bufferingFeature?.DisableBuffering();
 
         string? EdgeId = context.Request.Headers["Edge-Id"];
         string? EdgeToken = context.Request.Headers["Edge-Key"];
 
-        Response.Headers.Add("Content-Length", "0");
+
 
         Console.WriteLine("Edge connection for: " + EdgeId);
 
