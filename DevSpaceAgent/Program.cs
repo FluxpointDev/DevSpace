@@ -134,23 +134,26 @@ public class Program
             }
         });
 
-        try
+        if (DockerFailed)
         {
-            DockerAuthJson? Auth = await UnAuthenticatedClient.GetFromJsonAsync<DockerAuthJson>("https://auth.docker.io/token?service=registry.docker.io&scope=repository:ratelimitpreview/test:pull");
-            if (Auth != null)
+            try
             {
-                HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://registry-1.docker.io/v2/ratelimitpreview/test/manifests/latest");
-                Req.Headers.Add("Authorization", "Bearer " + Auth.token);
-                HttpResponseMessage Status = await UnAuthenticatedClient.SendAsync(Req);
-                if (Status.Headers.TryGetValues("ratelimit-limit", out IEnumerable<string>? values))
-                    State.MaxPullLimit = int.Parse(values.First().Split(";").First());
-                if (Status.Headers.TryGetValues("ratelimit-remaining", out values))
-                    State.CurrentPullLimit = int.Parse(values.First().Split(";").First());
+                DockerAuthJson? Auth = await UnAuthenticatedClient.GetFromJsonAsync<DockerAuthJson>("https://auth.docker.io/token?service=registry.docker.io&scope=repository:ratelimitpreview/test:pull");
+                if (Auth != null)
+                {
+                    HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://registry-1.docker.io/v2/ratelimitpreview/test/manifests/latest");
+                    Req.Headers.Add("Authorization", "Bearer " + Auth.token);
+                    HttpResponseMessage Status = await UnAuthenticatedClient.SendAsync(Req);
+                    if (Status.Headers.TryGetValues("ratelimit-limit", out IEnumerable<string>? values))
+                        State.MaxPullLimit = int.Parse(values.First().Split(";").First());
+                    if (Status.Headers.TryGetValues("ratelimit-remaining", out values))
+                        State.CurrentPullLimit = int.Parse(values.First().Split(";").First());
+                }
             }
-        }
-        catch
-        {
+            catch
+            {
 
+            }
         }
 
 
@@ -165,11 +168,13 @@ public class Program
             if (!string.IsNullOrEmpty(EdgeToken))
                 _Data.Config.EdgeKey = EdgeToken;
 
-            string[] Split = EdgeHost.Split(":");
+            string[] Split = EdgeHost.Replace("http://", "", StringComparison.OrdinalIgnoreCase).Replace("https://", "", StringComparison.OrdinalIgnoreCase).Split(":");
 
             _Data.Config.EdgeIp = Split[0];
             if (Split.Length == 2 && short.TryParse(Split[1], out short port))
                 _Data.Config.EdgePort = port;
+            else
+                _Data.Config.EdgePort = 443;
 
             _Data.Config.Save();
         }
@@ -194,6 +199,11 @@ public class Program
                 if (Host != null)
                     address = Host.AddressList.FirstOrDefault(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork || x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
             }
+
+            await Task.Delay(new TimeSpan(0, 0, 3));
+
+            Console.WriteLine("Connecting to: " + address.ToString());
+
 
             WebSocketClient Client = new WebSocketClient(_Data.Config.EdgeKey,
                 new EdgeClient(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeId, _Data.Config.EdgeKey),

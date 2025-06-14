@@ -10,7 +10,7 @@ public class Config
     public string? AgentKey;
 
     public string? EdgeIp;
-    public short EdgePort = 5556;
+    public short EdgePort = 443;
     public string EdgeId;
     public string EdgeKey;
     public HashSet<string> AllowedIPs = [];

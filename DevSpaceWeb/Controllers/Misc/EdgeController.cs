@@ -58,7 +58,7 @@ public class EdgeController : Controller
         }
         else
         {
-            return BadRequest("Invalid request.");
+            return Ok();
         }
     }
 
