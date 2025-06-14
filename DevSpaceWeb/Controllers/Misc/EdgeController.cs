@@ -29,42 +29,42 @@ public class EdgeController : Controller
         if (string.IsNullOrEmpty(EdgeId))
         {
             Response = "Missing edge id.";
-            context.Response.Headers.ContentLength = 0;
+            context.Response.Headers.ContentLength = Response.Length;
             return BadRequest(Response);
         }
 
         if (string.IsNullOrEmpty(EdgeToken))
         {
             Response = "Missing edge key.";
-            context.Response.Headers.ContentLength = 0;
+            context.Response.Headers.ContentLength = Response.Length;
             return BadRequest(Response);
         }
 
         if (!ObjectId.TryParse(EdgeId, out ObjectId serverId))
         {
             Response = "Invalid edge id.";
-            context.Response.Headers.ContentLength = 0;
+            context.Response.Headers.ContentLength = Response.Length;
             return BadRequest(Response);
         }
 
         if (!_DB.Servers.Cache.TryGetValue(serverId, out ServerData? server))
         {
             Response = "Unknown edge client.";
-            context.Response.Headers.ContentLength = 0;
+            context.Response.Headers.ContentLength = Response.Length;
             return BadRequest(Response);
         }
 
         if (EdgeToken != server.AgentKey)
         {
             Response = "Invalid edge key.";
-            context.Response.Headers.ContentLength = 0;
+            context.Response.Headers.ContentLength = Response.Length;
             return BadRequest(Response);
         }
 
         if (!_Data.EdgeAgents.TryGetValue(serverId, out Agents.EdgeAgent? edgeAgent))
         {
             Response = "Invalid edge client.";
-            context.Response.Headers.ContentLength = 0;
+            context.Response.Headers.ContentLength = Response.Length;
             return BadRequest(Response);
         }
 
