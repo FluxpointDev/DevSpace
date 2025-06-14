@@ -18,7 +18,7 @@ public class EdgeController : Controller
     [HttpGet("/edge/ws")]
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
-        HttpContext context = ControllerContext.HttpContext;
+        HttpContext context = HttpContext;
         IHttpResponseBodyFeature? bufferingFeature = context.Features.Get<IHttpResponseBodyFeature>();
         bufferingFeature?.DisableBuffering();
 
