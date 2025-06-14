@@ -1,6 +1,9 @@
 ﻿using DevSpaceAgent.Client;
+using DevSpaceShared;
 using DevSpaceShared.Services;
+using Docker.DotNet.Models;
 using System.Net.WebSockets;
+using System.Text;
 
 namespace DevSpaceAgent.Server;
 
@@ -33,11 +36,21 @@ public class EdgeClient : IAgent
         }
 
         await WebSocket.ConnectAsync(new Uri($"wss://{Host}:{Port}/edge/ws"), CancellationToken.None);
-
+        bool StatsSent = false;
         byte[] receiveBuffer = new byte[1024];
         while (WebSocket.State == WebSocketState.Open)
         {
+            if (!StatsSent)
+            {
+                StatsSent = true;
+                if (Program.DockerClient != null)
+                {
+                    SystemInfoResponse HostInfo = await Program.DockerClient.System.GetSystemInfoAsync();
+                    AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
 
+                    WebSocket.SendAsync(Encoding.UTF8.GetBytes(Newtonsoft.Json.JsonConvert.SerializeObject(Stats)), WebSocketMessageType.Text, true, CancellationToken.None);
+                }
+            }
             try
             {
                 WebSocketReceiveResult result = await WebSocket.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), CancellationToken.None);

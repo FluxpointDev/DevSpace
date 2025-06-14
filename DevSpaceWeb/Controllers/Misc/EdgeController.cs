@@ -1,4 +1,5 @@
-﻿using DevSpaceShared.WebSocket;
+﻿using DevSpaceShared;
+using DevSpaceShared.WebSocket;
 using DevSpaceWeb.Agents;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Servers;
@@ -127,6 +128,15 @@ public class EdgeController : Controller
                                         else
                                             task.SetCanceled();
                                     }
+                                }
+                                break;
+                            case EventType.GetAgentStats:
+                                {
+                                    AgentStatsResponse? Data = payload.ToObject<AgentStatsResponse>();
+                                    if (Data == null)
+                                        return;
+
+                                    edgeAgent.Stats = Data;
                                 }
                                 break;
 
