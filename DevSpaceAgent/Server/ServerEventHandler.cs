@@ -13,7 +13,7 @@ namespace DevSpaceAgent.Client;
 
 public static class ServerEventHandler
 {
-    public static async Task RecieveAsync(AgentWebSocket ws, byte[] buffer, long offset, long size)
+    public static async Task RecieveAsync(ISession ws, byte[] buffer, long offset, long size)
     {
         string json = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
         JToken payload = JsonConvert.DeserializeObject<JToken>(json)!;

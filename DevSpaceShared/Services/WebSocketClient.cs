@@ -1,5 +1,4 @@
-﻿using DevSpaceAgent.Server;
-using DevSpaceShared.Responses;
+﻿using DevSpaceShared.Responses;
 using DevSpaceShared.WebSocket;
 using NetCoreServer;
 using Newtonsoft.Json;
@@ -26,32 +25,6 @@ public class WebSocketClient : WssClient
         Agent = agent;
     }
 
-    public WebSocketClient(string key, IAgent agent, IPAddress address, short port) : base(new SslContext(SslProtocols.None, (e, b, l, m) =>
-    {
-        if (b != null && m != System.Net.Security.SslPolicyErrors.RemoteCertificateNotAvailable)
-        {
-            return true;
-        }
-        return false;
-    }), address, port)
-    {
-        Key = key;
-        Agent = agent;
-    }
-
-    public WebSocketClient(string key, IAgent agent, string address, short port) : base(new SslContext(SslProtocols.None, (e, b, l, m) =>
-    {
-        if (b != null && m != System.Net.Security.SslPolicyErrors.RemoteCertificateNotAvailable)
-        {
-            return true;
-        }
-        return false;
-    }), address, 443)
-    {
-        Key = key;
-        Agent = agent;
-    }
-
     public string Key;
 
     public IAgent Agent;
@@ -64,87 +37,16 @@ public class WebSocketClient : WssClient
             Thread.Yield();
     }
 
-    protected override void OnReceivedResponseHeader(HttpResponse response)
-    {
-        Console.WriteLine("Headers");
-    }
-
-    protected override void OnReceivedResponse(HttpResponse response)
-    {
-        Console.WriteLine("Recieved");
-    }
-
-    protected override void OnReceivedResponseError(HttpResponse response, string error)
-    {
-        Console.WriteLine("Response Error");
-    }
-
-    public override bool OnWsConnecting(HttpRequest request, HttpResponse response)
-    {
-        Console.WriteLine("Connecting");
-        return true;
-    }
-
-    protected override void OnConnected()
-    {
-        Console.WriteLine("Connected Rest");
-        base.OnConnected();
-    }
-
-    protected override void OnHandshaking()
-    {
-        Console.WriteLine("HandShake");
-        base.OnHandshaking();
-    }
-
     public override void OnWsConnecting(HttpRequest request)
     {
-        Console.WriteLine("Connecting");
-        if (Agent is EdgeClient)
-            request.SetBegin("GET", "/edge/ws");
-        else
-            request.SetBegin("GET", "/");
+        request.SetBegin("GET", "/");
         request.SetHeader("Upgrade", "websocket");
         request.SetHeader("Connection", "Upgrade");
         request.SetHeader("Sec-WebSocket-Key", Convert.ToBase64String(WsNonce));
         request.SetHeader("Sec-WebSocket-Protocol", "devspace");
         request.SetHeader("Sec-WebSocket-Version", "13");
-        if (Agent is EdgeClient EC)
-        {
-            request.SetHeader("Host", EC.Host);
-            request.SetHeader("Edge-Id", EC.Id);
-            request.SetHeader("Edge-Key", EC.Key);
-        }
-        else
-            request.SetHeader("Authorization", Key);
-
-        Console.WriteLine("Connecting!");
-        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(request, Formatting.Indented));
-        int Count = 0;
-        bool Error = false;
-        while (!Error)
-        {
-            try
-            {
-                (string, string) Header = request.Header(Count);
-                if (string.IsNullOrEmpty(Header.Item1))
-                {
-                    Error = true;
-                }
-                else
-                    Console.WriteLine($"H: {Header.Item1} - {Header.Item2}");
-
-            }
-            catch
-            {
-                Error = true;
-            }
-            Count += 1;
-        }
+        request.SetHeader("Authorization", Key);
         request.SetBody();
-
-
-
         Logger.LogMessage("WebSocket", "Connecting websocket", LogSeverity.Info);
     }
 
@@ -168,13 +70,13 @@ public class WebSocketClient : WssClient
     {
         Logger.LogMessage("WebSocket", $"WebSocket client disconnected a session with Id {Id}", LogSeverity.Info);
         base.OnDisconnected();
-        //Thread.Sleep(TimeSpan.FromSeconds(15));
+        Thread.Sleep(TimeSpan.FromSeconds(15));
 
-        //Logger.LogMessage("WebSocket", $"Reconnecting to {Address}:{Port}", LogSeverity.Info);
-        //if (!_stop)
-        //{
-        //    ConnectAsync();
-        //}
+        Logger.LogMessage("WebSocket", $"Reconnecting to {Address}:{Port}", LogSeverity.Info);
+        if (!_stop)
+        {
+            ConnectAsync();
+        }
     }
 
     protected override void OnError(SocketError error)

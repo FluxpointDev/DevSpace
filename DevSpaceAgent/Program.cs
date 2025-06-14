@@ -134,7 +134,7 @@ public class Program
             }
         });
 
-        if (DockerFailed)
+        if (!DockerFailed)
         {
             try
             {
@@ -202,16 +202,11 @@ public class Program
 
             Console.WriteLine("Connecting to: " + address.ToString());
 
+            EdgeClient Client = new EdgeClient(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeId, _Data.Config.EdgeKey);
+            await Client.Connect("", 0, "", true);
 
-            WebSocketClient Client = new WebSocketClient(_Data.Config.EdgeKey,
-                new EdgeClient(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeId, _Data.Config.EdgeKey),
-                address, _Data.Config.EdgePort);
 
-            Client.Request.SetHeader("Host", _Data.Config.EdgeIp);
-            bool Connected = Client.ConnectAsync();
-            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Client.Request, Formatting.Indented));
 
-            Console.WriteLine("Edge Connected: " + Connected);
         }
         else
         {

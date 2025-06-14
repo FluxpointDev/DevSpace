@@ -12,12 +12,12 @@ public class AgentSession : WssSession
 {
     public AgentSession(WssServer server) : base(server) { }
 
-    public AgentWebSocket AgentWebSocket { get; set; }
+    public ISession AgentWebSocket { get; set; }
 
 
     public override async void OnWsConnected(HttpRequest request)
     {
-        AgentWebSocket = new AgentWebSocket { Session = this };
+        AgentWebSocket = new ServerSession { Session = this };
         if (Program.DockerClient != null)
         {
             SystemInfoResponse HostInfo = await Program.DockerClient.System.GetSystemInfoAsync();

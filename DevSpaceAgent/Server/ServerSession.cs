@@ -3,11 +3,12 @@ using DevSpaceShared.WebSocket;
 using Newtonsoft.Json;
 
 namespace DevSpaceAgent.Server;
-public class AgentWebSocket
+
+public class ServerSession : ISession
 {
     public AgentSession? Session;
 
-    public async Task RespondAsync(string taskId, object json, bool noResponse = false, CancellationToken token = default)
+    public override async Task RespondAsync(string taskId, object json, bool noResponse = false, CancellationToken token = default)
     {
         if (!noResponse && json != null && _Data.Config.Options.LogAgentEvents)
             Console.WriteLine("Respond with: \n" + JsonConvert.SerializeObject(json, Formatting.Indented));
@@ -16,7 +17,7 @@ public class AgentWebSocket
         Session.SendTextAsync(message);
     }
 
-    public async Task RespondFailAsync(string taskId, CancellationToken token = default)
+    public override async Task RespondFailAsync(string taskId, CancellationToken token = default)
     {
         Console.WriteLine("Respond with: Fail");
 
