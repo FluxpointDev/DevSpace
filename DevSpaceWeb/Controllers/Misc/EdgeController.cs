@@ -3,7 +3,6 @@ using DevSpaceWeb.Agents;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Database;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using Newtonsoft.Json;
@@ -19,33 +18,55 @@ public class EdgeController : Controller
     public async Task<IActionResult> Get(CancellationToken cancellationToken)
     {
         HttpContext context = HttpContext;
-        IHttpResponseBodyFeature? bufferingFeature = context.Features.Get<IHttpResponseBodyFeature>();
-        bufferingFeature?.DisableBuffering();
-        context.Response.Headers.ContentLength = 0;
+
         string? EdgeId = context.Request.Headers["Edge-Id"];
         string? EdgeToken = context.Request.Headers["Edge-Key"];
 
-
-
         Console.WriteLine("Edge connection for: " + EdgeId);
 
+
+        string? Response;
         if (string.IsNullOrEmpty(EdgeId))
-            return BadRequest("Missing edge id.");
+        {
+            Response = "Missing edge id.";
+            context.Response.Headers.ContentLength = 0;
+            return BadRequest(Response);
+        }
 
         if (string.IsNullOrEmpty(EdgeToken))
-            return BadRequest("Missing edge token.");
+        {
+            Response = "Missing edge key.";
+            context.Response.Headers.ContentLength = 0;
+            return BadRequest(Response);
+        }
 
         if (!ObjectId.TryParse(EdgeId, out ObjectId serverId))
-            return BadRequest("Invalid edge id.");
+        {
+            Response = "Invalid edge id.";
+            context.Response.Headers.ContentLength = 0;
+            return BadRequest(Response);
+        }
 
         if (!_DB.Servers.Cache.TryGetValue(serverId, out ServerData? server))
-            return BadRequest("Unknown edge client.");
+        {
+            Response = "Unknown edge client.";
+            context.Response.Headers.ContentLength = 0;
+            return BadRequest(Response);
+        }
 
         if (EdgeToken != server.AgentKey)
-            return BadRequest("Invalid edge token.");
+        {
+            Response = "Invalid edge key.";
+            context.Response.Headers.ContentLength = 0;
+            return BadRequest(Response);
+        }
 
         if (!_Data.EdgeAgents.TryGetValue(serverId, out Agents.EdgeAgent? edgeAgent))
-            return BadRequest("Invalid edge client.");
+        {
+            Response = "Invalid edge client.";
+            context.Response.Headers.ContentLength = 0;
+            return BadRequest(Response);
+        }
 
         if (context.WebSockets.IsWebSocketRequest)
         {

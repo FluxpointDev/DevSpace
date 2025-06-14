@@ -39,14 +39,14 @@ public class WebSocketClient : WssClient
         Agent = agent;
     }
 
-    public WebSocketClient(string key, IAgent agent, DnsEndPoint address, short port) : base(new SslContext(SslProtocols.None, (e, b, l, m) =>
+    public WebSocketClient(string key, IAgent agent, string address, short port) : base(new SslContext(SslProtocols.None, (e, b, l, m) =>
     {
         if (b != null && m != System.Net.Security.SslPolicyErrors.RemoteCertificateNotAvailable)
         {
             return true;
         }
         return false;
-    }), address)
+    }), address, 443)
     {
         Key = key;
         Agent = agent;
@@ -83,6 +83,18 @@ public class WebSocketClient : WssClient
     {
         Console.WriteLine("Connecting");
         return true;
+    }
+
+    protected override void OnConnected()
+    {
+        Console.WriteLine("Connected Rest");
+        base.OnConnected();
+    }
+
+    protected override void OnHandshaking()
+    {
+        Console.WriteLine("HandShake");
+        base.OnHandshaking();
     }
 
     public override void OnWsConnecting(HttpRequest request)
