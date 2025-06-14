@@ -21,7 +21,7 @@ public class EdgeController : Controller
         HttpContext context = HttpContext;
         IHttpResponseBodyFeature? bufferingFeature = context.Features.Get<IHttpResponseBodyFeature>();
         bufferingFeature?.DisableBuffering();
-
+        context.Response.Headers.ContentLength = 0;
         string? EdgeId = context.Request.Headers["Edge-Id"];
         string? EdgeToken = context.Request.Headers["Edge-Key"];
 
