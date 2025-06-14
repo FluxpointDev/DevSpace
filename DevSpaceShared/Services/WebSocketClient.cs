@@ -64,12 +64,6 @@ public class WebSocketClient : WssClient
             Thread.Yield();
     }
 
-    protected override void OnReceived(byte[] buffer, long offset, long size)
-    {
-        Console.WriteLine("Recieve");
-        OnReceived(buffer, offset, size);
-    }
-
     protected override void OnReceivedResponseHeader(HttpResponse response)
     {
         Console.WriteLine("Headers");
