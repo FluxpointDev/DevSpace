@@ -22,6 +22,8 @@ public class EdgeController : Controller
         string? EdgeId = context.Request.Headers["Edge-Id"];
         string? EdgeToken = context.Request.Headers["Edge-Key"];
 
+        Response.Headers.Add("Content-Length", "0");
+
         Console.WriteLine("Edge connection for: " + EdgeId);
 
         if (string.IsNullOrEmpty(EdgeId))

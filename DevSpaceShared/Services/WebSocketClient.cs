@@ -64,22 +64,28 @@ public class WebSocketClient : WssClient
             Thread.Yield();
     }
 
-    public virtual void OnReceivedResponseHeader(HttpResponse response)
+    protected override void OnReceived(byte[] buffer, long offset, long size)
+    {
+        Console.WriteLine("Recieve");
+        OnReceived(buffer, offset, size);
+    }
+
+    protected override void OnReceivedResponseHeader(HttpResponse response)
     {
         Console.WriteLine("Headers");
     }
 
-    public virtual void OnReceivedResponse(HttpResponse response)
+    protected override void OnReceivedResponse(HttpResponse response)
     {
         Console.WriteLine("Recieved");
     }
 
-    public virtual void OnReceivedResponseError(HttpResponse response, string error)
+    protected override void OnReceivedResponseError(HttpResponse response, string error)
     {
         Console.WriteLine("Response Error");
     }
 
-    public virtual bool OnWsConnecting(HttpRequest request, HttpResponse response)
+    public override bool OnWsConnecting(HttpRequest request, HttpResponse response)
     {
         Console.WriteLine("Connecting");
         return true;

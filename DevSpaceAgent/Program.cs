@@ -200,8 +200,6 @@ public class Program
                     address = Host.AddressList.FirstOrDefault(x => x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork || x.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6);
             }
 
-            await Task.Delay(new TimeSpan(0, 0, 3));
-
             Console.WriteLine("Connecting to: " + address.ToString());
 
 
