@@ -187,6 +187,7 @@
         (string.IsNullOrEmpty(HostPort) ? "" : $"-p {HostPort}:5555 \\ ") +
         "--name devspace-agent-new \\ " +
         "--pull always \\ " +
+        "--privileged \\" +
         "--restart on-failure:3 \\ -v " +
         string.Join(" \\ -v ", Volumes) + " \\ " +
         (Environments == null ? "" : "-e" + string.Join(" \\ -e ", Volumes) + " \\ ") +
@@ -196,6 +197,7 @@
   devspace-agent-updater:
     container_name: devspace-agent-updater
     image: docker:dind
+    privileged: true
     command: sh -c ""docker container stop devspace-agent && docker rm -f devspace-agent-new && " + RunCommand + @" && docker rm -f devspace-agent && docker container rename devspace-agent-new devspace-agent""
     volumes:
         - /var/run/docker.sock:/var/run/docker.sock:ro
