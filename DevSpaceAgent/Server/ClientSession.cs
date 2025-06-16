@@ -15,7 +15,7 @@ public class ClientSession : ISession
             Console.WriteLine("Respond with: \n" + JsonConvert.SerializeObject(json, Formatting.Indented));
 
         string message = JsonConvert.SerializeObject(new IWebSocketResponse<dynamic>() { IsSuccess = true, TaskId = taskId, Data = json });
-        Session.SendAsync(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, true, token);
+        await Session.SendAsync(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, true, token);
     }
 
     public override async Task RespondFailAsync(string taskId, CancellationToken token = default)
@@ -23,6 +23,6 @@ public class ClientSession : ISession
         Console.WriteLine("Respond with: Fail");
 
         string message = JsonConvert.SerializeObject(new IWebSocketResponse<dynamic>() { TaskId = taskId });
-        Session.SendAsync(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, true, token);
+        await Session.SendAsync(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, true, token);
     }
 }

@@ -91,65 +91,82 @@ public class EdgeController : Controller
 
     private static async Task Handle(WebSocket webSocket, EdgeAgent edgeAgent, CancellationToken cancellationToken)
     {
-        byte[] buffer = new byte[1024 * 4];
-        WebSocketReceiveResult result;
         do
         {
             try
             {
-                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
 
-                if (result.MessageType == WebSocketMessageType.Text)
+                ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[8192]);
+
+                WebSocketReceiveResult result = null;
+
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    Console.WriteLine("Edge WebSocket: " + message);
-
-                    JToken? payload = JsonConvert.DeserializeObject<JToken>(message);
-                    if (payload == null)
-                        return;
-
-                    DevSpaceShared.WebSocket.EventType EventType = payload["Type"]!.ToObject<DevSpaceShared.WebSocket.EventType>();
-
-                    Logger.LogMessage("WebSocket", "Edge Event: " + EventType.ToString(), LogSeverity.Info);
-
-                    try
+                    do
                     {
-                        switch (EventType)
+                        result = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                        ms.Write(buffer.Array, buffer.Offset, result.Count);
+                    }
+                    while (!result.EndOfMessage);
+
+                    ms.Seek(0, SeekOrigin.Begin);
+
+                    if (result.MessageType == WebSocketMessageType.Text)
+                    {
+                        string message = Encoding.UTF8.GetString(ms.ToArray(), 0, result.Count);
+                        Console.WriteLine("Edge WebSocket: " + message);
+
+                        JToken? payload = JsonConvert.DeserializeObject<JToken>(message);
+                        if (payload == null)
                         {
-                            case EventType.TaskResponse:
-                                {
-                                    IWebSocketResponse<dynamic> @event = payload.ToObject<IWebSocketResponse<dynamic>>()!;
-                                    if (edgeAgent.TaskCollection.TryGetValue(@event.TaskId, out TaskCompletionSource<JToken>? task))
+                            Console.WriteLine("Edge Invalid Payload");
+                            return;
+                        }
+
+                        try
+                        {
+                            DevSpaceShared.WebSocket.EventType EventType = payload["Type"]!.ToObject<DevSpaceShared.WebSocket.EventType>();
+
+                            Logger.LogMessage("WebSocket", "Edge Event: " + EventType.ToString(), LogSeverity.Info);
+
+
+                            switch (EventType)
+                            {
+                                case EventType.TaskResponse:
                                     {
-                                        Logger.LogMessage("WebSocket", "Edge Got Response: " + @event.TaskId, LogSeverity.Info);
-                                        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(payload, Formatting.Indented));
-                                        if (@event.IsSuccess)
-                                            task.SetResult(payload["Data"]);
-                                        else
-                                            task.SetCanceled();
+                                        IWebSocketResponse<dynamic> @event = payload.ToObject<IWebSocketResponse<dynamic>>()!;
+                                        if (edgeAgent.TaskCollection.TryGetValue(@event.TaskId, out TaskCompletionSource<JToken>? task))
+                                        {
+                                            Logger.LogMessage("WebSocket", "Edge Got Response: " + @event.TaskId, LogSeverity.Info);
+                                            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(payload, Formatting.Indented));
+                                            if (@event.IsSuccess)
+                                                task.SetResult(payload["Data"]);
+                                            else
+                                                task.SetCanceled();
+                                        }
                                     }
-                                }
-                                break;
-                            case EventType.GetAgentStats:
-                                {
-                                    AgentStatsResponse? Data = payload.ToObject<AgentStatsResponse>();
-                                    if (Data == null)
-                                        return;
+                                    break;
+                                case EventType.GetAgentStats:
+                                    {
+                                        AgentStatsResponse? Data = payload.ToObject<AgentStatsResponse>();
+                                        if (Data == null)
+                                            return;
 
-                                    edgeAgent.Stats = Data;
-                                }
-                                break;
+                                        edgeAgent.Stats = Data;
+                                    }
+                                    break;
 
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex);
                         }
                     }
-                    catch (Exception ex)
+                    else if (result.MessageType == WebSocketMessageType.Close)
                     {
-                        Console.WriteLine(ex);
+                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", cancellationToken);
                     }
-                }
-                else if (result.MessageType == WebSocketMessageType.Close)
-                {
-                    await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", cancellationToken);
                 }
             }
             catch { }
