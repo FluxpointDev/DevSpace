@@ -236,8 +236,10 @@ public static class DockerStacks
             }
             ;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine(ex);
+
             try
             {
                 Directory.Delete(Dir, true);

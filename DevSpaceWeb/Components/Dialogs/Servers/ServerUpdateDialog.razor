@@ -217,6 +217,12 @@
             })
         });
 
+        if (res.Data == null)
+        {
+            UpdateStatus = UpdateStatusType.UpdateFailed;
+            return;
+        }
+
         await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
 
         _ = Task.Run(async () =>
