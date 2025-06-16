@@ -102,7 +102,7 @@ public class EdgeController : Controller
                 if (result.MessageType == WebSocketMessageType.Text)
                 {
                     string message = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    Console.WriteLine("WebSocket: " + message);
+                    Console.WriteLine("Edge WebSocket: " + message);
 
                     JToken? payload = JsonConvert.DeserializeObject<JToken>(message);
                     if (payload == null)
@@ -110,7 +110,7 @@ public class EdgeController : Controller
 
                     DevSpaceShared.WebSocket.EventType EventType = payload["Type"]!.ToObject<DevSpaceShared.WebSocket.EventType>();
 
-                    Logger.LogMessage("WebSocket", "Event: " + EventType.ToString(), LogSeverity.Info);
+                    Logger.LogMessage("WebSocket", "Edge Event: " + EventType.ToString(), LogSeverity.Info);
 
                     try
                     {
@@ -121,7 +121,7 @@ public class EdgeController : Controller
                                     IWebSocketResponse<dynamic> @event = payload.ToObject<IWebSocketResponse<dynamic>>()!;
                                     if (edgeAgent.TaskCollection.TryGetValue(@event.TaskId, out TaskCompletionSource<JToken>? task))
                                     {
-                                        Logger.LogMessage("WebSocket", "Got Response: " + @event.TaskId, LogSeverity.Info);
+                                        Logger.LogMessage("WebSocket", "Edge Got Response: " + @event.TaskId, LogSeverity.Info);
                                         Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(payload, Formatting.Indented));
                                         if (@event.IsSuccess)
                                             task.SetResult(payload["Data"]);
@@ -154,5 +154,6 @@ public class EdgeController : Controller
             }
             catch { }
         } while (!cancellationToken.IsCancellationRequested);
+        Console.WriteLine("Edge Handle Removed");
     }
 }

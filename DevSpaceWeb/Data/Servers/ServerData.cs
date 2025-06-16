@@ -135,7 +135,7 @@ public class ServerData : ITeamResource
             return new SocketResponse<T?> { Error = ClientError.Exception };
 
         if (WebSocket is ClientAgent CA && CA.WebSocket != null)
-            return await CA.WebSocket.RunJsonAsync(notification, json, action, token);
+            return await CA.RunJsonAsync(notification, json, action, token);
         else if (WebSocket is EdgeAgent EA && EA.WebSocket != null)
             return await EA.RunJsonAsync(notification, json, action, token);
 
