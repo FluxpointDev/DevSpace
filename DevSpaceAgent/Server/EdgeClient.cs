@@ -26,18 +26,30 @@ public class EdgeClient : IAgent
 
     private ClientWebSocket WebSocket;
 
+    public int ReconnectCount = 0;
+
     public override async Task Connect(string host, short port, string key, bool reconnect = false)
     {
-        if (WebSocket == null)
+        if (WebSocket != null)
         {
-            WebSocket = new ClientWebSocket();
-            WebSocket.Options.SetRequestHeader("Edge-Id", Id);
-            WebSocket.Options.SetRequestHeader("Edge-Key", Key);
+            try
+            {
+                WebSocket.Dispose();
+            }
+            catch { }
         }
+
+        WebSocket = new ClientWebSocket();
+        WebSocket.Options.SetRequestHeader("Edge-Id", Id);
+        WebSocket.Options.SetRequestHeader("Edge-Key", Key);
 
         await WebSocket.ConnectAsync(new Uri($"wss://{Host}:{Port}/edge/ws"), CancellationToken.None);
         bool StatsSent = false;
         byte[] receiveBuffer = new byte[1024];
+
+        if (WebSocket.State == WebSocketState.Open)
+            ReconnectCount = 0;
+
         while (WebSocket.State == WebSocketState.Open)
         {
             if (!StatsSent)
@@ -71,10 +83,12 @@ public class EdgeClient : IAgent
             {
 
             }
-
         }
 
-        Thread.Sleep(TimeSpan.FromSeconds(15));
+        if (ReconnectCount != 15)
+            ReconnectCount += 5;
+
+        Thread.Sleep(TimeSpan.FromSeconds(ReconnectCount));
 
         Logger.LogMessage("WebSocket", $"Reconnecting to {Host}:{Port}", LogSeverity.Info);
 

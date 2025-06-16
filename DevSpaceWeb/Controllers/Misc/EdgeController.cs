@@ -114,14 +114,10 @@ public class EdgeController : Controller
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
                         string message = Encoding.UTF8.GetString(ms.ToArray(), 0, result.Count);
-                        Console.WriteLine("Edge WebSocket: " + message);
 
                         JToken? payload = JsonConvert.DeserializeObject<JToken>(message);
                         if (payload == null)
-                        {
-                            Console.WriteLine("Edge Invalid Payload");
                             return;
-                        }
 
                         try
                         {
