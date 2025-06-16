@@ -204,9 +204,6 @@ public class Program
 
             EdgeClient Client = new EdgeClient(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeId, _Data.Config.EdgeKey);
             await Client.Connect("", 0, "", true);
-
-
-
         }
         else
         {

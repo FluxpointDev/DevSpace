@@ -78,7 +78,7 @@ public class EdgeAgent : IAgent
     public override async Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
     {
         json.TaskId = Guid.NewGuid().ToString();
-        Console.WriteLine("Task: " + json.TaskId);
+        Console.WriteLine("Edge Task: " + json.TaskId);
         TaskCompletionSource<JToken> tcs = new TaskCompletionSource<JToken>();
         TaskCollection.TryAdd(json.TaskId, tcs);
         string message = JsonConvert.SerializeObject(json);
@@ -87,7 +87,7 @@ public class EdgeAgent : IAgent
         ArraySegment<byte> buffer = new ArraySegment<Byte>(encoded, 0, encoded.Length);
         WebSocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Text, true, token);
 
-        Console.WriteLine("Sending");
+        Console.WriteLine("Edge Sending");
         JToken? result = null;
         try
         {
@@ -97,7 +97,7 @@ public class EdgeAgent : IAgent
         {
             return new SocketResponse<T?> { Error = ClientError.Timeout };
         }
-        Console.WriteLine("Wait done");
+        Console.WriteLine("Edge Wait done");
 
         TaskCollection.TryRemove(json.TaskId, out _);
         if (result == null)
@@ -109,7 +109,7 @@ public class EdgeAgent : IAgent
         if (Response == null)
             return new SocketResponse<T?> { Error = ClientError.JsonError };
 
-
+        Console.WriteLine("Edge Response: " + Response.IsSuccess);
         return Response;
     }
 }
