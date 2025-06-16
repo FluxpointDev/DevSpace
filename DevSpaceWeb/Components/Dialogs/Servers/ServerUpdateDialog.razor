@@ -116,11 +116,11 @@
             {
                 string Test = await Program.Http.GetStringAsync("https://devspacesmtp.fluxpoint.dev/version");
                 Version = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionCheck>(Test);
-                // string? ServerVersion = Server?.GetWebSocket()?.Discover?.Version;
-                // if (ServerVersion != Version!.AgentVersion)
-                //     UpdateStatus = UpdateStatusType.UpdateAvailable;
-                // else
-                //     UpdateStatus = UpdateStatusType.AlreadyUpdated;
+                string? ServerVersion = Server?.GetAgentVersion().Replace("v", "");
+                if (ServerVersion != Version!.AgentVersion)
+                    UpdateStatus = UpdateStatusType.UpdateAvailable;
+                else
+                    UpdateStatus = UpdateStatusType.AlreadyUpdated;
             }
             catch
             {

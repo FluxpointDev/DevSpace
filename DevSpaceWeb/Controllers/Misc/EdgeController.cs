@@ -6,6 +6,7 @@ using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Database;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
+using MongoDB.Driver;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Net.WebSockets;
@@ -78,6 +79,14 @@ public class EdgeController : Controller
             edgeAgent.WebSocket = webSocket;
 
             Console.WriteLine("Edge connection handle");
+
+            if (!server.IsAgentSetupComplete)
+            {
+                await server.UpdateAsync(new UpdateDefinitionBuilder<ServerData>().Set(x => x.IsAgentSetupComplete, true), () =>
+                {
+                    server.IsAgentSetupComplete = true;
+                });
+            }
 
             await Handle(webSocket, edgeAgent, cancellationToken);
 

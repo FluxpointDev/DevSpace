@@ -19,6 +19,7 @@ public class ServerData : ITeamResource
     public required string AgentKey { get; set; }
     public short AgentPort { get; set; }
     public ServerAgentType AgentType { get; set; }
+    public bool IsAgentSetupComplete { get; set; }
 
     private IAgent? WebSocket;
 

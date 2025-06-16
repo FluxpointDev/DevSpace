@@ -27,9 +27,16 @@
     else
     {
         <br />
-        @if (Data != null)
+        @if (Server.AgentType == ServerAgentType.Client)
         {
-            <DynamicFormDialog Model="@ModifyServerConnectionModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+            @if (Data != null)
+            {
+                <DynamicFormDialog Model="@ModifyServerConnectionModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+            }
+        }
+        else
+        {
+            <RadzenText TextStyle="TextStyle.Body2">Connection settings not available for edge agent.</RadzenText>
         }
     }
 </div>

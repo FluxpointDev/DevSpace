@@ -10,9 +10,11 @@ using NetCoreServer;
 using Newtonsoft.Json;
 using System.Net;
 using System.Net.Http.Json;
+using System.Net.WebSockets;
 using System.Reflection;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Timers;
 
 namespace DevSpaceAgent;
@@ -65,6 +67,7 @@ public class Program
     public static Dictionary<string, string> ContainerCache = [];
     public static Dictionary<string, StackFile> Stacks = [];
     private static AgentServer Server;
+    private static EdgeClient Client;
     public static bool EdgeMode;
     static async Task Main(string[] args)
     {
@@ -202,7 +205,7 @@ public class Program
 
             Console.WriteLine("Connecting to: " + address.ToString());
 
-            EdgeClient Client = new EdgeClient(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeId, _Data.Config.EdgeKey);
+            Client = new EdgeClient(_Data.Config.EdgeIp, _Data.Config.EdgePort, _Data.Config.EdgeId, _Data.Config.EdgeKey);
             await Client.Connect("", 0, "", true);
         }
         else
@@ -230,7 +233,10 @@ public class Program
 
         SystemInfoResponse HostInfo = await DockerClient.System.GetSystemInfoAsync();
         AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
-        Server.MulticastText(JsonConvert.SerializeObject(Stats));
+        if (Server != null)
+            Server.MulticastText(JsonConvert.SerializeObject(Stats));
+        else if (Client != null)
+            Client.WebSocket.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Stats)), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
     public static System.Timers.Timer timer = new System.Timers.Timer(new TimeSpan(0, 5, 0));

@@ -24,9 +24,9 @@ public class EdgeClient : IAgent
     public string Id;
     public string Key;
 
-    private ClientWebSocket WebSocket;
+    public ClientWebSocket WebSocket;
 
-    public int ReconnectCount = 0;
+    public int ReconnectCount = 5;
 
     public override async Task Connect(string host, short port, string key, bool reconnect = false)
     {
@@ -48,7 +48,7 @@ public class EdgeClient : IAgent
         byte[] receiveBuffer = new byte[1024];
 
         if (WebSocket.State == WebSocketState.Open)
-            ReconnectCount = 0;
+            ReconnectCount = 5;
 
         while (WebSocket.State == WebSocketState.Open)
         {

@@ -1,5 +1,6 @@
 ﻿@using DevSpaceShared.Services
 @using DevSpaceWeb.Agents
+@using DevSpaceWeb.Components.Dialogs.Servers
 @using DevSpaceWeb.Models.Setup
 @using System.Net
 @using Newtonsoft.Json
@@ -61,6 +62,15 @@
                             {
                                 <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker v" + agent.Stats.DockerVersion)</RadzenText>
                             }
+                        @switch (i.AgentType)
+                        {
+                            case ServerAgentType.Client:
+                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">Client</RadzenText>
+                                break;
+                            case ServerAgentType.Edge:
+                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">Edge</RadzenText>
+                                break;
+                        }
                     </RadzenStack>
                     <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
                         @if (i.WebSocketError.HasValue)
@@ -207,6 +217,11 @@
 
         if (!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
             return;
+
+        await Dialogs.OpenAsync<ServerSetupDialog>("Setup Server");
+
+
+        return;
 
         await Dialogs.ShowDynamicFormAsync<ServerSetupClientModel>("Setup Server", new ServerSetupClientModel(), async (ServerSetupClientModel data) =>
             {
