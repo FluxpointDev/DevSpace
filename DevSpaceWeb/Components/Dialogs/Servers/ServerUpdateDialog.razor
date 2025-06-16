@@ -173,6 +173,11 @@
                 Volumes.Add($"{i.Source}:{i.Destination}" + (i.RW == false ? ":ro" : null));
             }
         }
+        IList<string>? Environments = null;
+        if (Result.Data.Config != null && Result.Data.Config.Env != null)
+        {
+            Environments = Result.Data.Config.Env;
+        }
 
         string HostPort = Result.Data.HostConfig.PortBindings.First().Value.First().HostPort;
 
@@ -182,6 +187,7 @@
         "--pull always \\ " +
         "--restart on-failure:3 \\ -v " +
         string.Join(" \\ -v ", Volumes) + " \\ " +
+        (Environments == null ? "" : "-e" + string.Join(" \\ -e ", Volumes) + " \\ ") +
         "ghcr.io/fluxpointdev/devspace/agent:" + (SelectedVersionType == "Release" ? "latest" : "master");
 
         string Compose = @"services:
