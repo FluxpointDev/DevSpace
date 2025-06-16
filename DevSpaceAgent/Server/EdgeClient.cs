@@ -43,7 +43,11 @@ public class EdgeClient : IAgent
         WebSocket.Options.SetRequestHeader("Edge-Id", Id);
         WebSocket.Options.SetRequestHeader("Edge-Key", Key);
 
-        await WebSocket.ConnectAsync(new Uri($"wss://{Host}:{Port}/edge/ws"), CancellationToken.None);
+        try
+        {
+            await WebSocket.ConnectAsync(new Uri($"wss://{Host}:{Port}/edge/ws"), CancellationToken.None);
+        }
+        catch { }
         bool StatsSent = false;
         byte[] receiveBuffer = new byte[1024];
 
