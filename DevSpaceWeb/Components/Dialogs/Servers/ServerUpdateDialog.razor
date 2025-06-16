@@ -179,10 +179,12 @@
             Environments = Result.Data.Config.Env;
         }
 
-        string HostPort = Result.Data.HostConfig.PortBindings.First().Value.First().HostPort;
+        string? HostPort = null;
+        if (Result.Data.HostConfig.PortBindings != null && Result.Data.HostConfig.PortBindings.Any())
+            HostPort = Result.Data.HostConfig.PortBindings.First().Value.First().HostPort;
 
         string RunCommand = "docker run -d \\ " +
-        $"-p {HostPort}:5555 \\ " +
+        (string.IsNullOrEmpty(HostPort) ? "" : $"-p {HostPort}:5555 \\ ") +
         "--name devspace-agent-new \\ " +
         "--pull always \\ " +
         "--restart on-failure:3 \\ -v " +
