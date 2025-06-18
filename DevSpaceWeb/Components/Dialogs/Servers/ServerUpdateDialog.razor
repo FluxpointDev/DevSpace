@@ -175,9 +175,7 @@
         }
         IList<string>? Environments = null;
         if (Result.Data.Config != null && Result.Data.Config.Env != null)
-        {
             Environments = Result.Data.Config.Env;
-        }
 
         string? HostPort = null;
         if (Result.Data.HostConfig.PortBindings != null && Result.Data.HostConfig.PortBindings.Any())
@@ -204,7 +202,7 @@
       - 1.1.1.2
       - 1.0.0.2";
 
-        Console.WriteLine("Compose: " + Compose);
+        Logger.LogMessage($"Updater Command: " + RunCommand, LogSeverity.Debug);
 
         SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
         {
@@ -217,13 +215,19 @@
             })
         });
 
+        Logger.LogMessage($"Updater Create Stack - {res.IsSuccess} {res.Data != null}", LogSeverity.Debug);
+
         if (res.Data == null)
         {
             UpdateStatus = UpdateStatusType.UpdateFailed;
             return;
         }
 
+        Logger.LogMessage($"Updater Start Stack", LogSeverity.Debug);
+
         await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
+
+        Logger.LogMessage($"Updater Check WebSocket", LogSeverity.Debug);
 
         _ = Task.Run(async () =>
             {
