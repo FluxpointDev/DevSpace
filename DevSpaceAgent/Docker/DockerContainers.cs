@@ -383,7 +383,7 @@ public static class DockerContainers
                     {
                         ContainerProcessesResponse Response = await client.Containers.ListProcessesAsync(id, new ContainerListProcessesParameters
                         {
-                            PsArgs = "-eo user,pid,ppid,thcount,c,%cpu,%mem,lstart,etime,comm,cmd --date-format %Y-%m-%dT%H:%M:%S"
+                            PsArgs = "-eo user,pid,ppid,thcount,c,%cpu,%mem,lstart,etime,comm,cmd"
                         });
                         DockerStatJson? Stats = null;
                         try
