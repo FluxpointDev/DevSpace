@@ -22,7 +22,7 @@ public class ContainerProcessJson
         total_cpu_usage = double.Parse(list[4]);
         current_cpu_usage = double.Parse(list[5]);
         current_memory_usage = double.Parse(list[6]);
-        start_time = list[7];
+        start_time = $"{list[7]} {list[8]} {list[9]} {list[10]} {list[11]}";
         elapsed_time = list[8];
         name = list[9];
         command = list[10];
