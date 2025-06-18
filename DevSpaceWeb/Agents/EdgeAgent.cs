@@ -82,7 +82,7 @@ public class EdgeAgent : IAgent
         TaskCompletionSource<JToken> tcs = new TaskCompletionSource<JToken>();
         TaskCollection.TryAdd(json.TaskId, tcs);
         string message = JsonConvert.SerializeObject(json);
-        Logger.LogMessage("Sending Json: " + json, LogSeverity.Debug);
+        Logger.LogMessage("Sending Json: " + message, LogSeverity.Debug);
         byte[] encoded = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> buffer = new ArraySegment<Byte>(encoded, 0, encoded.Length);
         WebSocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Text, true, token);
@@ -95,7 +95,17 @@ public class EdgeAgent : IAgent
         }
         catch
         {
-            return new SocketResponse<T?> { Error = ClientError.Timeout };
+            if (IsConnected)
+            {
+                try
+                {
+                    result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 30), token);
+                }
+                catch
+                {
+                    return new SocketResponse<T?> { Error = ClientError.Timeout };
+                }
+            }
         }
         Console.WriteLine("Edge Wait done");
 

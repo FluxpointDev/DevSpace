@@ -49,7 +49,9 @@ public class EdgeClient : IAgent
         }
         catch { }
         bool StatsSent = false;
-        byte[] receiveBuffer = new byte[1024];
+        ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[8192]);
+
+        WebSocketReceiveResult result = null;
 
         if (WebSocket.State == WebSocketState.Open)
             ReconnectCount = 5;
@@ -69,18 +71,30 @@ public class EdgeClient : IAgent
             }
             try
             {
-                WebSocketReceiveResult result = await WebSocket.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), CancellationToken.None);
-                if (result.MessageType == WebSocketMessageType.Close)
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    Console.WriteLine("Server closed the connection.");
-                    await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
-                }
-                else
-                {
-                    ServerEventHandler.RecieveAsync(new ClientSession
+                    do
                     {
-                        Session = WebSocket
-                    }, receiveBuffer, 0, result.Count);
+                        result = await WebSocket.ReceiveAsync(buffer, CancellationToken.None);
+                        ms.Write(buffer.Array, buffer.Offset, result.Count);
+                    }
+                    while (!result.EndOfMessage);
+
+                    ms.Seek(0, SeekOrigin.Begin);
+
+                    if (result.MessageType == WebSocketMessageType.Close)
+                    {
+                        Console.WriteLine("Server closed the connection.");
+                        await WebSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+                    }
+                    else
+                    {
+
+                        ServerEventHandler.RecieveAsync(new ClientSession
+                        {
+                            Session = WebSocket
+                        }, ms.ToArray(), 0, result.Count);
+                    }
                 }
             }
             catch
