@@ -110,7 +110,7 @@ else
             <RadzenText TextStyle="TextStyle.H6">Processes</RadzenText>
         </div>
         <br />
-        <RadzenDataGrid Data="@Container.Data.Processes"
+        <RadzenDataGrid @ref="@ProcessGrid" Data="@Container.Data.Processes"
                         EmptyText="No processes."
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal"
                         AllowSorting="false" AllowFiltering="false">
@@ -470,6 +470,7 @@ else
     private RadzenChart? NetworkChart = null!;
     private RadzenChart IOChart = null!;
     public string? SelectedNetwork { get; set; }
+    public RadzenDataGrid<IList<string>> ProcessGrid { get; set; } = null!;
 
     public async void RunStats(object? sender, ElapsedEventArgs e)
     {
@@ -479,17 +480,18 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
             return;
 
-        SocketResponse<DockerContainerStats?> Result = await Server.RecieveJsonAsync<DockerContainerStats>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Stats));
+        SocketResponse<DockerContainerProcesses?> Result = await Server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
         if (Result.IsSuccess && Result.Data != null)
         {
-            Result.Data.SelectedNetwork = SelectedNetwork;
-            Result.Data.MemoryUsage = Result.Data.MemoryUsage.RoundNearestBytes();
-            Result.Data.IORead = Result.Data.IORead.RoundNearestBytes();
-            Result.Data.IOWrite = Result.Data.IOWrite.RoundNearestBytes();
+            Container.Data.Processes = Result.Data.Data.Processes;
+            Result.Data.Stats.SelectedNetwork = SelectedNetwork;
+            Result.Data.Stats.MemoryUsage = Result.Data.Stats.MemoryUsage.RoundNearestBytes();
+            Result.Data.Stats.IORead = Result.Data.Stats.IORead.RoundNearestBytes();
+            Result.Data.Stats.IOWrite = Result.Data.Stats.IOWrite.RoundNearestBytes();
 
-            if (Result.Data.Networks != null)
+            if (Result.Data.Stats.Networks != null)
             {
-                foreach (KeyValuePair<string, DockerContainerStatsNetwork> i in Result.Data.Networks)
+                foreach (KeyValuePair<string, DockerContainerStatsNetwork> i in Result.Data.Stats.Networks)
                 {
                     i.Value.NetworkReceive = i.Value.NetworkReceive.RoundNearestBytes();
                     i.Value.NetworkTransmit = i.Value.NetworkTransmit.RoundNearestBytes();
@@ -507,13 +509,13 @@ else
                     Stats[5],
                     Stats[6],
                     Stats[7],
-                    Result.Data
+                    Result.Data.Stats
                 };
             }
             else
             {
 
-                Stats.Add(Result.Data);
+                Stats.Add(Result.Data.Stats);
             }
         }
 
