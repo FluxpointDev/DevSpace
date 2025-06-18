@@ -385,6 +385,17 @@ public static class DockerContainers
                         {
                             PsArgs = "-eo user,pid,ppid,thcount,c,%cpu,%mem,lstart,etime,comm,cmd"
                         });
+                        Response.Titles.Clear();
+                        foreach (IList<string>? i in Response.Processes)
+                        {
+                            string[] Split = i[10].Split(" ");
+                            i[7] = $"{i[7]} {i[8]} {i[9]} {Split[0]} {Split[1]}";
+                            i[8] = Split[2];
+                            i[9] = Split[3];
+                            i[10] = string.Join(" ", Split.Skip(4));
+                        }
+
+
                         DockerStatJson? Stats = null;
                         try
                         {
