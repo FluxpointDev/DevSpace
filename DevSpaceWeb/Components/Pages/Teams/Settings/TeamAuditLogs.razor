@@ -55,7 +55,14 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Member" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
                     <Template>
-                        <MemberStrip Team="@Team" UserId="@context.ActionUserId"></MemberStrip>
+                        @if (context.Flags.HasFlag(AuditLogFlag.Automatic))
+                        {
+                            @("Automatic")
+                        }
+                        else
+                        {
+                            <MemberStrip Team="@Team" UserId="@context.ActionUserId"></MemberStrip>
+                        }
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Type" Property="@nameof(AuditLog.CategoryType)" Width="100px"
@@ -203,7 +210,7 @@
                     <Template>
                         @if (context.Properties.Any() || !string.IsNullOrEmpty(context.TargetName))
                         {
-                            <RadzenButton Click="@(() => ViewInfo(context))" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Variant="Variant.Flat" Shade="Shade.Dark" Icon="info" class="rz-m-1" Text="Info" Disabled="@(Program.IsPreviewMode || (context.IsSensitive && !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator)))" />
+                            <RadzenButton Click="@(() => ViewInfo(context))" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Variant="Variant.Flat" Shade="Shade.Dark" Icon="info" class="rz-m-1" Text="Info" Disabled="@(Program.IsPreviewMode || ((context.IsSensitive || context.Flags.HasFlag(AuditLogFlag.Sensitive)) && !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator)))" />
                         }
                         else if (context.Permissions != null)
                         {

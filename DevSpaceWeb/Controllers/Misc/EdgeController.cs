@@ -147,7 +147,7 @@ public class EdgeController : Controller
 
         _ = _DB.AuditLogs.CreateAsync(new AuditLog(Owner, AuditLogCategoryType.Resource, AuditLogEventType.ServerOnboard)
         .SetTarget(Server)
-        .SetSensitive()
+        .SetFlags(AuditLogFlag.Automatic | AuditLogFlag.Sensitive)
         .AddProperty("Vanity URL", "")
         .AddProperty("Agent Type", "Edge"));
 

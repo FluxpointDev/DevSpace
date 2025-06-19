@@ -136,10 +136,15 @@ public class AuditLog
         Permissions = perms;
         return this;
     }
+    public AuditLog SetFlags(AuditLogFlag flags)
+    {
+        Flags = flags;
+        return this;
+    }
 
     public AuditLog SetSensitive()
     {
-        IsSensitive = true;
+        Flags = AuditLogFlag.Sensitive;
         return this;
     }
 
@@ -154,8 +159,10 @@ public class AuditLog
     public ObjectId? TargetId;
     public string? TargetName;
     public Dictionary<string, string?> Properties = [];
+    [Obsolete]
     public bool IsSensitive;
     public PermissionsSet? Permissions;
+    public AuditLogFlag Flags;
 }
 
 public enum AuditLogTargetType
@@ -179,4 +186,10 @@ public enum AuditLogEventType
     ConsoleCreated, ConsoleDeleted, ConsolePermissionsChanged, ConsoleSettingsChanged, ConsoleRconChanged,
     RoleSettingsChanged, ServerOwnershipChanged, APIClientOwnershipChanged, ConsoleOwnershipChanged, RolePositionChanged,
     MemberNicknameChanged, ServerOnboard
+}
+[Flags]
+public enum AuditLogFlag : ulong
+{
+    Automatic = 1L << 0,
+    Sensitive = 1L << 1,
 }
