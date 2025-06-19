@@ -156,6 +156,7 @@ public class EdgeController : Controller
 
         return Ok(new AgentOnboardResponse
         {
+            EdgeId = Server.Id.ToString(),
             EdgeKey = Server.AgentKey
         });
     }

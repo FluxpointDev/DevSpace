@@ -542,7 +542,7 @@
 
     public string GetEdgeConnectionCommand()
     {
-        return "docker run -d --name devspace-agent \\ " +
+        return ("docker run -d --name devspace-agent \\ " +
  "--pull always \\ " +
  "--restart on-failure:3 \\ " +
  "-e EDGE_HOST={0} \\ " +
@@ -552,7 +552,7 @@
  "-v /var/run/docker.sock:/var/run/docker.sock:ro \\ " +
  "-v /var/lib/docker/volumes/portainer_data/_data/custom_templates:/var/lib/docker/volumes/portainer_data/_data/custom_templates:ro \\ " +
  "ghcr.io/fluxpointdev/devspace/agent:latest"
-        .Replace("{0}", _Data.Config.Instance.PublicDomain)
+        ).Replace("{0}", _Data.Config.Instance.PublicDomain)
         .Replace("{1}", Server.Id.ToString())
         .Replace("{2}", Server.AgentKey);
     }
