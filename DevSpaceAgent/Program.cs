@@ -204,7 +204,7 @@ public class Program
                         {
                             Content = JsonContent.Create(new AgentOnboardCreate
                             {
-                                ServerName = System.Environment.MachineName,
+                                ServerName = ServerName,
                                 EdgeTeam = EdgeTeam,
                                 EdgeOnboardKey = EdgeOnboard
                             })
