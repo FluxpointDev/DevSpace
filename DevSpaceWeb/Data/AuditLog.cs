@@ -156,8 +156,8 @@ public class AuditLog
     public Dictionary<string, string?> Properties = [];
     public bool IsSensitive;
     public PermissionsSet? Permissions;
-
 }
+
 public enum AuditLogTargetType
 {
     Instance, Team, Role, Member, Server, Website, Project, Log, API, Console
@@ -178,5 +178,5 @@ public enum AuditLogEventType
     ServerCreated, ServerDeleted, ServerPermissionsChanged, ServerSettingsChanged,
     ConsoleCreated, ConsoleDeleted, ConsolePermissionsChanged, ConsoleSettingsChanged, ConsoleRconChanged,
     RoleSettingsChanged, ServerOwnershipChanged, APIClientOwnershipChanged, ConsoleOwnershipChanged, RolePositionChanged,
-    MemberNicknameChanged
+    MemberNicknameChanged, ServerOnboard
 }

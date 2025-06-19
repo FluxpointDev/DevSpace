@@ -2,6 +2,7 @@
 using DevSpaceAgent.Json;
 using DevSpaceAgent.Server;
 using DevSpaceShared;
+using DevSpaceShared.Agent;
 using DevSpaceShared.Data;
 using DevSpaceShared.Services;
 using Docker.DotNet;
@@ -159,17 +160,47 @@ public class Program
             }
         }
 
-
         string? EdgeHost = Environment.GetEnvironmentVariable("EDGE_HOST");
         if (!string.IsNullOrEmpty(EdgeHost))
         {
             string? EdgeId = Environment.GetEnvironmentVariable("EDGE_ID");
+            string? EdgeToken = Environment.GetEnvironmentVariable("EDGE_KEY");
             if (!string.IsNullOrEmpty(EdgeId))
                 _Data.Config.EdgeId = EdgeId;
 
-            string? EdgeToken = Environment.GetEnvironmentVariable("EDGE_KEY");
             if (!string.IsNullOrEmpty(EdgeToken))
                 _Data.Config.EdgeKey = EdgeToken;
+
+            if (string.IsNullOrEmpty(_Data.Config.EdgeId))
+            {
+                string? EdgeTeam = Environment.GetEnvironmentVariable("EDGE_TEAM");
+                string? EdgeOnboard = Environment.GetEnvironmentVariable("EDGE_ONBOARD");
+
+                if (!string.IsNullOrEmpty(EdgeTeam) && !string.IsNullOrEmpty(EdgeOnboard))
+                {
+                    try
+                    {
+                        System.Net.Http.HttpClient Http = new System.Net.Http.HttpClient();
+                        HttpResponseMessage Response = await Http.SendAsync(new HttpRequestMessage(HttpMethod.Post, $"{EdgeHost}/edge/onboard")
+                        {
+                            Content = JsonContent.Create(new AgentOnboardCreate
+                            {
+                                ServerName = System.Environment.MachineName,
+                                EdgeTeam = EdgeTeam,
+                                EdgeOnboardKey = EdgeOnboard
+                            })
+                        });
+                        Response.EnsureSuccessStatusCode();
+
+                        AgentOnboardResponse? Onboard = await Response.Content.ReadFromJsonAsync<AgentOnboardResponse>();
+                        if (Onboard != null)
+                        {
+
+                        }
+                    }
+                    catch { }
+                }
+            }
 
             string[] Split = EdgeHost.Replace("http://", "", StringComparison.OrdinalIgnoreCase).Replace("https://", "", StringComparison.OrdinalIgnoreCase).Split(":");
 

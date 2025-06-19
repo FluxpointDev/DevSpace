@@ -42,6 +42,7 @@ public class TeamData : IResource
     public string? DefaultMembersColor { get; set; }
     public bool Require2FA { get; set; }
     public TeamProxmox? Proxmox { get; set; }
+    public string? EdgeOnboardKey { get; set; }
 
     [Obsolete("Use cached roles")]
     [BsonIgnoreIfNull]

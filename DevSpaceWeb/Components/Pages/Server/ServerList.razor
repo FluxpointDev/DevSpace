@@ -18,33 +18,35 @@
     </div>
     <br />
     <ActionBar>
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Server" Click="@SetupServer" Disabled="(Member == null ||!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))" Size="ButtonSize.Small" />
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Setup Server" Click="@SetupServer" Disabled="(Member == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Filled" Text="Onboard Server" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@OnboardServer" Disabled="(Member == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))" />
+        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshServers" />
         <RadzenFormField Variant="Variant.Outlined">
-                    <Start>
-                        <RadzenIcon Icon="search" />
-                    </Start>
-                    <ChildContent>
-                        <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-                                       autocapitalize="none" MaxLength="100" inputmode="search"
-                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
-                    </ChildContent>
-                    <End>
-                        @if (!string.IsNullOrWhiteSpace(SearchText))
-                        {
-                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
-                        }
-                    </End>
-                </RadzenFormField>
+            <Start>
+                <RadzenIcon Icon="search" />
+            </Start>
+            <ChildContent>
+                <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                               autocapitalize="none" MaxLength="100" inputmode="search"
+                               @oninput="@(args => SetNameFilter(args.Value as string))" />
+            </ChildContent>
+            <End>
+                @if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                }
+            </End>
+        </RadzenFormField>
     </ActionBar>
     <br />
     @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))).OrderBy(x => x.Name))
     {
         <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
-                <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
-                    <div class="server-item-icon flex-none d-flex">
-                        <span class="iconify" data-icon="mdi:server"></span>
-                    </div>
-                    <div>
+            <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
+                <div class="server-item-icon flex-none d-flex">
+                    <span class="iconify" data-icon="mdi:server"></span>
+                </div>
+                <div>
                     <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
                         @i.Name
                         @if (i.IsConnected)
@@ -58,10 +60,10 @@
                     </RadzenText>
                     <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
                         <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Agent " + i.GetAgentVersion())</RadzenText>
-                            @if (i.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
-                            {
-                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker v" + agent.Stats.DockerVersion)</RadzenText>
-                            }
+                        @if (i.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
+                        {
+                            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker v" + agent.Stats.DockerVersion)</RadzenText>
+                        }
                         @switch (i.AgentType)
                         {
                             case ServerAgentType.Client:
@@ -98,10 +100,10 @@
                             <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:memory"></span> @(agent.Stats.IsWindows ? "Unavailable" : Utils.ToPrettySize(agent.Stats.TotalMemory)) RAM</RadzenText>
                         }
                     </RadzenStack>
-                    </div>
                 </div>
-            </a>
-        
+            </div>
+        </a>
+
         <br />
     }
 
@@ -109,84 +111,84 @@
 
 <style>
     .server-item {
-    background-color: #21262d !important;
-    border-radius: 12px;
-    border: 1px solid rgba(0,135,201,0.3) !important;
-    padding-left: 10px;
-    cursor: pointer;
+        background-color: #21262d !important;
+        border-radius: 12px;
+        border: 1px solid rgba(0,135,201,0.3) !important;
+        padding-left: 10px;
+        cursor: pointer;
     }
 
-    .server-item:hover {
-    border-color: rgba(0,135,201,0.5) !important;
-    }
+        .server-item:hover {
+            border-color: rgba(0,135,201,0.5) !important;
+        }
 
     .server-item-icon {
-    vertical-align: center;
+        vertical-align: center;
     }
 
-    .server-item-icon .iconify {
-    width: 40px;
-    height: 40px;
-    margin-top: 16px;
-    color: rgba(0,135,201,0.7) !important;
-    }
+        .server-item-icon .iconify {
+            width: 40px;
+            height: 40px;
+            margin-top: 16px;
+            color: rgba(0,135,201,0.7) !important;
+        }
 
     .server-item:hover .server-item-icon .iconify {
-    color: rgba(0,135,201,0.9) !important;
+        color: rgba(0,135,201,0.9) !important;
     }
 
     .server-item-info {
-    padding-left: 10px;
+        padding-left: 10px;
     }
 
     .server-item-buttons .rz-button {
-    min-width: 34px !important;
-    display: block !important;
-    text-align: right;
-    height: 42px;
-    max-height: 42px !important;
+        min-width: 34px !important;
+        display: block !important;
+        text-align: right;
+        height: 42px;
+        max-height: 42px !important;
     }
 
     .server-item .server-item-buttons .rz-button:hover {
-    background-color: rgba(0,135,201,0.3) !important;
+        background-color: rgba(0,135,201,0.3) !important;
     }
 
     .server-item-buttons .rz-button:first-child {
-    border-radius: 0px 12px 0px 0px;
+        border-radius: 0px 12px 0px 0px;
     }
 
     .server-item-buttons .rz-button:last-child {
-    border-radius: 0px 0px 12px 0px;
+        border-radius: 0px 0px 12px 0px;
     }
 
     .server-item-buttons p {
-    display: inline-block !important;
-    text-transform: capitalize;
-    display: none !important;
+        display: inline-block !important;
+        text-transform: capitalize;
+        display: none !important;
     }
 
     .server-item-buttons .iconify {
-    width: 20px;
-    height: 20px;
-    margin-left: 8px;
-    margin-bottom: -4px;
-    margin-right: 6px;
+        width: 20px;
+        height: 20px;
+        margin-left: 8px;
+        margin-bottom: -4px;
+        margin-right: 6px;
     }
 
     .server-item-buttons:hover .rz-button, .server-item-buttons:hover {
-    min-width: 130px !important;
+        min-width: 130px !important;
     }
 
-    .server-item-buttons:hover p {
-    display: inline-block !important;
-    }
+        .server-item-buttons:hover p {
+            display: inline-block !important;
+        }
 
     .server-item .rz-stack .iconify {
-    height: 16px;
-    width: 16px;
-    margin-right: 2px;
-    margin-bottom: 2px;
-}
+        height: 16px;
+        width: 16px;
+        margin-right: 2px;
+        margin-bottom: 2px;
+    }
 </style>
 
 
@@ -210,6 +212,38 @@
         SearchText = text;
     }
 
+    public async Task RefreshServers()
+    {
+        StateHasChanged();
+    }
+
+    public async Task OnboardServer()
+    {
+        if (Member == null || Team == null)
+            return;
+
+        if (!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
+            return;
+
+        if (string.IsNullOrEmpty(Team.EdgeOnboardKey))
+        {
+            string OnboardKey = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
+
+            var Response = await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.EdgeOnboardKey, OnboardKey), () =>
+            {
+                Team.EdgeOnboardKey = OnboardKey;
+            });
+
+            if (!Response.IsAcknowledged)
+            {
+                await Dialogs.ShowInfoAsync("Database Error", "Failed to create onboard key.");
+                return;
+            }
+        }
+
+        await Dialogs.OpenAsync<ServerOnboardDialog>("Onboard Server");
+    }
+
     public async Task SetupServer()
     {
         if (Member == null)
@@ -219,116 +253,5 @@
             return;
 
         await Dialogs.OpenAsync<ServerSetupDialog>("Setup Server");
-
-
-        return;
-
-        await Dialogs.ShowDynamicFormAsync<ServerSetupClientModel>("Setup Server", new ServerSetupClientModel(), async (ServerSetupClientModel data) =>
-            {
-                if (Team == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
-                    return "You do not have Manage Resource permissions";
-
-                if (data.Port == 0)
-                    return "Server port is required.";
-
-                if (string.IsNullOrEmpty(data.Ip))
-                    return "Server ip is required.";
-
-                if (Uri.CheckHostName(data.Ip) == UriHostNameType.Unknown)
-                    return "Server ip has invalid format.";
-
-                IPAddress? address = null;
-                if (!IPAddress.TryParse(data.Ip, out address))
-                {
-                    IPHostEntry? Host = null;
-                    try
-                    {
-                        Host = Dns.GetHostEntry(data.Ip);
-                    }
-                    catch { }
-                    if (Host != null)
-                        address = Host.AddressList.FirstOrDefault();
-                }
-
-                if (address == null)
-                    return "Server ip is invalid.";
-
-                VanityUrlData Vanity = Team.GetVanityUrlData();
-
-                ClientAgent Client = new ClientAgent
-                {
-                    Server = null
-                };
-                ServerData TempServer = new ServerData
-                {
-                    Name = ":)",
-                    AgentIp = data.Ip,
-                    AgentPort = data.Port,
-                    AgentKey = data.AgentKey
-                };
-
-                string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
-
-                if (Vanity.CheckAlreadyExists(null, VanityUrl))
-                    return Lang.Errors.vanity_url_already_taken;
-
-                await Client.DiscoverAsync(data.Ip, data.Port);
-                if (Client.Discover == null)
-                    return "Failed to discover server.";
-
-                TempServer.AgentId = Client.Discover.Id;
-
-                HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + TempServer.AgentIp + ":" + TempServer.AgentPort + "/setup");
-                Req.Headers.TryAddWithoutValidation("Authorization", TempServer.AgentKey);
-                HttpResponseMessage DiscoverResponse = await Program.AgentDiscoverHttp.SendAsync(Req);
-                if (!DiscoverResponse.IsSuccessStatusCode)
-                {
-                    return "Failed to setup server.";
-                }
-
-                await Client.Connect(data.Ip, data.Port, data.AgentKey, false);
-                await Task.Delay(new TimeSpan(0, 0, 2));
-                if (Client == null || !Client.IsConnected)
-                {
-                    if (Client.WebSocket != null)
-                    {
-                        Client.WebSocket.DisconnectAndStop();
-                        Client.WebSocket.Dispose();
-                    }
-                    return "Failed to connect to server: " + Client.Error.ToString();
-                }
-
-                ServerData Server = new ServerData
-                    {
-                        Name = data.Name,
-                        OwnerId = Member.UserId,
-                        TeamId = Member.TeamId,
-                        AgentId = Client.Discover.Id,
-                        AgentIp = data.Ip,
-                        AgentPort = data.Port,
-                        AgentKey = data.AgentKey
-                    };
-
-                if (Vanity.CheckAlreadyExists(null, VanityUrl))
-                    return Lang.Errors.vanity_url_already_taken;
-                
-
-                await _DB.Servers.CreateAsync(Server);
-                Server.SetWebSocket(Client);
-                _DB.Servers.Cache.TryAdd(Server.Id, Server);
-                await Vanity.UpdateAsync(Server, VanityUrl);
-
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ServerCreated)
-                .SetTarget(Server)
-                .SetSensitive()
-                .AddProperty("IP", data.Ip)
-                .AddProperty("Port", data.Port)
-                .AddProperty("Vanity URL", VanityUrl));
-
-
-
-                _ =  InvokeAsync(StateHasChanged);
-                return null;
-            });
     }
 }

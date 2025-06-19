@@ -1,8 +1,10 @@
 ﻿using DevSpaceShared;
+using DevSpaceShared.Agent;
 using DevSpaceShared.WebSocket;
 using DevSpaceWeb.Agents;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Servers;
+using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
@@ -96,6 +98,63 @@ public class EdgeController : Controller
         {
             return Ok();
         }
+    }
+
+    [HttpPost("/edge/onboard")]
+    public async Task<IActionResult> EdgeOnboard([FromBody] AgentOnboardCreate? data = null)
+    {
+        if (data == null)
+            return BadRequest("Invalid onboard data.");
+
+        if (string.IsNullOrEmpty(data.EdgeTeam))
+            return BadRequest("Edge team is missing.");
+
+        if (string.IsNullOrEmpty(data.EdgeOnboardKey))
+            return BadRequest("Edge onboard key missing");
+
+        if (!ObjectId.TryParse(data.EdgeTeam, out ObjectId teamId) || !_DB.Teams.Cache.TryGetValue(teamId, out TeamData? team))
+            return BadRequest("Edge team is invalid.");
+
+        if (!_DB.Users.TryGetValue(team.OwnerId, out PartialUserData? partialUser))
+            return BadRequest("Failed to get team owner.");
+
+        TeamMemberData? Owner = team.GetMember(partialUser);
+        if (Owner == null)
+            return BadRequest("Failed to get team owner.");
+
+        ServerData Server = new ServerData
+        {
+            Name = data.ServerName,
+            OwnerId = team.OwnerId,
+            IsAgentSetupComplete = true,
+            TeamId = team.Id,
+            AgentId = null,
+            AgentIp = null!,
+            AgentKey = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", ""),
+            AgentType = ServerAgentType.Edge
+        };
+
+        try
+        {
+            await _DB.Servers.CreateAsync(Server);
+        }
+        catch
+        {
+            return BadRequest("Failed to create server.");
+        }
+
+        _DB.Servers.Cache.TryAdd(Server.Id, Server);
+
+        _ = _DB.AuditLogs.CreateAsync(new AuditLog(Owner, AuditLogCategoryType.Resource, AuditLogEventType.ServerOnboard)
+        .SetTarget(Server)
+        .SetSensitive()
+        .AddProperty("Vanity URL", "")
+        .AddProperty("Agent Type", "Edge"));
+
+        return Ok(new AgentOnboardResponse
+        {
+            EdgeKey = Server.AgentKey
+        });
     }
 
     private static async Task Handle(WebSocket webSocket, EdgeAgent edgeAgent, CancellationToken cancellationToken)
