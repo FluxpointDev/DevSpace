@@ -171,6 +171,14 @@ public class Program
             if (!string.IsNullOrEmpty(EdgeToken))
                 _Data.Config.EdgeKey = EdgeToken;
 
+            string[] Split = EdgeHost.Replace("http://", "", StringComparison.OrdinalIgnoreCase).Replace("https://", "", StringComparison.OrdinalIgnoreCase).Split(":");
+
+            _Data.Config.EdgeIp = Split[0];
+            if (Split.Length == 2 && short.TryParse(Split[1], out short port))
+                _Data.Config.EdgePort = port;
+            else
+                _Data.Config.EdgePort = 443;
+
             if (string.IsNullOrEmpty(_Data.Config.EdgeId))
             {
                 string? EdgeTeam = Environment.GetEnvironmentVariable("EDGE_TEAM");
@@ -181,7 +189,7 @@ public class Program
                     try
                     {
                         System.Net.Http.HttpClient Http = new System.Net.Http.HttpClient();
-                        HttpResponseMessage Response = await Http.SendAsync(new HttpRequestMessage(HttpMethod.Post, $"{EdgeHost}/edge/onboard")
+                        HttpResponseMessage Response = await Http.SendAsync(new HttpRequestMessage(HttpMethod.Post, $"https://{_Data.Config.EdgeIp}:{_Data.Config.EdgePort}/edge/onboard")
                         {
                             Content = JsonContent.Create(new AgentOnboardCreate
                             {
@@ -199,17 +207,13 @@ public class Program
                             _Data.Config.EdgeKey = Onboard.EdgeKey;
                         }
                     }
-                    catch { }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Failed to onboard");
+                        Console.WriteLine(ex);
+                    }
                 }
             }
-
-            string[] Split = EdgeHost.Replace("http://", "", StringComparison.OrdinalIgnoreCase).Replace("https://", "", StringComparison.OrdinalIgnoreCase).Split(":");
-
-            _Data.Config.EdgeIp = Split[0];
-            if (Split.Length == 2 && short.TryParse(Split[1], out short port))
-                _Data.Config.EdgePort = port;
-            else
-                _Data.Config.EdgePort = 443;
 
             _Data.Config.Save();
         }
