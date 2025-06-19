@@ -186,6 +186,18 @@ public class Program
 
                 if (!string.IsNullOrEmpty(EdgeTeam) && !string.IsNullOrEmpty(EdgeOnboard))
                 {
+                    Console.WriteLine("Machine: " + System.Environment.MachineName);
+                    try
+                    {
+                        Console.WriteLine("Host" + Environment.GetEnvironmentVariable("HOSTNAME"));
+                    }
+                    catch { }
+                    try
+                    {
+                        Console.WriteLine("Dns: " + System.Net.Dns.GetHostEntry(string.Empty).HostName);
+                    }
+                    catch { }
+
                     try
                     {
                         System.Net.Http.HttpClient Http = new System.Net.Http.HttpClient();
