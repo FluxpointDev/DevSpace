@@ -186,17 +186,16 @@ public class Program
 
                 if (!string.IsNullOrEmpty(EdgeTeam) && !string.IsNullOrEmpty(EdgeOnboard))
                 {
-                    Console.WriteLine("Machine: " + System.Environment.MachineName);
-                    try
+                    string ServerName = System.Environment.MachineName;
+                    if (!DockerFailed && DockerClient != null)
                     {
-                        Console.WriteLine("Host" + Environment.GetEnvironmentVariable("HOSTNAME"));
+                        try
+                        {
+                            SystemInfoResponse SystemInfo = await DockerClient.System.GetSystemInfoAsync();
+                            ServerName = SystemInfo.Name;
+                        }
+                        catch { }
                     }
-                    catch { }
-                    try
-                    {
-                        Console.WriteLine("Dns: " + System.Net.Dns.GetHostEntry(string.Empty).HostName);
-                    }
-                    catch { }
 
                     try
                     {
