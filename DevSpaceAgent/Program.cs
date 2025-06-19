@@ -195,7 +195,8 @@ public class Program
                         AgentOnboardResponse? Onboard = await Response.Content.ReadFromJsonAsync<AgentOnboardResponse>();
                         if (Onboard != null)
                         {
-
+                            _Data.Config.EdgeId = Onboard.EdgeId;
+                            _Data.Config.EdgeKey = Onboard.EdgeKey;
                         }
                     }
                     catch { }
