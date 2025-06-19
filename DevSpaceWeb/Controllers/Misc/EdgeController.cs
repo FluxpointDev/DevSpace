@@ -115,6 +115,9 @@ public class EdgeController : Controller
         if (!ObjectId.TryParse(data.EdgeTeam, out ObjectId teamId) || !_DB.Teams.Cache.TryGetValue(teamId, out TeamData? team))
             return BadRequest("Edge team is invalid.");
 
+        if (data.EdgeOnboardKey != team.EdgeOnboardKey)
+            return BadRequest("Edge onboard key is invalid.");
+
         if (!_DB.Users.TryGetValue(team.OwnerId, out PartialUserData? partialUser))
             return BadRequest("Failed to get team owner.");
 
