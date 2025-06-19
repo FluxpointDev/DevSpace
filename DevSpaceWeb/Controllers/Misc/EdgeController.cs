@@ -146,6 +146,8 @@ public class EdgeController : Controller
             return BadRequest("Failed to create server.");
         }
 
+        Server.StartWebSocket();
+
         _DB.Servers.Cache.TryAdd(Server.Id, Server);
 
         _ = _DB.AuditLogs.CreateAsync(new AuditLog(Owner, AuditLogCategoryType.Resource, AuditLogEventType.ServerOnboard)
