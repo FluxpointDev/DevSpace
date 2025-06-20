@@ -85,7 +85,7 @@ public static class _Data
         "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
         "abcdefghijklmnopqrstuvwxyz" +
         "0123456789" +
-        "!#$*+,/:?@[]";
+        "#$*+,/:?@[]";
 
         if (length < 0)
             throw new ArgumentException("length must not be negative", "length");
