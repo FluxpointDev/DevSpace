@@ -39,74 +39,75 @@
         </RadzenFormField>
     </ActionBar>
     <br />
-    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))).OrderBy(x => x.Name))
-    {
-        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
-            <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
-                <div class="server-item-icon flex-none d-flex">
-                    <span class="iconify" data-icon="mdi:server"></span>
+    <RadzenDataList @ref="@Grid" AllowPaging="true" Density="Density.Compact" EmptyText="No servers."
+                    LoadData="@LoadServers" Data="@ServersList" Count="ServersCount" PagingSummaryFormat="@(ServersCount + " server" + (ServersCount != 1 ? "s" : ""))" ShowPagingSummary="true"
+                    @bind-PageSize="@Session.ListItemsPerPage" PageSizeOptions="@Static.ListPageSizeOptions" PagerHorizontalAlign="HorizontalAlign.Center">
+        <Template>
+            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + context.GetVanityUrlOrId() + "/home")">
+                <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
+                    <div class="server-item-icon flex-none d-flex">
+                        <span class="iconify" data-icon="mdi:server"></span>
+                    </div>
+                    <div>
+                        <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
+                            @context.Name
+                            @if (context.IsConnected)
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Online" IsPill="true" class="ml-2" />
+                            }
+                            else
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" class="ml-2" />
+                            }
+                        </RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
+                            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Agent " + context.GetAgentVersion())</RadzenText>
+                            @if (context.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker v" + agent.Stats.DockerVersion)</RadzenText>
+                            }
+                            @switch (context.AgentType)
+                            {
+                                case ServerAgentType.Client:
+                                    <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">Client</RadzenText>
+                                    break;
+                                case ServerAgentType.Edge:
+                                    <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">Edge</RadzenText>
+                                    break;
+                            }
+                        </RadzenStack>
+                        <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
+                            @if (context.WebSocketError.HasValue)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(context.WebSocketError.Value.ToString())</RadzenText>
+                            }
+                            @if (context.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:stack-fill"></span> @agent.Stats.StacksCount stacks</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:box-3-fill"></span> @agent.Stats.ContainersCount containers</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2">
+                                    <span class="iconify" data-icon="mdi:power" style="color: var(--rz-success);"></span> @agent.Stats.ContainersRunningCount
+                                    <span class="iconify" data-icon="mdi:heart-outline" style="color: var(--rz-warning); margin-left: 8px;"></span> @agent.Stats.ContainersUnhealthyCount
+                                    <span class="iconify" data-icon="mdi:power" style="color: var(--rz-danger); margin-left: 8px;"></span> @agent.Stats.ContainersDownCount
+                                </RadzenText>
+                            }
+                        </RadzenStack>
+                        <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
+                            @if (context.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
+                            {
+                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:storage"></span> @agent.Stats.VolumesCount volumes</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:local-area-network"></span> @agent.Stats.NetworksCount networks</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:folder-image"></span> @agent.Stats.ImagesCount images</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:cpu-64-bit"></span> @(agent.Stats.IsWindows ? "Unavailable" : agent.Stats.CpuCount) CPU</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:memory"></span> @(agent.Stats.IsWindows ? "Unavailable" : Utils.ToPrettySize(agent.Stats.TotalMemory)) RAM</RadzenText>
+                            }
+                        </RadzenStack>
+                    </div>
                 </div>
-                <div>
-                    <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
-                        @i.Name
-                        @if (i.IsConnected)
-                        {
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Online" IsPill="true" class="ml-2" />
-                        }
-                        else
-                        {
-                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Danger" Text="Down" IsPill="true" class="ml-2" />
-                        }
-                    </RadzenText>
-                    <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
-                        <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Agent " + i.GetAgentVersion())</RadzenText>
-                        @if (i.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker v" + agent.Stats.DockerVersion)</RadzenText>
-                        }
-                        @switch (i.AgentType)
-                        {
-                            case ServerAgentType.Client:
-                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">Client</RadzenText>
-                                break;
-                            case ServerAgentType.Edge:
-                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">Edge</RadzenText>
-                                break;
-                        }
-                    </RadzenStack>
-                    <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
-                        @if (i.WebSocketError.HasValue)
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2">@Utils.FriendlyName(i.WebSocketError.Value.ToString())</RadzenText>
-                        }
-                        @if (i.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:stack-fill"></span> @agent.Stats.StacksCount stacks</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:box-3-fill"></span> @agent.Stats.ContainersCount containers</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2">
-                                <span class="iconify" data-icon="mdi:power" style="color: var(--rz-success);"></span> @agent.Stats.ContainersRunningCount
-                                <span class="iconify" data-icon="mdi:heart-outline" style="color: var(--rz-warning); margin-left: 8px;"></span> @agent.Stats.ContainersUnhealthyCount
-                                <span class="iconify" data-icon="mdi:power" style="color: var(--rz-danger); margin-left: 8px;"></span> @agent.Stats.ContainersDownCount
-                            </RadzenText>
-                        }
-                    </RadzenStack>
-                    <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
-                        @if (i.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
-                        {
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:storage"></span> @agent.Stats.VolumesCount volumes</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:local-area-network"></span> @agent.Stats.NetworksCount networks</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:folder-image"></span> @agent.Stats.ImagesCount images</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:cpu-64-bit"></span> @(agent.Stats.IsWindows ? "Unavailable" : agent.Stats.CpuCount) CPU</RadzenText>
-                            <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:memory"></span> @(agent.Stats.IsWindows ? "Unavailable" : Utils.ToPrettySize(agent.Stats.TotalMemory)) RAM</RadzenText>
-                        }
-                    </RadzenStack>
-                </div>
-            </div>
-        </a>
+            </a>
 
-        <br />
-    }
-
+        </Template>
+    </RadzenDataList>
 </div>
 
 <style>
@@ -189,6 +190,13 @@
         margin-right: 2px;
         margin-bottom: 2px;
     }
+
+    .rz-datalist-data > li {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
 </style>
 
 
@@ -212,9 +220,20 @@
         SearchText = text;
     }
 
+    public IQueryable<ServerData>? ServersList = null;
+    public RadzenDataList<ServerData> Grid { get; set; } = null!;
+    public int ServersCount { get; set; } = -1;
+
+    public async Task LoadServers(LoadDataArgs args)
+    {
+        var Servers = _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))).OrderBy(x => x.Name);
+        ServersCount = Servers.Count();
+        ServersList = Servers.AsQueryable().Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
+    }
+
     public async Task RefreshServers()
     {
-        StateHasChanged();
+        await Grid.Reload();
     }
 
     public async Task OnboardServer()
