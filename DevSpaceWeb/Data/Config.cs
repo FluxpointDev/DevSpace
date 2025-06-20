@@ -141,6 +141,7 @@ public class ConfigProviders
     public ConfigProvider Slack = new ConfigProvider();
     public ConfigProviderTwitter Twitter = new ConfigProviderTwitter();
     public ConfigProvider Microsoft = new ConfigProvider();
+    public ConfigProviderAuthentik Authentik = new ConfigProviderAuthentik();
 }
 public class ConfigProvider
 {
@@ -154,6 +155,16 @@ public class ConfigProvider
 
         return false;
     }
+}
+public class ConfigProviderAuthentik : ConfigProvider
+{
+    public string DisplayName = "Change Me";
+    public string? AuthUrl;
+    public string GetName()
+    {
+        return DisplayName ?? "Authentik";
+    }
+
 }
 public class ConfigProviderTwitter
 {

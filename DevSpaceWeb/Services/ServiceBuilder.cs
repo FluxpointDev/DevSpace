@@ -208,6 +208,24 @@ public static class ServiceBuilder
     public static void AddProviders(IServiceCollection services)
     {
         AuthenticationBuilder Auth = services.AddAuthentication();
+        if (_Data.Config.Providers.Authentik.IsConfigured())
+        {
+            Logger.LogMessage(_Data.Config.Providers.Authentik.GetName() + " login enabled", LogSeverity.Info);
+            Auth.AddOpenIdConnect("authentik", _Data.Config.Providers.Authentik.GetName(), opt =>
+            {
+                opt.CallbackPath = new PathString("/auth/login/authentik");
+                opt.ClientId = _Data.Config.Providers.Authentik.ClientId;
+                opt.ClientSecret = _Data.Config.Providers.Authentik.ClientSecret;
+                opt.Scope.Add("profile");
+                opt.Scope.Add("email");
+                opt.SignInScheme = IdentityConstants.ExternalScheme;
+                opt.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "pk");
+                opt.ClaimActions.MapJsonKey(ClaimTypes.Name, "username");
+                opt.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+                opt.GetClaimsFromUserInfoEndpoint = true;
+                opt.Authority = _Data.Config.Providers.Authentik.AuthUrl;
+            });
+        }
         if (_Data.Config.Providers.Fluxpoint.IsConfigured())
         {
             Logger.LogMessage("Fluxpoint oauth login enabled", LogSeverity.Info);
@@ -251,14 +269,6 @@ public static class ServiceBuilder
                 opt.GetClaimsFromUserInfoEndpoint = true;
                 opt.Authority = "https://auth.fluxpoint.dev/application/o/dev-space/";
             });
-            //Auth.AddTwitter("fluxpoint", opt =>
-            //{
-            //    opt.ConsumerKey = _Data.Config.Providers.Twitter.ConsumerKey;
-            //    opt.ConsumerSecret = _Data.Config.Providers.Twitter.ConsumerSecret;
-            //    opt.SignInScheme = IdentityConstants.ExternalScheme;
-            //    opt.RetrieveUserDetails = true;
-            //    opt.CallbackPath = new PathString("/auth/login/twitter");
-            //});
         }
         if (_Data.Config.Providers.Apple.IsConfigured())
         {

@@ -104,6 +104,8 @@
         if (AuthUser == null)
             return;
 
+        if (_Data.Config.Providers.Authentik.IsConfigured())
+            ValidConnections.Add("authentik", _Data.Config.Providers.Authentik.GetName());
         if (_Data.Config.Providers.Fluxpoint.IsConfigured())
             ValidConnections.Add("fluxpoint", "Fluxpoint");
         if (_Data.Config.Providers.Apple.IsConfigured())
@@ -139,6 +141,8 @@
 
         switch (provider)
         {
+            case "authentik":
+                return _Data.Config.Providers.Authentik.IsDisabled;
             case "fluxpoint":
                 return _Data.Config.Providers.Fluxpoint.IsDisabled;
             case "apple":
