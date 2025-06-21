@@ -39,9 +39,27 @@
         </RadzenFormField>
     </ActionBar>
     <br />
-    <RadzenDataList @ref="@Grid" AllowPaging="true" Density="Density.Compact" EmptyText="No servers."
-                    LoadData="@LoadServers" Data="@ServersList" Count="ServersCount" PagingSummaryFormat="@(ServersCount + " server" + (ServersCount != 1 ? "s" : ""))" ShowPagingSummary="true"
+    <RadzenDataList @ref="@Grid" AllowPaging="true" Density="Density.Compact" EmptyText="No servers." IsLoading="@(ServersCount == -1)"
+                    LoadData="@LoadServers" Data="@ServersList" Count="ServersCount" PagingSummaryFormat="@(ServersCount + " server" + (ServersCount != 1 ? "s" : ""))" ShowPagingSummary="@(ServersCount != -1)"
                     @bind-PageSize="@Session.ListItemsPerPage" PageSizeOptions="@Static.ListPageSizeOptions" PagerHorizontalAlign="HorizontalAlign.Center">
+        <LoadingTemplate>
+            <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
+                <div class="server-item-icon flex-none d-flex">
+                    <span class="iconify" data-icon="mdi:server"></span>
+                </div>
+                <div>
+                    <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
+                        <RadzenSkeleton></RadzenSkeleton>
+                    </RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
+                        <RadzenSkeleton></RadzenSkeleton>
+                    </RadzenStack>
+                    <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
+                        <RadzenSkeleton></RadzenSkeleton>
+                    </RadzenStack>
+                </div>
+            </div>
+        </LoadingTemplate>
         <Template>
             <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + context.GetVanityUrlOrId() + "/home")">
                 <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">

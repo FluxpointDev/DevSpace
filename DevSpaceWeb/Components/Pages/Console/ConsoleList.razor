@@ -38,9 +38,24 @@
         </RadzenFormField>
     </ActionBar>
     <br />
-    <RadzenDataList @ref="@Grid" AllowPaging="true" Density="Density.Compact" EmptyText="No consoles."
-                    LoadData="@LoadConsoles" Data="@ConsolesList" Count="ConsolesCount" PagingSummaryFormat="@(ConsolesCount + " console" + (ConsolesCount != 1 ? "s" : ""))" ShowPagingSummary="true"
+    <RadzenDataList @ref="@Grid" AllowPaging="true" Density="Density.Compact" EmptyText="No consoles." IsLoading="@(ConsolesCount == -1)"
+                    LoadData="@LoadConsoles" Data="@ConsolesList" Count="ConsolesCount" PagingSummaryFormat="@(ConsolesCount + " console" + (ConsolesCount != 1 ? "s" : ""))" ShowPagingSummary="@(ConsolesCount != -1)"
                     @bind-PageSize="@Session.ListItemsPerPage" PageSizeOptions="@Static.ListPageSizeOptions" PagerHorizontalAlign="HorizontalAlign.Center">
+        <LoadingTemplate>
+            <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
+                <div class="server-item-icon flex-none d-flex">
+                    <span class="iconify" data-icon="console-line"></span>
+                </div>
+                <div>
+                    <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
+                        <RadzenSkeleton></RadzenSkeleton>
+                    </RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
+                        <RadzenSkeleton></RadzenSkeleton>
+                    </RadzenStack>
+                </div>
+            </div>
+        </LoadingTemplate>
         <Template>
             <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + context.GetVanityUrlOrId() + "/home")">
                 <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
