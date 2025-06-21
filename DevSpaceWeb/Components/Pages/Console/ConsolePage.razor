@@ -82,17 +82,21 @@
                                 <br />
                                 <br />
                                 <div>
-                                    <RadzenButton Click="@LockServer" Text="Lock Server" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
-                                    <RadzenButton Click="@UnlockServer" Text="Unlock Server" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
-                                    <RadzenButton Click="@RestartServer" Text="Restart Server" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
-                                    <RadzenButton Click="@ShutdownServer" Text="Shutdown Server" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
+                                    <ActionBar>
+                                        <RadzenButton Click="@LockServer" Text="Lock Server" Icon="lock" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                                        <RadzenButton Click="@UnlockServer" Text="Unlock Server" Icon="lock_open_right" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                                        <RadzenButton Click="@RestartServer" Text="Restart Server" Icon="refresh" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                                        <RadzenButton Click="@ShutdownServer" Text="Shutdown Server" Icon="mode_off_on" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                                    </ActionBar>
                                 </div>
-                                <div class="mt-4">
-                                    <RadzenButton Click="@ReloadConfig" Text="Reload Config" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
-                                    <RadzenButton Click="@ReloadEvents" Text="Reload Events" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
-                                    <RadzenButton Click="@ReloadScripts" Text="Reload Scripts" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
-                                    <RadzenButton Click="@ReloadBans" Text="Reload Bans" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
-                                    <RadzenButton Click="@Reassign" Text="Reassign" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
+                                <div class="mt-2">
+                                    <ActionBar>
+                                        <RadzenButton Click="@ReloadConfig" Text="Reload Config" Icon="reset_settings" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                                        <RadzenButton Click="@ReloadEvents" Text="Reload Events" Icon="history" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                                        <RadzenButton Click="@ReloadScripts" Text="Reload Scripts" Icon="source_notes" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                                        <RadzenButton Click="@ReloadBans" Text="Reload Bans" Icon="reset_wrench" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                                        <RadzenButton Click="@Reassign" Text="Reassign" Icon="groups" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                                    </ActionBar>
                                 </div>
                                 break;
                         }
@@ -103,8 +107,10 @@
                         <br />
                         <br />
                         <div>
-                            <RadzenButton Click="@RestartServer" Text="Restart Server" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
-                            <RadzenButton Click="@ShutdownServer" Text="Shutdown Server" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" />
+                            <ActionBar>
+                                <RadzenButton Click="@RestartServer" Text="Restart Server" Icon="refresh" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                                <RadzenButton Click="@ShutdownServer" Text="Shutdown Server" Icon="mode_off_on" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
+                            </ActionBar>
                         </div>
                     }
                     break;
@@ -191,7 +197,7 @@
                         break;
                 }
                 break;
-            case"settings":
+            case "settings":
                 <ConsoleSettingsBasic></ConsoleSettingsBasic>
                 break;
             case "permissions":
@@ -221,8 +227,8 @@
                         case ConsoleType.Battleye:
                             {
                                 <RadzenDataGrid Data="@rcon.CachedMessages"
-                                        EmptyText="No logs." 
-                                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
+                                                EmptyText="No logs."
+                                                PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" PageSize="15" GridLines="DataGridGridLines.Horizontal">
                                     <Columns>
                                         <RadzenDataGridColumn Width="90px">
                                             <Template>
@@ -254,35 +260,35 @@
 </RadzenLayout>
 <style>
     .rz-body .rz-sidebar {
-    background: none !important;
-    border-color: none !important;
-    width: 260px !important;
-    background-color: rgba(24,25,28,0.85) !important;
-    border: 1px solid rgba(47,48,49,0.8) !important;
-    border-radius: 8px;
-    height: calc(100vh - 90px);
+        background: none !important;
+        border-color: none !important;
+        width: 260px !important;
+        background-color: rgba(24,25,28,0.85) !important;
+        border: 1px solid rgba(47,48,49,0.8) !important;
+        border-radius: 8px;
+        height: calc(100vh - 90px);
     }
 
     .rz-body .rz-body {
-    padding: 0px;
+        padding: 0px;
     }
 
     .log-time {
-    text-align: center;
-    text-wrap: wrap;
+        text-align: center;
+        text-wrap: wrap;
     }
 
     .rz-right-sidebar thead {
-    display: none;
+        display: none;
     }
 
     .rz-right-sidebar td {
-    padding: 2px !important;
+        padding: 2px !important;
     }
 
     .rz-right-sidebar {
-    padding: 0px;
-    margin-left: 18px;
+        padding: 0px;
+        margin-left: 18px;
     }
 
 </style>
