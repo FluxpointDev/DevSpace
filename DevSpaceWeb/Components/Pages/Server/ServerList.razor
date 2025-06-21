@@ -5,6 +5,9 @@
 @using System.Net
 @using Newtonsoft.Json
 @inject DialogService Dialogs
+@inject ContextMenuService ContextMenuService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <PageTitle>My Servers | @_Data.Config.Instance.Name</PageTitle>
 
@@ -62,7 +65,7 @@
         </LoadingTemplate>
         <Template>
             <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + context.GetVanityUrlOrId() + "/home")">
-                <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
+                <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;" @oncontextmenu=@(args => ShowContextMenuWithContent(args, context)) @oncontextmenu:preventDefault="true">
                     <div class="server-item-icon flex-none d-flex">
                         <span class="iconify" data-icon="mdi:server"></span>
                     </div>
@@ -252,6 +255,35 @@
     public async Task RefreshServers()
     {
         await Grid.Reload();
+    }
+
+    void ShowContextMenuWithContent(MouseEventArgs args, ServerData server) => ContextMenuService.Open(args, new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = Member == null || !Member.HasServerPermission(Team, server, ServerPermission.ManageServer) },
+                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasServerPermission(Team, server, ServerPermission.ViewPermissions) },
+                new ContextMenuItem(){ Text = "Host Info", Icon = "info", Disabled = Member == null || !Member.HasServerPermission(Team, server, ServerPermission.ViewHostInfo) },
+                new ContextMenuItem(){ Text = "Stacks", Icon = "stacks", Disabled = Member == null || !Member.HasDockerContainerPermission(Team, server, DockerContainerPermission.ViewStacks) },
+                new ContextMenuItem(){ Text = "Containers", Icon = "deployed_code", Disabled = Member == null || !Member.HasDockerContainerPermission(Team, server, DockerContainerPermission.ViewContainers) },
+                new ContextMenuItem(){ Text = "Images", Icon = "perm_media", Disabled = Member == null || !Member.HasDockerPermission(Team, server, DockerPermission.ViewImages) },
+                new ContextMenuItem(){ Text = "Volumes", Icon = "database", Disabled = Member == null || !Member.HasDockerPermission(Team, server, DockerPermission.ViewVolumes) },
+                new ContextMenuItem(){ Text = "Networks", Icon = "lan", Disabled = Member == null || !Member.HasDockerPermission(Team, server, DockerPermission.ViewNetworks) },
+                new ContextMenuItem() { Text = "Copy Server ID", Icon = "content_copy" }
+         }, (arg) => OnMenuItemClick(arg, server));
+
+    void OnMenuItemClick(MenuItemEventArgs arg, ServerData server)
+    {
+        switch (arg.Text)
+        {
+            case "Copy Server ID":
+                JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", server.Id.ToString());
+                break;
+            default:
+                if (arg.Text == "Host Info")
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + server.GetVanityUrlOrId() + "/host");
+                else
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + server.GetVanityUrlOrId() + "/" + arg.Text.ToLower());
+                break;
+        }
+        ContextMenuService.Close();
     }
 
     public async Task OnboardServer()

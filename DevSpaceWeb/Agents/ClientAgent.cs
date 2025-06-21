@@ -191,5 +191,10 @@ public class ClientAgent : IAgent
     }
 
     public override Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
-        => WebSocket.RecieveJsonAsync<T>(json, token);
+        => WebSocket != null ? WebSocket.RecieveJsonAsync<T>(json, token) : DummyResponse<T>();
+
+    private async Task<SocketResponse<T?>> DummyResponse<T>()
+    {
+        return new SocketResponse<T?> { Error = ClientError.Exception };
+    }
 }

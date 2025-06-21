@@ -5,6 +5,9 @@
 @using System.Net
 @using LibMCRcon.RCon
 @inject DialogService Dialogs
+@inject ContextMenuService ContextMenuService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
 
 <PageTitle>My Consoles | @_Data.Config.Instance.Name</PageTitle>
 
@@ -58,7 +61,7 @@
         </LoadingTemplate>
         <Template>
             <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + context.GetVanityUrlOrId() + "/home")">
-                <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
+                <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;" @oncontextmenu=@(args => ShowContextMenuWithContent(args, context)) @oncontextmenu:preventDefault="true">
                     <div class="server-item-icon flex-none d-flex">
                         <span class="iconify" data-icon="mdi:console-line"></span>
                     </div>
@@ -201,6 +204,29 @@
     public async Task RefreshConsoles()
     {
         await Grid.Reload();
+    }
+
+    void ShowContextMenuWithContent(MouseEventArgs args, ConsoleData console) => ContextMenuService.Open(args, new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = Member == null || !Member.HasConsolePermission(Team, console, ConsolePermission.ManageConsole) },
+                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasConsolePermission(Team, console, ConsolePermission.ViewPermissions) },
+                new ContextMenuItem(){ Text = "Players", Icon = "person", Disabled = Member == null || !Member.HasConsolePermission(Team, console, ConsolePermission.ViewPlayers) },
+                new ContextMenuItem(){ Text = "Bans", Icon = "gavel", Disabled = Member == null || !Member.HasConsolePermission(Team, console, ConsolePermission.ViewBans) },
+                new ContextMenuItem(){ Text = "Console", Icon = "terminal", Disabled = Member == null || !Member.HasConsolePermission(Team, console, ConsolePermission.ViewConsole) },
+                new ContextMenuItem(){ Text = "Copy Console ID", Icon = "content_copy" }
+         }, (arg) => OnMenuItemClick(arg, console));
+
+    void OnMenuItemClick(MenuItemEventArgs arg, ConsoleData console)
+    {
+        switch (arg.Text)
+        {
+            case "Copy Console ID":
+                JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", console.Id.ToString());
+                break;
+            default:
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + console.GetVanityUrlOrId() + "/" + arg.Text.ToLower());
+                break;
+        }
+        ContextMenuService.Close();
     }
 
     public async Task SetupConsole()

@@ -85,7 +85,8 @@ public class EdgeAgent : IAgent
         Logger.LogMessage("Sending Json: " + message, LogSeverity.Debug);
         byte[] encoded = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> buffer = new ArraySegment<Byte>(encoded, 0, encoded.Length);
-        WebSocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Text, true, token);
+        if (WebSocket != null)
+            WebSocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Text, true, token);
 
         Console.WriteLine("Edge Sending");
         JToken? result = null;
