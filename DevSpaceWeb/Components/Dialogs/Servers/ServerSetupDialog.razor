@@ -18,7 +18,7 @@
 <RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
     <RadzenStack JustifyContent="JustifyContent.Start">
         <RadzenText TextStyle="TextStyle.Body1" class="ml-2">Select an agent type.</RadzenText>
-        <div class="server-item gap-2" style="display: flex; vertical-align: middle; cursor: pointer;" @onclick="@SetupEdgeServer">
+        <div class="server-item gap-2" style="display: flex; vertical-align: middle; cursor: pointer;" @onclick="@(() => Dialogs.Close(0))">
             <div class="server-item-icon flex-none d-flex">
                 <span class="iconify" data-icon="mdi:access-point-network"></span>
             </div>
@@ -29,7 +29,7 @@
                 <RadzenText TextStyle="TextStyle.Body2" class="ml-2">Your server will connect to the Dev Space domain.</RadzenText>
             </div>
         </div>
-        <div class="server-item gap-2" style="display: flex; vertical-align: middle; cursor: pointer;" @onclick="@SetupClientServer">
+        <div class="server-item gap-2" style="display: flex; vertical-align: middle; cursor: pointer;" @onclick="@(() => Dialogs.Close(1))">
             <div class="server-item-icon flex-none d-flex">
                 <span class="iconify" data-icon="mdi:local-area-network-connect"></span>
             </div>
@@ -42,7 +42,7 @@
         </div>
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
-        <RadzenButton Click="@((args) => { Dialogs.Close(false); })" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" />
+        <RadzenButton Click="@((args) => { Dialogs.Close(); })" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" />
     </RadzenStack>
 </RadzenStack>
 
@@ -55,171 +55,5 @@
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
 
-    public async Task SetupEdgeServer()
-    {
-        if (Member == null)
-            return;
-
-        if (!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
-            return;
-
-        Dialogs.Close(null);
-
-        await Dialogs.ShowDynamicFormAsync<ServerSetupEdgeModel>("Setup Server", new ServerSetupEdgeModel(), async (ServerSetupEdgeModel data) =>
-            {
-                if (Team == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
-                    return "You do not have Create Server Resource permissions";
-
-                VanityUrlData Vanity = Team.GetVanityUrlData();
-
-                string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
-
-                ServerData Server = new ServerData
-                {
-                    Name = data.Name,
-                    OwnerId = Member.UserId,
-                    TeamId = Member.TeamId,
-                    AgentId = null,
-                    AgentIp = null!,
-                    AgentKey = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", ""),
-                    AgentType = ServerAgentType.Edge
-                };
-
-                if (Vanity.CheckAlreadyExists(null, VanityUrl))
-                    return Lang.Errors.vanity_url_already_taken;
-
-
-                await _DB.Servers.CreateAsync(Server);
-
-                _DB.Servers.Cache.TryAdd(Server.Id, Server);
-                await Vanity.UpdateAsync(Server, VanityUrl);
-
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ServerCreated)
-                .SetTarget(Server)
-                .SetSensitive()
-                .AddProperty("Vanity URL", VanityUrl)
-                .AddProperty("Agent Type", "Edge"));
-
-                _ = InvokeAsync(StateHasChanged);
-                return null;
-            });
-    }
-
-    public async Task SetupClientServer()
-    {
-        if (Member == null)
-            return;
-
-        if (!Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
-            return;
-
-        Dialogs.Close(null);
-
-        await Dialogs.ShowDynamicFormAsync<ServerSetupClientModel>("Setup Server", new ServerSetupClientModel(), async (ServerSetupClientModel data) =>
-            {
-                if (Team == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
-                    return "You do not have Create Server Resource permissions";
-
-                if (data.Port == 0)
-                    return "Server port is required.";
-
-                if (string.IsNullOrEmpty(data.Ip))
-                    return "Server ip is required.";
-
-                if (Uri.CheckHostName(data.Ip) == UriHostNameType.Unknown)
-                    return "Server ip has invalid format.";
-
-                IPAddress? address = null;
-                if (!IPAddress.TryParse(data.Ip, out address))
-                {
-                    IPHostEntry? Host = null;
-                    try
-                    {
-                        Host = Dns.GetHostEntry(data.Ip);
-                    }
-                    catch { }
-                    if (Host != null)
-                        address = Host.AddressList.FirstOrDefault();
-                }
-
-                if (address == null)
-                    return "Server ip is invalid.";
-
-                VanityUrlData Vanity = Team.GetVanityUrlData();
-
-                ClientAgent Client = new ClientAgent
-                {
-                    Server = null
-                };
-                ServerData TempServer = new ServerData
-                {
-                    Name = ":)",
-                    AgentIp = data.Ip,
-                    AgentPort = data.Port,
-                    AgentKey = data.AgentKey
-                };
-
-                string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
-
-                if (Vanity.CheckAlreadyExists(null, VanityUrl))
-                    return Lang.Errors.vanity_url_already_taken;
-
-                await Client.DiscoverAsync(data.Ip, data.Port);
-                if (Client.Discover == null)
-                    return "Failed to discover server.";
-
-                TempServer.AgentId = Client.Discover.Id;
-
-                HttpRequestMessage Req = new HttpRequestMessage(HttpMethod.Get, "https://" + TempServer.AgentIp + ":" + TempServer.AgentPort + "/setup");
-                Req.Headers.TryAddWithoutValidation("Authorization", TempServer.AgentKey);
-                HttpResponseMessage DiscoverResponse = await Program.AgentDiscoverHttp.SendAsync(Req);
-                if (!DiscoverResponse.IsSuccessStatusCode)
-                {
-                    return "Failed to setup server.";
-                }
-
-                await Client.Connect(data.Ip, data.Port, data.AgentKey, false);
-                await Task.Delay(new TimeSpan(0, 0, 2));
-                if (Client == null || !Client.IsConnected)
-                {
-                    if (Client.WebSocket != null)
-                    {
-                        Client.WebSocket.DisconnectAndStop();
-                        Client.WebSocket.Dispose();
-                    }
-                    return "Failed to connect to server: " + Client.Error.ToString();
-                }
-
-                ServerData Server = new ServerData
-                {
-                    Name = data.Name,
-                    OwnerId = Member.UserId,
-                    TeamId = Member.TeamId,
-                    AgentId = Client.Discover.Id,
-                    AgentIp = data.Ip,
-                    AgentPort = data.Port,
-                    AgentKey = data.AgentKey
-                };
-
-                if (Vanity.CheckAlreadyExists(null, VanityUrl))
-                    return Lang.Errors.vanity_url_already_taken;
-
-
-                await _DB.Servers.CreateAsync(Server);
-                Server.SetWebSocket(Client);
-                _DB.Servers.Cache.TryAdd(Server.Id, Server);
-                await Vanity.UpdateAsync(Server, VanityUrl);
-
-                _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ServerCreated)
-                .SetTarget(Server)
-                .SetSensitive()
-                .AddProperty("IP", data.Ip)
-                .AddProperty("Port", data.Port)
-                .AddProperty("Vanity URL", VanityUrl)
-                .AddProperty("Agent Type", "Client"));
-
-                _ = InvokeAsync(StateHasChanged);
-                return null;
-            });
-    }
+    
 }
