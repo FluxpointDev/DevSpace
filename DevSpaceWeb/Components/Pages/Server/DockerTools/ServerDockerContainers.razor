@@ -43,32 +43,37 @@
     {
         <div class="dash-box-content">
             <ActionBar>
-                <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected || IsActionRunning || !CanManageContainer)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                @* <RadzenButton Variant="Variant.Filled" Text="Create Container" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(true || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" /> *@
-                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@IsLoading" />
-                <RadzenFormField Variant="Variant.Outlined">
-                    <Start>
-                        <RadzenIcon Icon="search" />
-                    </Start>
-                    <ChildContent>
-                        <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-                                       autocapitalize="none" MaxLength="100" inputmode="search"
-                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
-                    </ChildContent>
-                    <End>
-                        @if (!string.IsNullOrWhiteSpace(SearchText))
-                        {
-                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
-                        }
-                    </End>
-                </RadzenFormField>
+                <RadzenButton Variant="Variant.Filled" Text="Create Container" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(true || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" />
+                <RadzenButton Variant="Variant.Filled" Text="Prune Containers" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@IsLoading" />
             </ActionBar>
+            <div class="mt-2">
+                <ActionBar>
+                    <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Start" Click="@(() => RunSelectedContainersAction(ControlContainerType.Start))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton Variant="Variant.Outlined" Text="Stop" Click="@(() => RunSelectedContainersAction(ControlContainerType.Stop))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton Variant="Variant.Outlined" Text="Restart" Click="@(() => RunSelectedContainersAction(ControlContainerType.Restart))" Icon="restart_alt" IconColor="@Colors.WarningDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton Variant="Variant.Outlined" Text="Kill" Click="@(() => RunSelectedContainersAction(ControlContainerType.Kill))" Icon="bolt" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected || IsActionRunning || !CanManageContainer)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@IsLoading" />
+                    <RadzenFormField Variant="Variant.Outlined">
+                        <Start>
+                            <RadzenIcon Icon="search" />
+                        </Start>
+                        <ChildContent>
+                            <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                           autocapitalize="none" MaxLength="100" inputmode="search"
+                                           @oninput="@(args => SetNameFilter(args.Value as string))" />
+                        </ChildContent>
+                        <End>
+                            @if (!string.IsNullOrWhiteSpace(SearchText))
+                            {
+                                <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                            }
+                        </End>
+                    </RadzenFormField>
+                </ActionBar>
+            </div>
         </div>
         <RadzenDataGrid @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                         Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No containers."
@@ -86,7 +91,7 @@
                                         Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList.ToList() : null)" Disabled="@IsActionRunning" />
                     </HeaderTemplate>
                     <Template Context="data">
-                        <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedContainers != null && SelectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                        <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedContainers != null && SelectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"
                                         TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsActionRunning" />
                     </Template>
                 </RadzenDataGridColumn>
@@ -139,10 +144,10 @@
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
                             <RadzenButton Click="@(args => ShowContextMenuWithControlsItems(context, args))" Icon="power_settings_new" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!CanControlContainer || IsActionRunning)" />
                             <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                                @if (!string.IsNullOrEmpty(context.Url))
-                                {
-                                    <a href="@context.Url" target="_blank"><RadzenButton Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
-                                }
+                            @if (!string.IsNullOrEmpty(context.Url))
+                            {
+                                <a href="@context.Url" target="_blank"><RadzenButton Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+                            }
                         </RadzenStack>
                     </Template>
                 </RadzenDataGridColumn>
