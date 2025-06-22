@@ -104,6 +104,12 @@
         if (AuthUser == null)
             return;
 
+        foreach(var i in _Data.Config.Providers.Custom)
+        {
+            if (i.IsConfigured())
+                ValidConnections.Add(i.Options.ClientId!, i.GetName());
+        }
+
         if (_Data.Config.Providers.Authentik.IsConfigured())
             ValidConnections.Add("authentik", _Data.Config.Providers.Authentik.GetName());
         if (_Data.Config.Providers.Fluxpoint.IsConfigured())
@@ -161,6 +167,11 @@
                 return _Data.Config.Providers.Twitter.IsDisabled;
             case "microsoft":
                 return _Data.Config.Providers.Microsoft.IsDisabled;
+            default:
+                ConfigCustomProvider? Custom = _Data.Config.Providers.Custom.FirstOrDefault(x => x.Options != null && x.Options.ClientId == provider);
+                if (Custom != null)
+                    return Custom.IsDisabled;
+                break;
         }
 
         return true;

@@ -208,6 +208,25 @@ public static class ServiceBuilder
     public static void AddProviders(IServiceCollection services)
     {
         AuthenticationBuilder Auth = services.AddAuthentication();
+        foreach (ConfigCustomProvider i in _Data.Config.Providers.Custom)
+        {
+            if (i.IsConfigured())
+            {
+                Logger.LogMessage(i.GetName() + " custom login enabled", LogSeverity.Info);
+                Auth.AddOpenIdConnect(i.Options.ClientId, i.GetName(), opt =>
+                {
+                    opt.CallbackPath = new PathString("/auth/login/" + i.Options.ClientId);
+                    opt.Scope.Add("email");
+                    opt.Authority = i.Options.Authority;
+                    opt.ClientId = i.Options.ClientId;
+                    opt.ClientSecret = i.Options.ClientSecret;
+                    opt.SignInScheme = IdentityConstants.ExternalScheme;
+                    opt.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+                    opt.GetClaimsFromUserInfoEndpoint = i.Options.GetClaimsFromUserInfoEndpoint;
+                });
+            }
+        }
+
         if (_Data.Config.Providers.Authentik.IsConfigured())
         {
             Logger.LogMessage(_Data.Config.Providers.Authentik.GetName() + " login enabled", LogSeverity.Info);

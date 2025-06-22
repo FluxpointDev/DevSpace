@@ -142,6 +142,13 @@ public class ConfigProviders
     public ConfigProviderTwitter Twitter = new ConfigProviderTwitter();
     public ConfigProvider Microsoft = new ConfigProvider();
     public ConfigProviderAuthentik Authentik = new ConfigProviderAuthentik();
+    public List<ConfigCustomProvider> Custom = new List<ConfigCustomProvider>()
+    {
+        new ConfigCustomProvider
+        {
+
+        }
+    };
 }
 public class ConfigProvider
 {
@@ -156,15 +163,43 @@ public class ConfigProvider
         return false;
     }
 }
+public class ConfigCustomProvider
+{
+    public string? DisplayName = "Change Me";
+    public bool IsDisabled;
+    public ConfigCustomProviderOptions Options = new ConfigCustomProviderOptions();
+
+    public string GetName()
+    {
+        return DisplayName ?? "OAuth";
+    }
+    public bool IsConfigured()
+    {
+        if (Options == null)
+            return false;
+
+        if (!string.IsNullOrEmpty(Options.ClientId) && !string.IsNullOrEmpty(Options.Authority) && !string.IsNullOrEmpty(Options.ClientSecret))
+            return true;
+
+        return false;
+    }
+}
+public class ConfigCustomProviderOptions
+{
+    public string? Authority;
+    public string? ClientId;
+    public string? ClientSecret;
+    public bool GetClaimsFromUserInfoEndpoint;
+}
+
 public class ConfigProviderAuthentik : ConfigProvider
 {
-    public string DisplayName = "Change Me";
+    public string? DisplayName = "Change Me";
     public string? AuthUrl;
     public string GetName()
     {
         return DisplayName ?? "Authentik";
     }
-
 }
 public class ConfigProviderTwitter
 {
