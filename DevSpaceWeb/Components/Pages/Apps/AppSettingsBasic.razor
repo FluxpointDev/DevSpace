@@ -1,0 +1,45 @@
+﻿@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceShared.Services
+@using DevSpaceShared.WebSocket
+@using DevSpaceWeb.Agents
+@using DevSpaceWeb.Apps.Data
+@inject DialogService Dialogs
+@inject NavigationManager Nav
+@inject NotificationService Notifications
+@inject IJSRuntime JS
+
+<PageTitle>@(App?.Name ?? "App") Settings | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:gear"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">App Settings</RadzenText>
+    </div>
+
+    @if (Permissions.CheckFailedTeamPermissions(Member, Team, TeamPermission.GlobalAdministrator, out TeamPermission? failedPerm))
+    {
+        <br />
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for @Utils.FriendlyName(failedPerm.ToString()!)
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+    }
+</div>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public AppData? App => Session.Selected.App;
+
+}

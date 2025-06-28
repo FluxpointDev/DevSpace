@@ -1,18 +1,17 @@
-﻿using DevSpaceWeb.Data.Consoles;
+﻿using DevSpaceWeb.Apps.Data;
+using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 using System.Collections.Concurrent;
 
 namespace DevSpaceWeb.Data;
 
-public class VanityUrlData
+public class VanityUrlData : IObject
 {
-    [BsonId]
-    public ObjectId Id { get; set; }
+    public ConcurrentDictionary<string, ObjectId> AppVanityUrls = new ConcurrentDictionary<string, ObjectId>();
 
     public ConcurrentDictionary<string, ObjectId> ServerVanityUrls = new ConcurrentDictionary<string, ObjectId>();
 
@@ -33,6 +32,38 @@ public class VanityUrlData
             return true;
 
         return false;
+    }
+
+    public async Task UpdateAsync(AppData app, string? vanityUrl)
+    {
+        if (string.IsNullOrEmpty(vanityUrl))
+        {
+            // Update if vanity url is null and current is not null
+            if (!string.IsNullOrEmpty(app.VanityUrl))
+            {
+                AppVanityUrls.TryRemove(app.VanityUrl, out _);
+                app.VanityUrl = null;
+                await UpdateBaseAsync(new UpdateDefinitionBuilder<VanityUrlData>().Set(x => x.AppVanityUrls, AppVanityUrls), null!);
+            }
+        }
+        else
+        {
+            // Update if console has no vanity url
+            if (string.IsNullOrEmpty(app.VanityUrl))
+            {
+                AppVanityUrls.TryAdd(vanityUrl, app.Id);
+                app.VanityUrl = vanityUrl;
+                await UpdateBaseAsync(new UpdateDefinitionBuilder<VanityUrlData>().Set(x => x.AppVanityUrls, AppVanityUrls), null!);
+            }
+            // Update if vanity url not match
+            else if (Utils.FormatVanityUrl(vanityUrl) != app.VanityUrl)
+            {
+                AppVanityUrls.TryRemove(app.VanityUrl!, out _);
+                AppVanityUrls.TryAdd(vanityUrl, app.Id);
+                app.VanityUrl = vanityUrl;
+                await UpdateBaseAsync(new UpdateDefinitionBuilder<VanityUrlData>().Set(x => x.AppVanityUrls, AppVanityUrls), null!);
+            }
+        }
     }
 
     public async Task UpdateAsync(ServerData server, string? vanityUrl)

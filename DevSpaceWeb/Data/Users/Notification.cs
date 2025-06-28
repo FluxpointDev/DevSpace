@@ -1,13 +1,11 @@
-﻿using DevSpaceWeb.Database;
+﻿using DevSpaceWeb.Data.Teams;
+using DevSpaceWeb.Database;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 
 namespace DevSpaceWeb.Data.Users;
 
-public class Notification
+public class Notification : IObject
 {
-    [BsonId]
-    public ObjectId Id { get; set; }
     public ObjectId UserId { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public ObjectId? TeamId { get; set; }

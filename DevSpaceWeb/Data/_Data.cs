@@ -1,10 +1,12 @@
 ﻿using DaRT;
 using DevSpaceWeb.Agents;
 using DevSpaceWeb.Data.Proxmox;
+using Discord.Rest;
 using LibMCRcon.RCon;
 using MongoDB.Bson;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
+using static DevSpaceWeb.Apps.WorkspaceController;
 
 namespace DevSpaceWeb.Data;
 
@@ -15,6 +17,8 @@ public static class _Data
     public static Dictionary<ObjectId, TCPRconAsync> MinecraftRcons = [];
     public static Dictionary<ObjectId, ProxmoxAgent> ProxmoxAgents = [];
     public static Dictionary<ObjectId, EdgeAgent> EdgeAgents = [];
+    public static Dictionary<ObjectId, DiscordRestClient> DiscordClients = [];
+    public static WorkspaceConfig WorkspaceData = null!;
 
     public static bool LoadConfig()
     {
@@ -56,6 +60,22 @@ public static class _Data
             catch (Exception ex)
             {
                 Logger.LogMessage("Failed to parse Config.json file, " + ex.Message, LogSeverity.Error);
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader("Toolbox.json"))
+                {
+                    JsonSerializer serializer = new JsonSerializer
+                    {
+                        NullValueHandling = NullValueHandling.Ignore
+                    };
+                    WorkspaceData = (WorkspaceConfig?)serializer.Deserialize(reader, typeof(WorkspaceConfig));
+                }
+            }
+            catch
+            {
+                Logger.LogMessage("Failed to load Toolbox.json", LogSeverity.Error);
             }
 
             if (config == null)

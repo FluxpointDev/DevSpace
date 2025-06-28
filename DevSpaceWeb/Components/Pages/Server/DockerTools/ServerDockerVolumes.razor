@@ -77,7 +77,7 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                                     Value="@(SelectedVolumes == null || SelectedVolumes?.Any() != true ? false : !VolumesList.All(i => SelectedVolumes.Contains(i)) ? null : VolumesList.Any(i => SelectedVolumes.Contains(i)))"
-                                        Change="@(args => SelectedVolumes = args == true ? (SelectedVolumes != null && SelectedVolumes.Any()) ? null : VolumesList.ToList() : null)" Disabled="@IsActionRunning" />
+                                        Change="@(args => SelectedVolumes = args == true ? (SelectedVolumes != null && SelectedVolumes.Any()) ? null : VolumesList.ToList() : null)" Disabled="@(IsActionRunning || Count == 0)" />
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedVolumes != null && SelectedVolumes.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"

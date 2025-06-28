@@ -1,0 +1,31 @@
+﻿@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceShared.Services
+@using DevSpaceShared.WebSocket
+@using DevSpaceWeb.Agents
+@using DevSpaceWeb.Apps.Data
+@inject DialogService Dialogs
+@inject NavigationManager Nav
+@inject NotificationService Notifications
+@inject IJSRuntime JS
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon">
+            <span class="iconify" data-icon="mdi:gear"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
+    </div>
+
+</div>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public AppData? App => Session.Selected.App;
+
+}

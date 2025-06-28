@@ -12,10 +12,8 @@ using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Data.Teams;
 
-public class TeamRoleData
+public class TeamRoleData : IObject
 {
-    [BsonId]
-    public ObjectId Id { get; set; }
     public ObjectId TeamId { get; set; }
     public string? Name { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

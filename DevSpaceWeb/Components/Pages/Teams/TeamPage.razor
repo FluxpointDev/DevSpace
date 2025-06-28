@@ -1,4 +1,6 @@
 ﻿@page "/teams/{team_id?}/{service?}/{service_id?}/{resource_type?}/{resource_data?}/{resource_feature?}"
+@using DevSpaceWeb.Apps.Data
+@using DevSpaceWeb.Components.Pages.Apps
 @using DevSpaceWeb.Components.Pages.Console
 @using DevSpaceWeb.Components.Pages.Proxmox
 @using DevSpaceWeb.Components.Pages.Server.DockerTools
@@ -75,6 +77,45 @@ else
         case "links":
             {
                 <DevSpaceWeb.Components.Pages.Links.LinksPage></DevSpaceWeb.Components.Pages.Links.LinksPage>
+            }
+            break;
+        case "apps":
+            {
+                @if (!Program.IsDevMode)
+                {
+                    <p>Apps are not available yet.</p>
+                }
+                else if (string.IsNullOrEmpty(service_id))
+                {
+                    <AppList></AppList>
+                }
+                else if (App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                {
+                    <p>This apps does not exist.</p>
+                }
+                else
+                {
+                    switch (resource_type)
+                    {
+                        case null:
+                        case "":
+                        case "home":
+                            <AppHome></AppHome>
+                            break;
+                        case "settings":
+                            <AppSettingsBasic></AppSettingsBasic>
+                            break;
+                        case "install":
+                            <AppInstall></AppInstall>
+                            break;
+                        case "commands":
+                            <AppCommands></AppCommands>
+                            break;
+                        case "interactions":
+                            <AppInteractions></AppInteractions>
+                            break;
+                    }
+                }
             }
             break;
         case "servers":
@@ -360,7 +401,7 @@ else
                 }
                 else
                 {
-                    
+
                 }
             }
             break;
@@ -481,6 +522,7 @@ else
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
+    public AppData? App => Session.Selected.App;
     public ServerData? Server => Session.Selected.Server;
     public ProjectData? Project => Session.Selected.Project;
     public ConsoleData? Console => Session.Selected.Console;
@@ -523,6 +565,31 @@ else
 
                 switch (service)
                 {
+                    case "apps":
+                        {
+                            if (!string.IsNullOrEmpty(service_id))
+                            {
+                                AppData? GotApp = null;
+                                if (!ObjectId.TryParse(service_id, out ObjectId ServiceId) || !_DB.Apps.Cache.TryGetValue(ServiceId, out GotApp))
+                                {
+                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out VanityUrlData? vanity) && vanity.AppVanityUrls.TryGetValue(service_id, out ObjectId appId))
+                                    {
+                                        _DB.Apps.Cache.TryGetValue(appId, out GotApp);
+                                    }
+                                }
+
+                                if (GotApp != null && (Session.Selected.App == null || !Session.Selected.Team.App.IsVisible || Session.Selected.App.Id != GotApp.Id))
+                                {
+                                    if (Member.TeamId == GotApp.TeamId && Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                                        Session.Selected.Team.App = new SelectedAppData(GotApp);
+                                    else
+                                        Session.Selected.Team.App = null;
+
+                                    UpdateNav = true;
+                                }
+                            }
+                        }
+                        break;
                     case "servers":
                         {
                             if (!string.IsNullOrEmpty(service_id))

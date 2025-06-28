@@ -1,0 +1,366 @@
+﻿@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceShared.Services
+@using DevSpaceShared.WebSocket
+@using DevSpaceWeb.Agents
+@using DevSpaceWeb.Apps.Data
+@using DevSpaceWeb.Models.Apps
+@using Discord.Rest
+@inject DialogService Dialogs
+@inject NavigationManager Nav
+@inject NotificationService Notifications
+@inject IJSRuntime JS
+
+<PageTitle>@(App?.Name ?? "App") Home | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:rocket"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">App</RadzenText>
+    </div>
+
+    @if (Permissions.CheckFailedTeamPermissions(Member, Team, TeamPermission.GlobalAdministrator, out TeamPermission? failedPerm))
+    {
+        <br />
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for @Utils.FriendlyName(failedPerm.ToString()!)
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <div>
+            <ActionBar>
+                <a href="@(App.GetBotInviteUrl())" target="_blank"><RadzenButton Text="Invite App" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" /></a>
+                <a href="@(App.GetBotInviteUrl("0"))" target="_blank"><RadzenButton Text="Invite App (No Permissions)" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" /></a>
+                <a href="https://discord.dev" target="_blank"><RadzenButton Text="Discord Dev Portal" Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Shade="Shade.Dark" Size="ButtonSize.Small" /></a>
+            </ActionBar>
+        </div>
+        <div class="mt-2">
+            <ActionBar>
+                <RadzenButton Text="Update App" Click="@UpdateApp" Icon="build" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
+                <RadzenButton Text="Update Token" Click="@UpdateToken" Icon="key" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
+            </ActionBar>
+        </div>
+    }
+</div>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public AppData? App => Session.Selected.App;
+
+    public string? OwnerUser { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Member == null || App == null)
+            return;
+
+        if (_DB.Users.TryGetValue(App.OwnerId, out PartialUserData? user))
+            OwnerUser = user.UserName;
+        else
+            OwnerUser = "Unknown?";
+    }
+
+    public async Task UpdateApp()
+    {
+        if (Member == null || App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Update App", "Are you sure you want to fetch the Discord app name, avatar, description, settings and team members?", "Confirm", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        if (Member == null || App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+            return;
+
+        if (!_Data.DiscordClients.TryGetValue(App.Id, out Discord.Rest.DiscordRestClient client))
+        {
+            Dialogs.ShowInfoAsync("App Udate Failed!", "Could not get Discord client.");
+            return;
+        }
+
+        var AppInfo = await client.GetCurrentBotInfoAsync();
+
+
+        HashSet<string> Updates = new HashSet<string>();
+        List<UpdateDefinition<AppData>> UpdateList = new List<UpdateDefinition<AppData>>();
+
+        if (App.Name != AppInfo.Name)
+        {
+            App.Name = AppInfo.Name;
+            UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.Name, AppInfo.Name));
+            Updates.Add("Name");
+        }
+
+        string Avatar = AppInfo.IconUrl;
+        if (!string.IsNullOrEmpty(Avatar))
+            Avatar = Avatar.Replace(".jpg", ".webp").Replace(".png", ".webp");
+
+        if (Avatar != App.AvatarUrl)
+        {
+            App.AvatarUrl = Avatar;
+            UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.AvatarUrl, Avatar));
+            Updates.Add("Avatar");
+        }
+
+        if (App.Description != App.Description)
+        {
+            App.Description = App.Description;
+            UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.Description, AppInfo.Description));
+            Updates.Add("Description");
+        }
+        if (App.DiscordData.IsPublicApp != AppInfo.IsBotPublic.GetValueOrDefault(false))
+        {
+            App.DiscordData.IsPublicApp = AppInfo.IsBotPublic.GetValueOrDefault(false);
+            UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.DiscordData.IsPublicApp, AppInfo.IsBotPublic));
+            Updates.Add(App.DiscordData.IsPublicApp ? "Public App Type" : "Private App Type");
+        }
+
+        if (App.Team == null)
+        {
+            if (App.BotDeveloperIds.Any())
+            {
+                App.BotDeveloperIds = Array.Empty<string>();
+                UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.BotDeveloperIds, App.BotDeveloperIds));
+                Updates.Add("No Team Users");
+            }
+        }
+        else
+        {
+            if (!App.BotDeveloperIds.SequenceEqual(AppInfo.Team.TeamMembers.Where(x => x.User != null).Select(x => x.User.Id.ToString())))
+            {
+                App.BotDeveloperIds = AppInfo.Team.TeamMembers.Where(x => x.User != null).Select(x => x.User.Id.ToString()).ToArray();
+                UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.BotDeveloperIds, App.BotDeveloperIds));
+                Updates.Add("Team Users");
+            }
+        }
+
+        if (AppInfo.Owner == null)
+        {
+            if (App.BotOwnerId != "0")
+            {
+                App.BotOwnerId = "0";
+                UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.BotOwnerId, App.BotOwnerId));
+                Updates.Add("Discord Owner Invalid");
+            }
+        }
+        else if (App.BotOwnerId != AppInfo.Owner.Id.ToString())
+        {
+            App.BotOwnerId = AppInfo.Owner.Id.ToString();
+            UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.BotOwnerId, App.BotOwnerId));
+            Updates.Add("Discord Owner");
+        }
+
+        if (AppInfo.VerifyKey != App.EncryptedInteractionKey)
+        {
+            App.EncryptedInteractionKey = AppInfo.VerifyKey;
+            //App.UpdateDecryptedInteractionKey();
+            UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.EncryptedInteractionKey, App.EncryptedInteractionKey));
+            Updates.Add("Interaction Key");
+        }
+
+        if (AppInfo.TermsOfService != App.TermsOfServiceUrl)
+        {
+            App.TermsOfServiceUrl = AppInfo.TermsOfService;
+            UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.TermsOfServiceUrl, App.TermsOfServiceUrl));
+            Updates.Add("Terms of Service Url");
+        }
+
+        if (AppInfo.PrivacyPolicy != App.PrivacyPolicyUrl)
+        {
+            App.PrivacyPolicyUrl = AppInfo.PrivacyPolicy;
+            UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.PrivacyPolicyUrl, App.PrivacyPolicyUrl));
+            Updates.Add("Privacy Policy Url");
+        }
+
+        if (AppInfo.InstallParams == null)
+        {
+            if (App.DiscordData.GuildPermissions != 0)
+            {
+                App.DiscordData.GuildPermissions = 0;
+                UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.DiscordData.GuildPermissions, App.DiscordData.GuildPermissions));
+                Updates.Add("Guild Install Permissions");
+            }
+        }
+        else if (((ulong)AppInfo.InstallParams.Permission) != App.DiscordData.GuildPermissions)
+        {
+            App.DiscordData.GuildPermissions = ((ulong)AppInfo.InstallParams.Permission);
+            UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.DiscordData.GuildPermissions, App.DiscordData.GuildPermissions));
+            Updates.Add("Guild Install Permissions");
+        }
+
+        if (AppInfo.IntegrationTypesConfig.ContainsKey(Discord.ApplicationIntegrationType.GuildInstall))
+        {
+            if (AppInfo.IntegrationTypesConfig[Discord.ApplicationIntegrationType.GuildInstall] == null)
+            {
+                if (App.DiscordData.IsGuildInstall)
+                {
+                    App.DiscordData.IsGuildInstall = false;
+                    UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.DiscordData.IsGuildInstall, App.DiscordData.IsGuildInstall));
+                    Updates.Add("Guild Install");
+                }
+            }
+            else
+            {
+                if (!App.DiscordData.IsGuildInstall)
+                {
+                    App.DiscordData.IsGuildInstall = true;
+                    UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.DiscordData.IsGuildInstall, App.DiscordData.IsGuildInstall));
+                    Updates.Add("Guild Install");
+                }
+            }
+
+        }
+        else
+        {
+            if (App.DiscordData.IsGuildInstall)
+            {
+                App.DiscordData.IsGuildInstall = false;
+                UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.DiscordData.IsGuildInstall, App.DiscordData.IsGuildInstall));
+                Updates.Add("Guild Install");
+            }
+        }
+
+        if (AppInfo.IntegrationTypesConfig.ContainsKey(Discord.ApplicationIntegrationType.UserInstall))
+        {
+            if (AppInfo.IntegrationTypesConfig[Discord.ApplicationIntegrationType.UserInstall] == null)
+            {
+                if (App.DiscordData.IsUserInstall)
+                {
+                    App.DiscordData.IsUserInstall = false;
+                    UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.DiscordData.IsUserInstall, App.DiscordData.IsUserInstall));
+                    Updates.Add("User Install");
+                }
+            }
+            else
+            {
+                if (!App.DiscordData.IsUserInstall)
+                {
+                    App.DiscordData.IsUserInstall = true;
+                    UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.DiscordData.IsUserInstall, App.DiscordData.IsUserInstall));
+                    Updates.Add("User Install");
+                }
+            }
+
+        }
+        else
+        {
+            if (App.DiscordData.IsUserInstall)
+            {
+                App.DiscordData.IsUserInstall = false;
+                UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.DiscordData.IsUserInstall, App.DiscordData.IsUserInstall));
+                Updates.Add("User Install");
+            }
+        }
+
+        await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Combine(UpdateList));
+
+        if (AppInfo.InteractionsEndpointUrl != App.GetBotInteractionsUrl())
+        {
+            await client.ModifyCurrentBotApplicationAsync(x => x.InteractionsEndpointUrl = App.GetBotInteractionsUrl());
+            Updates.Add("Interaction Endpoint");
+        }
+
+        if (Updates.Any())
+            Dialogs.ShowInfoAsync("App Updated", $"We have updated your app's {string.Join(", ", Updates)}");
+        else
+            Dialogs.ShowInfoAsync("App Updated", $"Your app is already up-to date.");
+    }
+
+    public async Task UpdateToken()
+    {
+        if (Member == null || App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+            return;
+
+        await Dialogs.ShowDynamicFormAsync<AppUpdateTokenModel>("Update Bot Token", new AppUpdateTokenModel(), async (AppUpdateTokenModel data) =>
+        {
+            if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                return "You do not have Global Administrator permissions";
+
+            string BotId = null!;
+            try
+            {
+                string[] TokenSplit = data.BotToken.Split('.');
+                byte[] EncodedData = Convert.FromBase64String(AppList.ParseDiscordToken(TokenSplit[0]));
+
+                if (EncodedData.Count() == 0)
+                {
+                    return "Failed to parse Discord token.";
+                }
+
+                string decodedString = System.Text.Encoding.UTF8.GetString(EncodedData);
+                if (!ulong.TryParse(decodedString, out ulong DiscordId))
+                {
+                    return "Failed to parse Discord token.";
+                }
+                BotId = decodedString;
+                if (!ulong.TryParse(BotId, out _))
+                    return "Invalid bot id.";
+            }
+            catch
+            {
+                return "Failed to parse Discord bot token.";
+            }
+
+            DiscordRestClient NewClient = new DiscordRestClient(new DiscordRestConfig
+            {
+                APIOnRestInteractionCreation = false,
+                UseInteractionSnowflakeDate = false
+            });
+            await NewClient.LoginAsync(Discord.TokenType.Bot, data.BotToken);
+            if (NewClient.LoginState != Discord.LoginState.LoggedIn)
+            {
+                NewClient.Dispose();
+                return "Failed to authenticate token.";
+            }
+
+            RestApplication? AppInfo = null;
+            try
+            {
+                AppInfo = await NewClient.GetApplicationInfoAsync();
+                if (AppInfo == null)
+                {
+                    NewClient.Dispose();
+                    return "Failed to get bot info.";
+                }
+            }
+            catch
+            {
+                NewClient.Dispose();
+                return "Failed to valid bot account.";
+            }
+
+
+            if (_Data.DiscordClients.TryGetValue(App.Id, out var client))
+            {
+                client.Dispose();
+                _Data.DiscordClients.Remove(App.Id);
+            }
+            _Data.DiscordClients.TryAdd(App.Id, NewClient);
+
+            await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+            .Set(x => x.EncryptedToken, data.BotToken)
+            .Set(x => x.EncryptedInteractionKey, AppInfo.VerifyKey));
+
+            try
+            {
+                await NewClient.ModifyCurrentBotApplicationAsync(x =>
+                {
+                    x.InteractionsEndpointUrl = App.GetBotInteractionsUrl();
+                });
+            }
+            catch { }
+
+            return null;
+        });
+    }
+}

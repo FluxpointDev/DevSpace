@@ -13,9 +13,8 @@ using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Data.API;
 
-public class APIClient
+public class APIClient : IObject
 {
-    public ObjectId Id { get; set; }
     public required string Name { get; set; }
     public ObjectId OwnerId { get; set; }
     public ObjectId TeamId { get; set; }

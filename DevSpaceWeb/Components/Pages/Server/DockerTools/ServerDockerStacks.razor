@@ -80,7 +80,7 @@
                     <HeaderTemplate>
                         <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
                                         Value="@(SelectedStacks == null || SelectedStacks?.Any() != true ? false : !StacksList.All(i => SelectedStacks.Contains(i)) ? null : StacksList.Any(i => SelectedStacks.Contains(i)))"
-                                        Change="@(args => SelectedStacks = args == true ? (SelectedStacks != null && SelectedStacks.Any()) ? null : StacksList.Where(x => x.ControlType == DockerStackControl.Full).ToList() : null)" Disabled="@IsActionRunning" />
+                                        Change="@(args => SelectedStacks = args == true ? (SelectedStacks != null && SelectedStacks.Any()) ? null : StacksList.Where(x => x.ControlType == DockerStackControl.Full).ToList() : null)" Disabled="@(IsActionRunning || Count == 0)" />
                     </HeaderTemplate>
                     <Template Context="data">
                         <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedStacks != null && SelectedStacks.Contains(data))" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"

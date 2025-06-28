@@ -79,7 +79,7 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                                     Value="@(SelectedNetworks == null || SelectedNetworks?.Any() != true ? false : !NetworksList.All(i => SelectedNetworks.Contains(i)) ? null : NetworksList.Any(i => SelectedNetworks.Contains(i)))"
-                                        Change="@(args => SelectedNetworks = args == true ? (SelectedNetworks != null && SelectedNetworks.Any()) ? null : NetworksList.Where(x => !x.IsNetworkSystem()).ToList() : null)" Disabled="@IsActionRunning" />
+                                        Change="@(args => SelectedNetworks = args == true ? (SelectedNetworks != null && SelectedNetworks.Any()) ? null : NetworksList.Where(x => !x.IsNetworkSystem()).ToList() : null)" Disabled="@(IsActionRunning || Count == 0)" />
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedNetworks != null && SelectedNetworks.Contains(data))" Disabled="@(data.IsNetworkSystem() || IsActionRunning)" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"

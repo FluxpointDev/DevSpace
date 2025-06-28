@@ -267,7 +267,7 @@ else
                         <HeaderTemplate>
                             <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
                                             Value="@(SelectedContainers == null || SelectedContainers?.Any() != true ? false : ContainersList != null && !ContainersList.All(i => SelectedContainers.Contains(i)) ? null : ContainersList != null && ContainersList.Any(i => SelectedContainers.Contains(i)))"
-                                            Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList?.ToList() : null)" Disabled="@IsActionRunning" />
+                                            Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList?.ToList() : null)" Disabled="@(IsActionRunning || Count == 0)" />
                         </HeaderTemplate>
                         <Template Context="data">
                             <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedContainers != null && SelectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"

@@ -1,0 +1,386 @@
+﻿@using DevSpaceShared.Services
+@using DevSpaceWeb.Agents
+@using DevSpaceWeb.Apps.Data
+@using DevSpaceWeb.Components.Dialogs.Servers
+@using DevSpaceWeb.Models.Apps
+@using DevSpaceWeb.Models.Setup
+@using System.Net
+@using Discord.Rest
+@using Newtonsoft.Json
+@inject DialogService Dialogs
+@inject ContextMenuService ContextMenuService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>My Apps | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:rocket-launch"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Apps</RadzenText>
+    </div>
+    <br />
+    <ActionBar>
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create App" Icon="add" Click="@SetupApp" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshApps" />
+        <RadzenFormField Variant="Variant.Outlined">
+            <Start>
+                <RadzenIcon Icon="search" />
+            </Start>
+            <ChildContent>
+                <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                               autocapitalize="none" MaxLength="100" inputmode="search"
+                               @oninput="@(args => SetNameFilter(args.Value as string))" />
+            </ChildContent>
+            <End>
+                @if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                }
+            </End>
+        </RadzenFormField>
+    </ActionBar>
+    <br />
+    <RadzenDataListFixed @ref="@Grid" AllowPaging="true" Density="Density.Compact" EmptyText="No apps." IsLoading="@(AppsCount == -1)"
+                         LoadData="@LoadApps" Data="@AppsList" Count="AppsCount" PagingSummaryFormat="@(AppsCount + " app" + (AppsCount != 1 ? "s" : ""))" ShowPagingSummary="@(AppsCount != -1)"
+                    @bind-PageSize="@Session.ListItemsPerPage" PageSizeOptions="@Static.ListPageSizeOptions" PagerHorizontalAlign="HorizontalAlign.Center">
+        <LoadingTemplate>
+            <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
+                <div class="server-item-icon flex-none d-flex">
+                    <span class="iconify" data-icon="mdi:rocket"></span>
+                </div>
+                <div>
+                    <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
+                        <RadzenSkeleton></RadzenSkeleton>
+                    </RadzenText>
+                    <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
+                        <RadzenSkeleton></RadzenSkeleton>
+                    </RadzenStack>
+                </div>
+            </div>
+        </LoadingTemplate>
+        <Template>
+            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + context.GetVanityUrlOrId() + "/home")">
+                <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;" @oncontextmenu=@(args => ShowContextMenuWithContent(args, context)) @oncontextmenu:preventDefault="true">
+                    <div class="server-item-icon flex-none d-flex mb-2">
+                        <span class="iconify" data-icon="mdi:rocket"></span>
+                    </div>
+                    <div>
+                        <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2 mb-2">
+                            @context.Name
+                        </RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
+                            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">Discord App</RadzenText>
+                        </RadzenStack>
+                    </div>
+                </div>
+            </a>
+
+        </Template>
+    </RadzenDataListFixed>
+</div>
+
+<style>
+    .server-item {
+        background-color: #21262d !important;
+        border-radius: 12px;
+        border: 1px solid rgba(0,135,201,0.3) !important;
+        padding-left: 10px;
+        cursor: pointer;
+    }
+
+        .server-item:hover {
+            border-color: rgba(0,135,201,0.5) !important;
+        }
+
+    .server-item-icon {
+        vertical-align: center;
+    }
+
+        .server-item-icon .iconify {
+            width: 40px;
+            height: 40px;
+            margin-top: 16px;
+            color: rgba(0,135,201,0.7) !important;
+        }
+
+    .server-item:hover .server-item-icon .iconify {
+        color: rgba(0,135,201,0.9) !important;
+    }
+
+    .server-item-info {
+        padding-left: 10px;
+    }
+
+    .server-item-buttons .rz-button {
+        min-width: 34px !important;
+        display: block !important;
+        text-align: right;
+        height: 42px;
+        max-height: 42px !important;
+    }
+
+    .server-item .server-item-buttons .rz-button:hover {
+        background-color: rgba(0,135,201,0.3) !important;
+    }
+
+    .server-item-buttons .rz-button:first-child {
+        border-radius: 0px 12px 0px 0px;
+    }
+
+    .server-item-buttons .rz-button:last-child {
+        border-radius: 0px 0px 12px 0px;
+    }
+
+    .server-item-buttons p {
+        display: inline-block !important;
+        text-transform: capitalize;
+        display: none !important;
+    }
+
+    .server-item-buttons .iconify {
+        width: 20px;
+        height: 20px;
+        margin-left: 8px;
+        margin-bottom: -4px;
+        margin-right: 6px;
+    }
+
+    .server-item-buttons:hover .rz-button, .server-item-buttons:hover {
+        min-width: 130px !important;
+    }
+
+        .server-item-buttons:hover p {
+            display: inline-block !important;
+        }
+
+    .server-item .rz-stack .iconify {
+        height: 16px;
+        width: 16px;
+        margin-right: 2px;
+        margin-bottom: 2px;
+    }
+
+    .rz-datalist-data > li {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
+</style>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    public RadzenTextBox SearchBox { get; set; } = null!;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SearchBox != null)
+            _ = SearchBox.FocusAsync();
+    }
+
+    public string? SearchText { get; set; }
+    public void SetNameFilter(string? text)
+    {
+        SearchText = text;
+        Grid.FirstPage(true);
+    }
+
+    public IQueryable<AppData>? AppsList = null;
+    public RadzenDataList<AppData> Grid { get; set; } = null!;
+    public int AppsCount { get; set; } = -1;
+
+    public async Task LoadApps(LoadDataArgs args)
+    {
+        var Apps = _DB.Apps.Cache.Values.Where(x => Member != null && Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator) && (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))).OrderBy(x => x.Name);
+        AppsCount = Apps.Count();
+        AppsList = Apps.AsQueryable().Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
+    }
+
+    public async Task RefreshApps()
+    {
+        await Grid.Reload();
+    }
+
+    void ShowContextMenuWithContent(MouseEventArgs args, AppData app) => ContextMenuService.Open(args, new List<ContextMenuItem> {
+                new ContextMenuItem() { Text = "Copy App ID", Icon = "content_copy" }
+         }, (arg) => OnMenuItemClick(arg, app));
+
+    void OnMenuItemClick(MenuItemEventArgs arg, AppData app)
+    {
+        switch (arg.Text)
+        {
+            case "Copy App ID":
+                JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", app.Id.ToString());
+                break;
+        }
+        ContextMenuService.Close();
+    }
+
+    public async Task SetupApp()
+    {
+        if (Member == null)
+            return;
+
+        if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+            return;
+
+        await Dialogs.ShowDynamicFormAsync<AppCreateModel>("Setup App", new AppCreateModel(), async (AppCreateModel data) =>
+        {
+            if (Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                return "You do not have Global Administrator permissions";
+
+            string BotId = null!;
+            try
+            {
+                string[] TokenSplit = data.BotToken.Split('.');
+                byte[] EncodedData = Convert.FromBase64String(ParseDiscordToken(TokenSplit[0]));
+
+                if (EncodedData.Count() == 0)
+                {
+                    return "Failed to parse Discord token.";
+                }
+
+                string decodedString = System.Text.Encoding.UTF8.GetString(EncodedData);
+                if (!ulong.TryParse(decodedString, out ulong DiscordId))
+                {
+                    return "Failed to parse Discord token.";
+                }
+                BotId = decodedString;
+                if (!ulong.TryParse(BotId, out _))
+                    return "Invalid bot id.";
+            }
+            catch
+            {
+                return "Failed to parse Discord bot token.";
+            }
+
+            if (_DB.Apps.Cache.Values.Any(x => x.BotId == BotId && x.TeamId == Team.Id))
+                return "This app already exists in the team.";
+
+            RestApplication? AppInfo = null;
+            try
+            {
+                using (DiscordRestClient client = new DiscordRestClient())
+                {
+                    await client.LoginAsync(Discord.TokenType.Bot, data.BotToken);
+                    if (client.LoginState != Discord.LoginState.LoggedIn)
+                        return "Failed to authenticate bot token.";
+
+                    AppInfo = await client.GetApplicationInfoAsync();
+                    if (AppInfo == null)
+                        return "Failed to get bot info.";
+                }
+            }
+            catch
+            {
+                return "Failed to valid bot account.";
+            }
+
+            VanityUrlData Vanity = Team.GetVanityUrlData();
+
+            string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
+
+            if (Vanity.CheckAlreadyExists(null, VanityUrl))
+                return Lang.Errors.vanity_url_already_taken;
+
+            string[] TeamIds = Array.Empty<string>();
+            string OwnerId = AppInfo.Owner.Id.ToString();
+            if (AppInfo.Team != null)
+            {
+                foreach(var i in AppInfo.Team.TeamMembers)
+                {
+                    if (i.User != null)
+                    {
+                        OwnerId = i.User.Id.ToString();
+                        break;
+                    }
+                }
+                TeamIds = AppInfo.Team.TeamMembers.Where(x => x.User != null).Select(x => x.User.Id.ToString()).ToArray();
+            }
+
+            AppData App = new AppData()
+            {
+                Name = data.Name,
+                Description = data.Description ?? AppInfo.Description,
+                OwnerId = Member.UserId,
+                TeamId = Member.TeamId,
+                BotId = BotId,
+                BotOwnerId = OwnerId,
+                BotDeveloperIds = TeamIds,
+                PrivacyPolicyUrl = AppInfo.PrivacyPolicy,
+                TermsOfServiceUrl = AppInfo.TermsOfService,
+                EncryptedInteractionKey = AppInfo.VerifyKey,
+                EncryptedToken = data.BotToken,
+                AvatarUrl = AppInfo.IconUrl.Replace(".png", ".webp").Replace(".jpg", ".webp"),
+                DiscordData = new DiscordAppData
+                {
+                    IsGuildInstall = AppInfo.IntegrationTypesConfig.ContainsKey(Discord.ApplicationIntegrationType.GuildInstall),
+                    GuildPermissions = AppInfo.IntegrationTypesConfig.ContainsKey(Discord.ApplicationIntegrationType.GuildInstall) ? ((ulong)AppInfo.IntegrationTypesConfig[Discord.ApplicationIntegrationType.GuildInstall].Permission) : 0,
+                    IsUserInstall = AppInfo.IntegrationTypesConfig.ContainsKey(Discord.ApplicationIntegrationType.UserInstall),
+                    IsPublicApp = AppInfo.IsBotPublic.GetValueOrDefault(false),
+                }
+            };
+
+            await _DB.Apps.CreateAsync(App);
+
+            DiscordRestClient Client = new DiscordRestClient(new DiscordRestConfig
+            {
+                APIOnRestInteractionCreation = false,
+                UseInteractionSnowflakeDate = false
+            });
+            await Client.LoginAsync(Discord.TokenType.Bot, data.BotToken);
+
+            _Data.DiscordClients.Add(App.Id, Client);
+            _DB.Apps.Cache.TryAdd(App.Id, App);
+
+            await Vanity.UpdateAsync(App, VanityUrl);
+
+            try
+            {
+                await Client.ModifyCurrentBotApplicationAsync(x =>
+                {
+                    x.InteractionsEndpointUrl = App.GetBotInteractionsUrl();
+                });
+            }
+            catch { }
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.AppCreated)
+                .SetTarget(App)
+                .AddProperty("Description", data.Description)
+                .AddProperty("Vanity URL", VanityUrl));
+
+            return null;
+        });
+        await RefreshApps();
+    }
+
+    public static string ParseDiscordToken(string encodedBase64)
+    {
+        if (string.IsNullOrWhiteSpace(encodedBase64))
+        {
+            throw new ArgumentNullException(encodedBase64, "The supplied base64-encoded string was null or whitespace.");
+        }
+
+        if (encodedBase64.IndexOf('=') != -1)
+        {
+            return encodedBase64;
+        }
+
+        int num = (4 - encodedBase64.Length % 4) % 4;
+        return num switch
+        {
+            3 => throw new FormatException("The provided base64 string is corrupt, as it requires an invalid amount of padding."),
+            0 => encodedBase64,
+            _ => encodedBase64.PadRight(encodedBase64.Length + num, '='),
+        };
+    }
+}

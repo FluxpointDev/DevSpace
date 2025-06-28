@@ -1,0 +1,80 @@
+﻿@using DevSpaceWeb.Apps.Data
+@inject ContextMenuService ContextMenuService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<div class="nav-list nav-list-sub">
+    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
+        <div class="nav-list-header">
+            <span class="iconify" data-icon="mdi:rocket" style="color: #a5a5a5 !important;"></span>
+            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.App?.Name</h5>
+        </div>
+    </RadzenLink>
+
+    <RadzenPanelMenu>
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+            <Template>
+                <span class="iconify" data-icon="mdi:home"></span>
+                <p>Home</p>
+            </Template>
+        </RadzenPanelMenuItem>
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/install")" Match="NavLinkMatch.All">
+            <Template>
+                <span class="iconify" data-icon="mdi:plus-circle"></span>
+                <p>Install</p>
+            </Template>
+        </RadzenPanelMenuItem>
+        @* <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/config")" Match="NavLinkMatch.All">
+            <Template>
+                <span class="iconify" data-icon="mdi:gear"></span>
+                <p>Config</p>
+            </Template>
+        </RadzenPanelMenuItem> *@
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/commands")" Match="NavLinkMatch.All">
+            <Template>
+                <span class="iconify" data-icon="mdi:slash-forward-box"></span>
+                <p>Commands</p>
+            </Template>
+        </RadzenPanelMenuItem>
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/interactions")" Match="NavLinkMatch.All">
+            <Template>
+                <span class="iconify" data-icon="mdi:gesture-touch-hold"></span>
+                <p>Interactions</p>
+            </Template>
+        </RadzenPanelMenuItem>
+    </RadzenPanelMenu>
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    [Parameter]
+    public bool StateChange { get; set; }
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public AppData? App => Session.Selected.App;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Close", Icon = "close"  },
+                new ContextMenuItem() { Text = "Copy App ID", Icon = "content_copy" }
+         }, OnMenuItemClick);
+
+    void OnMenuItemClick(MenuItemEventArgs arg)
+    {
+        switch (arg.Text)
+        {
+            case "Close":
+                if (Session.Selected.Team != null && Session.Selected.Team.App != null)
+                    Session.Selected.Team.App.IsVisible = false;
+
+                Session.TriggerNavMenuChange();
+                break;
+            case "Copy App ID":
+                JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", Session.Selected.App?.Id);
+                break;
+        }
+        ContextMenuService.Close();
+    }
+}

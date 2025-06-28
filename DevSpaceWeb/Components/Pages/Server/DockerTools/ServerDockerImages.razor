@@ -102,7 +102,7 @@
                     <HeaderTemplate>
                         <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
                                         Value="@(SelectedImages == null || SelectedImages?.Any() != true ? false : !ImagesList.All(i => SelectedImages.Contains(i)) ? null : ImagesList.Any(i => SelectedImages.Contains(i)))"
-                                        Change="@(args => SelectedImages = args == true ? (SelectedImages != null && SelectedImages.Any()) ? null : ImagesList.ToList() : null)" Disabled="@IsActionRunning" />
+                                        Change="@(args => SelectedImages = args == true ? (SelectedImages != null && SelectedImages.Any()) ? null : ImagesList.ToList() : null)" Disabled="@(IsActionRunning || Count == 0)" />
                     </HeaderTemplate>
                     <Template Context="data">
                         <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedImages != null && SelectedImages.Contains(data))" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"

@@ -1,10 +1,11 @@
-﻿using MongoDB.Bson;
+﻿using DevSpaceWeb.Data.Teams;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Concurrent;
 
 namespace DevSpaceWeb.Database;
 
-public class ICollection<T>
+public class ICollection<T> where T : IObject
 {
     public ICollection(string dbname)
     {
@@ -18,13 +19,22 @@ public class ICollection<T>
         await Collection.InsertOneAsync(value);
     }
 
+    public async Task DeleteAsync(ObjectId id)
+    {
+        await Collection.DeleteOneAsync(new FilterDefinitionBuilder<T>().Eq(x => x.Id, id));
+    }
+
+    public async Task DeleteAsync(T value)
+    {
+        await Collection.DeleteOneAsync(new FilterDefinitionBuilder<T>().Eq(x => x.Id, value.Id));
+    }
 
 
     public IFindFluent<T, T> Find(FilterDefinition<T> filter, FindOptions? options = null) => Collection.Find(filter, options);
 
 }
 
-public class ICacheCollection<T> : ICollection<T>
+public class ICacheCollection<T> : ICollection<T> where T : IObject
 {
     public ICacheCollection(string dbname) : base(dbname)
     {

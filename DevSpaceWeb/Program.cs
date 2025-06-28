@@ -41,6 +41,7 @@ public class Program
     public static DirectoryStructureMain Directory = null!;
 
     public static HttpClient Http = new HttpClient();
+    public static HttpClient RuntimeHttpClient = new HttpClient();
 
     public static HttpClient AgentDiscoverHttp = new HttpClient(new HttpClientHandler
     {

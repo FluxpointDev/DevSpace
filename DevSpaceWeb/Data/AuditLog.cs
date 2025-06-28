@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data.API;
+﻿using DevSpaceWeb.Apps.Data;
+using DevSpaceWeb.Data.API;
 using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Servers;
@@ -9,7 +10,7 @@ using MongoDB.Bson;
 
 namespace DevSpaceWeb.Data;
 
-public class AuditLog
+public class AuditLog : IObject
 {
     public AuditLog(ObjectId user, ObjectId? team, AuditLogCategoryType category, AuditLogEventType evnt)
     {
@@ -83,6 +84,14 @@ public class AuditLog
         return this;
     }
 
+    public AuditLog SetTarget(AppData app)
+    {
+        TargetType = AuditLogTargetType.App;
+        TargetId = app.Id;
+        TargetName = app.Name;
+        return this;
+    }
+
     public AuditLog SetTarget(ServerData server)
     {
         TargetType = AuditLogTargetType.Server;
@@ -148,7 +157,6 @@ public class AuditLog
         return this;
     }
 
-    public ObjectId Id;
     public DateTime CreatedAt;
     public ObjectId? TeamId;
     public ObjectId? ActionUserId;
@@ -167,7 +175,7 @@ public class AuditLog
 
 public enum AuditLogTargetType
 {
-    Instance, Team, Role, Member, Server, Website, Project, Log, API, Console
+    Instance, Team, Role, Member, Server, Website, Project, Log, API, Console, App
 }
 public enum AuditLogCategoryType
 {
@@ -185,7 +193,8 @@ public enum AuditLogEventType
     ServerCreated, ServerDeleted, ServerPermissionsChanged, ServerSettingsChanged,
     ConsoleCreated, ConsoleDeleted, ConsolePermissionsChanged, ConsoleSettingsChanged, ConsoleRconChanged,
     RoleSettingsChanged, ServerOwnershipChanged, APIClientOwnershipChanged, ConsoleOwnershipChanged, RolePositionChanged,
-    MemberNicknameChanged, ServerOnboard
+    MemberNicknameChanged, ServerOnboard,
+    AppCreated
 }
 [Flags]
 public enum AuditLogFlag : ulong

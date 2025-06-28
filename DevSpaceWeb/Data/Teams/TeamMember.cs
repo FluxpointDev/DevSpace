@@ -13,10 +13,8 @@ using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Data.Teams;
 
-public class TeamMemberData
+public class TeamMemberData : IObject
 {
-    [BsonId]
-    public ObjectId Id { get; set; }
     public ObjectId UserId { get; set; }
     public ObjectId TeamId { get; set; }
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;

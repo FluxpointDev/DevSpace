@@ -83,7 +83,7 @@
                     <HeaderTemplate>
                         <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
                                         Value="@(SelectedPlugins == null || SelectedPlugins?.Any() != true ? false : !PluginsList.All(i => SelectedPlugins.Contains(i)) ? null : PluginsList.Any(i => SelectedPlugins.Contains(i)))"
-                                        Change="@(args => SelectedPlugins = args == true ? PluginsList.ToList() : null)" Disabled="@IsActionRunning" />
+                                        Change="@(args => SelectedPlugins = args == true ? PluginsList.ToList() : null)" Disabled="@(IsActionRunning || Count == 0)" />
                     </HeaderTemplate>
                     <Template Context="data">
                         <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedPlugins != null && SelectedPlugins.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"

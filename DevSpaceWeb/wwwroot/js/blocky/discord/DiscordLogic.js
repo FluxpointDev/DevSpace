@@ -1,0 +1,3 @@
+class DiscordLogic extends MainLogic {
+
+}

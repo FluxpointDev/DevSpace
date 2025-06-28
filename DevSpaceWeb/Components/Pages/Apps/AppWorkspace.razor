@@ -1,0 +1,79 @@
+﻿@page "/workspaces/{app_id?}/{workspace_id?}"
+@using DevSpaceWeb.Apps.Data
+
+@if (App != null)
+{
+    if (Team == null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            Unknown app or team.
+        </RadzenAlert>
+    }
+    else if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for Global Administrator
+        </RadzenAlert>
+    }
+    else if (Workspace == null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            Unknown workspace.
+        </RadzenAlert>
+    }
+    else
+    {
+        <DevSpaceWeb.Apps.DiscordWorkspace App="@App" MaxBlocks="1000" Data="@Workspace"></DevSpaceWeb.Apps.DiscordWorkspace>
+    }
+}
+
+<style>
+    .rz-body {
+        padding: 0px !important;
+        margin: 0px !important;
+    }
+
+    .rz-sidebar, .rz-header {
+        display: none !important;
+    }
+</style>
+
+@code {
+    [Parameter]
+    public string app_id { get; set; }
+
+    [Parameter]
+    public string workspace_id { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team { get; set; }
+    public AppData? App { get; set; }
+    public TeamMemberData? Member { get; set; }
+    public WorkspaceData? Workspace { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(app_id) || !ObjectId.TryParse(app_id, out ObjectId id))
+            return;
+
+        if (string.IsNullOrEmpty(workspace_id) || !ObjectId.TryParse(workspace_id, out ObjectId workspaceId))
+            return;
+
+        if (!_DB.Apps.Cache.TryGetValue(id, out AppData? app) || !_DB.Teams.Cache.TryGetValue(app.TeamId, out TeamData? team))
+            return;
+
+        App = app;
+        Team = team;
+
+        Member = team.GetMember(Session.CurrentUser!);
+        if (Member == null)
+            return;
+
+        if (!Member.HasTeamPermission(team, TeamPermission.GlobalAdministrator))
+            return;
+
+        Workspace = _DB.Workspaces.Collection.Find(new FilterDefinitionBuilder<WorkspaceData>().Eq(x => x.Id, workspaceId)).FirstOrDefault();
+    }
+}

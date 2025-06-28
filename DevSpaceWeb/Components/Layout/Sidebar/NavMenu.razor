@@ -30,7 +30,7 @@
             </Template>
         </RadzenPanelMenuItem>
 
-    @if (Session.Selected.Team != null)
+        @if (Session.Selected.Team != null)
         {
             <NavTeam StateChange="@StateChange"></NavTeam>
 
@@ -39,10 +39,14 @@
                 <NavServer StateChange="@StateChange"></NavServer>
             }
 
-
             @if (Session.Selected.Team.Console != null && Session.Selected.Team.Console.IsVisible)
             {
                 <NavConsole StateChange="@StateChange"></NavConsole>
+            }
+
+            @if (Session.Selected.Team.App != null && Session.Selected.Team.App.IsVisible)
+            {
+                <NavApp StateChange="@StateChange"></NavApp>
             }
 
             @if (Session.Selected.Team.Website != null && Session.Selected.Team.Website.IsVisible)
@@ -64,8 +68,9 @@
                 @* <NavStatus></NavStatus> *@
             }
         }
-</RadzenPanelMenu>
+    </RadzenPanelMenu>
 </div>
+
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;

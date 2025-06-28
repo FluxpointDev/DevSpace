@@ -1,0 +1,94 @@
+﻿@using DevSpaceShared.Events.Docker
+@using DevSpaceShared.Responses
+@using DevSpaceShared.Services
+@using DevSpaceShared.WebSocket
+@using DevSpaceWeb.Agents
+@using DevSpaceWeb.Apps.Data
+@inject DialogService Dialogs
+@inject NavigationManager Nav
+@inject NotificationService Notifications
+@inject IJSRuntime JS
+
+<PageTitle>@(App?.Name ?? "App") Install | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:plus-circle"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">App Install</RadzenText>
+    </div>
+
+    @if (Permissions.CheckFailedTeamPermissions(Member, Team, TeamPermission.GlobalAdministrator, out TeamPermission? failedPerm))
+    {
+        <br />
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for @Utils.FriendlyName(failedPerm.ToString()!)
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <RadzenText TextStyle="TextStyle.Body1">
+            Manage your app installation and oauth settings.
+        </RadzenText>
+        if (App.DiscordData.IsPublicApp)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Your app is public and can be invited.
+            </RadzenAlert>
+        }
+        else
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+                Your app is not public, enable it in the Discord Developer Portal!
+            </RadzenAlert>
+        }
+        <br />
+        <div>
+            <RadzenCheckBox @bind-Value="@IsUserInstall" />
+            <RadzenLabel Text="User Install" class="rz-ms-2" />
+        </div>
+
+        <div class="mt-2">
+            <RadzenCheckBox @bind-Value="@IsGuildInstall" />
+            <RadzenLabel Text="Guild Install" class="rz-ms-2" />
+        </div>
+        <br />
+        <RadzenButton Text="Update Install & Permissions (Not Available)" Click="@UpdateInstall" ButtonStyle="ButtonStyle.Success" Shade="Shade.Darker" Disabled="@(true || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" />
+    }
+</div>
+
+@* @if (!Permissions.CheckFailedTeamPermissions(Member, Team, TeamPermission.GlobalAdministrator, out failedPerm))
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon">
+                <span class="iconify" data-icon="mdi:plus-circle"></span>
+            </div>
+            <RadzenText TextStyle="TextStyle.H6">App Permissions</RadzenText>
+        </div>
+    </div>
+} *@
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public AppData? App => Session.Selected.App;
+
+    public bool IsUserInstall { get; set; }
+    public bool IsGuildInstall { get; set; }
+
+    public async Task UpdateInstall()
+    {
+        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+            return;
+
+
+    }
+}

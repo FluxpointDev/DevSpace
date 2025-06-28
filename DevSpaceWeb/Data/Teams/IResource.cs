@@ -13,11 +13,13 @@ using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Data.Teams;
 
-public class IResource
+public class IObject
 {
     [BsonId]
     public ObjectId Id { get; set; }
-
+}
+public class IResource : IObject
+{
     public required string Name { get; set; }
 
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
@@ -490,5 +492,5 @@ public class ITeamResource : IResource
 }
 public enum ResourceType
 {
-    Server, Console, Project, Log, Website,
+    Server, Console, Project, Log, Website, App
 }

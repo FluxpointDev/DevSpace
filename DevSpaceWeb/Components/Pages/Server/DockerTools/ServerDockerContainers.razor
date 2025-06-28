@@ -77,8 +77,8 @@
         </div>
         <RadzenDataGrid @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                         Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No containers."
-                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage" GridLines="DataGridGridLines.Horizontal"
-                        @bind-Value="@SelectedContainers" SelectionMode="DataGridSelectionMode.Multiple"
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
+                        GridLines="DataGridGridLines.Horizontal" @bind-Value="@SelectedContainers" SelectionMode="DataGridSelectionMode.Multiple"
                         PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
                         PagingSummaryFormat="@(Count + " container" + (Count != 1 ? "s" : "") + $" - {CountDead} down" )"
                         AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
@@ -88,7 +88,7 @@
                     <HeaderTemplate>
                         <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
                                         Value="@(SelectedContainers == null || SelectedContainers?.Any() != true ? false : !ContainersList.All(i => SelectedContainers.Contains(i)) ? null : ContainersList.Any(i => SelectedContainers.Contains(i)))"
-                                        Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList.ToList() : null)" Disabled="@IsActionRunning" />
+                                        Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList.ToList() : null)" Disabled="@(IsActionRunning || Count == 0)" />
                     </HeaderTemplate>
                     <Template Context="data">
                         <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedContainers != null && SelectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"

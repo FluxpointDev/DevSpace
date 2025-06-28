@@ -1,4 +1,5 @@
 ﻿using DaRT;
+using DevSpaceWeb.Apps.Data;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.API;
 using DevSpaceWeb.Data.Consoles;
@@ -8,6 +9,7 @@ using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Data.Websites;
+using Discord.Rest;
 using LibMCRcon.RCon;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -139,6 +141,8 @@ public static class _DB
         AuditLogs = new ICollection<AuditLog>("audit");
         API = new ICacheCollection<APIClient>("api");
         Notifications = new ICollection<Notification>("notifications");
+        Apps = new ICacheCollection<AppData>("apps");
+        Workspaces = new ICollection<WorkspaceData>("workspaces");
     }
 
     public static async Task<bool> StartAsync()
@@ -520,8 +524,40 @@ public static class _DB
             }
         });
 
+        Task AppTask = Task.Run(async () =>
+        {
+            try
+            {
+                await Apps.Find(Builders<AppData>.Filter.Empty).ForEachAsync(async x =>
+                {
+                    Apps.Cache.TryAdd(x.Id, x);
+
+                    bool IsDev = Program.IsDevMode || Program.IsPreviewMode;
+                    if (!IsDev || x.OwnerId.ToString() == "6757b63be964c430187491bb")
+                    {
+                        _Data.DiscordClients.Add(x.Id, new DiscordRestClient(new DiscordRestConfig
+                        {
+                            //RestClientProvider = IsDev ? DefaultRestClientProvider.Create(new WebProxy("http://127.0.0.1", 8888)) : DefaultRestClientProvider.Instance,
+                            APIOnRestInteractionCreation = false,
+                            UseInteractionSnowflakeDate = false
+                        }));
+                        await _Data.DiscordClients[x.Id].LoginAsync(Discord.TokenType.Bot, x.EncryptedToken);
+                    }
+                });
+
+
+                Logger.LogMessage("Database", "- Apps: " + Apps.Cache.Keys.Count, LogSeverity.Info);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogMessage("Database", "- Apps: FAIL!", LogSeverity.Info);
+                Console.WriteLine(ex);
+                HasException = true;
+            }
+        });
+
         Task.WaitAll(RoleTask, MemberTask, TeamVanityTask, TemplateTask, LogTask,
-            ServerTask, WebsiteTask, ProjectTask, APITask, ConsoleTask);
+            ServerTask, WebsiteTask, ProjectTask, APITask, ConsoleTask, AppTask);
 
         if (HasException)
             return false;
@@ -562,4 +598,8 @@ public static class _DB
     public static ICacheCollection<APIClient> API = null!;
 
     public static ICollection<Notification> Notifications = null!;
+
+    public static ICacheCollection<AppData> Apps = null!;
+
+    public static ICollection<WorkspaceData> Workspaces = null!;
 }

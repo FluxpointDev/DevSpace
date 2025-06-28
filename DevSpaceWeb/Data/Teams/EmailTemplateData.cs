@@ -1,17 +1,12 @@
 ﻿using DevSpaceWeb.Components.Markdown;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Teams;
 
-public class EmailTemplateData
+public class EmailTemplateData : IObject
 {
-    [BsonId]
-    public ObjectId Id { get; set; }
-
     public EmailTemplateType Type { get; set; }
 
     public string GetTypeName() => GetTypeName(Type);

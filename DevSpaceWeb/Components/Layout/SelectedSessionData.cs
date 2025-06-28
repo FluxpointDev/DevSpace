@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data.Consoles;
+﻿using DevSpaceWeb.Apps.Data;
+using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
@@ -12,6 +13,8 @@ public class SelectedSessionData
     public SelectedTeamData? Team { get; set; }
 
     public TeamMemberData? Member { get { return Team != null && Team.Member != null ? Team.Member : null; } }
+
+    public AppData? App { get { return Team != null && Team.App != null ? Team.App.Data : null; } }
 
     public ServerData? Server { get { return Team != null && Team.Server != null ? Team.Server.Data : null; } }
 
@@ -38,6 +41,7 @@ public class SelectedTeamData
 
     public string VanityUrl { get; set; }
     public TeamMemberData Member { get; set; }
+    public SelectedAppData? App { get; set; }
     public SelectedServerData? Server { get; set; }
     public SelectedWebsiteData? Website { get; set; }
     public SelectedProjectData? Project { get; set; }
@@ -57,6 +61,21 @@ public class SelectedConsoleData
 
     public string Id { get; private set; }
     public ConsoleData Data { get; private set; }
+    public string VanityUrl { get; set; }
+    public bool IsVisible { get; set; } = true;
+}
+public class SelectedAppData
+{
+    public SelectedAppData(AppData app)
+    {
+        Id = app.Id.ToString();
+        Data = app;
+
+        VanityUrl = app.GetVanityUrlOrId();
+    }
+
+    public string Id { get; private set; }
+    public AppData Data { get; private set; }
     public string VanityUrl { get; set; }
     public bool IsVisible { get; set; } = true;
 }

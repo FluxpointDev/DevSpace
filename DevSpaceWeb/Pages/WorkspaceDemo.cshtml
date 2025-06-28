@@ -1,0 +1,554 @@
+﻿@page "/workspaces/demo"
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Status Page</title>
+    <base href="/">
+    <link href="../css/workspace.css" rel="stylesheet" />
+    
+
+    
+</head>
+<body>
+    <script src="js/iconify.min.js" async></script>
+    <script src="../js/WorkspaceUtils.js"></script>
+    <script src="../js/blocky/main.min.js"></script>
+
+    <script src="../js/blocky/extensions/Multiline.js"></script>
+    <script src="../js/blocky/extensions/Multiline_Block.js"></script>
+    <script src="../js/blocky/main/ValidConnections.js"></script>
+    <script src="../js/blocky/plugins/colors.js"></script>
+    <script src="../js/blocky/extensions/patches.js"></script>
+
+    <script src="../js/blocky/discord/ValidDiscordConnections.js"></script>
+    <script src="../js/blocky/main/MainLogic.js"></script>
+    <script src="../js/blocky/discord/DiscordLogic.js"></script>
+    <script src="../js/blocky/plugins/shadow_block.js"></script>
+    <script src="../js/blocky/plugins/custom_css.js"></script>
+    <script src="../js/blocky/plugins/workspace_search.js"></script>
+    <script src="../js/blocky/plugins/fixed_edges.js"></script>
+    <script src="../js/blocky/plugins/minimap.js"></script>
+    <script src="../js/blocky/plugins/highlighter.js"></script>
+    <script src="../js/blocky/plugins/toolbox_search.js"></script>
+    <script src="../js/blocky/plugins/field_dependent_dropdown.js"></script>
+
+    <script src="../js/blocky/extensions/ContextMenu.js"></script>
+    <script src="../js/blocky/extensions/CustomMetricsManager.js"></script>
+    <script src="../js/blocky/extensions/CustomConnectionManager.js"></script>
+    <script src="../js/blocky/extensions/StartupConfig.js"></script>
+
+    <script src="../js/blocky/mutators/dynamic_list_mutator.js"></script>
+
+<div id="WorkspaceLoading" class="dash-box dash-main">
+    <h1><span class="iconify" data-icon="mdi:puzzle" style="color: #b55143;"></span> Loading Workspace</h1>
+    <p>We are getting your settings and data ready!</p>
+</div>
+<div id="WorkspaceFailed" class="dash-box dash-main" style="display: none">
+    <h1><span class="iconify" data-icon="mdi:puzzle" style="color: #b55143;"></span> Workspace Error</h1>
+    <p>Failed to load this workspace :(</p>
+</div>
+<p style="display: none"></p>
+    <p id="WorkspaceSetDots" style="display: none">True</p>
+    <p id="WorkspaceSetSnap" style="display: none">True</p>
+    <p id="WorkspaceSetHighlight" style="display: none">False</p>
+    <p id="WorkspaceSetMinimap" style="display: none">True</p>
+<div id="WorkspaceDiv">
+    <div id="WorkspaceNav">
+        <div class="container-fluid">
+            <div class="container-start">
+                <img src="https://img.fluxpoint.dev/333590356442480640.jpg" />
+                <div class="workspace-name">
+                    <h4 style="color: white;">Dog Bot</h4>
+                </div>
+            </div>
+            <div class="container-center">
+                    <p style="color: white;">This is a demo!</p>
+            </div>
+            <div class="d-flex container-end">
+                
+            </div>
+        </div>
+    </div>
+    <div id="WorkspaceBuilder" style="height: 400px; width: 100%;"></div>
+</div>
+
+<style>
+    .top-row {
+        display: none !important;
+    }
+
+    .sidebar {
+        display: none;
+    }
+
+    html, main, .content {
+        background-color: #1e1e2d !important;
+    }
+
+    .content {
+        padding-top: 0px;
+    }
+
+    .top-row, article {
+        padding-left: 30px !important;
+        padding-right: 30px !important;
+    }
+
+    .blocklyZoom > image, .blocklyTrash {
+        opacity: 0.8 !important;
+    }
+
+    .mud-drawer {
+        background-color: #1f2129 !important;
+    }
+
+        .mud-drawer .alert {
+            border-color: #18191c !important;
+            color: #d9d9d9 !important;
+            background-color: #181818 !important;
+            margin-left: 6px;
+            margin-right: 8px;
+        }
+
+        .mud-drawer .mud-typography-h6 {
+            color: rgb(147, 122, 222);
+            ;
+        }
+
+        .mud-drawer h5 {
+            margin-left: 10px;
+            margin-top: 6px;
+            margin-bottom: 16px !important;
+            color: white;
+        }
+
+        .mud-drawer p {
+            margin-left: 20px;
+            line-height: 0.8;
+            color: #bbbbbf;
+        }
+
+        .mud-drawer label {
+            background-color: #333333;
+            padding: 4px;
+            padding-left: 10px;
+            padding-right: 10px;
+            border-radius: 6px;
+            color: #d9d9d9 !important;
+        }
+
+    .content, html, main, .container-fluid {
+        background-color: rgba(24,25,28,1) !important;
+    }
+
+    .blocklyToolboxDiv {
+        background-color: #2b2d31 !important;
+    }
+
+    .ws-button-disabled {
+        box-shadow: none;
+        background-color: var(--mud-palette-action-disabled-background) !important;
+        color: var(--mud-palette-action-disabled) !important;
+        cursor: default;
+        pointer-events: none;
+    }
+
+    #warningIcon {
+        display: inline-block;
+        margin-left: 10px;
+        cursor: pointer;
+    }
+
+        #warningIcon .iconify {
+            margin-bottom: -8px;
+            width: 26px;
+            height: 26px;
+        }
+
+        #warningIcon p {
+            display: inline-block;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+            .blocklyToolboxCategoryLabel {
+            display: inline-block;
+            margin-top: -15px !important;
+        }
+        .blocklyToolboxCategory {
+            padding-top: 3px;
+            padding-bottom: 3px;
+        }
+</style>
+
+<script type="module">
+        import '../js/blocky/main/main_blocks.js?v=6';
+        import '../js/blocky/main/api_blocks.js?v=5';
+        import '../js/blocky/main/logic_blocks.js?v=3';
+        import '../js/blocky/main/file_blocks.js?v=3';
+
+    /* Action scripts */
+        import '../js/blocky/discord/actions/discord_actions_channels.js?v=2';
+        import '../js/blocky/discord/actions/discord_actions_webhooks.js?v=4';
+        import '../js/blocky/discord/actions/discord_actions_members.js?v=1';
+        import '../js/blocky/discord/actions/discord_actions_messages.js?v=5';
+        import '../js/blocky/discord/actions/discord_actions_components.js?v=3';
+        import '../js/blocky/discord/actions/discord_actions_servers.js?v=5';
+        import '../js/blocky/discord/actions/discord_actions_roles.js?v=1';
+        import '../js/blocky/discord/actions/discord_actions_users.js?v=2';
+
+    import '../js/blocky/discord/discord_options.js?v=10';
+        import '../js/blocky/discord/discord_main.js?v=14';
+        import '../js/blocky/discord/discord_inputs.js?v=3';
+
+    /* Data scrips */
+        import '../js/blocky/discord/data/discord_data_channels.js?v=5';
+        import '../js/blocky/discord/data/discord_data_webhooks.js?v=4';
+        import '../js/blocky/discord/data/discord_data_members.js?v=3';
+        import '../js/blocky/discord/data/discord_data_messages.js?v=4';
+        import '../js/blocky/discord/data/discord_data_servers.js?v=5';
+        import '../js/blocky/discord/data/discord_data_emojis.js?v=3';
+    import '../js/blocky/discord/data/discord_data_roles.js?v=4';
+        import '../js/blocky/discord/data/discord_data_users.js?v=4';
+
+        import '../js/blocky/discord/discord_logic.js?v=5';
+    // import { Multiselect, MultiselectBlockDragger } from './js/blocky/plugins/multi/multi.js';
+    // import { CustomDraggerManager } from './js/blocky/extensions/CustomDraggerManager.js';
+        import * as En from "../js/blocky/langs/en.js";
+
+
+    try {
+        CustomMetricsManager.setFixedEdges({
+            top: true,
+            left: true,
+        });
+
+        // document.getElementById('OptionLanguage').addEventListener('change', function () {
+        //     switch (this.value) {
+        //         case 'ar':
+        //             Blockly.setLocale(Ar);
+        //             break;
+        //         case 'en':
+        //             Blockly.setLocale(En);
+        //             break;
+        //     }
+        // });
+
+        const DarkTheme = Blockly.Theme.defineTheme('themeName', {
+            'base': Blockly.Themes.Classic,
+            'componentStyles': {
+                'workspaceBackgroundColour': "#1e1e1e",
+                'toolboxBackgroundColour': "blackBackground",
+                'toolboxForegroundColour': "#fff",
+                'flyoutBackgroundColour': "#252526",
+                'flyoutForegroundColour': "#ccc",
+                'flyoutOpacity': 1,
+                'scrollbarColour': "#797979",
+                'insertionMarkerColour': "#fff", 'insertionMarkerOpacity': .3, 'scrollbarOpacity': .4,
+                'cursorColour': "#d0d0d0", 'blackBackground': "#333"
+            },
+            'blockStyles': {
+                'math_blocks': {
+                    'colourPrimary': 120
+                },
+                "text_blocks": {
+                    'colourPrimary': 120
+                },
+                "colour_blocks": {
+                    'colourPrimary': 120
+                },
+                "logic_blocks": {
+                    'colourPrimary': 230
+                }
+            }
+        });
+
+
+
+        window.blazorExtensions = {
+            WarningsEnabled: false,
+            WarningList: new Map(),
+            CheckWarning: function() {
+                var elm = document.getElementById('btnSaveWorkspace');
+                if (elm) {
+                    if (window.blazorExtensions.WarningList.size == 0) {
+                        document.getElementById('warningIcon').style.visibility = "hidden";
+                        elm.classList.remove('ws-button-disabled');
+                    }
+                    else {
+                        document.getElementById('warningIcon').style.visibility = "";
+                        elm.classList.add('ws-button-disabled');
+                    }
+                }
+            },
+            CheckInputsEmpty(block, inputs) {
+                if (block.workspace.id !== Blockly.getMainWorkspace().id)
+                    return;
+                if (block.isInFlyout || block.isInsertionMarker_)
+                    return;
+
+                var isInputEmpty = false;
+                inputs.forEach(x => {
+                    if (!isInputEmpty && x.connection) {
+                        if (!x.connection.isConnected()) {
+                            if (x.name)
+                                block.setWarningText(x.name + ' input is missing.');
+                            else
+                                block.setWarningText('Input is missing.');
+                            isInputEmpty = true;
+                        }
+                        // else {
+                        //     console.log(x);
+                        //     if ((x.connection.targetBlock().type === "text" || x.connection.targetBlock().type === "text_multiline") && x.connection.targetBlock().inputList[0].fieldRow[1].value_ === "") {
+                        //         if (x.name)
+                        //             block.setWarningText(x.name + ' input requires text.');
+                        //         else
+                        //             block.setWarningText('Input requires text.');
+                        //         isInputEmpty = true;
+                        //     }
+                        // }
+
+                    }
+                });
+
+                if (isInputEmpty) {
+                    window.blazorExtensions.WarningList.set(block.id + '-input', block.id);
+                }
+                else {
+                    window.blazorExtensions.WarningList.delete(block.id + '-input');
+                    if (!window.blazorExtensions.WarningList.has(block.id + '-field'))
+                        block.setWarningText(null);
+                }
+
+                window.blazorExtensions.CheckWarning();
+            },
+            CheckFieldsEmpty(block, fields) {
+                if (block.workspace.id !== Blockly.getMainWorkspace().id)
+                    return;
+
+                var isInputEmpty = false;
+
+                fields.forEach(x => {
+                    if (!x.value_ === "") {
+                        if (x.name)
+                            block.setWarningText(x.name + ' field requires text.');
+                        else
+                            block.setWarningText('Field requires text.');
+                        isInputEmpty = true;
+                    }
+                });
+
+                if (isInputEmpty) {
+                    window.blazorExtensions.WarningList.set(block.id + '-field', block.id);
+                }
+                else {
+                    window.blazorExtensions.WarningList.delete(block.id + '-field');
+                    if (!window.blazorExtensions.WarningList.has(block.id + '-input'))
+                        block.setWarningText(null);
+                }
+
+                window.blazorExtensions.CheckWarning();
+            },
+            GetWorkspaceJson: function () {
+                let Json = JSON.stringify(Blockly.serialization.workspaces.save(Blockly.getMainWorkspace()));
+                return Json;
+            },
+            GetToolboxJson: async function () {
+                console.log('load Toolbox');
+                try {
+                    var response = null;
+                    if (document.getElementById('WorkspaceIdValue') !== null) {
+                            response = await fetch('../dev/workspace/toolbox/fetch?id=' + document.getElementById('WorkspaceIdValue').innerText);
+
+                    }
+                    else {
+                            response = await fetch('../dev/workspace/toolbox/fetch?id=');
+
+                    }
+
+            if (!response || !response.ok) {
+                document.getElementById('WorkspaceLoading').style.display = "none";
+                document.getElementById('WorkspaceDiv').style.display = "none";
+                document.getElementById('WorkspaceFailed').style.display = "block";
+                throw Error("Error response");
+            }
+
+            var json = await response.json();
+
+            return new Promise((resolve) => {
+                resolve(json);
+            });
+        } catch (error) {
+            document.getElementById('WorkspaceLoading').style.display = "none";
+           document.getElementById('WorkspaceDiv').style.display = "none";
+           document.getElementById('WorkspaceFailed').style.display = "block";
+           throw Error("Failed to send request: " + error);
+        }
+
+            }
+        }
+
+
+        let getToolbox = await window.blazorExtensions.GetToolboxJson();
+
+        const options = {
+            maxBlocks: 1000,
+            toolbox: getToolbox.toolbox,
+            theme: DarkTheme,
+            "collapse": false,
+            "sounds": false,
+            "grid": {
+                "spacing": 20,
+                "length": 3,
+                "colour": '#ccc',
+                "snap": true
+            },
+            "zoom": {
+                "controls": true,
+                "wheel": true,
+                "startScale": 1.0,
+                "maxScale": 2.0,
+                "minScale": 1.0,
+                "scaleSpeed": 1.1,
+            },
+            "oneBasedIndex": false,
+            "maxTrashcanContents": 5,
+            "plugins": {
+                "connectionChecker": CustomConnectionManager,
+                //"blockDragger2": CustomDraggerManager,
+                'metricsManager2': CustomMetricsManager,
+            },
+            //"media": "https://novanode.dev/img/",
+            "bumpNeighbours": true,
+            "multiselectIcon": {
+                "hideIcon": true,
+                "weight": 3,
+                "enabledIcon": 'https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/select.svg',
+                "disabledIcon": 'https://github.com/mit-cml/workspace-multiselect/raw/main/test/media/unselect.svg',
+            },
+            "maxBlocks": 1000,
+            "maxInstances": {
+                "option_require_app_premium": 1,
+                "option_ephemeral": 1,
+                "option_nsfw_only": 1,
+                "option_app_owner_only": 1,
+                "option_app_developer_only": 1,
+                "option_server_owner_only": 1,
+                "option_require_server": 1,
+                "option_require_private_channel": 1,
+                "option_require_group_channel": 1,
+                "option_allow_user_apps": 1
+            },
+            "multiselectCopyPaste": {
+                // Enable the copy/paste accross tabs feature (true by default).
+                "crossTab": false,
+                // Show the copy/paste menu entries (true by default).
+                "menu": true,
+            }
+        };
+
+
+
+        const workspace = Blockly.inject('WorkspaceBuilder', options);
+
+        try
+        {
+        document.getElementById('warningIcon').addEventListener('click', function () {
+            window.blazorExtensions.WarningList.forEach(x => { workspace.blockDB.get(x)?.warning.setBubbleVisible(true) });
+        });
+        }
+        catch { }
+
+        if (getToolbox.type !== 0) {
+            workspace.toolbox.getToolboxItems().find(x => x.name_ == "Inputs").hide();
+        }
+        if (getToolbox.type !== 4) {
+            workspace.toolbox.getToolboxItems().find(x => x.name_ == "Fields").hide();
+        }
+
+        let keepToolboxOpen = false;
+
+        workspace.addChangeListener(function (event) {
+
+            if (event.type === "delete") {
+                window.blazorExtensions.WarningList.delete(event.blockId + '-input');
+                window.blazorExtensions.WarningList.delete(event.blockId + '-field');
+            }
+            if ((event.recordUndo != null && event.recordUndo && window.blazorExtensions.WarningList.size == 0)) {
+                var elm = document.getElementById('btnSaveWorkspace');
+
+                if (elm) {
+                    elm.classList.remove('ws-button-disabled')
+                }
+
+            }
+
+            if (event.reason && (event.reason[0] === "drag" || event.reason[0] === "connect")) {
+                if (keepToolboxOpen) {
+                    workspace.toolbox.setSelectedItem(workspace.toolbox.getPreviouslySelectedItem())
+                    keepToolboxOpen = false;
+                }
+
+            }
+            else if (event.type === "create" && event.json) {
+                keepToolboxOpen = true;
+            }
+        });
+
+        workspace.getFlyout().getWorkspace().addChangeListener(function (event) {
+            if (event.type === "create" && event.json.type === "math_change") {
+                workspace.getFlyout().getWorkspace().blockDB.forEach(x => { if (x.type === "math_change") { x.dispose() } })
+            }
+        });
+
+
+        //const multiselectPlugin = new Multiselect(workspace);
+        //multiselectPlugin.init(options);
+
+        const workspaceSearch = new WorkspaceSearch(workspace);
+        workspaceSearch.init();
+        workspace.addChangeListener(shadowBlockConversionChangeListener)
+
+        const minimap = new PositionedMinimap(workspace);
+        minimap.init();
+        minimap.enableFocusRegion();
+
+        const contentHighlight = new ContentHighlight(workspace);
+        window.WorkspaceUtils.Plugins.Highlighter = contentHighlight;
+
+        //const scrollPlugin = new ScrollOptions(workspace);
+        //scrollPlugin.init({ enableWheelScroll: false, enableEdgeScroll: true });
+
+        var json = { "blocks": { "blocks": [
+            {
+                "type": "block_command", "deletable": false, "x": 207, "y": 166,
+                        "fields": { "name": "test" }
+                    }
+        ] } }
+
+        if (document.getElementById('WorkspaceIdValue') === null) {
+            Blockly.serialization.workspaces.load(json, workspace);
+            window.blazorExtensions.WarningsEnabled = true;
+        }
+        else {
+            Blockly.serialization.workspaces.load(json, workspace);
+            window.blazorExtensions.WarningsEnabled = true;
+        }
+
+
+
+        document.getElementById('WorkspaceLoading').style.display = "none";
+    }
+    catch (exe) {
+        console.log(exe);
+
+        document.getElementById('WorkspaceLoading').style.display = "none";
+        document.getElementById('WorkspaceDiv').style.display = "none";
+        document.getElementById('WorkspaceFailed').style.display = "block";
+    }
+</script>
+
+</body>
+</html>
