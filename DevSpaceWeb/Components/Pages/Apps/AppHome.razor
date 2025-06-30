@@ -43,6 +43,7 @@
             <ActionBar>
                 <RadzenButton Text="Update App" Click="@UpdateApp" Icon="build" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
                 <RadzenButton Text="Update Token" Click="@UpdateToken" Icon="key" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
+                <RadzenButton Text="Delete App" Click="@DeleteApp" Icon="delete" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
             </ActionBar>
         </div>
     }
@@ -68,6 +69,25 @@
             OwnerUser = user.UserName;
         else
             OwnerUser = "Unknown?";
+    }
+
+    public async Task DeleteApp()
+    {
+        if (Member == null || App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete App: " + App.Name, "Are you sure you want to delete this app?", "Confirm", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        if (Member == null || App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+            return;
+
+        await App.DeleteAsync(Member, () =>
+        {
+            Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/apps");
+        });
+
     }
 
     public async Task UpdateApp()
@@ -158,14 +178,6 @@
             App.BotOwnerId = AppInfo.Owner.Id.ToString();
             UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.BotOwnerId, App.BotOwnerId));
             Updates.Add("Discord Owner");
-        }
-
-        if (AppInfo.VerifyKey != App.EncryptedInteractionKey)
-        {
-            App.EncryptedInteractionKey = AppInfo.VerifyKey;
-            //App.UpdateDecryptedInteractionKey();
-            UpdateList.Add(new UpdateDefinitionBuilder<AppData>().Set(x => x.EncryptedInteractionKey, App.EncryptedInteractionKey));
-            Updates.Add("Interaction Key");
         }
 
         if (AppInfo.TermsOfService != App.TermsOfServiceUrl)
@@ -347,19 +359,23 @@
             }
             _Data.DiscordClients.TryAdd(App.Id, NewClient);
 
-            await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
-            .Set(x => x.EncryptedToken, data.BotToken)
-            .Set(x => x.EncryptedInteractionKey, AppInfo.VerifyKey));
-
-            try
+            var Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+            .Set(x => x.EncryptedToken, Crypt.EncryptString(data.BotToken))
+            .Set(x => x.EncryptedInteractionKey, Crypt.EncryptString(AppInfo.VerifyKey)));
+            if (Result.IsAcknowledged)
             {
-                await NewClient.ModifyCurrentBotApplicationAsync(x =>
+                App.EncryptedToken = Crypt.EncryptString(data.BotToken);
+                App.EncryptedInteractionKey = Crypt.EncryptString(AppInfo.VerifyKey);
+                App.UpdateDecryptedInteractionKey();
+                try
                 {
-                    x.InteractionsEndpointUrl = App.GetBotInteractionsUrl();
-                });
+                    await NewClient.ModifyCurrentBotApplicationAsync(x =>
+                    {
+                        x.InteractionsEndpointUrl = App.GetBotInteractionsUrl();
+                    });
+                }
+                catch { }
             }
-            catch { }
-
             return null;
         });
     }

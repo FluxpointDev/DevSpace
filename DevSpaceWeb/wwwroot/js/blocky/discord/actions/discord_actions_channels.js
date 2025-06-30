@@ -12,7 +12,7 @@ Blockly.Blocks["action_delete_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#972f40');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -28,7 +28,7 @@ Blockly.Blocks["action_delete_category"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#972f40');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -52,7 +52,7 @@ Blockly.Blocks["action_create_text_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -72,7 +72,7 @@ Blockly.Blocks["action_modify_text_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -96,7 +96,7 @@ Blockly.Blocks["action_create_voice_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -116,7 +116,7 @@ Blockly.Blocks["action_modify_voice_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -140,7 +140,7 @@ Blockly.Blocks["action_create_category_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -160,7 +160,7 @@ Blockly.Blocks["action_modify_category_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -201,7 +201,7 @@ Blockly.Blocks['obj_text_channel'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -238,7 +238,7 @@ Blockly.Blocks['obj_voice_channel'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -263,7 +263,7 @@ Blockly.Blocks['obj_category_channel'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -287,7 +287,7 @@ Blockly.Blocks["action_create_forum_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -307,7 +307,7 @@ Blockly.Blocks["action_modify_forum_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -351,7 +351,7 @@ Blockly.Blocks['obj_forum_channel'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -375,7 +375,7 @@ Blockly.Blocks["action_create_announcement_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -395,7 +395,7 @@ Blockly.Blocks["action_modify_announcement_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -420,7 +420,7 @@ Blockly.Blocks["action_create_stage_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -440,7 +440,7 @@ Blockly.Blocks["action_modify_stage_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -477,6 +477,6 @@ Blockly.Blocks['obj_stage_channel'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/channels");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };

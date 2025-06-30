@@ -25,7 +25,8 @@ public class CreateRoleBlock : DiscordActionBlock
         if (RoleObject == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to create role, role object data is missing.");
 
-        RestRole CreatedRole = await Server.CreateRoleAsync(await RoleObject.Name(), RoleObject.Permissions(), RoleObject.Color(), await RoleObject.IsHoisted(), await RoleObject.IsMentionable());
+        Color? RoleColor = await RoleObject.Color();
+        RestRole CreatedRole = await Server.CreateRoleAsync(await RoleObject.Name(), RoleObject.Permissions(), RoleColor, await RoleObject.IsHoisted(), await RoleObject.IsMentionable());
 
         if (CreatedRole == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to create role, could not find role.");

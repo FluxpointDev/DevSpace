@@ -10,9 +10,9 @@ Blockly.Blocks['logic_condition_and'] = {
             .setCheck(this.itemCheck_);
         this.setInputsInline(false);
         this.setOutput(true, null);
-        this.setColour(230);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true)
     }
 };
@@ -26,9 +26,9 @@ Blockly.Blocks['logic_condition_or'] = {
             .setCheck(this.itemCheck_);
         this.setInputsInline(false);
         this.setOutput(true, null);
-        this.setColour(230);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true)
     }
 };
@@ -76,9 +76,9 @@ Blockly.Blocks['logic_check_basic'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
 
     },
     onchange: function (event) {
@@ -133,9 +133,9 @@ Blockly.Blocks['logic_check_file'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
 
         
     },
@@ -185,9 +185,9 @@ Blockly.Blocks['logic_check_json'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
 
     },
     onchange: function (event) {
@@ -244,9 +244,9 @@ Blockly.Blocks['logic_check_response'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
 
     },
     onchange: function (event) {

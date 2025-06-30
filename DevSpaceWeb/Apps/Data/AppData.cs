@@ -13,7 +13,7 @@ public class AppData : ITeamResource
 
     public string Description { get; set; }
 
-    public string AvatarUrl { get; set; }
+    public string? AvatarUrl { get; set; }
 
     //public string GetIconOrDefault()
     //{
@@ -49,18 +49,18 @@ public class AppData : ITeamResource
 
     private string DecryptedInteractionKey { get; set; }
 
-    //public void UpdateDecryptedInteractionKey()
-    //{
-    //    DecryptedInteractionKey = Crypt.DecryptString(EncryptedInteractionKey);
-    //}
+    public void UpdateDecryptedInteractionKey()
+    {
+        DecryptedInteractionKey = Crypt.DecryptString(EncryptedInteractionKey);
+    }
 
-    //public string GetDecryptedInteractionKey()
-    //{
-    //    if (string.IsNullOrEmpty(DecryptedInteractionKey))
-    //        DecryptedInteractionKey = Crypt.DecryptString(EncryptedInteractionKey);
+    public string GetDecryptedInteractionKey()
+    {
+        if (string.IsNullOrEmpty(DecryptedInteractionKey))
+            DecryptedInteractionKey = Crypt.DecryptString(EncryptedInteractionKey);
 
-    //    return DecryptedInteractionKey;
-    //}
+        return DecryptedInteractionKey;
+    }
 
     public bool GetServerCommands(string key, out DiscordAppServerCommands? commands)
     {
@@ -118,6 +118,27 @@ public class AppData : ITeamResource
             action?.Invoke();
         return Result;
     }
+
+    public async Task DeleteAsync(TeamMemberData member, Action action)
+    {
+        FilterDefinition<AppData> filter = Builders<AppData>.Filter.Eq(r => r.Id, Id);
+        DeleteResult Result = await _DB.Apps.Collection.DeleteOneAsync(filter);
+        if (Result.IsAcknowledged)
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.AppDeleted)
+                .SetTarget(this));
+
+            _DB.Apps.Cache.TryRemove(Id, out _);
+            if (_Data.DiscordClients.TryGetValue(Id, out Discord.Rest.DiscordRestClient? client))
+            {
+                client.Dispose();
+                _Data.DiscordClients.Remove(Id);
+            }
+            FilterDefinition<WorkspaceData> filterWorkspaces = Builders<WorkspaceData>.Filter.Eq(r => r.AppId, Id);
+            await _DB.Workspaces.Collection.DeleteManyAsync(filterWorkspaces);
+            action?.Invoke();
+        }
+    }
 }
 
 public class AppCache
@@ -151,15 +172,26 @@ public class DiscordAppServerCommands
     public Dictionary<string, IDiscordAppCommand> UserCommands = new Dictionary<string, IDiscordAppCommand>();
     public Dictionary<string, IDiscordAppCommand> MessageCommands = new Dictionary<string, IDiscordAppCommand>();
 }
-public class IDiscordAppInteraction
+public class IAppInteraction
 {
     public string Name { get; set; }
 
     public string? Description { get; set; }
 
-    public bool IsEnabled { get; set; }
+    public bool IsEnabled { get; set; } = true;
 
     public ObjectId? WorkspaceId { get; set; }
+
+    public ObjectId CreatedBy { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public ObjectId? UpdatedBy { get; set; }
+}
+public class IDiscordAppInteraction : IAppInteraction
+{
 
     public string? OpenModal { get; set; }
 

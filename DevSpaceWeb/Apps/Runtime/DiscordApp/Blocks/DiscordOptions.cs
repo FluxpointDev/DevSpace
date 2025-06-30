@@ -150,6 +150,13 @@ public static class DiscordOptions
                         if (channelBlock == null)
                             return new RuntimeError(RuntimeErrorType.Runtime, "Could not parse command options, require server permission is missing channel.");
 
+                        if (block.inputs.TryGetValue("member", out RequestBlocksBlock? mBlock) && mBlock.block != null)
+                            channelBlock.next = new RequestBlocksNext { block = mBlock.block };
+
+                        if (channelBlock.next == null || channelBlock.next.block == null)
+                            return new RuntimeError(RuntimeErrorType.Runtime, "Could not parse command options, require server permission is missing member.");
+
+
                         GuildPermissions? perms = runtime.GetPermissionsFromBlock(pBlock.block);
                         if (perms == null)
                             return new RuntimeError(RuntimeErrorType.Runtime, "Could not parse command options, require server permissions has invalid permissions.");

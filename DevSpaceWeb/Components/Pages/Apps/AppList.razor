@@ -318,9 +318,9 @@
                 BotDeveloperIds = TeamIds,
                 PrivacyPolicyUrl = AppInfo.PrivacyPolicy,
                 TermsOfServiceUrl = AppInfo.TermsOfService,
-                EncryptedInteractionKey = AppInfo.VerifyKey,
-                EncryptedToken = data.BotToken,
-                AvatarUrl = AppInfo.IconUrl.Replace(".png", ".webp").Replace(".jpg", ".webp"),
+                EncryptedInteractionKey = Crypt.EncryptString(AppInfo.VerifyKey),
+                EncryptedToken = Crypt.EncryptString(data.BotToken),
+                AvatarUrl = !string.IsNullOrEmpty(AppInfo.IconUrl) ? AppInfo.IconUrl.Replace(".png", ".webp").Replace(".jpg", ".webp") : null,
                 DiscordData = new DiscordAppData
                 {
                     IsGuildInstall = AppInfo.IntegrationTypesConfig.ContainsKey(Discord.ApplicationIntegrationType.GuildInstall),

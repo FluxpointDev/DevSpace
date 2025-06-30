@@ -31,7 +31,7 @@ public class EmbedObjectBlock : DiscordBlock
             embed.Description = await Runtime.GetStringFromBlock(block.block);
 
         if (Block.inputs.TryGetValue("color", out block) && block.block != null)
-            embed.Color = Runtime.GetColorFromBlock(block.block);
+            embed.Color = await Runtime.GetColorFromBlock(block.block);
 
         if (Block.inputs.TryGetValue("image", out block) && block.block != null)
             embed.ImageUrl = await Runtime.GetStringFromBlock(block.block);

@@ -3,6 +3,8 @@
 @using Microsoft.JSInterop
 @inject IJSRuntime JS
 
+
+
 <div id="WorkspaceLoading" class="dash-box dash-main">
     <h1><span class="iconify" data-icon="mdi:puzzle" style="color: #b55143;"></span> Loading Workspace</h1>
     <p>We are getting your settings and data ready!</p>
@@ -32,16 +34,10 @@ else
             <div class="container-start">
                 @if (App != null)
                 {
+                    <Microsoft.AspNetCore.Components.Web.PageTitle>Workspace - @GetName() | @App.Name</Microsoft.AspNetCore.Components.Web.PageTitle>
                     <img src="" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';" />
                     <div class="workspace-name">
                         <h4>@App.Name - @GetName()</h4>
-                    </div>
-                }
-                else
-                {
-                    <img src="https://img.fluxpoint.dev/333590356442480640.jpg" />
-                    <div class="workspace-name">
-                        <h4>Dog Bot</h4>
                     </div>
                 }
             </div>
@@ -222,39 +218,59 @@ else
     font-weight: 600;
     margin-left: 6px;
 }
+
+    .blocklyToolboxCategory .iconify {
+        display: inline-block;
+        margin-top: -8px !important;
+        padding: 2px;
+    }
+
+    .blocklyToolboxCategoryLabel {
+        display: inline-block;
+        margin-top: -8px !important;
+    }
+
+    .blocklyToolboxCategory {
+        padding-top: 3px;
+        padding-bottom: 3px;
+    }
+
+    .blocklyWidgetDiv .blocklyHtmlInput {
+        color: #000 !important;
+    }
 </style>
 
 <script type="module">
-    import './js/blocky/main/main_blocks.js?v=6';
-    import './js/blocky/main/api_blocks.js?v=5';
-    import './js/blocky/main/logic_blocks.js?v=3';
-    import './js/blocky/main/file_blocks.js?v=3';
+    import './js/blocky/main/main_blocks.js?v=@Program.Version';
+    import './js/blocky/main/api_blocks.js?v=@Program.Version';
+    import './js/blocky/main/logic_blocks.js?v=@Program.Version';
+    import './js/blocky/main/file_blocks.js?v=@Program.Version';
 
     /* Action scripts */
-    import './js/blocky/discord/actions/discord_actions_channels.js?v=2';
-    import './js/blocky/discord/actions/discord_actions_webhooks.js?v=4';
-    import './js/blocky/discord/actions/discord_actions_members.js?v=1';
-    import './js/blocky/discord/actions/discord_actions_messages.js?v=5';
-    import './js/blocky/discord/actions/discord_actions_components.js?v=3';
-    import './js/blocky/discord/actions/discord_actions_servers.js?v=5';
-    import './js/blocky/discord/actions/discord_actions_roles.js?v=1';
-    import './js/blocky/discord/actions/discord_actions_users.js?v=2';
+    import './js/blocky/discord/actions/discord_actions_channels.js?v=@Program.Version';
+    import './js/blocky/discord/actions/discord_actions_webhooks.js?v=@Program.Version';
+    import './js/blocky/discord/actions/discord_actions_members.js?v=@Program.Version';
+    import './js/blocky/discord/actions/discord_actions_messages.js?v=@Program.Version';
+    import './js/blocky/discord/actions/discord_actions_components.js?v=@Program.Version';
+    import './js/blocky/discord/actions/discord_actions_servers.js?v=@Program.Version';
+    import './js/blocky/discord/actions/discord_actions_roles.js?v=@Program.Version';
+    import './js/blocky/discord/actions/discord_actions_users.js?v=@Program.Version';
 
-    import './js/blocky/discord/discord_options.js?v=10';
-    import './js/blocky/discord/discord_main.js?v=14';
-    import './js/blocky/discord/discord_inputs.js?v=3';
+    import './js/blocky/discord/discord_options.js?v=@Program.Version';
+    import './js/blocky/discord/discord_main.js?v=@Program.Version';
+    import './js/blocky/discord/discord_inputs.js?v=@Program.Version';
 
     /* Data scrips */
-    import './js/blocky/discord/data/discord_data_channels.js?v=5';
-    import './js/blocky/discord/data/discord_data_webhooks.js?v=4';
-    import './js/blocky/discord/data/discord_data_members.js?v=3';
-    import './js/blocky/discord/data/discord_data_messages.js?v=4';
-    import './js/blocky/discord/data/discord_data_servers.js?v=5';
-    import './js/blocky/discord/data/discord_data_emojis.js?v=3';
-    import './js/blocky/discord/data/discord_data_roles.js?v=4';
-    import './js/blocky/discord/data/discord_data_users.js?v=4';
+    import './js/blocky/discord/data/discord_data_channels.js?v=@Program.Version';
+    import './js/blocky/discord/data/discord_data_webhooks.js?v=@Program.Version';
+    import './js/blocky/discord/data/discord_data_members.js?v=@Program.Version';
+    import './js/blocky/discord/data/discord_data_messages.js?v=@Program.Version';
+    import './js/blocky/discord/data/discord_data_servers.js?v=@Program.Version';
+    import './js/blocky/discord/data/discord_data_emojis.js?v=@Program.Version';
+    import './js/blocky/discord/data/discord_data_roles.js?v=@Program.Version';
+    import './js/blocky/discord/data/discord_data_users.js?v=@Program.Version';
 
-    import './js/blocky/discord/discord_logic.js?v=5';
+    import './js/blocky/discord/discord_logic.js?v=@Program.Version';
     // import { Multiselect, MultiselectBlockDragger } from './js/blocky/plugins/multi/multi.js';
     // import { CustomDraggerManager } from './js/blocky/extensions/CustomDraggerManager.js';
     import * as En from "./js/blocky/langs/en.js";
@@ -401,12 +417,7 @@ else
                 try {
                     var response = null;
                     if (document.getElementById('WorkspaceIdValue') !== null) {
-                        response = await fetch('./dev/workspace/toolbox/fetch?id=' + document.getElementById('WorkspaceIdValue').innerText);
-
-                    }
-                    else {
-                        response = await fetch('./dev/workspace/toolbox/fetch?id=');
-
+                        response = await fetch('./dev/workspace/toolbox?id=' + document.getElementById('WorkspaceIdValue').innerText);
                     }
             
             if (!response || !response.ok) {
@@ -430,25 +441,13 @@ else
 
             },
             SendSaveRequest: function (workspaceid, name) {
-                if (workspaceid === "test") {
-                    //Update to this
-                    fetch('./dev/test/discord', {
-                        method: 'POST',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: window.blazorExtensions.GetWorkspaceJson()
-                    });
-                }
-                else {
                     try
                     {
                     document.getElementById('btnSaveWorkspace').classList.add('ws-button-disabled');
                     }
                     catch { }
                     //Update to this
-                    fetch('./dev/workspace?id=' + workspaceid + "&name=" + name, {
+                    fetch('./dev/workspace/update?id=' + workspaceid + "&name=" + name, {
                         method: 'POST',
                         headers: {
                             'Accept': 'application/json',
@@ -456,7 +455,7 @@ else
                         },
                         body: window.blazorExtensions.GetWorkspaceJson()
                     });
-                }
+                
             },
             LoadWorkspaceJson: function (workspace) {
                 console.log('load Workspace');
@@ -599,11 +598,11 @@ else
             }
         });
 
-        workspace.getFlyout().getWorkspace().addChangeListener(function (event) {
-            if (event.type === "create" && event.json.type === "math_change") {
-                workspace.getFlyout().getWorkspace().blockDB.forEach(x => { if (x.type === "math_change") { x.dispose() } })
-            }
-        });
+        // workspace.getFlyout().getWorkspace().addChangeListener(function (event) {
+        //     if (event.type === "create" && event.json.type === "math_change") {
+        //         workspace.getFlyout().getWorkspace().blockDB.forEach(x => { if (x.type === "math_change") { console.log(x); window.test = x; } })
+        //     }
+        // });
 
 
         //const multiselectPlugin = new Multiselect(workspace);
@@ -616,6 +615,7 @@ else
         const minimap = new PositionedMinimap(workspace);
         minimap.init();
         minimap.enableFocusRegion();
+        workspace.markFocused()
 
         const contentHighlight = new ContentHighlight(workspace);
         window.WorkspaceUtils.Plugins.Highlighter = contentHighlight;
@@ -630,17 +630,9 @@ else
                     }
         ] } }
 
-        if (document.getElementById('WorkspaceIdValue') === null) {
-            Blockly.serialization.workspaces.load(json, workspace);
-            window.blazorExtensions.WarningsEnabled = true;
+        if (document.getElementById('WorkspaceIdValue') !== null) {
+            window.blazorExtensions.LoadWorkspaceJson(workspace);
         }
-        else {
-            Blockly.serialization.workspaces.load(json, workspace);
-            window.blazorExtensions.WarningsEnabled = true;
-            //window.blazorExtensions.LoadWorkspaceJson(workspace);
-        }
-
-        
 
         document.getElementById('WorkspaceLoading').style.display = "none";
     }
@@ -689,7 +681,7 @@ else
     {
         switch (Data.Type)
         {
-            case DiscordWorkspaceType.SlashCommand:
+            case WorkspaceType.DiscordSlashCommand:
                 {
                     DiscordAppSlashCommand? cmd = null;
                     if (string.IsNullOrEmpty(Data.ServerId))
@@ -736,7 +728,7 @@ else
                     }
                 }
                 break;
-            case DiscordWorkspaceType.UserCommand:
+            case WorkspaceType.DiscordUserCommand:
                 {
                     IDiscordAppCommand? cmd = null;
                     if (string.IsNullOrEmpty(Data.ServerId))
@@ -748,7 +740,7 @@ else
                         return cmd.Name;
                 }
                 break;
-            case DiscordWorkspaceType.MessageCommand:
+                case WorkspaceType.DiscordMessageCommand:
                 {
                     IDiscordAppCommand? cmd = null;
                     if (string.IsNullOrEmpty(Data.ServerId))
@@ -760,14 +752,14 @@ else
                         return cmd.Name;
                 }
                 break;
-            case DiscordWorkspaceType.InteractionButton:
+            case WorkspaceType.DiscordInteractionButton:
                 {
                     App.ButtonInteractions.TryGetValue(Data.CommandFormat, out var cmd);
                     if (cmd != null)
                         return cmd.Name;
                 }
                 break;
-            case DiscordWorkspaceType.InteractionModal:
+            case WorkspaceType.DiscordInteractionModal:
                 {
                     App.ModalInteractions.TryGetValue(Data.CommandFormat, out var cmd);
                     if (cmd != null)

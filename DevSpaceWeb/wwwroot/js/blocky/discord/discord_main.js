@@ -24,7 +24,7 @@ Blockly.Blocks['block_command'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/command-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -55,7 +55,7 @@ Blockly.Blocks['block_user_command'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/command-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -86,7 +86,7 @@ Blockly.Blocks['block_message_command'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/command-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -101,7 +101,7 @@ Blockly.Blocks['data_permission_list'] = {
         this.setOutput(true, 'data_permission_list');
         this.setColour(230);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/permissions");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true)
     }
 };
@@ -125,7 +125,7 @@ Blockly.Blocks['data_permission_manage'] = {
         this.setOutput(true, 'data_permission_manage');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/permissions");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -146,7 +146,7 @@ Blockly.Blocks['data_permission_mod'] = {
         this.setOutput(true, 'data_permission_mod');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/permissions");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -165,7 +165,7 @@ Blockly.Blocks['data_permission_server'] = {
         this.setOutput(true, 'data_permission_server');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/permissions");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -193,7 +193,7 @@ Blockly.Blocks['data_permission_text'] = {
         this.setOutput(true, 'data_permission_text');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/permissions");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -222,7 +222,7 @@ Blockly.Blocks['data_permission_voice'] = {
         this.setOutput(true, 'data_permission_voice');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/permissions");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -254,7 +254,7 @@ Blockly.Blocks['block_interaction_button'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/command-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -301,7 +301,7 @@ Blockly.Blocks['block_interaction_select_string'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/command-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -336,7 +336,7 @@ Blockly.Blocks['block_interaction_select_user'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/command-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -371,7 +371,7 @@ Blockly.Blocks['block_interaction_select_role'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/command-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -406,7 +406,7 @@ Blockly.Blocks['block_interaction_select_channel'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/command-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -441,7 +441,7 @@ Blockly.Blocks['block_interaction_select_mentionable'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/command-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -452,14 +452,14 @@ Blockly.Blocks['block_interaction_modal'] = {
             .appendField(new Blockly.FieldImage("https://cdn.discordapp.com/emojis/912027882799374356.webp?size=128&quality=lossless", 16, 16, { alt: "*", flipRtl: "FALSE" }))
             .appendField("Interaction Modal:")
             .appendField(new Blockly.FieldLabelSerializable(""), "name");
-        this.appendValueInput("output_data")
-            .setCheck(Connections.DataInteraction)
-            .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField("output data:");
         this.appendValueInput("modal_title")
             .setCheck(["text"])
             .setAlign(Blockly.inputs.Align.RIGHT)
             .appendField("title:");
+        this.appendValueInput("output_data")
+            .setCheck(Connections.DataInteraction)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField("output data:");
         this.appendDummyInput();
         this.appendEndRowInput()
             .appendField("Fields");
@@ -478,7 +478,7 @@ Blockly.Blocks['block_interaction_modal'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/command-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -488,7 +488,7 @@ Blockly.Blocks['block_interaction_modal'] = {
         if ((event.type === "create" && event.json.type === this.type) || (event.type === "move" && event.reason && (event.reason[0] === 'snap' || event.reason[0] === 'connect'))) {
 
 
-            window.blazorExtensions.CheckInputsEmpty(this, [this.inputList[2], this.inputList[5]]);
+            window.blazorExtensions.CheckInputsEmpty(this, [this.inputList[1], this.inputList[5]]);
 
         }
     }

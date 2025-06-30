@@ -58,9 +58,9 @@ Blockly.Blocks['logic_check_discord_channel'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
         
     },
     onchange: function (event) {
@@ -107,9 +107,9 @@ Blockly.Blocks['logic_check_discord_server'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -166,9 +166,9 @@ Blockly.Blocks['logic_check_discord_message'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -218,9 +218,9 @@ Blockly.Blocks['logic_check_discord_member'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -276,9 +276,9 @@ Blockly.Blocks['logic_check_discord_user'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -325,9 +325,9 @@ Blockly.Blocks['logic_check_discord_role'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -374,9 +374,9 @@ Blockly.Blocks['logic_check_discord_category'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -408,7 +408,7 @@ Blockly.Blocks['logic_check_discord_webhook'] = {
 
         this.appendValueInput("webhook")
             .setCheck(Connections.DataWebhooks)
-            .appendField("wrbhook:");
+            .appendField("webhook:");
         this.appendDummyInput()
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
             .appendField("property:")
@@ -421,9 +421,9 @@ Blockly.Blocks['logic_check_discord_webhook'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -470,9 +470,9 @@ Blockly.Blocks['logic_check_discord_emoji'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -523,9 +523,9 @@ Blockly.Blocks['logic_check_discord_variable'] = {
             .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
         this.setInputsInline(true);
         this.setOutput(true, null);
-        this.setColour(220);
+        this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/logic-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 

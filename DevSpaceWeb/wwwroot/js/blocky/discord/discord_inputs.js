@@ -33,7 +33,7 @@ Blockly.Blocks['input_string'] = {
         this.setNextStatement(true, Connections.AllowedInputs);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -82,7 +82,7 @@ Blockly.Blocks['input_integer'] = {
         this.setNextStatement(true, Connections.AllowedInputs);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -123,7 +123,7 @@ Blockly.Blocks['input_boolean'] = {
         this.setNextStatement(true, Connections.AllowedInputs);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -164,7 +164,7 @@ Blockly.Blocks['input_user'] = {
         this.setNextStatement(true, Connections.AllowedInputs);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -205,7 +205,7 @@ Blockly.Blocks['input_member'] = {
         this.setNextStatement(true, Connections.AllowedInputs);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -246,7 +246,7 @@ Blockly.Blocks['input_channel'] = {
         this.setNextStatement(true, Connections.AllowedInputs);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -287,7 +287,7 @@ Blockly.Blocks['input_role'] = {
         this.setNextStatement(true, Connections.AllowedInputs);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -328,7 +328,7 @@ Blockly.Blocks['input_mentionable'] = {
         this.setNextStatement(true, Connections.AllowedInputs);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -377,7 +377,7 @@ Blockly.Blocks['input_number'] = {
         this.setNextStatement(true, Connections.AllowedInputs);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -417,7 +417,7 @@ Blockly.Blocks['input_attachment'] = {
         this.setNextStatement(true, Connections.AllowedInputs);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -446,7 +446,7 @@ Blockly.Blocks['obj_input_choices_list'] = {
         this.setOutput(true, 'obj_input_choices_list');
         this.setColour('#b29655');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true);
         this.appendArrayElementInput();
     }
@@ -463,7 +463,7 @@ Blockly.Blocks['obj_input_choices_item'] = {
         this.setOutput(true, 'obj_input_choices_item');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
         if (!window.blazorExtensions.WarningsEnabled)
@@ -488,6 +488,6 @@ Blockly.Blocks['obj_input_minmax'] = {
         this.setOutput(true, 'obj_input_minmax');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/input-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };

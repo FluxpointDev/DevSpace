@@ -70,7 +70,7 @@ public class DiscordRuntime : IRuntime
     public IDiscordAppInteraction InteractionData { get; private set; }
     public DiscordRestClient Client { get; private set; }
 
-    public DiscordWorkspaceType Type { get; set; }
+    public WorkspaceType Type { get; set; }
 
     public RuntimeError GetAppPermissionError(GuildPermission perm)
     {
@@ -204,13 +204,13 @@ public class DiscordRuntime : IRuntime
     {
         switch (Type)
         {
-            case DiscordWorkspaceType.SlashCommand:
+            case WorkspaceType.DiscordSlashCommand:
                 {
                     if (commandblock.inputs.TryGetValue("command_inputs", out RequestBlocksBlock? cmdI) && cmdI.block != null)
                         await DiscordInputs.ParseNextBlock(this, cmdI.block, InteractionData.ModalDataType);
                 }
                 break;
-            case DiscordWorkspaceType.UserCommand:
+            case WorkspaceType.DiscordUserCommand:
                 {
                     if (commandblock.inputs.TryGetValue("output_user", out RequestBlocksBlock? outputBlock) && outputBlock.block != null && outputBlock.block.enabled)
                     {
@@ -235,7 +235,7 @@ public class DiscordRuntime : IRuntime
                     }
                 }
                 break;
-            case DiscordWorkspaceType.MessageCommand:
+            case WorkspaceType.DiscordMessageCommand:
                 {
                     if (commandblock.inputs.TryGetValue("output_message", out RequestBlocksBlock? outputBlock) && outputBlock.block != null && outputBlock.block.enabled)
                     {
@@ -246,7 +246,7 @@ public class DiscordRuntime : IRuntime
                     }
                 }
                 break;
-            case DiscordWorkspaceType.InteractionButton:
+            case WorkspaceType.DiscordInteractionButton:
                 {
                     Data.MessageCurrent = Tuple.Create<DiscordCachableMessage, RestMessage>(new DiscordCachableMessage((Interaction as RestMessageComponent).Message.Channel.Id, (Interaction as RestMessageComponent).Message.Id), (Interaction as RestMessageComponent).Message);
 
@@ -259,7 +259,7 @@ public class DiscordRuntime : IRuntime
                     }
                 }
                 break;
-            case DiscordWorkspaceType.InteractionModal:
+            case WorkspaceType.DiscordInteractionModal:
                 {
                     //if ((Interaction as RestModal).Message != null)
                     //    Data.MessageCurrent = Tuple.Create<DiscordCachableMessage, RestMessage>(new DiscordCachableMessage((Interaction as RestModal).Message.Channel.Id, (Interaction as RestModal).Message.Id), (Interaction as RestModal).Message);
@@ -368,6 +368,9 @@ public class DiscordRuntime : IRuntime
                 if (!Interaction.GuildId.HasValue)
                     return new RuntimeError(RuntimeErrorType.Runtime, "This command requires a Discord server.");
 
+                if (Interaction.Guild == null)
+                    await Interaction.GetGuildAsync(new RequestOptions());
+
                 if (Interaction.Guild.OwnerId != Interaction.User.Id)
                     return new RuntimeError(RuntimeErrorType.Runtime, "You need to be the server owner to use this command.");
             }
@@ -376,19 +379,35 @@ public class DiscordRuntime : IRuntime
                 if (!Interaction.GuildId.HasValue)
                     return new RuntimeError(RuntimeErrorType.Runtime, "This command requires a Discord server.");
 
+
                 foreach (Tuple<GuildPermissions, RequestBlocks_Block> i in Options.RequireServerPermissions)
                 {
                     ulong? UserId = await GetMemberIdFromBlock(i.Item2);
                     if (!UserId.HasValue)
                         return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require server permission has an invalid user.");
 
+                    bool HasPermissions = false;
+
                     if (UserId == Interaction.User.Id)
                     {
-                        GuildPermission? perm = DiscordPermissions.DoesNotHave((Interaction.User as RestGuildUser).InteractionGuildPermissions.Value, i.Item1);
-                        if (perm.HasValue)
-                            return new RuntimeError(RuntimeErrorType.Runtime, $"You do not have server permission for `{FriendlyPermissionName(perm.Value)}`\n" +
-                                    $"Please check the roles permissions to give access.");
+                        GuildPermission? CheckPermission = null;
+                        foreach (GuildPermission p in i.Item1.ToList())
+                        {
+                            CheckPermission = p;
+                            HasPermissions = DiscordPermissions.HasPermission(p, (Interaction.User as RestGuildUser).InteractionGuildPermissions.Value);
+                            if (!HasPermissions)
+                                break;
+                        }
 
+
+
+                        if (!HasPermissions)
+                        {
+                            if (!CheckPermission.HasValue)
+                                return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require server permission failed to validate permissions.");
+                            return new RuntimeError(RuntimeErrorType.Runtime, $"You do not have server permission for `{FriendlyPermissionName(CheckPermission!.Value)}`\n" +
+                                    $"Please check the roles permissions to give access.");
+                        }
                     }
                     else
                     {
@@ -397,17 +416,31 @@ public class DiscordRuntime : IRuntime
                         if (AppMember == null)
                             return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require server permission has an invalid input user.");
 
-                        GuildPermission? perm = DiscordPermissions.DoesNotHave(AppMember.InteractionGuildPermissions.HasValue ? AppMember.InteractionGuildPermissions.Value : AppMember.GuildPermissions, i.Item1);
-                        if (perm.HasValue)
+                        GuildPermission? CheckPermission = null;
+
+                        foreach (GuildPermission p in i.Item1.ToList())
                         {
+                            CheckPermission = p;
+                            HasPermissions = DiscordPermissions.HasPermission(p, AppMember.InteractionGuildPermissions.HasValue ? AppMember.InteractionGuildPermissions.Value : AppMember.GuildPermissions);
+                            if (!HasPermissions)
+                                break;
+                        }
+
+                        if (!HasPermissions)
+                        {
+                            if (!CheckPermission.HasValue)
+                                return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require server permission failed to validate permissions.");
+
                             if (UserId.Value == Client.CurrentUser.Id)
                             {
-                                return new RuntimeError(RuntimeErrorType.Runtime, $"This app **{AppMember.Username}** does not have server permission for `{FriendlyPermissionName(perm.Value)}`\n" +
+                                return new RuntimeError(RuntimeErrorType.Runtime, $"This app **{AppMember.Username}** does not have server permission for `{FriendlyPermissionName(CheckPermission!.Value)}`\n" +
+                                    $"Please check the roles permissions to give access.");
+                            }
+                            else
+                            {
+                                return new RuntimeError(RuntimeErrorType.Runtime, $"This user **{AppMember.Username}** does not have server permission `{FriendlyPermissionName(CheckPermission!.Value)}`\n" +
                                 $"Please check the roles permissions to give access.");
                             }
-
-                            return new RuntimeError(RuntimeErrorType.Runtime, $"**{AppMember.Username}** does not have server permission `{FriendlyPermissionName(perm.Value)}`\n" +
-                                $"Please check the roles permissions to give access.");
                         }
 
                     }
@@ -425,32 +458,67 @@ public class DiscordRuntime : IRuntime
                     if (!ChanId.HasValue)
                         return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require channel permission has an invalid channel.");
 
-                    if (ChanId.Value == Interaction.ChannelId)
+                    ulong? UserId = await GetMemberIdFromBlock(i.Item2.next.block);
+                    if (!UserId.HasValue)
+                        return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require channel permission has an invalid user.");
+
+                    RestChannel? Channel = await GetChannelAsync(ChanId.Value);
+                    if (Channel == null)
+                        return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require channel permission has an invalid channel.");
+
+                    bool HasPermissions = false;
+
+                    if (UserId == Interaction.User.Id)
                     {
-                        ChannelPermission? perm = DiscordPermissions.DoesNotHave((Interaction.User as RestGuildUser).InteractionGuildPermissions.Value, (Interaction.Channel as RestGuildChannel).InteractionMemberPermissions.Value, i.Item1);
-                        if (perm.HasValue)
-                            return new RuntimeError(RuntimeErrorType.Runtime, $"You do not have channel permission `{FriendlyPermissionName(perm.Value)}` for <#{Interaction.ChannelId}>\n" +
-                                    $"Please check the roles and channel permissions to give access.");
+                        ChannelPermission? CheckPermission = null;
+                        foreach (ChannelPermission p in i.Item1.ToList())
+                        {
+
+                            CheckPermission = p;
+                            HasPermissions = DiscordPermissions.HasPermission(p, Interaction.ChannelPermissions);
+                            if (!HasPermissions)
+                                break;
+                        }
+
+                        if (!HasPermissions)
+                        {
+                            if (!CheckPermission.HasValue)
+                                return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require channel permission failed to validate permissions.");
+
+                            return new RuntimeError(RuntimeErrorType.Runtime, $"You do not have channel permission `{FriendlyPermissionName(CheckPermission!.Value)}` for <#{ChanId}>\n" +
+                                    $"Please check the channel permissions to give access.");
+                        }
+
                     }
                     else
                     {
-                        RestChannel? Got = await GetChannelAsync(ChanId.Value);
-                        if (Got != null)
-                        {
-                            if (Got is not RestGuildChannel gc)
-                                return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require channel permission has an invalid input channel.");
+                        RestGuildUser? AppMember = await GetMemberAsync(Interaction.GuildId.Value, UserId.Value);
 
-                            ChannelPermission? perm = DiscordPermissions.DoesNotHave((Interaction.User as RestGuildUser).InteractionGuildPermissions.HasValue ? (Interaction.User as RestGuildUser).InteractionGuildPermissions.Value : (Interaction.User as RestGuildUser).GuildPermissions, gc.InteractionMemberPermissions.HasValue ? gc.InteractionMemberPermissions.Value : (Interaction.User as RestGuildUser).GetPermissions(gc), i.Item1);
-                            if (perm.HasValue)
-                                return new RuntimeError(RuntimeErrorType.Runtime, $"You do not have channel permission `{FriendlyPermissionName(perm.Value)}` for <#{gc.Id}>\n" +
-                                    $"Please check the roles and channel permissions to give access.");
+                        if (AppMember == null)
+                            return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require channel permission has an invalid input user.");
 
-                        }
-                        else
+                        ChannelPermission? CheckPermission = null;
+
+                        foreach (ChannelPermission p in i.Item1.ToList())
                         {
-                            return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require server permission has an invalid input user.");
+                            CheckPermission = p;
+                            HasPermissions = DiscordPermissions.HasPermission(p, AppMember.GetPermissions(Channel as IGuildChannel));
+                            if (!HasPermissions)
+                                break;
                         }
 
+                        if (!HasPermissions)
+                        {
+                            if (!CheckPermission.HasValue)
+                                return new RuntimeError(RuntimeErrorType.Runtime, "This command has an issue, require channel permission failed to validate permissions.");
+
+                            if (UserId.Value == Client.CurrentUser.Id)
+                                return new RuntimeError(RuntimeErrorType.Runtime, $"This app **{AppMember.Username}** does not have channel permission `{FriendlyPermissionName(CheckPermission!.Value)}` for <#{ChanId}>\n" +
+                                            $"Please check the channel permissions to give access.");
+                            else
+                                return new RuntimeError(RuntimeErrorType.Runtime, $"This user **{AppMember.Username}** does not have channel permission `{FriendlyPermissionName(CheckPermission!.Value)}` for <#{ChanId}>\n" +
+                                        $"Please check the channel permissions to give access.");
+                        }
                     }
                 }
             }
@@ -985,149 +1053,148 @@ public class DiscordRuntime : IRuntime
         switch (type)
         {
             case "view_channels":
-                perm.Modify(viewChannel: true);
+                perm = perm.Modify(viewChannel: true);
                 break;
             case "manage_channels":
-                perm.Modify(manageChannels: true);
+                perm = perm.Modify(manageChannels: true);
                 break;
             case "manage_roles":
-                perm.Modify(manageRoles: true);
+                perm = perm.Modify(manageRoles: true);
                 break;
             case "create_expressions":
-                perm.Modify(createGuildExpressions: true);
+                perm = perm.Modify(createGuildExpressions: true);
                 break;
             case "manage_expressions":
-                perm.Modify(manageEmojisAndStickers: true);
+                perm = perm.Modify(manageEmojisAndStickers: true);
                 break;
             case "view_audit_log":
-                perm.Modify(viewAuditLog: true);
+                perm = perm.Modify(viewAuditLog: true);
                 break;
             case "view_server_insights":
-                perm.Modify(viewGuildInsights: true);
+                perm = perm.Modify(viewGuildInsights: true);
                 break;
             case "view_creator_monetization":
-                perm.Modify(viewMonetizationAnalytics: true);
+                perm = perm.Modify(viewMonetizationAnalytics: true);
                 break;
             case "manage_webhooks":
-                perm.Modify(manageWebhooks: true);
+                perm = perm.Modify(manageWebhooks: true);
                 break;
             case "manage_server":
-                perm.Modify(manageGuild: true);
+                perm = perm.Modify(manageGuild: true);
                 break;
             case "create_invites":
-                perm.Modify(createInstantInvite: true);
+                perm = perm.Modify(createInstantInvite: true);
                 break;
             case "change_nickname":
-                perm.Modify(changeNickname: true);
+                perm = perm.Modify(changeNickname: true);
                 break;
             case "manage_nicknames":
-                perm.Modify(manageNicknames: true);
+                perm = perm.Modify(manageNicknames: true);
                 break;
             case "kick_members":
-                perm.Modify(kickMembers: true);
+                perm = perm.Modify(kickMembers: true);
                 break;
             case "ban_members":
-                perm.Modify(banMembers: true);
+                perm = perm.Modify(banMembers: true);
                 break;
             case "moderate_members":
-                perm.Modify(moderateMembers: true);
+                perm = perm.Modify(moderateMembers: true);
                 break;
             case "send_messages":
-                perm.Modify(sendMessages: true);
+                perm = perm.Modify(sendMessages: true);
                 break;
             case "send_messages_threads":
-                perm.Modify(sendMessagesInThreads: true);
+                perm = perm.Modify(sendMessagesInThreads: true);
                 break;
             case "create_public_threads":
-                perm.Modify(createPublicThreads: true);
+                perm = perm.Modify(createPublicThreads: true);
                 break;
             case "create_private_threads":
-                perm.Modify(createPrivateThreads: true);
+                perm = perm.Modify(createPrivateThreads: true);
                 break;
             case "embed_links":
-                perm.Modify(embedLinks: true);
+                perm = perm.Modify(embedLinks: true);
                 break;
             case "attach_files":
-                perm.Modify(attachFiles: true);
+                perm = perm.Modify(attachFiles: true);
                 break;
             case "use_external_emojis":
-                perm.Modify(useExternalEmojis: true);
+                perm = perm.Modify(useExternalEmojis: true);
                 break;
             case "use_external_stickers":
-                perm.Modify(useExternalStickers: true);
+                perm = perm.Modify(useExternalStickers: true);
                 break;
             case "mention_everyone":
-                perm.Modify(mentionEveryone: true);
+                perm = perm.Modify(mentionEveryone: true);
                 break;
             case "manage_messages":
-                perm.Modify(manageMessages: true);
+                perm = perm.Modify(manageMessages: true);
                 break;
             case "manage_threads":
-                perm.Modify(manageThreads: true);
+                perm = perm.Modify(manageThreads: true);
                 break;
             case "read_message_history":
-                perm.Modify(readMessageHistory: true);
+                perm = perm.Modify(readMessageHistory: true);
                 break;
             case "send_tts_messages":
-                perm.Modify(sendTTSMessages: true);
+                perm = perm.Modify(sendTTSMessages: true);
                 break;
             case "use_application_commands":
-                perm.Modify(useApplicationCommands: true);
+                perm = perm.Modify(useApplicationCommands: true);
                 break;
             case "send_voice_messages":
-                perm.Modify(sendVoiceMessages: true);
+                perm = perm.Modify(sendVoiceMessages: true);
                 break;
             case "voice_connect":
-                perm.Modify(connect: true);
+                perm = perm.Modify(connect: true);
                 break;
             case "voice_speak":
-                perm.Modify(speak: true);
+                perm = perm.Modify(speak: true);
                 break;
             case "voice_video":
-                perm.Modify(stream: true);
+                perm = perm.Modify(stream: true);
                 break;
             case "use_activities":
-                perm.Modify(startEmbeddedActivities: true);
+                perm = perm.Modify(startEmbeddedActivities: true);
                 break;
             case "use_soundboard":
-                perm.Modify(useSoundboard: true);
+                perm = perm.Modify(useSoundboard: true);
                 break;
             case "use_external_sounds":
-                perm.Modify(useExternalSounds: true);
+                perm = perm.Modify(useExternalSounds: true);
                 break;
             case "use_voice_activity":
-                perm.Modify(useVoiceActivation: true);
+                perm = perm.Modify(useVoiceActivation: true);
                 break;
             case "voice_priority_speaker":
-                perm.Modify(prioritySpeaker: true);
+                perm = perm.Modify(prioritySpeaker: true);
                 break;
             case "voice_mute_members":
-                perm.Modify(muteMembers: true);
+                perm = perm.Modify(muteMembers: true);
                 break;
             case "voice_deafen_members":
-                perm.Modify(deafenMembers: true);
+                perm = perm.Modify(deafenMembers: true);
                 break;
             case "voice_move_members":
-                perm.Modify(moveMembers: true);
+                perm = perm.Modify(moveMembers: true);
                 break;
             case "voice_set_status":
-                perm.Modify(setVoiceChannelStatus: true);
+                perm = perm.Modify(setVoiceChannelStatus: true);
                 break;
             case "voice_request_to_speak":
-                perm.Modify(requestToSpeak: true);
+                perm = perm.Modify(requestToSpeak: true);
                 break;
             case "create_events":
-                perm.Modify(createEvents: true);
+                perm = perm.Modify(createEvents: true);
                 break;
             case "manage_events":
-                perm.Modify(manageEvents: true);
+                perm = perm.Modify(manageEvents: true);
                 break;
             case "administrator":
-                perm.Modify(administrator: true);
+                perm = perm.Modify(administrator: true);
                 break;
             default:
                 throw new RuntimeError(RuntimeErrorType.Server, "Failed to parse permission, invalid permission type.");
-                break;
         }
     }
 
@@ -1697,9 +1764,9 @@ public class DiscordRuntime : IRuntime
                 if (Variables.TryGetValue(block.GetVariableId(), out object? obj))
                 {
                     //if (obj is DiscordCachableEmoji cache)
-                    //    return
+                    //    return cache;
 
-                    return obj as Tuple<Tuple<ulong, RestGuild?>, IEmote>;
+                    return obj as Tuple<Tuple<ulong, RestGuild?>?, IEmote>;
                 }
                 break;
             case "data_emoji_active":
@@ -2087,7 +2154,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public Color? GetColorFromBlock(RequestBlocks_Block block)
+    public async Task<Color?> GetColorFromBlock(RequestBlocks_Block block)
     {
         switch (block.type)
         {
@@ -2110,7 +2177,7 @@ public class DiscordRuntime : IRuntime
                     return obj as Color?;
                 }
                 break;
-            case "color_hex":
+            case "color_hex_picker":
                 {
                     try
                     {
@@ -2121,6 +2188,26 @@ public class DiscordRuntime : IRuntime
                         return new Color(r, g, b);
                     }
                     catch { }
+                }
+                break;
+            case "color_hex":
+                {
+                    if (block.inputs.TryGetValue("hex", out RequestBlocksBlock hexStringBlock) && hexStringBlock.block != null)
+                    {
+                        string Hex = await GetStringFromBlock(hexStringBlock.block);
+                        if (!string.IsNullOrEmpty(Hex) && Hex.StartsWith("#"))
+                        {
+                            try
+                            {
+                                System.Drawing.Color color = System.Drawing.ColorTranslator.FromHtml(Hex);
+                                int r = Convert.ToInt16(color.R);
+                                int g = Convert.ToInt16(color.G);
+                                int b = Convert.ToInt16(color.B);
+                                return new Color(r, g, b);
+                            }
+                            catch { }
+                        }
+                    }
                 }
                 break;
             case "color_rgb":

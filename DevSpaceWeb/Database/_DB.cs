@@ -1,4 +1,5 @@
 ﻿using DaRT;
+using DevSpaceWeb.Apps;
 using DevSpaceWeb.Apps.Data;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.API;
@@ -541,7 +542,11 @@ public static class _DB
                             APIOnRestInteractionCreation = false,
                             UseInteractionSnowflakeDate = false
                         }));
-                        await _Data.DiscordClients[x.Id].LoginAsync(Discord.TokenType.Bot, x.EncryptedToken);
+                        try
+                        {
+                            await _Data.DiscordClients[x.Id].LoginAsync(Discord.TokenType.Bot, Crypt.DecryptString(x.EncryptedToken));
+                        }
+                        catch { }
                     }
                 });
 
@@ -561,6 +566,36 @@ public static class _DB
 
         if (HasException)
             return false;
+
+        Task WorkspaceTask = Task.Run(async () =>
+        {
+            try
+            {
+                await Workspaces.Find(Builders<WorkspaceData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    if (!string.IsNullOrEmpty(x.JsonData))
+                    {
+                        if (_DB.Apps.Cache.TryGetValue(x.AppId, out AppData? app))
+                        {
+                            RequestBlocks? Command = Newtonsoft.Json.JsonConvert.DeserializeObject<RequestBlocks>(x.JsonData, new Newtonsoft.Json.JsonSerializerSettings
+                            {
+                                MaxDepth = 512
+                            });
+                            if (Command != null)
+                            {
+                                app.GetCache().AddCommandCache(x.Id, Command.blocks.blocks[0]);
+                            }
+                        }
+                    }
+                });
+                Logger.LogMessage("Database", "- Workspaces: Loaded.", LogSeverity.Info);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogMessage("Database", "- Workspaces: FAIL!", LogSeverity.Info);
+                Console.WriteLine(ex);
+            }
+        });
 
         Logger.LogMessage("Database", "Data Loaded", LogSeverity.Info);
         return true;

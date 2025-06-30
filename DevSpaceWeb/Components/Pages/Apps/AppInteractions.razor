@@ -5,6 +5,7 @@
 @using DevSpaceWeb.Agents
 @using DevSpaceWeb.Apps.Data
 @using System.Linq.Dynamic.Core
+@using DevSpaceWeb.Models.Apps
 @inject DialogService Dialogs
 @inject NavigationManager Nav
 @inject NotificationService Notifications
@@ -43,7 +44,7 @@
                         <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyButtonsSelected || IsActionRunning)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                         <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyButtonsSelected || IsActionRunning)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                         <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyButtonsSelected || IsActionRunning)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Filled" Text="Create Button" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshInteractions" Disabled="@IsLoading" />
+                        <RadzenButton Variant="Variant.Filled" Text="Create Button" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateInteraction" Disabled="@IsLoading" />
                         <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshInteractions" Disabled="@IsLoading" />
                         <RadzenFormField Variant="Variant.Outlined">
                             <Start>
@@ -100,12 +101,30 @@
                                     }
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Actions" Width="120px" Filterable="false">
+                            <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                                 <Template>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
                                         <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsActionRunning)" />
                                         <a href="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsActionRunning)" /></a>
                                     </RadzenStack>
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn Title="Created" Width="140px" Filterable="false">
+                                <Template>
+                                    @Utils.GetLocalDate(Session, context.CreatedAt)
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn Title="By" Width="220px" Filterable="false">
+                                <Template>
+                                    <MemberStrip Team="@Team" UserId="@context.CreatedBy"></MemberStrip>
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn Title="Update" Width="140px" Filterable="false">
+                                <Template>
+                                    @if (context.UpdatedAt.HasValue)
+                                    {
+                                        @Utils.GetLocalDate(Session, context.UpdatedAt)
+                                    }
                                 </Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn Title="Description">
@@ -121,7 +140,7 @@
                         <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyModalsSelected || IsActionRunning)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                         <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyModalsSelected || IsActionRunning)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                         <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyModalsSelected || IsActionRunning)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Filled" Text="Create Modal" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshInteractions" Disabled="@IsLoading" />
+                        <RadzenButton Variant="Variant.Filled" Text="Create Modal" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateInteraction" Disabled="@IsLoading" />
                         <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshInteractions" Disabled="@IsLoading" />
                         <RadzenFormField Variant="Variant.Outlined">
                             <Start>
@@ -178,12 +197,30 @@
                                     }
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Actions" Width="120px" Filterable="false">
+                            <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                                 <Template>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
                                         <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsActionRunning)" />
                                         <a href="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsActionRunning)" /></a>
                                     </RadzenStack>
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn Title="Created" Width="140px" Filterable="false">
+                                <Template>
+                                    @Utils.GetLocalDate(Session, context.CreatedAt)
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn Title="By" Width="220px" Filterable="false">
+                                <Template>
+                                    <MemberStrip Team="@Team" UserId="@context.CreatedBy"></MemberStrip>
+                                </Template>
+                            </RadzenDataGridColumn>
+                            <RadzenDataGridColumn Title="Update" Width="140px" Filterable="false">
+                                <Template>
+                                    @if (context.UpdatedAt.HasValue)
+                                    {
+                                        @Utils.GetLocalDate(Session, context.UpdatedAt)
+                                    }
                                 </Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn Title="Description">
@@ -305,6 +342,104 @@
             await ModalsGrid.RefreshDataAsync();
     }
 
+    public async Task CreateInteraction()
+    {
+        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+            return;
+
+        switch (TabIndex)
+        {
+            case 0:
+                {
+                    await Dialogs.ShowDynamicFormAsync<CommandCreateModal>("Create Button Interaction", new CommandCreateModal(), async (CommandCreateModal data) =>
+                    {
+                        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                            return "You do not have team permission for Global Administrator";
+
+                        if (App.ButtonInteractions.Keys.Count() >= 250)
+                            return "You can only add up to 250 button interactions.";
+
+                        if (App.ButtonInteractions.ContainsKey(data.Name))
+                            return "This button name already exists.";
+
+                        WorkspaceData workspace = new WorkspaceData
+                        {
+                            AppId = App.Id,
+                            TeamId = Team.Id,
+                            Type = WorkspaceType.DiscordInteractionButton,
+                            CommandFormat = data.Name
+                        };
+
+                        await _DB.Workspaces.CreateAsync(workspace);
+
+                        App.ButtonInteractions.Add(data.Name, new IDiscordAppInteraction
+                        {
+                            Name = data.Name,
+                            Description = data.Description,
+                            WorkspaceId = workspace.Id,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = Member.UserId
+                        });
+
+                        var Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.ButtonInteractions, App.ButtonInteractions));
+                        if (!Result.IsAcknowledged)
+                        {
+                            App.ButtonInteractions.Remove(data.Name);
+                            _ = _DB.Workspaces.DeleteAsync(workspace);
+                            return "Failed to add button data to app.";
+                        }
+                        InvokeAsync(RefreshInteractions);
+                        return null;
+                    });
+                }
+                break;
+            case 1:
+                {
+                    await Dialogs.ShowDynamicFormAsync<CommandCreateModal>("Create Modal Interaction", new CommandCreateModal(), async (CommandCreateModal data) =>
+                    {
+                        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                            return "You do not have team permission for Global Administrator";
+
+                        if (App.ModalInteractions.Keys.Count() >= 250)
+                            return "You can only add up to 250 modal interactions.";
+
+                        if (App.ModalInteractions.ContainsKey(data.Name))
+                            return "This modal name already exists.";
+
+                        WorkspaceData workspace = new WorkspaceData
+                        {
+                            AppId = App.Id,
+                            TeamId = Team.Id,
+                            Type = WorkspaceType.DiscordInteractionModal,
+                            CommandFormat = data.Name
+                        };
+
+                        await _DB.Workspaces.CreateAsync(workspace);
+
+                        App.ModalInteractions.Add(data.Name, new IDiscordAppInteraction
+                        {
+                            Name = data.Name,
+                            Description = data.Description,
+                            WorkspaceId = workspace.Id,
+                            CreatedAt = DateTime.UtcNow,
+                            CreatedBy = Member.UserId
+                        });
+
+                        var Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.ModalInteractions, App.ModalInteractions));
+                        if (!Result.IsAcknowledged)
+                        {
+                            App.ModalInteractions.Remove(data.Name);
+                            _ = _DB.Workspaces.DeleteAsync(workspace);
+                            return "Failed to add modal data to app.";
+                        }
+                        InvokeAsync(RefreshInteractions);
+                        return null;
+                    });
+                }
+                break;
+        }
+    }
+
     public async Task RunSelectedEnableCommands()
     {
         if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
@@ -410,6 +545,7 @@
             new List<ContextMenuItem> {
                 new ContextMenuItem() { Text = "Enable Interaction", Value = "enable", Icon = "play_arrow", Disabled = IsActionRunning || item.IsEnabled || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator) },
                 new ContextMenuItem() { Text = "Disable Interaction", Value = "disable", Icon = "pause", Disabled = IsActionRunning || !item.IsEnabled || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator) },
+                new ContextMenuItem() { Text = "Clear Data", Value = "clear", Icon = "delete_history", Disabled = IsActionRunning || !item.IsEnabled || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator) },
                 new ContextMenuItem() { Text = "Remove Interaction", Value = "remove", Icon = "delete", Disabled = IsActionRunning || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator) },
                 new ContextMenuItem() { Text = "Copy Interaction ID", Value = "copy", Icon = "content_copy" }
                                              }, x => MenuItemClick(x.Value.ToString(), item));
@@ -490,6 +626,16 @@
                             }
                             break;
                     }
+                }
+                break;
+            case "clear":
+                WorkspaceData? workspace = _DB.Workspaces.Collection.Find(new FilterDefinitionBuilder<WorkspaceData>().Eq(x => x.Id, item.WorkspaceId)).FirstOrDefault();
+                if (workspace != null)
+                {
+                    await workspace.UpdateAsync(new UpdateDefinitionBuilder<WorkspaceData>().Set(x => x.JsonData, null), () =>
+                    {
+                        workspace.JsonData = null;
+                    });
                 }
                 break;
             case "remove":

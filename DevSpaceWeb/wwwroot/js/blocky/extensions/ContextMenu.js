@@ -1,7 +1,7 @@
 Blockly.ContextMenuRegistry.registry.register({
     displayText: 'Disconnect Block',
     preconditionFn: function (scope) {
-        if (scope.block.movable_ && scope.block.parentBlock_ !== null) {
+        if (scope.block.isInFlyout == false && scope.block.movable_ && scope.block.parentBlock_ !== null) {
             return 'enabled';
         }
         return 'disabled';
@@ -19,7 +19,7 @@ Blockly.ContextMenuRegistry.registry.register({
 Blockly.ContextMenuRegistry.registry.register({
     displayText: 'Delete All Inputs',
     preconditionFn: function (scope) {
-        if (scope.block.inputList.findIndex(x => x.connection !== null && x.connection.targetConnection !== null && x.connection.targetConnection.sourceBlock_) !== -1) {
+        if (scope.block.isInFlyout == false && scope.block.inputList.findIndex(x => x.connection !== null && x.connection.targetConnection !== null && x.connection.targetConnection.sourceBlock_) !== -1) {
             return 'enabled';
         }
         return 'disabled';

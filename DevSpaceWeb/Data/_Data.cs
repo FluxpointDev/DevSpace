@@ -93,6 +93,14 @@ public static class _Data
             Config.Admin = new ConfigAdmin();
         }
 
+        if (string.IsNullOrEmpty(Config.EncryptionKey))
+        {
+            Tuple<string, string> Keys = Crypt.GenKey();
+            Config.EncryptionKey = Keys.Item1;
+            Config.EncryptionIV = Keys.Item2;
+            SaveConfig = true;
+        }
+
         if (SaveConfig)
             Config.Save();
 

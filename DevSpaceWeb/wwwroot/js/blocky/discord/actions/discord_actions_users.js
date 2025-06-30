@@ -16,6 +16,6 @@ Blockly.Blocks["action_user_create_dm_channel"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/users");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };

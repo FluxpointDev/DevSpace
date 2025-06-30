@@ -10,7 +10,7 @@ class ValidConnections {
     DataJson = ["variables_get", "data_json_active"];
     OutputJson = ["variables_get", "data_json_active"];
 
-    DataColors = ["color_rgb", "color_hex", "variables_get"];
+    DataColors = ["color_rgb", "color_hex", "color_hex_picker", "variables_get"];
     DataResponse = ['data_response_active', 'variables_get'];
 
     DataFiles = ["data_file_*", "variables_get"];

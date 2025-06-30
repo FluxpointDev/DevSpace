@@ -19,7 +19,7 @@ Blockly.Blocks['data_selector_role'] = {
         this.setOutput(true, Connections.TextSingle);
         this.setColour(120);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/data-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
 
     },
     onchange: function (change) {
@@ -62,7 +62,7 @@ Blockly.Blocks['data_role_active'] = {
         this.setOutput(true, null);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/data-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -79,7 +79,7 @@ Blockly.Blocks['action_set_active_role'] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/data-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -110,7 +110,7 @@ Blockly.Blocks['data_role_get'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/data-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 

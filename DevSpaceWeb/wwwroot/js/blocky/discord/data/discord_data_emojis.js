@@ -19,7 +19,7 @@ Blockly.Blocks['data_selector_emoji'] = {
         this.setOutput(true, Connections.TextSingle);
         this.setColour(120);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/data-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
 
     },
     onchange: function (change) {
@@ -63,7 +63,7 @@ Blockly.Blocks['data_emoji_active'] = {
         this.setOutput(true, null);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/data-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -80,7 +80,7 @@ Blockly.Blocks['action_emoji_set_active'] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/data-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -111,7 +111,7 @@ Blockly.Blocks['data_emoji_get'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/data-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -138,7 +138,7 @@ Blockly.Blocks['data_emoji_parse'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/data-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 

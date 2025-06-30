@@ -20,7 +20,7 @@ Blockly.Blocks["action_add_role_member"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/members");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -44,7 +44,7 @@ Blockly.Blocks["action_set_nickname_member"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/members");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -64,7 +64,7 @@ Blockly.Blocks["action_remove_timeout_member"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/members");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -100,7 +100,7 @@ Blockly.Blocks["action_set_timeout_member"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/members");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -124,7 +124,7 @@ Blockly.Blocks["action_remove_role_member"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/members");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -144,7 +144,7 @@ Blockly.Blocks["action_kick_member"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#972f40');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/members");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -168,7 +168,7 @@ Blockly.Blocks["action_ban_member"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#972f40');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/members");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 

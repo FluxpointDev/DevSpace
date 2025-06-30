@@ -4,7 +4,8 @@ var initControlsIf = Blockly.Blocks["controls_if"].init;
 
 Blockly.Blocks['controls_if'].init = function () {
     initControlsIf.call(this);
-    this.setHelpUrl("https://docs.fluxpoint.dev/nova/workspace/logic-blocks");
+    this.setColour(225);
+    this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
 
     this.inputList.forEach(elm => {
         if (elm.type === 1) {
@@ -19,7 +20,7 @@ Blockly.Blocks['controls_if'].init = function () {
     this.previousConnection.setCheck(Connections.ActionsList);
 
     var appendThis = this.updateShape_;
-
+    
     this.updateShape_ = function () {
         appendThis.call(this);
 
@@ -32,23 +33,24 @@ Blockly.Blocks['controls_if'].init = function () {
             }
         });
     }
-
-
 };
 
 var initText = Blockly.Blocks["text"].init;
 
 Blockly.Blocks['text'].init = function () {
     initText.call(this);
-    this.setHelpUrl('https://docs.fluxpoint.dev/nova/workspace/basic-blocks');
-    this.setOutput(true, ['text', 'String'])
+    this.setHelpUrl('https://docs.fluxpoint.dev/devspace');
+    this.setOutput(true, ['text', 'String']);
 };
 
 var initBool = Blockly.Blocks["logic_boolean"].init;
 
 Blockly.Blocks['logic_boolean'].init = function () {
     initBool.call(this);
-    this.setHelpUrl('https://docs.fluxpoint.dev/nova/workspace/basic-blocks');
+    if (this.isInFlyout) {
+        this.inputList[0].fieldRow[0].setValue("FALSE");
+    }
+    this.setHelpUrl('https://docs.fluxpoint.dev/devspace');
     this.setOutput(true, ['Boolean', 'logic_boolean'])
 };
 
@@ -56,7 +58,7 @@ var initVariableSet = Blockly.Blocks["variables_set"].init;
 
 Blockly.Blocks['variables_set'].init = function () {
     initVariableSet.call(this);
-    this.setHelpUrl('https://docs.fluxpoint.dev/nova/workspace/variable-blocks');
+    this.setHelpUrl('https://docs.fluxpoint.dev/devspace');
     this.nextConnection.setCheck(Connections.ActionsList);
     this.previousConnection.setCheck(Connections.ActionsList);
 
@@ -72,12 +74,22 @@ var initMathChange = Blockly.Blocks["math_change"].init;
 
 Blockly.Blocks['math_change'].init = function () {
     initMathChange.call(this);
-    this.setHelpUrl('https://docs.fluxpoint.dev/nova/workspace/variable-blocks');
+    this.setDisabledReason('Disabled');
+    this.setTooltip('Not used');
+    this.setHelpUrl('https://docs.fluxpoint.dev/devspace');
+};
+
+var initMathNumber = Blockly.Blocks["math_number"].init;
+
+Blockly.Blocks['math_number'].init = function () {
+    initMathNumber.call(this);
+    this.setOutput(true, ['math_number', 'Number']);
+    this.setHelpUrl('https://docs.fluxpoint.dev/devspace');
 };
 
 var initVariablesGet = Blockly.Blocks["variables_get"].init;
 
 Blockly.Blocks['variables_get'].init = function () {
     initVariablesGet.call(this);
-    this.setHelpUrl('https://docs.fluxpoint.dev/nova/workspace/variable-blocks');
+    this.setHelpUrl('https://docs.fluxpoint.dev/devspace');
 };

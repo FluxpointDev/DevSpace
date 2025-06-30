@@ -41,7 +41,7 @@ public class RunController : Controller
 
         if (_DB.Apps.Cache.TryGetValue(id, out AppData? AppData) && _Data.DiscordClients.TryGetValue(id, out DiscordRestClient? Client))
         {
-            string Decrypted = AppData.EncryptedInteractionKey;
+            string Decrypted = AppData.GetDecryptedInteractionKey();
 
             string? signature = Request.Headers["X-Signature-Ed25519"].FirstOrDefault();
             string? timestamp = Request.Headers["X-Signature-Timestamp"].FirstOrDefault();
@@ -73,7 +73,7 @@ public class RunController : Controller
             }
 
             IDiscordAppInteraction? InteractionData = null;
-            DiscordWorkspaceType Type = DiscordWorkspaceType.SlashCommand;
+            WorkspaceType Type = WorkspaceType.DiscordSlashCommand;
             string GuildId = ".";
             string outputDataType = string.Empty;
             if (Interaction.GuildId.HasValue)
@@ -152,7 +152,7 @@ public class RunController : Controller
                             sc.UserCommands.TryGetValue(ucmd.Data.Name.ToLower(), out command);
 
                         InteractionData = command;
-                        Type = DiscordWorkspaceType.UserCommand;
+                        Type = WorkspaceType.DiscordUserCommand;
                     }
                     break;
                 case RestMessageCommand mcmd:
@@ -167,7 +167,7 @@ public class RunController : Controller
                             sc.MessageCommands.TryGetValue(mcmd.Data.Name.ToLower(), out command);
 
                         InteractionData = command;
-                        Type = DiscordWorkspaceType.UserCommand;
+                        Type = WorkspaceType.DiscordUserCommand;
                     }
                     break;
                 case RestMessageComponent ci:
@@ -190,7 +190,7 @@ public class RunController : Controller
                                     if (SplitId.Length == 2)
                                         outputDataType = SplitId[1];
 
-                                    Type = DiscordWorkspaceType.InteractionButton;
+                                    Type = WorkspaceType.DiscordInteractionButton;
                                 }
                                 break;
                             case ComponentType.TextInput:
@@ -230,7 +230,7 @@ public class RunController : Controller
                         if (SplitId.Length == 2)
                             outputDataType = SplitId[1];
 
-                        Type = DiscordWorkspaceType.InteractionModal;
+                        Type = WorkspaceType.DiscordInteractionModal;
                     }
                     break;
                 case RestAutocompleteInteraction ac:

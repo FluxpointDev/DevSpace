@@ -1,4 +1,5 @@
-﻿using Discord.Rest;
+﻿using Discord;
+using Discord.Rest;
 
 namespace DevSpaceWeb.Apps.Runtime.DiscordApp.Blocks.Roles;
 
@@ -25,13 +26,15 @@ public class ModifyRoleBlock : DiscordActionBlock
         bool IsHoisted = await RoleObject.IsHoisted();
         bool IsMentionable = await RoleObject.IsMentionable();
 
-        await Role.ModifyAsync(x =>
+        await Role.ModifyAsync(async x =>
         {
             if (!string.IsNullOrEmpty(RoleName))
                 x.Name = RoleName;
 
-            if (RoleObject.Color().HasValue)
-                x.Color = RoleObject.Color().Value;
+            Color? RoleColor = await RoleObject.Color();
+
+            if (RoleColor.HasValue)
+                x.Color = RoleColor.Value;
 
             if (Block.inputs.ContainsKey("is_hoisted"))
                 x.Hoist = IsHoisted;

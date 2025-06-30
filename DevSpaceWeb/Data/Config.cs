@@ -9,6 +9,8 @@ namespace DevSpaceWeb;
 public class Config
 {
     public bool IsFullySetup = false;
+    public string EncryptionKey { get; set; }
+    public string EncryptionIV { get; set; }
     public ConfigAdmin Admin = new ConfigAdmin();
     public ConfigAuth Auth = new ConfigAuth();
     public ConfigInstance Instance = new ConfigInstance();

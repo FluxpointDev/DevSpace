@@ -122,7 +122,6 @@ public static class DiscordSelectors
                             {
                                 case "id":
                                     return member.Id.ToString();
-                                    break;
                                 case "nickname":
                                     return member.Nickname;
                                 case "guild_id":
@@ -192,8 +191,6 @@ public static class DiscordSelectors
                                             return "https://cdn.discordapp.com/icons/" + server.Id + "/" + server.IconId + ".webp?size=320";
                                     }
                                     break;
-                                    //case "guild_id":
-                                    //    return role.g
 
                             }
                         }
@@ -217,8 +214,6 @@ public static class DiscordSelectors
                                     return user.GlobalName;
                                 case "avatar_url":
                                     return user.GetAvatarUrl(ImageFormat.WebP, 320);
-                                    //case "guild_id":
-                                    //    return role.g
 
                             }
                         }

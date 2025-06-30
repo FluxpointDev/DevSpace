@@ -6,9 +6,10 @@ let MikuBlock = null;
 let MikuOffset = 0;
 document.onkeydown = function (e) {
     e = e || window.event;//Get event
-    // console.log('Test');
-    // console.log(document.activeElement);
-    // console.log(document);
+
+    var workspace = Blockly.getMainWorkspace();
+    if (workspace.toolbox == null)
+        return;
 
     if (e.keyCode === 77) {
         MikuCount += 1;
@@ -16,7 +17,7 @@ document.onkeydown = function (e) {
         if (MikuCount === 3) {
             MikuCount = 0;
             
-            MikuBlock = Blockly.getMainWorkspace().newBlock('miku');
+            MikuBlock = workspace.newBlock('miku');
             MikuBlock.initSvg();
             MikuBlock.render();
             MikuBlock.moveBy(MikuOffset, MikuOffset);
@@ -26,35 +27,32 @@ document.onkeydown = function (e) {
     else
         MikuCount = 0;
 
-    if (document.activeElement !== 'null' && document.getElementsByClassName('blocklyHtmlInput').length === 0 && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== 'TEXTAREA') {
-        var c = e.which || e.keyCode;//Get key code
-        switch (c) {
-            case 83://Block S
-                e.preventDefault();
-                e.stopPropagation();
-                Blockly.getMainWorkspace().toolbox.selectItemByPosition(0)
-                break;
-        }
-    }
+    // Select the search bar when you press s
+    //if (document.activeElement !== 'null' && document.getElementsByClassName('blocklyHtmlInput').length === 0 && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== 'TEXTAREA') {
+    //    var c = e.which || e.keyCode;//Get key code
+    //    switch (c) {
+    //        case 83://Block S
+    //            e.preventDefault();
+    //            e.stopPropagation();
+    //            workspace.toolbox.selectItemByPosition(0)
+    //            break;
+    //    }
+    //}
 };
 
-window.allowedBlocks = {
-    messageTypes: ["data_message"]
-}
-
-Blockly.Extensions.register(
-    'check_all_inputs',
-    function () {
-        console.log('Load extension check_all_inputs');
-        console.log(this);
-        this.setOnChange(function (changeEvent) {
-            console.log('block change')
-            console.log(this);
-            console.log(changeEvent);
+//Blockly.Extensions.register(
+//    'check_all_inputs',
+//    function () {
+//        console.log('Load extension check_all_inputs');
+//        console.log(this);
+//        this.setOnChange(function (changeEvent) {
+//            console.log('block change')
+//            console.log(this);
+//            console.log(changeEvent);
             
-        });
+//        });
 
-    }
-)
+//    }
+//)
 
 

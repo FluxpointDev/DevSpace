@@ -4,269 +4,274 @@ namespace DevSpaceWeb.Apps.Runtime.DiscordApp;
 
 public static class DiscordPermissions
 {
-    public static GuildPermission? DoesNotHave(GuildPermissions user, GuildPermissions check)
+    public static bool HasPermission(GuildPermissions check, GuildPermission perm)
+    {
+        return check.Has(perm);
+    }
+    public static bool HasPermission(GuildPermission check, GuildPermissions perm)
+    {
+        return perm.Has(check);
+    }
+    public static bool HasPermission(GuildPermissions check, GuildPermissions user)
     {
         if (user.Administrator)
-            return null;
+            return true;
 
-        if (check.AddReactions && !user.AddReactions)
-            return GuildPermission.AddReactions;
+        if (check.AddReactions && user.AddReactions)
+            return true;
 
-        if (check.Administrator)
-            return GuildPermission.Administrator;
+        if (check.AttachFiles && user.AttachFiles)
+            return true;
 
-        if (check.AttachFiles && !user.AttachFiles)
-            return GuildPermission.AttachFiles;
+        if (check.BanMembers && user.BanMembers)
+            return true;
 
-        if (check.BanMembers && !user.BanMembers)
-            return GuildPermission.BanMembers;
+        if (check.ChangeNickname && user.ChangeNickname)
+            return true;
 
-        if (check.ChangeNickname && !user.ChangeNickname)
-            return GuildPermission.ChangeNickname;
+        if (check.Connect && user.Connect)
+            return true;
 
-        if (check.Connect && !user.Connect)
-            return GuildPermission.Connect;
+        if (check.CreateEvents && user.CreateEvents)
+            return true;
 
-        if (check.CreateEvents && !user.CreateEvents && !user.ManageEvents)
-            return GuildPermission.CreateEvents;
+        if (check.CreateGuildExpressions && user.CreateGuildExpressions)
+            return true;
 
-        if (check.CreateGuildExpressions && !user.CreateGuildExpressions && !user.ManageEmojisAndStickers)
-            return GuildPermission.CreateGuildExpressions;
+        if (check.CreateInstantInvite && user.CreateInstantInvite)
+            return true;
 
-        if (check.CreateInstantInvite && !user.CreateInstantInvite)
-            return GuildPermission.CreateInstantInvite;
+        if (check.CreatePrivateThreads && user.CreatePrivateThreads)
+            return true;
 
-        if (check.CreatePrivateThreads && !user.CreatePrivateThreads)
-            return GuildPermission.CreatePrivateThreads;
+        if (check.CreatePublicThreads && user.CreatePublicThreads)
+            return true;
 
-        if (check.CreatePublicThreads && !user.CreatePublicThreads)
-            return GuildPermission.CreatePublicThreads;
+        if (check.DeafenMembers && user.DeafenMembers)
+            return true;
 
-        if (check.DeafenMembers && !user.DeafenMembers)
-            return GuildPermission.DeafenMembers;
+        if (check.EmbedLinks && user.EmbedLinks)
+            return true;
 
-        if (check.EmbedLinks && !user.EmbedLinks)
-            return GuildPermission.EmbedLinks;
+        if (check.KickMembers && user.KickMembers)
+            return true;
 
-        if (check.KickMembers && !user.KickMembers)
-            return GuildPermission.KickMembers;
+        if (check.ManageChannels && user.ManageChannels)
+            return true;
 
-        if (check.ManageChannels && !user.ManageChannels)
-            return GuildPermission.ManageChannels;
+        if (check.ManageEmojisAndStickers && user.ManageEmojisAndStickers)
+            return true;
 
-        if (check.ManageEmojisAndStickers && !user.ManageEmojisAndStickers)
-            return GuildPermission.ManageEmojisAndStickers;
+        if (check.ManageEvents && user.ManageEvents)
+            return true;
 
-        if (check.ManageEvents && !user.ManageEvents)
-            return GuildPermission.ManageEvents;
+        if (check.ManageGuild && user.ManageGuild)
+            return true;
 
-        if (check.ManageGuild && !user.ManageGuild)
-            return GuildPermission.ManageGuild;
+        if (check.ManageMessages && user.ManageMessages)
+            return true;
 
-        if (check.ManageMessages && !user.ManageMessages)
-            return GuildPermission.ManageMessages;
+        if (check.ManageNicknames && user.ManageNicknames)
+            return true;
 
-        if (check.ManageNicknames && !user.ManageNicknames)
-            return GuildPermission.ManageNicknames;
+        if (check.ManageRoles && user.ManageRoles)
+            return true;
 
-        if (check.ManageRoles && !user.ManageRoles)
-            return GuildPermission.ManageRoles;
+        if (check.ManageThreads && user.ManageThreads)
+            return true;
 
-        if (check.ManageThreads && !user.ManageThreads)
-            return GuildPermission.ManageThreads;
+        if (check.ManageWebhooks && user.ManageWebhooks)
+            return true;
 
-        if (check.ManageWebhooks && !user.ManageWebhooks)
-            return GuildPermission.ManageWebhooks;
+        if (check.MentionEveryone && user.MentionEveryone)
+            return true;
 
-        if (check.MentionEveryone && !user.MentionEveryone)
-            return GuildPermission.MentionEveryone;
+        if (check.ModerateMembers && user.ModerateMembers)
+            return true;
 
-        if (check.ModerateMembers && !user.ModerateMembers)
-            return GuildPermission.ModerateMembers;
+        if (check.MoveMembers && user.MoveMembers)
+            return true;
 
-        if (check.MoveMembers && !user.MoveMembers)
-            return GuildPermission.MoveMembers;
+        if (check.MuteMembers && user.MuteMembers)
+            return true;
 
-        if (check.MuteMembers && !user.MuteMembers)
-            return GuildPermission.MuteMembers;
+        if (check.PrioritySpeaker && user.PrioritySpeaker)
+            return true;
 
-        if (check.PrioritySpeaker && !user.PrioritySpeaker)
-            return GuildPermission.PrioritySpeaker;
+        if (check.ReadMessageHistory && user.ReadMessageHistory)
+            return true;
 
-        if (check.ReadMessageHistory && !user.ReadMessageHistory)
-            return GuildPermission.ReadMessageHistory;
+        if (check.RequestToSpeak && user.RequestToSpeak)
+            return true;
 
-        if (check.RequestToSpeak && !user.RequestToSpeak)
-            return GuildPermission.RequestToSpeak;
+        if (check.SendMessages && user.SendMessages)
+            return true;
 
-        if (check.SendMessages && !user.SendMessages)
-            return GuildPermission.SendMessages;
+        if (check.SendMessagesInThreads && user.SendMessagesInThreads)
+            return true;
 
-        if (check.SendMessagesInThreads && !user.SendMessagesInThreads)
-            return GuildPermission.SendMessagesInThreads;
+        if (check.SendTTSMessages && user.SendTTSMessages)
+            return true;
 
-        if (check.SendTTSMessages && !user.SendTTSMessages)
-            return GuildPermission.SendTTSMessages;
+        if (check.SendVoiceMessages && user.SendVoiceMessages)
+            return true;
 
-        if (check.SendVoiceMessages && !user.SendVoiceMessages)
-            return GuildPermission.SendVoiceMessages;
+        if (check.SetVoiceChannelStatus && user.SetVoiceChannelStatus)
+            return true;
 
-        if (check.SetVoiceChannelStatus && !user.SetVoiceChannelStatus)
-            return GuildPermission.SetVoiceChannelStatus;
+        if (check.Speak && user.Speak)
+            return true;
 
-        if (check.Speak && !user.Speak)
-            return GuildPermission.Speak;
+        if (check.StartEmbeddedActivities && user.StartEmbeddedActivities)
+            return true;
 
-        if (check.StartEmbeddedActivities && !user.StartEmbeddedActivities)
-            return GuildPermission.StartEmbeddedActivities;
+        if (check.Stream && user.Stream)
+            return true;
 
-        if (check.Stream && !user.Stream)
-            return GuildPermission.Stream;
+        if (check.UseApplicationCommands && user.UseApplicationCommands)
+            return true;
 
-        if (check.UseApplicationCommands && !user.UseApplicationCommands)
-            return GuildPermission.UseApplicationCommands;
+        if (check.UseExternalEmojis && user.UseExternalEmojis)
+            return true;
 
-        if (check.UseExternalEmojis && !user.UseExternalEmojis)
-            return GuildPermission.UseExternalEmojis;
+        if (check.UseExternalSounds && user.UseExternalSounds)
+            return true;
 
-        if (check.UseExternalSounds && !user.UseExternalSounds)
-            return GuildPermission.UseExternalSounds;
+        if (check.UseExternalStickers && user.UseExternalStickers)
+            return true;
 
-        if (check.UseExternalStickers && !user.UseExternalStickers)
-            return GuildPermission.UseExternalStickers;
+        if (check.UseSoundboard && user.UseSoundboard)
+            return true;
 
-        if (check.UseSoundboard && !user.UseSoundboard)
-            return GuildPermission.UseSoundboard;
+        if (check.UseVAD && user.UseVAD)
+            return true;
 
-        if (check.UseVAD && !user.UseVAD)
-            return GuildPermission.UseVAD;
+        if (check.ViewAuditLog && user.ViewAuditLog)
+            return true;
 
-        if (check.ViewAuditLog && !user.ViewAuditLog)
-            return GuildPermission.ViewAuditLog;
+        if (check.ViewChannel && user.ViewChannel)
+            return true;
 
-        if (check.ViewChannel && !user.ViewChannel)
-            return GuildPermission.ViewChannel;
+        if (check.ViewGuildInsights && user.ViewGuildInsights)
+            return true;
 
-        if (check.ViewGuildInsights && !user.ViewGuildInsights)
-            return GuildPermission.ViewGuildInsights;
+        if (check.ViewMonetizationAnalytics && user.ViewMonetizationAnalytics)
+            return true;
 
-        if (check.ViewMonetizationAnalytics && !user.ViewMonetizationAnalytics)
-            return GuildPermission.ViewMonetizationAnalytics;
-
-        return null;
+        return false;
     }
 
-
-    public static ChannelPermission? DoesNotHave(GuildPermissions suser, ChannelPermissions user, ChannelPermissions check)
+    public static bool HasPermission(ChannelPermission check, ChannelPermissions perm)
     {
-        if (suser.Administrator)
-            return null;
+        return perm.Has(check);
+    }
+    public static bool HasPermission(ChannelPermissions check, ChannelPermissions user)
+    {
+        if (check.AddReactions && user.AddReactions)
+            return true;
 
-        if (check.AddReactions && !user.AddReactions)
-            return ChannelPermission.AddReactions;
+        if (check.AttachFiles && user.AttachFiles)
+            return true;
 
-        if (check.AttachFiles && !user.AttachFiles)
-            return ChannelPermission.AttachFiles;
+        if (check.Connect && user.Connect)
+            return true;
 
-        if (check.Connect && !user.Connect)
-            return ChannelPermission.Connect;
+        if (check.CreateEvents && user.CreateEvents)
+            return true;
 
-        if (check.CreateEvents && !user.CreateEvents)
-            return ChannelPermission.CreateEvents;
+        if (check.CreateInstantInvite && user.CreateInstantInvite)
+            return true;
 
-        if (check.CreateInstantInvite && !user.CreateInstantInvite)
-            return ChannelPermission.CreateInstantInvite;
+        if (check.CreatePrivateThreads && user.CreatePrivateThreads)
+            return true;
 
-        if (check.CreatePrivateThreads && !user.CreatePrivateThreads)
-            return ChannelPermission.CreatePrivateThreads;
+        if (check.CreatePublicThreads && user.CreatePublicThreads)
+            return true;
 
-        if (check.CreatePublicThreads && !user.CreatePublicThreads)
-            return ChannelPermission.CreatePublicThreads;
+        if (check.DeafenMembers && user.DeafenMembers)
+            return true;
 
-        if (check.DeafenMembers && !user.DeafenMembers)
-            return ChannelPermission.DeafenMembers;
+        if (check.EmbedLinks && user.EmbedLinks)
+            return true;
 
-        if (check.EmbedLinks && !user.EmbedLinks)
-            return ChannelPermission.EmbedLinks;
+        if (check.ManageChannel && user.ManageChannel)
+            return true;
 
-        if (check.ManageChannel && !user.ManageChannel)
-            return ChannelPermission.ManageChannels;
+        if (check.ManageMessages && user.ManageMessages)
+            return true;
 
-        if (check.ManageMessages && !user.ManageMessages)
-            return ChannelPermission.ManageMessages;
+        if (check.ManageRoles && user.ManageRoles)
+            return true;
 
-        if (check.ManageRoles && !user.ManageRoles)
-            return ChannelPermission.ManageRoles;
+        if (check.ManageThreads && user.ManageThreads)
+            return true;
 
-        if (check.ManageThreads && !user.ManageThreads)
-            return ChannelPermission.ManageThreads;
+        if (check.ManageWebhooks && user.ManageWebhooks)
+            return true;
 
-        if (check.ManageWebhooks && !user.ManageWebhooks)
-            return ChannelPermission.ManageWebhooks;
+        if (check.MentionEveryone && user.MentionEveryone)
+            return true;
 
-        if (check.MentionEveryone && !user.MentionEveryone)
-            return ChannelPermission.MentionEveryone;
+        if (check.MoveMembers && user.MoveMembers)
+            return true;
 
-        if (check.MoveMembers && !user.MoveMembers)
-            return ChannelPermission.MoveMembers;
+        if (check.MuteMembers && user.MuteMembers)
+            return true;
 
-        if (check.MuteMembers && !user.MuteMembers)
-            return ChannelPermission.MuteMembers;
+        if (check.PrioritySpeaker && user.PrioritySpeaker)
+            return true;
 
-        if (check.PrioritySpeaker && !user.PrioritySpeaker)
-            return ChannelPermission.PrioritySpeaker;
+        if (check.ReadMessageHistory && user.ReadMessageHistory)
+            return true;
 
-        if (check.ReadMessageHistory && !user.ReadMessageHistory)
-            return ChannelPermission.ReadMessageHistory;
+        if (check.RequestToSpeak && user.RequestToSpeak)
+            return true;
 
-        if (check.RequestToSpeak && !user.RequestToSpeak)
-            return ChannelPermission.RequestToSpeak;
+        if (check.SendMessages && user.SendMessages)
+            return true;
 
-        if (check.SendMessages && !user.SendMessages)
-            return ChannelPermission.SendMessages;
+        if (check.SendMessagesInThreads && user.SendMessagesInThreads)
+            return true;
 
-        if (check.SendMessagesInThreads && !user.SendMessagesInThreads)
-            return ChannelPermission.SendMessagesInThreads;
+        if (check.SendTTSMessages && user.SendTTSMessages)
+            return true;
 
-        if (check.SendTTSMessages && !user.SendTTSMessages)
-            return ChannelPermission.SendTTSMessages;
+        if (check.SendVoiceMessages && user.SendVoiceMessages)
+            return true;
 
-        if (check.SendVoiceMessages && !user.SendVoiceMessages)
-            return ChannelPermission.SendVoiceMessages;
+        if (check.SetVoiceChannelStatus && user.SetVoiceChannelStatus)
+            return true;
 
-        if (check.SetVoiceChannelStatus && !user.SetVoiceChannelStatus)
-            return ChannelPermission.SetVoiceChannelStatus;
+        if (check.Speak && user.Speak)
+            return true;
 
-        if (check.Speak && !user.Speak)
-            return ChannelPermission.Speak;
+        if (check.StartEmbeddedActivities && user.StartEmbeddedActivities)
+            return true;
 
-        if (check.StartEmbeddedActivities && !user.StartEmbeddedActivities)
-            return ChannelPermission.StartEmbeddedActivities;
+        if (check.Stream && user.Stream)
+            return true;
 
-        if (check.Stream && !user.Stream)
-            return ChannelPermission.Stream;
+        if (check.UseApplicationCommands && user.UseApplicationCommands)
+            return true;
 
-        if (check.UseApplicationCommands && !user.UseApplicationCommands)
-            return ChannelPermission.UseApplicationCommands;
+        if (check.UseExternalEmojis && user.UseExternalEmojis)
+            return true;
 
-        if (check.UseExternalEmojis && !user.UseExternalEmojis)
-            return ChannelPermission.UseExternalEmojis;
+        if (check.UseExternalSounds && user.UseExternalSounds)
+            return true;
 
-        if (check.UseExternalSounds && !user.UseExternalSounds)
-            return ChannelPermission.UseExternalSounds;
+        if (check.UseExternalStickers && user.UseExternalStickers)
+            return true;
 
-        if (check.UseExternalStickers && !user.UseExternalStickers)
-            return ChannelPermission.UseExternalStickers;
+        if (check.UseSoundboard && user.UseSoundboard)
+            return true;
 
-        if (check.UseSoundboard && !user.UseSoundboard)
-            return ChannelPermission.UseSoundboard;
+        if (check.UseVAD && user.UseVAD)
+            return true;
 
-        if (check.UseVAD && !user.UseVAD)
-            return ChannelPermission.UseVAD;
+        if (check.ViewChannel && user.ViewChannel)
+            return true;
 
-        if (check.ViewChannel && !user.ViewChannel)
-            return ChannelPermission.ViewChannel;
-
-        return null;
+        return false;
     }
 }

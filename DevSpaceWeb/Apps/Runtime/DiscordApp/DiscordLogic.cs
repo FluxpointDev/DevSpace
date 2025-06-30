@@ -781,11 +781,7 @@ public static class DiscordLogic
                                                 GuildPermissions? perms = runtime.GetPermissionsFromBlock(valueBlock);
                                                 if (perms != null)
                                                 {
-                                                    GuildPermission? perm = DiscordPermissions.DoesNotHave(member.InteractionGuildPermissions.HasValue ? member.InteractionGuildPermissions.Value : member.GuildPermissions, perms.Value);
-                                                    if (perm.HasValue)
-                                                        return false;
-
-                                                    return true;
+                                                    return DiscordPermissions.HasPermission(perms.Value, member.InteractionGuildPermissions.HasValue ? member.InteractionGuildPermissions.Value : member.GuildPermissions);
                                                 }
                                             }
                                             break;
@@ -802,11 +798,7 @@ public static class DiscordLogic
                                                 GuildPermissions? perms = runtime.GetPermissionsFromBlock(valueBlock);
                                                 if (perms != null)
                                                 {
-                                                    GuildPermission? perm = DiscordPermissions.DoesNotHave(member.InteractionGuildPermissions.HasValue ? member.InteractionGuildPermissions.Value : member.GuildPermissions, perms.Value);
-                                                    if (perm.HasValue)
-                                                        return true;
-
-                                                    return false;
+                                                    return !DiscordPermissions.HasPermission(perms.Value, member.InteractionGuildPermissions.HasValue ? member.InteractionGuildPermissions.Value : member.GuildPermissions);
                                                 }
                                             }
                                             return true;

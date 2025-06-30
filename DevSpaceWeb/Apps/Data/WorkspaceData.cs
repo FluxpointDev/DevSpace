@@ -8,10 +8,11 @@ namespace DevSpaceWeb.Apps.Data;
 public class WorkspaceData : IObject
 {
     public ObjectId AppId { get; set; }
+    public ObjectId TeamId { get; set; }
     public string CommandFormat { get; set; }
     public string ServerId { get; set; }
-    public string JsonData { get; set; }
-    public DiscordWorkspaceType Type { get; set; }
+    public string? JsonData { get; set; }
+    public WorkspaceType Type { get; set; }
 
     public async Task<UpdateResult> UpdateAsync(UpdateDefinition<WorkspaceData> update, Action? action = null)
     {
@@ -22,7 +23,16 @@ public class WorkspaceData : IObject
         return Result;
     }
 }
-public enum DiscordWorkspaceType
+public enum WorkspaceType
 {
-    SlashCommand, UserCommand, MessageCommand, InteractionButton, InteractionModal, InteractionSelectString, InteractionSelectUser, InteractionSelectRole, InteractionSelectChannel, InteractionSelectMentionable
+    DiscordSlashCommand,
+    DiscordUserCommand,
+    DiscordMessageCommand,
+    DiscordInteractionButton,
+    DiscordInteractionModal,
+    DiscordInteractionSelectString,
+    DiscordInteractionSelectUser,
+    DiscordInteractionSelectRole,
+    DiscordInteractionSelectChannel,
+    DiscordInteractionSelectMentionable
 }

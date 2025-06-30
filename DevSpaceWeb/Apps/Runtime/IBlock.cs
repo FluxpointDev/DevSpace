@@ -98,8 +98,16 @@ public abstract class IRuntime
     {
         switch (block.type)
         {
-            case "color_hex":
+            case "color_hex_picker":
                 return block.fields["custom_color"].ToString();
+            case "color_hex":
+                {
+                    if (block.inputs.TryGetValue("hex", out RequestBlocksBlock? hexStringBlock) && hexStringBlock.block != null)
+                    {
+                        return await GetStringFromBlock(hexStringBlock.block);
+                    }
+                }
+                break;
             case "color_rgb":
                 int? R = 0;
                 if (block.inputs.TryGetValue("red", out RequestBlocksBlock? cBlock) && cBlock.block != null)

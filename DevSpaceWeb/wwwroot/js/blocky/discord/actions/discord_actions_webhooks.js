@@ -24,7 +24,7 @@ Blockly.Blocks['action_send_webhook_message'] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/action-blocks/webhooks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 

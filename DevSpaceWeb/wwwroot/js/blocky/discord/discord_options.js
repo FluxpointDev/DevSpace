@@ -19,7 +19,7 @@ Blockly.Blocks['option_allowmentions'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -36,7 +36,7 @@ Blockly.Blocks['option_allowmentions_user'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -65,7 +65,7 @@ Blockly.Blocks['option_allowmentions_role'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -85,10 +85,10 @@ Blockly.Blocks['option_open_modal'] = {
     init: function () {
         this.appendDummyInput()
             .appendField("Open Modal");
-        this.appendValueInput("id")
+        this.appendValueInput("name")
             .setCheck(['text', 'variables_get'])
             .setAlign(Blockly.inputs.Align.RIGHT)
-            .appendField("id:");
+            .appendField("name:");
         this.appendValueInput("data")
             .setCheck(["data_message_active", "data_channel_active",
                 "data_category_active", "data_server_active", "data_role_active", "data_member_active", "data_user_active", "data_message_current"])
@@ -99,7 +99,7 @@ Blockly.Blocks['option_open_modal'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -124,7 +124,7 @@ Blockly.Blocks['option_require_app_premium'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -137,7 +137,7 @@ Blockly.Blocks['option_ephemeral'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -150,7 +150,7 @@ Blockly.Blocks['option_nsfw_only'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -163,7 +163,7 @@ Blockly.Blocks['option_app_owner_only'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -176,7 +176,7 @@ Blockly.Blocks['option_app_developer_only'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -189,7 +189,7 @@ Blockly.Blocks['option_server_owner_only'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -202,7 +202,7 @@ Blockly.Blocks['option_require_server'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -215,7 +215,7 @@ Blockly.Blocks['option_require_private_channel'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -228,7 +228,7 @@ Blockly.Blocks['option_require_group_channel'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -241,7 +241,7 @@ Blockly.Blocks['option_allow_user_apps'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     }
 };
 
@@ -263,7 +263,7 @@ Blockly.Blocks['option_require_server_permission'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
@@ -292,12 +292,16 @@ Blockly.Blocks['option_require_channel_permission'] = {
             .setCheck(Connections.DataChannels)
             .setAlign(Blockly.inputs.Align.RIGHT)
             .appendField("channel:");
+        this.appendValueInput("member")
+            .setCheck(Connections.DataMembers)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField("member:");
         this.setInputsInline(false);
         this.setPreviousStatement(true, null);
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/nova/v/discord/workspace/option-blocks");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
     },
     onchange: function (event) {
 
