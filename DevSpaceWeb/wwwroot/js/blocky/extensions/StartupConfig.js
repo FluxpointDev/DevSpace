@@ -8,7 +8,7 @@ document.onkeydown = function (e) {
     e = e || window.event;//Get event
 
     var workspace = Blockly.getMainWorkspace();
-    if (workspace.toolbox == null)
+    if (workspace == null || workspace.toolbox == null)
         return;
 
     if (e.keyCode === 77) {
