@@ -47,15 +47,15 @@ Blockly.Blocks['logic_check_discord_channel'] = {
             .setCheck(Connections.DataChannels)
             .appendField("channel:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.existsProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -96,15 +96,15 @@ Blockly.Blocks['logic_check_discord_server'] = {
             .setCheck(Connections.DataServers)
             .appendField("server:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.existsProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -155,15 +155,15 @@ Blockly.Blocks['logic_check_discord_message'] = {
             .setCheck(Connections.DataMessages)
             .appendField("message:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.existsProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -207,15 +207,15 @@ Blockly.Blocks['logic_check_discord_member'] = {
             .setCheck(Connections.DataMembers)
             .appendField("member:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.existsProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get", "data_permission_list", "data_permission_manage", "data_permission_mod", "data_permission_server", "data_permission_text", "data_permission_voice"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -265,15 +265,15 @@ Blockly.Blocks['logic_check_discord_user'] = {
             .setCheck(Connections.DataUsers)
             .appendField("user:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.existsProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -314,15 +314,15 @@ Blockly.Blocks['logic_check_discord_role'] = {
             .setCheck(Connections.DataRoles)
             .appendField("role:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.existsProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -363,15 +363,15 @@ Blockly.Blocks['logic_check_discord_category'] = {
             .setCheck(Connections.DataCategory)
             .appendField("category:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.existsProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -410,15 +410,15 @@ Blockly.Blocks['logic_check_discord_webhook'] = {
             .setCheck(Connections.DataWebhooks)
             .appendField("webhook:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.existsProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -459,15 +459,15 @@ Blockly.Blocks['logic_check_discord_emoji'] = {
             .setCheck(Connections.DataEmojis)
             .appendField("emoji:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.existsProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -512,15 +512,15 @@ Blockly.Blocks['logic_check_discord_variable'] = {
             .setCheck(['variables_get', "data_message_*", "data_channel_*", "data_category_*", "data_webhook_*", "data_server_*", "data_emoji_*", "data_role_*", "data_member_*", "data_user_*"])
             .appendField("discord data:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, [['Is String', 'is_string']]), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);

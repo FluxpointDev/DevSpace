@@ -13,7 +13,7 @@ Blockly.Blocks['data_selector_user'] = {
             .setCheck(Connections.DataUsers)
             .appendField("user:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("select:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.setInputsInline(true);

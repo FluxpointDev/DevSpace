@@ -104,7 +104,7 @@ public class ClientAgent : IAgent
             return;
         }
 
-        if (Discover.Id != Server.AgentId)
+        if (Server != null && Discover.Id != Server.AgentId)
         {
             Error = WebSocketErrorType.AgentError;
             return;

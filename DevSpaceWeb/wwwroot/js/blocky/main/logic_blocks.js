@@ -65,15 +65,15 @@ Blockly.Blocks['logic_check_basic'] = {
             .setCheck(['variables_get', 'data_string_*'])
             .appendField("variable:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, [['Is String', 'is_string']]), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "text", "text_multiline", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -122,15 +122,15 @@ Blockly.Blocks['logic_check_file'] = {
             .setCheck(Connections.DataFiles)
             .appendField("file:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.boolProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -174,15 +174,15 @@ Blockly.Blocks['logic_check_json'] = {
             .setCheck(Connections.DataJson)
             .appendField("json:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.boolProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);
@@ -233,15 +233,15 @@ Blockly.Blocks['logic_check_response'] = {
             .setCheck(Connections.DataResponse)
             .appendField("response:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("property:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField(new FieldDependentDropdown("property", propertiesMapping, Logic.boolProperties), "compare");
         this.appendValueInput("value")
             .setCheck(["Boolean", "Number", "String", "variables_get"])
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }));
+            .appendField(new Blockly.FieldImage("", 5, 5));
         this.setInputsInline(true);
         this.setOutput(true, null);
         this.setColour(210);

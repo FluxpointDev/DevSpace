@@ -131,16 +131,18 @@ public abstract class IRuntime
                 return block.fields["TEXT"].ToString();
             case "data_json_active":
                 return Newtonsoft.Json.JsonConvert.SerializeObject(MainData.JsonActive);
-            case "data_string_json":
-                if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("key", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
+            case "data_selector_json":
                 {
-                    JObject? Json = GetJsonFromBlock(jsonBlock.block);
-                    string Key = await GetStringFromBlock(keyBlock.block);
-                    if (Json != null)
+                    if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("select", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
                     {
-                        JToken? Token = SelectJsonToken(Json, Key);
-                        if (Token != null)
-                            return Token.ToString();
+                        JObject? Json = GetJsonFromBlock(jsonBlock.block);
+                        string Key = await GetStringFromBlock(keyBlock.block);
+                        if (Json != null)
+                        {
+                            JToken? Token = SelectJsonToken(Json, Key);
+                            if (Token != null)
+                                return Token.ToString();
+                        }
                     }
                 }
                 break;
@@ -478,16 +480,18 @@ public abstract class IRuntime
                 break;
             case "logic_boolean":
                 return block.fields["BOOL"].ToString() == "TRUE";
-            case "data_bool_json":
-                if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("key", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
+            case "data_selector_json":
                 {
-                    JObject? Json = GetJsonFromBlock(jsonBlock.block);
-                    string Key = await GetStringFromBlock(keyBlock.block);
-                    if (Json != null)
+                    if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("select", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
                     {
-                        JToken? Token = SelectJsonToken(Json, Key);
-                        if (Token != null)
-                            return (bool?)Token;
+                        JObject? Json = GetJsonFromBlock(jsonBlock.block);
+                        string Key = await GetStringFromBlock(keyBlock.block);
+                        if (Json != null)
+                        {
+                            JToken? Token = SelectJsonToken(Json, Key);
+                            if (Token != null)
+                                return (bool?)Token;
+                        }
                     }
                 }
                 break;
@@ -505,16 +509,18 @@ public abstract class IRuntime
                 break;
             case "math_number":
                 return block.fields["NUM"].ToObject<int>();
-            case "data_number_json":
-                if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("key", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
+            case "data_selector_json":
                 {
-                    JObject? Json = GetJsonFromBlock(jsonBlock.block);
-                    string Key = await GetStringFromBlock(keyBlock.block);
-                    if (Json != null)
+                    if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("select", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
                     {
-                        JToken? Token = SelectJsonToken(Json, Key);
-                        if (Token != null)
-                            return (int?)Token;
+                        JObject? Json = GetJsonFromBlock(jsonBlock.block);
+                        string Key = await GetStringFromBlock(keyBlock.block);
+                        if (Json != null)
+                        {
+                            JToken? Token = SelectJsonToken(Json, Key);
+                            if (Token != null)
+                                return (int?)Token;
+                        }
                     }
                 }
                 break;
@@ -533,16 +539,18 @@ public abstract class IRuntime
                 break;
             case "math_number":
                 return block.fields["NUM"].ToObject<double>();
-            case "data_number_json":
-                if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("key", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
+            case "data_selector_json":
                 {
-                    JObject? Json = GetJsonFromBlock(jsonBlock.block);
-                    string Key = await GetStringFromBlock(keyBlock.block);
-                    if (Json != null)
+                    if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("select", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
                     {
-                        JToken? Token = SelectJsonToken(Json, Key);
-                        if (Token != null)
-                            return (double?)Token;
+                        JObject? Json = GetJsonFromBlock(jsonBlock.block);
+                        string Key = await GetStringFromBlock(keyBlock.block);
+                        if (Json != null)
+                        {
+                            JToken? Token = SelectJsonToken(Json, Key);
+                            if (Token != null)
+                                return (double?)Token;
+                        }
                     }
                 }
                 break;

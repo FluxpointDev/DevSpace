@@ -14,7 +14,7 @@ Blockly.Blocks['data_selector_channel'] = {
             .setCheck(Connections.DataChannels)
             .appendField("channel:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("select:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.setInputsInline(true);
@@ -99,7 +99,7 @@ Blockly.Blocks['data_selector_category'] = {
             .setCheck(Connections.DataCategory)
             .appendField("category:");
         this.appendDummyInput()
-            .appendField(new Blockly.FieldImage("h", 5, 5, { alt: "*", flipRtl: "FALSE" }))
+            .appendField(new Blockly.FieldImage("", 5, 5))
             .appendField("select:")
             .appendField(new Blockly.FieldDropdown(properties), "property");
         this.setInputsInline(true);
