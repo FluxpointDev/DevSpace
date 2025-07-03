@@ -45,9 +45,10 @@
 
     <div class="dash-box-content">
         <ActionBar>
-            <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedNetworksAction(ControlNetworkType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-            <RadzenButton Variant="Variant.Filled" Text="Create Network" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateNetwork" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
-            <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshNetworks" Disabled="@IsLoading" />
+                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedNetworksAction(ControlNetworkType.Remove))" Icon="delete" Disabled="@(IsActionRunning || IsLoading || !AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Filled" Text="Create Network" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateNetwork" Disabled="@(IsActionRunning || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
+                <RadzenButton Variant="Variant.Filled" Text="Prune Networks" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@PruneNetworks" Disabled="@(IsActionRunning || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
+                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshNetworks" Disabled="@IsLoading" />
             <RadzenFormField Variant="Variant.Outlined">
                     <Start>
                         <RadzenIcon Icon="search" />
@@ -111,7 +112,7 @@
             <RadzenDataGridColumn Title="Actions" Width="70px" Filterable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsActionRunning || IsLoading)" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
@@ -392,6 +393,48 @@
             return;
 
         await Dialogs.OpenAsync<CreateNetworkDialog>("Create Docker Network");
+        await RefreshNetworks();
+    }
+
+    async Task PruneNetworks()
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Prune Unused Networks", "Are you sure you want to remove unused networks that have no containers or stacks.", "Confirm", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        IsActionRunning = true;
+        StateHasChanged();
+        try
+        {
+            NetworksResponse = await Server.RunJsonAsync<DockerNetworkInfo[]>(Notifications, new DockerEvent(DockerEventType.ListNetworks));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+
+        if (NetworksResponse != null && NetworksResponse.Data != null)
+        {
+            foreach (var i in NetworksResponse.Data)
+            {
+                if (!i.IsNetworkSystem() && string.IsNullOrEmpty(i.Stack) && i.ContainersCount == 0)
+                {
+                    try
+                    {
+                        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlNetwork, i.Name, networkType: ControlNetworkType.Remove));
+                    }
+                    catch { }
+                }
+            }
+        }
+        IsActionRunning = false;
+        StateHasChanged();
         await RefreshNetworks();
     }
 

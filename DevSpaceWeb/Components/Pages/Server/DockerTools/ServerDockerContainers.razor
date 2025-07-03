@@ -43,8 +43,8 @@
     {
         <div class="dash-box-content">
             <ActionBar>
-                <RadzenButton Variant="Variant.Filled" Text="Create Container" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(true || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" />
-                @* <RadzenButton Variant="Variant.Filled" Text="Prune Containers" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@IsLoading" /> *@
+                <RadzenButton Variant="Variant.Filled" Text="Create Container" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(true || IsLoading || IsActionRunning || !Member.HasDockerPermission(Team, Server, DockerPermission.DockerAdministrator))" />
+                <RadzenButton Variant="Variant.Filled" Text="Prune Containers" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@PruneContainers" Disabled="@(IsLoading || IsActionRunning || Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))" />
             </ActionBar>
             <div class="mt-2">
                 <ActionBar>
@@ -55,7 +55,7 @@
                     <RadzenButton Variant="Variant.Outlined" Text="Pause" Click="@(() => RunSelectedContainersAction(ControlContainerType.Pause))" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                     <RadzenButton Variant="Variant.Outlined" Text="Resume" Click="@(() => RunSelectedContainersAction(ControlContainerType.UnPause))" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || IsActionRunning || !CanControlContainer)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                     <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedContainersAction(ControlContainerType.Remove))" Icon="delete" Disabled="@(!AnySelected || IsActionRunning || !CanManageContainer)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                    <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@IsLoading" />
+                    <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshContainers" Disabled="@(IsLoading || IsActionRunning)" />
                     <RadzenFormField Variant="Variant.Outlined">
                         <Start>
                             <RadzenIcon Icon="search" />
@@ -142,8 +142,8 @@
                 <RadzenDataGridColumn Title="Actions" Width="120px" Filterable="false">
                     <Template>
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
-                            <RadzenButton Click="@(args => ShowContextMenuWithControlsItems(context, args))" Icon="power_settings_new" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!CanControlContainer || IsActionRunning)" />
-                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                            <RadzenButton Click="@(args => ShowContextMenuWithControlsItems(context, args))" Icon="power_settings_new" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!CanControlContainer || IsLoading || IsActionRunning)" />
+                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning)" />
                             @if (!string.IsNullOrEmpty(context.Url))
                             {
                                 <a href="@context.Url" target="_blank"><RadzenButton Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
@@ -560,6 +560,47 @@
 
     void ShowUptimeTooltip(ElementReference elementReference, string uptime) => tooltipService.Open(elementReference, uptime, null);
 
+    async Task PruneContainers()
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Prune Unused Containers", "Are you sure you want to remove unused containers that have stopped with no stacks.", "Confirm", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        IsActionRunning = true;
+        StateHasChanged();
+        try
+        {
+            ContainersResponse = await Server.RunJsonAsync<DockerContainerInfo[]>(Notifications, new DockerEvent(DockerEventType.ListContainers));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+
+        if (ContainersResponse != null && ContainersResponse.Data != null)
+        {
+            foreach (var i in ContainersResponse.Data)
+            {
+                if (string.IsNullOrEmpty(i.StackId) && (i.State == "exited" || i.State == "dead"))
+                {
+                    try
+                    {
+                        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, i.Name, containerType: ControlContainerType.Remove));
+                    }
+                    catch { }
+                }
+            }
+        }
+        IsActionRunning = false;
+        StateHasChanged();
+        await RefreshContainers();
+    }
 
     public async Task RefreshContainers()
     {

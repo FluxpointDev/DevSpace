@@ -44,9 +44,10 @@
     {
         <div class="dash-box-content">
             <ActionBar>
-                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumesAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Filled" Text="Create Volume" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateVolume" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
-                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshVolume" Disabled="@IsLoading" />
+                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumesAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(IsActionRunning || IsLoading || !AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Filled" Text="Create Volume" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateVolume" Disabled="@(IsActionRunning || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
+                <RadzenButton Variant="Variant.Filled" Text="Prune Volumes" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@PruneVolumes" Disabled="@(IsActionRunning || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
+                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshVolume" Disabled="@(IsActionRunning || IsLoading)" />
                 <RadzenFormField Variant="Variant.Outlined">
                     <Start>
                         <RadzenIcon Icon="search" />
@@ -112,7 +113,7 @@
             <RadzenDataGridColumn Title="Actions" Width="70px" Filterable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning)" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
@@ -420,6 +421,48 @@
             return;
 
         await Dialogs.OpenAsync<CreateVolumeDialog>("Create Docker Volume");
+        await RefreshVolume();
+    }
+
+    async Task PruneVolumes()
+    {
+        if (Member == null || Server == null)
+            return;
+
+        if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Prune Unused Volumes", "Are you sure you want to remove unused volumes that have no containers or stacks.", "Confirm", ButtonStyle.Success);
+        if (!Confirm)
+            return;
+
+        IsActionRunning = true;
+        StateHasChanged();
+        try
+        {
+            VolumesResponse = await Server.RunJsonAsync<DockerVolumeInfo[]>(Notifications, new DockerEvent(DockerEventType.ListVolumes));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogMessage(ex.ToString(), LogSeverity.Warn);
+        }
+
+        if (VolumesResponse != null && VolumesResponse.Data != null)
+        {
+            foreach (var i in VolumesResponse.Data)
+            {
+                if (string.IsNullOrEmpty(i.Stack) && i.ContainersCount == 0)
+                {
+                    try
+                    {
+                        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlVolume, i.Name, volumeType: ControlVolumeType.Remove));
+                    }
+                    catch {}
+                }
+            }
+        }
+        IsActionRunning = false;
+        StateHasChanged();
         await RefreshVolume();
     }
 

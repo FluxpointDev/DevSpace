@@ -44,51 +44,38 @@
     else
     {
         <div class="dash-box-content">
-            <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-                <RadzenCard @onclick="@PullImage" Style="cursor: pointer;" class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) ? "" : " settings-item-disabled"))">
-                    <span class="iconify" data-icon="mdi:cloud-download"></span>
-                    <RadzenText TextStyle="TextStyle.H6">Pull</RadzenText>
-                </RadzenCard>
-                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/build")">
-                    <RadzenCard Style="cursor: pointer;" class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) ? "" : " settings-item-disabled"))">
-                        <span class="iconify" data-icon="mdi:pencil-box"></span>
-                        <RadzenText TextStyle="TextStyle.H6">Build</RadzenText>
-                    </RadzenCard>
-                </a>
-                <RadzenCard @onclick="@PruneImages" Style="cursor: pointer;" class="@("rz-p-1 rz-text-align-center settings-item" + (Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages) ? "" : " settings-item-disabled"))">
-                    <span class="iconify" data-icon="mdi:trash-can"></span>
-                    <RadzenText TextStyle="TextStyle.H6">Prune</RadzenText>
-                </RadzenCard>
-                <a href="https://hub.docker.com/search?type=image&q=" target="_blank">
-                    <RadzenCard Style="cursor: pointer;" class="@("rz-p-1 rz-text-align-center settings-item")">
-                        <span class="iconify" data-icon="mdi:search"></span>
-                        <RadzenText TextStyle="TextStyle.H6">Search</RadzenText>
-                    </RadzenCard>
-                </a>
-            </RadzenStack>
-            <br />
-
             <ActionBar>
-                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedImagesAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshImages" Disabled="@IsLoading" />
-                <RadzenFormField Variant="Variant.Outlined">
-                    <Start>
-                        <RadzenIcon Icon="search" />
-                    </Start>
-                    <ChildContent>
-                        <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-                                       autocapitalize="none" MaxLength="100" inputmode="search"
-                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
-                    </ChildContent>
-                    <End>
-                        @if (!string.IsNullOrWhiteSpace(SearchText))
-                        {
-                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
-                        }
-                    </End>
-                </RadzenFormField>
+                <RadzenButton Variant="Variant.Filled" Text="Pull Image" Icon="download" Click="@PullImage" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))" />
+                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/build")">
+                    <RadzenButton Variant="Variant.Filled" Text="Build Image" Icon="edit_note" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))" />
+                </a>
+                <RadzenButton Variant="Variant.Filled" Text="Prune Images" Icon="delete" Click="@PruneImages" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))" />
+                <a href="https://hub.docker.com/search?type=image&q=" target="_blank">
+                    <RadzenButton Variant="Variant.Filled" Text="Search" Icon="search" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />
+                </a>
             </ActionBar>
-            
+            <div class="mt-2">
+                <ActionBar>
+                    <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedImagesAction(ControlImageType.Remove))" Icon="delete" Disabled="@(!AnySelected || IsLoading || IsActionRunning || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshImages" Disabled="@IsLoading" />
+                    <RadzenFormField Variant="Variant.Outlined">
+                        <Start>
+                            <RadzenIcon Icon="search" />
+                        </Start>
+                        <ChildContent>
+                            <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                           autocapitalize="none" MaxLength="100" inputmode="search"
+                                           @oninput="@(args => SetNameFilter(args.Value as string))" />
+                        </ChildContent>
+                        <End>
+                            @if (!string.IsNullOrWhiteSpace(SearchText))
+                            {
+                                <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                            }
+                        </End>
+                    </RadzenFormField>
+                </ActionBar>
+            </div>
         </div>
         <RadzenDataGrid @ref="@grid" AllowRowSelectOnRowClick="false" Data="@ImagesList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage" GridLines="DataGridGridLines.Horizontal"
@@ -142,7 +129,7 @@
                 <RadzenDataGridColumn Title="Actions" Width="70px" Sortable="false" Filterable="false" Pickable="false">
                     <Template>
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning)" />
                         </RadzenStack>
                     </Template>
                 </RadzenDataGridColumn>
