@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data.Consoles;
+﻿using DevSpaceWeb.Apps.Data;
+using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
@@ -92,6 +93,15 @@ public class ITeamResource : IResource
                         Result = _DB.Servers.Collection.UpdateOne(filter, update);
                     }
                     break;
+                case ResourceType.App:
+                    {
+                        FilterDefinition<AppData> filter = Builders<AppData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<AppData> update = new UpdateDefinitionBuilder<AppData>()
+                            .Set(x => x.RolePermissionOverrides, Permissions);
+
+                        Result = _DB.Apps.Collection.UpdateOne(filter, update);
+                    }
+                    break;
                 case ResourceType.Console:
                     {
                         FilterDefinition<ConsoleData> filter = Builders<ConsoleData>.Filter.Eq(r => r.Id, Id);
@@ -152,6 +162,15 @@ public class ITeamResource : IResource
             UpdateResult? Result = null;
             switch (ResourceType)
             {
+                case ResourceType.App:
+                    {
+                        FilterDefinition<AppData> filter = Builders<AppData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<AppData> update = new UpdateDefinitionBuilder<AppData>()
+                            .Set(x => x.RolePermissionOverrides, Permissions);
+
+                        Result = _DB.Apps.Collection.UpdateOne(filter, update);
+                    }
+                    break;
                 case ResourceType.Server:
                     {
                         FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
@@ -227,6 +246,15 @@ public class ITeamResource : IResource
             UpdateResult? Result = null;
             switch (ResourceType)
             {
+                case ResourceType.App:
+                    {
+                        FilterDefinition<AppData> filter = Builders<AppData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<AppData> update = new UpdateDefinitionBuilder<AppData>()
+                            .Set(x => x.MemberPermissionOverrides, Permissions);
+
+                        Result = _DB.Apps.Collection.UpdateOne(filter, update);
+                    }
+                    break;
                 case ResourceType.Server:
                     {
                         FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
@@ -296,6 +324,15 @@ public class ITeamResource : IResource
             UpdateResult? Result = null;
             switch (ResourceType)
             {
+                case ResourceType.App:
+                    {
+                        FilterDefinition<AppData> filter = Builders<AppData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<AppData> update = new UpdateDefinitionBuilder<AppData>()
+                            .Set(x => x.MemberPermissionOverrides, Permissions);
+
+                        Result = _DB.Apps.Collection.UpdateOne(filter, update);
+                    }
+                    break;
                 case ResourceType.Server:
                     {
                         FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
@@ -369,6 +406,15 @@ public class ITeamResource : IResource
             UpdateResult? Result = null;
             switch (ResourceType)
             {
+                case ResourceType.App:
+                    {
+                        FilterDefinition<AppData> filter = Builders<AppData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<AppData> update = new UpdateDefinitionBuilder<AppData>()
+                            .Set(x => x.ApiPermissionOverrides, Permissions);
+
+                        Result = _DB.Apps.Collection.UpdateOne(filter, update);
+                    }
+                    break;
                 case ResourceType.Server:
                     {
                         FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
@@ -438,6 +484,15 @@ public class ITeamResource : IResource
             UpdateResult? Result = null;
             switch (ResourceType)
             {
+                case ResourceType.App:
+                    {
+                        FilterDefinition<AppData> filter = Builders<AppData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<AppData> update = new UpdateDefinitionBuilder<AppData>()
+                            .Set(x => x.ApiPermissionOverrides, Permissions);
+
+                        Result = _DB.Apps.Collection.UpdateOne(filter, update);
+                    }
+                    break;
                 case ResourceType.Server:
                     {
                         FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
