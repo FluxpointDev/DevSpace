@@ -194,7 +194,7 @@ public enum AuditLogEventType
     ConsoleCreated, ConsoleDeleted, ConsolePermissionsChanged, ConsoleSettingsChanged, ConsoleRconChanged,
     RoleSettingsChanged, ServerOwnershipChanged, APIClientOwnershipChanged, ConsoleOwnershipChanged, RolePositionChanged,
     MemberNicknameChanged, ServerOnboard,
-    AppCreated, AppDeleted, AppPermissionsChanged
+    AppCreated, AppDeleted, AppPermissionsChanged, AppOwnershipChanged, AppSettingsChanged
 }
 [Flags]
 public enum AuditLogFlag : ulong

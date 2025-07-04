@@ -1,24 +1,83 @@
-﻿@using DevSpaceShared.Events.Docker
-@using DevSpaceShared.Responses
-@using DevSpaceShared.Services
-@using DevSpaceShared.WebSocket
-@using DevSpaceWeb.Agents
-@using DevSpaceWeb.Apps.Data
+﻿@using DevSpaceWeb.Apps.Data
+@using DevSpaceWeb.Components.Dialogs.Servers
+@using DevSpaceWeb.Data.Consoles
 @inject DialogService Dialogs
 @inject NavigationManager Nav
-@inject NotificationService Notifications
-@inject IJSRuntime JS
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
-        <div class="dash-box-icon">
-            <span class="iconify" data-icon="mdi:gear"></span>
-        </div>
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
         <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
     </div>
-
+    <br />
+    <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/settings")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasAppPermission(Team, App, AppPermission.ManageApp) ? "" : " settings-item-disabled"))">
+                <span class="iconify" data-icon="mdi:gear"></span>
+                <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
+            </RadzenCard>
+        </a>
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/permissions")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasAppPermission(Team, App, AppPermission.ViewPermissions) ? "" : " settings-item-disabled"))">
+                <span class="iconify" data-icon="mdi:shield-key"></span>
+                <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
+            </RadzenCard>
+        </a>
+    </RadzenStack>
 </div>
 
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Manage</RadzenText>
+    </div>
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">ID</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body2">
+        @App?.Id
+        <CopyClipboard Value="@App?.Id.ToString()"></CopyClipboard>
+    </RadzenText>
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
+    <RadzenUserSelector Team="@Team" UserId="@App?.OwnerId" ActionDisabled="@(Member == null || Program.IsPreviewMode || !Member.CanOwn(App))" OnSelected="@ChangeOwner"></RadzenUserSelector>
+    <br />
+    <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Server" Disabled="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.DeleteAppResource))" />
+</div>
+
+<style>
+    .settings-item {
+        width: 120px;
+        height: 120px;
+        cursor: pointer;
+    }
+
+        .settings-item .iconify {
+            width: 30px;
+            height: 30px;
+            margin-top: 16px;
+            color: var(--rz-info);
+        }
+
+        .settings-item .rz-text-h6 {
+            margin-top: 14px;
+            font-size: 1.1rem;
+            color: var(--rz-base-200) !important;
+        }
+
+    .rz-stack a {
+        text-decoration: none !important;
+    }
+
+    .settings-item:hover {
+        background-color: var(--rz-base-dark);
+        outline: solid 1px var(--rz-secondary-dark) !important;
+    }
+
+    .settings-item-disabled {
+        opacity: 0.6;
+        cursor: not-allowed !important;
+    }
+</style>
 
 @code {
     [CascadingParameter]
@@ -28,4 +87,68 @@
     public TeamMemberData? Member => Session.Selected.Member;
     public AppData? App => Session.Selected.App;
 
+    public string? OwnerUser { get; set; }
+
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (App != null)
+        {
+            if (_DB.Users.TryGetValue(App.OwnerId, out PartialUserData? user))
+                OwnerUser = user.UserName;
+            else
+                OwnerUser = "Unknown?";
+
+        }
+    }
+
+    public async Task Delete()
+    {
+        if (App == null || Member == null || !Member.HasAppPermission(Team, App, AppPermission.DeleteAppResource))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete App", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        if (!Member.HasAppPermission(Team, App, AppPermission.DeleteAppResource))
+            return;
+
+        await App.DeleteAsync(Member, () =>
+        {
+            Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/apps");
+        });
+
+    }
+
+
+    public async Task ChangeOwner(PartialUserData user)
+    {
+        if (App == null || Member == null || !Member.CanOwn(App))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Change Ownership", "Change app owner.", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        if (!Member.CanOwn(App))
+            return;
+
+        await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+        .Set(x => x.OwnerId, user.Id), () =>
+        {
+            App.OwnerId = user.Id;
+            OwnerUser = user.UserName;
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.AppOwnershipChanged)
+            .SetTarget(App)
+            .AddProperty("User", user.UserName)
+            .AddProperty("ID", user.Id.ToString()));
+
+            StateHasChanged();
+        });
+    }
 }

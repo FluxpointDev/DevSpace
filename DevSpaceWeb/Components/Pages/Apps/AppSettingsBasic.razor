@@ -1,15 +1,7 @@
-﻿@using DevSpaceShared.Events.Docker
-@using DevSpaceShared.Responses
-@using DevSpaceShared.Services
-@using DevSpaceShared.WebSocket
-@using DevSpaceWeb.Agents
-@using DevSpaceWeb.Apps.Data
-@inject DialogService Dialogs
-@inject NavigationManager Nav
-@inject NotificationService Notifications
-@inject IJSRuntime JS
+﻿@using DevSpaceWeb.Apps.Data
+@using DevSpaceWeb.Models.Apps
 
-<PageTitle>@(App?.Name ?? "App") Settings | @_Data.Config.Instance.Name</PageTitle>
+<PageTitle>@(App?.Name ?? "Server") Settings | @_Data.Config.Instance.Name</PageTitle>
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
@@ -19,20 +11,27 @@
         </div>
         <RadzenText TextStyle="TextStyle.H6">App Settings</RadzenText>
     </div>
-
-    @if (Permissions.CheckFailedAppPermissions(Member, Team, App, AppPermission.ManageApp, out AppPermission? failedPerm))
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps")" Text="Apps" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl)" Text="@Session.Selected.Team?.App?.Data.Name" />
+        <RadzenBreadCrumbItem Text="Settings" />
+    </RadzenBreadCrumb>
+    @if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageApp))
     {
-        <br />
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for @Utils.FriendlyName(failedPerm.ToString()!)
+            You do not have permission for Manage App
         </RadzenAlert>
     }
     else
     {
         <br />
+        @if (Data != null)
+        {
+            <DynamicFormDialog Model="@ModifyAppModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        }
     }
-</div>
 
+</div>
 
 @code {
     [CascadingParameter]
@@ -42,4 +41,47 @@
     public TeamMemberData? Member => Session.Selected.Member;
     public AppData? App => Session.Selected.App;
 
+    protected override async Task OnInitializedAsync()
+    {
+        if (App != null)
+            Data = new ModifyAppModel
+            {
+                Name = App.Name,
+                VanityUrl = App.VanityUrl
+            };
+    }
+
+    public ModifyAppModel? Data { get; set; }
+
+    public async Task<string?> UpdateSettings(ModifyAppModel model)
+    {
+        if (App == null || Team == null || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageApp))
+            return "You do not have Manage App permissions.";
+
+        VanityUrlData Vanity = Team.GetVanityUrlData();
+
+        string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+
+        if (Vanity.CheckAlreadyExists(App, VanityUrl))
+            return Lang.Errors.vanity_url_already_taken;
+
+        await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+        .Set(x => x.Name, model.Name)
+        .Set(x => x.VanityUrl, VanityUrl),
+        async () =>
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.AppSettingsChanged)
+                .SetTarget(App)
+                .AddPropertyChange("Name", App.Name, model.Name)
+                .AddPropertyChange("Vanity URL", App.VanityUrl, VanityUrl));
+
+            App.Name = model.Name;
+            App.VanityUrl = model.VanityUrl;
+            VanityUrlData Vanity = Team.GetVanityUrlData();
+            await Vanity.UpdateAsync(App, VanityUrl);
+            App.VanityUrl = App.GetVanityUrlOrId();
+            Session.TriggerNavMenuChange();
+        });
+        return null;
+    }
 }

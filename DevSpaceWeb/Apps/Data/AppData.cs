@@ -135,7 +135,11 @@ public class AppData : ITeamResource
                 _Data.DiscordClients.Remove(Id);
             }
             FilterDefinition<WorkspaceData> filterWorkspaces = Builders<WorkspaceData>.Filter.Eq(r => r.AppId, Id);
-            await _DB.Workspaces.Collection.DeleteManyAsync(filterWorkspaces);
+            try
+            {
+                await _DB.Workspaces.Collection.DeleteManyAsync(filterWorkspaces);
+            }
+            catch { }
             action?.Invoke();
         }
     }
