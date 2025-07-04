@@ -110,6 +110,11 @@ public static class ServerEventHandler
                                 break;
                         }
 
+                        if (@event.DockerType == DockerEventType.ListStacks)
+                        {
+                            Console.WriteLine("Respond with: \n" + JsonConvert.SerializeObject(response, Formatting.Indented));
+                        }
+
                         await ws.RespondAsync(@event.TaskId, response, NoResponse);
                     }
 
