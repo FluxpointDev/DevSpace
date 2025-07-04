@@ -92,6 +92,9 @@ public static class ServerEventHandler
                                 response.Message = ex.Message;
                                 response.Error = ClientError.Exception;
                             }
+
+                            if (_Data.Config.Options.LogAgentEvents)
+                                Console.WriteLine("Sending Response: " + response.IsSuccess);
                         }
 
                         bool NoResponse = true;

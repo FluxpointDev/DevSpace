@@ -76,7 +76,13 @@ public class EdgeController : Controller
         {
             WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
             if (edgeAgent.WebSocket != null)
-                edgeAgent.WebSocket.Dispose();
+            {
+                try
+                {
+                    edgeAgent.WebSocket.Dispose();
+                }
+                catch { }
+            }
 
             edgeAgent.WebSocket = webSocket;
 

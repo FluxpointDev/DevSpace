@@ -174,14 +174,14 @@
                     <RadzenCheckBox @bind-Value="@ViewStacks" Disabled="@CheckDisabled(GlobalAdministrator || ServerAdministrator || DockerAdministrator || !CalculatedPermissions.DockerContainerPermissions.HasFlag(DockerContainerPermission.ViewStacks))" ReadOnly="@CheckReadOnly()" />
                     <RadzenLabel Text="View Stacks" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">View all stacks in servers.</span>
-                    
+
                 </div>
 
                 <div class="permission-grid-info">
                     <RadzenCheckBox @bind-Value="@ViewContainers" Disabled="@CheckDisabled(GlobalAdministrator || ServerAdministrator || DockerAdministrator || !CalculatedPermissions.DockerContainerPermissions.HasFlag(DockerContainerPermission.ViewContainers))" ReadOnly="@CheckReadOnly()" />
                     <RadzenLabel Text="View Containers" class="rz-ms-2" />
                     <span style="color: var(--rz-text-tertiary-color)">View all containers in servers.</span>
-                    
+
                 </div>
 
                 <div>
@@ -203,174 +203,215 @@
 
         @if (!Program.LimitMode)
         {
+            @if (PermissionType == PermissionType.All || PermissionType == PermissionType.App)
+            {
+                <RadzenStack Gap="0" class="permission-grid-box">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:rocket-launch"></span> App Permissions</RadzenText>
 
-        @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Console)
-        {
-            <RadzenStack Gap="0" class="permission-grid-box">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:console-line"></span> Console Permissions</RadzenText>
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@AppAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.AppPermissions.HasFlag(AppPermission.AppAdministrator))" ReadOnly="@CheckReadOnly()" />
+                        <RadzenLabel Text="App Administrator" class="rz-ms-2" />
+                        <span style="color: var(--rz-text-tertiary-color)">Create and manage all app resources in the team.</span>
+                    </div>
 
-                <div class="permission-grid-info">
-                    <RadzenCheckBox @bind-Value="@ConsoleAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator))" ReadOnly="@CheckReadOnly()" />
-                    <RadzenLabel Text="Console Administrator" class="rz-ms-2" />
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@ViewApp" Disabled="@CheckDisabled(GlobalAdministrator || AppAdministrator || !CalculatedPermissions.AppPermissions.HasFlag(AppPermission.ViewApp))" ReadOnly="@CheckReadOnly()" />
+                        @if (Resource == null)
+                        {
+                            <RadzenLabel Text="View Apps" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View all app resources for the team.</span>
+                        }
+                        else
+                        {
+                            <RadzenLabel Text="View App" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View this app resource.</span>
+                        }
+                    </div>
+
+                    <div>
+                        <RadzenDropDown @ref="ConsoleGrid.Grid" @bind-Value="@ConsoleGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                                        AllowFiltering="true" Chips="true" Data="@ConsoleGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ConsoleItemRender(evnt))"
+                                        Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || ConsoleAdministrator || !ViewConsole)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
+                            <Template>
+                                <RadzenLabel Text="@((context as PermissionItem<ConsolePermission>)!.Name)" Style="display: block;" />
+                                <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ConsolePermission>)!.Description)</span>
+
+                            </Template>
+                            <ValueTemplate>
+                                @((context as PermissionItem<ConsolePermission>)!.Name)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                </RadzenStack>
+            }
+
+            @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Console)
+            {
+                <RadzenStack Gap="0" class="permission-grid-box">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:console-line"></span> Console Permissions</RadzenText>
+
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@ConsoleAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator))" ReadOnly="@CheckReadOnly()" />
+                        <RadzenLabel Text="Console Administrator" class="rz-ms-2" />
                         <span style="color: var(--rz-text-tertiary-color)">Create and manage all console resources in the team.</span>
-                </div>
+                    </div>
 
-                <div class="permission-grid-info">
-                    <RadzenCheckBox @bind-Value="@ViewConsole" Disabled="@CheckDisabled(GlobalAdministrator || ConsoleAdministrator || !CalculatedPermissions.ConsolePermissions.HasFlag(ConsolePermission.ViewConsole))" ReadOnly="@CheckReadOnly()" />
-                    @if (Resource == null)
-                    {
-                        <RadzenLabel Text="View Consoles" class="rz-ms-2" />
-                        <span style="color: var(--rz-text-tertiary-color)">View all console resources for the team.</span>
-                    }
-                    else
-                    {
-                        <RadzenLabel Text="View Console" class="rz-ms-2" />
-                        <span style="color: var(--rz-text-tertiary-color)">View this console resource.</span>
-                    }
-                </div>
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@ViewConsole" Disabled="@CheckDisabled(GlobalAdministrator || ConsoleAdministrator || !CalculatedPermissions.ConsolePermissions.HasFlag(ConsolePermission.ViewConsole))" ReadOnly="@CheckReadOnly()" />
+                        @if (Resource == null)
+                        {
+                            <RadzenLabel Text="View Consoles" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View all console resources for the team.</span>
+                        }
+                        else
+                        {
+                            <RadzenLabel Text="View Console" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View this console resource.</span>
+                        }
+                    </div>
 
-                <div>
-                    <RadzenDropDown @ref="ConsoleGrid.Grid" @bind-Value="@ConsoleGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                                    AllowFiltering="true" Chips="true" Data="@ConsoleGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ConsoleItemRender(evnt))"
-                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || ConsoleAdministrator || !ViewConsole)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
-                        <Template>
-                            <RadzenLabel Text="@((context as PermissionItem<ConsolePermission>)!.Name)" Style="display: block;" />
-                            <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ConsolePermission>)!.Description)</span>
+                    <div>
+                        <RadzenDropDown @ref="ConsoleGrid.Grid" @bind-Value="@ConsoleGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                                        AllowFiltering="true" Chips="true" Data="@ConsoleGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ConsoleItemRender(evnt))"
+                                        Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || ConsoleAdministrator || !ViewConsole)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
+                            <Template>
+                                <RadzenLabel Text="@((context as PermissionItem<ConsolePermission>)!.Name)" Style="display: block;" />
+                                <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ConsolePermission>)!.Description)</span>
 
-                        </Template>
-                        <ValueTemplate>
-                            @((context as PermissionItem<ConsolePermission>)!.Name)
-                        </ValueTemplate>
-                    </RadzenDropDown>
-                </div>
-            </RadzenStack>
-        }
+                            </Template>
+                            <ValueTemplate>
+                                @((context as PermissionItem<ConsolePermission>)!.Name)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                </RadzenStack>
+            }
 
-        @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Website)
-        {
-            <RadzenStack Gap="0" class="permission-grid-box">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:web"></span> Website Permissions</RadzenText>
+            @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Website)
+            {
+                <RadzenStack Gap="0" class="permission-grid-box">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:web"></span> Website Permissions</RadzenText>
 
-                <div class="permission-grid-info">
-                    <RadzenCheckBox @bind-Value="@WebsiteAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator))" ReadOnly="@CheckReadOnly()" />
-                    <RadzenLabel Text="Website Administrator" class="rz-ms-2" />
-                    <span style="color: var(--rz-text-tertiary-color)">All website permissions.</span>
-                </div>
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@WebsiteAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator))" ReadOnly="@CheckReadOnly()" />
+                        <RadzenLabel Text="Website Administrator" class="rz-ms-2" />
+                        <span style="color: var(--rz-text-tertiary-color)">All website permissions.</span>
+                    </div>
 
-                <div class="permission-grid-info">
-                    <RadzenCheckBox @bind-Value="@ViewWebsite" Disabled="@CheckDisabled(GlobalAdministrator || WebsiteAdministrator || !CalculatedPermissions.WebsitePermissions.HasFlag(WebsitePermission.ViewWebsite))" ReadOnly="@CheckReadOnly()" />
-                    @if (Resource == null)
-                    {
-                        <RadzenLabel Text="View Websites" class="rz-ms-2" />
-                        <span style="color: var(--rz-text-tertiary-color)">View all website resources for the team.</span>
-                    }
-                    else
-                    {
-                        <RadzenLabel Text="View Website" class="rz-ms-2" />
-                        <span style="color: var(--rz-text-tertiary-color)">View this website resource.</span>
-                    }
-                </div>
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@ViewWebsite" Disabled="@CheckDisabled(GlobalAdministrator || WebsiteAdministrator || !CalculatedPermissions.WebsitePermissions.HasFlag(WebsitePermission.ViewWebsite))" ReadOnly="@CheckReadOnly()" />
+                        @if (Resource == null)
+                        {
+                            <RadzenLabel Text="View Websites" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View all website resources for the team.</span>
+                        }
+                        else
+                        {
+                            <RadzenLabel Text="View Website" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View this website resource.</span>
+                        }
+                    </div>
 
-                <div>
-                    <RadzenDropDown @ref="WebsiteGrid.Grid" @bind-Value="@WebsiteGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                                    AllowFiltering="true" Chips="true" Data="@WebsiteGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => WebsiteItemRender(evnt))"
-                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || WebsiteAdministrator || !ViewWebsite)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
-                        <Template>
-                            <RadzenLabel Text="@((context as PermissionItem<WebsitePermission>)!.Name)" Style="display: block;" />
-                            <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<WebsitePermission>)!.Description)</span>
+                    <div>
+                        <RadzenDropDown @ref="WebsiteGrid.Grid" @bind-Value="@WebsiteGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                                        AllowFiltering="true" Chips="true" Data="@WebsiteGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => WebsiteItemRender(evnt))"
+                                        Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || WebsiteAdministrator || !ViewWebsite)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
+                            <Template>
+                                <RadzenLabel Text="@((context as PermissionItem<WebsitePermission>)!.Name)" Style="display: block;" />
+                                <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<WebsitePermission>)!.Description)</span>
 
-                        </Template>
-                        <ValueTemplate>
-                            @((context as PermissionItem<WebsitePermission>)!.Name)
-                        </ValueTemplate>
-                    </RadzenDropDown>
-                </div>
-            </RadzenStack>
-        }
+                            </Template>
+                            <ValueTemplate>
+                                @((context as PermissionItem<WebsitePermission>)!.Name)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                </RadzenStack>
+            }
 
-        @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Project)
-        {
-            <RadzenStack Gap="0" class="permission-grid-box">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:lightbulb"></span> Project Permissions</RadzenText>
+            @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Project)
+            {
+                <RadzenStack Gap="0" class="permission-grid-box">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:lightbulb"></span> Project Permissions</RadzenText>
 
-                <div class="permission-grid-info">
-                    <RadzenCheckBox @bind-Value="@ProjectAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator))" ReadOnly="@CheckReadOnly()" />
-                    <RadzenLabel Text="Project Administrator" class="rz-ms-2" />
-                    <span style="color: var(--rz-text-tertiary-color)">All project permissions.</span>
-                </div>
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@ProjectAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator))" ReadOnly="@CheckReadOnly()" />
+                        <RadzenLabel Text="Project Administrator" class="rz-ms-2" />
+                        <span style="color: var(--rz-text-tertiary-color)">All project permissions.</span>
+                    </div>
 
-                <div class="permission-grid-info">
-                    <RadzenCheckBox @bind-Value="@ViewProject" Disabled="@CheckDisabled(GlobalAdministrator || ProjectAdministrator || !CalculatedPermissions.ProjectPermissions.HasFlag(ProjectPermission.ViewProject))" ReadOnly="@CheckReadOnly()" />
-                    @if (Resource == null)
-                    {
-                        <RadzenLabel Text="View Projects" class="rz-ms-2" />
-                        <span style="color: var(--rz-text-tertiary-color)">View all project resources for the team.</span>
-                    }
-                    else
-                    {
-                        <RadzenLabel Text="View Project" class="rz-ms-2" />
-                        <span style="color: var(--rz-text-tertiary-color)">View this project resource.</span>
-                    }
-                </div>
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@ViewProject" Disabled="@CheckDisabled(GlobalAdministrator || ProjectAdministrator || !CalculatedPermissions.ProjectPermissions.HasFlag(ProjectPermission.ViewProject))" ReadOnly="@CheckReadOnly()" />
+                        @if (Resource == null)
+                        {
+                            <RadzenLabel Text="View Projects" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View all project resources for the team.</span>
+                        }
+                        else
+                        {
+                            <RadzenLabel Text="View Project" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View this project resource.</span>
+                        }
+                    </div>
 
-                <div>
-                    <RadzenDropDown @ref="ProjectGrid.Grid" @bind-Value="@ProjectGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                                    AllowFiltering="true" Chips="true" Data="@ProjectGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ProjectItemRender(evnt))"
-                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || ProjectAdministrator || !ViewProject)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
-                        <Template>
-                            <RadzenLabel Text="@((context as PermissionItem<ProjectPermission>)!.Name)" Style="display: block;" />
-                            <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ProjectPermission>)!.Description)</span>
+                    <div>
+                        <RadzenDropDown @ref="ProjectGrid.Grid" @bind-Value="@ProjectGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                                        AllowFiltering="true" Chips="true" Data="@ProjectGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => ProjectItemRender(evnt))"
+                                        Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || ProjectAdministrator || !ViewProject)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
+                            <Template>
+                                <RadzenLabel Text="@((context as PermissionItem<ProjectPermission>)!.Name)" Style="display: block;" />
+                                <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<ProjectPermission>)!.Description)</span>
 
-                        </Template>
-                        <ValueTemplate>
-                            @((context as PermissionItem<ProjectPermission>)!.Name)
-                        </ValueTemplate>
-                    </RadzenDropDown>
-                </div>
-            </RadzenStack>
-        }
+                            </Template>
+                            <ValueTemplate>
+                                @((context as PermissionItem<ProjectPermission>)!.Name)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                </RadzenStack>
+            }
 
-        @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Log)
-        {
-            <RadzenStack Gap="0" class="permission-grid-box">
-                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:warning"></span> Log Permissions</RadzenText>
+            @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Log)
+            {
+                <RadzenStack Gap="0" class="permission-grid-box">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:warning"></span> Log Permissions</RadzenText>
 
-                <div class="permission-grid-info">
-                    <RadzenCheckBox @bind-Value="@LogAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.LogPermissions.HasFlag(LogPermission.LogAdministrator))" ReadOnly="@CheckReadOnly()" />
-                    <RadzenLabel Text="Log Administrator" class="rz-ms-2" />
-                    <span style="color: var(--rz-text-tertiary-color)">All log permissions.</span>
-                </div>
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@LogAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.LogPermissions.HasFlag(LogPermission.LogAdministrator))" ReadOnly="@CheckReadOnly()" />
+                        <RadzenLabel Text="Log Administrator" class="rz-ms-2" />
+                        <span style="color: var(--rz-text-tertiary-color)">All log permissions.</span>
+                    </div>
 
-                <div class="permission-grid-info">
-                    <RadzenCheckBox @bind-Value="@ViewLog" Disabled="@CheckDisabled(GlobalAdministrator || LogAdministrator || !CalculatedPermissions.LogPermissions.HasFlag(LogPermission.ViewLog))" ReadOnly="@CheckReadOnly()" />
-                    @if (Resource == null)
-                    {
-                        <RadzenLabel Text="View Logs" class="rz-ms-2" />
-                        <span style="color: var(--rz-text-tertiary-color)">View all log resources for the team.</span>
-                    }
-                    else
-                    {
-                        <RadzenLabel Text="View Log" class="rz-ms-2" />
-                        <span style="color: var(--rz-text-tertiary-color)">View this log resource.</span>
-                    }
-                </div>
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@ViewLog" Disabled="@CheckDisabled(GlobalAdministrator || LogAdministrator || !CalculatedPermissions.LogPermissions.HasFlag(LogPermission.ViewLog))" ReadOnly="@CheckReadOnly()" />
+                        @if (Resource == null)
+                        {
+                            <RadzenLabel Text="View Logs" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View all log resources for the team.</span>
+                        }
+                        else
+                        {
+                            <RadzenLabel Text="View Log" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View this log resource.</span>
+                        }
+                    </div>
 
-                <div>
-                    <RadzenDropDown @ref="LogGrid.Grid" @bind-Value="@LogGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                                    AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => LogItemRender(evnt))"
-                                    Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || LogAdministrator || !ViewLog)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
-                        <Template>
-                            <RadzenLabel Text="@((context as PermissionItem<LogPermission>)!.Name)" Style="display: block;" />
-                            <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<LogPermission>)!.Description)</span>
+                    <div>
+                        <RadzenDropDown @ref="LogGrid.Grid" @bind-Value="@LogGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                                        AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => LogItemRender(evnt))"
+                                        Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || LogAdministrator || !ViewLog)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
+                            <Template>
+                                <RadzenLabel Text="@((context as PermissionItem<LogPermission>)!.Name)" Style="display: block;" />
+                                <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<LogPermission>)!.Description)</span>
 
-                        </Template>
-                        <ValueTemplate>
-                            @((context as PermissionItem<LogPermission>)!.Name)
-                        </ValueTemplate>
-                    </RadzenDropDown>
-                </div>
-            </RadzenStack>
-        }
+                            </Template>
+                            <ValueTemplate>
+                                @((context as PermissionItem<LogPermission>)!.Name)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                </RadzenStack>
+            }
         }
     </RadzenStack>
 }
@@ -546,6 +587,10 @@
             {
                 Data = Resource == null ? PermissionsData.AllConsoleData : PermissionsData.ResourceConsoleData
             };
+            AppGrid = new PermissionGrid<PermissionItem<AppPermission>>
+                {
+                    Data = Resource == null ? PermissionsData.AllAppData : PermissionsData.ResourceAppData
+                };
         }
 
         if (_permissions != Permissions)
@@ -606,6 +651,9 @@
         ConsoleAdministrator = Permissions.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator);
         ViewConsole = Permissions.ConsolePermissions.HasFlag(ConsolePermission.ViewConsole);
 
+        AppAdministrator = Permissions.AppPermissions.HasFlag(AppPermission.AppAdministrator);
+        ViewApp = Permissions.AppPermissions.HasFlag(AppPermission.ViewApp);
+
         ResourceGrid.Selected = ResourceGrid.Data.Where(x =>
         {
             switch (x.Flag)
@@ -622,6 +670,8 @@
                     return Permissions.ProjectPermissions.HasFlag(ProjectPermission.CreateProjectResource);
                 case ResourcePermission.CreateLogs:
                     return Permissions.LogPermissions.HasFlag(LogPermission.CreateLogResource);
+                case ResourcePermission.CreateApps:
+                    return Permissions.AppPermissions.HasFlag(AppPermission.CreateAppResource);
             }
 
             return false;
@@ -636,6 +686,7 @@
         ProjectGrid.Selected = ProjectGrid.Data.Where(x => Permissions.ProjectPermissions.HasFlag(x.Flag));
         LogGrid.Selected = LogGrid.Data.Where(x => Permissions.LogPermissions.HasFlag(x.Flag));
         ConsoleGrid.Selected = ConsoleGrid.Data.Where(x => Permissions.ConsolePermissions.HasFlag(x.Flag));
+        AppGrid.Selected = AppGrid.Data.Where(x => Permissions.AppPermissions.HasFlag(x.Flag));
         PermissionsLoaded = true;
     }
 
@@ -674,6 +725,11 @@
     private bool _apiAdministrator;
     public bool APIAdministrator { get { return _apiAdministrator; } set { _apiAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
+    private bool _appAdministrator;
+    public bool AppAdministrator { get { return _appAdministrator; } set { _appAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
+
+    private bool _viewApp;
+    public bool ViewApp { get { return _viewApp; } set { _viewApp = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
     private bool _serverAdministrator;
     public bool ServerAdministrator { get { return _serverAdministrator; } set { _serverAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
@@ -728,6 +784,7 @@
     public PermissionGrid<PermissionItem<DockerPermission>> DockerGrid;
     public PermissionGrid<PermissionItem<DockerContainerPermission>> DockerContainerGrid;
     public PermissionGrid<PermissionItem<ConsolePermission>> ConsoleGrid;
+    public PermissionGrid<PermissionItem<AppPermission>> AppGrid;
 
     public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<TeamPermission>>> TeamItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<TeamPermission>>?> data)
     {
@@ -786,6 +843,20 @@
                         data.Disabled = true;
                 }
                 break;
+        }
+        return data;
+    }
+
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<AppPermission>>> ServerItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<AppPermission>>?> data)
+    {
+        PermissionItem<AppPermission> item = (PermissionItem<AppPermission>)data.Item;
+        if (!CalculatedPermissions.AppPermissions.HasFlag(item.Flag))
+            data.Disabled = true;
+
+        if (item.Flag == AppPermission.ManagePermissions)
+        {
+            if (!AppGrid.Selected.Any(x => x.Flag == AppPermission.ViewPermissions))
+                data.Disabled = true;
         }
         return data;
     }
@@ -999,7 +1070,7 @@
 
         if (DockerContainerGrid.Selected != null)
         {
-            foreach(PermissionItem<DockerContainerPermission> i in DockerContainerGrid.Selected)
+            foreach (PermissionItem<DockerContainerPermission> i in DockerContainerGrid.Selected)
             {
                 Set.DockerContainerPermissions |= i.Flag;
             }
@@ -1068,6 +1139,22 @@
             }
         }
 
+        if (AppAdministrator)
+            Set.AppPermissions |= AppPermission.AppAdministrator;
+        else
+        {
+            if (ViewApp)
+                Set.AppPermissions |= AppPermission.ViewApp;
+
+            if (AppGrid.Selected != null)
+            {
+                foreach (PermissionItem<AppPermission> i in AppGrid.Selected)
+                {
+                    Set.AppPermissions |= i.Flag;
+                }
+            }
+        }
+
         if (ResourceGrid.Selected != null)
         {
             foreach (PermissionItem<ResourcePermission> i in ResourceGrid.Selected)
@@ -1091,6 +1178,9 @@
                         break;
                     case ResourcePermission.CreateLogs:
                         Set.LogPermissions |= LogPermission.CreateLogResource;
+                        break;
+                    case ResourcePermission.CreateApps:
+                        Set.AppPermissions |= AppPermission.CreateAppResource;
                         break;
                 }
             }

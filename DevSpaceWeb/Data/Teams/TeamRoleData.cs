@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data.Consoles;
+﻿using DevSpaceWeb.Apps.Data;
+using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
@@ -99,6 +100,20 @@ public class TeamRoleData : IObject
             return true;
 
         if (Permissions.HasProjectPermission(checkPermission))
+            return true;
+
+        return false;
+    }
+
+    public bool HasAppPermission(TeamData? team, AppData? app, AppPermission checkPermission)
+    {
+        if (team == null || team.Id != TeamId)
+            return false;
+
+        if (app != null && app.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasAppPermission(checkPermission))
+            return true;
+
+        if (Permissions.HasAppPermission(checkPermission))
             return true;
 
         return false;
