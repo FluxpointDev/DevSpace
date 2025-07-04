@@ -175,16 +175,14 @@ public class EdgeController : Controller
         {
             try
             {
-
-                ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[8192]);
-
-                WebSocketReceiveResult result = null;
-
                 using (MemoryStream ms = new MemoryStream())
                 {
+                    ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[8192]);
+                    WebSocketReceiveResult? result = null;
                     do
                     {
-                        result = await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+
+                        result = await webSocket.ReceiveAsync(buffer, cancellationToken);
                         ms.Write(buffer.Array, buffer.Offset, result.Count);
                     }
                     while (!result.EndOfMessage);
@@ -193,7 +191,11 @@ public class EdgeController : Controller
 
                     if (result.MessageType == WebSocketMessageType.Text)
                     {
-                        string message = Encoding.UTF8.GetString(ms.ToArray(), 0, result.Count);
+                        string? message = null;
+                        using (StreamReader reader = new StreamReader(ms, Encoding.UTF8))
+                        {
+                            message = await reader.ReadToEndAsync();
+                        }
 
                         JToken? payload = JsonConvert.DeserializeObject<JToken>(message);
                         if (payload == null)
@@ -245,7 +247,10 @@ public class EdgeController : Controller
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         } while (!cancellationToken.IsCancellationRequested);
         Console.WriteLine("Edge Handle Removed");
     }

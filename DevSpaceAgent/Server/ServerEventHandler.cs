@@ -92,9 +92,6 @@ public static class ServerEventHandler
                                 response.Message = ex.Message;
                                 response.Error = ClientError.Exception;
                             }
-
-                            if (_Data.Config.Options.LogAgentEvents)
-                                Console.WriteLine("Sending Response: " + response.IsSuccess);
                         }
 
                         bool NoResponse = true;
@@ -108,11 +105,6 @@ public static class ServerEventHandler
                             case DockerEventType.ListVolumes:
                                 NoResponse = true;
                                 break;
-                        }
-
-                        if (@event.DockerType == DockerEventType.ListStacks)
-                        {
-                            Console.WriteLine("Respond with: \n" + JsonConvert.SerializeObject(response, Formatting.Indented));
                         }
 
                         await ws.RespondAsync(@event.TaskId, response, NoResponse);

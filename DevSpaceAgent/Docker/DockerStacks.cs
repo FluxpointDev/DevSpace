@@ -1,6 +1,5 @@
 ﻿using CliWrap;
 using CliWrap.Buffered;
-using DevSpaceAgent.Data;
 using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
@@ -16,18 +15,12 @@ public static class DockerStacks
 {
     public static async Task<List<DockerStackInfo>> ListStacksAsync(DockerClient client)
     {
-        if (_Data.Config.Options.LogAgentEvents)
-            Console.WriteLine("Fetching containers.");
-
         List<DockerStackInfo> Stacks = [];
         IList<ContainerListResponse> containers = await client.Containers.ListContainersAsync(new ContainersListParameters()
         {
             Size = true,
             All = true
         });
-
-        if (_Data.Config.Options.LogAgentEvents)
-            Console.WriteLine("For each containers.");
 
         foreach (ContainerListResponse? c in containers)
         {
@@ -162,9 +155,6 @@ public static class DockerStacks
                 });
             }
         }
-
-        if (_Data.Config.Options.LogAgentEvents)
-            Console.WriteLine("For each stacks.");
 
         foreach (KeyValuePair<string, Data.StackFile> i in Program.Stacks)
         {
