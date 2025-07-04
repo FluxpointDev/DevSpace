@@ -81,15 +81,11 @@ else
             break;
         case "apps":
             {
-                if (!Session.IsInstanceAdmin)
-                {
-                    <p>Instance admin is required</p>
-                }
-                else if (string.IsNullOrEmpty(service_id))
+                if (string.IsNullOrEmpty(service_id))
                 {
                     <AppList></AppList>
                 }
-                else if (App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                else if (App == null || !Member.HasAppPermission(Team, App, AppPermission.ViewApp))
                 {
                     <p>This apps does not exist.</p>
                 }
@@ -583,7 +579,7 @@ else
 
                                 if (GotApp != null && (Session.Selected.App == null || !Session.Selected.Team.App.IsVisible || Session.Selected.App.Id != GotApp.Id))
                                 {
-                                    if (Member.TeamId == GotApp.TeamId && Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+                                    if (Member.TeamId == GotApp.TeamId && Member.HasAppPermission(Team, GotApp, AppPermission.ViewApp))
                                         Session.Selected.Team.App = new SelectedAppData(GotApp);
                                     else
                                         Session.Selected.Team.App = null;
