@@ -181,9 +181,12 @@ public class EdgeController : Controller
                     WebSocketReceiveResult? result = null;
                     do
                     {
-
-                        result = await webSocket.ReceiveAsync(buffer, cancellationToken);
-                        ms.Write(buffer.Array, buffer.Offset, result.Count);
+                        try
+                        {
+                            result = await webSocket.ReceiveAsync(buffer, cancellationToken);
+                            ms.Write(buffer.Array, buffer.Offset, result.Count);
+                        }
+                        catch { }
                     }
                     while (!result.EndOfMessage);
 
