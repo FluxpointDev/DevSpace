@@ -200,7 +200,7 @@
 
     public async Task LoadApps(LoadDataArgs args)
     {
-        var Apps = _DB.Apps.Cache.Values.Where(x => Member != null && Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator) && (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))).OrderBy(x => x.Name);
+        var Apps = _DB.Apps.Cache.Values.Where(x => Member != null && Member.HasAppPermission(Team, x, AppPermission.ViewApp) && (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))).OrderBy(x => x.Name);
         AppsCount = Apps.Count();
         AppsList = Apps.AsQueryable().Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
     }
@@ -230,13 +230,13 @@
         if (Member == null)
             return;
 
-        if (!Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (!Member.HasAppPermission(Team, null, AppPermission.CreateAppResource))
             return;
 
         await Dialogs.ShowDynamicFormAsync<AppCreateModel>("Setup App", new AppCreateModel(), async (AppCreateModel data) =>
         {
-            if (Team == null || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
-                return "You do not have Global Administrator permissions";
+            if (Team == null || Member == null || !Member.HasAppPermission(Team, null, AppPermission.CreateAppResource))
+                return "You do not have Create App permissions";
 
             string BotId = null!;
             try

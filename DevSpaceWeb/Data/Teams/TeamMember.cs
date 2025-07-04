@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data.Consoles;
+﻿using DevSpaceWeb.Apps.Data;
+using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
@@ -375,6 +376,47 @@ public class TeamMemberData : IObject
             if (selectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
                 if (role.HasWebsitePermission(selectedTeam, website, checkPermission))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool HasAppPermission(TeamData? selectedTeam, AppData? app, AppPermission checkPermission)
+    {
+        if (selectedTeam == null)
+            return false;
+
+        if (TeamId != selectedTeam.Id)
+            return false;
+
+        if (app != null)
+        {
+            if (app.TeamId != TeamId || app.TeamId != selectedTeam.Id)
+                return false;
+        }
+
+        if (selectedTeam.OwnerId == UserId)
+            return true;
+
+        if (selectedTeam.DefaultPermissions.HasAppPermission(checkPermission))
+            return true;
+
+        if (app != null)
+        {
+            if (app.DefaultPermissions.HasAppPermission(checkPermission))
+                return true;
+
+            if (app.MemberPermissionOverrides.TryGetValue(UserId, out PermissionsSet? uovr) && uovr.HasAppPermission(checkPermission))
+                return true;
+        }
+
+        foreach (ObjectId r in Roles)
+        {
+            if (selectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
+            {
+                if (role.HasAppPermission(selectedTeam, app, checkPermission))
                     return true;
             }
         }

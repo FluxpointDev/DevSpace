@@ -9,10 +9,10 @@
             Unknown app or team.
         </RadzenAlert>
     }
-    else if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+    else if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewWorkspaces))
     {
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
-            You do not have permission for Global Administrator
+            You do not have permission for View Workspace
         </RadzenAlert>
     }
     else if (Workspace == null)
@@ -71,7 +71,7 @@
         if (Member == null)
             return;
 
-        if (!Member.HasTeamPermission(team, TeamPermission.GlobalAdministrator))
+        if (!Member.HasAppPermission(Team, App, AppPermission.ViewWorkspaces))
             return;
 
         Workspace = _DB.Workspaces.Collection.Find(new FilterDefinitionBuilder<WorkspaceData>().Eq(x => x.Id, workspaceId)).FirstOrDefault();

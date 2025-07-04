@@ -22,7 +22,7 @@
         <RadzenText TextStyle="TextStyle.H6">App</RadzenText>
     </div>
 
-    @if (Permissions.CheckFailedTeamPermissions(Member, Team, TeamPermission.GlobalAdministrator, out TeamPermission? failedPerm))
+    @if (Permissions.CheckFailedAppPermissions(Member, Team, App, AppPermission.ViewApp, out AppPermission? failedPerm))
     {
         <br />
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -41,9 +41,9 @@
         </div>
         <div class="mt-2">
             <ActionBar>
-                <RadzenButton Text="Update App" Click="@UpdateApp" Icon="build" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
-                <RadzenButton Text="Update Token" Click="@UpdateToken" Icon="key" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
-                <RadzenButton Text="Delete App" Click="@DeleteApp" Icon="delete" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
+                <RadzenButton Text="Update App" Click="@UpdateApp" Icon="build" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageApp))" Size="ButtonSize.Small" />
+                <RadzenButton Text="Update Token" Click="@UpdateToken" Icon="key" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageApp))" Size="ButtonSize.Small" />
+                <RadzenButton Text="Delete App" Click="@DeleteApp" Icon="delete" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.DeleteAppResource))" Size="ButtonSize.Small" />
             </ActionBar>
         </div>
     }
@@ -73,14 +73,14 @@
 
     public async Task DeleteApp()
     {
-        if (Member == null || App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.DeleteAppResource))
             return;
 
         bool Confirm = await Dialogs.ShowConfirmAsync("Delete App: " + App.Name, "Are you sure you want to delete this app?", "Confirm", ButtonStyle.Success);
         if (!Confirm)
             return;
 
-        if (Member == null || App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.DeleteAppResource))
             return;
 
         await App.DeleteAsync(Member, () =>
@@ -92,14 +92,14 @@
 
     public async Task UpdateApp()
     {
-        if (Member == null || App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ManageApp))
             return;
 
         bool Confirm = await Dialogs.ShowConfirmAsync("Update App", "Are you sure you want to fetch the Discord app name, avatar, description, settings and team members?", "Confirm", ButtonStyle.Success);
         if (!Confirm)
             return;
 
-        if (Member == null || App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ManageApp))
             return;
 
         if (!_Data.DiscordClients.TryGetValue(App.Id, out Discord.Rest.DiscordRestClient client))
@@ -290,13 +290,13 @@
 
     public async Task UpdateToken()
     {
-        if (Member == null || App == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ManageApp))
             return;
 
         await Dialogs.ShowDynamicFormAsync<AppUpdateTokenModel>("Update Bot Token", new AppUpdateTokenModel(), async (AppUpdateTokenModel data) =>
         {
-            if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
-                return "You do not have Global Administrator permissions";
+            if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageApp))
+                return "You do not have Manage App permissions";
 
             string BotId = null!;
             try

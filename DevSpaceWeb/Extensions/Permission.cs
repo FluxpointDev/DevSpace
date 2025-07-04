@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data.API;
+﻿using DevSpaceWeb.Apps.Data;
+using DevSpaceWeb.Data.API;
 using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Servers;
@@ -13,6 +14,20 @@ public static class Permissions
         foreach (TeamPermission value in GetUniqueFlags(flags))
         {
             if (member == null || !member.HasTeamPermission(team, value))
+            {
+                failedPerm = value;
+                return true;
+            }
+        }
+        failedPerm = null;
+        return false;
+    }
+
+    public static bool CheckFailedAppPermissions(TeamMemberData? member, TeamData? team, AppData? app, AppPermission flags, out AppPermission? failedPerm)
+    {
+        foreach (AppPermission value in GetUniqueFlags(flags))
+        {
+            if (member == null || !member.HasAppPermission(team, app, value))
             {
                 failedPerm = value;
                 return true;

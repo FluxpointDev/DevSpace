@@ -20,7 +20,7 @@
         <RadzenText TextStyle="TextStyle.H6">App Install</RadzenText>
     </div>
 
-    @if (Permissions.CheckFailedTeamPermissions(Member, Team, TeamPermission.GlobalAdministrator, out TeamPermission? failedPerm))
+    @if (Permissions.CheckFailedAppPermissions(Member, Team, App, AppPermission.ViewApp, out AppPermission? failedPerm))
     {
         <br />
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -33,7 +33,7 @@
         <RadzenText TextStyle="TextStyle.Body1">
             Manage your app installation and oauth settings.
         </RadzenText>
-        if (App.DiscordData.IsPublicApp)
+        if (App != null && App.DiscordData.IsPublicApp)
         {
             <RadzenAlert AlertStyle="AlertStyle.Success" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
                 Your app is public and can be invited.
@@ -56,7 +56,7 @@
             <RadzenLabel Text="Guild Install" class="rz-ms-2" />
         </div>
         <br />
-        <RadzenButton Text="Update Install & Permissions (Not Available)" Click="@UpdateInstall" ButtonStyle="ButtonStyle.Success" Shade="Shade.Darker" Disabled="@(true || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" />
+        <RadzenButton Text="Update Install & Permissions (Not Available)" Click="@UpdateInstall" ButtonStyle="ButtonStyle.Success" Shade="Shade.Darker" Disabled="@(true || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
     }
 </div>
 
@@ -86,7 +86,7 @@
 
     public async Task UpdateInstall()
     {
-        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))
             return;
 
 

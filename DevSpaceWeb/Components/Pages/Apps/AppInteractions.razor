@@ -21,13 +21,13 @@
             <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
         </div>
         <RadzenText TextStyle="TextStyle.H6">App Interactions</RadzenText>
-        @if ((IsLoading || IsActionRunning) && Member != null && Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        @if ((IsLoading || IsActionRunning) && Member != null && Member.HasAppPermission(Team, App, AppPermission.ViewCommands))
         {
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
     </div>
 
-    @if (Permissions.CheckFailedTeamPermissions(Member, Team, TeamPermission.GlobalAdministrator, out TeamPermission? failedPerm))
+    @if (Permissions.CheckFailedAppPermissions(Member, Team, App, AppPermission.ViewApp, out AppPermission? failedPerm))
     {
         <br />
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -41,11 +41,11 @@
             <Tabs>
                 <RadzenTabsItem Text="Buttons" Disabled="@(IsLoading || IsActionRunning)">
                     <ActionBar>
-                        <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyButtonsSelected || IsActionRunning)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyButtonsSelected || IsActionRunning)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyButtonsSelected || IsActionRunning)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Filled" Text="Create Button" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateInteraction" Disabled="@IsLoading" />
-                        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshInteractions" Disabled="@IsLoading" />
+                        <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyButtonsSelected || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyButtonsSelected || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyButtonsSelected || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Filled" Text="Create Button" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateInteraction" Disabled="@(IsLoading || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
+                        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshInteractions" Disabled="@(IsLoading || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))" />
                         <RadzenFormField Variant="Variant.Outlined">
                             <Start>
                                 <RadzenIcon Icon="search" />
@@ -104,8 +104,8 @@
                             <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                                 <Template>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
-                                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsActionRunning)" />
-                                        <a href="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsActionRunning)" /></a>
+                                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
+                                        <a href="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ViewWorkspaces))" /></a>
                                     </RadzenStack>
                                 </Template>
                             </RadzenDataGridColumn>
@@ -137,11 +137,11 @@
                 </RadzenTabsItem>
                 <RadzenTabsItem Text="Modals" Disabled="@(IsLoading || IsActionRunning)">
                     <ActionBar>
-                        <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyModalsSelected || IsActionRunning)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyModalsSelected || IsActionRunning)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyModalsSelected || IsActionRunning)" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Filled" Text="Create Modal" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateInteraction" Disabled="@IsLoading" />
-                        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshInteractions" Disabled="@IsLoading" />
+                        <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyModalsSelected || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyModalsSelected || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyModalsSelected || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Filled" Text="Create Modal" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateInteraction" Disabled="@(IsLoading || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
+                        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshInteractions" Disabled="@(IsLoading || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))" />
                         <RadzenFormField Variant="Variant.Outlined">
                             <Start>
                                 <RadzenIcon Icon="search" />
@@ -200,8 +200,8 @@
                             <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                                 <Template>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
-                                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsActionRunning)" />
-                                        <a href="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsActionRunning)" /></a>
+                                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
+                                        <a href="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning || !Member.HasAppPermission(Team, App, AppPermission.ViewWorkspaces))" /></a>
                                     </RadzenStack>
                                 </Template>
                             </RadzenDataGridColumn>
@@ -299,7 +299,7 @@
 
     public async Task LoadButtonsData(LoadDataArgs args)
     {
-        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))
             return;
 
         IsLoading = true;
@@ -317,7 +317,7 @@
 
     public async Task LoadModalsData(LoadDataArgs args)
     {
-        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))
             return;
 
         IsLoading = true;
@@ -344,7 +344,7 @@
 
     public async Task CreateInteraction()
     {
-        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
             return;
 
         switch (TabIndex)
@@ -353,8 +353,8 @@
                 {
                     await Dialogs.ShowDynamicFormAsync<CommandCreateModal>("Create Button Interaction", new CommandCreateModal(), async (CommandCreateModal data) =>
                     {
-                        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
-                            return "You do not have team permission for Global Administrator";
+                        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
+                            return "You do not have team permission for Manage Commands";
 
                         if (App.ButtonInteractions.Keys.Count() >= 250)
                             return "You can only add up to 250 button interactions.";
@@ -397,8 +397,8 @@
                 {
                     await Dialogs.ShowDynamicFormAsync<CommandCreateModal>("Create Modal Interaction", new CommandCreateModal(), async (CommandCreateModal data) =>
                     {
-                        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
-                            return "You do not have team permission for Global Administrator";
+                        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
+                            return "You do not have team permission for Manage Commands";
 
                         if (App.ModalInteractions.Keys.Count() >= 250)
                             return "You can only add up to 250 modal interactions.";
@@ -442,7 +442,7 @@
 
     public async Task RunSelectedEnableCommands()
     {
-        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
             return;
 
         IsActionRunning = true;
@@ -475,7 +475,7 @@
 
     public async Task RunSelectedDisableCommands()
     {
-        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
             return;
 
         IsActionRunning = true;
@@ -508,7 +508,7 @@
 
     public async Task RunSelectedRemoveCommands()
     {
-        if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
+        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
             return;
 
         IsActionRunning = true;
@@ -543,10 +543,10 @@
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem() { Text = "Enable Interaction", Value = "enable", Icon = "play_arrow", Disabled = IsActionRunning || item.IsEnabled || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator) },
-                new ContextMenuItem() { Text = "Disable Interaction", Value = "disable", Icon = "pause", Disabled = IsActionRunning || !item.IsEnabled || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator) },
-                new ContextMenuItem() { Text = "Clear Data", Value = "clear", Icon = "delete_history", Disabled = IsActionRunning || !item.IsEnabled || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator) },
-                new ContextMenuItem() { Text = "Remove Interaction", Value = "remove", Icon = "delete", Disabled = IsActionRunning || Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator) },
+                new ContextMenuItem() { Text = "Enable Interaction", Value = "enable", Icon = "play_arrow", Disabled = IsActionRunning || item.IsEnabled || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands) },
+                new ContextMenuItem() { Text = "Disable Interaction", Value = "disable", Icon = "pause", Disabled = IsActionRunning || !item.IsEnabled || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands) },
+                new ContextMenuItem() { Text = "Clear Data", Value = "clear", Icon = "delete_history", Disabled = IsActionRunning || !item.IsEnabled || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageWorkspaces) },
+                new ContextMenuItem() { Text = "Remove Interaction", Value = "remove", Icon = "delete", Disabled = IsActionRunning || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands) },
                 new ContextMenuItem() { Text = "Copy Interaction ID", Value = "copy", Icon = "content_copy" }
                                              }, x => MenuItemClick(x.Value.ToString(), item));
     }
@@ -558,9 +558,6 @@
 
         if (!isSelected)
         {
-            if (Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))
-                return;
-
             ContextMenuService.Close();
             IsActionRunning = true;
         }
@@ -576,6 +573,9 @@
                 break;
             case "enable":
                 {
+                    if (!Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
+                        return;
+
                     switch (TabIndex)
                     {
                         case 0:
@@ -603,6 +603,9 @@
                 break;
             case "disable":
                 {
+                    if (!Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
+                        return;
+
                     switch (TabIndex)
                     {
                         case 0:
@@ -629,6 +632,9 @@
                 }
                 break;
             case "clear":
+            if (!Member.HasAppPermission(Team, App, AppPermission.ManageWorkspaces))
+                        return;
+
                 WorkspaceData? workspace = _DB.Workspaces.Collection.Find(new FilterDefinitionBuilder<WorkspaceData>().Eq(x => x.Id, item.WorkspaceId)).FirstOrDefault();
                 if (workspace != null)
                 {
@@ -640,6 +646,9 @@
                 break;
             case "remove":
                 {
+                    if (!Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
+                        return;
+
                     switch (TabIndex)
                     {
                         case 0:
