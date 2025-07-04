@@ -30,9 +30,11 @@ public class SendRequestBlock : IActionBlock
         if (!Url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to send request, request url needs to use https://");
 
-        if (!Uri.TryCreate(Url, UriKind.Absolute, out Uri uri))
+        if (!Uri.TryCreate(Url, UriKind.Absolute, out Uri? uri))
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to send request, request url format is invalid.");
 
+        if (!uri.Host.Contains(".") || uri.HostNameType != UriHostNameType.Dns)
+            return new RuntimeError(RuntimeErrorType.Runtime, "Failed to send request, request url needs to be a domain.");
         if (uri.IsLoopback)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to send request, request url can't use localhost.");
 
