@@ -46,28 +46,33 @@
             </RadzenAlert>
             <br />
             <ActionBar>
-                <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@(() => RunSelectedPluginsAction(ControlPluginType.Enable))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@(() => RunSelectedPluginsAction(ControlPluginType.Disable))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedPluginsAction(ControlPluginType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton Variant="Variant.Filled" Text="Install Plugin" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@InstallPlugin" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" />
-                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshPlugins" Disabled="@IsLoading" />
-                <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
-                    <Start>
-                        <RadzenIcon Icon="search" />
-                    </Start>
-                    <ChildContent>
-                        <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-                                       autocapitalize="none" MaxLength="100" Placeholder="Search plugins" inputmode="search"
-                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
-                    </ChildContent>
-                    <End>
-                        @if (!string.IsNullOrWhiteSpace(SearchText))
-                        {
-                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
-                        }
-                    </End>
-                </RadzenFormField>
+
             </ActionBar>
+            <div class="mt-2">
+                <ActionBar>
+                    <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@(() => RunSelectedPluginsAction(ControlPluginType.Enable))" Icon="power_settings_new" IconColor="@Colors.SuccessDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@(() => RunSelectedPluginsAction(ControlPluginType.Disable))" Icon="stop" IconColor="@Colors.DangerDark" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedPluginsAction(ControlPluginType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshPlugins" Disabled="@IsLoading" />
+                    <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
+                        <Start>
+                            <RadzenIcon Icon="search" />
+                        </Start>
+                        <ChildContent>
+                            <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                           autocapitalize="none" MaxLength="100" Placeholder="Search plugins" inputmode="search"
+                                           @oninput="@(args => SetNameFilter(args.Value as string))" />
+                        </ChildContent>
+                        <End>
+                            @if (!string.IsNullOrWhiteSpace(SearchText))
+                            {
+                                <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                            }
+                        </End>
+                    </RadzenFormField>
+                </ActionBar>
+            </div>
         </div>
 
         <RadzenDataGrid @ref="@Grid" AllowRowSelectOnRowClick="false" Data="@PluginsList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
