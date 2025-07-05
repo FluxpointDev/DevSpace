@@ -1,4 +1,5 @@
-﻿@using DevSpaceWeb.Data.API
+﻿@using DevSpaceWeb.Apps.Data
+@using DevSpaceWeb.Data.API
 @using DevSpaceWeb.Data.Consoles
 @using DevSpaceWeb.Models.Teams
 @using Microsoft.AspNetCore.Components.Forms
@@ -36,6 +37,7 @@
         else
         {
             <ul>
+                <li><RadzenText TextStyle="TextStyle.Body1">@(AppCount) apps</RadzenText></li>
                 <li><RadzenText TextStyle="TextStyle.Body1">@(ServerCount) servers</RadzenText></li>
                 <li><RadzenText TextStyle="TextStyle.Body1">@(ConsoleCount) consoles</RadzenText></li>
                 <li><RadzenText TextStyle="TextStyle.Body1">@(MemberCount) members</RadzenText></li>
@@ -74,6 +76,7 @@
 
     public bool ShowConfirm = false;
 
+    public int AppCount;
     public int ServerCount;
     public int ConsoleCount;
     public int MemberCount;
@@ -90,6 +93,7 @@
         if (!ShowConfirm)
         {
             ShowConfirm = true;
+            AppCount = _DB.Apps.Cache.Values.Count(x => x.TeamId == Team.Id);
             ServerCount = _DB.Servers.Cache.Values.Count(x => x.TeamId == Team.Id);
             ConsoleCount = _DB.Consoles.Cache.Values.Count(x => x.TeamId == Team.Id);
             MemberCount = Team.CachedMembers.Keys.Count();
@@ -146,6 +150,21 @@
             catch { }
         }
 
+        FilterDefinition<AppData> AppFilter = Builders<AppData>.Filter.Eq(r => r.TeamId, Team.Id);
+        await _DB.Apps.Collection.DeleteManyAsync(AppFilter);
+
+        foreach (var i in _DB.Apps.Cache.Values.Where(x => x.TeamId == Team.Id))
+        {
+            _DB.Apps.Cache.TryRemove(i.Id, out _);
+            if (_Data.DiscordClients.TryGetValue(i.Id, out var client))
+            {
+                client.Dispose();
+                _Data.DiscordClients.Remove(i.Id);
+            }
+        }
+
+        FilterDefinition<WorkspaceData> WorkspaceFilter = Builders<WorkspaceData>.Filter.Eq(r => r.TeamId, Team.Id);
+        await _DB.Workspaces.Collection.DeleteManyAsync(WorkspaceFilter);
 
         FilterDefinition<ConsoleData> ConsoleFilter = Builders<ConsoleData>.Filter.Eq(r => r.TeamId, Team.Id);
         await _DB.Consoles.Collection.DeleteManyAsync(ConsoleFilter);

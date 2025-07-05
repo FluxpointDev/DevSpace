@@ -5,7 +5,7 @@ var initControlsIf = Blockly.Blocks["controls_if"].init;
 Blockly.Blocks['controls_if'].init = function () {
     initControlsIf.call(this);
     this.setColour(225);
-    this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+    this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
 
     this.inputList.forEach(elm => {
         if (elm.type === 1) {

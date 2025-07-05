@@ -11,7 +11,7 @@ Blockly.Blocks['obj_components_list'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true);
     }
 };
@@ -28,7 +28,7 @@ Blockly.Blocks['obj_component_row'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true);
     }
 };
@@ -73,7 +73,7 @@ Blockly.Blocks['obj_component_button'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -126,7 +126,7 @@ Blockly.Blocks['obj_component_modal_input_text'] = {
         this.setNextStatement(true, null);
         this.setColour('#9e7d49');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -154,7 +154,7 @@ Blockly.Blocks['obj_component_button_link'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -170,7 +170,7 @@ Blockly.Blocks['obj_component_input_list'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true);
     }
 };
@@ -213,7 +213,7 @@ Blockly.Blocks['obj_component_select'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -229,7 +229,7 @@ Blockly.Blocks['obj_component_select_list'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true);
     }
 };
@@ -263,6 +263,6 @@ Blockly.Blocks['obj_component_select_item'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };

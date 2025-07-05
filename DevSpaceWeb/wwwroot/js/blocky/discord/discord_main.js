@@ -24,7 +24,8 @@ Blockly.Blocks['block_command'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setDeletable(false);
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -55,7 +56,8 @@ Blockly.Blocks['block_user_command'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setDeletable(false);
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -86,7 +88,8 @@ Blockly.Blocks['block_message_command'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setDeletable(false);
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -101,7 +104,7 @@ Blockly.Blocks['data_permission_list'] = {
         this.setOutput(true, 'data_permission_list');
         this.setColour(230);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true)
     }
 };
@@ -125,7 +128,7 @@ Blockly.Blocks['data_permission_manage'] = {
         this.setOutput(true, 'data_permission_manage');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -146,7 +149,7 @@ Blockly.Blocks['data_permission_mod'] = {
         this.setOutput(true, 'data_permission_mod');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -165,7 +168,7 @@ Blockly.Blocks['data_permission_server'] = {
         this.setOutput(true, 'data_permission_server');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -193,7 +196,7 @@ Blockly.Blocks['data_permission_text'] = {
         this.setOutput(true, 'data_permission_text');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -222,7 +225,7 @@ Blockly.Blocks['data_permission_voice'] = {
         this.setOutput(true, 'data_permission_voice');
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -254,7 +257,8 @@ Blockly.Blocks['block_interaction_button'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setDeletable(false);
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 
@@ -301,7 +305,8 @@ Blockly.Blocks['block_interaction_select_string'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setDeletable(false);
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -336,7 +341,8 @@ Blockly.Blocks['block_interaction_select_user'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setDeletable(false);
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -371,7 +377,8 @@ Blockly.Blocks['block_interaction_select_role'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setDeletable(false);
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -406,7 +413,8 @@ Blockly.Blocks['block_interaction_select_channel'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setDeletable(false);
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -441,7 +449,8 @@ Blockly.Blocks['block_interaction_select_mentionable'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setDeletable(false);
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -478,7 +487,8 @@ Blockly.Blocks['block_interaction_modal'] = {
             .setCheck(Connections.ActionsList);
         this.setColour(240);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setDeletable(false);
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 

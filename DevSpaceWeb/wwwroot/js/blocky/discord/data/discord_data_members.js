@@ -19,7 +19,7 @@ Blockly.Blocks['data_selector_member'] = {
         this.setOutput(true, Connections.TextSingle);
         this.setColour(120);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
 
     },
     onchange: function (change) {
@@ -63,7 +63,7 @@ Blockly.Blocks['data_member_app'] = {
         this.setOutput(true, null);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -74,7 +74,7 @@ Blockly.Blocks['data_member_current'] = {
         this.setOutput(true, null);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -85,7 +85,7 @@ Blockly.Blocks['data_member_active'] = {
         this.setOutput(true, null);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -102,7 +102,7 @@ Blockly.Blocks['action_set_active_member'] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 
@@ -133,7 +133,7 @@ Blockly.Blocks['data_member_get'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 

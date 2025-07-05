@@ -216,12 +216,22 @@ public static class ServiceBuilder
                 Auth.AddOpenIdConnect(i.Options.ClientId, i.GetName(), opt =>
                 {
                     opt.CallbackPath = new PathString("/auth/login/" + i.Options.ClientId);
-                    opt.Scope.Add("email");
+                    if (i.Options.scopes == null || i.Options.scopes.Length == 0)
+                        opt.Scope.Add("email");
+                    else
+                    {
+                        foreach (string i in i.Options.scopes)
+                        {
+                            opt.Scope.Add(i);
+                        }
+                    }
                     opt.Authority = i.Options.Authority;
                     opt.ClientId = i.Options.ClientId;
                     opt.ClientSecret = i.Options.ClientSecret;
                     opt.SignInScheme = IdentityConstants.ExternalScheme;
-                    opt.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+                    opt.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, i.Options.idKey);
+                    opt.ClaimActions.MapJsonKey(ClaimTypes.Name, i.Options.usernameKey);
+                    opt.ClaimActions.MapJsonKey(ClaimTypes.Email, i.Options.emailKey);
                     opt.GetClaimsFromUserInfoEndpoint = i.Options.GetClaimsFromUserInfoEndpoint;
                 });
             }

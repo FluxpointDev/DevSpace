@@ -26,6 +26,11 @@
         }
         else
         {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                <div>If you leak your EDGE_ONBOARD key other users can add servers to your team.</div>
+                <div>You can reset also reset this.</div>
+            </RadzenAlert>
+
             <RadzenText TextStyle="TextStyle.Body1" class="ml-2">Automatically setup servers by running this command.</RadzenText>
             <RadzenText TextStyle="TextStyle.Body2" style="padding: 8px; padding-top: 0px !important; padding-bottom: 16px !important; background-color: var(--rz-input-background-color);">
                 <span style="display: block;">docker run -d --name devspace-agent </span>
@@ -40,7 +45,10 @@
                 <span style="display: block;">ghcr.io/fluxpointdev/devspace/agent:latest</span>
             </RadzenText>
             <br />
-            <RadzenButton ButtonStyle="@(IsCopied ? ButtonStyle.Success: ButtonStyle.Info)" Shade="Shade.Dark" Text="Copy Command" Click="@CopyCommand" />
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenButton ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Text="Reset Onboard Key" Click="@ResetOnboardKey" Disabled="@(Member == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))" />
+                <RadzenButton ButtonStyle="@(IsCopied? ButtonStyle.Success: ButtonStyle.Info)" Shade="Shade.Dark" Text="Copy Command" Click="@CopyCommand" />
+            </RadzenStack>
         }
     </RadzenStack>
     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
@@ -56,6 +64,22 @@
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
     public ServerData? Server => Session.Selected.Server;
+
+    public async Task ResetOnboardKey()
+    {
+        if (Member == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
+            return;
+
+        string OnboardKey = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
+
+        var Response = await Team.UpdateAsync(new UpdateDefinitionBuilder<TeamData>().Set(x => x.EdgeOnboardKey, OnboardKey), () =>
+        {
+            Team.EdgeOnboardKey = OnboardKey;
+        });
+
+        if (Response.IsAcknowledged)
+            StateHasChanged();
+    }
 
     public string GetEdgeConnectionCommand()
     {

@@ -1,15 +1,16 @@
-﻿@using DevSpaceWeb.Data.API
+﻿@using DevSpaceWeb.Apps.Data
+@using DevSpaceWeb.Data.API
 @using DevSpaceWeb.Data.Consoles
 @inject IJSRuntime JS
 
-<RadzenFormField @ref="@SearchBox" Variant="Variant.Outlined" @attributes="@(new Dictionary<string, object> { { "placeholder", "Test" } })">
+<RadzenFormField @ref="@SearchBox" Variant="Variant.Outlined" AllowFloatingLabel="false">
     <Start>
         <RadzenIcon Icon="search" />
     </Start>
     <ChildContent>
         <RadzenTextBox @ref="@SearchTextBox" id="inputSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
                        autocapitalize="none" MaxLength="100" @onclick="@(args => OpenSearch())" inputmode="search"
-        @oninput="@(args => Search(args.Value as string))" />
+        @oninput="@(args => Search(args.Value as string))" Placeholder="Search" />
     </ChildContent>
     <End>
         @if (SearchHasValue)
@@ -64,12 +65,6 @@
     margin-block: 0px !important;
     }
 </style>
-
-<script>
-    function setSearchPlaceholder() {
-        document.getElementById('inputSearch').placeholder = "Search"
-    }
-</script>
 
 @code {
     [CascadingParameter]
@@ -151,6 +146,8 @@
                     return "mdi:web";
                 case "api":
                     return "mdi:robot";
+                case "app":
+                    return "mdi:rocket-launch";
             }
 
             return "mdi:question-mark";
@@ -173,12 +170,6 @@
         }
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-            await JS.InvokeAsync<object>("setSearchPlaceholder");
-    }
-
     async Task LoadData(SessionProvider session, LoadDataArgs args, string searchText)
     {
         List<SearchItem> items = new List<SearchItem>();
@@ -195,6 +186,20 @@
                     TeamMemberData? Member = i.GetMember(session.CurrentUser);
                     if (Member != null)
                         Members.Add(Member);
+                }
+                foreach (AppData s in _DB.Apps.Cache.Values)
+                {
+                    if (s.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (TeamMemberData m in Members)
+                        {
+                            if (m.TeamId != s.TeamId)
+                                continue;
+
+                            if (m.HasAppPermission(Team, s, AppPermission.ViewApp))
+                                items.Add(new SearchItem { Name = s.Name, Type = "app", Team = s.Team, Path = "/teams/" + m.Team?.GetVanityUrlOrId() + "/apps/" + s.GetVanityUrlOrId() });
+                        }
+                    }
                 }
                 foreach (ServerData s in _DB.Servers.Cache.Values)
                 {

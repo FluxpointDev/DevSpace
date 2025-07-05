@@ -1,4 +1,5 @@
-﻿@using DevSpaceWeb.Components.Dialogs
+﻿@using DevSpaceWeb.Apps.Data
+@using DevSpaceWeb.Components.Dialogs
 @using DevSpaceWeb.Components.Dialogs.Members
 @using DevSpaceWeb.Data.Consoles
 @using DevSpaceWeb.Models
@@ -44,16 +45,16 @@
                                Style="width: 100%; max-width: 400px; height: calc(100vh - 200px); min-height:400px;" class="mt-1" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "select role" } })">
                     <Template>
                         <div @oncontextmenu="@((args) => ShowContextMenuWithManageItems(context, args))" @oncontextmenu:preventDefault="true">
-                        <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData))};")"></span>
-                        @if ((context as TeamRoleData)!.Team != null && Team.OwnerId != Member.UserId && (context as TeamRoleData).GetPosition() >= CurrentRank)
-                        {
-                            <span class="iconify" data-icon="mdi:lock"></span>
-                            @context.Name
-                        }
-                        else
-                        {
-                            @context.Name
-                        }
+                            <span style="@($"background-color: {RoleBadge.GetColor((context as TeamRoleData))};")"></span>
+                            @if ((context as TeamRoleData)!.Team != null && Team.OwnerId != Member.UserId && (context as TeamRoleData).GetPosition() >= CurrentRank)
+                            {
+                                <span class="iconify" data-icon="mdi:lock"></span>
+                                @context.Name
+                            }
+                            else
+                            {
+                                @context.Name
+                            }
                         </div>
                     </Template>
                 </RadzenListBox>
@@ -92,17 +93,17 @@
                                                 You do not have permission for Manage Roles
                                             </RadzenAlert>
                                         }
-                                        
+
                                     }
 
                                     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">ID</RadzenText>
                                     <RadzenText TextStyle="TextStyle.Body2">
                                         @SelectedRole?.Id
-                                    <CopyClipboard Value="@SelectedRole?.Id.ToString()"></CopyClipboard>
+                                        <CopyClipboard Value="@SelectedRole?.Id.ToString()"></CopyClipboard>
                                     </RadzenText>
 
                                     <DynamicFormDialog @ref="@RoleForm" Model="@TeamRoleModel" ModelData="@SelectedRoleModel" OnSubmit="@EditRole" Disabled="@(!SelectedRoleCanManage || SelectedRole.Team == null)"></DynamicFormDialog>
-                                    
+
                                     <br style="margin-bottom: 6px;" />
                                     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Color</RadzenText>
                                     <div>
@@ -175,83 +176,96 @@
                                     }
 
                                     <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Left" Wrap="FlexWrap.Wrap" Gap="0.2rem">
-                                    <RadzenStack Gap="6px" class="permission-grid-box">
-                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:server"></span> Servers</RadzenText>
+                                        <RadzenStack Gap="6px" class="permission-grid-box">
+                                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:server"></span> Servers</RadzenText>
 
-                                    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (Team != null && Team.DefaultPermissions.HasServerPermission(ServerPermission.ViewServer)) || SelectedRole.HasServerPermission(Team, x, ServerPermission.ViewServer)))
-                                    {
-                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
-                                        <div class="server-item">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
-                                        </div>
-                                        </a>
-                                    }
-                                    </RadzenStack>
+                                            @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (Team != null && Team.DefaultPermissions.HasServerPermission(ServerPermission.ViewServer)) || SelectedRole.HasServerPermission(Team, x, ServerPermission.ViewServer)))
+                                            {
+                                                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
+                                                    <div class="server-item">
+                                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                                    </div>
+                                                </a>
+                                            }
+                                        </RadzenStack>
 
-                                    <RadzenStack Gap="6px" class="permission-grid-box">
-                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:docker"></span> Docker</RadzenText>
+                                        <RadzenStack Gap="6px" class="permission-grid-box">
+                                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:docker"></span> Docker</RadzenText>
 
-                                    @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (Team != null && (Team.DefaultPermissions.HasDockerContainerPermission(DockerContainerPermission.ViewStacks) || Team.DefaultPermissions.HasDockerContainerPermission(DockerContainerPermission.ViewContainers))) || SelectedRole.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewStacks) || SelectedRole.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewContainers)))
-                                    {
-                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
-                                        <div class="server-item">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
-                                        </div>
-                                        </a>
-                                    }
-                                    </RadzenStack>
+                                            @foreach (ServerData i in _DB.Servers.Cache.Values.Where(x => Member != null && Member.HasServerPermission(Team, x, ServerPermission.ViewServer) && (Team != null && (Team.DefaultPermissions.HasDockerContainerPermission(DockerContainerPermission.ViewStacks) || Team.DefaultPermissions.HasDockerContainerPermission(DockerContainerPermission.ViewContainers))) || SelectedRole.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewStacks) || SelectedRole.HasDockerContainerPermission(Team, x, DockerContainerPermission.ViewContainers)))
+                                            {
+                                                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + i.GetVanityUrlOrId() + "/home")">
+                                                    <div class="server-item">
+                                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                                    </div>
+                                                </a>
+                                            }
+                                        </RadzenStack>
 
-                                    <RadzenStack Gap="6px" class="permission-grid-box">
-                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:web"></span> Websites</RadzenText>
+                                        <RadzenStack Gap="6px" class="permission-grid-box">
+                                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:rocket-launch"></span> Apps</RadzenText>
 
-                                    @foreach (WebsiteData i in _DB.Websites.Cache.Values.Where(x => Member != null && Member.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite) && (Team != null && Team.DefaultPermissions.HasWebsitePermission(WebsitePermission.ViewWebsite)) || SelectedRole.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite)))
-                                    {
-                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/websites/" + i.GetVanityUrlOrId() + "/home")">
-                                        <div class="server-item">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
-                                        </div>
-                                        </a>
-                                    }
-                                    </RadzenStack>
+                                            @foreach (AppData i in _DB.Apps.Cache.Values.Where(x => Member != null && Member.HasAppPermission(Team, x, AppPermission.ViewApp) && (Team != null && Team.DefaultPermissions.HasAppPermission(AppPermission.ViewApp)) || SelectedRole.HasAppPermission(Team, x, AppPermission.ViewApp)))
+                                            {
+                                                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + i.GetVanityUrlOrId() + "/home")">
+                                                    <div class="server-item">
+                                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                                    </div>
+                                                </a>
+                                            }
+                                        </RadzenStack>
 
-                                    <RadzenStack Gap="6px" class="permission-grid-box">
-                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:lightbulb"></span> Projects</RadzenText>
+                                        <RadzenStack Gap="6px" class="permission-grid-box">
+                                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:web"></span> Websites</RadzenText>
 
-                                    @foreach (ProjectData i in _DB.Projects.Cache.Values.Where(x => Member != null && Member.HasProjectPermission(Team, x, ProjectPermission.ViewProject) && (Team != null && Team.DefaultPermissions.HasProjectPermission(ProjectPermission.ViewProject)) || SelectedRole.HasProjectPermission(Team, x, ProjectPermission.ViewProject)))
-                                    {
-                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + i.GetVanityUrlOrId() + "/home")">
-                                        <div class="server-item">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
-                                        </div>
-                                        </a>
-                                    }
-                                    </RadzenStack>
+                                            @foreach (WebsiteData i in _DB.Websites.Cache.Values.Where(x => Member != null && Member.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite) && (Team != null && Team.DefaultPermissions.HasWebsitePermission(WebsitePermission.ViewWebsite)) || SelectedRole.HasWebsitePermission(Team, x, WebsitePermission.ViewWebsite)))
+                                            {
+                                                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/websites/" + i.GetVanityUrlOrId() + "/home")">
+                                                    <div class="server-item">
+                                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                                    </div>
+                                                </a>
+                                            }
+                                        </RadzenStack>
 
-                                    <RadzenStack Gap="6px" class="permission-grid-box">
-                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:warning"></span> Logs</RadzenText>
+                                        <RadzenStack Gap="6px" class="permission-grid-box">
+                                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:lightbulb"></span> Projects</RadzenText>
 
-                                    @foreach (LogData i in _DB.Logs.Cache.Values.Where(x => Member != null && Member.HasLogPermission(Team, x, LogPermission.ViewLog) && (Team != null && Team.DefaultPermissions.HasLogPermission(LogPermission.ViewLog)) || SelectedRole.HasLogPermission(Team, x, LogPermission.ViewLog)))
-                                    {
-                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/logs/" + i.GetVanityUrlOrId() + "/home")">
-                                        <div class="server-item">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
-                                        </div>
-                                        </a>
-                                    }
-                                    </RadzenStack>
+                                            @foreach (ProjectData i in _DB.Projects.Cache.Values.Where(x => Member != null && Member.HasProjectPermission(Team, x, ProjectPermission.ViewProject) && (Team != null && Team.DefaultPermissions.HasProjectPermission(ProjectPermission.ViewProject)) || SelectedRole.HasProjectPermission(Team, x, ProjectPermission.ViewProject)))
+                                            {
+                                                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + i.GetVanityUrlOrId() + "/home")">
+                                                    <div class="server-item">
+                                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                                    </div>
+                                                </a>
+                                            }
+                                        </RadzenStack>
 
-                                    <RadzenStack Gap="6px" class="permission-grid-box">
-                                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05"><span class="iconify" data-icon="mdi:console"></span> Consoles</RadzenText>
+                                        <RadzenStack Gap="6px" class="permission-grid-box">
+                                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1"><span class="iconify" data-icon="mdi:warning"></span> Logs</RadzenText>
 
-                                    @foreach (ConsoleData i in _DB.Consoles.Cache.Values.Where(x => Member != null && Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole) && (Team != null && Team.DefaultPermissions.HasConsolePermission(ConsolePermission.ViewConsole)) || SelectedRole.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)))
-                                    {
-                                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + i.GetVanityUrlOrId() + "/home")">
-                                        <div class="server-item">
-                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
-                                        </div>
-                                        </a>
-                                    }
-                                    </RadzenStack>
+                                            @foreach (LogData i in _DB.Logs.Cache.Values.Where(x => Member != null && Member.HasLogPermission(Team, x, LogPermission.ViewLog) && (Team != null && Team.DefaultPermissions.HasLogPermission(LogPermission.ViewLog)) || SelectedRole.HasLogPermission(Team, x, LogPermission.ViewLog)))
+                                            {
+                                                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/logs/" + i.GetVanityUrlOrId() + "/home")">
+                                                    <div class="server-item">
+                                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                                    </div>
+                                                </a>
+                                            }
+                                        </RadzenStack>
+
+                                        <RadzenStack Gap="6px" class="permission-grid-box">
+                                            <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05"><span class="iconify" data-icon="mdi:console"></span> Consoles</RadzenText>
+
+                                            @foreach (ConsoleData i in _DB.Consoles.Cache.Values.Where(x => Member != null && Member.HasConsolePermission(Team, x, ConsolePermission.ViewConsole) && (Team != null && Team.DefaultPermissions.HasConsolePermission(ConsolePermission.ViewConsole)) || SelectedRole.HasConsolePermission(Team, x, ConsolePermission.ViewConsole)))
+                                            {
+                                                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + i.GetVanityUrlOrId() + "/home")">
+                                                    <div class="server-item">
+                                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-0">@i.Name</RadzenText>
+                                                    </div>
+                                                </a>
+                                            }
+                                        </RadzenStack>
                                     </RadzenStack>
 
                                 </div>
@@ -259,7 +273,7 @@
                         </Tabs>
                     </RadzenTabs>
 
-                    
+
                 }
             </RadzenColumn>
         </RadzenRow>
@@ -304,10 +318,10 @@
         background: none !important;
     }
 
-    .rz-listbox, .rz-listbox:active {
-        box-shadow: none !important;
-        border: none !important;
-    }
+        .rz-listbox, .rz-listbox:active {
+            box-shadow: none !important;
+            border: none !important;
+        }
 
     .rz-listbox-header {
         background-color: var(--rz-listbox-background-color) !important;
@@ -321,22 +335,26 @@
     }
 
     .rz-colorpicker-popup {
-    padding: 6px;
-}
-.rz-colorpicker-popup .rz-hue-picker {
-    margin-top: 10px;
-    margin-left: 10px;
-    margin-right: 10px;
-}
-.rz-colorpicker-popup .rz-alpha-picker {
-    display: none;
-}
-.rz-colorpicker-popup .rz-color-box:last-child {
-    display: none;
-}
-.rz-py-2:last-child {
-    max-width: calc(100% - 300px) !important;
-}
+        padding: 6px;
+    }
+
+        .rz-colorpicker-popup .rz-hue-picker {
+            margin-top: 10px;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .rz-colorpicker-popup .rz-alpha-picker {
+            display: none;
+        }
+
+        .rz-colorpicker-popup .rz-color-box:last-child {
+            display: none;
+        }
+
+    .rz-py-2:last-child {
+        max-width: calc(100% - 300px) !important;
+    }
 </style>
 
 <style>
@@ -351,7 +369,6 @@
         margin-bottom: 4px;
         box-shadow: var(--rz-card-shadow);
         min-height: 80px;
-        
     }
 
         .permission-grid-box .rz-text-subtitle1 {

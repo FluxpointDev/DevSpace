@@ -18,7 +18,7 @@ Blockly.Blocks['data_selector_webhook'] = {
         this.setOutput(true, Connections.TextSingle);
         this.setColour(120);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
 
     },
     onchange: function (change) {
@@ -61,7 +61,7 @@ Blockly.Blocks['data_webhook_active'] = {
         this.setOutput(true, null);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -78,7 +78,7 @@ Blockly.Blocks['action_set_active_webhook'] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 
@@ -105,7 +105,7 @@ Blockly.Blocks['data_webhook_get'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 
@@ -132,7 +132,7 @@ Blockly.Blocks['data_webhook_get_url'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 

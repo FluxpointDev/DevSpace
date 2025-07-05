@@ -93,7 +93,7 @@ public class WorkspaceController : ControllerBase
                     {
                         return Content(@"{ ""blocks"": { ""blocks"": [
                                      { 
-                                        ""type"": ""block_command"", ""deletable"": false, ""x"": 380, ""y"": 160,
+                                        ""type"": ""block_command"", ""x"": 380, ""y"": 160,
                                         ""fields"": { ""name"": """ + Workspace.CommandFormat + @""" }
                                     }
                                     ] } }", "application/json");
@@ -102,7 +102,7 @@ public class WorkspaceController : ControllerBase
                     {
                         return Content(@"{ ""blocks"": { ""blocks"": [
                                      { 
-                                        ""type"": ""block_user_command"", ""deletable"": false, ""x"": 380, ""y"": 160,
+                                        ""type"": ""block_user_command"", ""x"": 380, ""y"": 160,
                                         ""fields"": { ""name"": """ + Workspace.CommandFormat + @""" }
                                     }
                                     ] } }", "application/json");
@@ -111,7 +111,7 @@ public class WorkspaceController : ControllerBase
                     {
                         return Content(@"{ ""blocks"": { ""blocks"": [
                                      { 
-                                        ""type"": ""block_message_command"", ""deletable"": false, ""x"": 380, ""y"": 160,
+                                        ""type"": ""block_message_command"", ""x"": 380, ""y"": 160,
                                         ""fields"": { ""name"": """ + Workspace.CommandFormat + @""" }
                                     }
                                     ] } }", "application/json");
@@ -120,7 +120,7 @@ public class WorkspaceController : ControllerBase
                     {
                         return Content(@"{ ""blocks"": { ""blocks"": [
                                      { 
-                                        ""type"": ""block_interaction_button"", ""deletable"": false, ""x"": 380, ""y"": 160,
+                                        ""type"": ""block_interaction_button"", ""x"": 380, ""y"": 160,
                                         ""fields"": { ""name"": """ + Workspace.CommandFormat + @""" }
                                     }
                                     ] } }", "application/json");
@@ -130,7 +130,7 @@ public class WorkspaceController : ControllerBase
                     {
                         return Content(@"{ ""blocks"": { ""blocks"": [
                                      { 
-                                        ""type"": ""block_interaction_modal"", ""deletable"": false, ""x"": 380, ""y"": 160,
+                                        ""type"": ""block_interaction_modal"", ""x"": 380, ""y"": 160,
                                         ""fields"": { ""name"": """ + Workspace.CommandFormat + @""" },
                                         ""inputs"": { ""modal_title"": { ""block"": { ""type"": ""text"" }  } }
                                     }

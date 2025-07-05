@@ -22,7 +22,7 @@
             <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
         </div>
         <RadzenText TextStyle="TextStyle.H6">Docker Volumes</RadzenText>
-        @if ((IsLoading || IsActionRunning) && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
+        @if ((IsLoading) && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
         {
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
@@ -44,17 +44,17 @@
     {
         <div class="dash-box-content">
             <ActionBar>
-                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumesAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(IsActionRunning || IsLoading || !AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Filled" Text="Create Volume" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateVolume" Disabled="@(IsActionRunning || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
-                <RadzenButton Variant="Variant.Filled" Text="Prune Volumes" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@PruneVolumes" Disabled="@(IsActionRunning || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
-                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshVolume" Disabled="@(IsActionRunning || IsLoading)" />
-                <RadzenFormField Variant="Variant.Outlined">
+                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumesAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(IsLoading || !AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Filled" Text="Create Volume" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateVolume" Disabled="@(IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
+                <RadzenButton Variant="Variant.Filled" Text="Prune Volumes" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@PruneVolumes" Disabled="@(IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
+                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshVolume" Disabled="@(IsLoading)" />
+                <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
                     <Start>
                         <RadzenIcon Icon="search" />
                     </Start>
                     <ChildContent>
                         <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-                                       autocapitalize="none" MaxLength="100" inputmode="search"
+                                       autocapitalize="none" MaxLength="100" Placeholder="Search volumes" inputmode="search"
                                        @oninput="@(args => SetNameFilter(args.Value as string))" />
                     </ChildContent>
                     <End>
@@ -78,11 +78,11 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                                     Value="@(SelectedVolumes == null || SelectedVolumes?.Any() != true ? false : !VolumesList.All(i => SelectedVolumes.Contains(i)) ? null : VolumesList.Any(i => SelectedVolumes.Contains(i)))"
-                                        Change="@(args => SelectedVolumes = args == true ? (SelectedVolumes != null && SelectedVolumes.Any()) ? null : VolumesList.ToList() : null)" Disabled="@(IsActionRunning || Count == 0)" />
+                                        Change="@(args => SelectedVolumes = args == true ? (SelectedVolumes != null && SelectedVolumes.Any()) ? null : VolumesList.ToList() : null)" Disabled="@(IsLoading || Count == 0)" />
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedVolumes != null && SelectedVolumes.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                                        TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsActionRunning" />
+                                        TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsLoading" />
                 </Template>
             </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(DockerVolumeInfo.Name)">
@@ -113,7 +113,7 @@
             <RadzenDataGridColumn Title="Actions" Width="70px" Filterable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || IsActionRunning)" />
+                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading)" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
@@ -173,7 +173,6 @@
     public bool AnySelected => SelectedVolumes != null ? SelectedVolumes.Any() : false;
     RadzenDataGrid<DockerVolumeInfo> Grid = null!;
     public bool IsLoading = true;
-    public bool IsActionRunning { get; set; }
 
     public string? SearchText { get; set; }
     public async Task SetNameFilter(string? text)
@@ -308,14 +307,14 @@
 
         _ = Task.Run(async () =>
         {
-            IsActionRunning = true;
+            IsLoading = true;
             await InvokeAsync(StateHasChanged);
 
             foreach(DockerVolumeInfo i in SelectedVolumes)
             {
                 await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, i.Name, volumeType: type));
             }
-            IsActionRunning = false;
+            IsLoading = false;
             SelectedVolumes = null;
             await InvokeAsync(RefreshVolume);
         });
@@ -370,13 +369,13 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
                             return;
 
-                        IsActionRunning = true;
+                        IsLoading = true;
                         await InvokeAsync(StateHasChanged);
                         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, item.Name, volumeType: ControlVolumeType.Remove), (response) =>
                         {
 
                         });
-                        IsActionRunning = false;
+                        IsLoading = false;
                         await InvokeAsync(RefreshVolume);
                     }
                     break;
@@ -395,13 +394,13 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))
                             return;
 
-                        IsActionRunning = true;
+                        IsLoading = true;
                         await InvokeAsync(StateHasChanged);
                         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, volumeType: ControlVolumeType.ForceRemove) { ResourceList = new string[] { item.Name } }, (response) =>
                         {
                             InvokeAsync(RefreshVolume);
                         });
-                        IsActionRunning = false;
+                        IsLoading = false;
                         await InvokeAsync(RefreshVolume);
 
                     }
@@ -456,7 +455,7 @@
         if (!Confirm)
             return;
 
-        IsActionRunning = true;
+        IsLoading = true;
         StateHasChanged();
         try
         {
@@ -481,7 +480,7 @@
                 }
             }
         }
-        IsActionRunning = false;
+        IsLoading = false;
         StateHasChanged();
         await RefreshVolume();
     }

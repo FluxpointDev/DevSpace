@@ -22,7 +22,7 @@
             <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
         </div>
         <RadzenText TextStyle="TextStyle.H6">Docker Networks</RadzenText>
-        @if ((IsLoading || IsActionRunning) && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
+        @if ((IsLoading) && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.ViewNetworks))
         {
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
@@ -45,17 +45,17 @@
 
     <div class="dash-box-content">
         <ActionBar>
-                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedNetworksAction(ControlNetworkType.Remove))" Icon="delete" Disabled="@(IsActionRunning || IsLoading || !AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                <RadzenButton Variant="Variant.Filled" Text="Create Network" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateNetwork" Disabled="@(IsActionRunning || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
-                <RadzenButton Variant="Variant.Filled" Text="Prune Networks" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@PruneNetworks" Disabled="@(IsActionRunning || IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
+                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedNetworksAction(ControlNetworkType.Remove))" Icon="delete" Disabled="@(IsLoading || !AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                <RadzenButton Variant="Variant.Filled" Text="Create Network" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateNetwork" Disabled="@(IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
+                <RadzenButton Variant="Variant.Filled" Text="Prune Networks" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@PruneNetworks" Disabled="@(IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))" />
                 <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshNetworks" Disabled="@IsLoading" />
-            <RadzenFormField Variant="Variant.Outlined">
+                <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
                     <Start>
                         <RadzenIcon Icon="search" />
                     </Start>
                     <ChildContent>
                         <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-                                       autocapitalize="none" MaxLength="100" inputmode="search"
+                                       autocapitalize="none" MaxLength="100" Placeholder="Search networks" inputmode="search"
                                        @oninput="@(args => SetNameFilter(args.Value as string))" />
                     </ChildContent>
                     <End>
@@ -80,10 +80,10 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select all items" }})"
                                     Value="@(SelectedNetworks == null || SelectedNetworks?.Any() != true ? false : !NetworksList.All(i => SelectedNetworks.Contains(i)) ? null : NetworksList.Any(i => SelectedNetworks.Contains(i)))"
-                                        Change="@(args => SelectedNetworks = args == true ? (SelectedNetworks != null && SelectedNetworks.Any()) ? null : NetworksList.Where(x => !x.IsNetworkSystem()).ToList() : null)" Disabled="@(IsActionRunning || Count == 0)" />
+                                        Change="@(args => SelectedNetworks = args == true ? (SelectedNetworks != null && SelectedNetworks.Any()) ? null : NetworksList.Where(x => !x.IsNetworkSystem()).ToList() : null)" Disabled="@(IsLoading || Count == 0)" />
                 </HeaderTemplate>
                 <Template Context="data">
-                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedNetworks != null && SelectedNetworks.Contains(data))" Disabled="@(data.IsNetworkSystem() || IsActionRunning)" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
+                        <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedNetworks != null && SelectedNetworks.Contains(data))" Disabled="@(data.IsNetworkSystem() || IsLoading)" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"
                                         TValue="bool" Change="@(() => Grid.SelectRow(data))" />
                 </Template>
             </RadzenDataGridColumn>
@@ -112,7 +112,7 @@
             <RadzenDataGridColumn Title="Actions" Width="70px" Filterable="false">
                 <Template>
                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsActionRunning || IsLoading)" />
+                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading)" />
                     </RadzenStack>
                 </Template>
             </RadzenDataGridColumn>
@@ -202,7 +202,6 @@
     public bool AnySelected => SelectedNetworks != null ? SelectedNetworks.Any() : false;
     RadzenDataGrid<DockerNetworkInfo> Grid = null!;
     public bool IsLoading = true;
-    public bool IsActionRunning { get; set; }
 
     public string? SearchText { get; set; }
     public async Task SetNameFilter(string? text)
@@ -302,14 +301,14 @@
 
         _ = Task.Run(async () =>
         {
-            IsActionRunning = true;
+            IsLoading = true;
             await InvokeAsync(StateHasChanged);
 
             foreach(DockerNetworkInfo i in SelectedNetworks)
             {
                 await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, i.Id, networkType: type));
             }
-            IsActionRunning = false;
+            IsLoading = false;
             SelectedNetworks = null;
             await InvokeAsync(RefreshNetworks);
         });
@@ -360,10 +359,10 @@
                     if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageNetworks))
                         return;
 
-                    IsActionRunning = true;
+                    IsLoading = true;
                     await InvokeAsync(StateHasChanged);
                     await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, item.Id, networkType: ControlNetworkType.Remove));
-                    IsActionRunning = false;
+                    IsLoading = false;
                     await InvokeAsync(RefreshNetworks);
                     break;
                     case "copy":
@@ -408,7 +407,7 @@
         if (!Confirm)
             return;
 
-        IsActionRunning = true;
+        IsLoading = true;
         StateHasChanged();
         try
         {
@@ -433,7 +432,7 @@
                 }
             }
         }
-        IsActionRunning = false;
+        IsLoading = false;
         StateHasChanged();
         await RefreshNetworks();
     }

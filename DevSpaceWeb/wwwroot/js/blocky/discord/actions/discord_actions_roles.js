@@ -20,7 +20,7 @@ Blockly.Blocks["action_role_create"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -53,7 +53,7 @@ Blockly.Blocks['obj_role'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -73,7 +73,7 @@ Blockly.Blocks["action_role_modify"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -89,7 +89,7 @@ Blockly.Blocks["action_role_delete"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#972f40');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -104,7 +104,7 @@ Blockly.Blocks['obj_roles_list'] = {
         this.setOutput(true, null);
         this.setColour(230);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true);
     }
 };

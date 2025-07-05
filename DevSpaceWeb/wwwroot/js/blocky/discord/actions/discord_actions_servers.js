@@ -12,7 +12,7 @@ Blockly.Blocks["action_server_leave"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#972f40');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -40,7 +40,7 @@ Blockly.Blocks["action_server_create_emoji"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -64,7 +64,7 @@ Blockly.Blocks["action_server_modify_emoji"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -85,7 +85,7 @@ Blockly.Blocks['obj_emoji'] = {
         this.setOutput(true, null);
         this.setColour('#146a90');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -101,6 +101,6 @@ Blockly.Blocks["action_server_delete_emoji"] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#972f40');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };

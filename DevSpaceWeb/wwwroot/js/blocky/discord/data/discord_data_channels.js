@@ -21,7 +21,7 @@ Blockly.Blocks['data_selector_channel'] = {
         this.setOutput(true, Connections.TextSingle);
         this.setColour(120);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
 
     },
     onchange: function (change) {
@@ -71,7 +71,7 @@ Blockly.Blocks['data_channel_current'] = {
         this.setOutput(true, null);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -82,7 +82,7 @@ Blockly.Blocks['data_channel_active'] = {
         this.setOutput(true, null);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -106,7 +106,7 @@ Blockly.Blocks['data_selector_category'] = {
         this.setOutput(true, Connections.TextSingle);
         this.setColour(120);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
 
     },
     onchange: function (change) {
@@ -153,7 +153,7 @@ Blockly.Blocks['data_category_current'] = {
         this.setOutput(true, null);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -164,7 +164,7 @@ Blockly.Blocks['data_category_active'] = {
         this.setOutput(true, null);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     }
 };
 
@@ -181,7 +181,7 @@ Blockly.Blocks['action_set_active_channel'] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 
@@ -208,7 +208,7 @@ Blockly.Blocks['data_channel_get'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 
@@ -239,7 +239,7 @@ Blockly.Blocks['data_channel_get_in_server'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 
@@ -268,7 +268,7 @@ Blockly.Blocks['action_set_active_category'] = {
         this.setNextStatement(true, Connections.ActionsList);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 
@@ -295,7 +295,7 @@ Blockly.Blocks['data_category_get'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 
@@ -322,7 +322,7 @@ Blockly.Blocks['data_category_get_from_channel'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 
@@ -353,7 +353,7 @@ Blockly.Blocks['data_category_get_in_server'] = {
         this.setOutput(true, null);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
     },
     onchange: function (event) {
 

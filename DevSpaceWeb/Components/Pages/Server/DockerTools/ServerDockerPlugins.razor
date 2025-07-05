@@ -20,7 +20,7 @@
             <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
         </div>
         <RadzenText TextStyle="TextStyle.H6">Docker Plugins</RadzenText>
-        @if ((IsLoading || IsActionRunning) && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.ViewPlugins))
+        @if ((IsLoading) && Member != null && Member.HasDockerPermission(Team, Server, DockerPermission.ViewPlugins))
         {
             <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
         }
@@ -51,13 +51,13 @@
                 <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedPluginsAction(ControlPluginType.Remove))" Icon="delete" Disabled="@(!AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton Variant="Variant.Filled" Text="Install Plugin" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@InstallPlugin" Disabled="@(!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))" />
                 <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshPlugins" Disabled="@IsLoading" />
-                <RadzenFormField Variant="Variant.Outlined">
+                <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
                     <Start>
                         <RadzenIcon Icon="search" />
                     </Start>
                     <ChildContent>
                         <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-                                       autocapitalize="none" MaxLength="100" inputmode="search"
+                                       autocapitalize="none" MaxLength="100" Placeholder="Search plugins" inputmode="search"
                                        @oninput="@(args => SetNameFilter(args.Value as string))" />
                     </ChildContent>
                     <End>
@@ -83,11 +83,11 @@
                     <HeaderTemplate>
                         <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
                                         Value="@(SelectedPlugins == null || SelectedPlugins?.Any() != true ? false : !PluginsList.All(i => SelectedPlugins.Contains(i)) ? null : PluginsList.Any(i => SelectedPlugins.Contains(i)))"
-                                        Change="@(args => SelectedPlugins = args == true ? PluginsList.ToList() : null)" Disabled="@(IsActionRunning || Count == 0)" />
+                                        Change="@(args => SelectedPlugins = args == true ? PluginsList.ToList() : null)" Disabled="@(IsLoading || Count == 0)" />
                     </HeaderTemplate>
                     <Template Context="data">
                         <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedPlugins != null && SelectedPlugins.Contains(data))" InputAttributes="@(new Dictionary<string,object>(){ { "aria-label", "Select item" }})"
-                                        TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsActionRunning" />
+                                        TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsLoading" />
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(Plugin.Name)">
@@ -171,7 +171,6 @@
     public bool AnySelected => SelectedPlugins != null ? SelectedPlugins.Any() : false;
     RadzenDataGrid<Plugin> Grid;
     public bool IsLoading = true;
-    public bool IsActionRunning { get; set; }
 
     public string? SearchText { get; set; }
     public async Task SetNameFilter(string? text)
@@ -272,14 +271,14 @@
 
         _ = Task.Run(async () =>
         {
-            IsActionRunning = true;
+            IsLoading = true;
             await InvokeAsync(StateHasChanged);
             foreach(Plugin i in SelectedPlugins)
             {
                 await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, i.Name, pluginType: type));
             }
             SelectedPlugins = null;
-            IsActionRunning = false;
+            IsLoading = false;
             await InvokeAsync(RefreshPlugins);
         });
     }
@@ -289,9 +288,9 @@
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
                 new ContextMenuItem(){ Text = "View", Value = "view", Icon = "power", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewPlugins) },
-                new ContextMenuItem(){ Text = item.Enabled ? "Disable" : "Enable", Value = item.Enabled ? "disable" : "enable", Icon = item.Enabled ? "stop" : "power_settings_new", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins) },
-                new ContextMenuItem() { Text = "Upgrade", Value = "upgrade", Icon = "upgrade", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins) },
-                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins) },
+                new ContextMenuItem(){ Text = item.Enabled ? "Disable" : "Enable", Value = item.Enabled ? "disable" : "enable", Icon = item.Enabled ? "stop" : "power_settings_new", Disabled = IsLoading || Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins) },
+                new ContextMenuItem() { Text = "Upgrade", Value = "upgrade", Icon = "upgrade", Disabled = IsLoading || Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins) },
+                new ContextMenuItem(){ Text = "Remove", Value = "remove", Icon = "delete", Disabled = IsLoading || Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins) },
                 new ContextMenuItem() { Text = "Copy Plugin ID", Value = "copy", Icon = "content_copy" }
                                                  }, x => MenuItemClick(x, item));
     }
@@ -321,13 +320,13 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
                             return;
 
-                        IsActionRunning = true;
+                        IsLoading = true;
                         await InvokeAsync(StateHasChanged);
                         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Enable), (response) =>
                         {
                             item.Enabled = true;
                         });
-                        IsActionRunning = false;
+                        IsLoading = false;
                     }
                     break;
                 case "disable":
@@ -335,13 +334,13 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
                             return;
 
-                        IsActionRunning = true;
+                        IsLoading = true;
                         await InvokeAsync(StateHasChanged);
                         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Disable), (response) =>
                         {
                             item.Enabled = false;
                         });
-                        IsActionRunning = false;
+                        IsLoading = false;
                     }
                     break;
                 case "upgrade":
@@ -357,7 +356,7 @@
                             return;
                         }
 
-                        IsActionRunning = true;
+                        IsLoading = true;
                         await InvokeAsync(StateHasChanged);
 
                         SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.InstallCheck));
@@ -365,7 +364,7 @@
                         {
                             _ = Dialogs.ShowInfoAsync("Plugin Upgrade Failed", Response.Data as string);
 
-                            IsActionRunning = false;
+                            IsLoading = false;
                             await InvokeAsync(StateHasChanged);
                             return;
                         }
@@ -386,7 +385,7 @@
                                     {
                                         _ = Dialogs.ShowInfoAsync("Plugin Upgrade Failed", "You need to accept plugin permissions to upgrade.");
 
-                                        IsActionRunning = false;
+                                        IsLoading = false;
                                         await InvokeAsync(StateHasChanged);
                                         return;
                                     }
@@ -397,7 +396,7 @@
                         {
 
                         });
-                        IsActionRunning = false;
+                        IsLoading = false;
                         await InvokeAsync(RefreshPlugins);
                     }
                     break;
@@ -415,13 +414,13 @@
                         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManagePlugins))
                             return;
 
-                        IsActionRunning = true;
+                        IsLoading = true;
                         await InvokeAsync(StateHasChanged);
                         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Remove), (response) =>
                         {
 
                         });
-                        IsActionRunning = false;
+                        IsLoading = false;
                         await InvokeAsync(RefreshPlugins);
                     }
                     break;

@@ -68,6 +68,8 @@ public class RequestBlocks_Block
     public Dictionary<string, JToken> fields = new Dictionary<string, JToken>();
     public Dictionary<string, RequestBlocksBlock> inputs = new Dictionary<string, RequestBlocksBlock>();
     public RequestBlocksNext? next = null;
+    public double x;
+    public double y;
 
     public string GetVariableId()
     {

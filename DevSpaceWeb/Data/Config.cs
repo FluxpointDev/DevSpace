@@ -191,7 +191,12 @@ public class ConfigCustomProviderOptions
     public string? Authority;
     public string? ClientId;
     public string? ClientSecret;
+    public string[] scopes = new string[] { "email" };
     public bool GetClaimsFromUserInfoEndpoint;
+    public string idKey = "id";
+    public string usernameKey = "username";
+    public string emailKey = "email";
+
 }
 
 public class ConfigProviderAuthentik : ConfigProvider

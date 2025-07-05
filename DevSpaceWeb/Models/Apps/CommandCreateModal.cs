@@ -19,6 +19,7 @@ public class SlashCommandCreateModal
     [AppSlashCommandNameValidation(ErrorMessage = "Invalid characters, requires a-z lowercase.")]
     public string Name { get; set; }
 
+    [Required(ErrorMessage = "Description is required")]
     [MaxLength(300, ErrorMessage = "Description has a maximum of 300 characters")]
     public string Description { get; set; }
 }
