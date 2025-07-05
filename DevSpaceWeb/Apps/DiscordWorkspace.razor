@@ -55,6 +55,7 @@ else
                 }
             </div>
             <div class="d-flex container-end">
+
                 @* <MudButton Variant="Variant.Text" OnClick="@(() => SidebarKeyboardOpen = !SidebarKeyboardOpen)"><span class="iconify" data-icon="mdi:keyboard"></span></MudButton>
                 <MudMenu AnchorOrigin="Origin.BottomRight">
                     <ActivatorContent>
@@ -237,6 +238,10 @@ else
     .blocklyWidgetDiv .blocklyHtmlInput {
         color: #000 !important;
     }
+
+    .rz-p-1 {
+        padding: 0 !important;
+    }
 </style>
 
 <script type="module">
@@ -271,26 +276,19 @@ else
     import './js/blocky/discord/data/discord_data_users.js?v=2';
 
     import './js/blocky/discord/discord_logic.js?v=2';
-    // import { Multiselect, MultiselectBlockDragger } from './js/blocky/plugins/multi/multi.js';
-    // import { CustomDraggerManager } from './js/blocky/extensions/CustomDraggerManager.js';
-    // import * as En from "./js/blocky/langs/en.js";
+
+        import {
+      ScrollOptions
+    } from './js/blocky/plugins/scroll/drag_scroll.js';
+
+    import {ScrollMetricsManager,
+    } from './js/blocky/plugins/scroll/metrics.js';
+
+    import {
+      ScrollBlockDragger,
+    } from './js/blocky/plugins/scroll/dragger.js';
 
     try {
-        CustomMetricsManager.setFixedEdges({
-            top: true,
-            left: true,
-        });
-
-        // document.getElementById('OptionLanguage').addEventListener('change', function () {
-        //     switch (this.value) {
-        //         case 'ar':
-        //             Blockly.setLocale(Ar);
-        //             break;
-        //         case 'en':
-        //             Blockly.setLocale(En);
-        //             break;
-        //     }
-        // });
 
         const DarkTheme = Blockly.Theme.defineTheme('themeName', {
             'base': Blockly.Themes.Classic,
@@ -517,8 +515,8 @@ else
             "maxTrashcanContents": 5,
             "plugins": {
                 "connectionChecker": CustomConnectionManager,
-                //"blockDragger2": CustomDraggerManager,
-                'metricsManager2': CustomMetricsManager,
+                "blockDragger": ScrollBlockDragger,
+                "metricsManager": ScrollMetricsManager,
             },
             //"media": "https://novanode.dev/img/",
             "bumpNeighbours": true,
@@ -604,13 +602,8 @@ else
         //     }
         // });
 
-
-        //const multiselectPlugin = new Multiselect(workspace);
-        //multiselectPlugin.init(options);
-
         const workspaceSearch = new WorkspaceSearch(workspace);
         workspaceSearch.init();
-        workspace.addChangeListener(shadowBlockConversionChangeListener)
 
         const minimap = new PositionedMinimap(workspace);
         minimap.init();
@@ -620,21 +613,15 @@ else
         const contentHighlight = new ContentHighlight(workspace);
         window.WorkspaceUtils.Plugins.Highlighter = contentHighlight;
 
-        //const scrollPlugin = new ScrollOptions(workspace);
-        //scrollPlugin.init({ enableWheelScroll: false, enableEdgeScroll: true });
-
-        var json = { "blocks": { "blocks": [
-            { 
-                "type": "block_command", "x": 207, "y": 166,
-                        "fields": { "name": "test" }
-                    }
-        ] } }
+        const scrollPlugin = new ScrollOptions(workspace);
+        scrollPlugin.init({ enableWheelScroll: false, enableEdgeScroll: true });
 
         if (document.getElementById('WorkspaceIdValue') !== null) {
             window.blazorExtensions.LoadWorkspaceJson(workspace);
+            document.getElementById('WorkspaceLoading').style.display = "none";
         }
 
-        document.getElementById('WorkspaceLoading').style.display = "none";
+        
     }
     catch (exe) {
         console.log(exe);

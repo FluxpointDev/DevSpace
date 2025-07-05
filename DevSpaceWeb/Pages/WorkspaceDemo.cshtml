@@ -10,7 +10,7 @@
     <link href="../css/workspace.css" rel="stylesheet" />
 </head>
 <body>
-    <script src="js/iconify.min.js" async></script>
+    <script src="../js/iconify.min.js" async></script>
     <script src="../js/WorkspaceUtils.js"></script>
     <script src="../js/blocky/main.min.js"></script>
 
@@ -23,17 +23,14 @@
     <script src="../js/blocky/discord/ValidDiscordConnections.js"></script>
     <script src="../js/blocky/main/MainLogic.js"></script>
     <script src="../js/blocky/discord/DiscordLogic.js"></script>
-    <script src="../js/blocky/plugins/shadow_block.js"></script>
-    <script src="../js/blocky/plugins/custom_css.js"></script>
+    <script src="../js/blocky/extensions/category_icons.js"></script>
     <script src="../js/blocky/plugins/workspace_search.js"></script>
-    <script src="../js/blocky/plugins/fixed_edges.js"></script>
     <script src="../js/blocky/plugins/minimap.js"></script>
     <script src="../js/blocky/plugins/highlighter.js"></script>
     <script src="../js/blocky/plugins/toolbox_search.js"></script>
     <script src="../js/blocky/plugins/field_dependent_dropdown.js"></script>
 
     <script src="../js/blocky/extensions/ContextMenu.js"></script>
-    <script src="../js/blocky/extensions/CustomMetricsManager.js"></script>
     <script src="../js/blocky/extensions/CustomConnectionManager.js"></script>
     <script src="../js/blocky/extensions/StartupConfig.js"></script>
 
@@ -213,17 +210,8 @@
             import '../js/blocky/discord/data/discord_data_users.js?v=2';
 
             import '../js/blocky/discord/discord_logic.js?v=2';
-        // import { Multiselect, MultiselectBlockDragger } from './js/blocky/plugins/multi/multi.js';
-        // import { CustomDraggerManager } from './js/blocky/extensions/CustomDraggerManager.js';
-            //import * as En from "../js/blocky/langs/en.js";
-
 
         try {
-            CustomMetricsManager.setFixedEdges({
-                top: true,
-                left: true,
-            });
-
             // document.getElementById('OptionLanguage').addEventListener('change', function () {
             //     switch (this.value) {
             //         case 'ar':
@@ -408,9 +396,7 @@
                 "oneBasedIndex": false,
                 "maxTrashcanContents": 5,
                 "plugins": {
-                    "connectionChecker": CustomConnectionManager,
-                    //"blockDragger2": CustomDraggerManager,
-                    'metricsManager2': CustomMetricsManager,
+                    "connectionChecker": CustomConnectionManager
                 },
                 //"media": "https://novanode.dev/img/",
                 "bumpNeighbours": true,
@@ -490,20 +476,8 @@
                 }
             });
 
-            // workspace.getFlyout().getWorkspace().addChangeListener(function (event) {
-            //     if (event.type === "create" && event.json.type === "math_change") {
-            //         workspace.getFlyout().getWorkspace().blockDB.forEach(x => { if (x.type === "math_change") { x.dispose() } })
-            //     }
-            // });
-
-
-            //const multiselectPlugin = new Multiselect(workspace);
-            //multiselectPlugin.init(options);
-
             const workspaceSearch = new WorkspaceSearch(workspace);
             workspaceSearch.init();
-
-            workspace.addChangeListener(shadowBlockConversionChangeListener)
 
             const minimap = new PositionedMinimap(workspace);
             minimap.init();
@@ -513,26 +487,15 @@
             const contentHighlight = new ContentHighlight(workspace);
             window.WorkspaceUtils.Plugins.Highlighter = contentHighlight;
 
-            //const scrollPlugin = new ScrollOptions(workspace);
-            //scrollPlugin.init({ enableWheelScroll: false, enableEdgeScroll: true });
-
             var json = { "blocks": { "blocks": [
                 {
-                    "type": "block_command", "x": 207, "y": 166,
+                    "type": "block_command", "deletable": false, "x": 207, "y": 166,
                             "fields": { "name": "test" }
                         }
             ] } }
 
-            if (document.getElementById('WorkspaceIdValue') === null) {
-                Blockly.serialization.workspaces.load(json, workspace);
-                window.blazorExtensions.WarningsEnabled = true;
-            }
-            else {
-                Blockly.serialization.workspaces.load(json, workspace);
-                window.blazorExtensions.WarningsEnabled = true;
-            }
-
-
+            Blockly.serialization.workspaces.load(json, workspace);
+            window.blazorExtensions.WarningsEnabled = true;
 
             document.getElementById('WorkspaceLoading').style.display = "none";
         }
