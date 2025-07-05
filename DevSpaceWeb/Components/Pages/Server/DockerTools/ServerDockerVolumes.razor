@@ -44,27 +44,31 @@
     {
         <div class="dash-box-content">
             <ActionBar>
-                <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumesAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(IsLoading || !AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
                 <RadzenButton Variant="Variant.Filled" Text="Create Volume" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateVolume" Disabled="@(IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
                 <RadzenButton Variant="Variant.Filled" Text="Prune Volumes" Icon="delete" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" Click="@PruneVolumes" Disabled="@(IsLoading || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" />
-                <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshVolume" Disabled="@(IsLoading)" />
-                <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
-                    <Start>
-                        <RadzenIcon Icon="search" />
-                    </Start>
-                    <ChildContent>
-                        <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-                                       autocapitalize="none" MaxLength="100" Placeholder="Search volumes" inputmode="search"
-                                       @oninput="@(args => SetNameFilter(args.Value as string))" />
-                    </ChildContent>
-                    <End>
-                        @if (!string.IsNullOrWhiteSpace(SearchText))
-                        {
-                            <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
-                        }
-                    </End>
-                </RadzenFormField>
             </ActionBar>
+            <div class="mt-2">
+                <ActionBar>
+                    <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Remove" Click="@(() => RunSelectedVolumesAction(ControlVolumeType.Remove))" Icon="delete" Disabled="@(IsLoading || !AnySelected || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageVolumes))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                    <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshVolume" Disabled="@(IsLoading)" />
+                    <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
+                        <Start>
+                            <RadzenIcon Icon="search" />
+                        </Start>
+                        <ChildContent>
+                            <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                           autocapitalize="none" MaxLength="100" Placeholder="Search volumes" inputmode="search"
+                                           @oninput="@(args => SetNameFilter(args.Value as string))" />
+                        </ChildContent>
+                        <End>
+                            @if (!string.IsNullOrWhiteSpace(SearchText))
+                            {
+                                <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                            }
+                        </End>
+                    </RadzenFormField>
+                </ActionBar>
+            </div>
         </div>
     <RadzenDataGrid @ref="@Grid" AllowRowSelectOnRowClick="false" Data="@VolumesList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage" GridLines="DataGridGridLines.Horizontal"
