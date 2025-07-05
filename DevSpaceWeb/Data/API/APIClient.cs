@@ -16,6 +16,7 @@ namespace DevSpaceWeb.Data.API;
 public class APIClient : IObject
 {
     public required string Name { get; set; }
+    public string? Description { get; set; }
     public ObjectId OwnerId { get; set; }
     public ObjectId TeamId { get; set; }
     public bool IsDisabled { get; set; }

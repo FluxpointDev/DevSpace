@@ -1,6 +1,9 @@
 ﻿@using DevSpaceWeb.Data.API
 @using DevSpaceWeb.Models.Teams
+@using System.Linq.Dynamic.Core
 @inject Radzen.DialogService dialogService
+@inject ContextMenuService ContextMenuService
+@inject IJSRuntime JS
 
 <PageTitle>Team API Settings | @_Data.Config.Instance.Name</PageTitle>
 
@@ -17,7 +20,6 @@
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" Text="@Session.Selected.Team?.Data.Name" />
         <RadzenBreadCrumbItem Text="API" />
     </RadzenBreadCrumb>
-    <br />
 
     @if (Member == null || !Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(Team, APIPermission.ViewAllAPIs))
     {
@@ -30,32 +32,81 @@
         <br />
         <ActionBar>
             <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create API Client" Click="@CreateApi" Disabled="(!(Member.HasAPIPermission(Team, APIPermission.CreateOwnAPIs)))" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshAPIs" />
             <a href="https://docs.fluxpoint.dev/devspace/api" target="_blank"><RadzenButton Text="API Docs" Icon="menu_book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+            <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <Start>
+                    <RadzenIcon Icon="search" />
+                </Start>
+                <ChildContent>
+                    <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                   autocapitalize="none" MaxLength="100" Placeholder="Search clients" inputmode="search"
+                                   @oninput="@(args => SetNameFilter(args.Value as string))" />
+                </ChildContent>
+                <End>
+                    @if (!string.IsNullOrWhiteSpace(SearchText))
+                    {
+                        <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                    }
+                </End>
+            </RadzenFormField>
         </ActionBar>
-        
+
         <br />
-        <br />
-        <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
-            @foreach (APIClient i in _DB.API.Cache.Values.Where(x => x.HasAccess(Member, false)))
-            {
-                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/api/" + i.Id.ToString())">
-                    <div class="api-item">
-                        <h6>@i.Name</h6>
-                    </div>
-                </a>
-            }
-        </RadzenStack>
+        <RadzenDataGrid @ref="@Grid" Data="@APIList" LoadData="@LoadData" Count="@APICount" IsLoading="@IsLoading"
+                        Density="Density.Compact" EmptyText="No APIs."
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
+                        GridLines="DataGridGridLines.Horizontal"
+                        PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
+                        PagingSummaryFormat="@(APICount + " api" + (APICount != 1 ? "s" : ""))"
+                        AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        TItem="APIClient" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
+            <Columns>
+                <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(APIClient.Name)">
+                    <Template>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/api/" + context.Id.ToString())" Text="@context.Name" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(APIClient.IsDisabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@DisabledFilterProvider.Instance">
+                    <Template>
+                        @if (!context.IsDisabled)
+                        {
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Enabled" IsPill="true" />
+                        }
+                        else
+                        {
+                            <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Disabled" IsPill="true" />
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Owner" Width="220px" Filterable="false">
+                    <Template>
+                        <MemberStrip Team="@Team" UserId="@context.OwnerId"></MemberStrip>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Created" Width="140px" Filterable="false">
+                    <Template>
+                        @Utils.GetLocalDate(Session, context.CreatedAt)
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Description">
+                    <Template>
+                        @context.Description
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
     }
 
 </div>
 
 <style>
     .api-item {
-    padding: 10px;
-    padding-left: 20px;
-    padding-right: 20px;
-    border-radius: 8px;
-    background-color: rgba(52,53,63,0.8) !important;
+        padding: 10px;
+        padding-left: 20px;
+        padding-right: 20px;
+        border-radius: 8px;
+        background-color: rgba(52,53,63,0.8) !important;
     }
 </style>
 
@@ -65,6 +116,81 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
+
+    public RadzenTextBox SearchBox { get; set; } = null!;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SearchBox != null)
+            _ = SearchBox.FocusAsync();
+    }
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(0).SetFilterValueAsync(text);
+        }
+        catch { }
+    }
+
+    public IQueryable<APIClient>? APIList = null;
+    public RadzenDataGrid<APIClient> Grid { get; set; } = null!;
+    public int APICount { get; set; } = -1;
+
+    public async Task RefreshAPIs()
+    {
+        await Grid.Reload();
+    }
+
+    public bool IsLoading = true;
+
+    public async Task LoadData(LoadDataArgs args)
+    {
+        IsLoading = true;
+        var query = _DB.API.Cache.Values.Where(x => Member != null && x.HasAccess(Member, false)).AsQueryable();
+
+        if (!string.IsNullOrEmpty(args.Filter))
+            query = query.Where(args.Filter);
+
+        if (!string.IsNullOrEmpty(args.OrderBy))
+            query = query.OrderBy(args.OrderBy);
+
+        APICount = query.Count();
+        APIList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
+        IsLoading = false;
+    }
+
+    void ShowContextMenuWithManageItems(APIClient item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem() { Text = "Copy Client ID", Value = "copy", Icon = "content_copy" }
+                                             }, x => MenuItemClick(x, item));
+    }
+
+    void MenuItemClick(MenuItemEventArgs args, APIClient item)
+    {
+        if (Member == null || item == null)
+            return;
+
+        _ = Task.Run(async () =>
+        {
+            switch (args.Value.ToString())
+            {
+                case "copy":
+                    {
+                        try
+                        {
+                            await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.Id.ToString());
+                        }
+                        catch { }
+                    }
+                    break;
+            }
+        });
+    }
 
     public async Task CreateApi()
     {
@@ -80,11 +206,11 @@
                 return "You do not have Create Own APIs permission.";
 
             APIClient client = new APIClient
-                {
-                    Name = data.Name,
-                    OwnerId = Member.UserId,
-                    TeamId = Member.TeamId
-                };
+            {
+                Name = data.Name,
+                OwnerId = Member.UserId,
+                TeamId = Member.TeamId
+            };
             await _DB.API.CreateAsync(client);
             _DB.API.Cache.TryAdd(client.Id, client);
 
