@@ -18,9 +18,6 @@
         <RadzenBreadCrumbItem Text="API" />
     </RadzenBreadCrumb>
     <br />
-    <ActionBar>
-        <a href="https://docs.fluxpoint.dev/devspace/api" target="_blank"><RadzenButton Text="API Docs" Icon="menu_book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
-    </ActionBar>
 
     @if (Member == null || !Member.HasAPIPermission(Team, APIPermission.ViewOwnAPIs) && !Member.HasAPIPermission(Team, APIPermission.ViewAllAPIs))
     {
@@ -31,7 +28,11 @@
     else
     {
         <br />
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create API Client" Click="@CreateApi" Disabled="(!(Member.HasAPIPermission(Team, APIPermission.CreateOwnAPIs)))" />
+        <ActionBar>
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create API Client" Click="@CreateApi" Disabled="(!(Member.HasAPIPermission(Team, APIPermission.CreateOwnAPIs)))" Size="ButtonSize.Small" />
+            <a href="https://docs.fluxpoint.dev/devspace/api" target="_blank"><RadzenButton Text="API Docs" Icon="menu_book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+        </ActionBar>
+        
         <br />
         <br />
         <RadzenStack Orientation="Orientation.Vertical" Gap="10px">
