@@ -112,7 +112,7 @@ else
 
         try
         {
-            SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
+            SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
             Failed = !Result.IsSuccess;
             if (Failed || Result.Data == null)
                 return;

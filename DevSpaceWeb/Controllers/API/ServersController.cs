@@ -61,7 +61,7 @@ public class ServersController : APIController
         if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer, out ServerPermission? perm))
             return PermissionFailed(perm!);
 
-        SocketResponse<DevSpaceShared.Responses.SystemInfoResponse?> Response = await server.RecieveJsonAsync<DevSpaceShared.Responses.SystemInfoResponse>(new DockerEvent(DockerEventType.SystemInfo));
+        SocketResponse<SystemInfoResponse?> Response = await server.RecieveJsonAsync<SystemInfoResponse, DockerEvent>(new DockerEvent(DockerEventType.SystemInfo));
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get server data, " + Response.Message);
 
@@ -80,7 +80,7 @@ public class ServersController : APIController
         if (Client.CheckFailedServerPermissions(server, ServerPermission.ViewServer | ServerPermission.ViewHostInfo, out ServerPermission? perm))
             return PermissionFailed(perm!);
 
-        SocketResponse<SystemInfoFullResponse?> Response = await server.RecieveJsonAsync<SystemInfoFullResponse>(new DockerEvent(DockerEventType.HostInfo));
+        SocketResponse<SystemInfoFullResponse?> Response = await server.RecieveJsonAsync<SystemInfoFullResponse, DockerEvent>(new DockerEvent(DockerEventType.HostInfo));
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get server data, " + Response.Message);
 

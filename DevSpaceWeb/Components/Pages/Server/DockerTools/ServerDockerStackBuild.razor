@@ -150,7 +150,7 @@
         }
         IsBuilding = true;
 
-        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
+        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate, DockerEvent>(Notifications, new DockerEvent(DockerEventType.CreateStack)
         {
             Data = AgentJsonOptions.FromObject(new CreateStackEvent
             {
@@ -170,7 +170,7 @@
 
             StateHasChanged();
             StackId = res.Data?.Id;
-            SocketResponse<object?> Res = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
+            SocketResponse<object?> Res = await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
             if (!Res.IsSuccess)
                 StartFailed = true;
             else

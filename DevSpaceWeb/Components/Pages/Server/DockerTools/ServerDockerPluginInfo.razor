@@ -235,7 +235,7 @@ else
 
         try
         {
-            SocketResponse<Plugin?> Result = await Server.RunJsonAsync<Plugin>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Inspect));
+            SocketResponse<Plugin?> Result = await Server.RunJsonAsync<Plugin, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Inspect));
             Failed = !Result.IsSuccess;
             Plugin = Result.Data;
         }
@@ -267,7 +267,7 @@ else
 
         IsActionLoading = true;
 
-        SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Remove));
+        SocketResponse<object?> Result = await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, PluginId, pluginType: ControlPluginType.Remove));
         if (Result.IsSuccess)
             Plugin = null;
     }

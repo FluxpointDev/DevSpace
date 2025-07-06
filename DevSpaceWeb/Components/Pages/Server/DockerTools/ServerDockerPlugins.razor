@@ -222,7 +222,7 @@
                 IsLoading = true;
                 try
                 {
-                    PluginsResponse = await Server.RunJsonAsync<Plugin[]>(Notifications, new DockerEvent(DockerEventType.ListPlugins));
+                    PluginsResponse = await Server.RunJsonAsync<Plugin[], DockerEvent>(Notifications, new DockerEvent(DockerEventType.ListPlugins));
 
                 }
                 catch (Exception ex)
@@ -280,7 +280,7 @@
             await InvokeAsync(StateHasChanged);
             foreach(Plugin i in SelectedPlugins)
             {
-                await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, i.Name, pluginType: type));
+                await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, i.Name, pluginType: type));
             }
             SelectedPlugins = null;
             IsLoading = false;
@@ -327,7 +327,7 @@
 
                         IsLoading = true;
                         await InvokeAsync(StateHasChanged);
-                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Enable), (response) =>
+                        await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Enable), (response) =>
                         {
                             item.Enabled = true;
                         });
@@ -341,7 +341,7 @@
 
                         IsLoading = true;
                         await InvokeAsync(StateHasChanged);
-                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Disable), (response) =>
+                        await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Disable), (response) =>
                         {
                             item.Enabled = false;
                         });
@@ -364,7 +364,7 @@
                         IsLoading = true;
                         await InvokeAsync(StateHasChanged);
 
-                        SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.InstallCheck));
+                        SocketResponse<object?> Response = await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.InstallCheck));
                         if (!Response.IsSuccess)
                         {
                             _ = Dialogs.ShowInfoAsync("Plugin Upgrade Failed", Response.Data as string);
@@ -397,7 +397,7 @@
                             }
                         }
 
-                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Update), (response) =>
+                        await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Update), (response) =>
                         {
 
                         });
@@ -421,7 +421,7 @@
 
                         IsLoading = true;
                         await InvokeAsync(StateHasChanged);
-                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Remove), (response) =>
+                        await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, item.Name, null, ControlPluginType.Remove), (response) =>
                         {
 
                         });
@@ -465,7 +465,7 @@
 
         await Dialogs.ShowDynamicFormAsync<InstallPluginModel>("Install Plugin", new InstallPluginModel(), async (InstallPluginModel data) =>
         {
-            SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, data.Name, null, ControlPluginType.InstallCheck));
+            SocketResponse<object?> Response = await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, data.Name, null, ControlPluginType.InstallCheck));
             if (!Response.IsSuccess)
                 return "Plugin install failed: " + Response.Data as string;
 
@@ -484,7 +484,7 @@
                         return "You need to accept plugin permissions to install.";
                 }
             }
-            Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, data.Name, null, ControlPluginType.InstallFull));
+            Response = await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlPlugin, data.Name, null, ControlPluginType.InstallFull));
             if (!Response.IsSuccess)
                 return "Plugin install failed: " + Response.Data as string;
 

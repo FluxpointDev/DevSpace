@@ -91,7 +91,7 @@
             return;
         }
 
-        Stacks = await Server.RunJsonAsync<List<DockerStackInfo>>(Notifications, new DockerEvent(DockerEventType.ListPortainerStacks));
+        Stacks = await Server.RunJsonAsync<List<DockerStackInfo>, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ListPortainerStacks));
     }
 
     public SocketResponse<List<DockerStackInfo>?>? Stacks = null;
@@ -127,7 +127,7 @@
 
         IsLoading = true;
 
-        SocketResponse<DockerStackCreate?> Response = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.ControlStack, SelectedStack.Id, stackType: ControlStackType.ImportPortainer)
+        SocketResponse<DockerStackCreate?> Response = await Server.RunJsonAsync<DockerStackCreate, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlStack, SelectedStack.Id, stackType: ControlStackType.ImportPortainer)
         {
             Data = AgentJsonOptions.FromObject(new DockerStackInfo
             {

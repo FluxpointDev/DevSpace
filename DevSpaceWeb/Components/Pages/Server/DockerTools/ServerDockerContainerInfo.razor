@@ -1049,7 +1049,7 @@ else
             if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageContainers))
                 return "You do not have permission for Manage Containers";
 
-            SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Rename)
+            SocketResponse<object?> Result = await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Rename)
             {
                 Data = AgentJsonOptions.FromObject(new CreateContainerEvent
                 {
@@ -1087,7 +1087,7 @@ else
                 break;
         }
         IsActionLoading = true;
-        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Update)
+        await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Update)
         {
             Data = AgentJsonOptions.FromObject(new ContainerUpdateParameters
             {
@@ -1152,7 +1152,7 @@ else
 
         try
         {
-            SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
+            SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Inspect));
             Failed = !Result.IsSuccess;
             Container = Result.Data;
 
@@ -1236,7 +1236,7 @@ else
         }
 
         IsActionLoading = true;
-        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, type), async (res) =>
+        await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, type), async (res) =>
         {
 
         });
@@ -1284,11 +1284,11 @@ else
         SecurityScanRunning = true;
         try
         {
-            SocketResponse<CreateContainerResponse?> Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Scan));
+            SocketResponse<CreateContainerResponse?> Result = await Server.RunJsonAsync<CreateContainerResponse, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Scan));
             if (Result.IsSuccess && Result.Data != null)
             {
                 await Task.Delay(new TimeSpan(0, 0, 15));
-                SocketResponse<SecurityData?> ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
+                SocketResponse<SecurityData?> ScanResult = await Server.RunJsonAsync<SecurityData, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
                 {
                     Data = AgentJsonOptions.FromObject(new CreateContainerResponse
                     {
@@ -1299,7 +1299,7 @@ else
                 if (ScanResult.Data != null && ScanResult.Data.IsComplete.HasValue && !ScanResult.Data.IsComplete.Value)
                 {
                     await Task.Delay(new TimeSpan(0, 0, 15));
-                    ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
+                    ScanResult = await Server.RunJsonAsync<SecurityData, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
                     {
                         Data = AgentJsonOptions.FromObject(new CreateContainerResponse
                         {
@@ -1311,7 +1311,7 @@ else
                 if (ScanResult.Data != null && ScanResult.Data.IsComplete.HasValue && !ScanResult.Data.IsComplete.Value)
                 {
                     await Task.Delay(new TimeSpan(0, 0, 30));
-                    ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
+                    ScanResult = await Server.RunJsonAsync<SecurityData, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
                     {
                         Data = AgentJsonOptions.FromObject(new CreateContainerResponse
                         {
@@ -1493,7 +1493,7 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateContainers))
             return;
 
-        SocketResponse<CreateContainerResponse?> Result = await Server.RunJsonAsync<CreateContainerResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Recreate));
+        SocketResponse<CreateContainerResponse?> Result = await Server.RunJsonAsync<CreateContainerResponse, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Recreate));
         if (Result.IsSuccess && Result.Data != null)
         {
             Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + Result.Data.ID);
@@ -1538,7 +1538,7 @@ else
             return;
 
         IsActionLoading = true;
-        await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.LeaveNetwork)
+        await Server.RunJsonAsync<DockerNetworkInfo, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.LeaveNetwork)
         {
             Data = AgentJsonOptions.FromObject(new DockerContainerInfo
             {

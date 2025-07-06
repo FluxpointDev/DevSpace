@@ -216,7 +216,7 @@ else
 
         try
         {
-            SocketResponse<DockerContainerLogs?> Result = await Server.RunJsonAsync<DockerContainerLogs>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
+            SocketResponse<DockerContainerLogs?> Result = await Server.RunJsonAsync<DockerContainerLogs, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
             {
                 Data = AgentJsonOptions.FromObject(new ContainerLogsEvent
                 {
@@ -270,7 +270,7 @@ else
             return;
 
         RefreshTimer?.Stop();
-        SocketResponse<DockerContainerLogs?> Result = await Server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
+        SocketResponse<DockerContainerLogs?> Result = await Server.RecieveJsonAsync<DockerContainerLogs, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
         {
             Data = AgentJsonOptions.FromObject(new ContainerLogsEvent
             {

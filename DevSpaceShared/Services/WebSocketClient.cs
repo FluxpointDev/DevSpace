@@ -140,13 +140,14 @@ public class WebSocketClient : WssClient
         }
     }
 
-    public async Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
+    public async Task<SocketResponse<T?>> RecieveJsonAsync<T, InputJson>(InputJson json, CancellationToken token = default) where T : class where InputJson : IWebSocketTask
     {
         json.TaskId = Guid.NewGuid().ToString();
         TaskCompletionSource<JsonElement> tcs = new TaskCompletionSource<JsonElement>();
         Agent.TaskCollection.TryAdd(json.TaskId, tcs);
         DateTime Now = DateTime.UtcNow;
         string message = System.Text.Json.JsonSerializer.Serialize(json, AgentJsonOptions.Options);
+        Console.WriteLine("Send: " + message);
         SendTextAsync(message);
         TimeSpan Current = DateTime.UtcNow - Now;
         Console.WriteLine("Run Recieve Time: " + Current.TotalMilliseconds);

@@ -191,7 +191,7 @@
                 new DockerRegistry{ Type = DockerRegistryType.DockerHub, Name = "Docker Hub (Anonymous)", IsEnabled = true, IsDefault = true }
             }.AsQueryable();
 
-            SocketResponse<RegistryLimitResponse?> Response = await Server.RecieveJsonAsync<RegistryLimitResponse>(new DockerEvent(DockerEventType.GetPullLimit));
+            SocketResponse<RegistryLimitResponse?> Response = await Server.RecieveJsonAsync<RegistryLimitResponse, DockerEvent>(new DockerEvent(DockerEventType.GetPullLimit));
             if (Response.Data != null)
                 AnonymousPullLimit = Response.Data;
 

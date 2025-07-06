@@ -143,7 +143,7 @@
 
         UpdateStatus = UpdateStatusType.UpdatingNow;
 
-        SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse>(Notifications, new DockerEvent(DockerEventType.ControlContainer, "devspace-agent", containerType: ControlContainerType.Inspect));
+        SocketResponse<ContainerInspectResponse?> Result = await Server.RunJsonAsync<ContainerInspectResponse, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, "devspace-agent", containerType: ControlContainerType.Inspect));
 
         if (!Result.IsSuccess || Result.Data == null)
         {
@@ -204,7 +204,7 @@
 
         Logger.LogMessage($"Updater Command: " + RunCommand, LogSeverity.Debug);
 
-        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.CreateStack)
+        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate, DockerEvent>(Notifications, new DockerEvent(DockerEventType.CreateStack)
         {
             Data = AgentJsonOptions.FromObject(new CreateStackEvent
             {
@@ -225,7 +225,7 @@
 
         Logger.LogMessage($"Updater Start Stack", LogSeverity.Debug);
 
-        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
+        await Server.RecieveJsonAsync<object, DockerEvent>(new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Start));
 
         Logger.LogMessage($"Updater Check WebSocket", LogSeverity.Debug);
 
@@ -255,13 +255,13 @@
 
                     try
                     {
-                        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, "devspace-agent-updater", containerType: ControlContainerType.ForceRemove));
+                        await Server.RecieveJsonAsync<object, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, "devspace-agent-updater", containerType: ControlContainerType.ForceRemove));
                     }
                     catch { }
 
                     try
                     {
-                        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Remove));
+                        await Server.RecieveJsonAsync<object, DockerEvent>(new DockerEvent(DockerEventType.ControlStack, res.Data.Id, stackType: ControlStackType.Remove));
                     }
                     catch { }
                 }

@@ -127,7 +127,7 @@ public class ServerData : ITeamResource
         return false;
     }
 
-    public async Task<SocketResponse<T?>> RunJsonAsync<T>(Radzen.NotificationService notification, IWebSocketTask json, Action<SocketResponse<T?>>? action = null, CancellationToken token = default) where T : class
+    public async Task<SocketResponse<T?>> RunJsonAsync<T, InputJson>(Radzen.NotificationService notification, InputJson json, Action<SocketResponse<T?>>? action = null, CancellationToken token = default) where T : class where InputJson : IWebSocketTask
     {
         if (WebSocket == null)
             await StartWebSocket();
@@ -143,7 +143,7 @@ public class ServerData : ITeamResource
         return new SocketResponse<T?> { Error = ClientError.Exception };
     }
 
-    public async Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
+    public async Task<SocketResponse<T?>> RecieveJsonAsync<T, InputJson>(InputJson json, CancellationToken token = default) where T : class where InputJson : IWebSocketTask
     {
         if (WebSocket == null)
             await StartWebSocket();
@@ -151,7 +151,7 @@ public class ServerData : ITeamResource
         if (WebSocket == null || WebSocket.Error.HasValue)
             return new SocketResponse<T?> { Error = ClientError.Exception };
 
-        return await WebSocket.RecieveJsonAsync<T>(json, token);
+        return await WebSocket.RecieveJsonAsync<T, InputJson>(json, token);
     }
 
     public async Task UpdateAsync(UpdateDefinition<ServerData> update, Action action)

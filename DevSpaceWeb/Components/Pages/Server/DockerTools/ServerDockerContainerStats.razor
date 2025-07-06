@@ -417,7 +417,7 @@ else
 
         try
         {
-            SocketResponse<DockerContainerProcesses?> Result = await Server.RunJsonAsync<DockerContainerProcesses>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
+            SocketResponse<DockerContainerProcesses?> Result = await Server.RunJsonAsync<DockerContainerProcesses, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
             Failed = !Result.IsSuccess;
             Container = Result.Data;
 
@@ -480,7 +480,7 @@ else
         if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewContainerStats))
             return;
 
-        SocketResponse<DockerContainerProcesses?> Result = await Server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
+        SocketResponse<DockerContainerProcesses?> Result = await Server.RecieveJsonAsync<DockerContainerProcesses, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Processes));
         if (Result.IsSuccess && Result.Data != null)
         {
             Container.Data.Processes = Result.Data.Data.Processes;

@@ -239,7 +239,7 @@
                 IsLoading = true;
                 try
                 {
-                    StacksResponse = await Server.RunJsonAsync<List<DockerStackInfo>>(Notifications, new DockerEvent(DockerEventType.ListStacks));
+                    StacksResponse = await Server.RunJsonAsync<List<DockerStackInfo>, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ListStacks));
                 }
                 catch (Exception ex)
                 {
@@ -287,7 +287,7 @@
             await InvokeAsync(StateHasChanged);
             foreach (DockerStackInfo i in SelectedStacks)
             {
-                await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, i.Id, stackType: type));
+                await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlStack, i.Id, stackType: type));
             }
             IsLoading = false;
             SelectedStacks = null;
@@ -343,7 +343,7 @@
 
                     IsLoading = true;
                     await InvokeAsync(StateHasChanged);
-                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlStack, item.Id, stackType: ControlStackType.Remove));
+                    await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlStack, item.Id, stackType: ControlStackType.Remove));
                     IsLoading = false;
                     await InvokeAsync(RefreshStacks);
                     break;

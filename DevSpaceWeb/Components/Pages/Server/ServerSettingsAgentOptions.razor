@@ -1,4 +1,5 @@
 ﻿@using DevSpaceShared.Agent
+@using DevSpaceShared.WebSocket
 @using DevSpaceWeb.Models.Consoles
 @using DevSpaceWeb.Models.Servers
 @using System.Net
@@ -72,7 +73,7 @@
 
         IsActionLoading = true;
 
-        await Server.RunJsonAsync<AgentOptions>(Notifications, new AgentOptionsUpdate
+        await Server.RunJsonAsync<AgentOptions, AgentOptionsUpdate>(Notifications, new AgentOptionsUpdate
         {
             LogAgentEvents = value
         });
@@ -89,7 +90,7 @@
 
         IsActionLoading = true;
 
-        await Server.RunJsonAsync<AgentOptions>(Notifications, new AgentOptionsUpdate
+        await Server.RunJsonAsync<AgentOptions, AgentOptionsUpdate>(Notifications, new AgentOptionsUpdate
         {
             LogDockerEvents = value
         });
@@ -109,7 +110,7 @@
 
     public async Task LoadOptions()
     {
-        var Repsonse = await Server!.RunJsonAsync<AgentOptions>(Notifications, new DevSpaceShared.WebSocket.IWebSocketTask(DevSpaceShared.WebSocket.EventType.GetAgentOptions));
+        var Repsonse = await Server!.RunJsonAsync<AgentOptions, IWebSocketTask>(Notifications, new IWebSocketTask(DevSpaceShared.WebSocket.EventType.GetAgentOptions));
         if (Repsonse.Data != null)
             Options = Repsonse.Data;
 

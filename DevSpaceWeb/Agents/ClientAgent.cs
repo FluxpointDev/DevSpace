@@ -150,9 +150,9 @@ public class ClientAgent : IAgent
 
     }
 
-    public async Task<SocketResponse<T?>> RunJsonAsync<T>(NotificationService notification, IWebSocketTask json, Action<SocketResponse<T?>>? action = null, CancellationToken token = default) where T : class
+    public async Task<SocketResponse<T?>> RunJsonAsync<T, InputJson>(NotificationService notification, InputJson json, Action<SocketResponse<T?>>? action = null, CancellationToken token = default) where T : class where InputJson : IWebSocketTask
     {
-        SocketResponse<T?> Result = await RecieveJsonAsync<T>(json, token);
+        SocketResponse<T?> Result = await RecieveJsonAsync<T, InputJson>(json, token);
         if (Result.IsSuccess)
         {
             action?.Invoke(Result);
@@ -190,10 +190,10 @@ public class ClientAgent : IAgent
         return Result;
     }
 
-    public override Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
-        => WebSocket != null ? WebSocket.RecieveJsonAsync<T>(json, token) : DummyResponse<T>();
+    public override Task<SocketResponse<T?>> RecieveJsonAsync<T, InputJson>(InputJson json, CancellationToken token = default) where T : class
+        => WebSocket != null ? WebSocket.RecieveJsonAsync<T, InputJson>(json, token) : DummyResponse<T, InputJson>();
 
-    private async Task<SocketResponse<T?>> DummyResponse<T>()
+    private async Task<SocketResponse<T?>> DummyResponse<T, InputJson>()
     {
         return new SocketResponse<T?> { Error = ClientError.Exception };
     }

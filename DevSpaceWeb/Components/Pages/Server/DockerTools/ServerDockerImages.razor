@@ -265,7 +265,7 @@
             if (ImagesResponse == null)
             {
                 IsLoading = true;
-                await Server.RunJsonAsync<DockerImageInfo[]>(Notifications, new DockerEvent(DockerEventType.ListImages), (response) =>
+                await Server.RunJsonAsync<DockerImageInfo[], DockerEvent>(Notifications, new DockerEvent(DockerEventType.ListImages), (response) =>
                 {
                     ImagesResponse = response;
                 });
@@ -339,7 +339,7 @@
 
         foreach (DockerImageInfo i in SelectedImages)
         {
-            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, i.ID, imageType: type));
+            await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlImage, i.ID, imageType: type));
         }
         SelectedImages = null;
         IsLoading = false;
@@ -405,7 +405,7 @@
 
                         IsLoading = true;
                         await InvokeAsync(StateHasChanged);
-                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.Remove) { ResourceList = new string[] { item.ID } }, (response) =>
+                        await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.Remove) { ResourceList = new string[] { item.ID } }, (response) =>
                         {
 
                         });
@@ -428,7 +428,7 @@
 
                         IsLoading = true;
                         await InvokeAsync(StateHasChanged);
-                        await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.ForceRemove) { ResourceList = new string[] { item.ID } }, (response) =>
+                        await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlImage, imageType: ControlImageType.ForceRemove) { ResourceList = new string[] { item.ID } }, (response) =>
                         {
 
                         });
@@ -463,7 +463,7 @@
         if (!Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
             return;
 
-        SocketResponse<RegistryLimitResponse?> Response = await Server.RunJsonAsync<RegistryLimitResponse>(Notifications, new DockerEvent(DockerEventType.GetPullLimit));
+        SocketResponse<RegistryLimitResponse?> Response = await Server.RunJsonAsync<RegistryLimitResponse, DockerEvent>(Notifications, new DockerEvent(DockerEventType.GetPullLimit));
         RegistryLimitResponse? Limits = null;
         if (Response.IsSuccess)
             Limits = Response.Data;
@@ -501,7 +501,7 @@
         {
             IsLoading = true;
             await InvokeAsync(StateHasChanged);
-            await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.PruneImages), (rsponse) =>
+            await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.PruneImages), (rsponse) =>
             {
 
             });

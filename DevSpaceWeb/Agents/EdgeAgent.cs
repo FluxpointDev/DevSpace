@@ -36,9 +36,9 @@ public class EdgeAgent : IAgent
             WebSocket.Dispose();
     }
 
-    public async Task<SocketResponse<T?>> RunJsonAsync<T>(NotificationService notification, IWebSocketTask json, Action<SocketResponse<T?>>? action = null, CancellationToken token = default) where T : class
+    public async Task<SocketResponse<T?>> RunJsonAsync<T, InputJson>(NotificationService notification, InputJson json, Action<SocketResponse<T?>>? action = null, CancellationToken token = default) where T : class where InputJson : IWebSocketTask
     {
-        SocketResponse<T?> Result = await RecieveJsonAsync<T>(json, token);
+        SocketResponse<T?> Result = await RecieveJsonAsync<T, InputJson>(json, token);
         if (Result.IsSuccess)
         {
             action?.Invoke(Result);
@@ -76,7 +76,7 @@ public class EdgeAgent : IAgent
         return Result;
     }
 
-    public override async Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
+    public override async Task<SocketResponse<T?>> RecieveJsonAsync<T, InputJson>(InputJson json, CancellationToken token = default) where T : class
     {
         json.TaskId = Guid.NewGuid().ToString();
         Console.WriteLine("Edge Task: " + json.TaskId);

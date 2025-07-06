@@ -64,7 +64,7 @@
             return;
         }
 
-        Networks = await Server.RunJsonAsync<List<DockerNetworkInfo>>(Notifications, new DockerEvent(DockerEventType.ListNetworks));
+        Networks = await Server.RunJsonAsync<List<DockerNetworkInfo>, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ListNetworks));
         if (Networks.Data != null)
             Networks.Data = Networks.Data.Where(x => x.Name != "host" && x.Name != "none").OrderBy(x => x.Name).ToList();
     }
@@ -102,7 +102,7 @@
 
         IsLoading = true;
 
-        SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, SelectedNetwork.Id, networkType: ControlNetworkType.JoinNetwork)
+        SocketResponse<object?> Response = await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, SelectedNetwork.Id, networkType: ControlNetworkType.JoinNetwork)
         {
             Data = AgentJsonOptions.FromObject(new DockerContainerInfo
             {

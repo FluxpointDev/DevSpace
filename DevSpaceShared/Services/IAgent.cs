@@ -27,7 +27,7 @@ public class IAgent
 
     }
 
-    public virtual async Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
+    public virtual async Task<SocketResponse<T?>> RecieveJsonAsync<T, InputJson>(InputJson json, CancellationToken token = default) where T : class where InputJson : IWebSocketTask
     {
         return new SocketResponse<T?> { Error = ClientError.Exception };
     }

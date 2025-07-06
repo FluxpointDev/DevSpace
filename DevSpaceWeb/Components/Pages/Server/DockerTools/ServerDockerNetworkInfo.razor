@@ -371,7 +371,7 @@ else
 
         try
         {
-            SocketResponse<DockerNetworkInfo?> Result = await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.View));
+            SocketResponse<DockerNetworkInfo?> Result = await Server.RunJsonAsync<DockerNetworkInfo, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.View));
             Failed = !Result.IsSuccess;
             Network = Result.Data;
             if (Network != null && Program.IsPreviewMode && (NetworkId == "devspace-demo" || NetworkId == "d38254f7c4f952d6cc32c059e3aaf5993c304163880d179c14de81e60eecbb0c"))
@@ -404,7 +404,7 @@ else
             return;
 
         IsActionLoading = true;
-        await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.LeaveNetwork) { ResourceList = new string[] { id } }, (response) =>
+        await Server.RunJsonAsync<DockerNetworkInfo, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.LeaveNetwork) { ResourceList = new string[] { id } }, (response) =>
         {
 
         });
@@ -431,7 +431,7 @@ else
 
         IsActionLoading = true;
 
-        SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.Remove));
+        SocketResponse<object?> Result = await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, NetworkId, networkType: ControlNetworkType.Remove));
         if (Result.IsSuccess)
             Network = null;
     }

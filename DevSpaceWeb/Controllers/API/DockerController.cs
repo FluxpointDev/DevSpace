@@ -41,7 +41,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewStacks, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<List<DockerStackInfo>?> Response = await server.RecieveJsonAsync<List<DockerStackInfo>>(new DockerEvent(DockerEventType.ListStacks));
+        SocketResponse<List<DockerStackInfo>?> Response = await server.RecieveJsonAsync<List<DockerStackInfo>, DockerEvent>(new DockerEvent(DockerEventType.ListStacks));
 
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get stacks data, " + Response.Message);
@@ -67,7 +67,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<List<DockerContainerInfo>?> Response = await server.RecieveJsonAsync<List<DockerContainerInfo>>(new DockerEvent(DockerEventType.ListContainers));
+        SocketResponse<List<DockerContainerInfo>?> Response = await server.RecieveJsonAsync<List<DockerContainerInfo>, DockerEvent>(new DockerEvent(DockerEventType.ListContainers));
 
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get containers data, " + Response.Message);
@@ -96,7 +96,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<DockerStackInfo?> Response = await server.RecieveJsonAsync<DockerStackInfo>(new DockerEvent(DockerEventType.ControlStack, stackId, stackType: ControlStackType.View));
+        SocketResponse<DockerStackInfo?> Response = await server.RecieveJsonAsync<DockerStackInfo, DockerEvent>(new DockerEvent(DockerEventType.ControlStack, stackId, stackType: ControlStackType.View));
         if (!Response.IsSuccess)
             return Conflict("Failed to get stack data, " + Response.Message);
 
@@ -127,7 +127,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewStacks | DockerContainerPermission.ManageStacks, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<object?> Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlStack, stackId, stackType: ControlStackType.Remove));
+        SocketResponse<object?> Response = await server.RecieveJsonAsync<object, DockerEvent>(new DockerEvent(DockerEventType.ControlStack, stackId, stackType: ControlStackType.Remove));
         if (!Response.IsSuccess)
             return Conflict("Failed to remove stack, " + Response.Message);
 
@@ -155,7 +155,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<ContainerInspectResponse?> Response = await server.RecieveJsonAsync<ContainerInspectResponse>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Inspect));
+        SocketResponse<ContainerInspectResponse?> Response = await server.RecieveJsonAsync<ContainerInspectResponse, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Inspect));
         if (!Response.IsSuccess)
             return Conflict("Failed to get container data, " + Response.Message);
 
@@ -210,7 +210,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ControlContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<ContainerInspectResponse?> Response = await server.RecieveJsonAsync<ContainerInspectResponse>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: control));
+        SocketResponse<ContainerInspectResponse?> Response = await server.RecieveJsonAsync<ContainerInspectResponse, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: control));
         if (!Response.IsSuccess)
             return Conflict("Failed to control container, " + Response.Message);
 
@@ -241,7 +241,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ManageContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<object?> Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Rename)
+        SocketResponse<object?> Response = await server.RecieveJsonAsync<object, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Rename)
         {
             Data = AgentJsonOptions.FromObject(new CreateContainerEvent
             {
@@ -282,7 +282,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ViewContainerLogs, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<DockerContainerLogs?> Response = await server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Logs)
+        SocketResponse<DockerContainerLogs?> Response = await server.RecieveJsonAsync<DockerContainerLogs, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Logs)
         {
             Data = AgentJsonOptions.FromObject(new ContainerLogsEvent
             {
@@ -323,7 +323,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ViewContainerChanges, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<DockerContainerChanges?> Response = await server.RecieveJsonAsync<DockerContainerChanges>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Changes));
+        SocketResponse<DockerContainerChanges?> Response = await server.RecieveJsonAsync<DockerContainerChanges, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Changes));
 
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get container changes, " + Response.Message);
@@ -352,7 +352,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ViewContainerStats, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<DockerContainerStats?> Response = await server.RecieveJsonAsync<DockerContainerStats>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Stats));
+        SocketResponse<DockerContainerStats?> Response = await server.RecieveJsonAsync<DockerContainerStats, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Stats));
 
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get container stats, " + Response.Message);
@@ -381,7 +381,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ViewContainerStats, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<DockerContainerProcesses?> Response = await server.RecieveJsonAsync<DockerContainerProcesses>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Processes));
+        SocketResponse<DockerContainerProcesses?> Response = await server.RecieveJsonAsync<DockerContainerProcesses, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Processes));
 
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get container processes, " + Response.Message);
@@ -411,7 +411,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<ContainerInspectResponse?> Response = await server.RecieveJsonAsync<ContainerInspectResponse>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Inspect));
+        SocketResponse<ContainerInspectResponse?> Response = await server.RecieveJsonAsync<ContainerInspectResponse, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Inspect));
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get container details, " + Response.Message);
 
@@ -439,7 +439,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerContainerPermissions(server, DockerContainerPermission.ViewContainers | DockerContainerPermission.ManageContainers, out DockerContainerPermission? dockerContainerPerm))
             return PermissionFailed(dockerContainerPerm!);
 
-        SocketResponse<object?> Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: force ? ControlContainerType.ForceRemove : ControlContainerType.Remove));
+        SocketResponse<object?> Response = await server.RecieveJsonAsync<object, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: force ? ControlContainerType.ForceRemove : ControlContainerType.Remove));
         if (!Response.IsSuccess)
             return Conflict("Failed to remove container, " + Response.Message);
 
@@ -461,7 +461,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewImages, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm!);
 
-        SocketResponse<DockerImageInfo[]?> Response = await server.RecieveJsonAsync<DockerImageInfo[]>(new DockerEvent(DockerEventType.ListImages));
+        SocketResponse<DockerImageInfo[]?> Response = await server.RecieveJsonAsync<DockerImageInfo[], DockerEvent>(new DockerEvent(DockerEventType.ListImages));
 
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get images data, " + Response.Message);
@@ -487,7 +487,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewImages, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm!);
 
-        SocketResponse<DockerImageInfo?> Response = await server.RecieveJsonAsync<DockerImageInfo>(new DockerEvent(DockerEventType.ControlImage, imageId, imageType: ControlImageType.View));
+        SocketResponse<DockerImageInfo?> Response = await server.RecieveJsonAsync<DockerImageInfo, DockerEvent>(new DockerEvent(DockerEventType.ControlImage, imageId, imageType: ControlImageType.View));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get image data, " + Response.Message);
@@ -513,7 +513,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewVolumes, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm!);
 
-        SocketResponse<DockerVolumeInfo[]?> Response = await server.RecieveJsonAsync<DockerVolumeInfo[]>(new DockerEvent(DockerEventType.ListVolumes));
+        SocketResponse<DockerVolumeInfo[]?> Response = await server.RecieveJsonAsync<DockerVolumeInfo[], DockerEvent>(new DockerEvent(DockerEventType.ListVolumes));
 
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get volumes data, " + Response.Message);
@@ -539,7 +539,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewVolumes, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm!);
 
-        SocketResponse<DockerVolumeInfo?> Response = await server.RecieveJsonAsync<DockerVolumeInfo>(new DockerEvent(DockerEventType.ControlVolume, volumeId, volumeType: ControlVolumeType.View));
+        SocketResponse<DockerVolumeInfo?> Response = await server.RecieveJsonAsync<DockerVolumeInfo, DockerEvent>(new DockerEvent(DockerEventType.ControlVolume, volumeId, volumeType: ControlVolumeType.View));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get volume data, " + Response.Message);
@@ -565,7 +565,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewNetworks, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm!);
 
-        SocketResponse<DockerNetworkInfo[]?> Response = await server.RecieveJsonAsync<DockerNetworkInfo[]>(new DockerEvent(DockerEventType.ListNetworks));
+        SocketResponse<DockerNetworkInfo[]?> Response = await server.RecieveJsonAsync<DockerNetworkInfo[], DockerEvent>(new DockerEvent(DockerEventType.ListNetworks));
 
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get networks data, " + Response.Message);
@@ -591,7 +591,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewNetworks, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm!);
 
-        SocketResponse<DockerNetworkInfo?> Response = await server.RecieveJsonAsync<DockerNetworkInfo>(new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.View));
+        SocketResponse<DockerNetworkInfo?> Response = await server.RecieveJsonAsync<DockerNetworkInfo, DockerEvent>(new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.View));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get network data, " + Response.Message);
@@ -617,7 +617,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewPlugins, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm!);
 
-        SocketResponse<Plugin[]?> Response = await server.RecieveJsonAsync<Plugin[]>(new DockerEvent(DockerEventType.ListPlugins));
+        SocketResponse<Plugin[]?> Response = await server.RecieveJsonAsync<Plugin[], DockerEvent>(new DockerEvent(DockerEventType.ListPlugins));
 
         if (!Response.IsSuccess || Response.Data == null)
             return Conflict("Failed to get plugins data, " + Response.Message);
@@ -643,7 +643,7 @@ public class DockerController : APIController
         if (Client.CheckFailedDockerPermissions(server, DockerPermission.UseAPIs | DockerPermission.ViewPlugins, out DockerPermission? dockerPerm))
             return PermissionFailed(dockerPerm!);
 
-        SocketResponse<Plugin?> Response = await server.RecieveJsonAsync<Plugin>(new DockerEvent(DockerEventType.ControlPlugin, pluginId, pluginType: ControlPluginType.Inspect));
+        SocketResponse<Plugin?> Response = await server.RecieveJsonAsync<Plugin, DockerEvent>(new DockerEvent(DockerEventType.ControlPlugin, pluginId, pluginType: ControlPluginType.Inspect));
 
         if (!Response.IsSuccess)
             return Conflict("Failed to get plugin data, " + Response.Message);

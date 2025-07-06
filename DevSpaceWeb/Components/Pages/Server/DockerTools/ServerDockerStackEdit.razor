@@ -153,7 +153,7 @@
 
         Compose = "";
 
-        await Server.RunJsonAsync<DockerStackComposeInfo>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ComposeInfo), (res) =>
+        await Server.RunJsonAsync<DockerStackComposeInfo, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ComposeInfo), (res) =>
         {
             StackName = res.Data?.Name;
             Compose = res.Data?.Content;
@@ -169,7 +169,7 @@
 
         IsBuilding = true;
         string Data = await _editor.GetValue();
-        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ReCreate)
+        SocketResponse<DockerStackCreate?> res = await Server.RunJsonAsync<DockerStackCreate, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlStack, StackId, stackType: ControlStackType.ReCreate)
             {
             Data = AgentJsonOptions.FromObject(new CreateStackEvent
                 {

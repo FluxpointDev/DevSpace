@@ -582,7 +582,7 @@
         if (!Member.HasServerPermission(Team, Server, ServerPermission.ViewServer))
             return;
 
-        SocketResponse<SystemInfoResponse?> Response = await Server.RunJsonAsync<SystemInfoResponse>(Notifications, new DockerEvent(DockerEventType.SystemInfo));
+        SocketResponse<SystemInfoResponse?> Response = await Server.RunJsonAsync<SystemInfoResponse, DockerEvent>(Notifications, new DockerEvent(DockerEventType.SystemInfo));
         if (Response.IsSuccess)
         {
             Data = Response.Data;

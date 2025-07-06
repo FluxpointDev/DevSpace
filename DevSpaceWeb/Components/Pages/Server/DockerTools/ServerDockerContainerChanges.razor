@@ -118,7 +118,7 @@ else
 
         try
         {
-            SocketResponse<DockerContainerChanges?> Result = await Server.RunJsonAsync<DockerContainerChanges>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Changes));
+            SocketResponse<DockerContainerChanges?> Result = await Server.RunJsonAsync<DockerContainerChanges, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Changes));
             Failed = !Result.IsSuccess;
             Changes = Result.Data;
         }

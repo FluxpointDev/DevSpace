@@ -301,7 +301,7 @@ else
 
         try
         {
-            SocketResponse<DockerVolumeInfo?> Result = await Server.RunJsonAsync<DockerVolumeInfo>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: ControlVolumeType.View));
+            SocketResponse<DockerVolumeInfo?> Result = await Server.RunJsonAsync<DockerVolumeInfo, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: ControlVolumeType.View));
             Failed = !Result.IsSuccess;
             Volume = Result.Data;
 
@@ -338,7 +338,7 @@ else
 
         IsActionLoading = true;
 
-        SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: option == "Force Remove" ? ControlVolumeType.ForceRemove : ControlVolumeType.Remove));
+        SocketResponse<object?> Result = await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlVolume, VolumeId, volumeType: option == "Force Remove" ? ControlVolumeType.ForceRemove : ControlVolumeType.Remove));
         if (Result.IsSuccess)
             Volume = null;
 

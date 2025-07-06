@@ -295,7 +295,7 @@
                 IsLoading = true;
                 try
                 {
-                    ContainersResponse = await Server.RunJsonAsync<DockerContainerInfo[]>(Notifications, new DockerEvent(DockerEventType.ListContainers));
+                    ContainersResponse = await Server.RunJsonAsync<DockerContainerInfo[], DockerEvent>(Notifications, new DockerEvent(DockerEventType.ListContainers));
                 }
                 catch (Exception ex)
                 {
@@ -374,7 +374,7 @@
 
                     IsLoading = true;
                     await InvokeAsync(StateHasChanged);
-                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Start));
+                    await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Start));
                     IsLoading = false;
                     await InvokeAsync(RefreshContainers);
                     break;
@@ -384,7 +384,7 @@
 
                     IsLoading = true;
                     await InvokeAsync(StateHasChanged);
-                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Stop));
+                    await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Stop));
                     IsLoading = false;
                     await InvokeAsync(RefreshContainers);
                     break;
@@ -394,7 +394,7 @@
 
                     IsLoading = true;
                     await InvokeAsync(StateHasChanged);
-                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Restart));
+                    await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Restart));
                     IsLoading = false;
                     await InvokeAsync(RefreshContainers);
                     break;
@@ -404,7 +404,7 @@
 
                     IsLoading = true;
                     await InvokeAsync(StateHasChanged);
-                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Kill));
+                    await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Kill));
                     IsLoading = false;
                     await InvokeAsync(RefreshContainers);
                     break;
@@ -414,7 +414,7 @@
 
                     IsLoading = true;
                     await InvokeAsync(StateHasChanged);
-                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Pause));
+                    await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.Pause));
                     IsLoading = false;
                     await InvokeAsync(RefreshContainers);
                     break;
@@ -424,7 +424,7 @@
 
                     IsLoading = true;
                     await InvokeAsync(StateHasChanged);
-                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.UnPause));
+                    await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.UnPause));
                     IsLoading = false;
                     await InvokeAsync(RefreshContainers);
                     break;
@@ -473,7 +473,7 @@
 
                     IsLoading = true;
                     await InvokeAsync(StateHasChanged);
-                    await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.ForceRemove));
+                    await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, item.Id, ControlContainerType.ForceRemove));
                     IsLoading = false;
                     await InvokeAsync(RefreshContainers);
                     break;
@@ -547,7 +547,7 @@
             await InvokeAsync(StateHasChanged);
             foreach (DockerContainerInfo i in SelectedContainers)
             {
-                await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, i.Id, type));
+                await Server.RunJsonAsync<object, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, i.Id, type));
             }
 
             IsLoading = false;
@@ -575,7 +575,7 @@
         StateHasChanged();
         try
         {
-            ContainersResponse = await Server.RunJsonAsync<DockerContainerInfo[]>(Notifications, new DockerEvent(DockerEventType.ListContainers));
+            ContainersResponse = await Server.RunJsonAsync<DockerContainerInfo[], DockerEvent>(Notifications, new DockerEvent(DockerEventType.ListContainers));
         }
         catch (Exception ex)
         {
@@ -590,7 +590,7 @@
                 {
                     try
                     {
-                        await Server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, i.Name, containerType: ControlContainerType.Remove));
+                        await Server.RecieveJsonAsync<object, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, i.Name, containerType: ControlContainerType.Remove));
                     }
                     catch { }
                 }

@@ -70,6 +70,7 @@ public static class ServerEventHandler
                     break;
                 case EventType.Docker:
                     {
+                        Console.WriteLine("Got: " + json);
                         DockerEvent? @event = payload.Deserialize<DockerEvent>(AgentJsonOptions.Options);
                         if (@event == null)
                             return;
