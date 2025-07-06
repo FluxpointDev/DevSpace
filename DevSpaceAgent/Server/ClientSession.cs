@@ -14,8 +14,12 @@ public class ClientSession : ISession
         if (!noResponse && json != null && _Data.Config.Options.LogAgentEvents)
             Console.WriteLine("Respond with: \n" + JsonConvert.SerializeObject(json, Formatting.Indented));
 
+        DateTime Now = DateTime.UtcNow;
         string message = JsonConvert.SerializeObject(new IWebSocketResponse<dynamic>() { IsSuccess = true, TaskId = taskId, Data = json });
-        await Session.SendAsync(Encoding.UTF8.GetBytes(message), WebSocketMessageType.Text, true, token);
+        byte[] Bytes = Encoding.UTF8.GetBytes(message);
+        TimeSpan Current = DateTime.UtcNow - Now;
+        Console.WriteLine("Send Time: " + Current.TotalMilliseconds);
+        await Session.SendAsync(Bytes, WebSocketMessageType.Text, true, token);
     }
 
     public override async Task RespondFailAsync(string taskId, CancellationToken token = default)

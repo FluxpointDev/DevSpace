@@ -15,9 +15,12 @@ public static class ServerEventHandler
 {
     public static async Task RecieveAsync(ISession ws, byte[] buffer, long offset, long size)
     {
+        DateTime Now = DateTime.UtcNow;
         string json = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
         JToken payload = JsonConvert.DeserializeObject<JToken>(json)!;
 
+        TimeSpan Current = DateTime.UtcNow - Now;
+        Console.WriteLine("Recieve Time: " + Current.TotalMilliseconds);
         if (payload == null)
             return;
 
