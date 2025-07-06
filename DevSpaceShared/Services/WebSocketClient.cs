@@ -88,7 +88,13 @@ public class WebSocketClient : WssClient
 
     private async Task WebSocketMessage(string json)
     {
+        Console.WriteLine(json);
+        DateTime Now = DateTime.UtcNow;
         JToken? payload = JsonConvert.DeserializeObject<JToken>(json);
+
+        TimeSpan Current = DateTime.UtcNow - Now;
+        Console.WriteLine("Get Recieve Time: " + Current.TotalMilliseconds);
+
         if (payload == null)
             return;
 
@@ -106,7 +112,7 @@ public class WebSocketClient : WssClient
                         if (Agent.TaskCollection.TryGetValue(@event.TaskId, out TaskCompletionSource<JToken>? task))
                         {
                             Logger.LogMessage("WebSocket", "Got Response: " + @event.TaskId, LogSeverity.Info);
-                            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(payload, Formatting.Indented));
+
                             if (@event.IsSuccess)
                                 task.SetResult(payload["Data"]);
                             else
@@ -139,8 +145,12 @@ public class WebSocketClient : WssClient
         json.TaskId = Guid.NewGuid().ToString();
         TaskCompletionSource<JToken> tcs = new TaskCompletionSource<JToken>();
         Agent.TaskCollection.TryAdd(json.TaskId, tcs);
+
+        DateTime Now = DateTime.UtcNow;
         string message = JsonConvert.SerializeObject(json);
         SendTextAsync(message);
+        TimeSpan Current = DateTime.UtcNow - Now;
+        Console.WriteLine("Run Recieve Time: " + Current.TotalMilliseconds);
 
         JToken? result = null;
         try

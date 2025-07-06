@@ -85,7 +85,7 @@ public class Program
 
         LogSeverity DefaultLogMode = LogSeverity.Error;
         if (IsDevMode)
-            DefaultLogMode = LogSeverity.Debug;
+            DefaultLogMode = LogSeverity.Error;
         else
         {
             if (!string.IsNullOrEmpty(LogMode))
