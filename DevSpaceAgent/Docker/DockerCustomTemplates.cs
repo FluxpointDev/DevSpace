@@ -1,6 +1,8 @@
-﻿using DevSpaceShared.Data;
+﻿using DevSpaceShared;
+using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Newtonsoft.Json.Linq;
+using System.Text.Json;
 using YamlDotNet.Serialization;
 
 namespace DevSpaceAgent.Docker;
@@ -163,10 +165,10 @@ public static class DockerCustomTemplates
             case ControlCustomTemplateType.ViewFull:
                 return GetTemplate(@event.ResourceId);
             case ControlCustomTemplateType.EditInfo:
-                EditTemplate(@event.ResourceId, @event.Data?.GetValue<EditCustomTemplateInfoEvent>());
+                EditTemplate(@event.ResourceId, @event.Data?.Deserialize<EditCustomTemplateInfoEvent>(AgentJsonOptions.Options));
                 break;
             case ControlCustomTemplateType.EditCompose:
-                EditTemplateData(@event.ResourceId, @event.Data?.GetValue<EditCustomTemplateComposeEvent>());
+                EditTemplateData(@event.ResourceId, @event.Data?.Deserialize<EditCustomTemplateComposeEvent>(AgentJsonOptions.Options));
                 break;
             case ControlCustomTemplateType.Delete:
                 DeleteTemplate(@event.ResourceId);

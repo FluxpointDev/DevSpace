@@ -24,7 +24,7 @@ public static class DockerHandler
             case DockerEventType.ListStacks:
                 return await DockerStacks.ListStacksAsync(Client);
             case DockerEventType.CreateStack:
-                return await DockerStacks.CreateStackAsync(Client, @event.Data?.GetValue<CreateStackEvent>());
+                return await DockerStacks.CreateStackAsync(Client, @event.Data?.Deserialize<CreateStackEvent>(AgentJsonOptions.Options));
             case DockerEventType.ListPortainerStacks:
                 return await DockerStacks.ListPortainerStacks(Client);
             case DockerEventType.ControlStack:
@@ -63,9 +63,9 @@ public static class DockerHandler
                         case ControlStackType.ComposeInfo:
                             return await DockerStacks.StackCompose(Client, @event.ResourceId);
                         case ControlStackType.ReCreate:
-                            return await DockerStacks.RecreateStack(Client, @event.ResourceId, @event.Data?.GetValue<CreateStackEvent>());
+                            return await DockerStacks.RecreateStack(Client, @event.ResourceId, @event.Data?.Deserialize<CreateStackEvent>(AgentJsonOptions.Options));
                         case ControlStackType.ImportPortainer:
-                            return await DockerStacks.ImportPortainerStack(Client, @event.Data?.GetValue<DockerStackInfo>());
+                            return await DockerStacks.ImportPortainerStack(Client, @event.Data?.Deserialize<DockerStackInfo>(AgentJsonOptions.Options));
                     }
                 }
                 break;
@@ -127,7 +127,7 @@ public static class DockerHandler
                 await DockerImages.PullImageAsync(Client, @event.ResourceId);
                 break;
             case DockerEventType.CreateImage:
-                await DockerImages.CreateImageAsync(Client, @event.Data?.GetValue<CreateImageEvent>());
+                await DockerImages.CreateImageAsync(Client, @event.Data?.Deserialize<CreateImageEvent>(AgentJsonOptions.Options));
                 break;
 
             // Plugins
@@ -175,7 +175,7 @@ public static class DockerHandler
                 return await DockerVolumes.ListVolumesAsync(Client);
 
             case DockerEventType.CreateVolume:
-                return await DockerVolumes.CreateVolumeAsync(Client, @event.Data?.GetValue<VolumesCreateParameters>());
+                return await DockerVolumes.CreateVolumeAsync(Client, @event.Data?.Deserialize<VolumesCreateParameters>(AgentJsonOptions.Options));
 
             case DockerEventType.ControlVolume:
                 if (@event.ResourceList == null)
@@ -193,7 +193,7 @@ public static class DockerHandler
             case DockerEventType.ListCustomTemplates:
                 return DockerCustomTemplates.ListTemplates();
             case DockerEventType.CreateCustomTemplate:
-                DockerCustomTemplates.CreateTemplate(@event.Data?.GetValue<CreateCustomTemplateEvent>());
+                DockerCustomTemplates.CreateTemplate(@event.Data?.Deserialize<CreateCustomTemplateEvent>(AgentJsonOptions.Options));
                 break;
             case DockerEventType.ControlCustomTemplate:
                 return DockerCustomTemplates.ControlTemplate(@event);

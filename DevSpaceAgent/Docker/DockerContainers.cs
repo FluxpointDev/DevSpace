@@ -86,7 +86,7 @@ public static class DockerContainers
 
     public static async Task<CreateContainerResponse> CreateContainerAsync(DockerClient client, DockerEvent @event)
     {
-        CreateContainerParameters? Data = @event.Data?.GetValue<CreateContainerParameters>();
+        CreateContainerParameters? Data = @event.Data?.Deserialize<CreateContainerParameters>(AgentJsonOptions.Options);
         if (Data == null)
             throw new Exception("Failed to parse container creation options.");
 
@@ -95,7 +95,7 @@ public static class DockerContainers
 
     public static async Task<ContainerUpdateResponse> UpdateContainerAsync(DockerClient client, DockerEvent @event)
     {
-        ContainerUpdateParameters? Data = @event.Data?.GetValue<ContainerUpdateParameters>();
+        ContainerUpdateParameters? Data = @event.Data?.Deserialize<ContainerUpdateParameters>(AgentJsonOptions.Options);
         if (Data == null)
             throw new Exception("Failed to parse container update options.");
 
@@ -344,7 +344,7 @@ public static class DockerContainers
                 break;
             case ControlContainerType.Logs:
                 {
-                    ContainerLogsEvent? Data = @event.Data?.GetValue<ContainerLogsEvent>();
+                    ContainerLogsEvent? Data = @event.Data?.Deserialize<ContainerLogsEvent>(AgentJsonOptions.Options);
                     if (Data == null)
                         throw new Exception("Failed to parse container log options.");
 
@@ -459,7 +459,7 @@ public static class DockerContainers
                 }
             case ControlContainerType.Rename:
                 {
-                    CreateContainerEvent? Data = @event.Data?.GetValue<CreateContainerEvent>();
+                    CreateContainerEvent? Data = @event.Data?.Deserialize<CreateContainerEvent>(AgentJsonOptions.Options);
                     if (Data == null)
                         throw new Exception("Failed to parse container rename options.");
 

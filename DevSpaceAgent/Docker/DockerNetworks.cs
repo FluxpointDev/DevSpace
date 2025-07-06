@@ -1,7 +1,9 @@
-﻿using DevSpaceShared.Data;
+﻿using DevSpaceShared;
+using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
+using System.Text.Json;
 
 namespace DevSpaceAgent.Docker;
 
@@ -131,7 +133,7 @@ public static class DockerNetworks
                 break;
             case ControlNetworkType.JoinNetwork:
                 {
-                    DockerContainerInfo? Container = @event.Data?.GetValue<DockerContainerInfo>();
+                    DockerContainerInfo? Container = @event.Data?.Deserialize<DockerContainerInfo>(AgentJsonOptions.Options);
                     if (Container == null)
                         throw new Exception("Container id is missing.");
 
@@ -147,7 +149,7 @@ public static class DockerNetworks
                 break;
             case ControlNetworkType.LeaveNetwork:
                 {
-                    DockerContainerInfo? Container = @event.Data?.GetValue<DockerContainerInfo>();
+                    DockerContainerInfo? Container = @event.Data?.Deserialize<DockerContainerInfo>(AgentJsonOptions.Options);
                     if (Container == null)
                         throw new Exception("Container id is missing.");
 
