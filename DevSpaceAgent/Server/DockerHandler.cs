@@ -22,7 +22,7 @@ public static class DockerHandler
             case DockerEventType.ListStacks:
                 return await DockerStacks.ListStacksAsync(Client);
             case DockerEventType.CreateStack:
-                return await DockerStacks.CreateStackAsync(Client, @event.Data?.ToObject<CreateStackEvent>());
+                return await DockerStacks.CreateStackAsync(Client, @event.Data?.GetValue<CreateStackEvent>());
             case DockerEventType.ListPortainerStacks:
                 return await DockerStacks.ListPortainerStacks(Client);
             case DockerEventType.ControlStack:
@@ -61,9 +61,9 @@ public static class DockerHandler
                         case ControlStackType.ComposeInfo:
                             return await DockerStacks.StackCompose(Client, @event.ResourceId);
                         case ControlStackType.ReCreate:
-                            return await DockerStacks.RecreateStack(Client, @event.ResourceId, @event.Data?.ToObject<CreateStackEvent>());
+                            return await DockerStacks.RecreateStack(Client, @event.ResourceId, @event.Data?.GetValue<CreateStackEvent>());
                         case ControlStackType.ImportPortainer:
-                            return await DockerStacks.ImportPortainerStack(Client, @event.Data?.ToObject<DockerStackInfo>());
+                            return await DockerStacks.ImportPortainerStack(Client, @event.Data?.GetValue<DockerStackInfo>());
                     }
                 }
                 break;
@@ -125,7 +125,7 @@ public static class DockerHandler
                 await DockerImages.PullImageAsync(Client, @event.ResourceId);
                 break;
             case DockerEventType.CreateImage:
-                await DockerImages.CreateImageAsync(Client, @event.Data?.ToObject<CreateImageEvent>());
+                await DockerImages.CreateImageAsync(Client, @event.Data?.GetValue<CreateImageEvent>());
                 break;
 
             // Plugins
@@ -151,7 +151,7 @@ public static class DockerHandler
                 return await DockerNetworks.ListNetworksAsync(Client);
 
             case DockerEventType.CreateNetwork:
-                await DockerNetworks.CreateNetworkAsync(Client, @event.Data.ToObject<CreateNetworkEvent>());
+                await DockerNetworks.CreateNetworkAsync(Client, @event.Data.GetValue<CreateNetworkEvent>());
                 break;
 
             case DockerEventType.ControlNetwork:
@@ -173,7 +173,7 @@ public static class DockerHandler
                 return await DockerVolumes.ListVolumesAsync(Client);
 
             case DockerEventType.CreateVolume:
-                return await DockerVolumes.CreateVolumeAsync(Client, @event.Data?.ToObject<VolumesCreateParameters>());
+                return await DockerVolumes.CreateVolumeAsync(Client, @event.Data?.GetValue<VolumesCreateParameters>());
 
             case DockerEventType.ControlVolume:
                 if (@event.ResourceList == null)
@@ -191,7 +191,7 @@ public static class DockerHandler
             case DockerEventType.ListCustomTemplates:
                 return DockerCustomTemplates.ListTemplates();
             case DockerEventType.CreateCustomTemplate:
-                DockerCustomTemplates.CreateTemplate(@event.Data?.ToObject<CreateCustomTemplateEvent>());
+                DockerCustomTemplates.CreateTemplate(@event.Data?.GetValue<CreateCustomTemplateEvent>());
                 break;
             case DockerEventType.ControlCustomTemplate:
                 return DockerCustomTemplates.ControlTemplate(@event);
@@ -208,7 +208,7 @@ public static class DockerHandler
             case DockerEventType.Events:
                 DockerEventFilterEvent? Filter = null;
                 if (@event.Data != null)
-                    Filter = @event.Data.ToObject<DockerEventFilterEvent>();
+                    Filter = @event.Data.GetValue<DockerEventFilterEvent>();
 
                 ContainerEventsParameters Params = new ContainerEventsParameters
                 {

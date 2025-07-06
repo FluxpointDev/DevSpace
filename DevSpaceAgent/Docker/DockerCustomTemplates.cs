@@ -163,10 +163,10 @@ public static class DockerCustomTemplates
             case ControlCustomTemplateType.ViewFull:
                 return GetTemplate(@event.ResourceId);
             case ControlCustomTemplateType.EditInfo:
-                EditTemplate(@event.ResourceId, @event.Data?.ToObject<EditCustomTemplateInfoEvent>());
+                EditTemplate(@event.ResourceId, @event.Data?.GetValue<EditCustomTemplateInfoEvent>());
                 break;
             case ControlCustomTemplateType.EditCompose:
-                EditTemplateData(@event.ResourceId, @event.Data?.ToObject<EditCustomTemplateComposeEvent>());
+                EditTemplateData(@event.ResourceId, @event.Data?.GetValue<EditCustomTemplateComposeEvent>());
                 break;
             case ControlCustomTemplateType.Delete:
                 DeleteTemplate(@event.ResourceId);

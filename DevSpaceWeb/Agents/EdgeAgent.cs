@@ -1,12 +1,13 @@
-﻿using DevSpaceShared.Responses;
+﻿using DevSpaceShared;
+using DevSpaceShared.Responses;
 using DevSpaceShared.Services;
 using DevSpaceShared.WebSocket;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Servers;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Radzen;
 using System.Text;
+using System.Text.Json;
 
 namespace DevSpaceWeb.Agents;
 
@@ -79,8 +80,9 @@ public class EdgeAgent : IAgent
     {
         json.TaskId = Guid.NewGuid().ToString();
         Console.WriteLine("Edge Task: " + json.TaskId);
-        TaskCompletionSource<JToken> tcs = new TaskCompletionSource<JToken>();
+        TaskCompletionSource<JsonElement> tcs = new TaskCompletionSource<JsonElement>();
         TaskCollection.TryAdd(json.TaskId, tcs);
+
         string message = JsonConvert.SerializeObject(json);
         Logger.LogMessage("Sending Json: " + message, LogSeverity.Debug);
         byte[] encoded = Encoding.UTF8.GetBytes(message);
@@ -89,7 +91,7 @@ public class EdgeAgent : IAgent
             WebSocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Text, true, token);
 
         Console.WriteLine("Edge Sending");
-        JToken? result = null;
+        JsonElement? result = null;
         try
         {
             result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 30), token);
@@ -116,7 +118,7 @@ public class EdgeAgent : IAgent
             return new SocketResponse<T?> { Error = ClientError.Timeout };
         }
 
-        SocketResponse<T?>? Response = result.ToObject<SocketResponse<T?>>();
+        SocketResponse<T?>? Response = result.Value.Deserialize<SocketResponse<T?>>(AgentJsonOptions.Options);
         if (Response == null)
             return new SocketResponse<T?> { Error = ClientError.JsonError };
 

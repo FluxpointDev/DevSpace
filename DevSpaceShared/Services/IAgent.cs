@@ -1,8 +1,8 @@
 ﻿using DevSpaceShared.Responses;
 using DevSpaceShared.WebSocket;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Collections.Concurrent;
+using System.Text.Json;
 
 namespace DevSpaceShared.Services;
 
@@ -13,7 +13,7 @@ public class IAgent
     public WebSocketErrorType? Error;
 
     [JsonIgnore]
-    public ConcurrentDictionary<string, TaskCompletionSource<JToken>> TaskCollection = new ConcurrentDictionary<string, TaskCompletionSource<JToken>>();
+    public ConcurrentDictionary<string, TaskCompletionSource<JsonElement>> TaskCollection = new ConcurrentDictionary<string, TaskCompletionSource<JsonElement>>();
 
     public virtual bool IsConnected { get; set; }
 

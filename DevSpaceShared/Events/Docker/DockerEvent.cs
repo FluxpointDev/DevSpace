@@ -1,5 +1,5 @@
 ﻿using DevSpaceShared.WebSocket;
-using Newtonsoft.Json.Linq;
+using System.Text.Json.Nodes;
 
 namespace DevSpaceShared.Events.Docker;
 
@@ -39,7 +39,7 @@ public class DockerEvent : IWebSocketTask
 
     public ControlCustomTemplateType? CustomTemplateType { get; set; }
 
-    public JObject? Data { get; set; }
+    public JsonNode? Data { get; set; }
 }
 public enum DockerEventType
 {

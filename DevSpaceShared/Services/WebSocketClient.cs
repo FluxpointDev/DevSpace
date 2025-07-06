@@ -1,12 +1,11 @@
 ﻿using DevSpaceShared.Responses;
 using DevSpaceShared.WebSocket;
 using NetCoreServer;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Text;
+using System.Text.Json;
 
 namespace DevSpaceShared.Services;
 
@@ -90,7 +89,8 @@ public class WebSocketClient : WssClient
     {
         Console.WriteLine(json);
         DateTime Now = DateTime.UtcNow;
-        JToken? payload = JsonConvert.DeserializeObject<JToken>(json);
+
+        JsonDocument? payload = JsonDocument.Parse(json);
 
         TimeSpan Current = DateTime.UtcNow - Now;
         Console.WriteLine("Get Recieve Time: " + Current.TotalMilliseconds);
@@ -98,7 +98,7 @@ public class WebSocketClient : WssClient
         if (payload == null)
             return;
 
-        EventType EventType = payload["Type"]!.ToObject<EventType>();
+        EventType EventType = (EventType)payload.RootElement.GetProperty("Type").GetInt32();
 
         Logger.LogMessage("WebSocket", "Event: " + EventType.ToString(), LogSeverity.Info);
 
@@ -108,13 +108,13 @@ public class WebSocketClient : WssClient
             {
                 case EventType.TaskResponse:
                     {
-                        IWebSocketResponse<dynamic> @event = payload.ToObject<IWebSocketResponse<dynamic>>()!;
-                        if (Agent.TaskCollection.TryGetValue(@event.TaskId, out TaskCompletionSource<JToken>? task))
+                        IWebSocketResponse<dynamic> @event = payload.Deserialize<IWebSocketResponse<dynamic>>(AgentJsonOptions.Options)!;
+                        if (Agent.TaskCollection.TryGetValue(@event.TaskId, out TaskCompletionSource<JsonElement>? task))
                         {
                             Logger.LogMessage("WebSocket", "Got Response: " + @event.TaskId, LogSeverity.Info);
 
                             if (@event.IsSuccess)
-                                task.SetResult(payload["Data"]);
+                                task.SetResult(payload.RootElement.GetProperty("Data"));
                             else
                                 task.SetCanceled();
                         }
@@ -122,7 +122,7 @@ public class WebSocketClient : WssClient
                     break;
                 case EventType.GetAgentStats:
                     {
-                        AgentStatsResponse? Data = payload.ToObject<AgentStatsResponse>();
+                        AgentStatsResponse? Data = payload.Deserialize<AgentStatsResponse>(AgentJsonOptions.Options);
                         if (Data == null)
                             return;
 
@@ -135,7 +135,7 @@ public class WebSocketClient : WssClient
         }
         catch (Exception ex)
         {
-            Logger.LogMessage("WebSocket", $"WebSocket Event {payload["type"]?.ToString()} Error", LogSeverity.Error);
+            Logger.LogMessage("WebSocket", $"WebSocket Event {EventType.ToString()} Error", LogSeverity.Error);
             Logger.LogMessage("WebSocket", ex.ToString(), LogSeverity.Error);
         }
     }
@@ -143,16 +143,15 @@ public class WebSocketClient : WssClient
     public async Task<SocketResponse<T?>> RecieveJsonAsync<T>(IWebSocketTask json, CancellationToken token = default) where T : class
     {
         json.TaskId = Guid.NewGuid().ToString();
-        TaskCompletionSource<JToken> tcs = new TaskCompletionSource<JToken>();
+        TaskCompletionSource<JsonElement> tcs = new TaskCompletionSource<JsonElement>();
         Agent.TaskCollection.TryAdd(json.TaskId, tcs);
-
         DateTime Now = DateTime.UtcNow;
-        string message = JsonConvert.SerializeObject(json);
+        string message = System.Text.Json.JsonSerializer.Serialize(json, AgentJsonOptions.Options);
         SendTextAsync(message);
         TimeSpan Current = DateTime.UtcNow - Now;
         Console.WriteLine("Run Recieve Time: " + Current.TotalMilliseconds);
 
-        JToken? result = null;
+        JsonElement? result = null;
         try
         {
             result = await tcs.Task.WaitAsync(new TimeSpan(0, 0, 30), token);
@@ -167,7 +166,7 @@ public class WebSocketClient : WssClient
             return new SocketResponse<T?> { Error = ClientError.Timeout };
         }
 
-        SocketResponse<T?>? Response = result.ToObject<SocketResponse<T?>>();
+        SocketResponse<T?>? Response = result.Value.Deserialize<SocketResponse<T?>>(AgentJsonOptions.Options);
         if (Response == null)
             return new SocketResponse<T?> { Error = ClientError.JsonError };
 

@@ -218,7 +218,7 @@ else
         {
             SocketResponse<DockerContainerLogs?> Result = await Server.RunJsonAsync<DockerContainerLogs>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
             {
-                Data = JObject.FromObject(new ContainerLogsEvent
+                Data = AgentJsonOptions.FromObject(new ContainerLogsEvent
                 {
                     Limit = Limit,
                     ShowTimestamp = ShowTimestamp
@@ -272,7 +272,7 @@ else
         RefreshTimer?.Stop();
         SocketResponse<DockerContainerLogs?> Result = await Server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Logs)
         {
-            Data = JObject.FromObject(new ContainerLogsEvent
+            Data = AgentJsonOptions.FromObject(new ContainerLogsEvent
             {
                 Limit = Limit,
                 ShowTimestamp = ShowTimestamp,

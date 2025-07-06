@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+﻿using System.Text.Json.Serialization;
 
 namespace DevSpaceShared.Responses;
 public class SystemInfoResponse

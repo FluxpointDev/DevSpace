@@ -10,9 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 
 namespace DevSpaceWeb.Controllers.Misc;
 
@@ -200,13 +200,16 @@ public class EdgeController : Controller
                             message = await reader.ReadToEndAsync();
                         }
 
-                        JToken? payload = JsonConvert.DeserializeObject<JToken>(message);
+                        JsonDocument? payload = JsonDocument.Parse(message, new JsonDocumentOptions
+                        {
+                            AllowTrailingCommas = true,
+                        });
                         if (payload == null)
                             return;
 
                         try
                         {
-                            DevSpaceShared.WebSocket.EventType EventType = payload["Type"]!.ToObject<DevSpaceShared.WebSocket.EventType>();
+                            EventType EventType = (EventType)payload.RootElement.GetProperty("Type").GetInt32();
 
                             Logger.LogMessage("WebSocket", "Edge Event: " + EventType.ToString(), LogSeverity.Info);
 
@@ -215,13 +218,13 @@ public class EdgeController : Controller
                             {
                                 case EventType.TaskResponse:
                                     {
-                                        IWebSocketResponse<dynamic> @event = payload.ToObject<IWebSocketResponse<dynamic>>()!;
-                                        if (edgeAgent.TaskCollection.TryGetValue(@event.TaskId, out TaskCompletionSource<JToken>? task))
+                                        IWebSocketResponse<dynamic> @event = payload.Deserialize<IWebSocketResponse<dynamic>>(AgentJsonOptions.Options)!;
+                                        if (edgeAgent.TaskCollection.TryGetValue(@event.TaskId, out TaskCompletionSource<JsonElement>? task))
                                         {
                                             Logger.LogMessage("WebSocket", "Edge Got Response: " + @event.TaskId, LogSeverity.Info);
                                             Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(payload, Formatting.Indented));
                                             if (@event.IsSuccess)
-                                                task.SetResult(payload["Data"]);
+                                                task.SetResult(payload.RootElement.GetProperty("Data"));
                                             else
                                                 task.SetCanceled();
                                         }
@@ -229,7 +232,7 @@ public class EdgeController : Controller
                                     break;
                                 case EventType.GetAgentStats:
                                     {
-                                        AgentStatsResponse? Data = payload.ToObject<AgentStatsResponse>();
+                                        AgentStatsResponse? Data = payload.Deserialize<AgentStatsResponse>(AgentJsonOptions.Options);
                                         if (Data == null)
                                             return;
 

@@ -1,13 +1,13 @@
 ﻿using DevSpaceAgent.Data;
 using DevSpaceAgent.Server;
+using DevSpaceShared;
 using DevSpaceShared.Agent;
 using DevSpaceShared.Events.Docker;
 using DevSpaceShared.Responses;
 using DevSpaceShared.WebSocket;
 using Docker.DotNet;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Text;
+using System.Text.Json;
 
 namespace DevSpaceAgent.Client;
 
@@ -17,14 +17,17 @@ public static class ServerEventHandler
     {
         DateTime Now = DateTime.UtcNow;
         string json = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
-        JToken payload = JsonConvert.DeserializeObject<JToken>(json)!;
+        JsonDocument? payload = JsonDocument.Parse(json, new JsonDocumentOptions
+        {
+            AllowTrailingCommas = true,
+        });
 
         TimeSpan Current = DateTime.UtcNow - Now;
         Console.WriteLine("Recieve Time: " + Current.TotalMilliseconds);
         if (payload == null)
             return;
 
-        EventType EventType = payload!["Type"]!.ToObject<EventType>();
+        EventType EventType = (EventType)payload.RootElement.GetProperty("Type").GetInt32();
 
         Console.WriteLine("Event: " + EventType.ToString());
 
@@ -39,7 +42,7 @@ public static class ServerEventHandler
                     break;
                 case EventType.GetAgentOptions:
                     {
-                        IWebSocketTask? task = payload.ToObject<IWebSocketTask>();
+                        IWebSocketTask? task = payload.Deserialize<IWebSocketTask>(AgentJsonOptions.Options);
                         if (task == null)
                             return;
 
@@ -52,7 +55,7 @@ public static class ServerEventHandler
                     break;
                 case EventType.UpdateAgentOptions:
                     {
-                        AgentOptionsUpdate? data = payload.ToObject<AgentOptionsUpdate>();
+                        AgentOptionsUpdate? data = payload.Deserialize<AgentOptionsUpdate>(AgentJsonOptions.Options);
                         if (data == null)
                             return;
 
@@ -67,7 +70,7 @@ public static class ServerEventHandler
                     break;
                 case EventType.Docker:
                     {
-                        DockerEvent? @event = payload.ToObject<DockerEvent>();
+                        DockerEvent? @event = payload.Deserialize<DockerEvent>(AgentJsonOptions.Options);
                         if (@event == null)
                             return;
 
@@ -250,7 +253,7 @@ public static class ServerEventHandler
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"WebSocket Event {payload["type"].ToString()} Error ");
+            Console.WriteLine($"WebSocket Event {EventType.ToString()} Error ");
             Console.WriteLine(ex);
         }
     }

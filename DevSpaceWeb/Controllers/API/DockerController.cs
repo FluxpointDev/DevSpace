@@ -1,4 +1,5 @@
-﻿using DevSpaceShared.Data;
+﻿using DevSpaceShared;
+using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using DevSpaceShared.Responses;
 using DevSpaceWeb.API;
@@ -9,7 +10,6 @@ using DevSpaceWeb.Extensions;
 using Docker.DotNet.Models;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
-using Newtonsoft.Json.Linq;
 using Swashbuckle.AspNetCore.Annotations;
 using System.ComponentModel.DataAnnotations;
 
@@ -243,7 +243,7 @@ public class DockerController : APIController
 
         SocketResponse<object?> Response = await server.RecieveJsonAsync<object>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Rename)
         {
-            Data = JObject.FromObject(new CreateContainerEvent
+            Data = AgentJsonOptions.FromObject(new CreateContainerEvent
             {
                 Name = name
             })
@@ -284,7 +284,7 @@ public class DockerController : APIController
 
         SocketResponse<DockerContainerLogs?> Response = await server.RecieveJsonAsync<DockerContainerLogs>(new DockerEvent(DockerEventType.ControlContainer, containerId, containerType: ControlContainerType.Logs)
         {
-            Data = JObject.FromObject(new ContainerLogsEvent
+            Data = AgentJsonOptions.FromObject(new ContainerLogsEvent
             {
                 Limit = limit,
                 ShowTimestamp = showTimestamp

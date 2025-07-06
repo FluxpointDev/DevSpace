@@ -1051,7 +1051,7 @@ else
 
             SocketResponse<object?> Result = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Rename)
             {
-                Data = JObject.FromObject(new CreateContainerEvent
+                Data = AgentJsonOptions.FromObject(new CreateContainerEvent
                 {
                     Name = data.Name
                 })
@@ -1089,7 +1089,7 @@ else
         IsActionLoading = true;
         await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Update)
         {
-            Data = JObject.FromObject(new ContainerUpdateParameters
+            Data = AgentJsonOptions.FromObject(new ContainerUpdateParameters
             {
                 RestartPolicy = new RestartPolicy
                 {
@@ -1290,7 +1290,7 @@ else
                 await Task.Delay(new TimeSpan(0, 0, 15));
                 SocketResponse<SecurityData?> ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
                 {
-                    Data = JObject.FromObject(new CreateContainerResponse
+                    Data = AgentJsonOptions.FromObject(new CreateContainerResponse
                     {
                         ID = Result.Data.ID
                     })
@@ -1301,7 +1301,7 @@ else
                     await Task.Delay(new TimeSpan(0, 0, 15));
                     ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
                     {
-                        Data = JObject.FromObject(new CreateContainerResponse
+                        Data = AgentJsonOptions.FromObject(new CreateContainerResponse
                         {
                             ID = Result.Data.ID
                         })
@@ -1313,7 +1313,7 @@ else
                     await Task.Delay(new TimeSpan(0, 0, 30));
                     ScanResult = await Server.RunJsonAsync<SecurityData>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.ScanReport)
                     {
-                        Data = JObject.FromObject(new CreateContainerResponse
+                        Data = AgentJsonOptions.FromObject(new CreateContainerResponse
                         {
                             ID = Result.Data.ID
                         })
@@ -1540,7 +1540,7 @@ else
         IsActionLoading = true;
         await Server.RunJsonAsync<DockerNetworkInfo>(Notifications, new DockerEvent(DockerEventType.ControlNetwork, networkId, networkType: ControlNetworkType.LeaveNetwork)
         {
-            Data = JObject.FromObject(new DockerContainerInfo
+            Data = AgentJsonOptions.FromObject(new DockerContainerInfo
             {
                 Id = ContainerId
             })

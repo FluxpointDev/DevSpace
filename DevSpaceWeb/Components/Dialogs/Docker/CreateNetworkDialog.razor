@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Components.Forms
 @using Microsoft.AspNetCore.Identity
 @using Newtonsoft.Json.Linq
+@using System.Text.Json.Nodes
 @inject UserManager<AuthUser> UserManager
 @inject Radzen.DialogService dialogService
 @inject NotificationService Notifications
@@ -165,9 +166,10 @@
             return;
 
         IsLoading = true;
+
         SocketResponse<object?> Response = await Server.RunJsonAsync<object>(Notifications, new DockerEvent(DockerEventType.CreateNetwork)
         {
-            Data = JObject.FromObject(new CreateNetworkEvent
+            Data = AgentJsonOptions.FromObject(new CreateNetworkEvent
             {
                 Name = NetworkNameInput,
                 DriverOptions = DriverOptionsInputs.Values.ToDictionary(x => x.Item1, x => x.Item2),

@@ -131,7 +131,7 @@ public static class DockerNetworks
                 break;
             case ControlNetworkType.JoinNetwork:
                 {
-                    DockerContainerInfo? Container = @event.Data?.ToObject<DockerContainerInfo>();
+                    DockerContainerInfo? Container = @event.Data?.GetValue<DockerContainerInfo>();
                     if (Container == null)
                         throw new Exception("Container id is missing.");
 
@@ -147,7 +147,7 @@ public static class DockerNetworks
                 break;
             case ControlNetworkType.LeaveNetwork:
                 {
-                    DockerContainerInfo? Container = @event.Data?.ToObject<DockerContainerInfo>();
+                    DockerContainerInfo? Container = @event.Data?.GetValue<DockerContainerInfo>();
                     if (Container == null)
                         throw new Exception("Container id is missing.");
 

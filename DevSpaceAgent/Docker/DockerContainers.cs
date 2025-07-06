@@ -19,7 +19,7 @@ public static class DockerContainers
             Dictionary<string, string>? Filters = null;
             if (@event.Data != null)
             {
-                ListContainersEvent? Data = @event.Data.ToObject<ListContainersEvent>();
+                ListContainersEvent? Data = @event.Data.GetValue<ListContainersEvent>();
                 if (Data != null)
                 {
                     if (Data.Filters != null)
@@ -84,7 +84,7 @@ public static class DockerContainers
 
     public static async Task<CreateContainerResponse> CreateContainerAsync(DockerClient client, DockerEvent @event)
     {
-        CreateContainerParameters? Data = @event.Data?.ToObject<CreateContainerParameters>();
+        CreateContainerParameters? Data = @event.Data?.GetValue<CreateContainerParameters>();
         if (Data == null)
             throw new Exception("Failed to parse container creation options.");
 
@@ -93,7 +93,7 @@ public static class DockerContainers
 
     public static async Task<ContainerUpdateResponse> UpdateContainerAsync(DockerClient client, DockerEvent @event)
     {
-        ContainerUpdateParameters? Data = @event.Data?.ToObject<ContainerUpdateParameters>();
+        ContainerUpdateParameters? Data = @event.Data?.GetValue<ContainerUpdateParameters>();
         if (Data == null)
             throw new Exception("Failed to parse container update options.");
 
@@ -106,7 +106,7 @@ public static class DockerContainers
         if (CurrentContainer == null)
             throw new Exception("Failed to get container info.");
 
-        ContainerRecreateEvent? Data = @event.Data != null ? @event.Data.ToObject<ContainerRecreateEvent>() : null;
+        ContainerRecreateEvent? Data = @event.Data != null ? @event.Data.GetValue<ContainerRecreateEvent>() : null;
         if (Data != null)
         {
             if (!string.IsNullOrEmpty(Data.NewName))
@@ -342,7 +342,7 @@ public static class DockerContainers
                 break;
             case ControlContainerType.Logs:
                 {
-                    ContainerLogsEvent? Data = @event.Data?.ToObject<ContainerLogsEvent>();
+                    ContainerLogsEvent? Data = @event.Data?.GetValue<ContainerLogsEvent>();
                     if (Data == null)
                         throw new Exception("Failed to parse container log options.");
 
@@ -457,7 +457,7 @@ public static class DockerContainers
                 }
             case ControlContainerType.Rename:
                 {
-                    CreateContainerEvent? Data = @event.Data?.ToObject<CreateContainerEvent>();
+                    CreateContainerEvent? Data = @event.Data?.GetValue<CreateContainerEvent>();
                     if (Data == null)
                         throw new Exception("Failed to parse container rename options.");
 
@@ -541,7 +541,7 @@ public static class DockerContainers
                 }
             case ControlContainerType.ScanReport:
                 {
-                    CreateContainerResponse? Container = @event.Data?.ToObject<CreateContainerResponse>();
+                    CreateContainerResponse? Container = @event.Data.GetValue<CreateContainerResponse>();
                     if (Container == null)
                         throw new Exception("Failed to parse container scan options.");
 
