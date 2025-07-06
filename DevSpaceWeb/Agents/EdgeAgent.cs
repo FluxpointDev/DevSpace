@@ -4,7 +4,6 @@ using DevSpaceShared.Services;
 using DevSpaceShared.WebSocket;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Servers;
-using Newtonsoft.Json;
 using Radzen;
 using System.Text;
 using System.Text.Json;
@@ -79,18 +78,16 @@ public class EdgeAgent : IAgent
     public override async Task<SocketResponse<T?>> RecieveJsonAsync<T, InputJson>(InputJson json, CancellationToken token = default) where T : class
     {
         json.TaskId = Guid.NewGuid().ToString();
-        Console.WriteLine("Edge Task: " + json.TaskId);
         TaskCompletionSource<JsonElement> tcs = new TaskCompletionSource<JsonElement>();
         TaskCollection.TryAdd(json.TaskId, tcs);
 
-        string message = JsonConvert.SerializeObject(json);
+        string message = System.Text.Json.JsonSerializer.Serialize(json, AgentJsonOptions.Options); ;
         Logger.LogMessage("Sending Json: " + message, LogSeverity.Debug);
         byte[] encoded = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> buffer = new ArraySegment<Byte>(encoded, 0, encoded.Length);
         if (WebSocket != null)
             WebSocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Text, true, token);
 
-        Console.WriteLine("Edge Sending");
         JsonElement? result = null;
         try
         {
@@ -110,7 +107,6 @@ public class EdgeAgent : IAgent
                 }
             }
         }
-        Console.WriteLine("Edge Wait done");
 
         TaskCollection.TryRemove(json.TaskId, out _);
         if (result == null)
@@ -122,7 +118,6 @@ public class EdgeAgent : IAgent
         if (Response == null)
             return new SocketResponse<T?> { Error = ClientError.JsonError };
 
-        Console.WriteLine("Edge Response: " + Response.IsSuccess);
         return Response;
     }
 }

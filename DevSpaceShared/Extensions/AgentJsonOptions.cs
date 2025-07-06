@@ -15,8 +15,6 @@ public static class AgentJsonOptions
 
     public static JsonNode? FromObject<T>(T obj)
     {
-        Console.WriteLine("Serial");
-        Console.WriteLine("Serial" + Newtonsoft.Json.JsonConvert.SerializeObject(obj));
         return JsonSerializer.SerializeToNode(obj, Options);
     }
 }

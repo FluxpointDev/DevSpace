@@ -22,7 +22,7 @@ public class AgentSession : WssSession
         {
             SystemInfoResponse HostInfo = await Program.DockerClient.System.GetSystemInfoAsync();
             AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
-            SendTextAsync(Newtonsoft.Json.JsonConvert.SerializeObject(Stats));
+            SendTextAsync(System.Text.Json.JsonSerializer.Serialize(Stats, AgentJsonOptions.Options));
         }
 
         Console.WriteLine($"WebSocket session with Id {Id} connected!");
@@ -163,7 +163,7 @@ public class AgentSession : WssSession
 
     public void SendJsonResponseAsync(object data)
     {
-        SendResponseAsync(Response.MakeGetResponse(Newtonsoft.Json.JsonConvert.SerializeObject(data), "application/json"));
+        SendResponseAsync(Response.MakeGetResponse(System.Text.Json.JsonSerializer.Serialize(data, AgentJsonOptions.Options), "application/json"));
     }
 
     public override bool OnWsConnecting(HttpRequest request, HttpResponse response)

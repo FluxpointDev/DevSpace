@@ -14,17 +14,13 @@ public class ServerSession : ISession
         if (!noResponse && json != null && _Data.Config.Options.LogAgentEvents)
             Console.WriteLine("Respond with: \n" + JsonConvert.SerializeObject(json, Formatting.Indented));
 
-        DateTime Now = DateTime.UtcNow;
         string message = System.Text.Json.JsonSerializer.Serialize(new IWebSocketResponse<dynamic>() { IsSuccess = true, TaskId = taskId, Data = json }, AgentJsonOptions.Options);
-        Console.WriteLine("Send: " + message);
-        TimeSpan Current = DateTime.UtcNow - Now;
-        Console.WriteLine("Time: " + Current.TotalMilliseconds);
+
         Session.SendTextAsync(message);
     }
 
     public override async Task RespondFailAsync(string taskId, CancellationToken token = default)
     {
-        Console.WriteLine("Respond with: Fail");
         string message = System.Text.Json.JsonSerializer.Serialize(new IWebSocketResponse<dynamic>() { TaskId = taskId }, AgentJsonOptions.Options);
         Session.SendTextAsync(message);
     }

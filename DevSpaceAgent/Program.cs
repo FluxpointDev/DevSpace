@@ -281,9 +281,9 @@ public class Program
         SystemInfoResponse HostInfo = await DockerClient.System.GetSystemInfoAsync();
         AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
         if (Server != null)
-            Server.MulticastText(JsonConvert.SerializeObject(Stats));
+            Server.MulticastText(System.Text.Json.JsonSerializer.Serialize(Stats, AgentJsonOptions.Options));
         else if (Client != null)
-            Client.WebSocket.SendAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(Stats)), WebSocketMessageType.Text, true, CancellationToken.None);
+            Client.WebSocket.SendAsync(Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(Stats, AgentJsonOptions.Options)), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
     public static System.Timers.Timer timer = new System.Timers.Timer(new TimeSpan(0, 5, 0));

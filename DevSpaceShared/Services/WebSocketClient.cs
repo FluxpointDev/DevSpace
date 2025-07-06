@@ -87,13 +87,7 @@ public class WebSocketClient : WssClient
 
     private async Task WebSocketMessage(string json)
     {
-        Console.WriteLine(json);
-        DateTime Now = DateTime.UtcNow;
-
         JsonDocument? payload = JsonDocument.Parse(json);
-
-        TimeSpan Current = DateTime.UtcNow - Now;
-        Console.WriteLine("Get Recieve Time: " + Current.TotalMilliseconds);
 
         if (payload == null)
             return;
@@ -145,12 +139,8 @@ public class WebSocketClient : WssClient
         json.TaskId = Guid.NewGuid().ToString();
         TaskCompletionSource<JsonElement> tcs = new TaskCompletionSource<JsonElement>();
         Agent.TaskCollection.TryAdd(json.TaskId, tcs);
-        DateTime Now = DateTime.UtcNow;
         string message = System.Text.Json.JsonSerializer.Serialize(json, AgentJsonOptions.Options);
-        Console.WriteLine("Send: " + message);
         SendTextAsync(message);
-        TimeSpan Current = DateTime.UtcNow - Now;
-        Console.WriteLine("Run Recieve Time: " + Current.TotalMilliseconds);
 
         JsonElement? result = null;
         try

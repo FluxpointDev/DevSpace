@@ -15,15 +15,12 @@ public static class ServerEventHandler
 {
     public static async Task RecieveAsync(ISession ws, byte[] buffer, long offset, long size)
     {
-        DateTime Now = DateTime.UtcNow;
         string json = Encoding.UTF8.GetString(buffer, (int)offset, (int)size);
         JsonDocument? payload = JsonDocument.Parse(json, new JsonDocumentOptions
         {
             AllowTrailingCommas = true,
         });
 
-        TimeSpan Current = DateTime.UtcNow - Now;
-        Console.WriteLine("Recieve Time: " + Current.TotalMilliseconds);
         if (payload == null)
             return;
 
@@ -70,7 +67,6 @@ public static class ServerEventHandler
                     break;
                 case EventType.Docker:
                     {
-                        Console.WriteLine("Got: " + json);
                         DockerEvent? @event = payload.Deserialize<DockerEvent>(AgentJsonOptions.Options);
                         if (@event == null)
                             return;
