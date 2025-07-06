@@ -1,10 +1,12 @@
 ﻿using DevSpaceAgent.Docker;
+using DevSpaceShared;
 using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using DevSpaceShared.Responses;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using System.Text;
+using System.Text.Json;
 
 namespace DevSpaceAgent.Server;
 public static class DockerHandler
@@ -151,7 +153,7 @@ public static class DockerHandler
                 return await DockerNetworks.ListNetworksAsync(Client);
 
             case DockerEventType.CreateNetwork:
-                await DockerNetworks.CreateNetworkAsync(Client, @event.Data.GetValue<CreateNetworkEvent>());
+                await DockerNetworks.CreateNetworkAsync(Client, @event.Data.Deserialize<CreateNetworkEvent>(AgentJsonOptions.Options));
                 break;
 
             case DockerEventType.ControlNetwork:
@@ -208,7 +210,7 @@ public static class DockerHandler
             case DockerEventType.Events:
                 DockerEventFilterEvent? Filter = null;
                 if (@event.Data != null)
-                    Filter = @event.Data.GetValue<DockerEventFilterEvent>();
+                    Filter = @event.Data.Deserialize<DockerEventFilterEvent>(AgentJsonOptions.Options);
 
                 ContainerEventsParameters Params = new ContainerEventsParameters
                 {

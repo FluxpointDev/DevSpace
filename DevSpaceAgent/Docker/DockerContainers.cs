@@ -1,8 +1,10 @@
-﻿using DevSpaceShared.Data;
+﻿using DevSpaceShared;
+using DevSpaceShared.Data;
 using DevSpaceShared.Events.Docker;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using System.Text;
+using System.Text.Json;
 
 namespace DevSpaceAgent.Docker;
 
@@ -19,7 +21,7 @@ public static class DockerContainers
             Dictionary<string, string>? Filters = null;
             if (@event.Data != null)
             {
-                ListContainersEvent? Data = @event.Data.GetValue<ListContainersEvent>();
+                ListContainersEvent? Data = @event.Data.Deserialize<ListContainersEvent>(AgentJsonOptions.Options);
                 if (Data != null)
                 {
                     if (Data.Filters != null)
@@ -106,7 +108,7 @@ public static class DockerContainers
         if (CurrentContainer == null)
             throw new Exception("Failed to get container info.");
 
-        ContainerRecreateEvent? Data = @event.Data != null ? @event.Data.GetValue<ContainerRecreateEvent>() : null;
+        ContainerRecreateEvent? Data = @event.Data != null ? @event.Data.Deserialize<ContainerRecreateEvent>(AgentJsonOptions.Options) : null;
         if (Data != null)
         {
             if (!string.IsNullOrEmpty(Data.NewName))
@@ -541,7 +543,7 @@ public static class DockerContainers
                 }
             case ControlContainerType.ScanReport:
                 {
-                    CreateContainerResponse? Container = @event.Data.GetValue<CreateContainerResponse>();
+                    CreateContainerResponse? Container = @event.Data.Deserialize<CreateContainerResponse>(AgentJsonOptions.Options);
                     if (Container == null)
                         throw new Exception("Failed to parse container scan options.");
 
