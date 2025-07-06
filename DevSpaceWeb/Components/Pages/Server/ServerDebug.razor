@@ -1,4 +1,6 @@
 ﻿@using DevSpaceShared.Events.Docker
+@using System.Text.Json
+@using System.Text.Json.Serialization
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -59,7 +61,13 @@
             var Response = await Server.RecieveJsonAsync<dynamic, DockerEvent>(new DockerEvent(SelectedEvent));
             if (Response.IsSuccess)
             {
-                Data = Newtonsoft.Json.JsonConvert.SerializeObject(Response.Data, Newtonsoft.Json.Formatting.Indented);
+                Data = JsonSerializer.Serialize(Response.Data, new JsonSerializerOptions
+                {
+                    IncludeFields = true,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+                    AllowTrailingCommas = true,
+                    WriteIndented = true
+                });
                 await Editor.SetValue(Data);
             }
         }

@@ -30,6 +30,7 @@ public class DockerEvent : IWebSocketTask
     public string? ResourceId { get; set; }
     public string[]? ResourceList { get; set; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
     public DockerEventType DockerType { get; set; }
 
     public ControlContainerType? ContainerType { get; set; }
