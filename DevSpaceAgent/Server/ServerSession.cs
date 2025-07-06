@@ -13,7 +13,10 @@ public class ServerSession : ISession
         if (!noResponse && json != null && _Data.Config.Options.LogAgentEvents)
             Console.WriteLine("Respond with: \n" + JsonConvert.SerializeObject(json, Formatting.Indented));
 
+        DateTime Now = DateTime.UtcNow;
         string message = JsonConvert.SerializeObject(new IWebSocketResponse<dynamic>() { IsSuccess = true, TaskId = taskId, Data = json });
+        TimeSpan Current = DateTime.UtcNow - Now;
+        Console.WriteLine("Time: " + Current.TotalMilliseconds);
         Session.SendTextAsync(message);
     }
 
