@@ -1,3 +1,4 @@
+using DevSpaceShared.Events.Docker;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Services;
@@ -215,6 +216,12 @@ public class Program
         }
 
 
+        Console.WriteLine("--- JSON TEST ---");
+
+        DockerEvent Event = new DockerEvent(DockerEventType.ListContainers);
+
+
+        Console.WriteLine("--- ---- ---- ---");
         _DB.Init();
 
         _ = Task.Run(async () =>

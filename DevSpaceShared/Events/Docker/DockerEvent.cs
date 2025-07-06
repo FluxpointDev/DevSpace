@@ -1,5 +1,6 @@
 ﻿using DevSpaceShared.WebSocket;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 
 namespace DevSpaceShared.Events.Docker;
 
@@ -18,6 +19,12 @@ public class DockerEvent : IWebSocketTask
         NetworkType = networkType;
         VolumeType = volumeType;
         CustomTemplateType = customTemplateType;
+    }
+
+    [JsonConstructor]
+    internal DockerEvent() : base()
+    {
+
     }
 
     public string? ResourceId { get; set; }
