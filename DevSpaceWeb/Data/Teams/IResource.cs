@@ -547,5 +547,5 @@ public class ITeamResource : IResource
 }
 public enum ResourceType
 {
-    Server, Console, Project, Log, Website, App
+    Server, Console, Project, Log, Website, App, Link
 }

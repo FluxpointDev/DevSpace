@@ -1,7 +1,4 @@
-using DevSpaceWeb.Data.Links;
-using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Users;
-using DevSpaceWeb.Database;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -26,34 +23,39 @@ public class LinkPageModel : PageModel
 
     public async Task OnGet()
     {
-        if (LinkData.Static.RequireAuthentication)
+        string[] Split = Request.Path.Value.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        if (Split.Length != 3)
         {
-            RequireAuth = true;
-            AuthUser? User = null;
-
-            if (Request.HttpContext.User.Identity != null && Request.HttpContext.User.Identity.IsAuthenticated)
-                User = await UserManager.GetUserAsync(Request.HttpContext.User);
-
-            if (User != null && User.Disabled == null)
-                IsAuthenticated = true;
-
-            if (LinkData.Static.RequireMember && User != null)
-            {
-                RequireMember = true;
-
-                TeamMemberData? Member = _DB.Teams.Cache.Values.First().GetMember(User);
-                if (Member != null)
-                    IsMember = true;
-
-                if (LinkData.Static.RequireRoles)
-                {
-                    RequireRoles = true;
-                    if (Member != null && Member.Roles.Count != 0)
-                        HasRoles = true;
-
-                }
-            }
+            await Response.WriteAsync("Invalid link request.");
+            return;
         }
+        string TeamId = Split[1];
+        string ShortCode = Split[2];
+        if (string.IsNullOrEmpty(TeamId))
+        {
+            await Response.WriteAsync("Team id is missing.");
+            return;
+        }
+        if (string.IsNullOrEmpty(ShortCode))
+        {
+            await Response.WriteAsync("Code is missing.");
+            return;
+        }
+
+
+        Console.WriteLine("Code: " + ShortCode);
+
+        RequireAuth = true;
+        AuthUser? User = null;
+
+        if (Request.HttpContext.User.Identity != null && Request.HttpContext.User.Identity.IsAuthenticated)
+            User = await UserManager.GetUserAsync(Request.HttpContext.User);
+
+        if (User != null && User.Disabled == null)
+            IsAuthenticated = true;
+
+
+
 
     }
 }

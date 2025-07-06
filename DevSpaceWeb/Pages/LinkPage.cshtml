@@ -1,4 +1,4 @@
-﻿@page "/link"
+﻿@page "/link/{teamId}/{shortCode}"
 @model DevSpaceWeb.Pages.LinkPageModel
 @using DevSpaceWeb.Data.Links
 
@@ -27,23 +27,23 @@
         }
         else
         {
-            <h2>@LinkData.Static.Title</h2>
-            <p>@LinkData.Static.Description</p>
-            @if (string.IsNullOrEmpty(LinkData.Static.Link))
+            <h2>@LinkDataOld.Static.Title</h2>
+            <p>@LinkDataOld.Static.Description</p>
+            @if (string.IsNullOrEmpty(LinkDataOld.Static.Link))
             {
                 <p>No link set</p>
             }
             else
             {
-                @if (LinkData.Static.IsDownload)
+                @if (LinkDataOld.Static.IsDownload)
                 {
-                    <p>Downloading from <strong>@LinkData.Static.GetDomain()</strong></p>
-                    <a href="@LinkData.Static.Link"><button class="button-download">Go to Download</button></a>
+                    <p>Downloading from <strong>@LinkDataOld.Static.GetDomain()</strong></p>
+                    <a href="@LinkDataOld.Static.Link"><button class="button-download">Go to Download</button></a>
                 }
                 else
                 {
-                    <p>Visiting <strong>@LinkData.Static.GetDomain()</strong></p>
-                    <a href="@LinkData.Static.Link"><button>Go to Link</button></a>
+                    <p>Visiting <strong>@LinkDataOld.Static.GetDomain()</strong></p>
+                    <a href="@LinkDataOld.Static.Link"><button>Go to Link</button></a>
                 }
             }
         }
@@ -99,11 +99,11 @@
         }
     </style>
 
-    @if (!string.IsNullOrEmpty(LinkData.Static.BackgroundUrl))
+    @if (!string.IsNullOrEmpty(LinkDataOld.Static.BackgroundUrl))
     {
         <style>
             html {
-                background-image: url("@LinkData.Static.BackgroundUrl") !important;
+                background-image: url("@LinkDataOld.Static.BackgroundUrl") !important;
                 background-repeat: no-repeat;
                 background-size: cover !important;
                 background-attachment: fixed !important;

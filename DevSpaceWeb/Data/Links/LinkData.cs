@@ -1,10 +1,22 @@
-﻿using MongoDB.Bson;
+﻿using DevSpaceWeb.Data.Teams;
+using MongoDB.Bson;
 
 namespace DevSpaceWeb.Data.Links;
 
-public class LinkData
+public class LinkData : ITeamResource
 {
-    public static LinkData Static = new LinkData();
+    public LinkData() : base(ResourceType.Link)
+    {
+
+    }
+
+    public string ShortCode { get; set; }
+    public string Link { get; set; }
+}
+
+public class LinkDataOld
+{
+    public static LinkDataOld Static = new LinkDataOld();
 
     public string Title = "Hello World!";
     public string Description = "Test description here";

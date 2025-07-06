@@ -4,6 +4,7 @@ using DevSpaceWeb.Apps.Data;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.API;
 using DevSpaceWeb.Data.Consoles;
+using DevSpaceWeb.Data.Links;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
@@ -144,6 +145,7 @@ public static class _DB
         Notifications = new ICollection<Notification>("notifications");
         Apps = new ICacheCollection<AppData>("apps");
         Workspaces = new ICollection<WorkspaceData>("workspaces");
+        Links = new ICollection<LinkData>("links");
     }
 
     public static async Task<bool> StartAsync()
@@ -637,4 +639,8 @@ public static class _DB
     public static ICacheCollection<AppData> Apps = null!;
 
     public static ICollection<WorkspaceData> Workspaces = null!;
+
+    public static ICollection<LinkData> Links = null!;
+
+    public static object LinkLock = new object();
 }
