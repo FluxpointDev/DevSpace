@@ -34,7 +34,7 @@ document.onkeydown = function (e) {
     //        case 83://Block S
     //            e.preventDefault();
     //            e.stopPropagation();
-    //            workspace.toolbox.selectItemByPosition(0)
+    //            workspace.toolbox.contentsDiv_.childNodes[0].click(); 
     //            break;
     //    }
     //}
