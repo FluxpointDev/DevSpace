@@ -24,7 +24,7 @@
                 <br />
                 @foreach (var i in logs)
                 {
-                    <div class="dash-box-group" @onclick="@((e) => { Editor.SetValue(Newtonsoft.Json.JsonConvert.SerializeObject(Newtonsoft.Json.JsonConvert.DeserializeObject(i.Data), Newtonsoft.Json.Formatting.Indented), true); })" style="cursor: pointer;">
+                    <div class="dash-box-group" @onclick="@(() => OpenLog(i))" style="cursor: pointer;">
                         <RadzenCard>
                             <p>@i.Title</p>
                         </RadzenCard>
@@ -54,10 +54,21 @@
 
     public void Trigger(AppLogItem data)
     {
+        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewLogs))
+            return;
+
         if (logs.Count >= 10)
             logs.RemoveAt(0);
         logs.Add(data);
         InvokeAsync(StateHasChanged);
+    }
+
+    public void OpenLog(AppLogItem item)
+    {
+        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewLogs))
+            return;
+
+        Editor.SetValue(Newtonsoft.Json.JsonConvert.SerializeObject(Newtonsoft.Json.JsonConvert.DeserializeObject(item.Data), Newtonsoft.Json.Formatting.Indented), true);
     }
 
     public List<AppLogItem> logs = new List<AppLogItem>();
