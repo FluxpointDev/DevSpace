@@ -2,23 +2,22 @@
 
 namespace DevSpaceWeb.Apps;
 
-public class RequestBlocks
+public class WorkspaceRequest
 {
-    public RequestBlocksInner blocks = new RequestBlocksInner();
-    public List<RequestBlocks_Variable> variables = new List<RequestBlocks_Variable>();
+    public WorkspaceBlocks blocks = new WorkspaceBlocks();
+    public List<WorkspaceVariable> variables = new List<WorkspaceVariable>();
 }
-public class RequestBlocksInner
+public class WorkspaceBlocks
 {
-    public List<RequestBlocks_Block> blocks = new List<RequestBlocks_Block>();
+    public List<WorkspaceBlock> blocks = new List<WorkspaceBlock>();
 }
-public class RequestBlocksBlock
+public class WorkspaceBlockConnection
 {
-    public RequestBlocks_Block? block = null;
-    public RequestBlocks_Block? shadow = null;
+    public WorkspaceBlock? block = null;
 
-    public bool TryGetInput(string key, out RequestBlocks_Block? data)
+    public bool TryGetInput(string key, out WorkspaceBlock? data)
     {
-        if (block != null && block.inputs.TryGetValue(key, out RequestBlocksBlock? inputBlock))
+        if (block != null && block.inputs.TryGetValue(key, out WorkspaceBlockConnection? inputBlock))
         {
             data = inputBlock.block;
             return true;
@@ -52,22 +51,17 @@ public class RequestBlocksBlock
         return false;
     }
 }
-public class RequestBlocksNext
-{
-    public RequestBlocks_Block? block = null;
-    public RequestBlocks_Block? shadow = null;
-}
-public class RequestBlocks_Block
+public class WorkspaceBlock
 {
     public string type;
     public string id;
-    public RequestBlocks_Icons? icons;
+    public WorkspaceBlockIcons? icons;
     public string[]? disabledReasons = null;
     public bool enabled => disabledReasons == null || disabledReasons.Length == 0;
     public Dictionary<string, object>? extraState = null;
     public Dictionary<string, JToken> fields = new Dictionary<string, JToken>();
-    public Dictionary<string, RequestBlocksBlock> inputs = new Dictionary<string, RequestBlocksBlock>();
-    public RequestBlocksNext? next = null;
+    public Dictionary<string, WorkspaceBlockConnection> inputs = new Dictionary<string, WorkspaceBlockConnection>();
+    public WorkspaceBlockConnection? next = null;
     public double x;
     public double y;
 
@@ -76,11 +70,11 @@ public class RequestBlocks_Block
         return fields.First().Value.Value<string>("id");
     }
 }
-public class RequestBlocks_Icons
+public class WorkspaceBlockIcons
 {
-    public RequestBlocks_Comment? comment;
+    public WorkspaceBlockComment? comment;
 }
-public class RequestBlocks_Comment
+public class WorkspaceBlockComment
 {
     public string? text;
     public bool pinned;
@@ -89,7 +83,7 @@ public class RequestBlocks_Comment
     public double x;
     public double y;
 }
-public class RequestBlocks_Variable
+public class WorkspaceVariable
 {
     public string name;
     public string id;

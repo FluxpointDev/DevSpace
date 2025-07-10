@@ -8,7 +8,7 @@ public class CreateChannelBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestGuild? Guild = null;
-        if (Block.inputs.TryGetValue("server", out RequestBlocksBlock? servBlock) && servBlock.block != null)
+        if (Block.inputs.TryGetValue("server", out WorkspaceBlockConnection? servBlock) && servBlock.block != null)
             Guild = await Runtime.GetServerFromBlock(servBlock.block);
 
         if (Guild == null)
@@ -17,8 +17,8 @@ public class CreateChannelBlock : DiscordActionBlock
         if (Guild.Id == Runtime.Interaction.GuildId.GetValueOrDefault() && !Runtime.Interaction.Permissions!.Value.ViewChannel)
             return Runtime.GetAppPermissionError(GuildPermission.ViewChannel);
 
-        RequestBlocks_Block? ChanBlock = null;
-        if (Block.inputs.TryGetValue("output_channel", out RequestBlocksBlock? hookBlock) && hookBlock.block != null)
+        WorkspaceBlock? ChanBlock = null;
+        if (Block.inputs.TryGetValue("output_channel", out WorkspaceBlockConnection? hookBlock) && hookBlock.block != null)
             ChanBlock = hookBlock.block;
 
         if (Guild.Id == Runtime.Interaction.GuildId.GetValueOrDefault() && !Runtime.Interaction.Permissions!.Value.ManageChannels)
@@ -29,7 +29,7 @@ public class CreateChannelBlock : DiscordActionBlock
             case "action_create_text_channel":
                 {
                     ChannelObjectBlock? chan = null;
-                    if (Block.inputs.TryGetValue("obj_text_channel", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+                    if (Block.inputs.TryGetValue("obj_text_channel", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
                         chan = DiscordBlocks.Parse(Runtime, catBlock.block) as ChannelObjectBlock;
 
                     if (chan == null)
@@ -85,7 +85,7 @@ public class CreateChannelBlock : DiscordActionBlock
             case "action_create_voice_channel":
                 {
                     ChannelObjectBlock? chan = null;
-                    if (Block.inputs.TryGetValue("obj_voice_channel", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+                    if (Block.inputs.TryGetValue("obj_voice_channel", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
                         chan = DiscordBlocks.Parse(Runtime, catBlock.block) as ChannelObjectBlock;
 
                     if (chan == null)
@@ -137,7 +137,7 @@ public class CreateChannelBlock : DiscordActionBlock
             case "action_create_forum_channel":
                 {
                     ChannelObjectBlock? chan = null;
-                    if (Block.inputs.TryGetValue("obj_forum_channel", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+                    if (Block.inputs.TryGetValue("obj_forum_channel", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
                         chan = DiscordBlocks.Parse(Runtime, catBlock.block) as ChannelObjectBlock;
 
                     if (chan == null)
@@ -191,7 +191,7 @@ public class CreateChannelBlock : DiscordActionBlock
             case "action_create_announcement_channel":
                 {
                     ChannelObjectBlock? chan = null;
-                    if (Block.inputs.TryGetValue("obj_text_channel", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+                    if (Block.inputs.TryGetValue("obj_text_channel", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
                         chan = DiscordBlocks.Parse(Runtime, catBlock.block) as ChannelObjectBlock;
 
                     if (chan == null)
@@ -246,7 +246,7 @@ public class CreateChannelBlock : DiscordActionBlock
             case "action_create_stage_channel":
                 {
                     ChannelObjectBlock? chan = null;
-                    if (Block.inputs.TryGetValue("obj_stage_channel", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+                    if (Block.inputs.TryGetValue("obj_stage_channel", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
                         chan = DiscordBlocks.Parse(Runtime, catBlock.block) as ChannelObjectBlock;
 
                     if (chan == null)

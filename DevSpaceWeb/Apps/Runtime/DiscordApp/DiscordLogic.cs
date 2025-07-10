@@ -6,7 +6,7 @@ namespace DevSpaceWeb.Apps.Runtime.DiscordApp;
 
 public static class DiscordLogic
 {
-    public static async Task<bool> Parse(DiscordRuntime runtime, RequestBlocks_Block block)
+    public static async Task<bool> Parse(DiscordRuntime runtime, WorkspaceBlock block)
     {
         bool result = false;
         switch (block.type)
@@ -14,7 +14,7 @@ public static class DiscordLogic
             case "logic_condition_and":
                 {
                     bool FullResult = false;
-                    foreach (RequestBlocksBlock i in block.inputs.Values)
+                    foreach (WorkspaceBlockConnection i in block.inputs.Values)
                     {
                         if (i.block == null)
                             continue;
@@ -32,7 +32,7 @@ public static class DiscordLogic
                 }
             case "logic_condition_or":
                 {
-                    foreach (RequestBlocksBlock i in block.inputs.Values)
+                    foreach (WorkspaceBlockConnection i in block.inputs.Values)
                     {
                         if (i.block == null)
                             continue;
@@ -53,7 +53,7 @@ public static class DiscordLogic
         return result;
     }
 
-    public static async Task<bool> ParseBlock(DiscordRuntime runtime, RequestBlocks_Block block)
+    public static async Task<bool> ParseBlock(DiscordRuntime runtime, WorkspaceBlock block)
     {
         if (block.enabled)
         {
@@ -71,12 +71,12 @@ public static class DiscordLogic
             if (string.IsNullOrEmpty(compare))
                 throw new RuntimeError(RuntimeErrorType.Server, "Failed to check logic condition, compare is missing.");
 
-            RequestBlocks_Block? inputBlock = null;
-            KeyValuePair<string, RequestBlocksBlock>? first = block.inputs.FirstOrDefault();
+            WorkspaceBlock? inputBlock = null;
+            KeyValuePair<string, WorkspaceBlockConnection>? first = block.inputs.FirstOrDefault();
             if (first.HasValue && first.Value.Value.block != null && first.Value.Value.block.enabled)
                 inputBlock = first.Value.Value.block;
 
-            RequestBlocks_Block? valueBlock = null;
+            WorkspaceBlock? valueBlock = null;
             first = block.inputs.LastOrDefault();
             if (first.HasValue && first.Value.Value.block != null && first.Value.Value.block.enabled)
                 valueBlock = first.Value.Value.block;
@@ -1066,7 +1066,7 @@ public static class DiscordLogic
         return false;
     }
 
-    public static bool InvertIfValueBool(DiscordRuntime runtime, bool current, RequestBlocks_Block? valueInput)
+    public static bool InvertIfValueBool(DiscordRuntime runtime, bool current, WorkspaceBlock? valueInput)
     {
         bool? hasBlock = null;
         if (valueInput != null)
@@ -1078,7 +1078,7 @@ public static class DiscordLogic
         return current;
     }
 
-    public static async Task<bool> CheckString(DiscordRuntime runtime, string input, string compare, RequestBlocks_Block? valueBlock)
+    public static async Task<bool> CheckString(DiscordRuntime runtime, string input, string compare, WorkspaceBlock? valueBlock)
     {
         switch (compare)
         {
@@ -1198,14 +1198,14 @@ public static class DiscordLogic
         return false;
     }
 
-    public static async Task<bool> CheckNumber(DiscordRuntime runtime, RequestBlocks_Block inputBlock, RequestBlocks_Block? valueBlock, string compare)
+    public static async Task<bool> CheckNumber(DiscordRuntime runtime, WorkspaceBlock inputBlock, WorkspaceBlock? valueBlock, string compare)
     {
         int? intNum = await runtime.GetIntFromBlock(inputBlock);
         double? dobNum = await runtime.GetDoubleFromBlock(inputBlock);
         return await CheckNumber(runtime, intNum, dobNum, valueBlock, compare);
     }
 
-    public static bool CheckBool(DiscordRuntime runtime, bool? inputBool, RequestBlocks_Block? valueBlock, string compare)
+    public static bool CheckBool(DiscordRuntime runtime, bool? inputBool, WorkspaceBlock? valueBlock, string compare)
     {
         switch (compare)
         {
@@ -1228,7 +1228,7 @@ public static class DiscordLogic
         return false;
     }
 
-    public static async Task<bool> CheckNumber(DiscordRuntime runtime, int? inputNum, double? inputDob, RequestBlocks_Block? valueBlock, string compare)
+    public static async Task<bool> CheckNumber(DiscordRuntime runtime, int? inputNum, double? inputDob, WorkspaceBlock? valueBlock, string compare)
     {
         if (compare == "exists")
         {

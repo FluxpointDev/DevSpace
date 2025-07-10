@@ -7,7 +7,7 @@ public class SetActiveChannelBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestChannel? Channel = null;
-        if (Block.inputs.TryGetValue("channel", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("channel", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             Channel = await Runtime.GetChannelFromBlock(catBlock.block);
 
         if (Channel == null)

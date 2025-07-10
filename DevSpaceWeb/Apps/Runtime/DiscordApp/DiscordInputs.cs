@@ -7,12 +7,12 @@ namespace DevSpaceWeb.Apps.Runtime.DiscordApp;
 
 public class DiscordInputs
 {
-    public static async Task ParseNextBlock(DiscordRuntime runtime, RequestBlocks_Block block, string modalDataType = "")
+    public static async Task ParseNextBlock(DiscordRuntime runtime, WorkspaceBlock block, string modalDataType = "")
     {
         if (block.enabled)
         {
             string Name = string.Empty;
-            if (block.inputs.TryGetValue("name", out RequestBlocksBlock? nameBlock) && nameBlock.block != null)
+            if (block.inputs.TryGetValue("name", out WorkspaceBlockConnection? nameBlock) && nameBlock.block != null)
                 Name = await runtime.GetStringFromBlock(nameBlock.block);
 
 
@@ -21,7 +21,7 @@ public class DiscordInputs
                 RestSlashCommandDataOption? ValueData = (runtime.Interaction as RestSlashCommand).Data.Options.FirstOrDefault(x => x.Name == Name);
                 if (ValueData != null)
                 {
-                    if (block.inputs.TryGetValue("output_variable", out RequestBlocksBlock? outputBlock) && outputBlock.block != null)
+                    if (block.inputs.TryGetValue("output_variable", out WorkspaceBlockConnection? outputBlock) && outputBlock.block != null)
                     {
                         string Key = outputBlock.block.GetVariableId();
                         switch (ValueData.Type)
@@ -152,7 +152,7 @@ public class DiscordInputs
 
 
 
-    public static async Task<List<DiscordAppCommandInput>> Parse(RequestBlocks_Block block)
+    public static async Task<List<DiscordAppCommandInput>> Parse(WorkspaceBlock block)
     {
         InputCache cache = new InputCache();
         await NextInput(new MainRuntime(), cache, block);
@@ -165,7 +165,7 @@ public class DiscordInputs
         public List<DiscordAppCommandInput> inputs = new List<DiscordAppCommandInput>();
     }
 
-    private static async Task NextInput(MainRuntime runtime, InputCache inputs, RequestBlocks_Block block)
+    private static async Task NextInput(MainRuntime runtime, InputCache inputs, WorkspaceBlock block)
     {
         if (block.enabled && block.type.StartsWith("input_"))
         {
@@ -176,7 +176,7 @@ public class DiscordInputs
                 {
                     Type = Type.Value
                 };
-                if (block.inputs.TryGetValue("name", out RequestBlocksBlock? inputBlock) && inputBlock.block != null)
+                if (block.inputs.TryGetValue("name", out WorkspaceBlockConnection? inputBlock) && inputBlock.block != null)
                     Input.Name = await runtime.GetStringFromBlock(inputBlock.block);
 
                 if (block.inputs.TryGetValue("is_required", out inputBlock) && inputBlock.block != null)
@@ -198,7 +198,7 @@ public class DiscordInputs
                 {
                     Dictionary<string, string> list = new Dictionary<string, string>();
 
-                    foreach (RequestBlocksBlock i in inputBlock.block.inputs.Values)
+                    foreach (WorkspaceBlockConnection i in inputBlock.block.inputs.Values)
                     {
                         if (i.block != null && i.block.enabled)
                             list.Add(i.block.fields["name"].ToString(), i.block.fields["value"].ToString());
@@ -216,7 +216,7 @@ public class DiscordInputs
             await NextInput(runtime, inputs, block.next.block);
     }
 
-    private static DiscordAppCommandInputType? GetInputType(RequestBlocks_Block block)
+    private static DiscordAppCommandInputType? GetInputType(WorkspaceBlock block)
     {
         switch (block.type)
         {

@@ -186,7 +186,7 @@ public class WorkspaceController : ControllerBase
             Console.WriteLine(ex);
             return BadRequest("Request body does not have json content.");
         }
-        RequestBlocks? Command = Newtonsoft.Json.JsonConvert.DeserializeObject<RequestBlocks>(body, new Newtonsoft.Json.JsonSerializerSettings
+        WorkspaceRequest? Command = Newtonsoft.Json.JsonConvert.DeserializeObject<WorkspaceRequest>(body, new Newtonsoft.Json.JsonSerializerSettings
         {
             MaxDepth = 512
         });
@@ -204,7 +204,7 @@ public class WorkspaceController : ControllerBase
         bool HasEphemeralResponse = false;
         bool HasUserAppsResponse = false;
         Tuple<string, string>? OpenModal = null;
-        Command.blocks.blocks.First().inputs.TryGetValue("command_options", out RequestBlocksBlock? optBlocks);
+        Command.blocks.blocks.First().inputs.TryGetValue("command_options", out WorkspaceBlockConnection? optBlocks);
         if (optBlocks != null && optBlocks.block != null)
         {
             HasEphemeralResponse = HasEphemeral(optBlocks.block);
@@ -257,7 +257,7 @@ public class WorkspaceController : ControllerBase
                     string InputHash = string.Empty;
                     List<DiscordAppCommandInput> Inputs = new List<DiscordAppCommandInput>();
 
-                    if (Command.blocks.blocks.First().inputs.TryGetValue("command_inputs", out RequestBlocksBlock? inputBlocks) && inputBlocks.block != null)
+                    if (Command.blocks.blocks.First().inputs.TryGetValue("command_inputs", out WorkspaceBlockConnection? inputBlocks) && inputBlocks.block != null)
                     {
                         Inputs = await DiscordInputs.Parse(inputBlocks.block);
                         if (Inputs.Count != 0)
@@ -636,7 +636,7 @@ public class WorkspaceController : ControllerBase
     }
 
 
-    public bool HasEphemeral(RequestBlocks_Block block)
+    public bool HasEphemeral(WorkspaceBlock block)
     {
         if (block.enabled && block.type == "option_ephemeral")
             return true;
@@ -651,11 +651,11 @@ public class WorkspaceController : ControllerBase
         return false;
     }
 
-    public Tuple<string, string>? HasOpenModal(RequestBlocks_Block block)
+    public Tuple<string, string>? HasOpenModal(WorkspaceBlock block)
     {
         if (block.enabled && block.type == "option_open_modal")
         {
-            if (block.inputs.TryGetValue("data", out RequestBlocksBlock? dbBlock) && dbBlock.block != null)
+            if (block.inputs.TryGetValue("data", out WorkspaceBlockConnection? dbBlock) && dbBlock.block != null)
                 return Tuple.Create(block.inputs["name"].block.fields["TEXT"].ToString(), dbBlock.block.type == "variables_get" ? dbBlock.block.fields["VAR"]["id"].ToString() : dbBlock.block.type);
 
             return Tuple.Create(block.inputs["name"].block.fields["TEXT"].ToString(), string.Empty);
@@ -672,7 +672,7 @@ public class WorkspaceController : ControllerBase
         return null;
     }
 
-    public bool HasUserApps(RequestBlocks_Block block)
+    public bool HasUserApps(WorkspaceBlock block)
     {
         if (block.enabled && block.type == "option_allow_user_apps")
             return true;

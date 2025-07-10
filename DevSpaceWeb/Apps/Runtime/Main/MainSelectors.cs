@@ -2,13 +2,13 @@
 
 public static class MainSelectors
 {
-    public static object? Parse(IRuntime runtime, RequestBlocks_Block block)
+    public static object? Parse(IRuntime runtime, WorkspaceBlock block)
     {
         switch (block.type)
         {
             case "data_selector_file":
                 {
-                    if (block.inputs.TryGetValue("file", out RequestBlocksBlock? fileBlock) && fileBlock.block != null)
+                    if (block.inputs.TryGetValue("file", out WorkspaceBlockConnection? fileBlock) && fileBlock.block != null)
                     {
                         FileData? file = runtime.GetFileFromBlock(fileBlock.block);
                         if (file == null)
@@ -31,7 +31,7 @@ public static class MainSelectors
                 break;
             case "data_selector_response":
                 {
-                    if (block.inputs.TryGetValue("response", out RequestBlocksBlock? resBlock) && resBlock.block != null)
+                    if (block.inputs.TryGetValue("response", out WorkspaceBlockConnection? resBlock) && resBlock.block != null)
                     {
                         ResponseData? response = runtime.GetResponseFromBlock(resBlock.block);
                         if (response == null)

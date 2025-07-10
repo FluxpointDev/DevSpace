@@ -4,7 +4,7 @@ namespace DevSpaceWeb.Apps.Runtime.DiscordApp.Blocks;
 
 public static class DiscordOptions
 {
-    public static async Task<RuntimeError?> Parse(DiscordRuntime runtime, RequestBlocks_Block block)
+    public static async Task<RuntimeError?> Parse(DiscordRuntime runtime, WorkspaceBlock block)
     {
         if (block.enabled)
         {
@@ -67,7 +67,7 @@ public static class DiscordOptions
                             return null;
 
                         ulong? UserId = null;
-                        if (block.inputs.TryGetValue("user", out RequestBlocksBlock? usrBlock) && usrBlock.block != null)
+                        if (block.inputs.TryGetValue("user", out WorkspaceBlockConnection? usrBlock) && usrBlock.block != null)
                             UserId = await runtime.GetUserIdFromBlock(usrBlock.block);
 
                         if (UserId.HasValue)
@@ -80,7 +80,7 @@ public static class DiscordOptions
                             return null;
 
                         ulong? RoleId = null;
-                        if (block.inputs.TryGetValue("role", out RequestBlocksBlock? usrBlock) && usrBlock.block != null)
+                        if (block.inputs.TryGetValue("role", out WorkspaceBlockConnection? usrBlock) && usrBlock.block != null)
                             RoleId = await runtime.GetRoleIdFromBlock(usrBlock.block);
 
                         if (RoleId.HasValue)
@@ -113,15 +113,15 @@ public static class DiscordOptions
                     break;
                 case "option_require_server_permission":
                     {
-                        RequestBlocks_Block? permBlock = null;
-                        RequestBlocks_Block? memberBlock = null;
-                        if (block.inputs.TryGetValue("permission", out RequestBlocksBlock? pBlock) && pBlock.block != null)
+                        WorkspaceBlock? permBlock = null;
+                        WorkspaceBlock? memberBlock = null;
+                        if (block.inputs.TryGetValue("permission", out WorkspaceBlockConnection? pBlock) && pBlock.block != null)
                             permBlock = pBlock.block;
 
                         if (permBlock == null)
                             return new RuntimeError(RuntimeErrorType.Runtime, "Could not parse command options, require server permission is missing permissions.");
 
-                        if (block.inputs.TryGetValue("member", out RequestBlocksBlock? uBlock) && uBlock.block != null)
+                        if (block.inputs.TryGetValue("member", out WorkspaceBlockConnection? uBlock) && uBlock.block != null)
                             memberBlock = uBlock.block;
 
                         if (memberBlock == null)
@@ -131,27 +131,27 @@ public static class DiscordOptions
                         if (perms == null)
                             return new RuntimeError(RuntimeErrorType.Runtime, "Could not parse command options, require server permissions has invalid permissions.");
 
-                        runtime.Options.RequireServerPermissions.Add(Tuple.Create<GuildPermissions, RequestBlocks_Block>(perms.Value, memberBlock));
+                        runtime.Options.RequireServerPermissions.Add(Tuple.Create<GuildPermissions, WorkspaceBlock>(perms.Value, memberBlock));
                     }
                     break;
                 case "option_require_channel_permission":
                     {
-                        RequestBlocks_Block? permBlock = null;
-                        RequestBlocks_Block? channelBlock = null;
-                        if (block.inputs.TryGetValue("permission", out RequestBlocksBlock? pBlock) && pBlock.block != null)
+                        WorkspaceBlock? permBlock = null;
+                        WorkspaceBlock? channelBlock = null;
+                        if (block.inputs.TryGetValue("permission", out WorkspaceBlockConnection? pBlock) && pBlock.block != null)
                             permBlock = pBlock.block;
 
                         if (permBlock == null)
                             return new RuntimeError(RuntimeErrorType.Runtime, "Could not parse command options, require server permission is missing permissions.");
 
-                        if (block.inputs.TryGetValue("channel", out RequestBlocksBlock? uBlock) && uBlock.block != null)
+                        if (block.inputs.TryGetValue("channel", out WorkspaceBlockConnection? uBlock) && uBlock.block != null)
                             channelBlock = uBlock.block;
 
                         if (channelBlock == null)
                             return new RuntimeError(RuntimeErrorType.Runtime, "Could not parse command options, require server permission is missing channel.");
 
-                        if (block.inputs.TryGetValue("member", out RequestBlocksBlock? mBlock) && mBlock.block != null)
-                            channelBlock.next = new RequestBlocksNext { block = mBlock.block };
+                        if (block.inputs.TryGetValue("member", out WorkspaceBlockConnection? mBlock) && mBlock.block != null)
+                            channelBlock.next = new WorkspaceBlockConnection { block = mBlock.block };
 
                         if (channelBlock.next == null || channelBlock.next.block == null)
                             return new RuntimeError(RuntimeErrorType.Runtime, "Could not parse command options, require server permission is missing member.");
@@ -161,7 +161,7 @@ public static class DiscordOptions
                         if (perms == null)
                             return new RuntimeError(RuntimeErrorType.Runtime, "Could not parse command options, require server permissions has invalid permissions.");
 
-                        runtime.Options.RequireChannelPermissions.Add(Tuple.Create<ChannelPermissions, RequestBlocks_Block>(new ChannelPermissions(perms.Value.RawValue), channelBlock));
+                        runtime.Options.RequireChannelPermissions.Add(Tuple.Create<ChannelPermissions, WorkspaceBlock>(new ChannelPermissions(perms.Value.RawValue), channelBlock));
                     }
                     break;
             }
@@ -189,7 +189,7 @@ public class RuntimeOptions
     public bool RequirePrivateChannel = false;
     public bool RequireGroupChannel = false;
 
-    public List<Tuple<GuildPermissions, RequestBlocks_Block>> RequireServerPermissions = new List<Tuple<GuildPermissions, RequestBlocks_Block>>();
-    public List<Tuple<ChannelPermissions, RequestBlocks_Block>> RequireChannelPermissions = new List<Tuple<ChannelPermissions, RequestBlocks_Block>>();
+    public List<Tuple<GuildPermissions, WorkspaceBlock>> RequireServerPermissions = new List<Tuple<GuildPermissions, WorkspaceBlock>>();
+    public List<Tuple<ChannelPermissions, WorkspaceBlock>> RequireChannelPermissions = new List<Tuple<ChannelPermissions, WorkspaceBlock>>();
 
 }

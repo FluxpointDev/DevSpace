@@ -9,14 +9,14 @@ public class ModifyRoleBlock : DiscordActionBlock
     {
         RestRole? Role = null;
 
-        if (Block.inputs.TryGetValue("role", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+        if (Block.inputs.TryGetValue("role", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
             Role = await Runtime.GetRoleFromBlock(roleBlock.block);
 
         if (Role == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to modify role, could not find role.");
 
         RoleObjectBlock? RoleObject = null;
-        if (Block.inputs.TryGetValue("obj_role", out RequestBlocksBlock? webBlock) && webBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_role", out WorkspaceBlockConnection? webBlock) && webBlock.block != null)
             RoleObject = DiscordBlocks.Parse(Runtime, webBlock.block) as RoleObjectBlock;
 
         if (RoleObject == null)

@@ -18,7 +18,7 @@ public class SendMessageBlock : DiscordActionBlock
         RestChannel? Channel = null;
         Tuple<RestWebhook?, string>? Webhook = null;
 
-        if (Block.inputs.TryGetValue("webhook", out RequestBlocksBlock? webBlock) && webBlock.block != null)
+        if (Block.inputs.TryGetValue("webhook", out WorkspaceBlockConnection? webBlock) && webBlock.block != null)
         {
             Webhook = await Runtime.GetWebhookFromBlock(webBlock.block);
             if (Webhook == null || Webhook.Item1 == null)
@@ -27,18 +27,18 @@ public class SendMessageBlock : DiscordActionBlock
         }
 
 
-        if (Block.inputs.TryGetValue("channel", out RequestBlocksBlock? channelBlock) && channelBlock.block != null)
+        if (Block.inputs.TryGetValue("channel", out WorkspaceBlockConnection? channelBlock) && channelBlock.block != null)
             Channel = await Runtime.GetChannelFromBlock(channelBlock.block);
 
         MessageComponent? components = null;
 
-        if (Channel == null && Block.type != "action_send_response_message" && Block.type != "action_send_webhook_message" && Block.type != "action_update_response_message")
+        if (Channel == null && Block.type != "action_stop_execution" && Block.type != "action_send_response_message" && Block.type != "action_send_webhook_message" && Block.type != "action_update_response_message")
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to send message, could not find channel.");
 
         if (Channel is RestForumChannel)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to send message, you can't send normal messages to forum channels.");
 
-        if (Block.inputs.TryGetValue("obj_message", out RequestBlocksBlock? MessageData) && MessageData.block != null)
+        if (Block.inputs.TryGetValue("obj_message", out WorkspaceBlockConnection? MessageData) && MessageData.block != null)
         {
             MessageObjectBlock? messageBlock = DiscordBlocks.Parse(Runtime, MessageData.block) as MessageObjectBlock;
             if (messageBlock != null)
@@ -46,7 +46,7 @@ public class SendMessageBlock : DiscordActionBlock
                 Content = await messageBlock.Content();
                 File = messageBlock.File();
 
-                if (messageBlock.Block.inputs.TryGetValue("is_file_spoiler", out RequestBlocksBlock? spoilerBlock) && spoilerBlock.block != null)
+                if (messageBlock.Block.inputs.TryGetValue("is_file_spoiler", out WorkspaceBlockConnection? spoilerBlock) && spoilerBlock.block != null)
                     IsSpoiler = (await Runtime.GetBoolFromBlock(spoilerBlock.block)).GetValueOrDefault(false);
 
                 EmbedObjectBlock? EmbedObject = messageBlock.Embed();
@@ -54,7 +54,7 @@ public class SendMessageBlock : DiscordActionBlock
                 if (EmbedObject != null)
                     Embed = await EmbedObject.Embed();
 
-                if (messageBlock.Block.inputs.TryGetValue("obj_components_list", out RequestBlocksBlock? cmpBlock) && cmpBlock.block != null)
+                if (messageBlock.Block.inputs.TryGetValue("obj_components_list", out WorkspaceBlockConnection? cmpBlock) && cmpBlock.block != null)
                 {
                     ComponentsObjectBlock? componentsBlock = DiscordBlocks.Parse(Runtime, cmpBlock.block) as ComponentsObjectBlock;
                     if (componentsBlock != null)
@@ -155,9 +155,9 @@ public class SendMessageBlock : DiscordActionBlock
         {
             string? WebhookName = null;
             string? WebhookAvatar = null;
-            if (Block.inputs.TryGetValue("obj_webhook_message", out RequestBlocksBlock? whMsgBlock) && whMsgBlock.block != null)
+            if (Block.inputs.TryGetValue("obj_webhook_message", out WorkspaceBlockConnection? whMsgBlock) && whMsgBlock.block != null)
             {
-                if (whMsgBlock.block.inputs.TryGetValue("name", out RequestBlocksBlock? nameBlock) && nameBlock.block != null)
+                if (whMsgBlock.block.inputs.TryGetValue("name", out WorkspaceBlockConnection? nameBlock) && nameBlock.block != null)
                     WebhookName = await Runtime.GetStringFromBlock(nameBlock.block);
 
                 if (string.IsNullOrEmpty(WebhookName))
@@ -225,7 +225,7 @@ public class SendMessageBlock : DiscordActionBlock
         if (OutputMessage == null && OutputMessageID == 0)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to send message, could not find message.");
 
-        if (Block.inputs.TryGetValue("output_message", out RequestBlocksBlock outputBlock) && outputBlock.block != null)
+        if (Block.inputs.TryGetValue("output_message", out WorkspaceBlockConnection outputBlock) && outputBlock.block != null)
         {
             if (OutputMessage != null)
             {

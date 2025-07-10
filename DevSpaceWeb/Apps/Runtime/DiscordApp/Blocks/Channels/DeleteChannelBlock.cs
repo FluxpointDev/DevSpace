@@ -8,7 +8,7 @@ public class DeleteChannelBlock : DiscordActionBlock
     {
         IChannel? Channel = null;
 
-        if (Block.inputs.TryGetValue("channel", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+        if (Block.inputs.TryGetValue("channel", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
         {
             Channel = await Runtime.GetChannelFromBlock(chanBlock.block);
 

@@ -4,6 +4,8 @@
 @using DevSpaceShared.WebSocket
 @using DevSpaceWeb.Agents
 @using DevSpaceWeb.Apps.Data
+@using Discord
+@using Discord.Rest
 @inject DialogService Dialogs
 @inject NavigationManager Nav
 @inject NotificationService Notifications
@@ -22,7 +24,6 @@
 
     @if (Permissions.CheckFailedAppPermissions(Member, Team, App, AppPermission.ViewApp, out AppPermission? failedPerm))
     {
-        <br />
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
             You do not have permission for @Utils.FriendlyName(failedPerm.ToString()!)
         </RadzenAlert>
@@ -41,36 +42,244 @@
         }
         else
         {
-            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false" Size="AlertSize.Small">
                 Your app is not public, enable it in the Discord Developer Portal!
             </RadzenAlert>
         }
         <br />
         <div>
-            <RadzenCheckBox @bind-Value="@IsUserInstall" />
+            <RadzenCheckBox @bind-Value="@IsUserInstall" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
             <RadzenLabel Text="User Install" class="rz-ms-2" />
         </div>
 
         <div class="mt-2">
-            <RadzenCheckBox @bind-Value="@IsGuildInstall" />
+            <RadzenCheckBox @bind-Value="@IsGuildInstall" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
             <RadzenLabel Text="Guild Install" class="rz-ms-2" />
         </div>
         <br />
-        <RadzenButton Text="Update Install & Permissions (Not Available)" Click="@UpdateInstall" ButtonStyle="ButtonStyle.Success" Shade="Shade.Darker" Disabled="@(true || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+        <RadzenButton Text="Update Install & Permissions" Click="@UpdateInstall" ButtonStyle="Radzen.ButtonStyle.Success" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
     }
 </div>
 
-@* @if (!Permissions.CheckFailedTeamPermissions(Member, Team, TeamPermission.GlobalAdministrator, out failedPerm))
+@if (!Permissions.CheckFailedAppPermissions(Member, Team, App, AppPermission.ViewApp, out failedPerm))
 {
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
             <div class="dash-box-icon">
                 <span class="iconify" data-icon="mdi:plus-circle"></span>
             </div>
-            <RadzenText TextStyle="TextStyle.H6">App Permissions</RadzenText>
+            <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
         </div>
+
+        @if (App == null || !App.DiscordData.IsPublicApp)
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Darker" AllowClose="false" Size="AlertSize.Small">
+                You can't manage default permissions on a private app.
+            </RadzenAlert>
+        }
+        else
+        {
+            <br />
+            <RadzenRow Gap="10px" RowGap="10px">
+                <RadzenColumn SizeMD="3" SizeSM="6">
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Body1" Style="text-align: center;">Manage</RadzenText>
+                        <br />
+                        <RadzenStack Orientation="Orientation.Vertical">
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.Administrator)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.Administrator))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Administrator" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ManageGuild)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ManageGuild))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Manage Server" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ManageChannels)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ManageChannels))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Manage Channels" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.CreateGuildExpressions)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.CreateGuildExpressions))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Create Expressions" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ManageEmojisAndStickers)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ManageEmojisAndStickers))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Manage Expressions" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ManageWebhooks)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ManageWebhooks))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Manage Webhooks" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.CreateEvents)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.CreateEvents))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Create Events" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ManageEvents)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ManageEvents))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Manage Events" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.MentionEveryone)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.MentionEveryone))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Mention Everyone" class="rz-ms-2" />
+                            </div>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn SizeMD="3" SizeSM="6">
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Body1" Style="text-align: center;">Moderate</RadzenText>
+                        <br />
+                        <RadzenStack Orientation="Orientation.Vertical">
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.KickMembers)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.KickMembers))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Kick Members" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.BanMembers)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.BanMembers))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Ban Members" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ModerateMembers)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ModerateMembers))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Time out Members" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ManageNicknames)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ManageNicknames))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Manage Nicknames" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ManageRoles)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ManageRoles))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Manage Roles" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ManageThreads)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ManageThreads))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Manage Threads" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ManageMessages)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ManageMessages))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Manage Messages" class="rz-ms-2" />
+                            </div>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn SizeMD="3" SizeSM="6">
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Body1" Style="text-align: center;">General</RadzenText>
+                        <br />
+                        <RadzenStack Orientation="Orientation.Vertical">
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ChangeNickname)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ChangeNickname))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Change Nickname" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ViewAuditLog)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ViewAuditLog))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="View Audit Logs" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.CreateInstantInvite)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.CreateInstantInvite))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Create Invites" class="rz-ms-2" />
+                            </div>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn SizeMD="3" SizeSM="6">
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Body1" Style="text-align: center;">Channels</RadzenText>
+                        <br />
+                        <RadzenStack Orientation="Orientation.Vertical">
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ViewChannel)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ViewChannel))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="View Channels" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.ReadMessageHistory)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.ReadMessageHistory))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Read Message History" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.SendMessages)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.SendMessages))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Send Messages" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.EmbedLinks)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.EmbedLinks))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Embed Links" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.AttachFiles)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.AttachFiles))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Attach Files" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.AddReactions)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.AddReactions))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Add Reactions" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.UseExternalEmojis)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.UseExternalEmojis))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Use External Emojis" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.SendVoiceMessages)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.SendVoiceMessages))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Send Voice Messages" class="rz-ms-2" />
+                            </div>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn SizeMD="3" SizeSM="6">
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Body1" Style="text-align: center;">Threads</RadzenText>
+                        <br />
+                        <RadzenStack Orientation="Orientation.Vertical">
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.CreatePublicThreads)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.CreatePublicThreads))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Create Public Threads" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.CreatePrivateThreads)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.CreatePrivateThreads))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Create Private Threads" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.SendMessagesInThreads)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.SendMessagesInThreads))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Send Messages in Threads" class="rz-ms-2" />
+                            </div>
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+                <RadzenColumn SizeMD="3" SizeSM="6">
+                    <RadzenCard>
+                        <RadzenText TextStyle="TextStyle.Body1" Style="text-align: center;">Voice</RadzenText>
+                        <br />
+                        <RadzenStack Orientation="Orientation.Vertical">
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.Connect)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.Connect))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Connect" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.Speak)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.Speak))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Speak" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.MuteMembers)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.MuteMembers))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Mute Members" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.DeafenMembers)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.DeafenMembers))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Deafen Members" class="rz-ms-2" />
+                            </div>
+                            <div>
+                                <RadzenCheckBox Value="@CurrentPermissions.Has(Discord.GuildPermission.MoveMembers)" TValue="bool" ValueChanged="@((arg) => SetPermissions(arg, Discord.GuildPermission.MoveMembers))" ReadOnly="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))" />
+                                <RadzenLabel Text="Move Members" class="rz-ms-2" />
+                            </div>
+
+                        </RadzenStack>
+                    </RadzenCard>
+                </RadzenColumn>
+            </RadzenRow>
+        }
     </div>
-} *@
+}
+
+<style>
+    .rz-body .rz-card {
+        height: 100%;
+    }
+</style>
 
 
 @code {
@@ -81,14 +290,67 @@
     public TeamMemberData? Member => Session.Selected.Member;
     public AppData? App => Session.Selected.App;
 
+    public Discord.GuildPermissions CurrentPermissions { get; set; }
+
     public bool IsUserInstall { get; set; }
     public bool IsGuildInstall { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Member == null || App == null)
+            return;
+
+        CurrentPermissions = new Discord.GuildPermissions(App.DiscordData.GuildPermissions);
+    }
+
+    internal void SetPermissions(bool add, Discord.GuildPermission perm)
+    {
+        ulong value = (ulong)perm;
+        ulong current = CurrentPermissions.RawValue;
+        if (add)
+            CurrentPermissions = new Discord.GuildPermissions(current |= value);
+        else
+            CurrentPermissions = new Discord.GuildPermissions(current &= ~value);
+    }
 
     public async Task UpdateInstall()
     {
         if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))
             return;
 
+        if (!_Data.DiscordClients.TryGetValue(App.Id, out Discord.Rest.DiscordRestClient client))
+        {
+            Dialogs.ShowInfoAsync("App Udate Failed!", "Could not get Discord client.");
+            return;
+        }
 
+        var dict = new Dictionary<Discord.ApplicationIntegrationType, Discord.ApplicationInstallParams>();
+        if (IsUserInstall)
+            dict.Add(Discord.ApplicationIntegrationType.UserInstall, new Discord.ApplicationInstallParams(new string[] { "applications.commands" }, 0));
+        if (IsGuildInstall)
+            dict.Add(Discord.ApplicationIntegrationType.GuildInstall, new Discord.ApplicationInstallParams(new string[] { "bot", "applications.commands" }, (GuildPermission)CurrentPermissions.RawValue));
+
+        if (!dict.Any())
+        {
+            Dialogs.ShowInfoAsync("App Udate Failed!", "You need to set an install type.");
+            return;
+        }
+        RestApplication install = await client.ModifyCurrentBotApplicationAsync(x =>
+        {
+            x.IntegrationTypesConfig = dict;
+            x.InstallParams = App.DiscordData.IsPublicApp ? new Discord.ApplicationInstallParams(new string[] { "bot", "applications.commands" }, (GuildPermission)CurrentPermissions.RawValue) : Discord.Optional<ApplicationInstallParams>.Unspecified;
+        });
+
+        await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+        .Set(x => x.DiscordData.GuildPermissions, (install.InstallParams != null ? (ulong)install.InstallParams.Permission : 0))
+        .Set(x => x.DiscordData.IsGuildInstall, install.IntegrationTypesConfig.ContainsKey(Discord.ApplicationIntegrationType.GuildInstall))
+        .Set(x => x.DiscordData.IsUserInstall, install.IntegrationTypesConfig.ContainsKey(Discord.ApplicationIntegrationType.UserInstall)), async () =>
+        {
+            App.DiscordData.GuildPermissions = CurrentPermissions.RawValue;
+            App.DiscordData.IsUserInstall = IsUserInstall;
+            App.DiscordData.IsGuildInstall = IsGuildInstall;
+        });
+
+        Dialogs.ShowInfoAsync("App Udated", "Install settings and permissions have been updated.");
     }
 }

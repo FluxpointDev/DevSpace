@@ -5,7 +5,7 @@ public class SetActiveFileBlock : IActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         FileData? Category = null;
-        if (Block.inputs.TryGetValue("file", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("file", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             Category = Runtime.GetFileFromBlock(catBlock.block);
 
         if (Category == null)

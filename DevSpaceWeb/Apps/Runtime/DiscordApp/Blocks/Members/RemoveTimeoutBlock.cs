@@ -8,7 +8,7 @@ public class RemoveTimeoutBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestGuildUser? User = null;
-        if (Block.inputs.TryGetValue("member", out RequestBlocksBlock? webhookBlock) && webhookBlock.block != null)
+        if (Block.inputs.TryGetValue("member", out WorkspaceBlockConnection? webhookBlock) && webhookBlock.block != null)
             User = await Runtime.GetMemberFromBlock(webhookBlock.block);
 
         if (User == null)
@@ -18,7 +18,7 @@ public class RemoveTimeoutBlock : DiscordActionBlock
             return Runtime.GetAppPermissionError(GuildPermission.ModerateMembers);
 
         string Reason = string.Empty;
-        if (Block.inputs.TryGetValue("reason", out RequestBlocksBlock? rsBlock) && rsBlock.block != null)
+        if (Block.inputs.TryGetValue("reason", out WorkspaceBlockConnection? rsBlock) && rsBlock.block != null)
             Reason = await Runtime.GetStringFromBlock(rsBlock.block);
 
         await User.RemoveTimeOutAsync(!string.IsNullOrEmpty(Reason) ? new Discord.RequestOptions { AuditLogReason = Reason } : null);

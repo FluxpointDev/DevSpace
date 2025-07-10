@@ -100,12 +100,12 @@ public class AppData : ITeamResource
 
     public class AppEvents
     {
-        public delegate void saisieDateTime(string title, object data);
-        public event saisieDateTime LogEvent;
+        public delegate void logEvent(AppLogItem item);
+        public event logEvent LogEvent;
 
-        public void TriggerEvent(string title, object data)
+        public void TriggerEvent(AppLogItem item)
         {
-            LogEvent?.Invoke(title, data);
+            LogEvent?.Invoke(item);
         }
     }
 
@@ -147,8 +147,8 @@ public class AppData : ITeamResource
 
 public class AppCache
 {
-    private Dictionary<ObjectId, RequestBlocks_Block> CommandCache = new Dictionary<ObjectId, RequestBlocks_Block>();
-    public void AddCommandCache(ObjectId workspace, RequestBlocks_Block block)
+    private Dictionary<ObjectId, WorkspaceBlock> CommandCache = new Dictionary<ObjectId, WorkspaceBlock>();
+    public void AddCommandCache(ObjectId workspace, WorkspaceBlock block)
     {
         if (CommandCache.ContainsKey(workspace))
             CommandCache[workspace] = block;
@@ -161,9 +161,9 @@ public class AppCache
         CommandCache.Remove(workspace);
     }
 
-    public RequestBlocks_Block? GetCacheCommand(ObjectId workspace)
+    public WorkspaceBlock? GetCacheCommand(ObjectId workspace)
     {
-        if (CommandCache.TryGetValue(workspace, out RequestBlocks_Block? block))
+        if (CommandCache.TryGetValue(workspace, out WorkspaceBlock? block))
             return block;
 
         return null;

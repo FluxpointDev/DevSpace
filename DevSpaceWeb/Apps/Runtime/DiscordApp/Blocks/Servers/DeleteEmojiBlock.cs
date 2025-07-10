@@ -9,7 +9,7 @@ public class DeleteEmojiBlock : DiscordActionBlock
     {
         Tuple<Tuple<ulong, RestGuild?>?, IEmote>? Emoji = null;
 
-        if (Block.inputs.TryGetValue("emoji", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+        if (Block.inputs.TryGetValue("emoji", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
             Emoji = await Runtime.GetEmojiFromBlockAsync(chanBlock.block);
 
         if (Emoji == null)

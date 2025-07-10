@@ -7,14 +7,14 @@ public class SetActiveRoleBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestRole? Category = null;
-        if (Block.inputs.TryGetValue("role", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("role", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             Category = await Runtime.GetRoleFromBlock(catBlock.block);
 
         if (Category == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to set active role, could not find role.");
 
         ulong? Server = null;
-        if (catBlock.block.inputs.TryGetValue("server", out RequestBlocksBlock? srvBlock) && srvBlock.block != null)
+        if (catBlock.block.inputs.TryGetValue("server", out WorkspaceBlockConnection? srvBlock) && srvBlock.block != null)
             Server = await Runtime.GetServerIdFromBlock(srvBlock.block);
 
         if (Server == null)

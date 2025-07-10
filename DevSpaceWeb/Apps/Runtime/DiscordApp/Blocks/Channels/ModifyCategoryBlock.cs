@@ -7,14 +7,14 @@ public class ModifyCategoryBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestCategoryChannel? Category = null;
-        if (Block.inputs.TryGetValue("category", out RequestBlocksBlock? webhookBlock) && webhookBlock.block != null)
+        if (Block.inputs.TryGetValue("category", out WorkspaceBlockConnection? webhookBlock) && webhookBlock.block != null)
             Category = await Runtime.GetCategoryFromBlock(webhookBlock.block);
 
         if (Category == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to modify category, could not find category.");
 
         CategoryObjectBlock? CategoryObj = null;
-        if (Block.inputs.TryGetValue("obj_category", out RequestBlocksBlock? webBlock) && webBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_category", out WorkspaceBlockConnection? webBlock) && webBlock.block != null)
             CategoryObj = DiscordBlocks.Parse(Runtime, webBlock.block) as CategoryObjectBlock;
 
         if (CategoryObj == null)

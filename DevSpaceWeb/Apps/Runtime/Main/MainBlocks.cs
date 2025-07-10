@@ -4,7 +4,7 @@ namespace DevSpaceWeb.Apps.Runtime.Main;
 
 public static class MainBlocks
 {
-    public static IBlock? Parse(IRuntime runtime, RequestBlocks_Block data)
+    public static IBlock? Parse(IRuntime runtime, WorkspaceBlock data)
     {
         if (!data.enabled)
             return null;
@@ -30,7 +30,7 @@ public static class MainBlocks
         return Block;
     }
 
-    public static IActionBlock? ParseAction(IRuntime runtime, RequestBlocks_Block data)
+    public static IActionBlock? ParseAction(IRuntime runtime, WorkspaceBlock data)
     {
         if (!data.enabled)
             return null;

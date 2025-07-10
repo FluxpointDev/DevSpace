@@ -7,7 +7,7 @@ public class SetActivePermissionBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         GuildPermissions? Permissions = null;
-        if (Block.inputs.TryGetValue("permission", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("permission", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             Permissions = Runtime.GetPermissionsFromBlock(catBlock.block);
 
         if (Permissions == null)

@@ -6,7 +6,7 @@ public class CategoryObjectBlock : DiscordBlock
 {
     public async Task<string> Name()
     {
-        if (Block.inputs.TryGetValue("name", out RequestBlocksBlock block) && block.block != null)
+        if (Block.inputs.TryGetValue("name", out WorkspaceBlockConnection block) && block.block != null)
             return await Runtime.GetStringFromBlock(block.block);
 
         return null;
@@ -14,7 +14,7 @@ public class CategoryObjectBlock : DiscordBlock
 
     public async Task<int?> Position()
     {
-        if (Block.inputs.TryGetValue("position", out RequestBlocksBlock block) && block.block != null)
+        if (Block.inputs.TryGetValue("position", out WorkspaceBlockConnection block) && block.block != null)
             return await Runtime.GetIntFromBlock(block.block);
 
         return null;
@@ -22,7 +22,7 @@ public class CategoryObjectBlock : DiscordBlock
 
     public GuildPermissions? Permissions()
     {
-        if (Block.inputs.TryGetValue("permissions", out RequestBlocksBlock block) && block.block != null)
+        if (Block.inputs.TryGetValue("permissions", out WorkspaceBlockConnection block) && block.block != null)
             return Runtime.GetPermissionsFromBlock(block.block);
 
         return null;

@@ -7,13 +7,13 @@ public class SetFileNameBlock : IActionBlock
         string Name = string.Empty;
         FileData? File = null;
 
-        if (Block.inputs.TryGetValue("file", out RequestBlocksBlock? fileBlock) && fileBlock.block != null)
+        if (Block.inputs.TryGetValue("file", out WorkspaceBlockConnection? fileBlock) && fileBlock.block != null)
             File = Runtime.GetFileFromBlock(fileBlock.block);
 
         if (File == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to set file name, file is missing.");
 
-        if (Block.inputs.TryGetValue("name", out RequestBlocksBlock? channelBlock) && channelBlock.block != null)
+        if (Block.inputs.TryGetValue("name", out WorkspaceBlockConnection? channelBlock) && channelBlock.block != null)
             Name = await Runtime.GetStringFromBlock(channelBlock.block);
 
         if (string.IsNullOrEmpty(Name))

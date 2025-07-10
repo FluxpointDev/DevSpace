@@ -4,7 +4,7 @@ namespace DevSpaceWeb.Apps.Runtime.DiscordApp;
 
 public class DiscordBlock : IBlock
 {
-    public void Set(DiscordRuntime runtime, DiscordRestClient client, RequestBlocks_Block block)
+    public void Set(DiscordRuntime runtime, DiscordRestClient client, WorkspaceBlock block)
     {
         Runtime = runtime;
         Client = client;
@@ -16,7 +16,7 @@ public class DiscordBlock : IBlock
 }
 public abstract class DiscordActionBlock : IActionBlock
 {
-    public void Set(DiscordRuntime runtime, DiscordRestClient client, RequestBlocks_Block block)
+    public void Set(DiscordRuntime runtime, DiscordRestClient client, WorkspaceBlock block)
     {
         Runtime = runtime;
         Client = client;

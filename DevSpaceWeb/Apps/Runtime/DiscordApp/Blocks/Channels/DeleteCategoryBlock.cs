@@ -7,7 +7,7 @@ public class DeleteCategoryBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestCategoryChannel? Category = null;
-        if (Block.inputs.TryGetValue("category", out RequestBlocksBlock? webhookBlock) && webhookBlock.block != null)
+        if (Block.inputs.TryGetValue("category", out WorkspaceBlockConnection? webhookBlock) && webhookBlock.block != null)
             Category = await Runtime.GetCategoryFromBlock(webhookBlock.block);
 
         if (Category == null)

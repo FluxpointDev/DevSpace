@@ -8,7 +8,7 @@ public class SendRequestBlock : IActionBlock
     {
         RequestObjectBlock? RequestBlock = null;
 
-        if (Block.inputs.TryGetValue("request", out RequestBlocksBlock? webBlock) && webBlock.block != null)
+        if (Block.inputs.TryGetValue("request", out WorkspaceBlockConnection? webBlock) && webBlock.block != null)
             RequestBlock = MainBlocks.Parse(Runtime, webBlock.block) as RequestObjectBlock;
 
         if (RequestBlock == null)
@@ -76,7 +76,7 @@ public class SendRequestBlock : IActionBlock
         if (await RequestBlock.Fail() && !Res.IsSuccessStatusCode)
             return new RuntimeError(RuntimeErrorType.Runtime, $"Failed to send request, response code is {Res.StatusCode} - {Res.ReasonPhrase ?? "Error"}.");
 
-        if (RequestBlock.Block.inputs.TryGetValue("response", out RequestBlocksBlock? resBlock) && resBlock.block != null)
+        if (RequestBlock.Block.inputs.TryGetValue("response", out WorkspaceBlockConnection? resBlock) && resBlock.block != null)
         {
             Runtime.SetResponse(resBlock.block, new ResponseData
             {
@@ -88,9 +88,9 @@ public class SendRequestBlock : IActionBlock
             });
         }
 
-        if (!string.IsNullOrEmpty(Res.Content.Headers.ContentType?.MediaType) && RequestBlock.Block.inputs.TryGetValue("output_data", out RequestBlocksBlock? hookBlock) && hookBlock.block != null)
+        if (!string.IsNullOrEmpty(Res.Content.Headers.ContentType?.MediaType) && RequestBlock.Block.inputs.TryGetValue("output_data", out WorkspaceBlockConnection? hookBlock) && hookBlock.block != null)
         {
-            RequestBlocks_Block? OutputResponse = hookBlock.block;
+            WorkspaceBlock? OutputResponse = hookBlock.block;
             switch (Res.Content.Headers.ContentType.MediaType)
             {
                 case "text/plain":

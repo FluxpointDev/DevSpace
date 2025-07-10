@@ -6,7 +6,7 @@ namespace DevSpaceWeb.Apps;
 
 public static class ModalUtils
 {
-    public static async Task<Tuple<Modal?, RuntimeError?>> ParseDynamicModal(DiscordRuntime runtime, string modalId, RequestBlocks_Block modalBlock)
+    public static async Task<Tuple<Modal?, RuntimeError?>> ParseDynamicModal(DiscordRuntime runtime, string modalId, WorkspaceBlock modalBlock)
     {
         ModalBuilder builder = new ModalBuilder().WithCustomId(modalId);
         if (!string.IsNullOrEmpty(runtime.ModalDataType))
@@ -14,13 +14,13 @@ public static class ModalUtils
 
         try
         {
-            if (modalBlock.inputs.TryGetValue("modal_title", out RequestBlocksBlock? titleBlock) && titleBlock.block != null)
+            if (modalBlock.inputs.TryGetValue("modal_title", out WorkspaceBlockConnection? titleBlock) && titleBlock.block != null)
             {
                 string Test = await runtime.GetStringFromBlock(titleBlock.block);
                 builder.WithTitle(Test);
             }
 
-            if (modalBlock.inputs.TryGetValue("modal_fields", out RequestBlocksBlock? fieldBlock) && fieldBlock.block != null)
+            if (modalBlock.inputs.TryGetValue("modal_fields", out WorkspaceBlockConnection? fieldBlock) && fieldBlock.block != null)
             {
                 RuntimeError? error = await ModalUtils.ParseDynamicModalField(builder, modalId, runtime, fieldBlock.block);
                 if (error != null)
@@ -39,10 +39,10 @@ public static class ModalUtils
         return Tuple.Create<Modal?, RuntimeError?>(builder.Build(), null);
     }
 
-    public static async Task<RuntimeError?> ParseDynamicModalField(ModalBuilder builder, string modalId, DiscordRuntime runtime, RequestBlocks_Block modalBlock)
+    public static async Task<RuntimeError?> ParseDynamicModalField(ModalBuilder builder, string modalId, DiscordRuntime runtime, WorkspaceBlock modalBlock)
     {
         string Id = string.Empty;
-        if (modalBlock.inputs.TryGetValue("id", out RequestBlocksBlock? ip) && ip.block != null)
+        if (modalBlock.inputs.TryGetValue("id", out WorkspaceBlockConnection? ip) && ip.block != null)
             Id = await runtime.GetStringFromBlock(ip.block);
 
         string Label = string.Empty;

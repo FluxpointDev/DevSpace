@@ -7,7 +7,7 @@ public class DeleteMessageBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestMessage? Message = null;
-        if (Block.inputs.TryGetValue("message", out RequestBlocksBlock? messageBlock) && messageBlock.block != null)
+        if (Block.inputs.TryGetValue("message", out WorkspaceBlockConnection? messageBlock) && messageBlock.block != null)
             Message = await Runtime.GetMessageFromBlock(messageBlock.block);
 
         if (Message == null)

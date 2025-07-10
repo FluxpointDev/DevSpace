@@ -1,11 +1,11 @@
 ﻿@using DevSpaceWeb.Apps.Data
 @using DevSpaceWeb.Components.Layout
+@using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
 @using Radzen
 @using Radzen.Blazor
 @inject IJSRuntime JS
-
-
+@inject ContextMenuService ContextMenuService
 
 <div id="WorkspaceLoading" class="dash-box dash-main">
     <h1><span class="iconify" data-icon="mdi:puzzle" style="color: #b55143;"></span> Loading Workspace</h1>
@@ -37,9 +37,9 @@ else
                 @if (App != null)
                 {
                     <Microsoft.AspNetCore.Components.Web.PageTitle>Workspace - @GetName() | @App.Name</Microsoft.AspNetCore.Components.Web.PageTitle>
-                    <img src="" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';" />
+                    <img src="" onerror="this.onerror=null;this.src='https://cdn.discordapp.com/embed/avatars/0.png';" class="ml-2" style="padding: 4px; margin-top: -8px; padding-bottom: 4px;" />
                     <div class="workspace-name">
-                        <h4>@App.Name - @GetName()</h4>
+                        <h6 class="mt-2 ml-1 top-title">@App.Name - @GetName()</h6>
                     </div>
                 }
             </div>
@@ -50,17 +50,16 @@ else
                     @* <MudButton id="btnSaveWorkspace" Class="ws-button-disabled" Variant="Variant.Filled" Color="Color.Info" @onclick="@(async () => await SaveWorkspace())">Save</MudButton> *@
                     <div id="warningIcon" style="visibility: hidden;"><span class="iconify" data-icon="mdi:warning" style="color: #ff8000;"></span> <p>Invalid Blocks</p></div>
                     <span id="WorkspaceIdValue" style="display: none">@Data.Id.ToString()</span>
-                }
-                else
-                {
-                    <p>This is a demo!</p>
+                    <span id="workspaceNameValue" style="display: none">@GetName()</span>
+                    <span id="workspaceCommandType" style="display: none">@Data.Type.ToString()</span>
                 }
             </div>
-            <div class="d-flex container-end">
+            <div class="d-flex container-end" style="padding: 4px !important;">
                 <RadzenButton Icon="map" Click="@ToggleMinimap" ButtonStyle="@(Settings.MinimapEnabled? ButtonStyle.Success: ButtonStyle.Danger)" Shade="@(Settings.MinimapEnabled? Shade.Dark: Shade.Darker)" Variant="Variant.Outlined"></RadzenButton>
                 <RadzenButton Icon="transition_dissolve" Click="@ToggleDots" ButtonStyle="@(Settings.GridDotsEnabled? ButtonStyle.Success: ButtonStyle.Danger)" Shade="@(Settings.GridDotsEnabled? Shade.Dark: Shade.Darker)" Variant="Variant.Outlined"></RadzenButton>
                 <RadzenButton Icon="grid_4x4" Click="@ToggleSnap" ButtonStyle="@(Settings.GridSnapEnabled? ButtonStyle.Success: ButtonStyle.Danger)" Shade="@(Settings.GridSnapEnabled? Shade.Dark: Shade.Darker)" Variant="Variant.Outlined"></RadzenButton>
                 <RadzenButton Icon="activity_zone" Click="@ToggleHighlight" ButtonStyle="@(Settings.HighlightEnabled? ButtonStyle.Success: ButtonStyle.Danger)" Shade="@(Settings.HighlightEnabled ? Shade.Dark : Shade.Darker)" Variant="Variant.Outlined"></RadzenButton>
+                <RadzenButton Icon="menu" class="ml-2" Click="@(args => ShowContextMenuWithItems(args))" ButtonStyle="ButtonStyle.Light" Variant="Variant.Outlined"></RadzenButton>
                 <RadzenButton Style="visibility: hidden;"></RadzenButton>
 
                 @* <MudButton Variant="Variant.Text" OnClick="@(() => SidebarKeyboardOpen = !SidebarKeyboardOpen)"><span class="iconify" data-icon="mdi:keyboard"></span></MudButton>
@@ -256,19 +255,19 @@ else
 </style>
 
 <script type="module">
-    import './js/blocky/main/main_blocks.js?v=2';
+    import './js/blocky/main/main_blocks.js?v=3';
     import './js/blocky/main/api_blocks.js?v=2';
     import './js/blocky/main/logic_blocks.js?v=2';
     import './js/blocky/main/file_blocks.js?v=2';
     import './js/blocky/main/json_blocks.js?v=2';
 
-    import './js/blocky/plugins/toolbox_search.js';
+    import './js/blocky/plugins/toolbox_search.js?v=2';
 
     /* Action scripts */
     import './js/blocky/discord/actions/discord_actions_channels.js?v=1';
     import './js/blocky/discord/actions/discord_actions_webhooks.js?v=1';
     import './js/blocky/discord/actions/discord_actions_members.js?v=1';
-    import './js/blocky/discord/actions/discord_actions_messages.js?v=1';
+    import './js/blocky/discord/actions/discord_actions_messages.js?v=2';
     import './js/blocky/discord/actions/discord_actions_components.js?v=1';
     import './js/blocky/discord/actions/discord_actions_servers.js?v=1';
     import './js/blocky/discord/actions/discord_actions_roles.js?v=1';
@@ -348,6 +347,69 @@ else
                         document.getElementById('warningIcon').style.visibility = "";
                         elm.classList.add('ws-button-disabled');
                     }
+                }
+            },
+            ExportData: function () {
+                var json = JSON.stringify(Blockly.serialization.workspaces.save(workspace));
+
+                var a = document.createElement("a");
+                var file = new Blob([json], { type: "text/plain" });
+                a.href = URL.createObjectURL(file);
+                a.download = document.getElementById('workspaceNameValue').textContent + ".json";
+                a.click();
+            },
+            ImportData: function () {
+                var jsonString = prompt("Import command json data");
+                var commandType = document.getElementById('workspaceCommandType').textContent;
+                var json;
+                var typeAllowed = false;
+                try
+                {
+                    json = JSON.parse(jsonString);
+                    var blockType = json.blocks.blocks[0].type;
+                    switch (commandType) {
+                        case "DiscordSlashCommand":
+                        if (blockType == "block_command") {
+                            typeAllowed = true;
+                        }
+                        break;
+                        case "DiscordUserCommand":
+                        if (blockType == "block_user_command") {
+                            typeAllowed = true;
+                        }
+                        break;
+                        case "DiscordMessageCommand":
+                        if (blockType == "block_message_command") {
+                            typeAllowed = true;
+                        }
+                        break;
+                        case "DiscordInteractionButton":
+                        if (blockType == "block_interaction_button") {
+                            typeAllowed = true;
+                        }
+                        break;
+                        case "DiscordInteractionModal":
+                        if (blockType == "block_interaction_modal") {
+                            typeAllowed = true;
+                        }
+                        break;
+                    }
+                }
+                catch
+                {
+                    alert('Failed to parse json data.');
+                }
+
+                if (typeAllowed) {
+                    try {
+                        json.blocks.blocks[0].fields["name"] = document.getElementById('workspaceNameValue').textContent;
+                        window.testData = json;
+                        Blockly.serialization.workspaces.load(json, workspace);
+                    }
+                    catch {
+                        alert('Failed to import workspace data.');
+                    }
+                    
                 }
             },
             CheckInputsEmpty(block, inputs) {
@@ -740,7 +802,7 @@ else
                         return cmd.Name;
                 }
                 break;
-                case WorkspaceType.DiscordMessageCommand:
+            case WorkspaceType.DiscordMessageCommand:
                 {
                     IDiscordAppCommand? cmd = null;
                     if (string.IsNullOrEmpty(Data.ServerId))
@@ -842,11 +904,83 @@ else
 
     //protected override async Task OnAfterRenderAsync(bool firstRender)
     //{
-        
+
     //}
 
     //protected override async Task OnParametersSetAsync()
     //{
-        //JS.InvokeVoidAsync("window.WorkspaceUtils.SetMaxBlocks", MaxBlocks);
+    //JS.InvokeVoidAsync("window.WorkspaceUtils.SetMaxBlocks", MaxBlocks);
     //}
+
+    void ShowContextMenuWithItems(MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Export", Value = "export", Icon = "download" },
+                new ContextMenuItem(){ Text = "Import", Value = "import", Icon = "tab_move" },
+                new ContextMenuItem(){ Text = "Copy Name", Value = "copy_name", Icon = Data.Type == WorkspaceType.DiscordSlashCommand ? "pen_size_3" : "content_copy" },
+                new ContextMenuItem() { Text = "Copy Command Format", Value = "copy_format", Icon = "text_ad", Disabled = Data.Type != WorkspaceType.DiscordSlashCommand },
+                new ContextMenuItem(){ Text = "Copy ID", Value = "copy_id", Icon = "content_copy", Disabled = Data.Type != WorkspaceType.DiscordSlashCommand },
+         }, OnMenuItemClick);
+    }
+
+    void OnMenuItemClick(MenuItemEventArgs args)
+    {
+        switch ((string)args.Value)
+        {
+            case "export":
+                JS.InvokeAsync<dynamic>("window.blazorExtensions.ExportData");
+                break;
+            case "import":
+                JS.InvokeAsync<dynamic>("window.blazorExtensions.ImportData");
+                break;
+            case "copy_name":
+                if (Data.Type == WorkspaceType.DiscordSlashCommand)
+                    JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", "/" + GetName());
+                else
+                    JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", GetName());
+                break;
+            case "copy_format":
+                {
+                    DiscordAppSlashCommand? cmd = null;
+                    if (string.IsNullOrEmpty(Data.ServerId))
+                        App.SlashCommands.TryGetValue(Data.CommandFormat, out cmd);
+                    else if (App.ServerCommands.TryGetValue(Data.ServerId, out var sc))
+                        sc.SlashCommands.TryGetValue(Data.CommandFormat, out cmd);
+
+                    if (cmd == null && Data.CommandFormat.Contains(" "))
+                    {
+                        if (string.IsNullOrEmpty(Data.ServerId))
+                            App.SlashCommands.TryGetValue(Data.CommandFormat.Split(' ').First(), out cmd);
+                        else if (App.ServerCommands.TryGetValue(Data.ServerId, out var sc))
+                            sc.SlashCommands.TryGetValue(Data.CommandFormat.Split(' ').First(), out cmd);
+                    }
+
+                    if (cmd != null)
+                        JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", $"</{Data.CommandFormat}:{cmd.CommandId}>");
+                }
+                break;
+            case "copy_id":
+                {
+                    DiscordAppSlashCommand? cmd = null;
+                    if (string.IsNullOrEmpty(Data.ServerId))
+                        App.SlashCommands.TryGetValue(Data.CommandFormat, out cmd);
+                    else if (App.ServerCommands.TryGetValue(Data.ServerId, out var sc))
+                        sc.SlashCommands.TryGetValue(Data.CommandFormat, out cmd);
+
+                    if (cmd == null && Data.CommandFormat.Contains(" "))
+                    {
+                        if (string.IsNullOrEmpty(Data.ServerId))
+                            App.SlashCommands.TryGetValue(Data.CommandFormat.Split(' ').First(), out cmd);
+                        else if (App.ServerCommands.TryGetValue(Data.ServerId, out var sc))
+                            sc.SlashCommands.TryGetValue(Data.CommandFormat.Split(' ').First(), out cmd);
+                    }
+
+                    if (cmd != null)
+                        JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", cmd.CommandId);
+                }
+                break;
+        }
+        ContextMenuService.Close();
+    }
 }

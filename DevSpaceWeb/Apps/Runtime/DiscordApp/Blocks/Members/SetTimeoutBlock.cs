@@ -8,7 +8,7 @@ public class SetTimeoutBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestGuildUser? User = null;
-        if (Block.inputs.TryGetValue("member", out RequestBlocksBlock? webhookBlock) && webhookBlock.block != null)
+        if (Block.inputs.TryGetValue("member", out WorkspaceBlockConnection? webhookBlock) && webhookBlock.block != null)
             User = await Runtime.GetMemberFromBlock(webhookBlock.block);
 
         if (User == null)
@@ -18,15 +18,15 @@ public class SetTimeoutBlock : DiscordActionBlock
             return Runtime.GetAppPermissionError(GuildPermission.ModerateMembers);
 
         string Reason = string.Empty;
-        if (Block.inputs.TryGetValue("reason", out RequestBlocksBlock? rsBlock) && rsBlock.block != null)
+        if (Block.inputs.TryGetValue("reason", out WorkspaceBlockConnection? rsBlock) && rsBlock.block != null)
             Reason = await Runtime.GetStringFromBlock(rsBlock.block);
 
         string Type = string.Empty;
-        if (Block.inputs.TryGetValue("type", out RequestBlocksBlock? typeBlock) && typeBlock.block != null)
+        if (Block.inputs.TryGetValue("type", out WorkspaceBlockConnection? typeBlock) && typeBlock.block != null)
             Type = await Runtime.GetStringFromBlock(typeBlock.block);
 
         int? TimeoutTime = 0;
-        if (Block.inputs.TryGetValue("number", out RequestBlocksBlock? daysBlock) && daysBlock.block != null)
+        if (Block.inputs.TryGetValue("number", out WorkspaceBlockConnection? daysBlock) && daysBlock.block != null)
             TimeoutTime = await Runtime.GetIntFromBlock(daysBlock.block);
 
         if (!TimeoutTime.HasValue)

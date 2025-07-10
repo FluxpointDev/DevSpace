@@ -147,7 +147,7 @@
             Updates.Add(App.DiscordData.IsPublicApp ? "Public App Type" : "Private App Type");
         }
 
-        if (App.Team == null)
+        if (AppInfo.Team == null)
         {
             if (App.BotDeveloperIds.Any())
             {
@@ -276,16 +276,21 @@
             }
         }
 
-        await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Combine(UpdateList));
-
-        if (AppInfo.InteractionsEndpointUrl != App.GetBotInteractionsUrl())
+        if (!Program.IsDevMode && AppInfo.InteractionsEndpointUrl != App.GetBotInteractionsUrl())
         {
-            await client.ModifyCurrentBotApplicationAsync(x => x.InteractionsEndpointUrl = App.GetBotInteractionsUrl());
+            try
+            {
+                await client.ModifyCurrentBotApplicationAsync(x => x.InteractionsEndpointUrl = App.GetBotInteractionsUrl());
+            }
+            catch { }
             Updates.Add("Interaction Endpoint");
         }
 
         if (Updates.Any())
+        {
+            await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Combine(UpdateList));
             Dialogs.ShowInfoAsync("App Updated", $"We have updated your app's {string.Join(", ", Updates)}");
+        }
         else
             Dialogs.ShowInfoAsync("App Updated", $"Your app is already up-to date.");
     }

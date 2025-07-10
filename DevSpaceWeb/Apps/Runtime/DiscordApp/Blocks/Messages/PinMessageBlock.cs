@@ -7,7 +7,7 @@ public class PinMessageBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestUserMessage? Message = null;
-        if (Block.inputs.TryGetValue("message", out RequestBlocksBlock? messageBlock) && messageBlock.block != null)
+        if (Block.inputs.TryGetValue("message", out WorkspaceBlockConnection? messageBlock) && messageBlock.block != null)
             Message = await Runtime.GetMessageFromBlock(messageBlock.block) as RestUserMessage;
 
 

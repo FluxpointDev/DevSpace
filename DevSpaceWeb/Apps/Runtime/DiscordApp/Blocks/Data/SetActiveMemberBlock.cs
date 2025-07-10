@@ -7,7 +7,7 @@ public class SetActiveMemberBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestGuildUser? Member = null;
-        if (Block.inputs.TryGetValue("member", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("member", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             Member = await Runtime.GetMemberFromBlock(catBlock.block);
 
         if (Member == null)

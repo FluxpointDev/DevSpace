@@ -9,14 +9,14 @@ public class RemoveReactionBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestMessage? Message = null;
-        if (Block.inputs.TryGetValue("message", out RequestBlocksBlock? messageBlock) && messageBlock.block != null)
+        if (Block.inputs.TryGetValue("message", out WorkspaceBlockConnection? messageBlock) && messageBlock.block != null)
             Message = await Runtime.GetMessageFromBlock(messageBlock.block) as RestUserMessage;
 
         if (Message == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to remove reaction from message, could not find message.");
 
         IEmote? EmojiObject = null;
-        if (Block.inputs.TryGetValue("emoji", out RequestBlocksBlock? emojiBlock) && emojiBlock.block != null)
+        if (Block.inputs.TryGetValue("emoji", out WorkspaceBlockConnection? emojiBlock) && emojiBlock.block != null)
         {
             Tuple<Tuple<ulong, RestGuild?>?, IEmote>? Emotes = await Runtime.GetEmojiFromBlockAsync(emojiBlock.block);
             if (Emotes == null || Emotes.Item2 == null)
@@ -26,7 +26,7 @@ public class RemoveReactionBlock : DiscordActionBlock
         }
 
         RestGuildUser? Member = null;
-        if (Block.inputs.TryGetValue("member", out RequestBlocksBlock? memberBlock) && memberBlock.block != null)
+        if (Block.inputs.TryGetValue("member", out WorkspaceBlockConnection? memberBlock) && memberBlock.block != null)
             Member = await Runtime.GetMemberFromBlock(memberBlock.block);
 
         switch (Block.type)

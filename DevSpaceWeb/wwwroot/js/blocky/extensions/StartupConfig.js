@@ -28,16 +28,21 @@ document.onkeydown = function (e) {
         MikuCount = 0;
 
     // Select the search bar when you press s
-    //if (document.activeElement !== 'null' && document.getElementsByClassName('blocklyHtmlInput').length === 0 && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== 'TEXTAREA') {
-    //    var c = e.which || e.keyCode;//Get key code
-    //    switch (c) {
-    //        case 83://Block S
-    //            e.preventDefault();
-    //            e.stopPropagation();
-    //            workspace.toolbox.contentsDiv_.childNodes[0].click(); 
-    //            break;
-    //    }
-    //}
+    if (document.activeElement !== 'null' && document.getElementsByClassName('blocklyHtmlInput').length === 0 && document.activeElement.tagName !== "INPUT" && document.activeElement.tagName !== 'TEXTAREA') {
+        var c = e.which || e.keyCode;//Get key code
+        switch (c) {
+            case 83://Block S
+                e.preventDefault();
+                e.stopPropagation();
+                Blockly.getFocusManager().focusNode(workspace.toolbox.getToolboxItemById('blockly-0'));
+                break;
+            case 70:
+                e.preventDefault();
+                e.stopPropagation();
+                Blockly.getMainWorkspace().getComponentManager().getComponent('workspaceSearch').open();
+                break;
+        }
+    }
 };
 
 //Blockly.Extensions.register(

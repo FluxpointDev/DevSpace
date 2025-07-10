@@ -7,7 +7,7 @@ public class SetActiveWebhookBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         Tuple<RestWebhook?, string>? Category = null;
-        if (Block.inputs.TryGetValue("message", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("message", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             Category = await Runtime.GetWebhookFromBlock(catBlock.block);
 
         if (Category == null)

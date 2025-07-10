@@ -80,6 +80,18 @@ Blockly.Blocks['action_modify_message'] = {
     }
 };
 
+Blockly.Blocks["action_delete_interaction_message"] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("Delete Interaction Message");
+        this.setPreviousStatement(true, Connections.ActionsList);
+        this.setNextStatement(true, Connections.ActionsList);
+        this.setColour('#972f40');
+        this.setTooltip("");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+    }
+};
+
 Blockly.Blocks["action_delete_message"] = {
     init: function () {
         this.appendDummyInput()
@@ -235,7 +247,7 @@ Blockly.Blocks["action_pin_message"] = {
 Blockly.Blocks["action_crosspost_message"] = {
     init: function () {
         this.appendDummyInput()
-            .appendField("Crosspost Message");
+            .appendField("Publish Message");
         this.appendValueInput("message")
             .setCheck(Connections.DataMessages)
             .setAlign(Blockly.inputs.Align.RIGHT)

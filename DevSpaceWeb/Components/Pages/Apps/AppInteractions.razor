@@ -69,7 +69,7 @@
                                     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage" GridLines="DataGridGridLines.Horizontal"
                                     @bind-Value="@SelectedButtons" SelectionMode="DataGridSelectionMode.Multiple"
                                     PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
-                                    PagingSummaryFormat="@(ButtonsCount + " button" + (ButtonsCount != 1 ? "s" : "") )"
+                                    PagingSummaryFormat="@(ButtonsCount + "/250 buttons" )"
                                     AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                     TItem="IDiscordAppInteraction" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
                         <Columns>
@@ -165,7 +165,7 @@
                                     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage" GridLines="DataGridGridLines.Horizontal"
                                     @bind-Value="@SelectedModals" SelectionMode="DataGridSelectionMode.Multiple"
                                     PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
-                                    PagingSummaryFormat="@(ModalsCount + " modal" + (ModalsCount != 1 ? "s" : "") )"
+                                    PagingSummaryFormat="@(ModalsCount + "/250 modals" )"
                                     AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                     TItem="IDiscordAppInteraction" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
                         <Columns>
@@ -545,7 +545,7 @@
                 new ContextMenuItem() { Text = "Disable Interaction", Value = "disable", Icon = "pause", Disabled = IsLoading || !item.IsEnabled || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands) },
                 new ContextMenuItem() { Text = "Clear Data", Value = "clear", Icon = "delete_history", Disabled = IsLoading || !item.IsEnabled || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageWorkspaces) },
                 new ContextMenuItem() { Text = "Remove Interaction", Value = "remove", Icon = "delete", Disabled = IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands) },
-                new ContextMenuItem() { Text = "Copy Interaction ID", Value = "copy", Icon = "content_copy" }
+                new ContextMenuItem() { Text = "Copy Interaction Name", Value = "copy", Icon = "content_copy" }
                                              }, x => MenuItemClick(x.Value.ToString(), item));
     }
 

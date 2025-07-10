@@ -11,8 +11,8 @@ public class SetVariableBlock : IActionBlock
         if (string.IsNullOrEmpty(Key))
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to set variable, variable key is invalid.");
 
-        RequestBlocks_Block? input = null;
-        if (Block.inputs.TryGetValue("VALUE", out RequestBlocksBlock? inputBlock) && inputBlock.block != null)
+        WorkspaceBlock? input = null;
+        if (Block.inputs.TryGetValue("VALUE", out WorkspaceBlockConnection? inputBlock) && inputBlock.block != null)
             input = inputBlock.block;
 
         if (input == null)

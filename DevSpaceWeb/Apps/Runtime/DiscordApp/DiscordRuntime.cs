@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Apps.Data;
 using DevSpaceWeb.Apps.Runtime.DiscordApp.Blocks;
+using DevSpaceWeb.Apps.Runtime.DiscordApp.Blocks.Messages;
 using Discord;
 using Discord.Net;
 using Discord.Rest;
@@ -200,19 +201,19 @@ public class DiscordRuntime : IRuntime
         return false;
     }
 
-    public async Task RunInitialInputs(RequestBlocks_Block commandblock, string outputDataType)
+    public async Task RunInitialInputs(WorkspaceBlock commandblock, string outputDataType)
     {
         switch (Type)
         {
             case WorkspaceType.DiscordSlashCommand:
                 {
-                    if (commandblock.inputs.TryGetValue("command_inputs", out RequestBlocksBlock? cmdI) && cmdI.block != null)
+                    if (commandblock.inputs.TryGetValue("command_inputs", out WorkspaceBlockConnection? cmdI) && cmdI.block != null)
                         await DiscordInputs.ParseNextBlock(this, cmdI.block, InteractionData.ModalDataType);
                 }
                 break;
             case WorkspaceType.DiscordUserCommand:
                 {
-                    if (commandblock.inputs.TryGetValue("output_user", out RequestBlocksBlock? outputBlock) && outputBlock.block != null && outputBlock.block.enabled)
+                    if (commandblock.inputs.TryGetValue("output_user", out WorkspaceBlockConnection? outputBlock) && outputBlock.block != null && outputBlock.block.enabled)
                     {
                         if (Interaction.GuildId.HasValue && !outputBlock.block.type.StartsWith("data_user"))
                         {
@@ -237,7 +238,7 @@ public class DiscordRuntime : IRuntime
                 break;
             case WorkspaceType.DiscordMessageCommand:
                 {
-                    if (commandblock.inputs.TryGetValue("output_message", out RequestBlocksBlock? outputBlock) && outputBlock.block != null && outputBlock.block.enabled)
+                    if (commandblock.inputs.TryGetValue("output_message", out WorkspaceBlockConnection? outputBlock) && outputBlock.block != null && outputBlock.block.enabled)
                     {
                         SetMessageData(outputBlock.block, (Interaction as RestMessageCommand).Data.Message as RestMessage);
 
@@ -250,7 +251,7 @@ public class DiscordRuntime : IRuntime
                 {
                     Data.MessageCurrent = Tuple.Create<DiscordCachableMessage, RestMessage>(new DiscordCachableMessage((Interaction as RestMessageComponent).Message.Channel.Id, (Interaction as RestMessageComponent).Message.Id), (Interaction as RestMessageComponent).Message);
 
-                    if (commandblock.inputs.TryGetValue("output_data", out RequestBlocksBlock? outputBlock) && outputBlock.block != null && outputBlock.block.enabled)
+                    if (commandblock.inputs.TryGetValue("output_data", out WorkspaceBlockConnection? outputBlock) && outputBlock.block != null && outputBlock.block.enabled)
                     {
                         Console.WriteLine("Parse Button!! " + outputDataType);
                         if (!string.IsNullOrEmpty(outputDataType))
@@ -265,14 +266,14 @@ public class DiscordRuntime : IRuntime
                     //    Data.MessageCurrent = Tuple.Create<DiscordCachableMessage, RestMessage>(new DiscordCachableMessage((Interaction as RestModal).Message.Channel.Id, (Interaction as RestModal).Message.Id), (Interaction as RestModal).Message);
 
 
-                    if (commandblock.inputs.TryGetValue("output_data", out RequestBlocksBlock? outputBlock) && outputBlock.block != null && outputBlock.block.enabled)
+                    if (commandblock.inputs.TryGetValue("output_data", out WorkspaceBlockConnection? outputBlock) && outputBlock.block != null && outputBlock.block.enabled)
                     {
                         Console.WriteLine("Parse Modal!! " + outputDataType);
                         if (!string.IsNullOrEmpty(outputDataType))
                             ParseDataType(outputBlock.block, outputDataType);
                     }
 
-                    if (commandblock.inputs.TryGetValue("modal_fields", out RequestBlocksBlock? actBlock) && actBlock.block != null)
+                    if (commandblock.inputs.TryGetValue("modal_fields", out WorkspaceBlockConnection? actBlock) && actBlock.block != null)
                     {
                         await DiscordFields.Parse(this, actBlock.block);
                     }
@@ -283,7 +284,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public async Task<RuntimeError?> RunInitialOptions(RequestBlocks_Block optionBlock)
+    public async Task<RuntimeError?> RunInitialOptions(WorkspaceBlock optionBlock)
     {
         RuntimeError? error = await DiscordOptions.Parse(this, optionBlock);
         if (error != null)
@@ -380,7 +381,7 @@ public class DiscordRuntime : IRuntime
                     return new RuntimeError(RuntimeErrorType.Runtime, "This command requires a Discord server.");
 
 
-                foreach (Tuple<GuildPermissions, RequestBlocks_Block> i in Options.RequireServerPermissions)
+                foreach (Tuple<GuildPermissions, WorkspaceBlock> i in Options.RequireServerPermissions)
                 {
                     ulong? UserId = await GetMemberIdFromBlock(i.Item2);
                     if (!UserId.HasValue)
@@ -452,7 +453,7 @@ public class DiscordRuntime : IRuntime
                 if (!Interaction.GuildId.HasValue)
                     return new RuntimeError(RuntimeErrorType.Runtime, "This command requires a Discord server for permission checks.");
 
-                foreach (Tuple<ChannelPermissions, RequestBlocks_Block> i in Options.RequireChannelPermissions)
+                foreach (Tuple<ChannelPermissions, WorkspaceBlock> i in Options.RequireChannelPermissions)
                 {
                     ulong? ChanId = await GetChannelIdFromBlock(i.Item2);
                     if (!ChanId.HasValue)
@@ -527,7 +528,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task RunCommand(RequestBlocks_Block commandblock, RequestBlocks_Block firstActionBlock, RequestBlocks_Block? firstOptionBlock)
+    public async Task RunCommand(WorkspaceBlock commandblock, WorkspaceBlock firstActionBlock, WorkspaceBlock? firstOptionBlock)
     {
         RuntimeError? error = null;
         try
@@ -806,7 +807,7 @@ public class DiscordRuntime : IRuntime
         return message;
     }
 
-    public void ParseDataType(RequestBlocks_Block outputBlock, string type)
+    public void ParseDataType(WorkspaceBlock outputBlock, string type)
     {
         string DataType = type.Substring(0, 2);
         string DataValue = type.Substring(2);
@@ -879,24 +880,40 @@ public class DiscordRuntime : IRuntime
     }
 
 
-    public async Task<RuntimeError?> RunCommandInternal(RequestBlocks_Block commandblock, RequestBlocks_Block firstActionBlock)
+    public async Task<RuntimeError?> RunCommandInternal(WorkspaceBlock commandblock, WorkspaceBlock firstActionBlock)
     {
         return await RunAction(firstActionBlock);
     }
 
-    public async Task<RuntimeError?> RunAction(RequestBlocks_Block block)
+    public async Task<RuntimeError?> RunAction(WorkspaceBlock block)
     {
         if (block.enabled)
         {
             switch (block.type)
             {
                 case "action_stop_execution":
-                    return new RuntimeError(RuntimeErrorType.StopExecution, "");
+
+                    if (block.inputs.TryGetValue("obj_message", out WorkspaceBlockConnection? MessageData) && MessageData.block != null)
+                    {
+                        RuntimeError? Error = await new SendMessageBlock()
+                        {
+                            Block = block,
+                            Client = Client,
+                            Runtime = this
+                        }.RunAsync();
+                        if (Error != null)
+                            return Error;
+                    }
+
+                    return new RuntimeError(RuntimeErrorType.StopExecution, null)
+                    {
+
+                    };
                     break;
                 case "controls_if":
                     bool IsActionAllowed = false;
 
-                    foreach (KeyValuePair<string, RequestBlocksBlock> i in block.inputs)
+                    foreach (KeyValuePair<string, WorkspaceBlockConnection> i in block.inputs)
                     {
                         if (i.Value.block == null)
                             continue;
@@ -932,10 +949,10 @@ public class DiscordRuntime : IRuntime
                     break;
                 case "block_try_catch":
                     bool IsDisabled = false;
-                    if (block.inputs.TryGetValue("is_disabled", out RequestBlocksBlock? dsBlock) && dsBlock.block != null)
+                    if (block.inputs.TryGetValue("is_disabled", out WorkspaceBlockConnection? dsBlock) && dsBlock.block != null)
                         IsDisabled = (await GetBoolFromBlock(dsBlock.block)).GetValueOrDefault(false);
 
-                    if (block.inputs.TryGetValue("command_actions", out RequestBlocksBlock? cmdBlock) && cmdBlock.block != null)
+                    if (block.inputs.TryGetValue("command_actions", out WorkspaceBlockConnection? cmdBlock) && cmdBlock.block != null)
                     {
                         if (!IsDisabled)
                         {
@@ -984,7 +1001,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public override async Task<string> GetStringFromBlock(RequestBlocks_Block block)
+    public override async Task<string> GetStringFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1000,7 +1017,7 @@ public class DiscordRuntime : IRuntime
         return await GetBaseStringFromBlock(block);
     }
 
-    public GuildPermissions? GetPermissionsFromBlock(RequestBlocks_Block block)
+    public GuildPermissions? GetPermissionsFromBlock(WorkspaceBlock block)
     {
         if (block != null)
         {
@@ -1026,7 +1043,7 @@ public class DiscordRuntime : IRuntime
                         GuildPermissions perms = new GuildPermissions();
                         if (block.inputs.Count == 0)
                             return null;
-                        foreach (RequestBlocksBlock i in block.inputs.Values)
+                        foreach (WorkspaceBlockConnection i in block.inputs.Values)
                         {
                             if (i.block != null && i.block.fields.ContainsKey("permission_type"))
                             {
@@ -1198,7 +1215,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public async Task<RestChannel?> GetChannelFromBlock(RequestBlocks_Block block)
+    public async Task<RestChannel?> GetChannelFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1242,7 +1259,7 @@ public class DiscordRuntime : IRuntime
             case "data_channel_get_in_server":
                 {
                     string ChannelId = string.Empty;
-                    if (block.inputs.TryGetValue("channel_id", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+                    if (block.inputs.TryGetValue("channel_id", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
                         ChannelId = await GetStringFromBlock(chanBlock.block);
 
                     if (!string.IsNullOrEmpty(ChannelId) && ulong.TryParse(ChannelId, out ulong id))
@@ -1263,7 +1280,7 @@ public class DiscordRuntime : IRuntime
                                 return null;
 
                             ulong? Server = null;
-                            if (block.inputs.TryGetValue("server", out RequestBlocksBlock? srvBlock) && srvBlock.block != null)
+                            if (block.inputs.TryGetValue("server", out WorkspaceBlockConnection? srvBlock) && srvBlock.block != null)
                                 Server = await GetServerIdFromBlock(srvBlock.block);
 
                             if (Server == null)
@@ -1282,7 +1299,7 @@ public class DiscordRuntime : IRuntime
             case "data_channel_private_get":
                 {
                     string UserId = string.Empty;
-                    if (block.inputs.TryGetValue("user_id", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+                    if (block.inputs.TryGetValue("user_id", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
                         UserId = await GetStringFromBlock(chanBlock.block);
 
                     if (!string.IsNullOrEmpty(UserId) && ulong.TryParse(UserId, out ulong id))
@@ -1297,7 +1314,7 @@ public class DiscordRuntime : IRuntime
             case "data_channel_group_get":
                 {
                     string GroupId = string.Empty;
-                    if (block.inputs.TryGetValue("group_id", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+                    if (block.inputs.TryGetValue("group_id", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
                         GroupId = await GetStringFromBlock(chanBlock.block);
 
                     if (!string.IsNullOrEmpty(GroupId) && ulong.TryParse(GroupId, out ulong id))
@@ -1314,7 +1331,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<ulong?> GetChannelIdFromBlock(RequestBlocks_Block block)
+    public async Task<ulong?> GetChannelIdFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1343,7 +1360,7 @@ public class DiscordRuntime : IRuntime
             case "data_channel_get_in_server":
                 {
                     string ChannelId = string.Empty;
-                    if (block.inputs.TryGetValue("channel_id", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+                    if (block.inputs.TryGetValue("channel_id", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
                         ChannelId = await GetStringFromBlock(chanBlock.block);
 
                     if (!string.IsNullOrEmpty(ChannelId) && ulong.TryParse(ChannelId, out ulong id))
@@ -1355,7 +1372,7 @@ public class DiscordRuntime : IRuntime
             case "data_channel_private_get":
                 {
                     string UserId = string.Empty;
-                    if (block.inputs.TryGetValue("user_id", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+                    if (block.inputs.TryGetValue("user_id", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
                         UserId = await GetStringFromBlock(chanBlock.block);
 
                     if (!string.IsNullOrEmpty(UserId) && ulong.TryParse(UserId, out ulong id))
@@ -1367,7 +1384,7 @@ public class DiscordRuntime : IRuntime
             case "data_channel_group_get":
                 {
                     string GroupId = string.Empty;
-                    if (block.inputs.TryGetValue("group_id", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+                    if (block.inputs.TryGetValue("group_id", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
                         GroupId = await GetStringFromBlock(chanBlock.block);
 
                     if (!string.IsNullOrEmpty(GroupId) && ulong.TryParse(GroupId, out ulong id))
@@ -1382,7 +1399,7 @@ public class DiscordRuntime : IRuntime
     }
 
 
-    public async Task<RestCategoryChannel?> GetCategoryFromBlock(RequestBlocks_Block block)
+    public async Task<RestCategoryChannel?> GetCategoryFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1437,7 +1454,7 @@ public class DiscordRuntime : IRuntime
             case "data_category_get_in_server":
                 {
                     string CategoryId = string.Empty;
-                    if (block.inputs.TryGetValue("category_id", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+                    if (block.inputs.TryGetValue("category_id", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
                         CategoryId = await GetStringFromBlock(catBlock.block);
 
                     if (!string.IsNullOrEmpty(CategoryId) && ulong.TryParse(CategoryId, out ulong id))
@@ -1452,7 +1469,7 @@ public class DiscordRuntime : IRuntime
                         if (block.type == "data_category_get_in_server")
                         {
                             ulong? Server = null;
-                            if (block.inputs.TryGetValue("server", out RequestBlocksBlock? srvBlock) && srvBlock.block != null)
+                            if (block.inputs.TryGetValue("server", out WorkspaceBlockConnection? srvBlock) && srvBlock.block != null)
                                 Server = await GetServerIdFromBlock(srvBlock.block);
 
                             if (Server == null)
@@ -1472,7 +1489,7 @@ public class DiscordRuntime : IRuntime
                 break;
             case "data_category_get_from_channel":
                 {
-                    if (block.inputs.TryGetValue("channel", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+                    if (block.inputs.TryGetValue("channel", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
                     {
                         RestChannel? Chan = await GetChannelFromBlock(chanBlock.block);
                         if (Chan == null)
@@ -1506,7 +1523,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<RestMessage?> GetMessageFromBlock(RequestBlocks_Block block)
+    public async Task<RestMessage?> GetMessageFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1560,7 +1577,7 @@ public class DiscordRuntime : IRuntime
             case "data_message_get":
                 {
                     RestChannel? Chan = null;
-                    if (block.inputs.TryGetValue("channel", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+                    if (block.inputs.TryGetValue("channel", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
                         Chan = await GetChannelFromBlock(chanBlock.block);
 
                     string MessageId = string.Empty;
@@ -1583,7 +1600,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<Tuple<RestWebhook?, string>?> GetWebhookFromBlock(RequestBlocks_Block block)
+    public async Task<Tuple<RestWebhook?, string>?> GetWebhookFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1596,7 +1613,7 @@ public class DiscordRuntime : IRuntime
             case "data_webhook_get_channel":
                 {
                     string WebhookId = string.Empty;
-                    if (block.inputs.TryGetValue("webhook_id", out RequestBlocksBlock? urlBlock) && urlBlock.block != null)
+                    if (block.inputs.TryGetValue("webhook_id", out WorkspaceBlockConnection? urlBlock) && urlBlock.block != null)
                         WebhookId = await GetStringFromBlock(urlBlock.block);
 
                     if (!string.IsNullOrEmpty(WebhookId) && ulong.TryParse(WebhookId, out ulong id))
@@ -1611,7 +1628,7 @@ public class DiscordRuntime : IRuntime
             case "data_webhook_get_url":
                 {
                     string Url = string.Empty;
-                    if (block.inputs.TryGetValue("webhook_url", out RequestBlocksBlock? urlBlock) && urlBlock.block != null)
+                    if (block.inputs.TryGetValue("webhook_url", out WorkspaceBlockConnection? urlBlock) && urlBlock.block != null)
                         Url = await GetStringFromBlock(urlBlock.block);
 
                     if (!string.IsNullOrEmpty(Url))
@@ -1642,7 +1659,7 @@ public class DiscordRuntime : IRuntime
         return cl;
     }
 
-    public async Task<RestGuild?> GetServerFromBlock(RequestBlocks_Block block)
+    public async Task<RestGuild?> GetServerFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1698,7 +1715,7 @@ public class DiscordRuntime : IRuntime
             case "data_server_get":
                 {
                     string ServerId = string.Empty;
-                    if (block.inputs.TryGetValue("server_id", out RequestBlocksBlock? srvBlock) && srvBlock.block != null)
+                    if (block.inputs.TryGetValue("server_id", out WorkspaceBlockConnection? srvBlock) && srvBlock.block != null)
                         ServerId = await GetStringFromBlock(srvBlock.block);
 
                     if (!string.IsNullOrEmpty(ServerId) && ulong.TryParse(ServerId, out ulong id))
@@ -1715,7 +1732,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<ulong?> GetServerIdFromBlock(RequestBlocks_Block block)
+    public async Task<ulong?> GetServerIdFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1744,7 +1761,7 @@ public class DiscordRuntime : IRuntime
             case "data_server_get":
                 {
                     string ServerId = string.Empty;
-                    if (block.inputs.TryGetValue("server_id", out RequestBlocksBlock? srvBlock) && srvBlock.block != null)
+                    if (block.inputs.TryGetValue("server_id", out WorkspaceBlockConnection? srvBlock) && srvBlock.block != null)
                         ServerId = await GetStringFromBlock(srvBlock.block);
 
                     if (!string.IsNullOrEmpty(ServerId) && ulong.TryParse(ServerId, out ulong id))
@@ -1756,7 +1773,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<Tuple<Tuple<ulong, RestGuild?>?, IEmote>?> GetEmojiFromBlockAsync(RequestBlocks_Block block)
+    public async Task<Tuple<Tuple<ulong, RestGuild?>?, IEmote>?> GetEmojiFromBlockAsync(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1773,11 +1790,11 @@ public class DiscordRuntime : IRuntime
                 return Data.EmojiActive;
             case "data_emoji_get":
                 RestGuild? Server = null;
-                if (block.inputs.TryGetValue("server", out RequestBlocksBlock? srvBlock) && srvBlock.block != null)
+                if (block.inputs.TryGetValue("server", out WorkspaceBlockConnection? srvBlock) && srvBlock.block != null)
                     Server = await GetServerFromBlock(srvBlock.block);
 
                 string EmojiId = string.Empty;
-                if (block.inputs.TryGetValue("emoji_id", out RequestBlocksBlock? emojiBlock) && emojiBlock.block != null)
+                if (block.inputs.TryGetValue("emoji_id", out WorkspaceBlockConnection? emojiBlock) && emojiBlock.block != null)
                     EmojiId = await GetStringFromBlock(emojiBlock.block);
 
                 if (Server != null && !string.IsNullOrEmpty(EmojiId) && ulong.TryParse(EmojiId, out ulong id))
@@ -1802,7 +1819,7 @@ public class DiscordRuntime : IRuntime
                 break;
             case "data_emoji_parse":
                 string EmojiString = string.Empty;
-                if (block.inputs.TryGetValue("emoji_string", out RequestBlocksBlock? emojiBlock2) && emojiBlock2.block != null)
+                if (block.inputs.TryGetValue("emoji_string", out WorkspaceBlockConnection? emojiBlock2) && emojiBlock2.block != null)
                     EmojiString = await GetStringFromBlock(emojiBlock2.block);
 
                 if (string.IsNullOrEmpty(EmojiString))
@@ -1820,7 +1837,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<RestRole?> GetRoleFromBlock(RequestBlocks_Block block)
+    public async Task<RestRole?> GetRoleFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1857,11 +1874,11 @@ public class DiscordRuntime : IRuntime
             case "data_role_get":
                 {
                     RestGuild? Server = null;
-                    if (block.inputs.TryGetValue("server", out RequestBlocksBlock? srvBlock) && srvBlock.block != null)
+                    if (block.inputs.TryGetValue("server", out WorkspaceBlockConnection? srvBlock) && srvBlock.block != null)
                         Server = await GetServerFromBlock(srvBlock.block);
 
                     string RoleId = string.Empty;
-                    if (block.inputs.TryGetValue("role_id", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+                    if (block.inputs.TryGetValue("role_id", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
                         RoleId = await GetStringFromBlock(roleBlock.block);
 
                     if (Server != null && !string.IsNullOrEmpty(RoleId) && ulong.TryParse(RoleId, out ulong id))
@@ -1875,7 +1892,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<ulong?> GetRoleIdFromBlock(RequestBlocks_Block block)
+    public async Task<ulong?> GetRoleIdFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1898,7 +1915,7 @@ public class DiscordRuntime : IRuntime
             case "data_role_get":
                 {
                     string RoleId = string.Empty;
-                    if (block.inputs.TryGetValue("role_id", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+                    if (block.inputs.TryGetValue("role_id", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
                         RoleId = await GetStringFromBlock(roleBlock.block);
 
                     if (!string.IsNullOrEmpty(RoleId) && ulong.TryParse(RoleId, out ulong id))
@@ -1912,7 +1929,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<RestGuildUser?> GetMemberFromBlock(RequestBlocks_Block block)
+    public async Task<RestGuildUser?> GetMemberFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -1950,11 +1967,11 @@ public class DiscordRuntime : IRuntime
                 {
 
                     RestGuild? Server = null;
-                    if (block.inputs.TryGetValue("server", out RequestBlocksBlock? srvBlock) && srvBlock.block != null)
+                    if (block.inputs.TryGetValue("server", out WorkspaceBlockConnection? srvBlock) && srvBlock.block != null)
                         Server = await GetServerFromBlock(srvBlock.block);
 
                     string UserId = string.Empty;
-                    if (block.inputs.TryGetValue("user_id", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+                    if (block.inputs.TryGetValue("user_id", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
                         UserId = await GetStringFromBlock(roleBlock.block);
 
                     if (Server != null && !string.IsNullOrEmpty(UserId) && ulong.TryParse(UserId, out ulong id))
@@ -1989,7 +2006,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<ulong?> GetMemberIdFromBlock(RequestBlocks_Block block)
+    public async Task<ulong?> GetMemberIdFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -2014,7 +2031,7 @@ public class DiscordRuntime : IRuntime
             case "data_member_get":
                 {
                     string UserId = string.Empty;
-                    if (block.inputs.TryGetValue("user_id", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+                    if (block.inputs.TryGetValue("user_id", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
                         UserId = await GetStringFromBlock(roleBlock.block);
 
                     if (!string.IsNullOrEmpty(UserId) && ulong.TryParse(UserId, out ulong id))
@@ -2034,7 +2051,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<RestUser?> GetUserFromBlock(RequestBlocks_Block block)
+    public async Task<RestUser?> GetUserFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -2090,7 +2107,7 @@ public class DiscordRuntime : IRuntime
             case "data_user_get":
                 {
                     string UserId = string.Empty;
-                    if (block.inputs.TryGetValue("user_id", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+                    if (block.inputs.TryGetValue("user_id", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
                         UserId = await GetStringFromBlock(roleBlock.block);
 
                     if (!string.IsNullOrEmpty(UserId) && ulong.TryParse(UserId, out ulong id))
@@ -2107,7 +2124,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<ulong?> GetUserIdFromBlock(RequestBlocks_Block block)
+    public async Task<ulong?> GetUserIdFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -2142,7 +2159,7 @@ public class DiscordRuntime : IRuntime
             case "data_user_get":
                 {
                     string UserId = string.Empty;
-                    if (block.inputs.TryGetValue("user_id", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+                    if (block.inputs.TryGetValue("user_id", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
                         UserId = await GetStringFromBlock(roleBlock.block);
 
                     if (!string.IsNullOrEmpty(UserId) && ulong.TryParse(UserId, out ulong id))
@@ -2154,7 +2171,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public async Task<Color?> GetColorFromBlock(RequestBlocks_Block block)
+    public async Task<Color?> GetColorFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -2192,7 +2209,7 @@ public class DiscordRuntime : IRuntime
                 break;
             case "color_hex":
                 {
-                    if (block.inputs.TryGetValue("hex", out RequestBlocksBlock hexStringBlock) && hexStringBlock.block != null)
+                    if (block.inputs.TryGetValue("hex", out WorkspaceBlockConnection hexStringBlock) && hexStringBlock.block != null)
                     {
                         string Hex = await GetStringFromBlock(hexStringBlock.block);
                         if (!string.IsNullOrEmpty(Hex) && Hex.StartsWith("#"))
@@ -2223,7 +2240,7 @@ public class DiscordRuntime : IRuntime
         return null;
     }
 
-    public void SetMessageData(RequestBlocks_Block block, RestMessage message)
+    public void SetMessageData(WorkspaceBlock block, RestMessage message)
     {
         switch (block.type)
         {
@@ -2237,7 +2254,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetMessageData(RequestBlocks_Block block, ulong channel, ulong message)
+    public void SetMessageData(WorkspaceBlock block, ulong channel, ulong message)
     {
         switch (block.type)
         {
@@ -2251,7 +2268,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetChannelData(RequestBlocks_Block block, ulong channel)
+    public void SetChannelData(WorkspaceBlock block, ulong channel)
     {
         switch (block.type)
         {
@@ -2265,7 +2282,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetChannelData(RequestBlocks_Block block, RestChannel channel)
+    public void SetChannelData(WorkspaceBlock block, RestChannel channel)
     {
         switch (block.type)
         {
@@ -2279,7 +2296,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetCategoryData(RequestBlocks_Block block, ulong category)
+    public void SetCategoryData(WorkspaceBlock block, ulong category)
     {
         switch (block.type)
         {
@@ -2293,7 +2310,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetCategoryData(RequestBlocks_Block block, RestCategoryChannel category)
+    public void SetCategoryData(WorkspaceBlock block, RestCategoryChannel category)
     {
         switch (block.type)
         {
@@ -2307,7 +2324,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetWebhookData(RequestBlocks_Block block, Tuple<RestWebhook?, string> webhook)
+    public void SetWebhookData(WorkspaceBlock block, Tuple<RestWebhook?, string> webhook)
     {
         switch (block.type)
         {
@@ -2321,7 +2338,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetServerData(RequestBlocks_Block block, ulong server)
+    public void SetServerData(WorkspaceBlock block, ulong server)
     {
         switch (block.type)
         {
@@ -2335,7 +2352,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetServerData(RequestBlocks_Block block, RestGuild server)
+    public void SetServerData(WorkspaceBlock block, RestGuild server)
     {
         switch (block.type)
         {
@@ -2349,7 +2366,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetEmojiData(RequestBlocks_Block block, ulong guild, IEmote emoji)
+    public void SetEmojiData(WorkspaceBlock block, ulong guild, IEmote emoji)
     {
         switch (block.type)
         {
@@ -2364,7 +2381,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetEmojiData(RequestBlocks_Block block, RestGuild guild, GuildEmote emoji)
+    public void SetEmojiData(WorkspaceBlock block, RestGuild guild, GuildEmote emoji)
     {
         switch (block.type)
         {
@@ -2378,7 +2395,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetRoleData(RequestBlocks_Block block, ulong serverId, ulong role)
+    public void SetRoleData(WorkspaceBlock block, ulong serverId, ulong role)
     {
         switch (block.type)
         {
@@ -2392,7 +2409,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetRoleData(RequestBlocks_Block block, ulong serverId, RestRole role)
+    public void SetRoleData(WorkspaceBlock block, ulong serverId, RestRole role)
     {
         switch (block.type)
         {
@@ -2406,7 +2423,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetMemberData(RequestBlocks_Block block, ulong server, ulong member)
+    public void SetMemberData(WorkspaceBlock block, ulong server, ulong member)
     {
         switch (block.type)
         {
@@ -2420,7 +2437,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetMemberData(RequestBlocks_Block block, RestGuildUser member)
+    public void SetMemberData(WorkspaceBlock block, RestGuildUser member)
     {
         switch (block.type)
         {
@@ -2434,7 +2451,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetUserData(RequestBlocks_Block block, ulong user)
+    public void SetUserData(WorkspaceBlock block, ulong user)
     {
         Console.WriteLine("Set User Data: " + user);
         switch (block.type)
@@ -2449,7 +2466,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    public void SetUserData(RequestBlocks_Block block, RestUser user)
+    public void SetUserData(WorkspaceBlock block, RestUser user)
     {
         switch (block.type)
         {
@@ -2464,7 +2481,7 @@ public class DiscordRuntime : IRuntime
     }
 
 
-    public void CopyModalData(RequestBlocks_Block copyBlockType, RequestBlocks_Block toBlockType)
+    public void CopyModalData(WorkspaceBlock copyBlockType, WorkspaceBlock toBlockType)
     {
         object? obj = GetDynamicData(copyBlockType);
 
@@ -2573,7 +2590,7 @@ public class DiscordRuntime : IRuntime
         }
     }
 
-    private object GetDynamicData(RequestBlocks_Block blockType)
+    private object GetDynamicData(WorkspaceBlock blockType)
     {
         switch (blockType.type)
         {

@@ -7,7 +7,7 @@ public class SetActiveMessageBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestMessage? Category = null;
-        if (Block.inputs.TryGetValue("message", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("message", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             Category = await Runtime.GetMessageFromBlock(catBlock.block);
 
         if (Category == null)

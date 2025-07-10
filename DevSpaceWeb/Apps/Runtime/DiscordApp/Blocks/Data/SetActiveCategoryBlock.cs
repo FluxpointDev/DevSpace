@@ -7,7 +7,7 @@ public class SetActiveCategoryBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestCategoryChannel? Category = null;
-        if (Block.inputs.TryGetValue("category", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("category", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             Category = await Runtime.GetCategoryFromBlock(catBlock.block);
 
         if (Category == null)

@@ -8,7 +8,7 @@ public class CreateCategoryBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestGuild? Guild = null;
-        if (Block.inputs.TryGetValue("server", out RequestBlocksBlock? servBlock) && servBlock.block != null)
+        if (Block.inputs.TryGetValue("server", out WorkspaceBlockConnection? servBlock) && servBlock.block != null)
             Guild = await Runtime.GetServerFromBlock(servBlock.block);
 
         if (Guild == null)
@@ -18,14 +18,14 @@ public class CreateCategoryBlock : DiscordActionBlock
             return Runtime.GetAppPermissionError(GuildPermission.ViewChannel);
 
         CategoryObjectBlock? category = null;
-        if (Block.inputs.TryGetValue("obj_category_channel", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_category_channel", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             category = DiscordBlocks.Parse(Runtime, catBlock.block) as CategoryObjectBlock;
 
         if (category == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to create category, category object data is missing.");
 
-        RequestBlocks_Block? CatBlock = null;
-        if (Block.inputs.TryGetValue("output_category", out RequestBlocksBlock? hookBlock) && hookBlock.block != null)
+        WorkspaceBlock? CatBlock = null;
+        if (Block.inputs.TryGetValue("output_category", out WorkspaceBlockConnection? hookBlock) && hookBlock.block != null)
             CatBlock = hookBlock.block;
 
         int? Pos = await category.Position();

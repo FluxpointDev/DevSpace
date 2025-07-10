@@ -579,7 +579,7 @@ public static class _DB
                     {
                         if (_DB.Apps.Cache.TryGetValue(x.AppId, out AppData? app))
                         {
-                            RequestBlocks? Command = Newtonsoft.Json.JsonConvert.DeserializeObject<RequestBlocks>(x.JsonData, new Newtonsoft.Json.JsonSerializerSettings
+                            WorkspaceRequest? Command = Newtonsoft.Json.JsonConvert.DeserializeObject<WorkspaceRequest>(x.JsonData, new Newtonsoft.Json.JsonSerializerSettings
                             {
                                 MaxDepth = 512
                             });

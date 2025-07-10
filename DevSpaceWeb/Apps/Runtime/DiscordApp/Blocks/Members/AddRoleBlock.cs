@@ -8,7 +8,7 @@ public class AddRoleBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestGuildUser? User = null;
-        if (Block.inputs.TryGetValue("member", out RequestBlocksBlock? webhookBlock) && webhookBlock.block != null)
+        if (Block.inputs.TryGetValue("member", out WorkspaceBlockConnection? webhookBlock) && webhookBlock.block != null)
             User = await Runtime.GetMemberFromBlock(webhookBlock.block);
 
         if (User == null)
@@ -18,11 +18,11 @@ public class AddRoleBlock : DiscordActionBlock
             return Runtime.GetAppPermissionError(GuildPermission.ManageRoles);
 
         string Reason = string.Empty;
-        if (Block.inputs.TryGetValue("reason", out RequestBlocksBlock? rsBlock) && rsBlock.block != null)
+        if (Block.inputs.TryGetValue("reason", out WorkspaceBlockConnection? rsBlock) && rsBlock.block != null)
             Reason = await Runtime.GetStringFromBlock(rsBlock.block);
 
         RestRole? Role = null;
-        if (Block.inputs.TryGetValue("role", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+        if (Block.inputs.TryGetValue("role", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
             Role = await Runtime.GetRoleFromBlock(roleBlock.block);
 
         if (Role == null)

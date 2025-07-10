@@ -8,7 +8,7 @@ public class SetActiveEmojiBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         Tuple<Tuple<ulong, RestGuild?>?, IEmote>? Category = null;
-        if (Block.inputs.TryGetValue("emoji", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("emoji", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             Category = await Runtime.GetEmojiFromBlockAsync(catBlock.block);
 
         if (Category == null)

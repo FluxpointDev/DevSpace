@@ -8,7 +8,7 @@ namespace DevSpaceWeb.Apps.Runtime;
 public class IBlock
 {
     public IRuntime Runtime { get; internal set; }
-    public RequestBlocks_Block Block { get; internal set; }
+    public WorkspaceBlock Block { get; internal set; }
 }
 public abstract class IRuntime
 {
@@ -20,7 +20,7 @@ public abstract class IRuntime
 
     public MainData MainData = new MainData();
 
-    public FileData? GetFileFromBlock(RequestBlocks_Block block)
+    public FileData? GetFileFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -78,7 +78,7 @@ public abstract class IRuntime
         return Selected;
     }
 
-    public JObject? GetJsonFromBlock(RequestBlocks_Block block)
+    public JObject? GetJsonFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -92,9 +92,9 @@ public abstract class IRuntime
         return null;
     }
 
-    public abstract Task<string> GetStringFromBlock(RequestBlocks_Block block);
+    public abstract Task<string> GetStringFromBlock(WorkspaceBlock block);
 
-    public async Task<string> GetBaseStringFromBlock(RequestBlocks_Block block)
+    public async Task<string> GetBaseStringFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -102,7 +102,7 @@ public abstract class IRuntime
                 return block.fields["custom_color"].ToString();
             case "color_hex":
                 {
-                    if (block.inputs.TryGetValue("hex", out RequestBlocksBlock? hexStringBlock) && hexStringBlock.block != null)
+                    if (block.inputs.TryGetValue("hex", out WorkspaceBlockConnection? hexStringBlock) && hexStringBlock.block != null)
                     {
                         return await GetStringFromBlock(hexStringBlock.block);
                     }
@@ -110,7 +110,7 @@ public abstract class IRuntime
                 break;
             case "color_rgb":
                 int? R = 0;
-                if (block.inputs.TryGetValue("red", out RequestBlocksBlock? cBlock) && cBlock.block != null)
+                if (block.inputs.TryGetValue("red", out WorkspaceBlockConnection? cBlock) && cBlock.block != null)
                     R = await GetIntFromBlock(cBlock.block);
 
                 int? G = 0;
@@ -133,7 +133,7 @@ public abstract class IRuntime
                 return Newtonsoft.Json.JsonConvert.SerializeObject(MainData.JsonActive);
             case "data_selector_json":
                 {
-                    if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("select", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
+                    if (block.inputs.TryGetValue("json", out WorkspaceBlockConnection? jsonBlock) && block.inputs.TryGetValue("select", out WorkspaceBlockConnection? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
                     {
                         JObject? Json = GetJsonFromBlock(jsonBlock.block);
                         string Key = await GetStringFromBlock(keyBlock.block);
@@ -174,7 +174,7 @@ public abstract class IRuntime
 
                     int Count = 1;
 
-                    foreach (RequestBlocksBlock i in block.inputs.Values)
+                    foreach (WorkspaceBlockConnection i in block.inputs.Values)
                     {
                         if (i.block == null || !i.block.enabled)
                             continue;
@@ -223,7 +223,7 @@ public abstract class IRuntime
                 break;
             case "data_string_base64":
                 {
-                    if (block.inputs.TryGetValue("string", out RequestBlocksBlock? strBlock) && strBlock.block != null)
+                    if (block.inputs.TryGetValue("string", out WorkspaceBlockConnection? strBlock) && strBlock.block != null)
                     {
                         string Text = await GetStringFromBlock(strBlock.block);
                         if (!string.IsNullOrEmpty(Text))
@@ -250,7 +250,7 @@ public abstract class IRuntime
                 break;
             case "data_string_format":
                 {
-                    if (block.inputs.TryGetValue("string", out RequestBlocksBlock? strBlock) && strBlock.block != null)
+                    if (block.inputs.TryGetValue("string", out WorkspaceBlockConnection? strBlock) && strBlock.block != null)
                     {
                         string Text = await GetStringFromBlock(strBlock.block);
                         if (!string.IsNullOrEmpty(Text))
@@ -275,7 +275,7 @@ public abstract class IRuntime
                 break;
             case "data_string_offset":
                 {
-                    if (block.inputs.TryGetValue("string", out RequestBlocksBlock? strBlock) && strBlock.block != null)
+                    if (block.inputs.TryGetValue("string", out WorkspaceBlockConnection? strBlock) && strBlock.block != null)
                     {
                         string Text = await GetStringFromBlock(strBlock.block);
                         if (!string.IsNullOrEmpty(Text))
@@ -290,7 +290,7 @@ public abstract class IRuntime
                 break;
             case "data_string_offset_end":
                 {
-                    if (block.inputs.TryGetValue("string", out RequestBlocksBlock? strBlock) && strBlock.block != null)
+                    if (block.inputs.TryGetValue("string", out WorkspaceBlockConnection? strBlock) && strBlock.block != null)
                     {
                         string Text = await GetStringFromBlock(strBlock.block);
                         if (!string.IsNullOrEmpty(Text))
@@ -305,7 +305,7 @@ public abstract class IRuntime
                 break;
             case "data_string_between":
                 {
-                    if (block.inputs.TryGetValue("string", out RequestBlocksBlock? strBlock) && strBlock.block != null)
+                    if (block.inputs.TryGetValue("string", out WorkspaceBlockConnection? strBlock) && strBlock.block != null)
                     {
                         string Text = await GetStringFromBlock(strBlock.block);
                         if (!string.IsNullOrEmpty(Text))
@@ -326,7 +326,7 @@ public abstract class IRuntime
                 break;
             case "data_string_color":
                 {
-                    if (block.inputs.TryGetValue("string", out RequestBlocksBlock? strBlock) && strBlock.block != null)
+                    if (block.inputs.TryGetValue("string", out WorkspaceBlockConnection? strBlock) && strBlock.block != null)
                     {
                         string Text = await GetStringFromBlock(strBlock.block);
                         if (!string.IsNullOrEmpty(Text))
@@ -371,7 +371,7 @@ public abstract class IRuntime
                 break;
             case "data_string_markdown":
                 {
-                    if (block.inputs.TryGetValue("string", out RequestBlocksBlock? strBlock) && strBlock.block != null)
+                    if (block.inputs.TryGetValue("string", out WorkspaceBlockConnection? strBlock) && strBlock.block != null)
                     {
                         string Text = await GetStringFromBlock(strBlock.block);
                         if (!string.IsNullOrEmpty(Text))
@@ -409,10 +409,10 @@ public abstract class IRuntime
                 break;
             case "data_string_markdown_link":
                 {
-                    RequestBlocks_Block? nameBlock = null;
-                    RequestBlocks_Block? linkBlock = null;
+                    WorkspaceBlock? nameBlock = null;
+                    WorkspaceBlock? linkBlock = null;
 
-                    if (block.inputs.TryGetValue("name", out RequestBlocksBlock? nb) && nb.block != null)
+                    if (block.inputs.TryGetValue("name", out WorkspaceBlockConnection? nb) && nb.block != null)
                         nameBlock = nb.block;
 
                     if (block.inputs.TryGetValue("link", out nb) && nb.block != null)
@@ -439,7 +439,7 @@ public abstract class IRuntime
                 break;
             case "data_string_markdown_code":
                 {
-                    if (block.inputs.TryGetValue("string", out RequestBlocksBlock? strBlock) && strBlock.block != null)
+                    if (block.inputs.TryGetValue("string", out WorkspaceBlockConnection? strBlock) && strBlock.block != null)
                     {
                         string Text = await GetStringFromBlock(strBlock.block);
                         if (!string.IsNullOrEmpty(Text))
@@ -470,7 +470,7 @@ public abstract class IRuntime
         return string.Empty;
     }
 
-    public async Task<bool?> GetBoolFromBlock(RequestBlocks_Block block)
+    public async Task<bool?> GetBoolFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -482,7 +482,7 @@ public abstract class IRuntime
                 return block.fields["BOOL"].ToString() == "TRUE";
             case "data_selector_json":
                 {
-                    if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("select", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
+                    if (block.inputs.TryGetValue("json", out WorkspaceBlockConnection? jsonBlock) && block.inputs.TryGetValue("select", out WorkspaceBlockConnection? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
                     {
                         JObject? Json = GetJsonFromBlock(jsonBlock.block);
                         string Key = await GetStringFromBlock(keyBlock.block);
@@ -499,7 +499,7 @@ public abstract class IRuntime
         return null;
     }
 
-    public async Task<int?> GetIntFromBlock(RequestBlocks_Block block)
+    public async Task<int?> GetIntFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -511,7 +511,7 @@ public abstract class IRuntime
                 return block.fields["NUM"].ToObject<int>();
             case "data_selector_json":
                 {
-                    if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("select", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
+                    if (block.inputs.TryGetValue("json", out WorkspaceBlockConnection? jsonBlock) && block.inputs.TryGetValue("select", out WorkspaceBlockConnection? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
                     {
                         JObject? Json = GetJsonFromBlock(jsonBlock.block);
                         string Key = await GetStringFromBlock(keyBlock.block);
@@ -529,7 +529,7 @@ public abstract class IRuntime
         return null;
     }
 
-    public async Task<double?> GetDoubleFromBlock(RequestBlocks_Block block)
+    public async Task<double?> GetDoubleFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -541,7 +541,7 @@ public abstract class IRuntime
                 return block.fields["NUM"].ToObject<double>();
             case "data_selector_json":
                 {
-                    if (block.inputs.TryGetValue("json", out RequestBlocksBlock? jsonBlock) && block.inputs.TryGetValue("select", out RequestBlocksBlock? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
+                    if (block.inputs.TryGetValue("json", out WorkspaceBlockConnection? jsonBlock) && block.inputs.TryGetValue("select", out WorkspaceBlockConnection? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
                     {
                         JObject? Json = GetJsonFromBlock(jsonBlock.block);
                         string Key = await GetStringFromBlock(keyBlock.block);
@@ -559,7 +559,7 @@ public abstract class IRuntime
         return null;
     }
 
-    public object? GetVariableFromBlock(RequestBlocks_Block block)
+    public object? GetVariableFromBlock(WorkspaceBlock block)
     {
         if (block.type == "variables_get" && Variables.TryGetValue(block.GetVariableId(), out object? obj))
             return (HttpResponseMessage)obj;
@@ -567,7 +567,7 @@ public abstract class IRuntime
         return null;
     }
 
-    public ResponseData? GetResponseFromBlock(RequestBlocks_Block block)
+    public ResponseData? GetResponseFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -588,7 +588,7 @@ public abstract class IRuntime
             Variables.TryAdd(key, value);
     }
 
-    public void SetFileData(RequestBlocks_Block block, FileData file)
+    public void SetFileData(WorkspaceBlock block, FileData file)
     {
         switch (block.type)
         {
@@ -602,7 +602,7 @@ public abstract class IRuntime
         }
     }
 
-    public void SetFileData(RequestBlocks_Block block, Attachment attach)
+    public void SetFileData(WorkspaceBlock block, Attachment attach)
     {
         SetFileData(block, new FileData
         {
@@ -612,7 +612,7 @@ public abstract class IRuntime
         });
     }
 
-    public void SetResponse(RequestBlocks_Block block, ResponseData res)
+    public void SetResponse(WorkspaceBlock block, ResponseData res)
     {
         switch (block.type)
         {
@@ -630,10 +630,11 @@ public abstract class IActionBlock : IBlock
 {
     public abstract Task<RuntimeError?> RunAsync();
 }
-public class RuntimeError(RuntimeErrorType type, string error) : Exception(error)
+public class RuntimeError(RuntimeErrorType type, string? error) : Exception(error)
 {
     public RuntimeErrorType Type = type;
     public string ErrorMessage = error;
+    public object? CustomMessage;
 }
 public enum RuntimeErrorType
 {

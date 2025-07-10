@@ -12,7 +12,7 @@ namespace DevSpaceWeb.Apps.Runtime.DiscordApp;
 
 public static class DiscordBlocks
 {
-    public static IBlock? Parse(DiscordRuntime runtime, RequestBlocks_Block data)
+    public static IBlock? Parse(DiscordRuntime runtime, WorkspaceBlock data)
     {
         if (!data.enabled)
             return null;
@@ -63,7 +63,7 @@ public static class DiscordBlocks
         return Block;
     }
 
-    public static IActionBlock? ParseAction(DiscordRuntime runtime, RequestBlocks_Block data)
+    public static IActionBlock? ParseAction(DiscordRuntime runtime, WorkspaceBlock data)
     {
         if (!data.enabled)
             return null;
@@ -140,6 +140,9 @@ public static class DiscordBlocks
                         break;
                     case "action_modify_message":
                         Block = new ModifyMessageBlock();
+                        break;
+                    case "action_delete_interaction_message":
+                        Block = new DeleteInteractionMessageBlock();
                         break;
                     case "action_delete_message":
                         Block = new DeleteMessageBlock();

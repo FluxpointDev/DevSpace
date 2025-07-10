@@ -15,4 +15,5 @@ public enum AppPermission : ulong
     ManageCommands = 1L << 9,
     ViewWorkspaces = 1L << 10,
     ManageWorkspaces = 1L << 11,
+    ViewLogs = 1L << 12,
 }

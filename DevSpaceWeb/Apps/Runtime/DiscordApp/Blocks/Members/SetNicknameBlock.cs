@@ -8,7 +8,7 @@ public class SetNicknameBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestGuildUser? User = null;
-        if (Block.inputs.TryGetValue("member", out RequestBlocksBlock? webhookBlock) && webhookBlock.block != null)
+        if (Block.inputs.TryGetValue("member", out WorkspaceBlockConnection? webhookBlock) && webhookBlock.block != null)
             User = await Runtime.GetMemberFromBlock(webhookBlock.block);
 
         if (User == null)
@@ -18,11 +18,11 @@ public class SetNicknameBlock : DiscordActionBlock
             return Runtime.GetAppPermissionError(GuildPermission.ManageNicknames);
 
         string Nickname = string.Empty;
-        if (Block.inputs.TryGetValue("name", out RequestBlocksBlock? nickBlock) && nickBlock.block != null)
+        if (Block.inputs.TryGetValue("name", out WorkspaceBlockConnection? nickBlock) && nickBlock.block != null)
             Nickname = await Runtime.GetStringFromBlock(nickBlock.block);
 
         string Reason = string.Empty;
-        if (Block.inputs.TryGetValue("reason", out RequestBlocksBlock? rsBlock) && rsBlock.block != null)
+        if (Block.inputs.TryGetValue("reason", out WorkspaceBlockConnection? rsBlock) && rsBlock.block != null)
             Reason = await Runtime.GetStringFromBlock(rsBlock.block);
 
         await User.ModifyAsync(x => x.Nickname = Nickname, !string.IsNullOrEmpty(Reason) ? new Discord.RequestOptions { AuditLogReason = Reason } : null);

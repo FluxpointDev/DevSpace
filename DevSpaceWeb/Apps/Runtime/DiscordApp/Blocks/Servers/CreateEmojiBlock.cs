@@ -9,14 +9,14 @@ public class CreateEmojiBlock : DiscordActionBlock
     {
         RestGuild? Server = null;
 
-        if (Block.inputs.TryGetValue("server", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+        if (Block.inputs.TryGetValue("server", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
             Server = await Runtime.GetServerFromBlock(chanBlock.block);
 
         if (Server == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to create emoji, could not find server.");
 
         EmojiObjectBlock? category = null;
-        if (Block.inputs.TryGetValue("obj_emoji", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_emoji", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             category = DiscordBlocks.Parse(Runtime, catBlock.block) as EmojiObjectBlock;
 
         if (category == null)
@@ -26,7 +26,7 @@ public class CreateEmojiBlock : DiscordActionBlock
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to create emoji, emoji name is missing.");
 
         FileData? File = null;
-        if (Block.inputs.TryGetValue("file", out RequestBlocksBlock? content) && content.block != null)
+        if (Block.inputs.TryGetValue("file", out WorkspaceBlockConnection? content) && content.block != null)
             File = Runtime.GetFileFromBlock(content.block);
 
         if (File == null)
@@ -43,7 +43,7 @@ public class CreateEmojiBlock : DiscordActionBlock
         if (Emoji == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to create emoji, could not find emoji.");
 
-        if (Block.inputs.TryGetValue("output_emoji", out RequestBlocksBlock outputBlock) && outputBlock.block != null)
+        if (Block.inputs.TryGetValue("output_emoji", out WorkspaceBlockConnection outputBlock) && outputBlock.block != null)
         {
             Runtime.Cache.AddEmoji(Server, Emoji);
             Runtime.SetEmojiData(outputBlock.block, Server, Emoji);

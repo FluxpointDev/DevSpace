@@ -6,7 +6,7 @@ public class EmojiObjectBlock : DiscordBlock
 {
     public async Task<string?> Name()
     {
-        if (Block.inputs.TryGetValue("name", out RequestBlocksBlock block) && block.block != null)
+        if (Block.inputs.TryGetValue("name", out WorkspaceBlockConnection block) && block.block != null)
             return await Runtime.GetStringFromBlock(block.block);
 
         return null;
@@ -14,10 +14,10 @@ public class EmojiObjectBlock : DiscordBlock
 
     public async Task<List<RestRole>?> Roles()
     {
-        if (Block.inputs.TryGetValue("obj_roles_list", out RequestBlocksBlock? rolesBlock) && rolesBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_roles_list", out WorkspaceBlockConnection? rolesBlock) && rolesBlock.block != null)
         {
             List<RestRole> roles = new List<RestRole>();
-            foreach (RequestBlocksBlock i in rolesBlock.block.inputs.Values)
+            foreach (WorkspaceBlockConnection i in rolesBlock.block.inputs.Values)
             {
                 if (i.block == null)
                     continue;

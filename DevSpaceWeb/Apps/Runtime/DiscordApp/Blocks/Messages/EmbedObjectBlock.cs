@@ -8,7 +8,7 @@ public class EmbedObjectBlock : DiscordBlock
     {
         EmbedBuilder embed = new EmbedBuilder();
 
-        RequestBlocksBlock? block;
+        WorkspaceBlockConnection? block;
         if (Block.inputs.TryGetValue("title", out block) && block.block != null)
             embed.Title = await Runtime.GetStringFromBlock(block.block);
 
@@ -56,12 +56,12 @@ public class EmbedObjectBlock : DiscordBlock
 
         if (Block.inputs.TryGetValue("obj_embed_fields_list", out block) && block.block != null)
         {
-            foreach (KeyValuePair<string, RequestBlocksBlock> i in block.block.inputs)
+            foreach (KeyValuePair<string, WorkspaceBlockConnection> i in block.block.inputs)
             {
                 if (i.Value.block == null)
                     continue;
                 EmbedFieldBuilder field = new EmbedFieldBuilder();
-                RequestBlocksBlock? innerBlock;
+                WorkspaceBlockConnection? innerBlock;
                 if (i.Value.block.inputs.TryGetValue("name", out innerBlock) && innerBlock.block != null)
                 {
                     field.Name = await Runtime.GetStringFromBlock(innerBlock.block);

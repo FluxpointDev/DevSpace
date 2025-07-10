@@ -8,7 +8,7 @@ public class ModifyMessageBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestMessage? Message = null;
-        if (Block.inputs.TryGetValue("message", out RequestBlocksBlock? messageBlock) && messageBlock.block != null)
+        if (Block.inputs.TryGetValue("message", out WorkspaceBlockConnection? messageBlock) && messageBlock.block != null)
             Message = await Runtime.GetMessageFromBlock(messageBlock.block);
 
         if (Message == null)
@@ -17,11 +17,11 @@ public class ModifyMessageBlock : DiscordActionBlock
         MessageObjectBlock? MessageObject = null;
         MessageComponent? components = null;
 
-        if (Block.inputs.TryGetValue("obj_message", out RequestBlocksBlock? webBlock) && webBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_message", out WorkspaceBlockConnection? webBlock) && webBlock.block != null)
         {
             MessageObject = DiscordBlocks.Parse(Runtime, webBlock.block) as MessageObjectBlock;
 
-            if (messageBlock.block.inputs.TryGetValue("obj_components_list", out RequestBlocksBlock? cmpBlock) && cmpBlock.block != null)
+            if (messageBlock.block.inputs.TryGetValue("obj_components_list", out WorkspaceBlockConnection? cmpBlock) && cmpBlock.block != null)
             {
                 ComponentsObjectBlock? componentsBlock = DiscordBlocks.Parse(Runtime, cmpBlock.block) as ComponentsObjectBlock;
                 if (componentsBlock != null)

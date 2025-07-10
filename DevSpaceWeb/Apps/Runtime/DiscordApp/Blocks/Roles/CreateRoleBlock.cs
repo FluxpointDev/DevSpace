@@ -9,7 +9,7 @@ public class CreateRoleBlock : DiscordActionBlock
     {
         RestGuild? Server = null;
 
-        if (Block.inputs.TryGetValue("server", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+        if (Block.inputs.TryGetValue("server", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
             Server = await Runtime.GetServerFromBlock(roleBlock.block);
 
         if (Server == null)
@@ -19,7 +19,7 @@ public class CreateRoleBlock : DiscordActionBlock
             return Runtime.GetAppPermissionError(GuildPermission.ManageRoles);
 
         RoleObjectBlock? RoleObject = null;
-        if (Block.inputs.TryGetValue("obj_role", out RequestBlocksBlock? webBlock) && webBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_role", out WorkspaceBlockConnection? webBlock) && webBlock.block != null)
             RoleObject = DiscordBlocks.Parse(Runtime, webBlock.block) as RoleObjectBlock;
 
         if (RoleObject == null)
@@ -31,7 +31,7 @@ public class CreateRoleBlock : DiscordActionBlock
         if (CreatedRole == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to create role, could not find role.");
 
-        if (Block.inputs.TryGetValue("output_role", out RequestBlocksBlock outputBlock) && outputBlock.block != null)
+        if (Block.inputs.TryGetValue("output_role", out WorkspaceBlockConnection outputBlock) && outputBlock.block != null)
         {
             Runtime.Cache.AddRole(CreatedRole);
             Runtime.SetRoleData(outputBlock.block, CreatedRole.GuildId, CreatedRole);

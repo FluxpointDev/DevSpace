@@ -9,7 +9,7 @@ public class CreateWebhookBlock : DiscordActionBlock
     {
         IChannel? Channel = null;
 
-        if (Block.inputs.TryGetValue("channel", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+        if (Block.inputs.TryGetValue("channel", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
         {
             Channel = await Runtime.GetChannelFromBlock(chanBlock.block);
         }
@@ -18,14 +18,14 @@ public class CreateWebhookBlock : DiscordActionBlock
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to create webhook, could not find channel.");
 
         WebhookObjectBlock? Webhook = null;
-        if (Block.inputs.TryGetValue("obj_webhook", out RequestBlocksBlock? webBlock) && webBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_webhook", out WorkspaceBlockConnection? webBlock) && webBlock.block != null)
             Webhook = DiscordBlocks.Parse(Runtime, webBlock.block) as WebhookObjectBlock;
 
         if (Webhook == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to create webhook, webhook object data is missing.");
 
-        RequestBlocks_Block? HookBlock = null;
-        if (Block.inputs.TryGetValue("output_webhook", out RequestBlocksBlock? hookBlock) && hookBlock.block != null)
+        WorkspaceBlock? HookBlock = null;
+        if (Block.inputs.TryGetValue("output_webhook", out WorkspaceBlockConnection? hookBlock) && hookBlock.block != null)
             HookBlock = hookBlock.block;
 
         if (Channel is RestTextChannel tc)

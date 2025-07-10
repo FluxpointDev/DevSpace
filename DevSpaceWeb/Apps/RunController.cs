@@ -90,9 +90,11 @@ public class RunController : Controller
                     return;
                 case RestSlashCommand Cmd:
                     {
-                        _ = Task.Run(() =>
+                        AppData.GetEvents().TriggerEvent(new AppLogItem()
                         {
-                            AppData.GetEvents().TriggerEvent($"Slash Command: {Interaction.User.Username} ran {Cmd.Data.Name} in #{Interaction.Channel.Name}", Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(body));
+                            Title = $"Slash Command: {Interaction.User.Username} ran {Cmd.Data.Name} in #{Interaction.Channel.Name}",
+                            Data = body,
+                            Type = WorkspaceType.DiscordSlashCommand
                         });
 
                         DiscordAppSlashCommand? SelectedCommand = null;
@@ -142,9 +144,11 @@ public class RunController : Controller
                     break;
                 case RestUserCommand ucmd:
                     {
-                        _ = Task.Run(() =>
+                        AppData.GetEvents().TriggerEvent(new AppLogItem()
                         {
-                            AppData.GetEvents().TriggerEvent($"User Command: {Interaction.User.Username} ran {ucmd.Data.Name} in #{Interaction.Channel.Name}", Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(body));
+                            Title = $"User Command: {Interaction.User.Username} ran {ucmd.Data.Name} in #{Interaction.Channel.Name}",
+                            Data = body,
+                            Type = WorkspaceType.DiscordUserCommand
                         });
 
                         AppData.UserCommands.TryGetValue(ucmd.Data.Name.ToLower(), out IDiscordAppCommand? command);
@@ -157,9 +161,11 @@ public class RunController : Controller
                     break;
                 case RestMessageCommand mcmd:
                     {
-                        _ = Task.Run(() =>
+                        AppData.GetEvents().TriggerEvent(new AppLogItem()
                         {
-                            AppData.GetEvents().TriggerEvent($"Message Command: {Interaction.User.Username} ran {mcmd.Data.Name} in #{Interaction.Channel.Name}", Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(body));
+                            Title = $"Message Command: {Interaction.User.Username} ran {mcmd.Data.Name} in #{Interaction.Channel.Name}",
+                            Data = body,
+                            Type = WorkspaceType.DiscordMessageCommand
                         });
 
                         AppData.MessageCommands.TryGetValue(mcmd.Data.Name.ToLower(), out IDiscordAppCommand? command);
@@ -167,18 +173,21 @@ public class RunController : Controller
                             sc.MessageCommands.TryGetValue(mcmd.Data.Name.ToLower(), out command);
 
                         InteractionData = command;
-                        Type = WorkspaceType.DiscordUserCommand;
+                        Type = WorkspaceType.DiscordMessageCommand;
                     }
                     break;
                 case RestMessageComponent ci:
                     {
+
                         switch (ci.Data.Type)
                         {
                             case ComponentType.Button:
                                 {
-                                    _ = Task.Run(() =>
+                                    AppData.GetEvents().TriggerEvent(new AppLogItem()
                                     {
-                                        AppData.GetEvents().TriggerEvent($"Button Command: {Interaction.User.Username} ran {ci.Data.CustomId} in #{Interaction.Channel.Name}", Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(body));
+                                        Title = $"Button Interaction: {Interaction.User.Username} ran {ci.Id} in #{Interaction.Channel.Name}",
+                                        Data = body,
+                                        Type = WorkspaceType.DiscordInteractionButton
                                     });
 
                                     string[] SplitId = ci.Data.CustomId.Split('|', StringSplitOptions.RemoveEmptyEntries);
@@ -214,9 +223,11 @@ public class RunController : Controller
                     break;
                 case RestModal md:
                     {
-                        _ = Task.Run(() =>
+                        AppData.GetEvents().TriggerEvent(new AppLogItem()
                         {
-                            AppData.GetEvents().TriggerEvent($"Modal Command: {Interaction.User.Username} ran {md.Data.CustomId} in #{Interaction.Channel.Name}", Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(body));
+                            Title = $"Modal Interaction: {Interaction.User.Username} ran {md.Id} in #{Interaction.Channel.Name}",
+                            Data = body,
+                            Type = WorkspaceType.DiscordInteractionModal
                         });
 
                         string[] SplitId = md.Data.CustomId.Split('|', StringSplitOptions.RemoveEmptyEntries);
@@ -262,7 +273,7 @@ public class RunController : Controller
             DiscordRuntime runtime = new DiscordRuntime(AppData, Client, Interaction, InteractionData, InteractionData.IsEphemeral, long.Parse(timestamp), currentTime);
             runtime.Type = Type;
 
-            RequestBlocks_Block? commandBlock = AppData.GetCache().GetCacheCommand(InteractionData.WorkspaceId.Value);
+            WorkspaceBlock? commandBlock = AppData.GetCache().GetCacheCommand(InteractionData.WorkspaceId.Value);
             if (commandBlock == null)
             {
                 await HttpRespondWithError(Request, Interaction, "This interaction has no data.", cancellationToken);
@@ -270,8 +281,8 @@ public class RunController : Controller
             }
 
 
-            RequestBlocks_Block? firstOption = null;
-            if (commandBlock.inputs.TryGetValue("command_options", out RequestBlocksBlock? actBlock) && actBlock.block != null)
+            WorkspaceBlock? firstOption = null;
+            if (commandBlock.inputs.TryGetValue("command_options", out WorkspaceBlockConnection? actBlock) && actBlock.block != null)
                 firstOption = actBlock.block;
 
 
@@ -283,12 +294,12 @@ public class RunController : Controller
                     return;
                 }
 
-                RequestBlocks_Block? modalBlock = AppData.GetCache().GetCacheCommand(modalInteraction.WorkspaceId.Value);
+                WorkspaceBlock? modalBlock = AppData.GetCache().GetCacheCommand(modalInteraction.WorkspaceId.Value);
 
 
                 if (!string.IsNullOrEmpty(InteractionData.ModalDataType))
                 {
-                    if (modalBlock.inputs.TryGetValue("output_data", out RequestBlocksBlock? modalOutputBlock) && modalOutputBlock.block != null && modalOutputBlock.block.enabled)
+                    if (modalBlock.inputs.TryGetValue("output_data", out WorkspaceBlockConnection? modalOutputBlock) && modalOutputBlock.block != null && modalOutputBlock.block.enabled)
                     {
                         Console.WriteLine("Modal Data: " + InteractionData.ModalDataType);
 
@@ -306,9 +317,9 @@ public class RunController : Controller
                         }
 
                         Console.WriteLine($"Copy: {InteractionData.ModalDataType} with {modalOutputBlock.block.type}");
-                        runtime.CopyModalData(new RequestBlocks_Block { type = InteractionData.ModalDataType }, modalOutputBlock.block);
-                        RequestBlocks_Block? firstModalOption = null;
-                        if (modalBlock.inputs.TryGetValue("command_options", out RequestBlocksBlock? optBlock) && optBlock.block != null)
+                        runtime.CopyModalData(new WorkspaceBlock { type = InteractionData.ModalDataType }, modalOutputBlock.block);
+                        WorkspaceBlock? firstModalOption = null;
+                        if (modalBlock.inputs.TryGetValue("command_options", out WorkspaceBlockConnection? optBlock) && optBlock.block != null)
                             firstModalOption = optBlock.block;
 
                         if (error == null && firstModalOption != null)
@@ -368,7 +379,7 @@ public class RunController : Controller
                 return;
             }
 
-            RequestBlocks_Block? firstAction = null;
+            WorkspaceBlock? firstAction = null;
             if (commandBlock.inputs.TryGetValue("command_actions", out actBlock) && actBlock.block != null)
                 firstAction = actBlock.block;
             if (firstAction == null)

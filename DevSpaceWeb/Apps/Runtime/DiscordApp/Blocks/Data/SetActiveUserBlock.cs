@@ -7,7 +7,7 @@ public class SetActiveUserBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestUser? User = null;
-        if (Block.inputs.TryGetValue("user", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+        if (Block.inputs.TryGetValue("user", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
             User = await Runtime.GetUserFromBlock(catBlock.block);
 
         if (User == null)

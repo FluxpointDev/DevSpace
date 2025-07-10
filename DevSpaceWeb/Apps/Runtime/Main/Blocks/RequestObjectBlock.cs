@@ -6,14 +6,14 @@ public class RequestObjectBlock : IBlock
 {
     public async Task<string> Url()
     {
-        if (Block.inputs.TryGetValue("url", out RequestBlocksBlock? content) && content.block != null)
+        if (Block.inputs.TryGetValue("url", out WorkspaceBlockConnection? content) && content.block != null)
             return await Runtime.GetStringFromBlock(content.block);
         return string.Empty;
     }
 
     public async Task<bool> Fail()
     {
-        if (Block.inputs.TryGetValue("is_fail", out RequestBlocksBlock? content) && content.block != null)
+        if (Block.inputs.TryGetValue("is_fail", out WorkspaceBlockConnection? content) && content.block != null)
             return (await Runtime.GetBoolFromBlock(content.block)).GetValueOrDefault(false);
         return false;
     }
@@ -40,11 +40,11 @@ public class RequestObjectBlock : IBlock
     public async Task<Dictionary<string, string>> Headers()
     {
         Dictionary<string, string> list = new Dictionary<string, string>();
-        if (Block.inputs.TryGetValue("obj_api_headers_list", out RequestBlocksBlock? headerBlock) && headerBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_api_headers_list", out WorkspaceBlockConnection? headerBlock) && headerBlock.block != null)
         {
-            foreach (KeyValuePair<string, RequestBlocksBlock> i in headerBlock.block.inputs)
+            foreach (KeyValuePair<string, WorkspaceBlockConnection> i in headerBlock.block.inputs)
             {
-                if (i.Value.block != null && i.Value.block.inputs.TryGetValue("value", out RequestBlocksBlock? itemBlock) && itemBlock.block != null)
+                if (i.Value.block != null && i.Value.block.inputs.TryGetValue("value", out WorkspaceBlockConnection? itemBlock) && itemBlock.block != null)
                 {
                     if (i.Value.block.type == "obj_api_list_auth")
                         list.Add("Authorization", await Runtime.GetStringFromBlock(itemBlock.block));
@@ -59,11 +59,11 @@ public class RequestObjectBlock : IBlock
     public async Task<Dictionary<string, string>> Query()
     {
         Dictionary<string, string> list = new Dictionary<string, string>();
-        if (Block.inputs.TryGetValue("obj_api_query_list", out RequestBlocksBlock? queryBlock) && queryBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_api_query_list", out WorkspaceBlockConnection? queryBlock) && queryBlock.block != null)
         {
-            foreach (KeyValuePair<string, RequestBlocksBlock> i in queryBlock.block.inputs)
+            foreach (KeyValuePair<string, WorkspaceBlockConnection> i in queryBlock.block.inputs)
             {
-                if (i.Value.block != null && i.Value.block.inputs.TryGetValue("value", out RequestBlocksBlock? itemBlock) && itemBlock.block != null)
+                if (i.Value.block != null && i.Value.block.inputs.TryGetValue("value", out WorkspaceBlockConnection? itemBlock) && itemBlock.block != null)
                 {
                     if (i.Value.block.type == "obj_api_list_auth")
                         list.Add("Authorization", await Runtime.GetStringFromBlock(itemBlock.block));
@@ -78,7 +78,7 @@ public class RequestObjectBlock : IBlock
     public async Task<object?> Body()
     {
         string Value = string.Empty;
-        if (Block.inputs.TryGetValue("body", out RequestBlocksBlock? content) && content.block != null)
+        if (Block.inputs.TryGetValue("body", out WorkspaceBlockConnection? content) && content.block != null)
         {
             if (content.block.type == "data_file_active")
                 return Runtime.MainData.FileActive;
@@ -87,7 +87,7 @@ public class RequestObjectBlock : IBlock
             else if (content.block.type == "obj_api_json_list")
             {
                 JObject create = new JObject();
-                foreach (RequestBlocksBlock i in content.block.inputs.Values)
+                foreach (WorkspaceBlockConnection i in content.block.inputs.Values)
                 {
                     RuntimeError? error = await ParseJsonKeys(create, i);
                     if (error != null)
@@ -103,15 +103,15 @@ public class RequestObjectBlock : IBlock
         return Value;
     }
 
-    public async Task<RuntimeError?> ParseJsonKeys(JObject json, RequestBlocksBlock block)
+    public async Task<RuntimeError?> ParseJsonKeys(JObject json, WorkspaceBlockConnection block)
     {
         if (block.block.type == "obj_api_list_item")
         {
-            RequestBlocks_Block? Input = block.block.inputs.First().Value.block;
+            WorkspaceBlock? Input = block.block.inputs.First().Value.block;
             if (Input.type == "obj_api_json_list")
             {
                 JObject create = new JObject();
-                foreach (RequestBlocksBlock i in Input.inputs.Values)
+                foreach (WorkspaceBlockConnection i in Input.inputs.Values)
                 {
                     RuntimeError? error = await ParseJsonKeys(create, i);
                     if (error != null)

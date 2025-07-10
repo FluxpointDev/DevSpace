@@ -8,7 +8,7 @@ public class DeleteRoleBlock : DiscordActionBlock
     {
         RestRole? Role = null;
 
-        if (Block.inputs.TryGetValue("role", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+        if (Block.inputs.TryGetValue("role", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
             Role = await Runtime.GetRoleFromBlock(roleBlock.block);
 
         if (Role == null)

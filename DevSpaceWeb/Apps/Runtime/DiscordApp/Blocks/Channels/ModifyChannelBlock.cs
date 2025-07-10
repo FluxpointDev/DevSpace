@@ -8,7 +8,7 @@ public class ModifyChannelBlock : DiscordActionBlock
     public override async Task<RuntimeError?> RunAsync()
     {
         RestChannel? Channel = null;
-        if (Block.inputs.TryGetValue("channel", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+        if (Block.inputs.TryGetValue("channel", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
         {
             Channel = await Runtime.GetChannelFromBlock(chanBlock.block);
         }
@@ -17,7 +17,7 @@ public class ModifyChannelBlock : DiscordActionBlock
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to modify channel, could not find channel.");
 
         ChannelObjectBlock? ChanObj = null;
-        if (Block.inputs.TryGetValue("obj_channel", out RequestBlocksBlock? webBlock) && webBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_channel", out WorkspaceBlockConnection? webBlock) && webBlock.block != null)
             ChanObj = DiscordBlocks.Parse(Runtime, webBlock.block) as ChannelObjectBlock;
 
         if (ChanObj == null)

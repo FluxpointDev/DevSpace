@@ -9,7 +9,7 @@ public class ModifyEmojiBlock : DiscordActionBlock
     {
         Tuple<Tuple<ulong, RestGuild?>?, IEmote>? Emoji = null;
 
-        if (Block.inputs.TryGetValue("emoji", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+        if (Block.inputs.TryGetValue("emoji", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
             Emoji = await Runtime.GetEmojiFromBlockAsync(chanBlock.block);
 
         if (Emoji == null)
@@ -25,7 +25,7 @@ public class ModifyEmojiBlock : DiscordActionBlock
             return Runtime.GetAppPermissionError(GuildPermission.ManageEmojisAndStickers);
 
         EmojiObjectBlock? EmojiObject = null;
-        if (Block.inputs.TryGetValue("obj_emoji", out RequestBlocksBlock? webBlock) && webBlock.block != null)
+        if (Block.inputs.TryGetValue("obj_emoji", out WorkspaceBlockConnection? webBlock) && webBlock.block != null)
             EmojiObject = DiscordBlocks.Parse(Runtime, webBlock.block) as EmojiObjectBlock;
 
         if (EmojiObject == null)

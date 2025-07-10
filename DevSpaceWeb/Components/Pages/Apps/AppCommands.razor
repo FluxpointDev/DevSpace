@@ -70,7 +70,7 @@
                                     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage" GridLines="DataGridGridLines.Horizontal"
                                     @bind-Value="@SelectedCommands" SelectionMode="DataGridSelectionMode.Multiple"
                                     PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
-                                    PagingSummaryFormat="@(CommandsCount + " slash command" + (CommandsCount != 1 ? "s" : "") )"
+                                    PagingSummaryFormat="@(CommandsCount + "/100 slash commands" )"
                                     AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                                     TItem="DiscordAppSlashCommand" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
                         <Columns>
@@ -149,7 +149,7 @@
                     <RadzenDataGrid @ref="@UsersGrid" Data="@UsersList" LoadData="@LoadCommandsData" Count="@UsersCount" IsLoading="@IsLoading"
                                     Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No user commands."
                                     GridLines="DataGridGridLines.Horizontal" @bind-Value="@SelectedUsers" SelectionMode="DataGridSelectionMode.Multiple"
-                                    ShowPagingSummary="true" PagingSummaryFormat="@(UsersCount + " user command" + (UsersCount != 1 ? "s" : "") )"
+                                    ShowPagingSummary="true" PagingSummaryFormat="@(UsersCount + "/5 user commands" )"
                                     TItem="IDiscordAppCommand" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
                         <Columns>
                             <RadzenDataGridColumn Width="36px" Frozen="true">
@@ -226,7 +226,7 @@
                     <RadzenDataGrid @ref="@MessagesGrid" Data="@MessagesList" LoadData="@LoadCommandsData" IsLoading="@IsLoading"
                                     Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No message commands."
                                     GridLines="DataGridGridLines.Horizontal" @bind-Value="@SelectedMessages" SelectionMode="DataGridSelectionMode.Multiple"
-                                    ShowPagingSummary="true" PagingSummaryFormat="@(MessagesCount + " message command" + (MessagesCount != 1 ? "s" : "") )"
+                                    ShowPagingSummary="true" PagingSummaryFormat="@(MessagesCount + "/5 message commands" )"
                                     TItem="IDiscordAppCommand" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
                         <Columns>
                             <RadzenDataGridColumn Width="36px" Frozen="true" Filterable="false">
@@ -756,7 +756,9 @@
                 new ContextMenuItem() { Text = "Disable Command", Value = "disable", Icon = "pause", Disabled = IsLoading || !item.IsEnabled || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands) },
                 new ContextMenuItem() { Text = "Clear Data", Value = "clear", Icon = "delete_history", Disabled = IsLoading || !item.IsEnabled || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageWorkspaces) },
                 new ContextMenuItem() { Text = "Remove Command", Value = "remove", Icon = "delete", Disabled = IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands) },
-                new ContextMenuItem() { Text = "Copy Command ID", Value = "copy", Icon = "content_copy" }
+                new ContextMenuItem() { Text = "Copy Command Name", Value = "copy_name", Icon = TabIndex == 0 ? "pen_size_3" : "content_copy" },
+                new ContextMenuItem() { Text = "Copy Command Format", Value = "copy_format", Icon = "text_ad", Disabled = TabIndex != 0 }, 
+                new ContextMenuItem() { Text = "Copy Command ID", Value = "copy_id", Icon = "content_copy", Disabled = TabIndex != 0 }
                                              }, x => MenuItemClick(x.Value.ToString(), item));
     }
 
@@ -773,10 +775,25 @@
 
         switch (value)
         {
-            case "copy":
+            case "copy_id":
                 try
                 {
                     await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.CommandId);
+                }
+                catch { }
+                break;
+            case "copy_format":
+                {
+                    await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", $"</{item.Name}:{item.CommandId}>");
+                }
+                break;
+            case "copy_name":
+                try
+                {
+                    if (TabIndex == 0)
+                        await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", "/" + item.Name);
+                        else
+                        await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.Name);
                 }
                 catch { }
                 break;

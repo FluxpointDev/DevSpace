@@ -8,13 +8,13 @@ public class ComponentsObjectBlock : DiscordBlock
     public async Task<ComponentBuilder?> GetComponents()
     {
         ComponentBuilder builder = new ComponentBuilder();
-        foreach (RequestBlocksBlock row in Block.inputs.Values)
+        foreach (WorkspaceBlockConnection row in Block.inputs.Values)
         {
             if (row.block == null || row.block.type != "obj_component_row")
                 continue;
 
             ActionRowBuilder actionRowBuilder = new ActionRowBuilder();
-            foreach (RequestBlocksBlock comp in row.block.inputs.Values)
+            foreach (WorkspaceBlockConnection comp in row.block.inputs.Values)
             {
                 if (comp.block == null)
                     continue;
@@ -24,7 +24,7 @@ public class ComponentsObjectBlock : DiscordBlock
                     case "obj_component_button_link":
                         {
                             string Label = string.Empty;
-                            if (comp.TryGetInput("label", out RequestBlocks_Block? lbBlock) && lbBlock != null)
+                            if (comp.TryGetInput("label", out WorkspaceBlock? lbBlock) && lbBlock != null)
                                 Label = await Runtime.GetStringFromBlock(lbBlock);
 
                             string Url = string.Empty;
@@ -46,7 +46,7 @@ public class ComponentsObjectBlock : DiscordBlock
                     case "obj_component_button":
                         {
                             string Label = string.Empty;
-                            if (comp.TryGetInput("label", out RequestBlocks_Block? lbBlock) && lbBlock != null)
+                            if (comp.TryGetInput("label", out WorkspaceBlock? lbBlock) && lbBlock != null)
                                 Label = await Runtime.GetStringFromBlock(lbBlock);
 
                             string Id = string.Empty;

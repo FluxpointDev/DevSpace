@@ -8,7 +8,7 @@ public class LeaveServerBlock : DiscordActionBlock
     {
         RestGuild? Channel = null;
 
-        if (Block.inputs.TryGetValue("server", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+        if (Block.inputs.TryGetValue("server", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
             Channel = await Runtime.GetServerFromBlock(chanBlock.block);
 
         if (Channel == null)

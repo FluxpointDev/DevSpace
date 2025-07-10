@@ -223,6 +223,7 @@ else
             {
                 Enabled = false  
             },
+            TabSize = 4,
             ReadOnly = ReadOnly,
             ReadOnlyMessage = new MarkdownString()
             {
@@ -232,7 +233,7 @@ else
             Minimap = new EditorMinimapOptions
             {
                 Enabled = false
-            },
+            }
         };
 
         if (!FirstRender)
@@ -284,12 +285,26 @@ else
         return await _editor.GetValue();
     }
 
-    public async Task SetValue(string text)
+    public async Task SetValue(string text, bool format = false)
     {
         if (ShowDiffEditor)
+        {
             await _diffEditor.ModifiedEditor.SetValue(text);
+            if (format)
+            {
+                await _diffEditor.OriginalEditor.Trigger("editor", "editor.action.formatDocument");
+                await _diffEditor.ModifiedEditor.Trigger("editor", "editor.action.formatDocument");
+            }
+        }
+
         else
+        {
             await _editor.SetValue(text);
+            if (format)
+                await _editor.Trigger("editor", "editor.action.formatDocument");
+        }
+        
+        
     }
 
     private async Task EditorOnDidInit()

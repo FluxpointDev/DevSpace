@@ -139,6 +139,10 @@ Blockly.Blocks['action_stop_execution'] = {
         this.appendDummyInput()
             .setAlign(Blockly.inputs.Align.RIGHT)
             .appendField("Stop Execution");
+        this.appendValueInput("obj_message")
+            .setCheck("obj_message")
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField("message obj:");
         this.setPreviousStatement(true, null);
         this.setColour('#a85b35');
         this.setTooltip("");

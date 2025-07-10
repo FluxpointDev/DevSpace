@@ -1,0 +1,73 @@
+﻿@using DevSpaceWeb.Apps.Data
+@implements IDisposable
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:format-list-bulleted"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Logs</RadzenText>
+    </div>
+    @if (Permissions.CheckFailedAppPermissions(Member, Team, App, AppPermission.ViewLogs, out AppPermission? failedPerm))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for @Utils.FriendlyName(failedPerm.ToString()!)
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <RadzenRow Gap="10px" RowGap="10px">
+            <RadzenColumn SizeMD="6">
+                <p>View a live feed of your app logs when creating commands or running slash commands.</p>
+                <br />
+                @foreach (var i in logs)
+                {
+                    <div class="dash-box-group" @onclick="@((e) => { Editor.SetValue(Newtonsoft.Json.JsonConvert.SerializeObject(Newtonsoft.Json.JsonConvert.DeserializeObject(i.Data), Newtonsoft.Json.Formatting.Indented), true); })" style="cursor: pointer;">
+                        <RadzenCard>
+                            <p>@i.Title</p>
+                        </RadzenCard>
+                        </div>
+                }
+            </RadzenColumn>
+            <RadzenColumn SizeMD="6">
+                <Editor @ref="@Editor" Value="" FileName="@("log.json")" Language="json" ReadOnly="true" ScrollBeyondLastLine="false" HeightOverflow="300"></Editor>
+            </RadzenColumn>
+        </RadzenRow>
+        
+    }
+</div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        App.GetEvents().LogEvent += Trigger;
+    }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public AppData? App => Session.Selected.App;
+
+    public void Trigger(AppLogItem data)
+    {
+        if (logs.Count >= 10)
+            logs.RemoveAt(0);
+        logs.Add(data);
+        InvokeAsync(StateHasChanged);
+    }
+
+    public List<AppLogItem> logs = new List<AppLogItem>();
+
+    public AppLogItem? SelectedLog;
+
+    private Editor Editor = null!;
+
+    public void Dispose()
+    {
+        App.GetEvents().LogEvent -= Trigger;
+    }
+}

@@ -48,7 +48,7 @@ public class BlocklyToolboxItem
     [JsonProperty("inputs", DefaultValueHandling = DefaultValueHandling.Ignore)]
     public Dictionary<string, BlocklyToolboxInput>? inputs;
 
-    public static BlocklyToolboxItem Create(RequestBlocks blocks)
+    public static BlocklyToolboxItem Create(WorkspaceRequest blocks)
     {
         BlocklyToolboxItem item = new BlocklyToolboxItem
         {
@@ -62,7 +62,7 @@ public class BlocklyToolboxItem
                 }
             }
         };
-        foreach (RequestBlocks_Block b in blocks.blocks.blocks)
+        foreach (WorkspaceBlock b in blocks.blocks.blocks)
         {
             if (item.contents == null)
                 item.contents = new List<BlocklyToolboxItem>();
@@ -76,21 +76,17 @@ public class BlocklyToolboxItem
         return item;
     }
 
-    public static Dictionary<string, BlocklyToolboxInput> ParseNextInput(KeyValuePair<string, RequestBlocksBlock> input)
+    public static Dictionary<string, BlocklyToolboxInput> ParseNextInput(KeyValuePair<string, WorkspaceBlockConnection> input)
     {
         Dictionary<string, BlocklyToolboxInput> dict = new Dictionary<string, BlocklyToolboxInput>();
         if (input.Value.block != null)
         {
             ParseInput(dict, input.Value.block);
         }
-        else if (input.Value.shadow != null)
-        {
-            ParseInput(dict, input.Value.shadow);
-        }
         return dict;
     }
 
-    public static void ParseInput(Dictionary<string, BlocklyToolboxInput> parent, RequestBlocks_Block input)
+    public static void ParseInput(Dictionary<string, BlocklyToolboxInput> parent, WorkspaceBlock input)
     {
         BlocklyToolboxItem item = new BlocklyToolboxItem();
         ParseBlock(item, input.inputs.First().Value.block);
@@ -113,7 +109,7 @@ public class BlocklyToolboxItem
             ParseInput(parent, input.next.block);
     }
 
-    public static void ParseBlock(BlocklyToolboxItem item, RequestBlocks_Block block)
+    public static void ParseBlock(BlocklyToolboxItem item, WorkspaceBlock block)
     {
         string BlockType = "";
         try
@@ -138,7 +134,7 @@ public class BlocklyToolboxItem
             item.inputs = ParseNextInput(block.inputs.First());
     }
 
-    public static BlocklyToolboxItem ParseBlock(RequestBlocks_Block block, List<BlocklyToolboxItem> parent, bool firstRun = false, bool firstInput = false)
+    public static BlocklyToolboxItem ParseBlock(WorkspaceBlock block, List<BlocklyToolboxItem> parent, bool firstRun = false, bool firstInput = false)
     {
         BlocklyToolboxItem item = new BlocklyToolboxItem();
         switch (block.type)
@@ -175,7 +171,7 @@ public class BlocklyToolboxItem
                     if (CatExpand.Equals("True"))
                         item.expanded = true;
 
-                    foreach (KeyValuePair<string, RequestBlocksBlock> i in block.inputs)
+                    foreach (KeyValuePair<string, WorkspaceBlockConnection> i in block.inputs)
                     {
                         if (item.contents == null)
                             item.contents = new List<BlocklyToolboxItem>();
@@ -216,8 +212,6 @@ public class BlocklyToolboxItem
         {
             if (block.next.block != null)
                 ParseBlock(block.next.block, parent, true);
-            else if (block.next.shadow != null)
-                ParseBlock(block.next.shadow, parent, true);
 
         }
 

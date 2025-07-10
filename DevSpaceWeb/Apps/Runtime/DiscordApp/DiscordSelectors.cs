@@ -6,7 +6,7 @@ namespace DevSpaceWeb.Apps.Runtime.DiscordApp;
 
 public static class DiscordSelectors
 {
-    public static async Task<object?> Parse(DiscordRuntime runtime, RequestBlocks_Block block)
+    public static async Task<object?> Parse(DiscordRuntime runtime, WorkspaceBlock block)
     {
         object? data = MainSelectors.Parse(runtime, block);
         if (data == null)
@@ -15,7 +15,7 @@ public static class DiscordSelectors
             {
                 case "data_selector_channel":
                     {
-                        if (block.inputs.TryGetValue("channel", out RequestBlocksBlock? chanBlock) && chanBlock.block != null)
+                        if (block.inputs.TryGetValue("channel", out WorkspaceBlockConnection? chanBlock) && chanBlock.block != null)
                         {
                             RestChannel? channel = await runtime.GetChannelFromBlock(chanBlock.block);
                             if (channel == null)
@@ -65,7 +65,7 @@ public static class DiscordSelectors
                     break;
                 case "data_selector_category":
                     {
-                        if (block.inputs.TryGetValue("category", out RequestBlocksBlock? catBlock) && catBlock.block != null)
+                        if (block.inputs.TryGetValue("category", out WorkspaceBlockConnection? catBlock) && catBlock.block != null)
                         {
                             RestCategoryChannel? category = await runtime.GetCategoryFromBlock(catBlock.block);
                             if (category == null)
@@ -87,7 +87,7 @@ public static class DiscordSelectors
                     break;
                 case "data_selector_emoji":
                     {
-                        if (block.inputs.TryGetValue("emoji", out RequestBlocksBlock? emojiBlock) && emojiBlock.block != null)
+                        if (block.inputs.TryGetValue("emoji", out WorkspaceBlockConnection? emojiBlock) && emojiBlock.block != null)
                         {
                             Tuple<Tuple<ulong, RestGuild?>?, IEmote>? emoji = await runtime.GetEmojiFromBlockAsync(emojiBlock.block);
                             if (emoji == null)
@@ -112,7 +112,7 @@ public static class DiscordSelectors
                     break;
                 case "data_selector_member":
                     {
-                        if (block.inputs.TryGetValue("member", out RequestBlocksBlock? memberBlock) && memberBlock.block != null)
+                        if (block.inputs.TryGetValue("member", out WorkspaceBlockConnection? memberBlock) && memberBlock.block != null)
                         {
                             RestGuildUser? member = await runtime.GetMemberFromBlock(memberBlock.block);
                             if (member == null)
@@ -133,7 +133,7 @@ public static class DiscordSelectors
                     break;
                 case "data_selector_message":
                     {
-                        if (block.inputs.TryGetValue("message", out RequestBlocksBlock? mesBlock) && mesBlock.block != null)
+                        if (block.inputs.TryGetValue("message", out WorkspaceBlockConnection? mesBlock) && mesBlock.block != null)
                         {
                             RestMessage? message = await runtime.GetMessageFromBlock(mesBlock.block);
                             if (message == null)
@@ -152,7 +152,7 @@ public static class DiscordSelectors
                     break;
                 case "data_selector_role":
                     {
-                        if (block.inputs.TryGetValue("role", out RequestBlocksBlock? roleBlock) && roleBlock.block != null)
+                        if (block.inputs.TryGetValue("role", out WorkspaceBlockConnection? roleBlock) && roleBlock.block != null)
                         {
                             RestRole? role = await runtime.GetRoleFromBlock(roleBlock.block);
                             if (role == null)
@@ -173,7 +173,7 @@ public static class DiscordSelectors
                     break;
                 case "data_selector_server":
                     {
-                        if (block.inputs.TryGetValue("server", out RequestBlocksBlock? srvBlock) && srvBlock.block != null)
+                        if (block.inputs.TryGetValue("server", out WorkspaceBlockConnection? srvBlock) && srvBlock.block != null)
                         {
                             RestGuild? server = await runtime.GetServerFromBlock(srvBlock.block);
                             if (server == null)
@@ -198,7 +198,7 @@ public static class DiscordSelectors
                     break;
                 case "data_selector_user":
                     {
-                        if (block.inputs.TryGetValue("user", out RequestBlocksBlock? userBlock) && userBlock.block != null)
+                        if (block.inputs.TryGetValue("user", out WorkspaceBlockConnection? userBlock) && userBlock.block != null)
                         {
                             RestUser? user = await runtime.GetUserFromBlock(userBlock.block);
                             if (user == null)
@@ -221,7 +221,7 @@ public static class DiscordSelectors
                     break;
                 case "data_selector_webhook":
                     {
-                        if (block.inputs.TryGetValue("webhook", out RequestBlocksBlock? webBlock) && webBlock.block != null)
+                        if (block.inputs.TryGetValue("webhook", out WorkspaceBlockConnection? webBlock) && webBlock.block != null)
                         {
                             Tuple<RestWebhook?, string>? webhook = await runtime.GetWebhookFromBlock(webBlock.block);
                             if (webhook == null)
