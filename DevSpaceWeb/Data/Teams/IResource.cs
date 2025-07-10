@@ -2,7 +2,6 @@
 using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
-using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Websites;
 using DevSpaceWeb.Database;
@@ -111,15 +110,6 @@ public class ITeamResource : IResource
                         Result = _DB.Consoles.Collection.UpdateOne(filter, update);
                     }
                     break;
-                case ResourceType.Log:
-                    {
-                        FilterDefinition<LogData> filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
-                        UpdateDefinition<LogData> update = new UpdateDefinitionBuilder<LogData>()
-                            .Set(x => x.RolePermissionOverrides, Permissions);
-
-                        Result = _DB.Logs.Collection.UpdateOne(filter, update);
-                    }
-                    break;
                 case ResourceType.Project:
                     {
                         FilterDefinition<ProjectData> filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
@@ -187,15 +177,6 @@ public class ITeamResource : IResource
                             .Set(x => x.RolePermissionOverrides, Permissions);
 
                         Result = _DB.Consoles.Collection.UpdateOne(filter, update);
-                    }
-                    break;
-                case ResourceType.Log:
-                    {
-                        FilterDefinition<LogData> filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
-                        UpdateDefinition<LogData> update = new UpdateDefinitionBuilder<LogData>()
-                            .Set(x => x.RolePermissionOverrides, Permissions);
-
-                        Result = _DB.Logs.Collection.UpdateOne(filter, update);
                     }
                     break;
                 case ResourceType.Project:
@@ -273,15 +254,6 @@ public class ITeamResource : IResource
                         Result = _DB.Consoles.Collection.UpdateOne(filter, update);
                     }
                     break;
-                case ResourceType.Log:
-                    {
-                        FilterDefinition<LogData> filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
-                        UpdateDefinition<LogData> update = new UpdateDefinitionBuilder<LogData>()
-                            .Set(x => x.MemberPermissionOverrides, Permissions);
-
-                        Result = _DB.Logs.Collection.UpdateOne(filter, update);
-                    }
-                    break;
                 case ResourceType.Project:
                     {
                         FilterDefinition<ProjectData> filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
@@ -349,15 +321,6 @@ public class ITeamResource : IResource
                             .Set(x => x.MemberPermissionOverrides, Permissions);
 
                         Result = _DB.Consoles.Collection.UpdateOne(filter, update);
-                    }
-                    break;
-                case ResourceType.Log:
-                    {
-                        FilterDefinition<LogData> filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
-                        UpdateDefinition<LogData> update = new UpdateDefinitionBuilder<LogData>()
-                            .Set(x => x.MemberPermissionOverrides, Permissions);
-
-                        Result = _DB.Logs.Collection.UpdateOne(filter, update);
                     }
                     break;
                 case ResourceType.Project:
@@ -433,15 +396,6 @@ public class ITeamResource : IResource
                         Result = _DB.Consoles.Collection.UpdateOne(filter, update);
                     }
                     break;
-                case ResourceType.Log:
-                    {
-                        FilterDefinition<LogData> filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
-                        UpdateDefinition<LogData> update = new UpdateDefinitionBuilder<LogData>()
-                            .Set(x => x.ApiPermissionOverrides, Permissions);
-
-                        Result = _DB.Logs.Collection.UpdateOne(filter, update);
-                    }
-                    break;
                 case ResourceType.Project:
                     {
                         FilterDefinition<ProjectData> filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
@@ -511,15 +465,6 @@ public class ITeamResource : IResource
                         Result = _DB.Consoles.Collection.UpdateOne(filter, update);
                     }
                     break;
-                case ResourceType.Log:
-                    {
-                        FilterDefinition<LogData> filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
-                        UpdateDefinition<LogData> update = new UpdateDefinitionBuilder<LogData>()
-                            .Set(x => x.ApiPermissionOverrides, Permissions);
-
-                        Result = _DB.Logs.Collection.UpdateOne(filter, update);
-                    }
-                    break;
                 case ResourceType.Project:
                     {
                         FilterDefinition<ProjectData> filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
@@ -547,5 +492,5 @@ public class ITeamResource : IResource
 }
 public enum ResourceType
 {
-    Server, Console, Project, Log, Website, App, Link
+    Server, Console, Project, Website, App, Link
 }

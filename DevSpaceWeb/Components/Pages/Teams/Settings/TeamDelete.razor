@@ -186,11 +186,6 @@
         FilterDefinition<LogData> LogFilter = Builders<LogData>.Filter.Eq(r => r.TeamId, Team.Id);
         await _DB.Logs.Collection.DeleteManyAsync(LogFilter);
 
-        foreach (var i in _DB.Logs.Cache.Values.Where(x => x.TeamId == Team.Id))
-        {
-            _DB.Logs.Cache.TryRemove(i.Id, out _);
-        }
-
         FilterDefinition<ProjectData> ProjectFilter = Builders<ProjectData>.Filter.Eq(r => r.TeamId, Team.Id);
         await _DB.Projects.Collection.DeleteManyAsync(ProjectFilter);
 

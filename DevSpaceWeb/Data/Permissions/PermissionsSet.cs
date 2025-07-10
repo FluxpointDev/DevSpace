@@ -9,7 +9,6 @@ public class PermissionsSet
         ConsolePermissions = (ConsolePermission)ulong.MaxValue,
         DockerPermissions = (DockerPermission)ulong.MaxValue,
         DockerContainerPermissions = (DockerContainerPermission)ulong.MaxValue,
-        LogPermissions = (LogPermission)ulong.MaxValue,
         ProjectPermissions = (ProjectPermission)ulong.MaxValue,
         ServerPermissions = (ServerPermission)ulong.MaxValue,
         WebsitePermissions = (WebsitePermission)ulong.MaxValue,
@@ -26,9 +25,6 @@ public class PermissionsSet
 
         DockerContainerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator)
         ? (DockerContainerPermission)ulong.MaxValue : perms.DockerContainerPermissions;
-
-        LogPermissions |= perms.LogPermissions.HasFlag(LogPermission.LogAdministrator)
-        ? (LogPermission)ulong.MaxValue : perms.LogPermissions;
 
         ProjectPermissions |= perms.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator)
         ? (ProjectPermission)ulong.MaxValue : perms.ProjectPermissions;
@@ -51,12 +47,13 @@ public class PermissionsSet
 
     public TeamPermission TeamPermissions { get; set; }
     public APIPermission APIPermissions { get; set; }
-    public LogPermission LogPermissions { get; set; }
     public ProjectPermission ProjectPermissions { get; set; }
     public ServerPermission ServerPermissions { get; set; }
     public WebsitePermission WebsitePermissions { get; set; }
     public ConsolePermission ConsolePermissions { get; set; }
     public DockerPermission DockerPermissions { get; set; }
+    [Obsolete]
+    public WebsitePermission LogPermissions { get; set; }
     public DockerContainerPermission DockerContainerPermissions { get; set; }
 
     public AppPermission AppPermissions { get; set; }
@@ -160,20 +157,6 @@ public class PermissionsSet
             return true;
 
         if (ConsolePermissions.HasFlag(checkPermission))
-            return true;
-
-        return false;
-    }
-
-    public bool HasLogPermission(LogPermission checkPermission)
-    {
-        if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
-            return true;
-
-        if (LogPermissions.HasFlag(LogPermission.LogAdministrator))
-            return true;
-
-        if (LogPermissions.HasFlag(checkPermission))
             return true;
 
         return false;

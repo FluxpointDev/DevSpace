@@ -2,7 +2,6 @@
 using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
-using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Websites;
 using DevSpaceWeb.Database;
@@ -72,20 +71,6 @@ public class TeamRoleData : IObject
             return true;
 
         if (Permissions.HasAPIPermission(checkPermission))
-            return true;
-
-        return false;
-    }
-
-    public bool HasLogPermission(TeamData? team, LogData? log, LogPermission checkPermission)
-    {
-        if (team == null || team.Id != TeamId)
-            return false;
-
-        if (log != null && log.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasLogPermission(checkPermission))
-            return true;
-
-        if (Permissions.HasLogPermission(checkPermission))
             return true;
 
         return false;

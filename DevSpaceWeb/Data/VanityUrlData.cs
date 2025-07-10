@@ -19,6 +19,7 @@ public class VanityUrlData : IObject
 
     public ConcurrentDictionary<string, ObjectId> WebsiteVanityUrls = new ConcurrentDictionary<string, ObjectId>();
 
+    [Obsolete]
     public ConcurrentDictionary<string, ObjectId> LogVanityUrls = new ConcurrentDictionary<string, ObjectId>();
 
     public ConcurrentDictionary<string, ObjectId> ConsoleVanityUrls = new ConcurrentDictionary<string, ObjectId>();

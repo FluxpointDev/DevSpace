@@ -423,6 +423,9 @@ else
                 }
             }
             break;
+        case "logs":
+            <LogsHome></LogsHome>
+            break;
         case "projects":
             {
                 @if (string.IsNullOrEmpty(service_id))
@@ -441,31 +444,6 @@ else
                         case "":
                         case "home":
                             <ProjectsHome></ProjectsHome>
-                            break;
-                    }
-                }
-
-            }
-            break;
-        case "logs":
-            {
-                @if (string.IsNullOrEmpty(service_id))
-                {
-                    <LogsList></LogsList>
-                }
-                else if (Log == null || !Member.HasLogPermission(Team, Log, LogPermission.ViewLog))
-                {
-                    <p>This log does not exist.</p>
-                }
-                else
-                {
-                    switch (resource_type)
-                    {
-                        case null:
-                        case "":
-                        case "home":
-
-                            <LogsHome></LogsHome>
                             break;
                     }
                 }
@@ -528,7 +506,6 @@ else
     public ServerData? Server => Session.Selected.Server;
     public ProjectData? Project => Session.Selected.Project;
     public ConsoleData? Console => Session.Selected.Console;
-    public LogData? Log => Session.Selected.Log;
     public WebsiteData? Website => Session.Selected.Website;
 
     protected override async Task OnParametersSetAsync()
@@ -665,34 +642,6 @@ else
                                         Session.Selected.Team.Project = null;
 
                                     UpdateNav = true;
-                                }
-                            }
-                        }
-                        break;
-                    case "logs":
-                        {
-                            if (!string.IsNullOrEmpty(service_id))
-                            {
-                                LogData? GotLog = null;
-                                if (!ObjectId.TryParse(service_id, out ObjectId LogId) || !_DB.Logs.Cache.TryGetValue(LogId, out GotLog))
-                                {
-                                    if (_DB.TeamVanityUrls.Cache.TryGetValue(Session.Selected.Team.Data.Id, out VanityUrlData? vanity) && vanity.LogVanityUrls.TryGetValue(service_id, out ObjectId logId))
-                                    {
-                                        _DB.Logs.Cache.TryGetValue(logId, out GotLog);
-                                    }
-                                }
-
-                                if (GotLog != null && (Session.Selected.Log == null || Session.Selected.Log.Id != GotLog.Id))
-                                {
-
-                                    if (Member.TeamId == GotLog.TeamId && GotLog != null && (Session.Selected.Log == null || !Session.Selected.Team.Log.IsVisible || Session.Selected.Log.Id != GotLog.Id))
-                                    {
-                                        if (Member.HasLogPermission(Team, GotLog, LogPermission.ViewLog))
-                                            Session.Selected.Team.Log = new SelectedLogData(GotLog);
-                                        else
-                                            Session.Selected.Team.Log = null;
-                                        UpdateNav = true;
-                                    }
                                 }
                             }
                         }

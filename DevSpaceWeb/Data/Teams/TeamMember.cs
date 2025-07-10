@@ -2,7 +2,6 @@
 using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
-using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Data.Websites;
@@ -212,47 +211,6 @@ public class TeamMemberData : IObject
             if (selectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
                 if (role.HasAPIPermission(selectedTeam, checkPermission))
-                    return true;
-            }
-        }
-
-        return false;
-    }
-
-    public bool HasLogPermission(TeamData? selectedTeam, LogData? log, LogPermission checkPermission)
-    {
-        if (selectedTeam == null)
-            return false;
-
-        if (TeamId != selectedTeam.Id)
-            return false;
-
-        if (log != null)
-        {
-            if (log.TeamId != TeamId || log.TeamId != selectedTeam.Id)
-                return false;
-        }
-
-        if (selectedTeam.OwnerId == UserId)
-            return true;
-
-        if (selectedTeam.DefaultPermissions.HasLogPermission(checkPermission))
-            return true;
-
-        if (log != null)
-        {
-            if (log.DefaultPermissions.HasLogPermission(checkPermission))
-                return true;
-
-            if (log.MemberPermissionOverrides.TryGetValue(UserId, out PermissionsSet? permOverride) && permOverride.HasLogPermission(checkPermission))
-                return true;
-        }
-
-        foreach (ObjectId r in Roles)
-        {
-            if (selectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
-            {
-                if (role.HasLogPermission(selectedTeam, log, checkPermission))
                     return true;
             }
         }

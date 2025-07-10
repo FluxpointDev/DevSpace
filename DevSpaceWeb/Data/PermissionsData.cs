@@ -11,7 +11,6 @@ public static class PermissionsData
     public static PermissionItem<ServerPermission>[] AllServerData = GetServerData(true);
     public static PermissionItem<WebsitePermission>[] AllWebsiteData = GetWebsiteData(true);
     public static PermissionItem<ProjectPermission>[] AllProjectData = GetProjectData(true);
-    public static PermissionItem<LogPermission>[] AllLogData = GetLogData(true);
     public static PermissionItem<DockerPermission>[] AllDockerData = GetDockerData(true);
     public static PermissionItem<DockerContainerPermission>[] AllDockerContainerData = GetDockerContainerData(true);
     public static PermissionItem<ConsolePermission>[] AllConsoleData = GetConsoleData(true);
@@ -20,7 +19,6 @@ public static class PermissionsData
     public static PermissionItem<ServerPermission>[] ResourceServerData = GetServerData(false);
     public static PermissionItem<WebsitePermission>[] ResourceWebsiteData = GetWebsiteData(false);
     public static PermissionItem<ProjectPermission>[] ResourceProjectData = GetProjectData(false);
-    public static PermissionItem<LogPermission>[] ResourceLogData = GetLogData(false);
     public static PermissionItem<DockerPermission>[] ResourceDockerData = GetDockerData(false);
     public static PermissionItem<DockerContainerPermission>[] ResourceDockerContainerData = GetDockerContainerData(false);
     public static PermissionItem<ConsolePermission>[] ResourceConsoleData = GetConsoleData(false);
@@ -33,8 +31,7 @@ public static class PermissionsData
         new PermissionItem<ResourcePermission>(ResourcePermission.CreateServers, "Create Servers", "Create server resources for the team."),
         new PermissionItem<ResourcePermission>(ResourcePermission.CreateConsoles, "Create Consoles", "Create console resources for the team."),
         new PermissionItem<ResourcePermission>(ResourcePermission.CreateWebsites, "Create Websites", "Create website resources for the team."),
-        new PermissionItem<ResourcePermission>(ResourcePermission.CreateProjects, "Create Projects", "Create project resources for the team."),
-        new PermissionItem<ResourcePermission>(ResourcePermission.CreateServers, "Create Logs", "Create log resources for the team."),
+        new PermissionItem<ResourcePermission>(ResourcePermission.CreateProjects, "Create Projects", "Create project resources for the team.")
     ];
 
     private static PermissionItem<TeamPermission>[] GetTeamData()
@@ -114,18 +111,6 @@ public static class PermissionsData
             new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Project" + (plural ? "s" : ""), "Change all project settings."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ViewPermissions, "View Permissions", "View permissions for the project."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManagePermissions, "Manage Permissions", "Change permissions for all projects the team owns."),
-
-        ];
-    }
-
-    private static PermissionItem<LogPermission>[] GetLogData(bool plural)
-    {
-        return
-        [
-            new PermissionItem<LogPermission>(LogPermission.DeleteLogResource, plural ? "Delete Log Resources" : "Delete Resource", "Delete logs for the team."),
-            new PermissionItem<LogPermission>(LogPermission.ManageLog, "Manage Log" + (plural ? "s" : ""), "Change log settings."),
-            new PermissionItem<LogPermission>(LogPermission.ViewPermissions, "View Permissions", "View permissions for the log."),
-            new PermissionItem<LogPermission>(LogPermission.ManagePermissions, "Manage Permissions", "Change permissions for all logs the team owns."),
 
         ];
     }
@@ -217,5 +202,5 @@ public class PermissionGrid<T>
 }
 public enum PermissionType
 {
-    All, Server, Docker, Website, Project, Log, Console, App
+    All, Server, Docker, Website, Project, Console, App
 }

@@ -175,7 +175,7 @@ public class AuditLog : IObject
 
 public enum AuditLogTargetType
 {
-    Instance, Team, Role, Member, Server, Website, Project, Log, API, Console, App
+    Instance, Team, Role, Member, Server, Website, Project, REDACTED, API, Console, App
 }
 public enum AuditLogCategoryType
 {

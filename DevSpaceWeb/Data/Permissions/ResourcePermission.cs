@@ -7,7 +7,7 @@ public enum ResourcePermission : ulong
     CreateConsoles,
     CreateWebsites,
     CreateProjects,
-    CreateLogs,
+    REDACTED,
     CreateAPIs,
     CreateApps,
 }

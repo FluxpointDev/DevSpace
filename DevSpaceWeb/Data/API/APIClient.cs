@@ -1,7 +1,6 @@
 ﻿using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
-using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Websites;
@@ -155,40 +154,6 @@ public class APIClient : IObject
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasAPIPermission(Team, checkPermission);
         }
-
-        return false;
-    }
-
-    public bool HasLogPermission(TeamData? SelectedTeam, LogData? log, LogPermission checkPermission)
-    {
-        if (SelectedTeam == null)
-            return false;
-
-        if (TeamId != SelectedTeam.Id)
-            return false;
-
-        if (log != null && log.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasLogPermission(checkPermission))
-            return true;
-
-        if (UseCustomPermissions)
-        {
-            if (CustomPermissions != null && CustomPermissions.HasLogPermission(checkPermission))
-                return true;
-        }
-        else
-        {
-            if (!AllowedPermissions.HasLogPermission(checkPermission))
-                return false;
-
-            if (SelectedTeam.DefaultPermissions.HasLogPermission(checkPermission))
-                return true;
-
-            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
-                return member.HasLogPermission(Team, log, checkPermission);
-        }
-
-
-
 
         return false;
     }
@@ -421,12 +386,6 @@ public class APIClient : IObject
             {
                 if (HasAPIPermission(Team, i))
                     Permissions.APIPermissions |= i;
-            }
-
-            foreach (LogPermission i in Enum.GetValues<LogPermission>())
-            {
-                if (HasLogPermission(Team, resource as LogData, i))
-                    Permissions.LogPermissions |= i;
             }
 
             foreach (ProjectPermission i in Enum.GetValues<ProjectPermission>())

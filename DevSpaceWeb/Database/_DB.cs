@@ -383,27 +383,6 @@ public static class _DB
             }
         });
 
-        Task LogTask = Task.Run(async () =>
-        {
-            if (Program.LimitMode)
-                return;
-
-            try
-            {
-                await Logs.Find(Builders<LogData>.Filter.Empty).ForEachAsync(x =>
-                {
-                    Logs.Cache.TryAdd(x.Id, x);
-                });
-                Logger.LogMessage("Database", "- Logs: " + Logs.Cache.Keys.Count, LogSeverity.Info);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogMessage("Database", "- Logs: FAIL!", LogSeverity.Info);
-                Console.WriteLine(ex);
-                HasException = true;
-            }
-        });
-
         Task ServerTask = Task.Run(async () =>
         {
             try
@@ -563,7 +542,7 @@ public static class _DB
             }
         });
 
-        Task.WaitAll(RoleTask, MemberTask, TeamVanityTask, TemplateTask, LogTask,
+        Task.WaitAll(RoleTask, MemberTask, TeamVanityTask, TemplateTask,
             ServerTask, WebsiteTask, ProjectTask, APITask, ConsoleTask, AppTask);
 
         if (HasException)
@@ -620,7 +599,7 @@ public static class _DB
 
     public static ICacheCollection<WebsiteData> Websites = null!;
 
-    public static ICacheCollection<LogData> Logs = null!;
+    public static ICollection<LogData> Logs = null!;
 
     public static ICacheCollection<TeamRoleData> Roles = null!;
 

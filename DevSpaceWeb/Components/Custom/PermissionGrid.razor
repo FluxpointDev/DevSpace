@@ -370,48 +370,6 @@
                     </div>
                 </RadzenStack>
             }
-
-            @if (PermissionType == PermissionType.All || PermissionType == PermissionType.Log)
-            {
-                <RadzenStack Gap="0" class="permission-grid-box">
-                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:warning"></span> Log Permissions</RadzenText>
-
-                    <div class="permission-grid-info">
-                        <RadzenCheckBox @bind-Value="@LogAdministrator" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.LogPermissions.HasFlag(LogPermission.LogAdministrator))" ReadOnly="@CheckReadOnly()" />
-                        <RadzenLabel Text="Log Administrator" class="rz-ms-2" />
-                        <span style="color: var(--rz-text-tertiary-color)">All log permissions.</span>
-                    </div>
-
-                    <div class="permission-grid-info">
-                        <RadzenCheckBox @bind-Value="@ViewLog" Disabled="@CheckDisabled(GlobalAdministrator || LogAdministrator || !CalculatedPermissions.LogPermissions.HasFlag(LogPermission.ViewLog))" ReadOnly="@CheckReadOnly()" />
-                        @if (Resource == null)
-                        {
-                            <RadzenLabel Text="View Logs" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">View all log resources for the team.</span>
-                        }
-                        else
-                        {
-                            <RadzenLabel Text="View Log" class="rz-ms-2" />
-                            <span style="color: var(--rz-text-tertiary-color)">View this log resource.</span>
-                        }
-                    </div>
-
-                    <div>
-                        <RadzenDropDown @ref="LogGrid.Grid" @bind-Value="@LogGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
-                                        AllowFiltering="true" Chips="true" Data="@LogGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => LogItemRender(evnt))"
-                                        Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || LogAdministrator || !ViewLog)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
-                            <Template>
-                                <RadzenLabel Text="@((context as PermissionItem<LogPermission>)!.Name)" Style="display: block;" />
-                                <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<LogPermission>)!.Description)</span>
-
-                            </Template>
-                            <ValueTemplate>
-                                @((context as PermissionItem<LogPermission>)!.Name)
-                            </ValueTemplate>
-                        </RadzenDropDown>
-                    </div>
-                </RadzenStack>
-            }
         }
     </RadzenStack>
 }
@@ -571,10 +529,6 @@
             {
                 Data = Resource == null ? PermissionsData.AllProjectData : PermissionsData.ResourceProjectData
             };
-            LogGrid = new PermissionGrid<PermissionItem<LogPermission>>
-            {
-                Data = Resource == null ? PermissionsData.AllLogData : PermissionsData.ResourceLogData
-            };
             DockerGrid = new PermissionGrid<PermissionItem<DockerPermission>>
             {
                 Data = Resource == null ? PermissionsData.AllDockerData : PermissionsData.ResourceDockerData
@@ -645,9 +599,6 @@
         ProjectAdministrator = Permissions.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator);
         ViewProject = Permissions.ProjectPermissions.HasFlag(ProjectPermission.ViewProject);
 
-        LogAdministrator = Permissions.LogPermissions.HasFlag(LogPermission.LogAdministrator);
-        ViewLog = Permissions.LogPermissions.HasFlag(LogPermission.ViewLog);
-
         ConsoleAdministrator = Permissions.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator);
         ViewConsole = Permissions.ConsolePermissions.HasFlag(ConsolePermission.ViewConsole);
 
@@ -668,8 +619,6 @@
                     return Permissions.WebsitePermissions.HasFlag(WebsitePermission.CreateWebsiteResource);
                 case ResourcePermission.CreateProjects:
                     return Permissions.ProjectPermissions.HasFlag(ProjectPermission.CreateProjectResource);
-                case ResourcePermission.CreateLogs:
-                    return Permissions.LogPermissions.HasFlag(LogPermission.CreateLogResource);
                 case ResourcePermission.CreateApps:
                     return Permissions.AppPermissions.HasFlag(AppPermission.CreateAppResource);
             }
@@ -684,7 +633,6 @@
         DockerContainerGrid.Selected = DockerContainerGrid.Data.Where(x => Permissions.DockerContainerPermissions.HasFlag(x.Flag));
         WebsiteGrid.Selected = WebsiteGrid.Data.Where(x => Permissions.WebsitePermissions.HasFlag(x.Flag));
         ProjectGrid.Selected = ProjectGrid.Data.Where(x => Permissions.ProjectPermissions.HasFlag(x.Flag));
-        LogGrid.Selected = LogGrid.Data.Where(x => Permissions.LogPermissions.HasFlag(x.Flag));
         ConsoleGrid.Selected = ConsoleGrid.Data.Where(x => Permissions.ConsolePermissions.HasFlag(x.Flag));
         AppGrid.Selected = AppGrid.Data.Where(x => Permissions.AppPermissions.HasFlag(x.Flag));
         PermissionsLoaded = true;
@@ -780,7 +728,6 @@
     public PermissionGrid<PermissionItem<ServerPermission>> ServerGrid;
     public PermissionGrid<PermissionItem<WebsitePermission>> WebsiteGrid;
     public PermissionGrid<PermissionItem<ProjectPermission>> ProjectGrid;
-    public PermissionGrid<PermissionItem<LogPermission>> LogGrid;
     public PermissionGrid<PermissionItem<DockerPermission>> DockerGrid;
     public PermissionGrid<PermissionItem<DockerContainerPermission>> DockerContainerGrid;
     public PermissionGrid<PermissionItem<ConsolePermission>> ConsoleGrid;
@@ -898,20 +845,6 @@
         if (item.Flag == ProjectPermission.ManagePermissions)
         {
             if (!ProjectGrid.Selected.Any(x => x.Flag == ProjectPermission.ViewPermissions))
-                data.Disabled = true;
-        }
-        return data;
-    }
-
-    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<LogPermission>>> LogItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<LogPermission>>?> data)
-    {
-        PermissionItem<LogPermission> item = (PermissionItem<LogPermission>)data.Item;
-        if (!CalculatedPermissions.LogPermissions.HasFlag(item.Flag))
-            data.Disabled = true;
-
-        if (item.Flag == LogPermission.ManagePermissions)
-        {
-            if (!LogGrid.Selected.Any(x => x.Flag == LogPermission.ViewPermissions))
                 data.Disabled = true;
         }
         return data;
@@ -1107,22 +1040,6 @@
             }
         }
 
-        if (LogAdministrator)
-            Set.LogPermissions |= LogPermission.LogAdministrator;
-        else
-        {
-            if (ViewLog)
-                Set.LogPermissions |= LogPermission.ViewLog;
-
-            if (LogGrid.Selected != null)
-            {
-                foreach (PermissionItem<LogPermission> i in LogGrid.Selected)
-                {
-                    Set.LogPermissions |= i.Flag;
-                }
-            }
-        }
-
         if (ConsoleAdministrator)
             Set.ConsolePermissions |= ConsolePermission.ConsoleAdministrator;
         else
@@ -1175,9 +1092,6 @@
                         break;
                     case ResourcePermission.CreateProjects:
                         Set.ProjectPermissions |= ProjectPermission.CreateProjectResource;
-                        break;
-                    case ResourcePermission.CreateLogs:
-                        Set.LogPermissions |= LogPermission.CreateLogResource;
                         break;
                     case ResourcePermission.CreateApps:
                         Set.AppPermissions |= AppPermission.CreateAppResource;
