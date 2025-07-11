@@ -24,7 +24,7 @@ public class TeamMemberData : IObject
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
     [BsonIgnore]
-    public string FilterUsername => _DB.Users.TryGetValue(UserId, out PartialUserData user) ? user.UserName : null;
+    public string? FilterUsername => _DB.Users.TryGetValue(UserId, out PartialUserData? user) ? user.UserName : null;
 
     public string GetUsername()
     {
@@ -121,14 +121,14 @@ public class TeamMemberData : IObject
     public bool IsEnabled => Disabled == null;
 
     [BsonIgnore]
-    public bool Has2FA => _DB.Users.TryGetValue(UserId, out PartialUserData user) && user.Has2FA;
+    public bool Has2FA => _DB.Users.TryGetValue(UserId, out PartialUserData? user) && user.Has2FA;
 
     [BsonIgnore]
     public string MemberType => GetMemberType();
 
     private string GetMemberType()
     {
-        TeamData GetTeam = Team;
+        TeamData? GetTeam = Team;
         if (GetTeam == null)
             return "Member";
 

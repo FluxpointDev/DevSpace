@@ -30,7 +30,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, await Runtime.GetStringFromBlock(input));
                             return null;
                         }
-                        break;
                     case "data_permission":
                         {
                             GuildPermissions? perm = (Runtime as DiscordRuntime).GetPermissionsFromBlock(input);
@@ -39,7 +38,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, perm.Value);
                             return null;
                         }
-                        break;
                     case "data_message":
                         {
                             Discord.Rest.RestMessage? message = await (Runtime as DiscordRuntime).GetMessageFromBlock(input);
@@ -49,7 +47,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message);
                             return null;
                         }
-                        break;
                     case "data_file":
                         {
                             FileData? message = Runtime.GetFileFromBlock(input);
@@ -59,7 +56,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message);
                             return null;
                         }
-                        break;
                     case "data_emoji":
                         {
                             Tuple<Tuple<ulong, Discord.Rest.RestGuild?>?, IEmote>? message = await (Runtime as DiscordRuntime).GetEmojiFromBlockAsync(input);
@@ -69,7 +65,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message.Item2);
                             return null;
                         }
-                        break;
                     case "data_channel":
                         {
                             Discord.Rest.RestChannel? message = await (Runtime as DiscordRuntime).GetChannelFromBlock(input);
@@ -79,7 +74,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message);
                             return null;
                         }
-                        break;
                     case "data_category":
                         {
                             Discord.Rest.RestCategoryChannel? message = await (Runtime as DiscordRuntime).GetCategoryFromBlock(input);
@@ -89,7 +83,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message);
                             return null;
                         }
-                        break;
                     case "data_webhook":
                         {
                             Tuple<Discord.Rest.RestWebhook?, string>? message = await (Runtime as DiscordRuntime).GetWebhookFromBlock(input);
@@ -99,7 +92,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message.Item1);
                             return null;
                         }
-                        break;
                     case "data_server":
                         {
                             Discord.Rest.RestGuild? message = await (Runtime as DiscordRuntime).GetServerFromBlock(input);
@@ -109,7 +101,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message);
                             return null;
                         }
-                        break;
                     case "data_role":
                         {
                             Discord.Rest.RestRole? message = await (Runtime as DiscordRuntime).GetRoleFromBlock(input);
@@ -119,7 +110,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message);
                             return null;
                         }
-                        break;
                     case "data_member":
                         {
                             Discord.Rest.RestGuildUser? message = await (Runtime as DiscordRuntime).GetMemberFromBlock(input);
@@ -129,7 +119,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message);
                             return null;
                         }
-                        break;
                     case "data_user":
                         {
                             Discord.Rest.RestUser? message = await (Runtime as DiscordRuntime).GetUserFromBlock(input);
@@ -139,7 +128,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message);
                             return null;
                         }
-                        break;
                     case "data_json":
                         {
                             Newtonsoft.Json.Linq.JObject? message = Runtime.GetJsonFromBlock(input);
@@ -149,7 +137,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message);
                             return null;
                         }
-                        break;
                     case "data_response":
                         {
                             ResponseData? message = Runtime.GetResponseFromBlock(input);
@@ -159,7 +146,6 @@ public class SetVariableBlock : IActionBlock
                             Runtime.SetVariable(Key, message);
                             return null;
                         }
-                        break;
                 }
             }
         }

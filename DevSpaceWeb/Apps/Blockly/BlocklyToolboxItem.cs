@@ -134,7 +134,7 @@ public class BlocklyToolboxItem
             item.inputs = ParseNextInput(block.inputs.First());
     }
 
-    public static BlocklyToolboxItem ParseBlock(WorkspaceBlock block, List<BlocklyToolboxItem> parent, bool firstRun = false, bool firstInput = false)
+    public static BlocklyToolboxItem? ParseBlock(WorkspaceBlock block, List<BlocklyToolboxItem>? parent, bool firstRun = false, bool firstInput = false)
     {
         BlocklyToolboxItem item = new BlocklyToolboxItem();
         switch (block.type)

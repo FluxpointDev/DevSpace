@@ -909,7 +909,6 @@ public class DiscordRuntime : IRuntime
                     {
 
                     };
-                    break;
                 case "controls_if":
                     bool IsActionAllowed = false;
 
@@ -1037,7 +1036,6 @@ public class DiscordRuntime : IRuntime
                         ParsePermission(ref perms, block.fields["permission_type"].ToString());
                         return perms;
                     }
-                    break;
                 case "data_permission_list":
                     {
                         GuildPermissions perms = new GuildPermissions();
@@ -1052,7 +1050,6 @@ public class DiscordRuntime : IRuntime
                         }
                         return perms;
                     }
-                    break;
                 case "data_permission_active":
                     {
                         if (Data.PermissionsActive != null)
@@ -1238,7 +1235,6 @@ public class DiscordRuntime : IRuntime
                 {
                     return Data.ChannelCurrent;
                 }
-                break;
             case "data_channel_active":
                 {
                     if (Data.ChannelActive == null)
@@ -1254,7 +1250,6 @@ public class DiscordRuntime : IRuntime
                     return chan;
 
                 }
-                break;
             case "data_channel_get":
             case "data_channel_get_in_server":
                 {
@@ -1349,7 +1344,6 @@ public class DiscordRuntime : IRuntime
                 {
                     return Data.ChannelCurrent?.Id;
                 }
-                break;
             case "data_channel_active":
                 {
                     if (Data.ChannelActive != null)
@@ -1434,7 +1428,6 @@ public class DiscordRuntime : IRuntime
 
                     return cat;
                 }
-                break;
             case "data_category_active":
                 {
                     if (Data.CategoryActive == null)
@@ -1449,7 +1442,6 @@ public class DiscordRuntime : IRuntime
 
                     return cat;
                 }
-                break;
             case "data_category_get":
             case "data_category_get_in_server":
                 {
@@ -1558,7 +1550,6 @@ public class DiscordRuntime : IRuntime
 
                     return msg;
                 }
-                break;
             case "data_message_active":
                 {
                     if (Data.MessageActive == null)
@@ -1573,7 +1564,6 @@ public class DiscordRuntime : IRuntime
 
                     return msg;
                 }
-                break;
             case "data_message_get":
                 {
                     RestChannel? Chan = null;
@@ -1693,7 +1683,6 @@ public class DiscordRuntime : IRuntime
 
                     return server;
                 }
-                break;
             case "data_server_active":
                 {
                     if (Data.ServerActive == null)
@@ -1711,7 +1700,6 @@ public class DiscordRuntime : IRuntime
                     return server;
 
                 }
-                break;
             case "data_server_get":
                 {
                     string ServerId = string.Empty;
@@ -1870,7 +1858,6 @@ public class DiscordRuntime : IRuntime
 
                     return role;
                 }
-                break;
             case "data_role_get":
                 {
                     RestGuild? Server = null;
@@ -1962,7 +1949,6 @@ public class DiscordRuntime : IRuntime
 
                     return member;
                 }
-                break;
             case "data_member_get":
                 {
 
@@ -2000,7 +1986,6 @@ public class DiscordRuntime : IRuntime
 
                     return member;
                 }
-                break;
         }
 
         return null;
@@ -2027,7 +2012,6 @@ public class DiscordRuntime : IRuntime
 
                     return null;
                 }
-                break;
             case "data_member_get":
                 {
                     string UserId = string.Empty;
@@ -2098,7 +2082,6 @@ public class DiscordRuntime : IRuntime
 
                     return user;
                 }
-                break;
             case "data_member_current":
             case "data_member_active":
             case "data_member_get":
@@ -2150,7 +2133,6 @@ public class DiscordRuntime : IRuntime
                     return Data.UserActive.Item1;
 
                 }
-                break;
             case "data_member_current":
             case "data_member_active":
             case "data_member_get":
@@ -2234,7 +2216,6 @@ public class DiscordRuntime : IRuntime
                     int b = block.inputs["blue"].block.fields["NUM"].ToObject<int>();
                     return new Color(r, g, b);
                 }
-                break;
         }
 
         return null;

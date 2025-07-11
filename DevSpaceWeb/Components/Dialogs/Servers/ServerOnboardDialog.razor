@@ -67,7 +67,7 @@
 
     public async Task ResetOnboardKey()
     {
-        if (Member == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
+        if (Team == null || Member == null || !Member.HasServerPermission(Team, null, ServerPermission.CreateServerResource))
             return;
 
         string OnboardKey = _Data.GetRandomString(new Random().Next(26, 34)) + Guid.NewGuid().ToString().Replace("-", "");
@@ -94,8 +94,8 @@
  "-v /var/lib/docker/volumes/portainer_data/_data/custom_templates:/var/lib/docker/volumes/portainer_data/_data/custom_templates:ro " +
  "ghcr.io/fluxpointdev/devspace/agent:latest"
         ).Replace("{0}", _Data.Config.Instance.PublicDomain)
-        .Replace("{1}", Team.Id.ToString())
-        .Replace("{2}", Team.EdgeOnboardKey);
+        .Replace("{1}", Team?.Id.ToString())
+        .Replace("{2}", Team?.EdgeOnboardKey);
     }
 
     public bool IsCopied { get; set; }

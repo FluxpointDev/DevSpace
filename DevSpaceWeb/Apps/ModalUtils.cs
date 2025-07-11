@@ -31,7 +31,7 @@ public static class ModalUtils
         {
             return Tuple.Create<Modal?, RuntimeError?>(null, new RuntimeError(re.Type, $"Modal error for {modalId}\n" + re.ErrorMessage));
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return Tuple.Create<Modal?, RuntimeError?>(null, new RuntimeError(RuntimeErrorType.Server, $"Server failed to parse modal data for {modalId}"));
         }

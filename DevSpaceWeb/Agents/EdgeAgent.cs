@@ -86,7 +86,7 @@ public class EdgeAgent : IAgent
         byte[] encoded = Encoding.UTF8.GetBytes(message);
         ArraySegment<byte> buffer = new ArraySegment<Byte>(encoded, 0, encoded.Length);
         if (WebSocket != null)
-            WebSocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Text, true, token);
+            _ = WebSocket.SendAsync(buffer, System.Net.WebSockets.WebSocketMessageType.Text, true, token);
 
         JsonElement? result = null;
         try

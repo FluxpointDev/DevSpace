@@ -34,8 +34,10 @@ public static class DockerVolumes
         return List;
     }
 
-    public static async Task<VolumeResponse> CreateVolumeAsync(DockerClient client, VolumesCreateParameters param)
+    public static async Task<VolumeResponse> CreateVolumeAsync(DockerClient client, VolumesCreateParameters? param)
     {
+        if (param == null)
+            throw new Exception("Volume create parameters is missing.");
         return await client.Volumes.CreateAsync(param);
     }
 

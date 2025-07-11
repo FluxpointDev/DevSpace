@@ -1,5 +1,7 @@
 ﻿@using DevSpaceShared.Responses
 @using DevSpaceShared.WebSocket
+@using DevSpaceWeb.Apps.Data
+@using DevSpaceWeb.Data.Consoles
 @using MongoDB.Driver
 
 <PageTitle>Admin Database | @_Data.Config.Instance.Name</PageTitle>
@@ -18,12 +20,14 @@
             <RadzenBreadCrumbItem Text="Database" />
         </RadzenBreadCrumb>
         <br />
-        <RadzenSelectBar TValue="DatabaseType" ValueChanged="@((v) => Database = v)">
+        <RadzenSelectBar TValue="ResourceType?" ValueChanged="@((v) => Database = v)">
             <Items>
-                <RadzenSelectBarItem Value="DatabaseType.Teams" Text="Teams" />
-                <RadzenSelectBarItem Value="DatabaseType.Servers" Text="Servers" />
-                <RadzenSelectBarItem Value="DatabaseType.Websites" Text="Websites" />
-                <RadzenSelectBarItem Value="DatabaseType.Projects" Text="Projects" />
+                <RadzenSelectBarItem Value="null" Text="Teams" />
+                <RadzenSelectBarItem Value="ResourceType.App" Text="Apps" />
+                <RadzenSelectBarItem Value="ResourceType.Server" Text="Servers" />
+                <RadzenSelectBarItem Value="ResourceType.Console" Text="Consoles" />
+                @* <RadzenSelectBarItem Value="ResourceType.Website" Text="Websites" /> *@
+                <RadzenSelectBarItem Value="ResourceType.Project" Text="Projects" />
             </Items>
         </RadzenSelectBar>
         <br />
@@ -32,75 +36,197 @@
 
     @switch (Database)
     {
-        case DatabaseType.Teams:
+        case null:
             {
-                <RadzenDataGrid @ref="@TeamsTables.grid" AllowRowSelectOnRowClick="false" AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                <RadzenDataGrid @ref="@TeamsTables.grid" AllowRowSelectOnRowClick="false" AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
                 AllowSorting="true" Data="@TeamsTables.employees" Count="@TeamsTables.count" LoadData="@TeamsTables.LoadData"
-                IsLoading="@TeamsTables.isLoading" GridLines="DataGridGridLines.Horizontal"
+                IsLoading="@TeamsTables.isLoading" GridLines="DataGridGridLines.Horizontal" Density="@Density.Compact"
                 EmptyText="No teams." PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
                 LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced"
                 SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="@TeamsTables.selectedEmployees">
                     <Columns>
-                        <RadzenDataGridColumn Property="@nameof(TeamData.Id)" Title="Id" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(TeamData.Name)" Title="Name" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(TeamData.OwnerId)" Title="Owner Id" MinWidth="120px" />
+                        <RadzenDataGridColumn Property="@nameof(TeamData.Id)" Title="Id" Width="200px" />
+                        <RadzenDataGridColumn Property="@nameof(TeamData.Name)" Title="Name" Width="200px" />
+                        <RadzenDataGridColumn Width="120px" Filterable="false">
+                            <Template>
+                                <RadzenButton Text="Delete Team" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@(() => DeleteTeam(context))" Size="ButtonSize.Small" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(TeamData.OwnerId)" Title="Owner Id" Width="200px" />
+                        <RadzenDataGridColumn Width="220px" Filterable="false">
+                            <Template>
+                                <MemberStrip Team="@context" UserId="@context.OwnerId"></MemberStrip>
+                            </Template>
+                        </RadzenDataGridColumn>
                         <RadzenDataGridColumn Property="@nameof(TeamData.VanityUrl)" Title="Vanity Url" />
                     </Columns>
                 </RadzenDataGrid>
             }
             break;
-        case DatabaseType.Servers:
+        case ResourceType.Server:
             {
-                <RadzenDataGrid @ref="@ServersTables.grid" AllowRowSelectOnRowClick="false" AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                <RadzenDataGrid @ref="@ServersTables.grid" AllowRowSelectOnRowClick="false" AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
                 AllowSorting="true" Data="@ServersTables.employees" Count="@ServersTables.count" LoadData="@ServersTables.LoadData"
-                IsLoading="@ServersTables.isLoading" GridLines="DataGridGridLines.Horizontal"
+                                IsLoading="@ServersTables.isLoading" GridLines="DataGridGridLines.Horizontal" Density="@Density.Compact"
                                 EmptyText="No servers." PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
                 LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced"
                 SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="@ServersTables.selectedEmployees">
                     <Columns>
-                        <RadzenDataGridColumn Property="@nameof(ServerData.Id)" Title="Id" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(ServerData.Name)" Title="Name" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(ServerData.TeamId)" Title="Team Id" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(ServerData.OwnerId)" Title="Owner Id" MinWidth="120px" />
+                        <RadzenDataGridColumn Property="@nameof(ServerData.Id)" Title="Id" Width="200px" />
+                        <RadzenDataGridColumn Property="@nameof(ServerData.Name)" Title="Name" Width="200px" />
+                        <RadzenDataGridColumn Width="120px" Filterable="false">
+                            <Template>
+                                <RadzenButton Text="Delete Server" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@(() => DeleteResource(context))" Size="ButtonSize.Small" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(ServerData.TeamId)" Title="Team" Width="200px" />
+                        <RadzenDataGridColumn Width="200px" Filterable="false">
+                            <Template>
+                                @(context.Team?.Name)
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(ServerData.OwnerId)" Title="Owner Id" Width="200px" />
+                        <RadzenDataGridColumn Width="220px" Filterable="false">
+                            <Template>
+                                <MemberStrip Team="@context.Team" UserId="@context.OwnerId"></MemberStrip>
+                            </Template>
+                        </RadzenDataGridColumn>
                     </Columns>
                 </RadzenDataGrid>
             }
             break;
-        case DatabaseType.Websites:
+        case ResourceType.App:
             {
-                <RadzenDataGrid @ref="@WebsitesTables.grid" AllowRowSelectOnRowClick="false" AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                <RadzenDataGrid @ref="@AppsTable.grid" AllowRowSelectOnRowClick="false" AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
+                                AllowSorting="true" Data="@AppsTable.employees" Count="@AppsTable.count" LoadData="@AppsTable.LoadData"
+                                IsLoading="@AppsTable.isLoading" GridLines="DataGridGridLines.Horizontal" Density="@Density.Compact"
+                                EmptyText="No apps." PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
+                                LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced"
+                                SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="@AppsTable.selectedEmployees">
+                    <Columns>
+                        <RadzenDataGridColumn Property="@nameof(AppData.Id)" Title="Id" Width="200px" />
+                        <RadzenDataGridColumn Property="@nameof(AppData.Name)" Title="Name" Width="200px" />
+                        <RadzenDataGridColumn Width="120px" Filterable="false">
+                            <Template>
+                                <RadzenButton Text="Delete App" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@(() => DeleteResource(context))" Size="ButtonSize.Small" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(AppData.TeamId)" Title="Team" Width="200px" />
+                        <RadzenDataGridColumn Width="200px" Filterable="false">
+                            <Template>
+                                @(context.Team?.Name)
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(AppData.OwnerId)" Title="Owner Id" Width="200px" />
+                        <RadzenDataGridColumn Width="220px" Filterable="false">
+                            <Template>
+                                <MemberStrip Team="@context.Team" UserId="@context.OwnerId"></MemberStrip>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+            break;
+        case ResourceType.Console:
+            {
+                <RadzenDataGrid @ref="@ConsolesTable.grid" AllowRowSelectOnRowClick="false" AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
+                                AllowSorting="true" Data="@ConsolesTable.employees" Count="@ConsolesTable.count" LoadData="@ConsolesTable.LoadData"
+                                IsLoading="@ConsolesTable.isLoading" GridLines="DataGridGridLines.Horizontal" Density="@Density.Compact"
+                                EmptyText="No consoles." PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
+                                LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced"
+                                SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="@ConsolesTable.selectedEmployees">
+                    <Columns>
+                        <RadzenDataGridColumn Property="@nameof(ConsoleData.Id)" Title="Id" Width="200px" />
+                        <RadzenDataGridColumn Property="@nameof(ConsoleData.Name)" Title="Name" Width="200px" />
+                        <RadzenDataGridColumn Width="130px" Filterable="false">
+                            <Template>
+                                <RadzenButton Text="Delete Console" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@(() => DeleteResource(context))" Size="ButtonSize.Small" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(ConsoleData.TeamId)" Title="Team" Width="200px" />
+                        <RadzenDataGridColumn Width="200px" Filterable="false">
+                            <Template>
+                                @(context.Team?.Name)
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(ConsoleData.OwnerId)" Title="Owner Id" Width="200px" />
+                        <RadzenDataGridColumn Width="220px" Filterable="false">
+                            <Template>
+                                <MemberStrip Team="@context.Team" UserId="@context.OwnerId"></MemberStrip>
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+            break;
+        case ResourceType.Website:
+            {
+                <RadzenDataGrid @ref="@WebsitesTables.grid" AllowRowSelectOnRowClick="false" AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
                 AllowSorting="true" Data="@WebsitesTables.employees" Count="@WebsitesTables.count" LoadData="@WebsitesTables.LoadData"
-                IsLoading="@WebsitesTables.isLoading" GridLines="DataGridGridLines.Horizontal"
+                                IsLoading="@WebsitesTables.isLoading" GridLines="DataGridGridLines.Horizontal" Density="@Density.Compact"
                                 EmptyText="No websites." PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
                 LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced"
                 SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="@WebsitesTables.selectedEmployees">
                     <Columns>
-                        <RadzenDataGridColumn Property="@nameof(WebsiteData.Id)" Title="Id" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(WebsiteData.Name)" Title="Name" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(WebsiteData.TeamId)" Title="Team Id" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(WebsiteData.OwnerId)" Title="Owner Id" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(WebsiteData.Domain)" Title="Domain" MinWidth="120px" />
+                        <RadzenDataGridColumn Property="@nameof(WebsiteData.Id)" Title="Id" Width="200px" />
+                        <RadzenDataGridColumn Property="@nameof(WebsiteData.Name)" Title="Name" Width="200px" />
+                        <RadzenDataGridColumn Width="120px" Filterable="false">
+                            <Template>
+                                <RadzenButton Text="Delete Website" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@(() => DeleteResource(context))" Size="ButtonSize.Small" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(WebsiteData.TeamId)" Title="Team Id" Width="200px" />
+                        <RadzenDataGridColumn Width="200px" Filterable="false">
+                            <Template>
+                                @(context.Team?.Name)
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(WebsiteData.OwnerId)" Title="Owner Id" Width="200px" />
+                        <RadzenDataGridColumn Width="220px" Filterable="false">
+                            <Template>
+                                <MemberStrip Team="@context.Team" UserId="@context.OwnerId"></MemberStrip>
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(WebsiteData.Domain)" Title="Domain" Width="140px" />
+
                     </Columns>
                 </RadzenDataGrid>
             }
             break;
-        case DatabaseType.Projects:
+        case ResourceType.Project:
             {
-                <RadzenDataGrid @ref="@ProjectsTables.grid" AllowRowSelectOnRowClick="false" AllowFiltering="true" FilterPopupRenderMode="PopupRenderMode.OnDemand"
+                <RadzenDataGrid @ref="@ProjectsTables.grid" AllowRowSelectOnRowClick="false" AllowFiltering="false" FilterPopupRenderMode="PopupRenderMode.OnDemand"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
                 AllowSorting="true" Data="@ProjectsTables.employees" Count="@ProjectsTables.count" LoadData="@ProjectsTables.LoadData"
-                IsLoading="@ProjectsTables.isLoading" GridLines="DataGridGridLines.Horizontal"
+                                IsLoading="@ProjectsTables.isLoading" GridLines="DataGridGridLines.Horizontal" Density="@Density.Compact"
                                 EmptyText="No projects." PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
                 LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced"
                 SelectionMode="DataGridSelectionMode.Multiple" @bind-Value="@ProjectsTables.selectedEmployees">
                     <Columns>
-                        <RadzenDataGridColumn Property="@nameof(ProjectData.Id)" Title="Id" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(ProjectData.Name)" Title="Name" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(ProjectData.TeamId)" Title="Team Id" MinWidth="120px" />
-                        <RadzenDataGridColumn Property="@nameof(ProjectData.OwnerId)" Title="Owner Id" MinWidth="120px" />
+                        <RadzenDataGridColumn Property="@nameof(ProjectData.Id)" Title="Id" Width="200px" />
+                        <RadzenDataGridColumn Property="@nameof(ProjectData.Name)" Title="Name" Width="200px" />
+                        <RadzenDataGridColumn Width="130px" Filterable="false">
+                            <Template>
+                                <RadzenButton Text="Delete Project" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Click="@(() => DeleteResource(context))" Size="ButtonSize.Small" />
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(ProjectData.TeamId)" Title="Team Id" Width="200px" />
+                        <RadzenDataGridColumn Width="200px" Filterable="false">
+                            <Template>
+                                @(context.Team?.Name)
+                            </Template>
+                        </RadzenDataGridColumn>
+                        <RadzenDataGridColumn Property="@nameof(ProjectData.OwnerId)" Title="Owner Id" Width="200px" />
+                        <RadzenDataGridColumn Width="220px" Filterable="false">
+                            <Template>
+                                <MemberStrip Team="@context.Team" UserId="@context.OwnerId"></MemberStrip>
+                            </Template>
+                        </RadzenDataGridColumn>
                     </Columns>
                 </RadzenDataGrid>
             }
@@ -112,16 +238,15 @@
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
-    public DatabaseType Database { get; set; } = DatabaseType.Teams;
+    public ResourceType? Database { get; set; }
 
     public TableDatabase<TeamData> TeamsTables = new TableDatabase<TeamData>("teams");
     public TableDatabase<ServerData> ServersTables = new TableDatabase<ServerData>("servers");
+    public TableDatabase<AppData> AppsTable = new TableDatabase<AppData>("apps");
+    public TableDatabase<ConsoleData> ConsolesTable = new TableDatabase<ConsoleData>("consoles");
     public TableDatabase<ProjectData> ProjectsTables = new TableDatabase<ProjectData>("projects");
     public TableDatabase<WebsiteData> WebsitesTables = new TableDatabase<WebsiteData>("websites");
-    public enum DatabaseType
-    {
-        Teams, Servers, Projects, Websites
-    }
+
 
     public class TableDatabase<T> where T : IResource
     {
@@ -145,7 +270,7 @@
             isLoading = true;
 
             List<FilterDefinition<T>> filters = new List<FilterDefinition<T>>();
-            
+
 
             foreach (FilterDescriptor i in args.Filters)
             {
@@ -218,5 +343,33 @@
 
             isLoading = false;
         }
+    }
+
+    public async Task DeleteTeam(TeamData team)
+    {
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, true);
+        if (!twoFactorConfirm)
+            return;
+
+        await TeamFunctions.DeleteTeamAsync(team);
+        StateHasChanged();
+    }
+
+    public async Task DeleteResource(ITeamResource resource)
+    {
+        AuthUser? User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        bool twoFactorConfirm = await Session.TriggerTwoFactorAuthentication(User, true, true);
+        if (!twoFactorConfirm)
+            return;
+
+        await resource.DeleteAsync(null);
+        StateHasChanged();
     }
 }

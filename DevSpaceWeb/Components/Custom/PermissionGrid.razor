@@ -570,7 +570,7 @@
         return IsPreview;
     }
 
-    private PermissionsSet _permissions { get; set; }
+    private PermissionsSet? _permissions { get; set; }
 
     public PermissionsSet CalculatedPermissions { get; set; }
 
@@ -743,20 +743,20 @@
         {
             case TeamPermission.ManageMembers:
                 {
-                    if (!TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewMembers))
+                    if (TeamGrid.Selected == null || !TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewMembers))
                         data.Disabled = true;
                 }
                 break;
             case TeamPermission.AssignRoles:
             case TeamPermission.ManageRoles:
                 {
-                    if (!TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewRoles))
+                    if (TeamGrid.Selected == null || !TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewRoles))
                         data.Disabled = true;
                 }
                 break;
             case TeamPermission.ManagePermissions:
                 {
-                    if (!TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewPermissions))
+                    if (TeamGrid.Selected == null || !TeamGrid.Selected.Any(x => x.Flag == TeamPermission.ViewPermissions))
                         data.Disabled = true;
                 }
                 break;
@@ -786,7 +786,7 @@
         {
             case APIPermission.ManageOwnAPIs:
                 {
-                    if (!APIGrid.Selected.Any(x => x.Flag == APIPermission.ViewOwnAPIs) && !APIGrid.Selected.Any(x => x.Flag == APIPermission.ViewAllAPIs))
+                    if (APIGrid.Selected == null || !APIGrid.Selected.Any(x => x.Flag == APIPermission.ViewOwnAPIs) && !APIGrid.Selected.Any(x => x.Flag == APIPermission.ViewAllAPIs))
                         data.Disabled = true;
                 }
                 break;
@@ -802,7 +802,7 @@
 
         if (item.Flag == AppPermission.ManagePermissions)
         {
-            if (!AppGrid.Selected.Any(x => x.Flag == AppPermission.ViewPermissions))
+            if (AppGrid.Selected == null || !AppGrid.Selected.Any(x => x.Flag == AppPermission.ViewPermissions))
                 data.Disabled = true;
         }
         return data;
@@ -816,7 +816,7 @@
 
         if (item.Flag == ServerPermission.ManagePermissions)
         {
-            if (!ServerGrid.Selected.Any(x => x.Flag == ServerPermission.ViewPermissions))
+            if (ServerGrid.Selected == null || !ServerGrid.Selected.Any(x => x.Flag == ServerPermission.ViewPermissions))
                 data.Disabled = true;
         }
         return data;
@@ -830,7 +830,7 @@
 
         if (item.Flag == WebsitePermission.ManagePermissions)
         {
-            if (!WebsiteGrid.Selected.Any(x => x.Flag == WebsitePermission.ViewPermissions))
+            if (WebsiteGrid.Selected == null || !WebsiteGrid.Selected.Any(x => x.Flag == WebsitePermission.ViewPermissions))
                 data.Disabled = true;
         }
         return data;
@@ -844,7 +844,7 @@
 
         if (item.Flag == ProjectPermission.ManagePermissions)
         {
-            if (!ProjectGrid.Selected.Any(x => x.Flag == ProjectPermission.ViewPermissions))
+            if (ProjectGrid.Selected == null || !ProjectGrid.Selected.Any(x => x.Flag == ProjectPermission.ViewPermissions))
                 data.Disabled = true;
         }
         return data;
@@ -866,7 +866,7 @@
             //     break;
             case DockerPermission.ManageCustomTemplates:
                 {
-                    if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.UseCustomTemplates))
+                    if (DockerGrid.Selected == null || !DockerGrid.Selected.Any(x => x.Flag == DockerPermission.UseCustomTemplates))
                         data.Disabled = true;
                 }
                 break;

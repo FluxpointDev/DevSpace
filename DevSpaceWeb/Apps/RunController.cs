@@ -57,6 +57,14 @@ public class RunController : Controller
                 return;
             }
 
+            if (string.IsNullOrEmpty(signature) || string.IsNullOrEmpty(timestamp))
+            {
+                Request.HttpContext.Response.StatusCode = 500;
+                await Request.HttpContext.Response.WriteAsync("error");
+                await Request.HttpContext.Response.CompleteAsync();
+                return;
+            }
+
 
             RestInteraction? Interaction = null;
             try
@@ -207,7 +215,6 @@ public class RunController : Controller
                                     await HttpRespondWithError(Request, Interaction, "Text input is not supported with Nova Node yet.", cancellationToken);
                                     return;
                                 }
-                                break;
                             case ComponentType.ChannelSelect:
                             case ComponentType.MentionableSelect:
                             case ComponentType.RoleSelect:
@@ -217,7 +224,6 @@ public class RunController : Controller
                                     await HttpRespondWithError(Request, Interaction, "Select menu is not supported with Nova Node yet.", cancellationToken);
                                     return;
                                 }
-                                break;
                         }
                     }
                     break;
@@ -235,7 +241,7 @@ public class RunController : Controller
 
                         Console.WriteLine("GOT MODAL: " + string.Join("|", SplitId));
 
-                        if (AppData.ModalInteractions.TryGetValue(Id, out IDiscordAppInteraction bi))
+                        if (AppData.ModalInteractions.TryGetValue(Id, out IDiscordAppInteraction? bi))
                             InteractionData = bi;
 
                         if (SplitId.Length == 2)
@@ -249,7 +255,6 @@ public class RunController : Controller
                         await HttpRespondWithError(Request, Interaction, "Auto complete is not supported with Nova Node yet.", cancellationToken);
                         return;
                     }
-                    break;
             }
 
             if (InteractionData == null)
@@ -288,7 +293,7 @@ public class RunController : Controller
 
             if (!string.IsNullOrEmpty(InteractionData.OpenModal))
             {
-                if (!AppData.ModalInteractions.TryGetValue(InteractionData.OpenModal, out IDiscordAppInteraction modalInteraction))
+                if (!AppData.ModalInteractions.TryGetValue(InteractionData.OpenModal, out IDiscordAppInteraction? modalInteraction))
                 {
                     await HttpRespondWithError(Request, Interaction, $"Invalid interaction modal name {InteractionData.OpenModal}.", cancellationToken);
                     return;

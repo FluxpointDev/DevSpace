@@ -18,7 +18,7 @@ public static class _Data
     public static Dictionary<ObjectId, ProxmoxAgent> ProxmoxAgents = [];
     public static Dictionary<ObjectId, EdgeAgent> EdgeAgents = [];
     public static Dictionary<ObjectId, DiscordRestClient> DiscordClients = [];
-    public static WorkspaceConfig WorkspaceData = null!;
+    public static WorkspaceConfig? WorkspaceData = null!;
 
     public static bool LoadConfig()
     {

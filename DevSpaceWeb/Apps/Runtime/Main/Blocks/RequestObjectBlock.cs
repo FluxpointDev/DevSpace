@@ -34,7 +34,7 @@ public class RequestObjectBlock : IBlock
                 return HttpMethod.Delete;
         }
 
-        return null;
+        throw new Exception("Failed to get API request type.");
     }
 
     public async Task<Dictionary<string, string>> Headers()

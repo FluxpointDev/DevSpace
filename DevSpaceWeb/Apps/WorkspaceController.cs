@@ -125,7 +125,6 @@ public class WorkspaceController : ControllerBase
                                     }
                                     ] } }", "application/json");
                     }
-                    break;
                 case WorkspaceType.DiscordInteractionModal:
                     {
                         return Content(@"{ ""blocks"": { ""blocks"": [
@@ -136,7 +135,6 @@ public class WorkspaceController : ControllerBase
                                     }
                                     ] } }", "application/json");
                     }
-                    break;
             }
         }
 

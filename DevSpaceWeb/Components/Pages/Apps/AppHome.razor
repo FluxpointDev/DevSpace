@@ -34,8 +34,8 @@
         <br />
         <div>
             <ActionBar>
-                <a href="@(App.GetBotInviteUrl())" target="_blank"><RadzenButton Text="Invite App" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" /></a>
-                <a href="@(App.GetBotInviteUrl("0"))" target="_blank"><RadzenButton Text="Invite App (No Permissions)" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" /></a>
+                <a href="@(App?.GetBotInviteUrl())" target="_blank"><RadzenButton Text="Invite App" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" /></a>
+                <a href="@(App?.GetBotInviteUrl("0"))" target="_blank"><RadzenButton Text="Invite App (No Permissions)" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" /></a>
                 <a href="https://discord.dev" target="_blank"><RadzenButton Text="Discord Dev Portal" Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Shade="Shade.Dark" Size="ButtonSize.Small" /></a>
             </ActionBar>
         </div>
@@ -104,9 +104,9 @@
         if (Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ManageApp))
             return;
 
-        if (!_Data.DiscordClients.TryGetValue(App.Id, out Discord.Rest.DiscordRestClient client))
+        if (!_Data.DiscordClients.TryGetValue(App.Id, out Discord.Rest.DiscordRestClient? client))
         {
-            Dialogs.ShowInfoAsync("App Udate Failed!", "Could not get Discord client.");
+            _ = Dialogs.ShowInfoAsync("App Udate Failed!", "Could not get Discord client.");
             return;
         }
 
@@ -289,10 +289,10 @@
         if (Updates.Any())
         {
             await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Combine(UpdateList));
-            Dialogs.ShowInfoAsync("App Updated", $"We have updated your app's {string.Join(", ", Updates)}");
+            _ = Dialogs.ShowInfoAsync("App Updated", $"We have updated your app's {string.Join(", ", Updates)}");
         }
         else
-            Dialogs.ShowInfoAsync("App Updated", $"Your app is already up-to date.");
+            _ = Dialogs.ShowInfoAsync("App Updated", $"Your app is already up-to date.");
     }
 
     public async Task UpdateToken()
@@ -366,10 +366,10 @@
             }
             _Data.DiscordClients.TryAdd(App.Id, NewClient);
 
-            var Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+            bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
             .Set(x => x.EncryptedToken, Crypt.EncryptString(data.BotToken))
             .Set(x => x.EncryptedInteractionKey, Crypt.EncryptString(AppInfo.VerifyKey)));
-            if (Result.IsAcknowledged)
+            if (Result)
             {
                 App.EncryptedToken = Crypt.EncryptString(data.BotToken);
                 App.EncryptedInteractionKey = Crypt.EncryptString(AppInfo.VerifyKey);

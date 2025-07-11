@@ -1,5 +1,7 @@
 ﻿using DevSpaceWeb.Data.Teams;
+using DevSpaceWeb.Database;
 using MongoDB.Bson;
+using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Links;
 
@@ -12,6 +14,22 @@ public class LinkData : ITeamResource
 
     public string ShortCode { get; set; }
     public string Link { get; set; }
+
+    public override async Task<bool> DeleteAsync(TeamMemberData? member, Action? action = null)
+    {
+        FilterDefinition<LinkData> filter = Builders<LinkData>.Filter.Eq(r => r.Id, Id);
+        DeleteResult Result = await _DB.Links.Collection.DeleteOneAsync(filter);
+        if (Result.IsAcknowledged)
+        {
+            if (member != null)
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.LinkDeleted)
+                .SetTarget(this));
+
+            action?.Invoke();
+        }
+
+        return Result.IsAcknowledged;
+    }
 }
 
 public class LinkDataOld

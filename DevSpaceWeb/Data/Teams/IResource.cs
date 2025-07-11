@@ -26,7 +26,7 @@ public class IResource : IObject
 
     public ObjectId OwnerId { get; set; }
 }
-public class ITeamResource : IResource
+public abstract class ITeamResource : IResource
 {
     public ITeamResource(ResourceType type)
     {
@@ -489,6 +489,8 @@ public class ITeamResource : IResource
                 ApiPermissionOverrides.Remove(apiId);
         }
     }
+
+    public abstract Task<bool> DeleteAsync(TeamMemberData? member, Action? action = null);
 }
 public enum ResourceType
 {

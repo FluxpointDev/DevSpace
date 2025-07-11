@@ -283,7 +283,7 @@ public class Program
         if (Server != null)
             Server.MulticastText(System.Text.Json.JsonSerializer.Serialize(Stats, AgentJsonOptions.Options));
         else if (Client != null)
-            Client.WebSocket.SendAsync(Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(Stats, AgentJsonOptions.Options)), WebSocketMessageType.Text, true, CancellationToken.None);
+            _ = Client.WebSocket.SendAsync(Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(Stats, AgentJsonOptions.Options)), WebSocketMessageType.Text, true, CancellationToken.None);
     }
 
     public static System.Timers.Timer timer = new System.Timers.Timer(new TimeSpan(0, 5, 0));

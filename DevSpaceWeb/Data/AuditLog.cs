@@ -1,8 +1,5 @@
-﻿using DevSpaceWeb.Apps.Data;
-using DevSpaceWeb.Data.API;
-using DevSpaceWeb.Data.Consoles;
+﻿using DevSpaceWeb.Data.API;
 using DevSpaceWeb.Data.Permissions;
-using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
@@ -84,29 +81,24 @@ public class AuditLog : IObject
         return this;
     }
 
-    public AuditLog SetTarget(AppData app)
+    public AuditLog SetTarget(ITeamResource app)
     {
-        TargetType = AuditLogTargetType.App;
+        TargetType = GetResourceType(app.ResourceType);
         TargetId = app.Id;
         TargetName = app.Name;
         return this;
     }
 
-    public AuditLog SetTarget(ServerData server)
+    private AuditLogTargetType GetResourceType(ResourceType type) => type switch
     {
-        TargetType = AuditLogTargetType.Server;
-        TargetId = server.Id;
-        TargetName = server.Name;
-        return this;
-    }
-
-    public AuditLog SetTarget(ConsoleData console)
-    {
-        TargetType = AuditLogTargetType.Console;
-        TargetId = console.Id;
-        TargetName = console.Name;
-        return this;
-    }
+        ResourceType.App => AuditLogTargetType.App,
+        ResourceType.Console => AuditLogTargetType.Console,
+        ResourceType.Link => AuditLogTargetType.Link,
+        ResourceType.Project => AuditLogTargetType.Project,
+        ResourceType.Server => AuditLogTargetType.Server,
+        ResourceType.Website => AuditLogTargetType.Website,
+        _ => throw new NotImplementedException(),
+    };
 
     public AuditLog SetTarget(TeamRoleData role)
     {
@@ -175,7 +167,7 @@ public class AuditLog : IObject
 
 public enum AuditLogTargetType
 {
-    Instance, Team, Role, Member, Server, Website, Project, REDACTED, API, Console, App
+    Instance, Team, Role, Member, Server, Website, Project, Link, API, Console, App
 }
 public enum AuditLogCategoryType
 {
@@ -194,7 +186,10 @@ public enum AuditLogEventType
     ConsoleCreated, ConsoleDeleted, ConsolePermissionsChanged, ConsoleSettingsChanged, ConsoleRconChanged,
     RoleSettingsChanged, ServerOwnershipChanged, APIClientOwnershipChanged, ConsoleOwnershipChanged, RolePositionChanged,
     MemberNicknameChanged, ServerOnboard,
-    AppCreated, AppDeleted, AppPermissionsChanged, AppOwnershipChanged, AppSettingsChanged
+    AppCreated, AppDeleted, AppPermissionsChanged, AppOwnershipChanged, AppSettingsChanged,
+    WebsiteCreated, WebsiteDeleted, WebsitePermissionsChanged, WebsiteOwnershipChanged, WebsiteSettingsChanged,
+    ProjectCreated, ProjectDeleted, ProjectPermissionsChanged, ProjectOwnershipChanged, ProjectSettingsChanged,
+    LinkCreated, LinkDeleted
 }
 [Flags]
 public enum AuditLogFlag : ulong

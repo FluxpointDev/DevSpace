@@ -18,7 +18,6 @@ public static class DockerContainers
             {
                 All = true,
             };
-            Dictionary<string, string>? Filters = null;
             if (@event.Data != null)
             {
                 ListContainersEvent? Data = @event.Data.Deserialize<ListContainersEvent>(AgentJsonOptions.Options);

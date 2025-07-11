@@ -93,6 +93,21 @@
                 }
             </div>
 
+            <div>
+                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">User ID</RadzenText>
+                @if (AuthUser == null)
+                {
+                    <RadzenSkeleton></RadzenSkeleton>
+                }
+                else
+                {
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        @AuthUser.Id.ToString()
+                        <CopyClipboard Value="@AuthUser.Id.ToString()"></CopyClipboard>
+                    </RadzenText>
+                }
+            </div>
+
         </RadzenStack>
     </RadzenStack>
 
@@ -175,6 +190,11 @@
     </RadzenDropDown>
     <br />
     <br />
+    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="0.5rem">
+        <RadzenSwitch @bind-Value="@Use24HourTime" Disabled="@(AuthUser == null)" />
+        <RadzenLabel Text="Use 24-hour Time" />
+    </RadzenStack>
+    <br />
     @if (AuthUser == null)
     {
         <RadzenSkeleton></RadzenSkeleton>
@@ -182,7 +202,7 @@
     else
     {
         <RadzenText TextStyle="TextStyle.Body2">
-            @("Current Date: " + Utils.GetLocalDate(Session, DateTime.UtcNow, false))
+            @("Current Date: " + Utils.GetLocalDate(Session, DateTime.UtcNow, false, true))
         </RadzenText>
     }
     <br />
@@ -207,6 +227,8 @@
 
     private DateFormatLang _userDateFormat = DateFormatLang.Automatic;
     public DateFormatLang UserDateFormat { get { return _userDateFormat; } set { _userDateFormat = value; Session.UserDateFormat = value; _ = SaveUser(); } }
+    public bool _use24HourTime;
+    public bool Use24HourTime { get { return _use24HourTime; } set { _use24HourTime = value; Session.Use24HourTime = value; _ = SaveUser(); } }
 
     public bool ShowEmailAddress { get; set; }
 
@@ -218,12 +240,18 @@
     public bool EmailVerifySent { get; set; }
     public string? Country { get; set; }
 
+    public bool ShouldUpdateUser { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         _DB.SessionUpdated += SessionChangedEvent;
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser != null)
+        {
             _userDateFormat = AuthUser.Settings.DateFormat;
+            Use24HourTime = AuthUser.Settings.Use24HourTime;
+        }
+        ShouldUpdateUser = true;
         Country = await Session.GetCountryAsync();
     }
 
@@ -238,15 +266,17 @@
 
     public async Task SaveUser()
     {
-        if (!Program.IsPreviewMode)
-        {
-            AuthUser = await Session.GetCurrentUserAsync();
-            if (AuthUser == null)
-                return;
+        if (Program.IsPreviewMode || !ShouldUpdateUser)
+            return;
 
-            AuthUser.Settings.DateFormat = _userDateFormat;
-            await UserManager.UpdateAsync(AuthUser);
-        }
+        AuthUser = await Session.GetCurrentUserAsync();
+        if (AuthUser == null)
+            return;
+
+        AuthUser.Settings.DateFormat = _userDateFormat;
+        AuthUser.Settings.Use24HourTime = Use24HourTime;
+        await UserManager.UpdateAsync(AuthUser);
+
     }
 
     public void Dispose()

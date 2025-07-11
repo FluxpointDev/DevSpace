@@ -11,7 +11,7 @@ public class DiscordBlock : IBlock
         Block = block;
     }
 
-    public DiscordRuntime Runtime { get; internal set; }
+    public new DiscordRuntime Runtime { get; internal set; }
     public DiscordRestClient Client { get; internal set; }
 }
 public abstract class DiscordActionBlock : IActionBlock

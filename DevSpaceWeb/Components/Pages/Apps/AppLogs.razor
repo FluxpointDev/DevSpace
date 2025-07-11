@@ -42,6 +42,7 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
+        if (App != null)
         App.GetEvents().LogEvent += Trigger;
     }
 
@@ -68,7 +69,7 @@
         if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewLogs))
             return;
 
-        Editor.SetValue(Newtonsoft.Json.JsonConvert.SerializeObject(Newtonsoft.Json.JsonConvert.DeserializeObject(item.Data), Newtonsoft.Json.Formatting.Indented), true);
+        _ = Editor.SetValue(Newtonsoft.Json.JsonConvert.SerializeObject(Newtonsoft.Json.JsonConvert.DeserializeObject(item.Data), Newtonsoft.Json.Formatting.Indented), true);
     }
 
     public List<AppLogItem> logs = new List<AppLogItem>();

@@ -152,7 +152,7 @@ public class EdgeController : Controller
             return BadRequest("Failed to create server.");
         }
 
-        Server.StartWebSocket();
+        _ = Server.StartWebSocket();
 
         _DB.Servers.Cache.TryAdd(Server.Id, Server);
 
@@ -178,7 +178,7 @@ public class EdgeController : Controller
                 using (MemoryStream ms = new MemoryStream())
                 {
                     ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[8192]);
-                    WebSocketReceiveResult? result = null;
+                    WebSocketReceiveResult result = null!;
                     do
                     {
                         try

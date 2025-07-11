@@ -43,7 +43,7 @@ public class ModifyRoleBlock : DiscordActionBlock
                 x.Mentionable = IsMentionable;
 
             if (RoleObject.Permissions().HasValue)
-                x.Permissions = RoleObject.Permissions().Value;
+                x.Permissions = RoleObject.Permissions()!.Value;
 
         });
 

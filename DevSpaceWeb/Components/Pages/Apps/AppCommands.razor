@@ -42,11 +42,11 @@
             <Tabs>
                 <RadzenTabsItem Text="Slash Commands" Disabled="@(IsLoading)">
                     <ActionBar>
-                        <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyCommandsSelected || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyCommandsSelected || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyCommandsSelected || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Filled" Text="Create Slash Command" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateCommand" Disabled="@(IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
-                        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshCommands" Disabled="@(IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))" />
+                        <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyCommandsSelected || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyCommandsSelected || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyCommandsSelected || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Filled" Text="Create Slash Command" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateCommand" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
+                        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshCommands" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))" />
                         <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
                             <Start>
                                 <RadzenIcon Icon="search" />
@@ -87,7 +87,7 @@
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(DiscordAppSlashCommand.Name)">
                                 <Template>
-                                    <RadzenLink Path="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" Target="_blank" Text="@context.Name" />
+                                    <RadzenLink Path="@("/workspaces/" + App?.Id.ToString() + "/" + context.WorkspaceId.ToString())" Target="_blank" Text="@context.Name" />
                                 </Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(IDiscordAppCommand.IsEnabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
@@ -105,8 +105,8 @@
                             <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                                 <Template>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
-                                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
-                                        <a href="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!Member.HasAppPermission(Team, App, AppPermission.ViewWorkspaces))" /></a>
+                                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
+                                        <a href="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewWorkspaces))" /></a>
                                     </RadzenStack>
                                 </Template>
                             </RadzenDataGridColumn>
@@ -138,11 +138,11 @@
                 </RadzenTabsItem>
                 <RadzenTabsItem Text="User Commands" Disabled="@(IsLoading)">
                     <ActionBar>
-                        <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyUsersSelected || IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyUsersSelected || IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyUsersSelected || IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Filled" Text="Create User Command" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateCommand" Disabled="@(IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
-                        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshCommands" Disabled="@(IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))" />
+                        <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyUsersSelected || IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyUsersSelected || IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyUsersSelected || IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Filled" Text="Create User Command" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateCommand" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
+                        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshCommands" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))" />
                         
                     </ActionBar>
                     <br />
@@ -165,7 +165,7 @@
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(IDiscordAppCommand.Name)">
                                 <Template>
-                                    <RadzenLink Path="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" Target="_blank" Text="@context.Name" />
+                                    <RadzenLink Path="@("/workspaces/" + App?.Id.ToString() + "/" + context.WorkspaceId.ToString())" Target="_blank" Text="@context.Name" />
                                 </Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(IDiscordAppCommand.IsEnabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
@@ -183,8 +183,8 @@
                             <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                                 <Template>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
-                                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
-                                        <a href="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!Member.HasAppPermission(Team, App, AppPermission.ViewWorkspaces))" /></a>
+                                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
+                                        <a href="@("/workspaces/" + App?.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewWorkspaces))" /></a>
                                     </RadzenStack>
                                 </Template>
                             </RadzenDataGridColumn>
@@ -216,11 +216,11 @@
                 </RadzenTabsItem>
                 <RadzenTabsItem Text="Message Commands" Disabled="@(IsLoading)">
                     <ActionBar>
-                        <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyMessagesSelected || IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyMessagesSelected || IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyMessagesSelected || IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
-                        <RadzenButton Variant="Variant.Filled" Text="Create Message Command" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateCommand" Disabled="@(IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
-                        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshCommands" Disabled="@(IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))" />
+                        <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyMessagesSelected || IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@RunSelectedDisableCommands" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyMessagesSelected || IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RunSelectedRemoveCommands" Icon="delete" Disabled="@(!AnyMessagesSelected || IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Filled" Text="Create Message Command" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateCommand" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
+                        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshCommands" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))" />
                     </ActionBar>
                     <br />
                     <RadzenDataGrid @ref="@MessagesGrid" Data="@MessagesList" LoadData="@LoadCommandsData" IsLoading="@IsLoading"
@@ -242,7 +242,7 @@
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(IDiscordAppCommand.Name)">
                                 <Template>
-                                    <RadzenLink Path="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" Target="_blank" Text="@context.Name" />
+                                    <RadzenLink Path="@("/workspaces/" + App?.Id.ToString() + "/" + context.WorkspaceId.ToString())" Target="_blank" Text="@context.Name" />
                                 </Template>
                             </RadzenDataGridColumn>
                             <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(IDiscordAppCommand.IsEnabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
@@ -260,8 +260,8 @@
                             <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
                                 <Template>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
-                                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
-                                        <a href="@("/workspaces/" + App.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(!Member.HasAppPermission(Team, App, AppPermission.ViewWorkspaces))" /></a>
+                                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
+                                        <a href="@("/workspaces/" + App?.Id.ToString() + "/" + context.WorkspaceId.ToString())" target="_blank"><RadzenButton Icon="app_registration" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewWorkspaces))" /></a>
                                     </RadzenStack>
                                 </Template>
                             </RadzenDataGridColumn>
@@ -357,7 +357,7 @@
 
     public async Task LoadCommandsData(LoadDataArgs args)
     {
-        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))
+        if (Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))
             return;
 
         IsLoading = true;
@@ -413,13 +413,13 @@
                 {
                     await Dialogs.ShowDynamicFormAsync<SlashCommandCreateModal>("Create Slash Command", new SlashCommandCreateModal(), async (SlashCommandCreateModal data) =>
         {
-            if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
+            if (Team == null || Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
                 return "You do not have team permission for Manage Commands";
 
             if (App.SlashCommands.Keys.Count() >= 100)
                 return "You can only add up to 100 slash commands.";
 
-            if (!_Data.DiscordClients.TryGetValue(App.Id, out DiscordRestClient client) || client.LoginState != Discord.LoginState.LoggedIn)
+            if (!_Data.DiscordClients.TryGetValue(App.Id, out DiscordRestClient? client) || client.LoginState != Discord.LoginState.LoggedIn)
                 return "Failed to load client, please reauthorize the bot token.";
 
             if (App.SlashCommands.ContainsKey(data.Name))
@@ -428,7 +428,7 @@
             if (string.IsNullOrEmpty(data.Description))
                 data.Description = "‎ ";
 
-            RestApplicationCommand Command = null;
+            RestApplicationCommand? Command = null;
             try
             {
                 var builder = new Discord.SlashCommandBuilder().WithName(data.Name)
@@ -462,14 +462,14 @@
                 CreatedBy = Member.UserId
             });
 
-            var Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.SlashCommands, App.SlashCommands));
-            if (!Result.IsAcknowledged)
+            bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.SlashCommands, App.SlashCommands));
+            if (!Result)
             {
                 App.SlashCommands.Remove(data.Name);
                 _ = _DB.Workspaces.DeleteAsync(workspace);
                 return "Failed to add command data to app.";
             }
-            InvokeAsync(RefreshCommands);
+            _ = InvokeAsync(RefreshCommands);
             return null;
         });
                 }
@@ -478,19 +478,19 @@
                 {
                     await Dialogs.ShowDynamicFormAsync<CommandCreateModal>("Create User Command", new CommandCreateModal(), async (CommandCreateModal data) =>
         {
-            if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
+            if (Team == null || Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
                 return "You do not have team permission for Manage Commands";
 
             if (App.UserCommands.Keys.Count() >= 5)
                 return "You can only add up to 5 user commands.";
 
-            if (!_Data.DiscordClients.TryGetValue(App.Id, out DiscordRestClient client) || client.LoginState != Discord.LoginState.LoggedIn)
+            if (!_Data.DiscordClients.TryGetValue(App.Id, out DiscordRestClient? client) || client.LoginState != Discord.LoginState.LoggedIn)
                 return "Failed to load client, please reauthorize the bot token.";
 
             if (App.UserCommands.ContainsKey(data.Name))
                 return "This command name already exists.";
 
-            RestApplicationCommand Command = null;
+            RestApplicationCommand? Command = null;
             try
             {
                 var builder = new Discord.UserCommandBuilder().WithName(data.Name);
@@ -524,14 +524,14 @@
                 CreatedBy = Member.UserId
             });
 
-            var Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.UserCommands, App.UserCommands));
-            if (!Result.IsAcknowledged)
+            bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.UserCommands, App.UserCommands));
+            if (!Result)
             {
                 App.UserCommands.Remove(data.Name);
                 _ = _DB.Workspaces.DeleteAsync(workspace);
                 return "Failed to add command data to app.";
             }
-            InvokeAsync(RefreshCommands);
+            _ = InvokeAsync(RefreshCommands);
             return null;
         });
                 }
@@ -540,19 +540,19 @@
                 {
                     await Dialogs.ShowDynamicFormAsync<CommandCreateModal>("Create Message Command", new CommandCreateModal(), async (CommandCreateModal data) =>
         {
-            if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
+            if (Team == null || Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))
                 return "You do not have team permission for Manage Commands";
 
             if (App.MessageCommands.Keys.Count() >= 5)
                 return "You can only add up to 5 message commands.";
 
-            if (!_Data.DiscordClients.TryGetValue(App.Id, out DiscordRestClient client) || client.LoginState != Discord.LoginState.LoggedIn)
+            if (!_Data.DiscordClients.TryGetValue(App.Id, out DiscordRestClient? client) || client.LoginState != Discord.LoginState.LoggedIn)
                 return "Failed to load client, please reauthorize the bot token.";
 
             if (App.MessageCommands.ContainsKey(data.Name))
                 return "This command name already exists.";
 
-            RestApplicationCommand Command = null;
+            RestApplicationCommand? Command = null;
             try
             {
                 var builder = new Discord.MessageCommandBuilder().WithName(data.Name);
@@ -586,14 +586,14 @@
                 CreatedBy = Member.UserId
             });
 
-            var Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.MessageCommands, App.MessageCommands));
-            if (!Result.IsAcknowledged)
+            bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.MessageCommands, App.MessageCommands));
+            if (!Result)
             {
                 App.MessageCommands.Remove(data.Name);
                 _ = _DB.Workspaces.DeleteAsync(workspace);
                 return "Failed to add command data to app.";
             }
-            InvokeAsync(RefreshCommands);
+            _ = InvokeAsync(RefreshCommands);
             return null;
         });
                 }
@@ -759,10 +759,10 @@
                 new ContextMenuItem() { Text = "Copy Command Name", Value = "copy_name", Icon = TabIndex == 0 ? "pen_size_3" : "content_copy" },
                 new ContextMenuItem() { Text = "Copy Command Format", Value = "copy_format", Icon = "text_ad", Disabled = TabIndex != 0 }, 
                 new ContextMenuItem() { Text = "Copy Command ID", Value = "copy_id", Icon = "content_copy", Disabled = TabIndex != 0 }
-                                             }, x => MenuItemClick(x.Value.ToString(), item));
+                                             }, x => _ = MenuItemClick(x.Value.ToString(), item));
     }
 
-    async Task MenuItemClick(string value, IDiscordAppCommand item, bool isSelected = false)
+    async Task MenuItemClick(string? value, IDiscordAppCommand item, bool isSelected = false)
     {
         if (App == null || Member == null)
             return;
@@ -808,9 +808,9 @@
                             {
                                 bool CurrentState = bool.Parse(item.IsEnabled.ToString());
                                 item.IsEnabled = true;
-                                UpdateResult Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+                                bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
                                 .Set(x => x.SlashCommands, App.SlashCommands));
-                                if (!Result.IsAcknowledged)
+                                if (!Result)
                                     item.IsEnabled = CurrentState;
                             }
                             break;
@@ -818,9 +818,9 @@
                             {
                                 bool CurrentState = bool.Parse(item.IsEnabled.ToString());
                                 item.IsEnabled = true;
-                                UpdateResult Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+                                bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
                                 .Set(x => x.UserCommands, App.UserCommands));
-                                if (!Result.IsAcknowledged)
+                                if (!Result)
                                     item.IsEnabled = CurrentState;
                             }
                             break;
@@ -828,9 +828,9 @@
                             {
                                 bool CurrentState = bool.Parse(item.IsEnabled.ToString());
                                 item.IsEnabled = true;
-                                UpdateResult Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+                                bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
                                 .Set(x => x.MessageCommands, App.MessageCommands));
-                                if (!Result.IsAcknowledged)
+                                if (!Result)
                                     item.IsEnabled = CurrentState;
                             }
                             break;
@@ -848,9 +848,9 @@
                             {
                                 bool CurrentState = bool.Parse(item.IsEnabled.ToString());
                                 item.IsEnabled = false;
-                                UpdateResult Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+                                bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
                                 .Set(x => x.SlashCommands, App.SlashCommands));
-                                if (!Result.IsAcknowledged)
+                                if (!Result)
                                     item.IsEnabled = CurrentState;
                             }
                             break;
@@ -858,9 +858,9 @@
                             {
                                 bool CurrentState = bool.Parse(item.IsEnabled.ToString());
                                 item.IsEnabled = false;
-                                UpdateResult Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+                                bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
                                 .Set(x => x.UserCommands, App.UserCommands));
-                                if (!Result.IsAcknowledged)
+                                if (!Result)
                                     item.IsEnabled = CurrentState;
                             }
                             break;
@@ -868,9 +868,9 @@
                             {
                                 bool CurrentState = bool.Parse(item.IsEnabled.ToString());
                                 item.IsEnabled = false;
-                                UpdateResult Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+                                bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
                                 .Set(x => x.MessageCommands, App.MessageCommands));
-                                if (!Result.IsAcknowledged)
+                                if (!Result)
                                     item.IsEnabled = CurrentState;
                             }
                             break;
@@ -900,9 +900,9 @@
                         case 0:
                             {
                                 App.SlashCommands.Remove(item.Name);
-                                UpdateResult Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+                                bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
                                 .Set(x => x.SlashCommands, App.SlashCommands));
-                                if (!Result.IsAcknowledged)
+                                if (!Result)
                                     App.SlashCommands.Add(item.Name, (DiscordAppSlashCommand)item);
                                 else
                                 {
@@ -914,9 +914,9 @@
                         case 1:
                             {
                                 App.UserCommands.Remove(item.Name);
-                                UpdateResult Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+                                bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
                                 .Set(x => x.UserCommands, App.UserCommands));
-                                if (!Result.IsAcknowledged)
+                                if (!Result)
                                     App.UserCommands.Add(item.Name, (DiscordAppSlashCommand)item);
                                 else
                                 {
@@ -928,9 +928,9 @@
                         case 2:
                             {
                                 App.MessageCommands.Remove(item.Name);
-                                UpdateResult Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+                                bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
                                 .Set(x => x.MessageCommands, App.MessageCommands));
-                                if (!Result.IsAcknowledged)
+                                if (!Result)
                                     App.MessageCommands.Add(item.Name, (DiscordAppSlashCommand)item);
                                 else
                                 {

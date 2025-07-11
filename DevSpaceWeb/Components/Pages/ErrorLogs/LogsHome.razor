@@ -1,4 +1,6 @@
-﻿
+﻿@inject DialogService Dialogs
+@inject ContextMenuService ContextMenuService
+
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon dash-box-back" onclick="history.back()">
@@ -7,10 +9,126 @@
         </div>
         <RadzenText TextStyle="TextStyle.H6">Logs</RadzenText>
     </div>
+    <br />
+    <ActionBar>
+        <RadzenDropDown Value="@("Test Project")" Data="@companyNames" Style="width: 230px; max-width: 300px; height: 30px; padding-top: 4px;" />
+        <RadzenButton Variant="Variant.Filled" Text="Create Project" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" />
+    </ActionBar>
+    <div class="mt-2">
+        <ActionBar>
+            <RadzenButton class="actionbar-first actionbar-last" Variant="Variant.Outlined" Text="Mark Resolved" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <Start>
+                    <RadzenIcon Icon="search" />
+                </Start>
+                <ChildContent>
+                    <RadzenTextBox id="actionSearch" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                   autocapitalize="none" MaxLength="100" inputmode="search" Placeholder="Search logs" />
+                </ChildContent>
+                <End>
+                </End>
+            </RadzenFormField>
+        </ActionBar>
+    </div>
+    <br />
+    <RadzenDataGrid @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
+                        Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No containers."
+                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
+                        GridLines="DataGridGridLines.Horizontal" @bind-Value="@SelectedContainers" SelectionMode="DataGridSelectionMode.Multiple"
+                        PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
+                        PagingSummaryFormat="@(Count + " log" + (Count != 1 ? "s" : "") )"
+                        AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    TItem="LogItem" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
+                    <Columns>
+            <RadzenDataGridColumn Width="36px" Frozen="true" Filterable="false">
+                <HeaderTemplate>
+                    <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
+                                    Value="@(SelectedContainers == null || SelectedContainers?.Any() != true ? false : !ContainersList.All(i => SelectedContainers.Contains(i)) ? null : ContainersList.Any(i => SelectedContainers.Contains(i)))"
+                                    Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList.ToList() : null)" Disabled="@(IsLoading || Count == 0)" />
+                </HeaderTemplate>
+                <Template Context="data">
+                    <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedContainers != null && SelectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"
+                                    TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsLoading" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Type" Width="140px" Frozen="true">
+                <Template>
+                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Danger" Text="Exception" IsPill="true" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Issue" Frozen="true">
+                <Template>
+                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Primary" Text="" IsPill="true" Style="height: 16px; width: 16px;" />
+                    @("Test exception")
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Last Seen" Filterable="false">
+                <Template>
+                    @("1 hour ago")
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Created" Filterable="false">
+                <Template>
+                    @("Today at 22:00")
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Events" Filterable="false">
+                <Template>
+                    @("20")
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Assigned" Filterable="false">
+                <Template>
+                    <MemberStrip Team="@Team" UserId="@ObjectId.Parse("6757b63be964c430187491bb")"></MemberStrip>
+                </Template>
+            </RadzenDataGridColumn>
+            </Columns>
+    </RadzenDataGrid>
 </div>
 
 @code {
     [CascadingParameter]
     private SessionProvider Session { get; set; } = null!;
 
-}
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ProjectData? Project => Session.Selected.Project;
+
+    IEnumerable<string> companyNames = new List<string>
+    {
+        "Test Project"
+    };
+
+    IQueryable<LogItem>? ContainersList;
+
+    public async Task LoadData()
+    {
+        ContainersList = new List<LogItem>()
+        {
+            new LogItem()
+        }.AsQueryable();
+    }
+    public int Count = 0;
+    public int CountDead = 0;
+    IList<LogItem>? SelectedContainers;
+    public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
+    RadzenDataGrid<LogItem> Grid;
+    public bool IsLoading = false;
+
+    public class LogItem
+    {
+
+    }
+
+    void ShowContextMenuWithManageItems(LogItem item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem() { Text = "Delete", Value = "delete", Icon = "delete" },
+                                             }, x => MenuItemClick(x, item));
+    }
+
+    void MenuItemClick(MenuItemEventArgs args, LogItem item)
+    {
+    }
+    }

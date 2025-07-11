@@ -51,7 +51,7 @@ public class EdgeClient : IAgent
         bool StatsSent = false;
         ArraySegment<byte> buffer = new ArraySegment<byte>(new byte[8192]);
 
-        WebSocketReceiveResult result = null;
+        WebSocketReceiveResult? result = null;
 
         if (WebSocket.State == WebSocketState.Open)
             ReconnectCount = 5;
@@ -66,7 +66,7 @@ public class EdgeClient : IAgent
                     SystemInfoResponse HostInfo = await Program.DockerClient.System.GetSystemInfoAsync();
                     AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
 
-                    WebSocket.SendAsync(Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(Stats, AgentJsonOptions.Options)), WebSocketMessageType.Text, true, CancellationToken.None);
+                    _ = WebSocket.SendAsync(Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(Stats, AgentJsonOptions.Options)), WebSocketMessageType.Text, true, CancellationToken.None);
                 }
             }
             try
@@ -90,7 +90,7 @@ public class EdgeClient : IAgent
                     else
                     {
 
-                        ServerEventHandler.RecieveAsync(new ClientSession
+                        _ = ServerEventHandler.RecieveAsync(new ClientSession
                         {
                             Session = WebSocket
                         }, ms.ToArray(), 0, result.Count);

@@ -37,7 +37,7 @@ public class DynamicFormItem
 
     public string? ErrorMessage { get; set; }
 
-    public bool Validate(object model)
+    public bool Validate(object? model)
     {
         ValidationContext Context = new ValidationContext(Property.GetType());
         foreach (ValidationAttribute i in Property.GetCustomAttributes<ValidationAttribute>())

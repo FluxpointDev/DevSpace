@@ -220,7 +220,6 @@ public abstract class IRuntime
 
                     return builder.ToString();
                 }
-                break;
             case "data_string_base64":
                 {
                     if (block.inputs.TryGetValue("string", out WorkspaceBlockConnection? strBlock) && strBlock.block != null)
@@ -235,13 +234,11 @@ public abstract class IRuntime
                                         byte[] plainTextBytes = System.Text.Encoding.UTF8.GetBytes(Text);
                                         return System.Convert.ToBase64String(plainTextBytes);
                                     }
-                                    break;
                                 case "decode":
                                     {
                                         byte[] base64EncodedBytes = System.Convert.FromBase64String(Text);
                                         return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
                                     }
-                                    break;
                             }
 
                         }
@@ -261,12 +258,10 @@ public abstract class IRuntime
                                     {
                                         return Text.ToUpper();
                                     }
-                                    break;
                                 case "lowercase":
                                     {
                                         return Text.ToLower();
                                     }
-                                    break;
                             }
 
                         }
@@ -345,7 +340,6 @@ public abstract class IRuntime
                                         return $"{color.R}, {color.G}, {color.B}, {color.A}";
 
                                     return $"{color.R}, {color.G}, {color.B}";
-                                    break;
                                 case "rgb_hex":
                                     string[] Split = Text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                                     if (Split.Length < 3 || Split.Length > 4)
@@ -362,7 +356,6 @@ public abstract class IRuntime
                                     }
                                     System.Drawing.Color colorH = System.Drawing.Color.FromArgb(int.Parse(Split[0]), int.Parse(Split[1]), int.Parse(Split[2]));
                                     return $"#{colorH.R:X2}{colorH.G:X2}{colorH.B:X2}";
-                                    break;
                             }
 
                         }
@@ -436,7 +429,6 @@ public abstract class IRuntime
 
                     return $"[{Name}]({Link})";
                 }
-                break;
             case "data_string_markdown_code":
                 {
                     if (block.inputs.TryGetValue("string", out WorkspaceBlockConnection? strBlock) && strBlock.block != null)
@@ -633,7 +625,7 @@ public abstract class IActionBlock : IBlock
 public class RuntimeError(RuntimeErrorType type, string? error) : Exception(error)
 {
     public RuntimeErrorType Type = type;
-    public string ErrorMessage = error;
+    public string? ErrorMessage = error;
     public object? CustomMessage;
 }
 public enum RuntimeErrorType

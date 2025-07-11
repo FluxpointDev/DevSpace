@@ -5,7 +5,7 @@ namespace DevSpaceWeb;
 
 public class Crypt
 {
-    public static string EncryptString(string plainText)
+    public static string EncryptString(string? plainText)
     {
         byte[] array;
         using (Aes aes = Aes.Create())
@@ -47,7 +47,7 @@ public class Crypt
     public static string DecryptString(string cipherText)
     {
         if (string.IsNullOrEmpty(cipherText))
-            return null;
+            throw new Exception("Failed encryption data.");
 
         byte[] buffer = Convert.FromBase64String(cipherText);
 

@@ -133,7 +133,7 @@ public class PasskeyRegisterController : AuthControllerContext
             // 2. Verify and make the credentials
             RegisteredPublicKeyCredential success = await _fido2Service._lib.MakeNewCredentialAsync(new MakeNewCredentialParams
             {
-                AttestationResponse = attestationResponse.data,
+                AttestationResponse = attestationResponse.data!,
                 OriginalOptions = options,
                 IsCredentialIdUniqueToUserCallback = callback
             });

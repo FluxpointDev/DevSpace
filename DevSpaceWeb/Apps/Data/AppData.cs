@@ -109,24 +109,25 @@ public class AppData : ITeamResource
         }
     }
 
-
-    public async Task<UpdateResult> UpdateAsync(UpdateDefinition<AppData> update, Action? action = null)
+    public async Task<bool> UpdateAsync(UpdateDefinition<AppData> update, Action? action = null)
     {
         FilterDefinition<AppData> filter = Builders<AppData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Apps.Collection.UpdateOneAsync(filter, update);
-        if (action != null && Result.IsAcknowledged)
+        if (Result.IsAcknowledged)
             action?.Invoke();
-        return Result;
+
+        return Result.IsAcknowledged;
     }
 
-    public async Task DeleteAsync(TeamMemberData member, Action action)
+    public override async Task<bool> DeleteAsync(TeamMemberData? member, Action? action = null)
     {
         FilterDefinition<AppData> filter = Builders<AppData>.Filter.Eq(r => r.Id, Id);
         DeleteResult Result = await _DB.Apps.Collection.DeleteOneAsync(filter);
         if (Result.IsAcknowledged)
         {
-            _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.AppDeleted)
-                .SetTarget(this));
+            if (member != null)
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.AppDeleted)
+                    .SetTarget(this));
 
             _DB.Apps.Cache.TryRemove(Id, out _);
             if (_Data.DiscordClients.TryGetValue(Id, out Discord.Rest.DiscordRestClient? client))
@@ -142,6 +143,8 @@ public class AppData : ITeamResource
             catch { }
             action?.Invoke();
         }
+
+        return Result.IsAcknowledged;
     }
 }
 

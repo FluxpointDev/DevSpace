@@ -34,14 +34,14 @@ public class ModifyMessageBlock : DiscordActionBlock
                     components = new ComponentBuilder() { ActionRows = new List<ActionRowBuilder> { } }.Build();
             }
         }
-            
+
 
         if (MessageObject == null)
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to modify message, message object data is missing.");
 
         string Content = await MessageObject.Content();
 
-        
+
 
         if (Message is RestUserMessage rm)
             await rm.ModifyAsync(x =>

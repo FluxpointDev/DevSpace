@@ -162,13 +162,14 @@ public class ServerData : ITeamResource
             action?.Invoke();
     }
 
-    public async Task DeleteAsync(TeamMemberData member, Action action)
+    public override async Task<bool> DeleteAsync(TeamMemberData? member, Action? action = null)
     {
         FilterDefinition<ServerData> filter = Builders<ServerData>.Filter.Eq(r => r.Id, Id);
         DeleteResult Result = await _DB.Servers.Collection.DeleteOneAsync(filter);
         if (Result.IsAcknowledged)
         {
-            _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.ServerDeleted)
+            if (member != null)
+                _ = _DB.AuditLogs.CreateAsync(new AuditLog(member, AuditLogCategoryType.Resource, AuditLogEventType.ServerDeleted)
                 .SetTarget(this));
 
             _DB.Servers.Cache.TryRemove(Id, out _);
@@ -177,6 +178,8 @@ public class ServerData : ITeamResource
 
             action?.Invoke();
         }
+
+        return Result.IsAcknowledged;
     }
 }
 public enum ServerAgentType

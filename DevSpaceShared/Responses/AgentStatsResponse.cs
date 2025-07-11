@@ -22,7 +22,7 @@ public class AgentStatsResponse : IWebSocketEvent
 
         return new AgentStatsResponse
         {
-            StacksCount = Containers.Count(x => x.Labels != null && x.Labels.TryGetValue("com.docker.compose.project", out string label) && !string.IsNullOrEmpty(label)),
+            StacksCount = Containers.Count(x => x.Labels != null && x.Labels.TryGetValue("com.docker.compose.project", out string? label) && !string.IsNullOrEmpty(label)),
             ContainersCount = systemInfo.Containers,
             ContainersRunningCount = systemInfo.ContainersRunning,
             ContainersDownCount = systemInfo.ContainersStopped,

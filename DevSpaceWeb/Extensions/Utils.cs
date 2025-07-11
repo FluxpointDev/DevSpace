@@ -328,41 +328,43 @@ public static class Utils
         DateTimeOffset MessageOffset = date.Value.AddMinutes(session.UserDateOffset);
         DateTimeOffset UserDate = DateTimeOffset.UtcNow.AddMinutes(session.UserDateOffset);
 
+        string TimeFormat = session.Use24HourTime ? "HH:mm" : "hh:mm tt";
+
         if (showSeconds)
-            return MessageOffset.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+            return MessageOffset.ToString(TimeFormat.Replace("mm:", "mm:ss"), CultureInfo.InvariantCulture);
 
         if (isMini && MessageOffset.Year == UserDate.Year && MessageOffset.Month == UserDate.Month)
         {
             if (MessageOffset.Day == UserDate.Day)
-                return $"Today at {MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture)}";
+                return $"Today at {MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture)}";
 
             DateTimeOffset Lastday = UserDate.AddDays((int)-1);
             if (MessageOffset.Day == Lastday.Day)
-                return $"Yesterday at {MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture)}";
+                return $"Yesterday at {MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture)}";
         }
 
         switch (session.UserDateFormat)
         {
             case DateFormatLang.DMY_Dash:
-                return MessageOffset.ToString("dd-MM-yyyy") + (showTime ? " " + MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture) : "");
+                return MessageOffset.ToString("dd-MM-yyyy") + (showTime ? " - " + MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture) : "");
             case DateFormatLang.DMY_Dot:
-                return MessageOffset.ToString("dd.MM.yyyy") + (showTime ? " " + MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture) : "");
+                return MessageOffset.ToString("dd.MM.yyyy") + (showTime ? " - " + MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture) : "");
             case DateFormatLang.DMY_Slash:
-                return MessageOffset.ToString("dd/MM/yyyy") + (showTime ? " " + MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture) : "");
+                return MessageOffset.ToString("dd/MM/yyyy") + (showTime ? " - " + MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture) : "");
             case DateFormatLang.MDY_Dash:
-                return MessageOffset.ToString("MM-dd-yyyy") + (showTime ? " " + MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture) : "");
+                return MessageOffset.ToString("MM-dd-yyyy") + (showTime ? " - " + MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture) : "");
             case DateFormatLang.MDY_Dot:
-                return MessageOffset.ToString("MM.dd.yyyy") + (showTime ? " " + MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture) : "");
+                return MessageOffset.ToString("MM.dd.yyyy") + (showTime ? " - " + MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture) : "");
             case DateFormatLang.MDY_Slash:
-                return MessageOffset.ToString("MM/dd/yyyy") + (showTime ? " " + MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture) : "");
+                return MessageOffset.ToString("MM/dd/yyyy") + (showTime ? " - " + MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture) : "");
             case DateFormatLang.YMD_Dash:
-                return MessageOffset.ToString("yyyy-MM-dd") + (showTime ? " " + MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture) : "");
+                return MessageOffset.ToString("yyyy-MM-dd") + (showTime ? " - " + MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture) : "");
             case DateFormatLang.YMD_Dot:
-                return MessageOffset.ToString("yyyy.MM.dd") + (showTime ? " " + MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture) : "");
+                return MessageOffset.ToString("yyyy.MM.dd") + (showTime ? " - " + MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture) : "");
             case DateFormatLang.YMD_Slash:
-                return MessageOffset.ToString("yyyy/MM/dd") + (showTime ? " " + MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture) : "");
+                return MessageOffset.ToString("yyyy/MM/dd") + (showTime ? " - " + MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture) : "");
         }
-        return MessageOffset.ToString("dd/MM/yyyy") + (showTime ? " " + MessageOffset.ToString("hh:mm tt", CultureInfo.InvariantCulture) : "");
+        return MessageOffset.ToString("dd/MM/yyyy") + (showTime ? " - " + MessageOffset.ToString(TimeFormat, CultureInfo.InvariantCulture) : "");
     }
 
     public static DateFormatLang GetDateFormat(string lang)

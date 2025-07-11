@@ -195,6 +195,7 @@
 
     public int UserDateOffset { get; set; }
     public DateFormatLang UserDateFormat { get; set; } = DateFormatLang.MDY_Slash;
+    public bool Use24HourTime;
 
     public SessionErrorType SessionError { get; set; }
 
@@ -317,7 +318,7 @@
         State = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         try
         {
-            UserDateOffset = await JS.InvokeAsync<int>("window.Utils.getUserTimezoneOffset");
+            UserDateOffset = -(await JS.InvokeAsync<int>("window.Utils.getUserTimezoneOffset"));
         }
         catch { }
         string Path = NavigationManager.Uri.Substring(NavigationManager.BaseUri.Length);
@@ -350,6 +351,7 @@
                 CurrentUser = _DB.Users[User.Id];
                 if (User.Settings.DateFormat != DateFormatLang.Automatic)
                     UserDateFormat = User.Settings.DateFormat;
+                Use24HourTime = User.Settings.Use24HourTime;
 
                 IsInstanceAdmin = User.IsInstanceAdmin;
                 string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
@@ -411,6 +413,7 @@
                 CurrentUser = _DB.Users[User.Id];
                 if (User.Settings.DateFormat != DateFormatLang.Automatic)
                     UserDateFormat = User.Settings.DateFormat;
+                Use24HourTime = User.Settings.Use24HourTime;
 
                 IsInstanceAdmin = User.IsInstanceAdmin;
                 if (User.Disabled != null)

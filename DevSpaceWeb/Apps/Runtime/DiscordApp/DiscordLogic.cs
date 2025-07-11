@@ -131,7 +131,6 @@ public static class DiscordLogic
                                     }
                                     return InvertIfValueBool(runtime, false, valueBlock);
                                 }
-                                break;
                             case "data_type":
                                 {
                                     switch (compare)
@@ -147,7 +146,6 @@ public static class DiscordLogic
 
                                     return InvertIfValueBool(runtime, false, valueBlock);
                                 }
-                                break;
                             case "string":
                                 if (compare == "exists")
                                     return await CheckString(runtime, variable.ToString(), compare, valueBlock);
@@ -191,7 +189,6 @@ public static class DiscordLogic
 
                                     return InvertIfValueBool(runtime, false, valueBlock);
                                 }
-                                break;
                             case "name":
                                 {
                                     FileData? FileData = runtime.GetFileFromBlock(inputBlock);
@@ -291,7 +288,6 @@ public static class DiscordLogic
 
                                             return InvertIfValueBool(runtime, false, valueBlock);
                                         }
-                                        break;
                                     case "has_body":
                                         {
                                             ResponseData? Res = runtime.GetResponseFromBlock(inputBlock);
@@ -300,12 +296,10 @@ public static class DiscordLogic
 
                                             return InvertIfValueBool(runtime, false, valueBlock);
                                         }
-                                        break;
                                 }
 
                                 return InvertIfValueBool(runtime, false, valueBlock);
                             }
-                            break;
                         case "status_code":
                             {
                                 ResponseData? Res = runtime.GetResponseFromBlock(inputBlock);
@@ -1060,7 +1054,6 @@ public static class DiscordLogic
                     break;
                 default:
                     throw new RuntimeError(RuntimeErrorType.Server, "Failed to check logic condition, invalid check block.");
-                    break;
             }
         }
         return false;
@@ -1216,7 +1209,6 @@ public static class DiscordLogic
 
                     return InvertIfValueBool(runtime, false, valueBlock);
                 }
-                break;
             case "equals":
                 {
                     if (inputBool != null)

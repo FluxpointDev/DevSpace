@@ -616,7 +616,7 @@
         await DeleteRoleInternal(SelectedRole);
     }
 
-    private async Task DeleteRoleInternal(TeamRoleData role)
+    private async Task DeleteRoleInternal(TeamRoleData? role)
     {
         if (Member == null || Team == null)
             return;
@@ -665,7 +665,7 @@
         Roles = Roles.OrderByDescending(x => x.Team == null ? -1 : x.GetPosition()).ToList();
     }
 
-    object ShowContextMenuWithManageItems(TeamRoleData item, MouseEventArgs args)
+    void ShowContextMenuWithManageItems(TeamRoleData item, MouseEventArgs args)
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem>
@@ -674,8 +674,6 @@
                 new ContextMenuItem() { Text = "Copy Role ID", Icon = "content_copy" }
 
             }, e => MenuItemClick(item, e));
-
-        return null;
     }
 
     void MenuItemClick(TeamRoleData item, MenuItemEventArgs args)

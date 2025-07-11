@@ -53,8 +53,8 @@ public class WorkspaceBlockConnection
 }
 public class WorkspaceBlock
 {
-    public string type;
-    public string id;
+    public string? type;
+    public string? id;
     public WorkspaceBlockIcons? icons;
     public string[]? disabledReasons = null;
     public bool enabled => disabledReasons == null || disabledReasons.Length == 0;
@@ -65,7 +65,7 @@ public class WorkspaceBlock
     public double x;
     public double y;
 
-    public string GetVariableId()
+    public string? GetVariableId()
     {
         return fields.First().Value.Value<string>("id");
     }

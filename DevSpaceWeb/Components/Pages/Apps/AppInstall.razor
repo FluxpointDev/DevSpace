@@ -315,12 +315,12 @@
 
     public async Task UpdateInstall()
     {
-        if (Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))
+        if (Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ManageInstall))
             return;
 
-        if (!_Data.DiscordClients.TryGetValue(App.Id, out Discord.Rest.DiscordRestClient client))
+        if (!_Data.DiscordClients.TryGetValue(App.Id, out Discord.Rest.DiscordRestClient? client))
         {
-            Dialogs.ShowInfoAsync("App Udate Failed!", "Could not get Discord client.");
+            _ = Dialogs.ShowInfoAsync("App Udate Failed!", "Could not get Discord client.");
             return;
         }
 
@@ -332,7 +332,7 @@
 
         if (!dict.Any())
         {
-            Dialogs.ShowInfoAsync("App Udate Failed!", "You need to set an install type.");
+            _ = Dialogs.ShowInfoAsync("App Udate Failed!", "You need to set an install type.");
             return;
         }
         RestApplication install = await client.ModifyCurrentBotApplicationAsync(x =>
@@ -351,6 +351,6 @@
             App.DiscordData.IsGuildInstall = IsGuildInstall;
         });
 
-        Dialogs.ShowInfoAsync("App Udated", "Install settings and permissions have been updated.");
+        _ = Dialogs.ShowInfoAsync("App Udated", "Install settings and permissions have been updated.");
     }
 }

@@ -32,7 +32,9 @@ namespace DevSpaceShared.Data
             {
                 Info.Labels = network.Labels;
                 Info.Options = network.Options;
-                Info.ContainersList = network.Containers;
+                if (network.Containers != null)
+                    Info.ContainersList = network.Containers;
+
                 if (networkFrom != null)
                 {
                     Info.ConfigFrom = new DockerNetworkInfo
