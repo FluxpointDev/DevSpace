@@ -52,8 +52,7 @@ public class PermissionsSet
     public WebsitePermission WebsitePermissions { get; set; }
     public ConsolePermission ConsolePermissions { get; set; }
     public DockerPermission DockerPermissions { get; set; }
-    [Obsolete]
-    public WebsitePermission LogPermissions { get; set; }
+    public LogPermission LogPermissions { get; set; }
     public DockerContainerPermission DockerContainerPermissions { get; set; }
 
     public AppPermission AppPermissions { get; set; }
@@ -171,6 +170,23 @@ public class PermissionsSet
             return true;
 
         if (ProjectPermissions.HasFlag(checkPermission))
+            return true;
+
+        return false;
+    }
+
+    public bool HasLogPermission(LogPermission checkPermission)
+    {
+        if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
+            return true;
+
+        if (ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator))
+            return true;
+
+        if (LogPermissions.HasFlag(LogPermission.LogAdministrator))
+            return true;
+
+        if (LogPermissions.HasFlag(checkPermission))
             return true;
 
         return false;

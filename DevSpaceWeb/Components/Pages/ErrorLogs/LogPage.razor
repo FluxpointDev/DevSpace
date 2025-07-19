@@ -1,0 +1,553 @@
+﻿@using DevSpaceWeb.Data.ErrorLogs
+@using System.Text.Json
+
+
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:warning"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Log</RadzenText>
+        @if (IsLoading)
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+        }
+    </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/logs")" Text="Logs" />
+        @if (Project != null && Member != null && Member.HasLogPermission(Team, Project, LogPermission.ViewLogs))
+        {
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Project.Id.ToString())" Icon="lightbulb" Text="@Project.Name" />
+        }
+    </RadzenBreadCrumb>
+    <br />
+    @if (IsLoading)
+    {
+        <p>Loading log</p>
+    }
+    else if (Project == null || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ViewLogs))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for View Logs
+        </RadzenAlert>
+    }
+    else if (Log == null)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            This log entry does not exist.
+        </RadzenAlert>
+    }
+    else
+    {
+        <div id="logTitle" style="background-color: rgba(43, 44, 54, 0.8) !important; margin-bottom: 10px;">
+            <div class="container-fluid">
+                <div class="container-start">
+                    <h6>@Log.MessageTitle</h6>
+                    <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color);">@Log.Message</RadzenText>
+                </div>
+                <div class="container-center">
+                </div>
+                <div class="d-flex container-end" style="padding: 4px !important;">
+                    <RadzenButton Variant="Variant.Filled" Text="Resolve" Icon="check" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@ResolveIssue" />
+                    <RadzenButton Variant="Variant.Filled" Text="Reviewed" Icon="person_alert" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Click="@ReviewIssue" />
+                    <RadzenButton Variant="Variant.Filled" Text="Ignore" Icon="alarm_pause" ButtonStyle="ButtonStyle.Light" Click="@IgnoreIssue" />
+                    <RadzenButton Variant="Variant.Filled" Icon="delete" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@DeleteIssue" />
+                </div>
+            </div>
+        </div>
+        
+        <RadzenRow Gap="10px" RowGap="10px">
+            <RadzenColumn SizeMD="9">
+                <RadzenTabs TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Client">
+                    <Tabs>
+                        <RadzenTabsItem Text="Event">
+                            <div class="event-details">
+                                @if (Event == null)
+                                {
+                                    <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                        Failed to load event data
+                                    </RadzenAlert>
+                                }
+                                else
+                                {
+                                    <LogEventInfo Log="@Log" Event="@Event" LatestEventDate="@LatestEventDate.GetValueOrDefault()" CurrentEventDate="@CurrentEventDate.GetValueOrDefault()" Oldest="@Oldest" Older="@Older" Newer="@Newer" Latest="@Latest"></LogEventInfo>
+                                }
+                            </div>
+                        </RadzenTabsItem>
+                        <RadzenTabsItem Text="Reports">
+                            <LogReports></LogReports>
+                        </RadzenTabsItem>
+                        <RadzenTabsItem Text="Comments">
+                            <LogComments></LogComments>
+                        </RadzenTabsItem>
+                    </Tabs>
+                </RadzenTabs>
+            </RadzenColumn>
+            <RadzenColumn SizeMD="3">
+                <div style="background-color: rgba(43, 44, 54, 0.8) !important;">
+                    <div class="rz-mb-1 log-details-title">
+                        <RadzenIcon Icon="article"></RadzenIcon>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">
+                            Issue
+                        </RadzenText>
+                    </div>
+                    
+                    <div style="margin-left: 30px;">
+                    @if (Log.LogType == LogType.Error || Log.LogType == LogType.Fatal || Log.LogType == LogType.Warn)
+                    {
+                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Number</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">
+                                <span><span style="color: var(--rz-text-tertiary-color);">#</span>@Log.IssueNumber</span>
+                        </RadzenText>
+                    }
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Type</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                            @switch (Log.LogType)
+                            {
+                                case LogType.Debug:
+                                    {
+                                        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Primary" Text="Debug" IsPill="true" />
+                                    }
+                                    break;
+                                case LogType.Error:
+                                    {
+                                        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Danger" Text="Error" IsPill="true" />
+                                    }
+                                    break;
+                                case LogType.Fatal:
+                                    {
+                                        <RadzenBadge Shade="Shade.Light" BadgeStyle="BadgeStyle.Danger" Text="Fatal" IsPill="true" />
+                                    }
+                                    break;
+                                case LogType.Info:
+                                    {
+                                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Info" IsPill="true" />
+                                    }
+                                    break;
+                                case LogType.Trace:
+                                    {
+                                        <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="Trace" IsPill="true" />
+                                    }
+                                    break;
+                                case LogType.Warn:
+                                    {
+                                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Warning" IsPill="true" />
+                                    }
+                                    break;
+                            }
+                    </RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Status</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            @switch(Log.Status)
+                            {
+                                case LogStatus.New:
+                                    {
+                                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="New" IsPill="true" />
+                                    }
+                                    break;
+                                case LogStatus.Open:
+                                    {
+                                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Open" IsPill="true" />
+                                    }
+                                    break;
+                                case LogStatus.Reviewed:
+                                    {
+                                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Primary" Text="Reviewed" IsPill="true" />
+                                    }
+                                    break;
+                                case LogStatus.Ignored:
+                                    {
+                                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Light" Text="Ignored" IsPill="true" />
+                                    }
+                                    break;
+                                case LogStatus.Resolved:
+                                    {
+                                        <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Resolved" IsPill="true" />
+                                    }
+                                    break;
+                            }
+                        </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Last Seen</RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        @if (LatestEventDate.HasValue)
+                        {
+                                @Utils.GetLocalDate(Session, LatestEventDate.Value, true)
+                        }
+                        
+                    </RadzenText>
+                    </div>
+                    <div class="rz-mb-1 log-details-title">
+                        <RadzenIcon Icon="person"></RadzenIcon>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">
+                            Assigned
+                        </RadzenText>
+                    </div>
+                    
+                    @if (Log.AssignedUser != null)
+                    {
+                        <div style="margin-left: 30px;">
+                        <MemberStrip Team="@Team" UserId="@Log.AssignedUser"></MemberStrip>
+                        </div>
+                    }
+                    else
+                    {
+                        <RadzenStack Orientation="Orientation.Horizontal">
+                            <RadzenButton Variant="Variant.Filled" Icon="add" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Disabled="true" />
+                            <RadzenText TextStyle="TextStyle.Body2">Not Assigned</RadzenText>
+                        </RadzenStack>
+                        
+                    }
+                   <br />
+                    <div class="rz-mb-1 log-details-title">
+                        <RadzenIcon Icon="flag_2"></RadzenIcon>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">
+                            Activity
+                        </RadzenText>
+                    </div>
+                    <RadzenTimeline Orientation="@Orientation.Vertical" LinePosition="LinePosition.Left" AlignItems="AlignItems.Start">
+                        <Items>
+                        @foreach(var a in Log.Activity.OrderByDescending(x => x.CreatedAt))
+                        {
+                                <RadzenTimelineItem>
+                                    <PointContent><RadzenIcon Icon="@a.GetIcon" /></PointContent>
+                                    <ChildContent>
+                                        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-m-0">@Utils.FriendlyName(a.ActivityType.ToString())</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body2" class="rz-m-0">@a.GetText</RadzenText>
+                                        <RadzenText TextStyle="TextStyle.Body2" class="rz-m-0" style="color: var(--rz-text-tertiary-color);">@Utils.GetLocalDate(Session, a.CreatedAt, true)</RadzenText>
+                                    </ChildContent>
+                                </RadzenTimelineItem>
+                            }
+                        <RadzenTimelineItem>
+                            <PointContent><RadzenIcon Icon="add" /></PointContent>
+                            <ChildContent>
+                                <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-m-0">Created</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2" class="rz-m-0">@("Issue for " + Log.LogType.ToString())</RadzenText>
+                                    <RadzenText TextStyle="TextStyle.Body2" class="rz-m-0" style="color: var(--rz-text-tertiary-color);">@Utils.GetLocalDate(Session, Log.CreatedAt, true)</RadzenText>
+                            </ChildContent>
+                        </RadzenTimelineItem>
+                            
+                        </Items>
+                    </RadzenTimeline>
+                </div>
+            </RadzenColumn>
+        </RadzenRow>
+
+        
+    }
+
+</div>
+
+<style>
+    .dash-box .rz-stack .rz-badge-light {
+        color: var(--rz-text-subtitle1-color) !important;
+        text-transform: none;
+        background-color: #515154;
+        font-size: var(--rz-text-subtitle2-font-size);
+    }
+
+        .dash-box .rz-stack .rz-badge-light span {
+            font-weight: 700 !important;
+            margin-left: 4px;
+        }
+
+    
+
+
+
+    .rz-tabview-panels {
+        background-color: rgba(43, 44, 54, 0.8) !important;
+        padding: 4px;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 4px !important;
+    }
+
+    .rz-col-md-3 {
+        margin-top: 36px;
+        display: sticky;
+    }
+
+        .rz-col-md-3 > div {
+            max-height: calc(100vh - 80px);
+        }
+
+        .rz-col-md-3 .rz-timeline {
+            overflow: scroll;
+            max-height: calc(100vh - 450px);
+        }
+
+    #logTitle {
+        padding-top: 10px !important;
+        padding-bottom: 6px !important;
+    }
+
+    .rz-col-md-3 > div, #logTitle {
+        padding: 4px;
+        padding-left: 10px;
+        padding-right: 10px;
+        border-radius: 4px !important;
+    }
+
+    .rz-col-md-3 > div {
+        position: -webkit-sticky;
+        position: sticky;
+        top: 0;
+    }
+
+    .rz-breadcrumb-item .rz-link .rzi {
+        font-variation-settings: 'FILL' 1;
+    }
+
+
+    .container-fluid {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+
+    .session-item {
+        padding: 10px;
+        padding-right: 10px;
+        padding-left: 10px;
+        padding-left: 20px;
+        padding-right: 20px;
+        border-radius: 8px;
+        background-color: rgba(52,53,63,0.8) !important;
+        min-height: 70px;
+    }
+
+    .log-details-title {
+        color: var(--rz-text-tertiary-color);
+        margin-top: 6px;
+    }
+
+        .log-details-title .rz-text-subtitle1 {
+            color: var(--rz-text-tertiary-color);
+            font-weight: 600;
+            display: inline-block;
+            margin-left: 6px;
+        }
+
+        .log-details-title .rzi {
+            display: inline-block;
+            margin-bottom: -4px;
+        }
+
+
+    .session-item .iconify {
+        width: 36px;
+        height: 36px;
+        background-color: #17171b;
+        padding: 6px;
+        border-radius: 100px;
+    }
+
+    .dash-box .rz-timeline {
+        margin-top: -4px;
+        margin-left: -32px !important;
+    }
+
+    .dash-box .rz-timeline-content-end {
+        margin-left: -10px;
+    }
+
+    .dash-box .rz-data-grid thead {
+        display: none;
+    }
+
+    .dash-box .rz-data-row {
+        background-color: #242527 !important;
+    }
+
+    .dash-box .rz-cell-data {
+        color: var(--rz-text-tertiary-color) !important;
+    }
+
+        .dash-box .rz-cell-data span {
+            color: var(--rz-grid-cell-color) !important;
+            margin-left: 4px;
+            margin-right: 4px;
+        }
+
+</style>
+
+@code {
+    [Parameter]
+    public ObjectId LogId { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    public bool IsLoading { get; set; } = true;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        LogData? log = _DB.Logs.Collection.Find(new FilterDefinitionBuilder<LogData>().Eq(x => x.Id, LogId)).FirstOrDefault();
+        if (log != null && _DB.Projects.Cache.TryGetValue(log.ProjectId, out ProjectData? project))
+        {
+            Project = project;
+            Log = log;
+            if (Log != null)
+            {
+                if (!Log.IsRead)
+                {
+                    await Log.UpdateAsync(new UpdateDefinitionBuilder<LogData>().Set(x => x.IsRead, true));
+                }
+                var EventData = _DB.LogsEvents.Collection.Find(new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id)).SortByDescending(x => x.CreatedAt).FirstOrDefault();
+                if (EventData != null)
+                {
+                    LatestEventDate = EventData.CreatedAt;
+                    CurrentEventDate = LatestEventDate;
+                    Event = SentryEvent.FromJson(JsonDocument.Parse(EventData.Json).RootElement);
+                }
+
+            }
+        }
+        else
+        {
+            Project = null;
+            Log = null;
+        }
+        IsLoading = false;
+    }
+
+    public async Task ResolveIssue()
+    {
+        var User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        await Log.UpdateAsync(new UpdateDefinitionBuilder<LogData>().Set(x => x.Status, LogStatus.Resolved).Push(x => x.Activity, new LogActivity
+        {
+            ActivityType = LogActivityType.Resolved,
+            ActionUserId = User.Id
+        }), () =>
+        {
+            Log.Status = LogStatus.Resolved;
+            Log.Activity.Add(new LogActivity
+            {
+                ActivityType = LogActivityType.Resolved,
+                ActionUserId = User.Id
+            });
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    public async Task IgnoreIssue()
+    {
+        var User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        await Log.UpdateAsync(new UpdateDefinitionBuilder<LogData>().Set(x => x.Status, LogStatus.Ignored).Push(x => x.Activity, new LogActivity
+        {
+            ActivityType = LogActivityType.Ignored,
+            ActionUserId = User.Id
+        }), () =>
+        {
+            Log.Status = LogStatus.Ignored;
+            Log.Activity.Add(new LogActivity
+            {
+                ActivityType = LogActivityType.Ignored,
+                ActionUserId = User.Id
+            });
+            InvokeAsync(StateHasChanged);
+        });
+    }
+    public async Task ReviewIssue()
+    {
+        var User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        await Log.UpdateAsync(new UpdateDefinitionBuilder<LogData>().Set(x => x.Status, LogStatus.Reviewed).Push(x => x.Activity, new LogActivity
+        {
+            ActivityType = LogActivityType.Reviewed,
+            ActionUserId = User.Id
+        }), () =>
+        {
+            Log.Status = LogStatus.Reviewed;
+            Log.Activity.Add(new LogActivity
+            {
+                ActivityType = LogActivityType.Reviewed,
+                ActionUserId = User.Id
+            });
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    public async Task DeleteIssue()
+    {
+        await _DB.Logs.DeleteAsync(Log);
+        Log = null;
+    }
+
+    public async Task Latest()
+    {
+        var EventData = _DB.LogsEvents.Collection.Find(new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id)).SortByDescending(x => x.CreatedAt).FirstOrDefault();
+        if (EventData != null)
+        {
+            CurrentEventDate = EventData.CreatedAt;
+            Event = SentryEvent.FromJson(JsonDocument.Parse(EventData.Json).RootElement);
+            StateHasChanged();
+        }
+    }
+
+    public async Task Newer()
+    {
+        FilterDefinition<LogEventData>[] AndFilter = new FilterDefinition<LogEventData>[]
+        {
+            new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id),
+            new FilterDefinitionBuilder<LogEventData>().Gt(x => x.CreatedAt, CurrentEventDate)
+        };
+        var EventData = _DB.LogsEvents.Collection.Find(new FilterDefinitionBuilder<LogEventData>().And(AndFilter)).SortByDescending(x => x.CreatedAt).FirstOrDefault();
+        if (EventData != null)
+        {
+            CurrentEventDate = EventData.CreatedAt;
+            Event = SentryEvent.FromJson(JsonDocument.Parse(EventData.Json).RootElement);
+            StateHasChanged();
+        }
+    }
+
+    public async Task Older()
+    {
+        FilterDefinition<LogEventData>[] AndFilter = new FilterDefinition<LogEventData>[]
+        {
+            new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id),
+            new FilterDefinitionBuilder<LogEventData>().Lt(x => x.CreatedAt, CurrentEventDate)
+        };
+        var EventData = _DB.LogsEvents.Collection.Find(new FilterDefinitionBuilder<LogEventData>().And(AndFilter)).SortBy(x => x.CreatedAt).FirstOrDefault();
+        if (EventData != null)
+        {
+            CurrentEventDate = EventData.CreatedAt;
+            Event = SentryEvent.FromJson(JsonDocument.Parse(EventData.Json).RootElement);
+            StateHasChanged();
+        }
+    }
+
+    public async Task Oldest()
+    {
+        var EventData = _DB.LogsEvents.Collection.Find(new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id)).SortBy(x => x.CreatedAt).FirstOrDefault();
+        if (EventData != null)
+        {
+            CurrentEventDate = EventData.CreatedAt;
+            Event = SentryEvent.FromJson(JsonDocument.Parse(EventData.Json).RootElement);
+            StateHasChanged();
+        }
+    }
+
+    public ProjectData? Project { get; set; }
+    public LogData? Log { get; set; }
+
+    public DateTime? LatestEventDate;
+    public DateTime? CurrentEventDate;
+
+    public SentryEvent Event { get; set; }
+
+}

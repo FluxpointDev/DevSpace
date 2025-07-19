@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Apps.Data;
 using DevSpaceWeb.Data.Consoles;
+using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
@@ -63,6 +64,38 @@ public class VanityUrlData : IObject
                 AppVanityUrls.TryAdd(vanityUrl, app.Id);
                 app.VanityUrl = vanityUrl;
                 await UpdateBaseAsync(new UpdateDefinitionBuilder<VanityUrlData>().Set(x => x.AppVanityUrls, AppVanityUrls), null!);
+            }
+        }
+    }
+
+    public async Task UpdateAsync(ProjectData project, string? vanityUrl)
+    {
+        if (string.IsNullOrEmpty(vanityUrl))
+        {
+            // Update if vanity url is null and current is not null
+            if (!string.IsNullOrEmpty(project.VanityUrl))
+            {
+                ProjectVanityUrls.TryRemove(project.VanityUrl, out _);
+                project.VanityUrl = null;
+                await UpdateBaseAsync(new UpdateDefinitionBuilder<VanityUrlData>().Set(x => x.ProjectVanityUrls, ProjectVanityUrls), null!);
+            }
+        }
+        else
+        {
+            // Update if project has no vanity url
+            if (string.IsNullOrEmpty(project.VanityUrl))
+            {
+                ProjectVanityUrls.TryAdd(vanityUrl, project.Id);
+                project.VanityUrl = vanityUrl;
+                await UpdateBaseAsync(new UpdateDefinitionBuilder<VanityUrlData>().Set(x => x.ProjectVanityUrls, ProjectVanityUrls), null!);
+            }
+            // Update if vanity url not match
+            else if (Utils.FormatVanityUrl(vanityUrl) != project.VanityUrl)
+            {
+                ProjectVanityUrls.TryRemove(project.VanityUrl!, out _);
+                ProjectVanityUrls.TryAdd(vanityUrl, project.Id);
+                project.VanityUrl = vanityUrl;
+                await UpdateBaseAsync(new UpdateDefinitionBuilder<VanityUrlData>().Set(x => x.ProjectVanityUrls, ProjectVanityUrls), null!);
             }
         }
     }

@@ -1,0 +1,190 @@
+﻿
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:lightbulb"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Project</RadzenText>
+    </div>
+    @if (Permissions.CheckFailedProjectPermission(Member, Team, Project, ProjectPermission.ViewProject, out ProjectPermission? failedPerm))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for @Utils.FriendlyName(failedPerm.ToString()!)
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+    }
+</div>
+
+@if (failedPerm == null)
+{
+    <div class="dash-box dash-box-content">
+        <div class="dash-box-header">
+            <div class="dash-box-icon">
+                <span class="iconify" data-icon="mdi:warning"></span>
+            </div>
+            <RadzenText TextStyle="TextStyle.H6">Log Url (Sentry DSN)</RadzenText>
+        </div>
+        @if (Member == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.ProjectAdministrator))
+        {
+            <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                You do not have permission for Project Administrator
+            </RadzenAlert>
+        }
+        else if (Project == null || string.IsNullOrEmpty(Project.EncryptedLogKey))
+        {
+            <br />
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Generate Url" Click="@GenerateLogKey" />
+        }
+        else
+        {
+            <br />
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Generate Url" Click="@GenerateLogKey" />
+            <br />
+            <br />
+            <RadzenStack Orientation="Orientation.Horizontal">
+                <RadzenText TextStyle="TextStyle.Body2">@SentryDSNUrl()</RadzenText>
+                <CopyClipboard Value="@SentryDSNUrl()"></CopyClipboard>
+            </RadzenStack>
+            <br />
+            <RadzenText TextStyle="TextStyle.Body2">@("Do not share this with other users!")</RadzenText>
+        }
+    </div>
+
+    <ProjectSettings></ProjectSettings>
+}
+
+<style>
+    .settings-item {
+        width: 120px;
+        height: 120px;
+    }
+
+        .settings-item .iconify {
+            width: 30px;
+            height: 30px;
+            margin-top: 16px;
+            color: var(--rz-info);
+        }
+
+        .settings-item .rz-text-h6 {
+            margin-top: 14px;
+            font-size: 1.1rem;
+            color: var(--rz-base-200) !important;
+        }
+
+    .rz-stack a {
+        text-decoration: none !important;
+    }
+
+    .settings-item:hover {
+        background-color: var(--rz-base-dark);
+        outline: solid 1px var(--rz-secondary-dark) !important;
+    }
+</style>
+
+<style>
+    .settings-box .rz-align-items-normal .rz-text-body2 {
+        text-overflow: "";
+        overflow: hidden;
+        white-space: nowrap;
+    }
+
+    .settings-box {
+        background-color: rgba(43,44,54,0.8);
+        width: 100% !important;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+
+    .settings-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .session-item {
+        padding: 10px;
+        padding-right: 10px;
+        padding-left: 10px;
+        padding-left: 20px;
+        padding-right: 20px;
+        border-radius: 8px;
+        background-color: rgba(52,53,63,0.8) !important;
+        min-height: 70px;
+    }
+
+        .session-item .iconify:first-child {
+            width: 44px;
+            height: 44px;
+        }
+
+        .session-item .iconify:nth-child(2) {
+            width: 36px;
+            height: 36px;
+            margin-left: -26px;
+            margin-bottom: -36px;
+            background-color: #17171b;
+            padding: 6px;
+            border-radius: 100px;
+        }
+
+    .session-item-stat {
+        margin-left: 120px !important;
+        margin-top: -50px;
+        margin-bottom: -50px;
+    }
+
+        .session-item-stat .rzi {
+            font-size: 1rem;
+            margin-right: 8px;
+            vertical-align: sub;
+        }
+
+        .session-item-stat .rz-text-body2 {
+            vertical-align: sub;
+            font-weight: 500 !important;
+        }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ProjectData? Project => Session.Selected.Project;
+
+    public string? OwnerUser { get; set; }
+
+    public string SentryDSNUrl()
+    {
+        return $"https://{Project.GetDecryptedLogKey()}@{_Data.Config.Instance.PublicDomain}/sentry/{Project.Id.ToString()}";
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Member == null || Project == null)
+            return;
+
+        if (_DB.Users.TryGetValue(Project.OwnerId, out PartialUserData? user))
+            OwnerUser = user.UserName;
+        else
+            OwnerUser = "Unknown?";
+
+    }
+
+    public async Task GenerateLogKey()
+    {
+        string LogKey = Crypt.EncryptString(_Data.GetRandomString(new Random().Next(26, 34)));
+        await Project.UpdateAsync(new UpdateDefinitionBuilder<ProjectData>().Set(x => x.EncryptedLogKey, LogKey), () =>
+        {
+            Project.ResetDecryptedLogKey();
+            Project.EncryptedLogKey = LogKey;
+            InvokeAsync(StateHasChanged);
+        });
+    }
+}

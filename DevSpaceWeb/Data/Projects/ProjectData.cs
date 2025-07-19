@@ -1,6 +1,8 @@
 ﻿using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Data.Projects;
 
@@ -8,7 +10,26 @@ public class ProjectData : ITeamResource
 {
     public ProjectData() : base(ResourceType.Project) { }
 
-    public async Task UpdateAsync(UpdateDefinition<ProjectData> update, Action action)
+    public ulong CurrentIssueNumber { get; set; }
+
+    public string EncryptedLogKey { get; set; }
+
+    [BsonIgnore]
+    private string? DecryptedLogKey;
+
+    public void ResetDecryptedLogKey()
+    {
+        DecryptedLogKey = null;
+    }
+    public string GetDecryptedLogKey()
+    {
+        if (string.IsNullOrEmpty(DecryptedLogKey))
+            DecryptedLogKey = Crypt.DecryptString(EncryptedLogKey);
+
+        return DecryptedLogKey;
+    }
+
+    public async Task UpdateAsync(UpdateDefinition<ProjectData> update, Action? action = null)
     {
         FilterDefinition<ProjectData> filter = Builders<ProjectData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Projects.Collection.UpdateOneAsync(filter, update);
@@ -33,4 +54,12 @@ public class ProjectData : ITeamResource
 
         return Result.IsAcknowledged;
     }
+
+    [BsonIgnore]
+    [JsonIgnore]
+    public SemaphoreSlim LogLock = new SemaphoreSlim(1, 1);
+}
+public enum ProjectPlatformType
+{
+    As, C, Cfml, Cocoa, CSharp, Elixir, Haskell, Go, Groovy, Java, JavaScript, Native, Node, Objc, Other, Perl, Php, Python, Ruby
 }

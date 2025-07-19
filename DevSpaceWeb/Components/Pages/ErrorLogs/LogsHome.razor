@@ -11,19 +11,23 @@
     </div>
     <br />
     <ActionBar>
-        <RadzenDropDown Value="@("Test Project")" Data="@companyNames" Style="width: 230px; max-width: 300px; height: 30px; padding-top: 4px;" />
-        <RadzenButton Variant="Variant.Filled" Text="Create Project" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" />
+        <RadzenDropDown Placeholder="All Projects" AllowClear="true" AllowFiltering="true" ClearSearchAfterSelection="true" Disabled="@IsLoading"
+            TextProperty="@nameof(ProjectData.Name)" @bind-Value="@SelectedProject" Data="@CurrentProjects" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+            Style="width: 230px; max-width: 300px; height: 30px; padding-top: 4px;" Change="@(() => Grid.Reload())" />
+        <RadzenButton Variant="Variant.Filled" Text="Create Project" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => ProjectList.CreateProject(Session, Team, Member, Dialogs))" Disabled="(IsLoading || Member == null || !Member.HasProjectPermission(Team, null, ProjectPermission.CreateProjectResource))" />
     </ActionBar>
     <div class="mt-2">
         <ActionBar>
-            <RadzenButton class="actionbar-first actionbar-last" Variant="Variant.Outlined" Text="Mark Resolved" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Mark Resolved" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Disabled="true" />
+            <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => { CurrentProjects = new List<ProjectData>(); Grid.RefreshDataAsync(); })" Disabled="@(IsLoading)" />
             <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
                 <Start>
                     <RadzenIcon Icon="search" />
                 </Start>
                 <ChildContent>
                     <RadzenTextBox id="actionSearch" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-                                   autocapitalize="none" MaxLength="100" inputmode="search" Placeholder="Search logs" />
+                                   autocapitalize="none" MaxLength="100" inputmode="search" Placeholder="Search logs"
+                                   @bind-Value="@SearchText" @oninput="@(args => SetNameFilter(args.Value as string))" Disabled="true" />
                 </ChildContent>
                 <End>
                 </End>
@@ -38,7 +42,7 @@
                         PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
                         PagingSummaryFormat="@(Count + " log" + (Count != 1 ? "s" : "") )"
                         AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-                    TItem="LogItem" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
+                    TItem="LogData" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
                     <Columns>
             <RadzenDataGridColumn Width="36px" Frozen="true" Filterable="false">
                 <HeaderTemplate>
@@ -51,40 +55,133 @@
                                     TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsLoading" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Type" Width="140px" Frozen="true">
+            <RadzenDataGridColumn Title="Project" Filterable="false" Width="160px" Frozen="true">
                 <Template>
-                    <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Danger" Text="Exception" IsPill="true" />
+                    @_DB.Projects.Cache[context.ProjectId].Name
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Issue" Frozen="true">
+            <RadzenDataGridColumn Title="Number" Filterable="false" Frozen="true" Width="60px">
                 <Template>
-                    <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Primary" Text="" IsPill="true" Style="height: 16px; width: 16px;" />
-                    @("Test exception")
+                    <span><span style="color: var(--rz-text-tertiary-color);">#</span>@context.IssueNumber</span>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Last Seen" Filterable="false">
+            <RadzenDataGridColumn Title="Issue" Filterable="false" Frozen="true" Width="240px">
                 <Template>
-                    @("1 hour ago")
+                    @if (!context.IsRead)
+                    {
+                        <RadzenBadge Shade="Shade.Default" BadgeStyle="BadgeStyle.Info" Text="" IsPill="true" Style="height: 12px; min-width: 12px; max-width: 12px; margin-right: 4px;" />
+                    }
+                    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/logs/" + context.Id)" Text="@context.Message" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Created" Filterable="false">
+            <RadzenDataGridColumn Title="Type" Filterable="false" Width="90px">
                 <Template>
-                    @("Today at 22:00")
+                    @switch (context.LogType)
+                    {
+                        case LogType.Debug:
+                            {
+                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Primary" Text="Debug" IsPill="true" />
+                            }
+                            break;
+                        case LogType.Error:
+                            {
+                                <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Danger" Text="Error" IsPill="true" />
+                            }
+                            break;
+                        case LogType.Fatal:
+                            {
+                                <RadzenBadge Shade="Shade.Light" BadgeStyle="BadgeStyle.Danger" Text="Fatal" IsPill="true" />
+                            }
+                            break;
+                        case LogType.Info:
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Info" Text="Info" IsPill="true" />
+                            }
+                            break;
+                        case LogType.Trace:
+                            {
+                                <RadzenBadge BadgeStyle="BadgeStyle.Light" Text="Trace" IsPill="true" />
+                            }
+                            break;
+                        case LogType.Warn:
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Warning" IsPill="true" />
+                            }
+                            break;
+                    }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Events" Filterable="false">
+            <RadzenDataGridColumn Title="Status" Filterable="false" Width="90px">
                 <Template>
-                    @("20")
+                    @switch (context.Status)
+                    {
+                        case LogStatus.New:
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="New" IsPill="true" />
+                            }
+                            break;
+                        case LogStatus.Open:
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Warning" Text="Open" IsPill="true" />
+                            }
+                            break;
+                        case LogStatus.Reviewed:
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Primary" Text="Reviewed" IsPill="true" />
+                            }
+                            break;
+                        case LogStatus.Ignored:
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Light" Text="Ignored" IsPill="true" />
+                            }
+                            break;
+                        case LogStatus.Resolved:
+                            {
+                                <RadzenBadge Shade="Shade.Dark" BadgeStyle="BadgeStyle.Success" Text="Resolved" IsPill="true" />
+                            }
+                            break;
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Last Seen" Filterable="false" Width="130px">
+                <Template>
+                    @Utils.GetLocalDate(Session, context.LastSeenAt, true)
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Created" Filterable="false" Width="130px">
+                <Template>
+                    @Utils.GetLocalDate(Session, context.CreatedAt, true)
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Events" Filterable="false" Width="90px">
+                <Template>
+                    @context.EventsCount
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn Title="Assigned" Filterable="false">
                 <Template>
-                    <MemberStrip Team="@Team" UserId="@ObjectId.Parse("6757b63be964c430187491bb")"></MemberStrip>
+                    @if (context.AssignedUser.HasValue)
+                    {
+                        <MemberStrip Team="@Team" UserId="@context.AssignedUser.Value"></MemberStrip>
+                    }
+                    else
+                    {
+                        @("Not Assigned")
+                    }
                 </Template>
             </RadzenDataGridColumn>
             </Columns>
     </RadzenDataGrid>
 </div>
+
+<style>
+    .rz-frozen-cell-left-end .rz-cell-data {
+        overflow: hidden !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+</style>
 
 @code {
     [CascadingParameter]
@@ -94,41 +191,67 @@
     public TeamMemberData? Member => Session.Selected.Member;
     public ProjectData? Project => Session.Selected.Project;
 
-    IEnumerable<string> companyNames = new List<string>
-    {
-        "Test Project"
-    };
+    public ProjectData? SelectedProject { get; set; }
+    IEnumerable<ProjectData> CurrentProjects = new List<ProjectData>();
 
-    IQueryable<LogItem>? ContainersList;
+    IQueryable<LogData>? ContainersList;
 
-    public async Task LoadData()
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
     {
-        ContainersList = new List<LogItem>()
+        SearchText = text;
+        try
         {
-            new LogItem()
-        }.AsQueryable();
+            await Grid.ColumnsCollection.ElementAt(2).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
     }
-    public int Count = 0;
-    public int CountDead = 0;
-    IList<LogItem>? SelectedContainers;
-    public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
-    RadzenDataGrid<LogItem> Grid;
-    public bool IsLoading = false;
 
-    public class LogItem
+    public async Task LoadData(LoadDataArgs args)
     {
+        if (Team == null || Member == null)
+            return;
 
+        IsLoading = true;
+        if (!CurrentProjects.Any())
+            CurrentProjects = _DB.Projects.Cache.Values.Where(x => x.TeamId == Team.Id && Member.HasLogPermission(Team, x, LogPermission.ViewLogs));
+
+        List<FilterDefinition<LogData>> AndFilters = new List<FilterDefinition<LogData>>
+        {
+            new FilterDefinitionBuilder<LogData>().Eq(x => x.TeamId, Team.Id)
+        };
+        if (SelectedProject != null)
+            AndFilters.Add(new FilterDefinitionBuilder<LogData>().Eq(x => x.ProjectId, SelectedProject.Id));
+        else
+            AndFilters.Add(new FilterDefinitionBuilder<LogData>().In(x => x.ProjectId, CurrentProjects.Select(x => x.Id)));
+
+        if (!string.IsNullOrEmpty(SearchText))
+        {
+            Console.WriteLine("Match Search: " + SearchText);
+            AndFilters.Add(new FilterDefinitionBuilder<LogData>().StringIn(x => x.Message, SearchText));
+        }
+
+        var Logs = _DB.Logs.Find(new FilterDefinitionBuilder<LogData>().And(AndFilters)).SortByDescending(x => x.Id).Limit(args.Top.GetValueOrDefault()).Skip(args.Skip.GetValueOrDefault());
+        var List = await Logs.ToListAsync();
+        ContainersList = List.AsQueryable();
+        IsLoading = false;
     }
 
-    void ShowContextMenuWithManageItems(LogItem item, MouseEventArgs args)
+    public int Count = 0;
+    IList<LogData>? SelectedContainers;
+    public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
+    RadzenDataGrid<LogData> Grid;
+    public bool IsLoading = true;
+
+    void ShowContextMenuWithManageItems(LogData item, MouseEventArgs args)
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem() { Text = "Delete", Value = "delete", Icon = "delete" },
                                              }, x => MenuItemClick(x, item));
     }
 
-    void MenuItemClick(MenuItemEventArgs args, LogItem item)
+    void MenuItemClick(MenuItemEventArgs args, LogData item)
     {
     }
-    }
+}

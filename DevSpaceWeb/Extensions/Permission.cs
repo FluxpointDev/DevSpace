@@ -2,6 +2,7 @@
 using DevSpaceWeb.Data.API;
 using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
+using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Servers;
 using DevSpaceWeb.Data.Teams;
 
@@ -56,6 +57,20 @@ public static class Permissions
         foreach (ServerPermission value in GetUniqueFlags(flags))
         {
             if (member == null || !member.HasServerPermission(team, server, value))
+            {
+                failedPerm = value;
+                return true;
+            }
+        }
+        failedPerm = null;
+        return false;
+    }
+
+    public static bool CheckFailedProjectPermission(TeamMemberData? member, TeamData? team, ProjectData? project, ProjectPermission flags, out ProjectPermission? failedPerm)
+    {
+        foreach (ProjectPermission value in GetUniqueFlags(flags))
+        {
+            if (member == null || !member.HasProjectPermission(team, project, value))
             {
                 failedPerm = value;
                 return true;

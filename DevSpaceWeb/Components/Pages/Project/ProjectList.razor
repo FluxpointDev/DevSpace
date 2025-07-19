@@ -1,0 +1,258 @@
+﻿@using DevSpaceWeb.Models.Projects
+@inject DialogService Dialogs
+@inject ContextMenuService ContextMenuService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<PageTitle>My Projects | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:account"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Projects</RadzenText>
+    </div>
+    <br />
+    <ActionBar>
+        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create Project" Icon="add" Click="@(() => CreateProject(Session, Team, Member, Dialogs))" Disabled="(Member == null || !Member.HasProjectPermission(Team, null, ProjectPermission.CreateProjectResource))" Size="ButtonSize.Small" />
+        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshProjects" />
+        <a href="https://docs.fluxpoint.dev/devspace/projects" target="_blank"><RadzenButton Text="Project Docs" Icon="menu_book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+        <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
+            <Start>
+                <RadzenIcon Icon="search" />
+            </Start>
+            <ChildContent>
+                <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                               autocapitalize="none" MaxLength="100" Placeholder="Search projects" inputmode="search"
+                               @oninput="@(args => SetNameFilter(args.Value as string))" />
+            </ChildContent>
+            <End>
+                @if (!string.IsNullOrWhiteSpace(SearchText))
+                {
+                    <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                }
+            </End>
+        </RadzenFormField>
+    </ActionBar>
+    <br />
+    <RadzenDataListFixed @ref="@Grid" AllowPaging="true" Density="Density.Compact" EmptyText="No projects." IsLoading="@(ProjectsCount == -1)"
+                         LoadData="@LoadProjects" Data="@ProjectsList" Count="ProjectsCount" PagingSummaryFormat="@(ProjectsCount + " project" + (ProjectsCount != 1 ? "s" : ""))" ShowPagingSummary="@(ProjectsCount != -1)"
+                         @bind-PageSize="@Session.ListItemsPerPage" PageSizeOptions="@Static.ListPageSizeOptions" PagerHorizontalAlign="HorizontalAlign.Center">
+        <LoadingTemplate>
+            <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
+                <div class="server-item-icon flex-none d-flex">
+                    <span class="iconify" data-icon="mdi:lightbulb"></span>
+                </div>
+                <div>
+                    <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
+                        <RadzenSkeleton></RadzenSkeleton>
+                    </RadzenText>
+                </div>
+            </div>
+        </LoadingTemplate>
+        <Template>
+            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + context.GetVanityUrlOrId() + "/home")">
+                <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;" @oncontextmenu=@(args => ShowContextMenuWithContent(args, context)) @oncontextmenu:preventDefault="true">
+                    <div class="server-item-icon flex-none d-flex">
+                        <span class="iconify" data-icon="mdi:lightbulb"></span>
+                    </div>
+                    <div class="server-item-info flex-auto d-flex py-1">
+                        <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
+                            @context.Name
+                        </RadzenText>
+                        <RadzenStack Orientation="Orientation.Horizontal" class="ml-2 mb-2" Wrap="FlexWrap.Wrap">
+                            <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">test</RadzenText>
+                        </RadzenStack>
+                    </div>
+                </div>
+            </a>
+
+        </Template>
+    </RadzenDataListFixed>
+</div>
+
+<style>
+    .server-item {
+        background-color: #21262d !important;
+        border-radius: 12px;
+        border: 1px solid rgba(0,135,201,0.3) !important;
+        padding-left: 10px;
+        cursor: pointer;
+    }
+
+        .server-item:hover {
+            border-color: rgba(0,135,201,0.5) !important;
+        }
+
+    .server-item-icon {
+        vertical-align: center;
+    }
+
+        .server-item-icon .iconify {
+            width: 40px;
+            height: 40px;
+            margin-top: 16px;
+            color: rgba(0,135,201,0.7) !important;
+        }
+
+    .server-item:hover .server-item-icon .iconify {
+        color: rgba(0,135,201,0.9) !important;
+    }
+
+    .server-item-info {
+        padding-left: 10px;
+    }
+
+    .server-item-buttons .rz-button {
+        min-width: 34px !important;
+        display: block !important;
+        text-align: right;
+        height: 42px;
+        max-height: 42px !important;
+    }
+
+    .server-item .server-item-buttons .rz-button:hover {
+        background-color: rgba(0,135,201,0.3) !important;
+    }
+
+    .server-item-buttons .rz-button:first-child {
+        border-radius: 0px 12px 0px 0px;
+    }
+
+    .server-item-buttons .rz-button:last-child {
+        border-radius: 0px 0px 12px 0px;
+    }
+
+    .server-item-buttons p {
+        display: inline-block !important;
+        text-transform: capitalize;
+        display: none !important;
+    }
+
+    .server-item-buttons .iconify {
+        width: 20px;
+        height: 20px;
+        margin-left: 8px;
+        margin-bottom: -4px;
+        margin-right: 6px;
+    }
+
+    .server-item-buttons:hover .rz-button, .server-item-buttons:hover {
+        min-width: 130px !important;
+    }
+
+        .server-item-buttons:hover p {
+            display: inline-block !important;
+        }
+
+    .server-item .rz-stack .iconify {
+        height: 16px;
+        width: 16px;
+        margin-right: 2px;
+        margin-bottom: 2px;
+    }
+
+    .rz-datalist-data > li {
+        background: none;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
+</style>
+
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    public RadzenTextBox SearchBox { get; set; } = null!;
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && SearchBox != null)
+            _ = SearchBox.FocusAsync();
+    }
+
+    public string? SearchText { get; set; }
+    public void SetNameFilter(string? text)
+    {
+        SearchText = text;
+        Grid.FirstPage(true);
+    }
+
+    public IQueryable<ProjectData>? ProjectsList = null;
+    public RadzenDataList<ProjectData> Grid { get; set; } = null!;
+    public int ProjectsCount { get; set; } = -1;
+
+    public async Task LoadProjects(LoadDataArgs args)
+    {
+        var Servers = _DB.Projects.Cache.Values.Where(x => Member != null && Member.HasProjectPermission(Team, x, ProjectPermission.ViewProject) && (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))).OrderBy(x => x.Name);
+        ProjectsCount = Servers.Count();
+        ProjectsList = Servers.AsQueryable().Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
+    }
+
+    public async Task RefreshProjects()
+    {
+        await Grid.Reload();
+    }
+
+    void ShowContextMenuWithContent(MouseEventArgs args, ProjectData project) => ContextMenuService.Open(args, new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = Member == null || !Member.HasProjectPermission(Team, project, ProjectPermission.ManageProject) },
+                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasProjectPermission(Team, project, ProjectPermission.ViewPermissions) },
+                new ContextMenuItem() { Text = "Copy Project ID", Icon = "content_copy" }
+         }, (arg) => OnMenuItemClick(arg, project));
+
+    void OnMenuItemClick(MenuItemEventArgs arg, ProjectData project)
+    {
+        switch (arg.Text)
+        {
+            case "Copy Project ID":
+                JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", project.Id.ToString());
+                break;
+            default:
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + project.GetVanityUrlOrId() + "/" + arg.Text.ToLower());
+                break;
+        }
+        ContextMenuService.Close();
+    }
+
+    public static async Task CreateProject(SessionProvider Session, TeamData? Team, TeamMemberData? Member, DialogService Dialogs)
+    {
+        if (Member == null || Team == null || !Member.HasProjectPermission(Team, null, ProjectPermission.CreateProjectResource))
+            return;
+
+        await Dialogs.ShowDynamicFormAsync<CreateProjectModel>("Setup Project", new CreateProjectModel(), async (CreateProjectModel data) =>
+        {
+            if (Member == null || Team == null || !Member.HasProjectPermission(Team, null, ProjectPermission.CreateProjectResource))
+                return "You do not have permission for Create Project Resources";
+
+            
+            ProjectData NewProject = new ProjectData
+            {
+                Name = data.Name!,
+                OwnerId = Session.CurrentUser.Id,
+                TeamId = Session.Selected.Team.Data.Id,
+            };
+
+            string? VanityUrl = Utils.FormatVanityUrl(data.VanityUrl);
+
+            VanityUrlData Vanity = Session.Selected.Team.Data.GetVanityUrlData();
+            if (Vanity.CheckAlreadyExists(null, VanityUrl))
+                return Lang.Errors.vanity_url_already_taken;
+
+            await _DB.Projects.CreateAsync(NewProject);
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.ProjectCreated)
+                .SetTarget(NewProject)
+                .AddProperty("Vanity URL", VanityUrl));
+
+            _DB.Projects.Cache.TryAdd(NewProject.Id, NewProject);
+            await Vanity.UpdateAsync(NewProject, VanityUrl);
+            return null;
+        });
+    }
+}

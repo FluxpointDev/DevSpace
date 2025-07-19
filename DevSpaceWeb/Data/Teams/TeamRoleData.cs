@@ -76,6 +76,20 @@ public class TeamRoleData : IObject
         return false;
     }
 
+    public bool HasLogPermission(TeamData? team, ProjectData? project, LogPermission checkPermission)
+    {
+        if (team == null || team.Id != TeamId)
+            return false;
+
+        if (project != null && project.RolePermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasLogPermission(checkPermission))
+            return true;
+
+        if (Permissions.HasLogPermission(checkPermission))
+            return true;
+
+        return false;
+    }
+
     public bool HasProjectPermission(TeamData? team, ProjectData? project, ProjectPermission checkPermission)
     {
         if (team == null || team.Id != TeamId)

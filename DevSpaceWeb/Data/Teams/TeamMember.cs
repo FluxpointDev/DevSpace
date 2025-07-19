@@ -218,6 +218,47 @@ public class TeamMemberData : IObject
         return false;
     }
 
+    public bool HasLogPermission(TeamData? selectedTeam, ProjectData? project, LogPermission checkPermission)
+    {
+        if (selectedTeam == null)
+            return false;
+
+        if (TeamId != selectedTeam.Id)
+            return false;
+
+        if (project != null)
+        {
+            if (project.TeamId != TeamId || project.TeamId != selectedTeam.Id)
+                return false;
+        }
+
+        if (selectedTeam.OwnerId == UserId)
+            return true;
+
+        if (selectedTeam.DefaultPermissions.HasLogPermission(checkPermission))
+            return true;
+
+        if (project != null)
+        {
+            if (project.DefaultPermissions.HasLogPermission(checkPermission))
+                return true;
+
+            if (project.MemberPermissionOverrides.TryGetValue(UserId, out PermissionsSet? uovr) && uovr.HasLogPermission(checkPermission))
+                return true;
+        }
+
+        foreach (ObjectId r in Roles)
+        {
+            if (selectedTeam.CachedRoles.TryGetValue(r, out TeamRoleData? role))
+            {
+                if (role.HasLogPermission(selectedTeam, project, checkPermission))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
     public bool HasProjectPermission(TeamData? selectedTeam, ProjectData? project, ProjectPermission checkPermission)
     {
         if (selectedTeam == null)

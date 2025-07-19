@@ -4,6 +4,7 @@ using DevSpaceWeb.Apps.Data;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.API;
 using DevSpaceWeb.Data.Consoles;
+using DevSpaceWeb.Data.ErrorLogs;
 using DevSpaceWeb.Data.Links;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
@@ -138,6 +139,7 @@ public static class _DB
         Projects = new ICacheCollection<ProjectData>("projects");
         Websites = new ICacheCollection<WebsiteData>("websites");
         Logs = new ICacheCollection<LogData>("logs");
+        LogsEvents = new ICollection<LogEventData>("logs_events");
         EmailTemplates = new ICacheCollection<EmailTemplateData>("email_templates");
         TeamVanityUrls = new ICacheCollection<VanityUrlData>("vanity_urls");
         AuditLogs = new ICollection<AuditLog>("audit");
@@ -156,6 +158,16 @@ public static class _DB
             Logger.LogMessage("Database", "Pinged your deployment. You successfully connected to MongoDB!", LogSeverity.Info);
         }
         catch { return false; }
+
+        try
+        {
+            await _DB.Run.CreateCollectionAsync("logs_events", new CreateCollectionOptions
+            {
+                ExpireAfter = new TimeSpan(30, 0, 0, 0),
+                TimeSeriesOptions = new TimeSeriesOptions("CreatedAt", "LogId", TimeSeriesGranularity.Hours)
+            });
+        }
+        catch { }
 
         Logger.LogMessage("Database", "Loading...", LogSeverity.Info);
         try
@@ -600,6 +612,8 @@ public static class _DB
     public static ICacheCollection<WebsiteData> Websites = null!;
 
     public static ICollection<LogData> Logs = null!;
+
+    public static ICollection<LogEventData> LogsEvents = null!;
 
     public static ICacheCollection<TeamRoleData> Roles = null!;
 

@@ -9,5 +9,5 @@ public enum ProjectPermission : ulong
     ManageProject = 1L << 3,
     ProjectAdministrator = 1L << 4,
     CreateProjectResource = 1L << 5,
-    DeleteProjectResource = 1L << 6,
+    DeleteProjectResource = 1L << 6
 }

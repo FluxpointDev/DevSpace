@@ -13,7 +13,11 @@ using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Data.Teams;
 
-public class IObject
+public class IBaseObject
+{
+
+}
+public class IObject : IBaseObject
 {
     [BsonId]
     public ObjectId Id { get; set; }

@@ -1,0 +1,152 @@
+﻿@using DevSpaceWeb.Components.Dialogs.Servers
+@using DevSpaceWeb.Data.Consoles
+@inject DialogService Dialogs
+@inject NavigationManager Nav
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
+    </div>
+    <br />
+    <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/settings")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasProjectPermission(Team, Project, ProjectPermission.ManageProject) ? "" : " settings-item-disabled"))">
+                <span class="iconify" data-icon="mdi:gear"></span>
+                <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
+            </RadzenCard>
+        </a>
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/permissions")">
+            <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasProjectPermission(Team, Project, ProjectPermission.ViewPermissions) ? "" : " settings-item-disabled"))">
+                <span class="iconify" data-icon="mdi:shield-key"></span>
+                <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
+            </RadzenCard>
+        </a>
+    </RadzenStack>
+</div>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon"><span class="iconify" data-icon="mdi:gear"></span></div>
+        <RadzenText TextStyle="TextStyle.H6">Manage</RadzenText>
+    </div>
+    <br />
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">ID</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body2">
+        @Project?.Id
+        <CopyClipboard Value="@Project?.Id.ToString()"></CopyClipboard>
+    </RadzenText>
+
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">Owner</RadzenText>
+    <RadzenUserSelector Team="@Team" UserId="@Project?.OwnerId" ActionDisabled="@(Member == null || Program.IsPreviewMode || !Member.CanOwn(Project))" OnSelected="@ChangeOwner"></RadzenUserSelector>
+    <br />
+    <RadzenButton Click="@Delete" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Danger" Text="Delete Project" Disabled="@(Member == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.DeleteProjectResource))" />
+</div>
+
+<style>
+    .settings-item {
+        width: 120px;
+        height: 120px;
+        cursor: pointer;
+    }
+
+        .settings-item .iconify {
+            width: 30px;
+            height: 30px;
+            margin-top: 16px;
+            color: var(--rz-info);
+        }
+
+        .settings-item .rz-text-h6 {
+            margin-top: 14px;
+            font-size: 1.1rem;
+            color: var(--rz-base-200) !important;
+        }
+
+    .rz-stack a {
+        text-decoration: none !important;
+    }
+
+    .settings-item:hover {
+        background-color: var(--rz-base-dark);
+        outline: solid 1px var(--rz-secondary-dark) !important;
+    }
+
+    .settings-item-disabled {
+        opacity: 0.6;
+        cursor: not-allowed !important;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ProjectData? Project => Session.Selected.Project;
+
+    public string? OwnerUser { get; set; }
+
+
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Project != null)
+        {
+            if (_DB.Users.TryGetValue(Project.OwnerId, out PartialUserData? user))
+                OwnerUser = user.UserName;
+            else
+                OwnerUser = "Unknown?";
+
+        }
+    }
+
+    public async Task Delete()
+    {
+        if (Project == null || Member == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.DeleteProjectResource))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Delete Project", "Are you sure your want to delete this?.", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        if (!Member.HasProjectPermission(Team, Project, ProjectPermission.DeleteProjectResource))
+            return;
+
+        await Project.DeleteAsync(Member, () =>
+        {
+            Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/projects");
+        });
+
+    }
+
+    public async Task ChangeOwner(PartialUserData user)
+    {
+        if (Project == null || Member == null || !Member.CanOwn(Project))
+            return;
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Change Ownership", "Change project owner.", "Confirm", ButtonStyle.Success);
+
+        if (!Confirm)
+            return;
+
+        if (!Member.CanOwn(Project))
+            return;
+
+        await Project.UpdateAsync(new UpdateDefinitionBuilder<ProjectData>()
+        .Set(x => x.OwnerId, user.Id), () =>
+        {
+            Project.OwnerId = user.Id;
+            OwnerUser = user.UserName;
+
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Member, AuditLogEventType.ProjectOwnershipChanged)
+            .SetTarget(Project)
+            .AddProperty("User", user.UserName)
+            .AddProperty("ID", user.Id.ToString()));
+
+            StateHasChanged();
+        });
+    }
+}

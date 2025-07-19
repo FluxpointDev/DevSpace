@@ -1,0 +1,534 @@
+﻿<div class="container-fluid" id="section-event">
+    <div class="container-start">
+        <h6>Event</h6>
+        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-1">
+            @Event.EventId.ToString()
+            <CopyClipboard Value="@Event.EventId.ToString()"></CopyClipboard>
+        </RadzenText>
+        <RadzenText TextStyle="TextStyle.Subtitle2">
+            @Utils.GetLocalDate(Session, CurrentEventDate, true)
+        </RadzenText>
+    </div>
+    <div class="d-flex container-end">
+        <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="first_page" Click="@(() => Oldest.Invoke())" Disabled="@(CurrentEventDate == Log.CreatedAt)" Size="ButtonSize.Small"></RadzenButton>
+        <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Older" Icon="keyboard_arrow_left" Size="ButtonSize.Small" Click="@(() => Older.Invoke())" Disabled="@(CurrentEventDate == Log.CreatedAt)"></RadzenButton>
+        <RadzenButton ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@(() => Newer.Invoke())" Disabled="@(CurrentEventDate == LatestEventDate)">
+            <span class="rz-button-text">Newer</span>
+            <RadzenIcon Icon="keyboard_arrow_right"></RadzenIcon>
+        </RadzenButton>
+        <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="last_page" Click="@(() => Latest.Invoke())" Disabled="@(CurrentEventDate == LatestEventDate)" Size="ButtonSize.Small"></RadzenButton>
+    </div>
+</div>
+
+<br />
+
+<RadzenRow Gap="10px" RowGap="10px">
+    @if (Event.HasUser())
+    {
+        <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+            <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                <div>
+                    <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:account"></span>
+                </div>
+                <div>
+                    @if (string.IsNullOrEmpty(Event.User.Username) && string.IsNullOrEmpty(Event.User.Email))
+                    {
+                        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                            @Event.User.Id
+                        </RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">
+
+                        </RadzenText>
+                    }
+                    else
+                    {
+                        <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                            @(Event.User.Username ?? Event.User.Email)
+                        </RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2">
+                            @Event.User.Id
+                            <CopyClipboard Value="@Event.User.Id"></CopyClipboard>
+                        </RadzenText>
+                    }
+                </div>
+            </RadzenStack>
+        </RadzenColumn>
+    }
+    @if (Event.Contexts.Runtime != null)
+    {
+        <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+            <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                <div>
+                    <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:lightning-bolt"></span>
+                </div>
+                <div>
+                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                        @Event.Contexts.Runtime.Name
+                    </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Version: @Event.Contexts.Runtime.Version
+                    </RadzenText>
+                </div>
+            </RadzenStack>
+        </RadzenColumn>
+    }
+    @if (Event.Contexts.OperatingSystem != null && !string.IsNullOrEmpty(Event.Contexts.OperatingSystem.Name))
+    {
+        <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+            <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                <div>
+                    <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:computer"></span>
+                </div>
+                <div>
+                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                        @Event.Contexts.OperatingSystem.Name
+                    </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Version: @Event.Contexts.OperatingSystem.Version
+                    </RadzenText>
+                </div>
+            </RadzenStack>
+        </RadzenColumn>
+    }
+    @if (Event.Request != null && !string.IsNullOrEmpty(Event.Request.Url))
+    {
+        <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+            <RadzenStack Gap="12px" Orientation="Orientation.Horizontal">
+                <div>
+                    <span class="iconify settings-icon" style="color: #EAEBEC;" data-icon="mdi:web"></span>
+                </div>
+                <div>
+                    <RadzenText TextStyle="TextStyle.Subtitle1" class="rz-mb-05">
+                        Request
+                    </RadzenText>
+                    <RadzenText TextStyle="TextStyle.Body2">
+                        Version: @Event.Request.Url
+                    </RadzenText>
+                </div>
+            </RadzenStack>
+        </RadzenColumn>
+    }
+</RadzenRow>
+<br />
+<h6 id="section-tags">Tags</h6>
+<RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
+    @foreach (var i in Event.Tags.OrderBy(x => x.Key))
+    {
+        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Light" IsPill="true">
+            @i.Key: <span>@i.Value</span>
+        </RadzenBadge>
+    }
+    @if (!string.IsNullOrEmpty(Event.Environment))
+    {
+        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Light" IsPill="true">
+            Environment: <span>@Event.Environment</span>
+        </RadzenBadge>
+    }
+    @if (!string.IsNullOrEmpty(Event.Release))
+    {
+        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Light" IsPill="true">
+            Release: <span>@Event.Release.Split('@').Last()</span>
+        </RadzenBadge>
+    }
+    @if (!string.IsNullOrEmpty(Event.Logger))
+    {
+        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Light" IsPill="true">
+            Logger: <span>@Event.Logger</span>
+        </RadzenBadge>
+    }
+    @if (!string.IsNullOrEmpty(Event.Platform))
+    {
+        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Light" IsPill="true">
+            Platform: <span>@Event.Platform</span>
+        </RadzenBadge>
+    }
+    @if (!string.IsNullOrEmpty(Event.ServerName))
+    {
+        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Light" IsPill="true">
+            Server: <span>@Event.ServerName</span>
+        </RadzenBadge>
+    }
+    @if (!string.IsNullOrEmpty(Event.Distribution))
+    {
+        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Light" IsPill="true">
+            Distribution: <span>@Event.Distribution</span>
+        </RadzenBadge>
+    }
+    @if (!string.IsNullOrEmpty(Event.TransactionName))
+    {
+        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Light" IsPill="true">
+            Transaction: <span>@Event.TransactionName</span>
+        </RadzenBadge>
+    }
+    @if (Event.Level.HasValue)
+    {
+        <RadzenBadge Shade="Shade.Darker" BadgeStyle="BadgeStyle.Light" IsPill="true">
+            Type: <span>@Event.Level.Value.ToString()</span>
+        </RadzenBadge>
+    }
+</RadzenStack>
+<br />
+@if (Event.SentryExceptions != null)
+{
+    <div class="container-fluid" id="section-exception">
+        <div class="container-start">
+            <h6>Exception</h6>
+        </div>
+        <div class="d-flex container-end">
+            <RadzenSelectBar TValue="int" Size="ButtonSize.Small" Value="1">
+                <Items>
+                    <RadzenSelectBarItem Value="1" Text="Relevant" />
+                    <RadzenSelectBarItem Value="2" Text="Full" />
+                    <RadzenSelectBarItem Value="3" Text="Raw" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+    <div class="session-item">
+        @foreach (var i in Event.SentryExceptions)
+        {
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Type</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">@i.Value</RadzenText>
+
+            @if (i.Stacktrace != null)
+            {
+                <RadzenDataGrid Data="@i.Stacktrace.Frames.Where(x => x.InApp.GetValueOrDefault())" AllowVirtualization="true" Style="max-height:400px">
+                    <Columns>
+                        <RadzenDataGridColumn>
+                            <Template>
+                                @if (context.LineNumber.HasValue)
+                                {
+                                    <span>@context.Module?.Split('+').First()</span> @("in") <span>@context.Function</span> @("at line") <span>@($"{context.LineNumber.Value.ToString()}:{context.ColumnNumber.GetValueOrDefault().ToString()}")</span>
+                               }
+                                else
+                                {
+                                    <span>@context.Module?.Split('+').First()</span> @("in") <span>@context.Function</span>
+                                }
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
+                </RadzenDataGrid>
+            }
+            else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.SentryThreads.Last().Stacktrace != null)
+            {
+                <RadzenDataGrid Data="@Event.SentryThreads.Last().Stacktrace.Frames.Where(x => x.InApp.GetValueOrDefault())" AllowVirtualization="true" Style="max-height:400px">
+                        <Columns>
+                            <RadzenDataGridColumn>
+                                <Template>
+                                @if (context.LineNumber.HasValue)
+                                {
+                                    <span>@context.Module?.Split('+').First()</span> @("in") <span>@context.Function</span> @("at line") <span>@($"{context.LineNumber.Value.ToString()}:{context.ColumnNumber.GetValueOrDefault().ToString()}")</span>
+                               }
+                                else
+                                {
+                                    <span>@context.Module?.Split('+').First()</span> @("in") <span>@context.Function</span>
+                                }
+                            </Template>
+                            </RadzenDataGridColumn>
+                        </Columns>
+                    </RadzenDataGrid>
+            }
+        }
+    </div>
+    <br />
+}
+else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.SentryThreads.Last().Stacktrace != null)
+{
+    <div class="container-fluid" id="section-exception">
+        <div class="container-start">
+            <h6>Exception</h6>
+        </div>
+        <div class="d-flex container-end">
+            <RadzenSelectBar TValue="int" Size="ButtonSize.Small" Value="1">
+                <Items>
+                    <RadzenSelectBarItem Value="1" Text="Relevant" />
+                    <RadzenSelectBarItem Value="2" Text="Full" />
+                    <RadzenSelectBarItem Value="3" Text="Raw" />
+                </Items>
+            </RadzenSelectBar>
+        </div>
+    </div>
+    <div class="session-item">
+        <RadzenDataGrid Data="@Event.SentryThreads.Last().Stacktrace.Frames.Where(x => x.InApp.GetValueOrDefault())" AllowVirtualization="true" Style="max-height:400px">
+            <Columns>
+                <RadzenDataGridColumn>
+                    <Template>
+                        @if (context.LineNumber.HasValue)
+                                {
+                                    <span>@context.Module?.Split('+').First()</span> @("in") <span>@context.Function</span> @("at line") <span>@($"{context.LineNumber.Value.ToString()}:{context.ColumnNumber.GetValueOrDefault().ToString()}")</span>
+                               }
+                                else
+                                {
+                                    <span>@context.Module?.Split('+').First()</span> @("in") <span>@context.Function</span>
+                                }
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
+    </div>
+}
+<h6>SDK</h6>
+<div class="session-item">
+    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@Event.Sdk.Name</RadzenText>
+    <RadzenText TextStyle="TextStyle.Body2">@Event.Sdk.Version</RadzenText>
+</div>
+<br />
+<h6 id="section-context">Context</h6>
+<RadzenRow Gap="10px" RowGap="10px" class="section-context-grid">
+    @if (Event.HasUser())
+    {
+        <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">User</RadzenText>
+            <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
+                @foreach (var i in ParseContext(Event.User))
+                {
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            @i.Key
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @i.Value.ToString()
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+                }
+            </RadzenTable>
+        </RadzenColumn>
+    }
+
+    @foreach (var i in Event.Contexts.OrderBy(x => x.Key))
+    {
+        <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@GetContextTitle(i.Key)</RadzenText>
+            <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
+                @foreach (var i in ParseContext(i.Value))
+                {
+                    <RadzenTableRow>
+                        <RadzenTableCell>
+                            @i.Key
+                        </RadzenTableCell>
+                        <RadzenTableCell>
+                            @i.Value.ToString()
+                        </RadzenTableCell>
+                    </RadzenTableRow>
+                }
+            </RadzenTable>
+        </RadzenColumn>
+    }
+</RadzenRow>
+<br />
+<h6 id="section-assembly">Assembly</h6>
+<div class="session-item">
+    @foreach (var i in Event.Modules)
+    {
+        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body2">@i.Value</RadzenText>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public SentryEvent Event { get; set; }
+
+    [Parameter]
+    public LogData? Log { get; set; }
+
+    [Parameter]
+    public DateTime LatestEventDate { get; set; }
+
+    [Parameter]
+    public DateTime CurrentEventDate { get; set; }
+
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    [Parameter]
+    public Func<Task> Oldest { get; set; }
+
+    [Parameter]
+    public Func<Task> Older { get; set; }
+
+    [Parameter]
+    public Func<Task> Newer { get; set; }
+
+    [Parameter]
+    public Func<Task> Latest { get; set; }
+
+    public string GetContextTitle(string name)
+    {
+        switch (name)
+        {
+            case "app":
+                return "App";
+            case "device":
+                return "Device";
+            case "os":
+                return "Operating System";
+            case "runtime":
+                return "Runtime";
+        }
+        return name;
+    }
+
+    public Dictionary<string, string> ParseContext(object obj)
+    {
+        Dictionary<string, string> Dict = new Dictionary<string, string>();
+
+        if (obj is Dictionary<string, object> dic)
+        {
+            foreach (var i in dic)
+            {
+                if (i.Value is Object[] data)
+                    Dict.Add(i.Key.Replace("_", " ").ToUpperSingle(), string.Join(", ", data));
+                else
+                    Dict.Add(i.Key.Replace("_", " ").ToUpperSingle(), i.Value.ToString());
+            }
+            return Dict;
+        }
+
+
+
+        if (obj is Sentry.Protocol.App app)
+        {
+            ContextAddDicionary(ref Dict, "Identifier", app.Identifier);
+            ContextAddDicionary(ref Dict, "Start Time", app.StartTime.ToString());
+            ContextAddDicionary(ref Dict, "Hash", app.Hash);
+            ContextAddDicionary(ref Dict, "Build Type", app.BuildType);
+            ContextAddDicionary(ref Dict, "Name", app.Name);
+            ContextAddDicionary(ref Dict, "Version", app.Version);
+            ContextAddDicionary(ref Dict, "Build", app.Build);
+            ContextAddDicionary(ref Dict, "In Foreground", app.InForeground.ToString());
+        }
+        else if (obj is Sentry.SentryUser user)
+        {
+            ContextAddDicionary(ref Dict, "ID", user.Id);
+            ContextAddDicionary(ref Dict, "Username", user.Username);
+            ContextAddDicionary(ref Dict, "Email", user.Email);
+            ContextAddDicionary(ref Dict, "IP Address", user.IpAddress);
+            foreach (var i in user.Other)
+            {
+                Dict.Add(i.Key, i.Value);
+            }
+
+        }
+        else if (obj is Sentry.Protocol.Browser browser)
+        {
+            ContextAddDicionary(ref Dict, "Name", browser.Name);
+            ContextAddDicionary(ref Dict, "Version", browser.Version);
+        }
+        else if (obj is Sentry.Protocol.Device device)
+        {
+            ContextAddDicionary(ref Dict, "Name", device.Name);
+            ContextAddDicionary(ref Dict, "Timezone", device.Timezone?.ToString());
+            ContextAddDicionary(ref Dict, "Manufacturer", device.Manufacturer);
+            ContextAddDicionary(ref Dict, "Brand", device.Brand);
+            ContextAddDicionary(ref Dict, "Family", device.Family);
+            ContextAddDicionary(ref Dict, "Model", device.Model);
+            ContextAddDicionary(ref Dict, "Model ID", device.ModelId);
+            ContextAddDicionary(ref Dict, "Architecture", device.Architecture);
+            ContextAddDicionary(ref Dict, "Battery Level", device.BatteryLevel?.ToString());
+            ContextAddDicionary(ref Dict, "Is Charging", device.IsCharging.ToString());
+            ContextAddDicionary(ref Dict, "Is Online", device.IsOnline.ToString());
+            ContextAddDicionary(ref Dict, "Orientation", device.Orientation.ToString());
+            ContextAddDicionary(ref Dict, "Simulator", device.Simulator?.ToString());
+            ContextAddDicionary(ref Dict, "Memory Size", device.MemorySize?.ToString());
+            ContextAddDicionary(ref Dict, "Free Memory", device.FreeMemory?.ToString());
+            ContextAddDicionary(ref Dict, "Usable Memory", device.UsableMemory?.ToString());
+            ContextAddDicionary(ref Dict, "Low Memory", device.LowMemory?.ToString());
+            ContextAddDicionary(ref Dict, "Storage Size", device.StorageSize?.ToString());
+            ContextAddDicionary(ref Dict, "Free Storage", device.FreeStorage?.ToString());
+            ContextAddDicionary(ref Dict, "External Storage", device.ExternalStorageSize?.ToString());
+            ContextAddDicionary(ref Dict, "External Free Storage", device.ExternalFreeStorage?.ToString());
+            ContextAddDicionary(ref Dict, "Screen Resolution", device.ScreenResolution);
+            ContextAddDicionary(ref Dict, "Screen Density", device.ScreenDensity?.ToString());
+            ContextAddDicionary(ref Dict, "Screen DPI", device.ScreenDpi?.ToString());
+            ContextAddDicionary(ref Dict, "Boot Time", device.BootTime?.ToString());
+            ContextAddDicionary(ref Dict, "Processor Count", device.ProcessorCount?.ToString());
+            ContextAddDicionary(ref Dict, "CPU Description", device.CpuDescription);
+            ContextAddDicionary(ref Dict, "Processor Frequency", device.ProcessorFrequency?.ToString());
+            ContextAddDicionary(ref Dict, "Device Type", device.DeviceType);
+            ContextAddDicionary(ref Dict, "Battery Status", device.BatteryStatus);
+            ContextAddDicionary(ref Dict, "Device ID", device.DeviceUniqueIdentifier);
+            ContextAddDicionary(ref Dict, "Supports Vibration", device.SupportsVibration?.ToString());
+            ContextAddDicionary(ref Dict, "Supports Accelerometer", device.SupportsAccelerometer?.ToString());
+            ContextAddDicionary(ref Dict, "Supports Gyroscope", device.SupportsGyroscope?.ToString());
+            ContextAddDicionary(ref Dict, "Supports Location Service", device.SupportsLocationService?.ToString());
+        }
+        else if (obj is Sentry.SentryFeedback feedback)
+        {
+            ContextAddDicionary(ref Dict, "Message", feedback.Message);
+            ContextAddDicionary(ref Dict, "Contact Email", feedback.ContactEmail);
+            ContextAddDicionary(ref Dict, "Name", feedback.Name);
+            ContextAddDicionary(ref Dict, "Replay ID", feedback.ReplayId);
+            ContextAddDicionary(ref Dict, "Url", feedback.Url);
+            ContextAddDicionary(ref Dict, "Associated Event ID", feedback.AssociatedEventId?.ToString());
+        }
+        else if (obj is Sentry.Protocol.OperatingSystem os)
+        {
+            ContextAddDicionary(ref Dict, "Name", os.Name);
+            ContextAddDicionary(ref Dict, "Version", os.Version);
+            ContextAddDicionary(ref Dict, "Raw Description", os.RawDescription);
+            ContextAddDicionary(ref Dict, "Build", os.Build);
+            ContextAddDicionary(ref Dict, "Kernel Version", os.KernelVersion);
+            ContextAddDicionary(ref Dict, "Rooted", os.Rooted?.ToString());
+        }
+        else if (obj is Sentry.Protocol.Response response)
+        {
+            ContextAddDicionary(ref Dict, "Body Size", response.BodySize?.ToString());
+            ContextAddDicionary(ref Dict, "Cookies", response.Cookies);
+            foreach (var i in response.Headers)
+            {
+                Dict.Add("Header - " + i.Key, i.Value);
+            }
+            ContextAddDicionary(ref Dict, "Status Code", response.StatusCode?.ToString());
+        }
+        else if (obj is Sentry.Protocol.Runtime runtime)
+        {
+            ContextAddDicionary(ref Dict, "Name", runtime.Name);
+            ContextAddDicionary(ref Dict, "Version", runtime.Version);
+            ContextAddDicionary(ref Dict, "Raw Description", runtime.RawDescription);
+            ContextAddDicionary(ref Dict, "Identifier", runtime.Identifier);
+            ContextAddDicionary(ref Dict, "Build", runtime.Build);
+        }
+        else if (obj is Sentry.Protocol.Gpu gpu)
+        {
+            ContextAddDicionary(ref Dict, "Name", gpu.Name);
+            ContextAddDicionary(ref Dict, "Id", gpu.Id?.ToString());
+            ContextAddDicionary(ref Dict, "Vendor ID", gpu.VendorId);
+            ContextAddDicionary(ref Dict, "Vendor Name", gpu.VendorName);
+            ContextAddDicionary(ref Dict, "Memory Size", gpu.MemorySize?.ToString());
+            ContextAddDicionary(ref Dict, "API Type", gpu.ApiType);
+            ContextAddDicionary(ref Dict, "Multi Threaded Rendering", gpu.MultiThreadedRendering?.ToString());
+            ContextAddDicionary(ref Dict, "Version", gpu.Version);
+            ContextAddDicionary(ref Dict, "Npot Support", gpu.NpotSupport);
+            ContextAddDicionary(ref Dict, "Max Texture Size", gpu.MaxTextureSize.ToString());
+            ContextAddDicionary(ref Dict, "Graphics Shader Level", gpu.GraphicsShaderLevel);
+            ContextAddDicionary(ref Dict, "Supports Draw Call Instancing", gpu.SupportsDrawCallInstancing?.ToString());
+            ContextAddDicionary(ref Dict, "Supports Ray Tracing", gpu.SupportsRayTracing?.ToString());
+            ContextAddDicionary(ref Dict, "Supports Compute Shaders", gpu.SupportsComputeShaders?.ToString());
+            ContextAddDicionary(ref Dict, "Supports Geometry Shaders", gpu.SupportsGeometryShaders?.ToString());
+        }
+        else if (obj is Sentry.Protocol.Trace trace)
+        {
+            ContextAddDicionary(ref Dict, "Span ID", trace.SpanId.ToString());
+            ContextAddDicionary(ref Dict, "Parent Span ID", trace.ParentSpanId?.ToString());
+            ContextAddDicionary(ref Dict, "Trace ID", trace.TraceId.ToString());
+            ContextAddDicionary(ref Dict, "Operation", trace.Operation);
+            ContextAddDicionary(ref Dict, "Origin", trace.Origin);
+            ContextAddDicionary(ref Dict, "Description", trace.Description);
+            ContextAddDicionary(ref Dict, "Status", trace.Status?.ToString());
+            ContextAddDicionary(ref Dict, "Is Sampled", trace.IsSampled?.ToString());
+            foreach (var i in trace.Data)
+            {
+                Dict.Add("Data - " + i.Key, i.Value?.ToString());
+            }
+        }
+
+        return Dict;
+    }
+
+    private void ContextAddDicionary(ref Dictionary<string, string> Dict, string key, string? value)
+    {
+        if (!string.IsNullOrEmpty(value))
+            Dict.Add(key, value);
+    }
+}

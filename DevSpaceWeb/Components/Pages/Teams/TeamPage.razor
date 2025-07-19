@@ -424,13 +424,28 @@ else
             }
             break;
         case "logs":
-            <LogsHome></LogsHome>
+            if (string.IsNullOrEmpty(service_id))
+            {
+                <LogsHome></LogsHome>
+            }
+            else
+            {
+                if (!ObjectId.TryParse(service_id, out ObjectId logId))
+                {
+                    <p>Invalid log id</p>
+                }
+                else
+                {
+                    <LogPage LogId="@logId"></LogPage>
+                    
+                }
+            }
             break;
         case "projects":
             {
                 @if (string.IsNullOrEmpty(service_id))
                 {
-                    <ProjectsList></ProjectsList>
+                    <ProjectList></ProjectList>
                 }
                 else if (Project == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.ViewProject))
                 {
@@ -443,7 +458,13 @@ else
                         case null:
                         case "":
                         case "home":
-                            <ProjectsHome></ProjectsHome>
+                            <ProjectHome></ProjectHome>
+                            break;
+                        case "settings":
+                            <ProjectSettingsBasic></ProjectSettingsBasic>
+                            break;
+                        case "permissions":
+                            <ProjectPermissions></ProjectPermissions>
                             break;
                     }
                 }

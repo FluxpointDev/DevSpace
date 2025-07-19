@@ -30,13 +30,12 @@ public static class ServiceBuilder
 {
     public static void Build(WebApplicationBuilder builder, IServiceCollection services)
     {
-
         HealthCheckService HealthService = new HealthCheckService();
 
         // Add HTTP access
         services.AddHttpContextAccessor();
         services.AddScoped<HttpContextAccessor>();
-
+        services.AddRequestDecompression();
         services.AddSingleton(new BackgroundTasks());
         services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
         {

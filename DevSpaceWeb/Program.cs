@@ -1,5 +1,3 @@
-using DevSpaceShared.Events.Docker;
-using DevSpaceShared.WebSocket;
 using DevSpaceWeb.Data;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Services;
@@ -14,8 +12,6 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.Serializers;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 
 namespace DevSpaceWeb;
@@ -76,6 +72,7 @@ public class Program
 
     public static bool LimitMode = false;
     public static bool IsUsingAspire { get; set; }
+
 
     public static async Task Main(string[] args)
     {
@@ -255,6 +252,7 @@ public class Program
             ResponseWriter = HealthCheckService.WriteResponse
         });
         app.UseRouting();
+        app.UseRequestDecompression();
         app.UseAuthentication();
         app.UseAuthorization();
 
@@ -317,36 +315,7 @@ public class Program
 
         app.UseWebSockets();
         app.MapControllers();
+
         app.Run();
     }
-}
-public class FixDockerEvent : IWebSocketTask
-{
-
-    [JsonConstructor]
-    internal FixDockerEvent() : base(EventType.Docker)
-    {
-
-    }
-
-    public string? ResourceId { get; set; }
-    public string[]? ResourceList { get; set; }
-
-    public DockerEventType DockerType { get; set; }
-
-    public ControlContainerType? ContainerType { get; set; }
-
-    public ControlPluginType? PluginType { get; set; }
-
-    public ControlImageType? ImageType { get; set; }
-
-    public ControlStackType? StackType { get; set; }
-
-    public ControlNetworkType? NetworkType { get; set; }
-
-    public ControlVolumeType? VolumeType { get; set; }
-
-    public ControlCustomTemplateType? CustomTemplateType { get; set; }
-
-    public JsonElement? Data { get; set; }
 }

@@ -1,0 +1,86 @@
+﻿@using DevSpaceWeb.Models.Consoles
+
+<PageTitle>@(Project?.Name ?? "Project") Settings | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:gear"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Server Settings</RadzenText>
+    </div>
+    <RadzenBreadCrumb class="mt-2">
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects")" Text="Projects" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl)" Text="@Session.Selected.Team?.Project?.Data.Name" />
+        <RadzenBreadCrumbItem Text="Settings" />
+    </RadzenBreadCrumb>
+    @if (Member == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.ManageProject))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for Manage Project
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        @if (Data != null)
+        {
+            <DynamicFormDialog Model="@ModifyProjectModel" ModelData="@Data" OnSubmit="@UpdateSettings"></DynamicFormDialog>
+        }
+    }
+    
+</div>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public ProjectData? Project => Session.Selected.Project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Project != null)
+            Data = new ModifyProjectModel
+            {
+                Name = Project.Name,
+                VanityUrl = Project.VanityUrl
+            };
+    }
+
+    public ModifyProjectModel? Data { get; set; }
+
+    public async Task<string?> UpdateSettings(ModifyProjectModel model)
+    {
+        if (Project == null || Team == null || Member == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.ManageProject))
+            return "You do not have Manage Project permissions.";
+
+        VanityUrlData Vanity = Team.GetVanityUrlData();
+
+        string? VanityUrl = Utils.FormatVanityUrl(model.VanityUrl);
+
+        if (Vanity.CheckAlreadyExists(Project, VanityUrl))
+            return Lang.Errors.vanity_url_already_taken;
+
+        await Project.UpdateAsync(new UpdateDefinitionBuilder<ProjectData>()
+        .Set(x => x.Name, model.Name)
+        .Set(x => x.VanityUrl, VanityUrl),
+        async () =>
+        {
+            _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Setting, AuditLogEventType.ProjectSettingsChanged)
+                .SetTarget(Project)
+                .AddPropertyChange("Name", Project.Name, model.Name)
+                .AddPropertyChange("Vanity URL", Project.VanityUrl, VanityUrl));
+
+            Project.Name = model.Name!;
+            Project.VanityUrl = model.VanityUrl;
+            VanityUrlData Vanity = Team.GetVanityUrlData();
+            await Vanity.UpdateAsync(Project, VanityUrl);
+            Project.VanityUrl = Project.GetVanityUrlOrId();
+            Session.TriggerNavMenuChange();
+        });
+        return null;
+    }
+}
