@@ -98,6 +98,7 @@ public class SentryController : Controller
             };
             FilterDefinition<LogData> filter = new FilterDefinitionBuilder<LogData>().And(Filters);
             LogData? FoundData = _DB.Logs.Find(filter).FirstOrDefault();
+            DateTime CurrentDate = DateTime.UtcNow;
             if (FoundData == null)
             {
                 ulong IssueNumber = 1;
@@ -115,14 +116,16 @@ public class SentryController : Controller
                     MessageTitle = MessageTitle,
                     ProjectId = project.Id,
                     TeamId = project.TeamId,
-                    EventsCount = 1
+                    EventsCount = 1,
+                    CreatedAt = CurrentDate,
+                    LastSeenAt = CurrentDate
                 };
                 await _DB.Logs.CreateAsync(FoundData);
                 await project.UpdateAsync(new UpdateDefinitionBuilder<ProjectData>().Set(x => x.CurrentIssueNumber, IssueNumber));
             }
             else
             {
-                await FoundData.UpdateAsync(new UpdateDefinitionBuilder<LogData>().Set(x => x.LastSeenAt, DateTime.UtcNow));
+                await FoundData.UpdateAsync(new UpdateDefinitionBuilder<LogData>().Set(x => x.LastSeenAt, CurrentDate));
 
                 if (FoundData.Status == LogStatus.Resolved)
                     await FoundData.UpdateAsync(new UpdateDefinitionBuilder<LogData>().Set(x => x.Status, LogStatus.Open).Push(x => x.Activity, new LogActivity
@@ -140,7 +143,8 @@ public class SentryController : Controller
             _ = _DB.LogsEvents.CreateAsync(new LogEventData
             {
                 LogId = FoundData.Id,
-                Json = Data
+                Json = Data,
+                CreatedAt = CurrentDate,
             });
         }
         finally

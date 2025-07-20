@@ -17,7 +17,7 @@ public class LogEventData : IBaseObject
 
     public ObjectId LogId { get; set; }
 
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
     public string Json { get; set; }
 }

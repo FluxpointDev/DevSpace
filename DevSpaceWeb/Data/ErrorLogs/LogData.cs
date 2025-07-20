@@ -42,9 +42,9 @@ public class LogData : IObject
     [BsonIgnore]
     public TeamData? Team => _DB.Teams.Cache.GetValueOrDefault(TeamId);
 
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; }
 
-    public DateTime LastSeenAt { get; set; } = DateTime.UtcNow;
+    public DateTime LastSeenAt { get; set; }
 
     public async Task UpdateAsync(UpdateDefinition<LogData> update, Action? action = null)
     {

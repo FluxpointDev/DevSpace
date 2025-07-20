@@ -10,8 +10,8 @@
         </RadzenText>
     </div>
     <div class="d-flex container-end">
-        <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="first_page" Click="@(() => Oldest.Invoke())" Disabled="@(CurrentEventDate == Log.CreatedAt)" Size="ButtonSize.Small"></RadzenButton>
-        <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Older" Icon="keyboard_arrow_left" Size="ButtonSize.Small" Click="@(() => Older.Invoke())" Disabled="@(CurrentEventDate == Log.CreatedAt)"></RadzenButton>
+        <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="first_page" Click="@(() => Oldest.Invoke())" Disabled="@(CurrentEventDate == OldestEventDate)" Size="ButtonSize.Small"></RadzenButton>
+        <RadzenButton ButtonStyle="ButtonStyle.Light" Text="Older" Icon="keyboard_arrow_left" Size="ButtonSize.Small" Click="@(() => Older.Invoke())" Disabled="@(CurrentEventDate == OldestEventDate)"></RadzenButton>
         <RadzenButton ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" Click="@(() => Newer.Invoke())" Disabled="@(CurrentEventDate == LatestEventDate)">
             <span class="rz-button-text">Newer</span>
             <RadzenIcon Icon="keyboard_arrow_right"></RadzenIcon>
@@ -277,10 +277,12 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
 <RadzenRow Gap="10px" RowGap="10px" class="section-context-grid">
     @if (Event.HasUser())
     {
-        <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+        @if (ParseContext(Event.User, out Dictionary<string, string> values))
+        {
+        <RadzenColumn SizeMD="6" SizeSM="12">
             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">User</RadzenText>
             <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
-                @foreach (var i in ParseContext(Event.User))
+                @foreach (var i in values)
                 {
                     <RadzenTableRow>
                         <RadzenTableCell>
@@ -293,14 +295,17 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
                 }
             </RadzenTable>
         </RadzenColumn>
+        }
     }
 
     @foreach (var i in Event.Contexts.OrderBy(x => x.Key))
     {
-        <RadzenColumn SizeMD="6" SizeSM="12" class="session-item">
+        @if (ParseContext(i.Value, out Dictionary<string, string> values))
+        {
+        <RadzenColumn SizeMD="6" SizeSM="12">
             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@GetContextTitle(i.Key)</RadzenText>
             <RadzenTable GridLines="DataGridGridLines.Horizontal" AllowAlternatingRows="false">
-                @foreach (var i in ParseContext(i.Value))
+                @foreach (var i in values)
                 {
                     <RadzenTableRow>
                         <RadzenTableCell>
@@ -313,24 +318,30 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
                 }
             </RadzenTable>
         </RadzenColumn>
+        }
     }
 </RadzenRow>
-<br />
-<h6 id="section-assembly">Assembly</h6>
-<div class="session-item">
-    @foreach (var i in Event.Modules)
-    {
-        <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
-        <RadzenText TextStyle="TextStyle.Body2">@i.Value</RadzenText>
-    }
-</div>
-
+@if (Event.Modules != null && Event.Modules.Any())
+{
+    <br />
+    <h6 id="section-assembly">Assembly</h6>
+    <div class="session-item">
+        @foreach (var i in Event.Modules)
+        {
+            <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Key</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body2">@i.Value</RadzenText>
+        }
+    </div>
+}
 @code {
     [Parameter]
     public SentryEvent Event { get; set; }
 
     [Parameter]
     public LogData? Log { get; set; }
+
+    [Parameter]
+    public DateTime OldestEventDate { get; set; }
 
     [Parameter]
     public DateTime LatestEventDate { get; set; }
@@ -369,7 +380,7 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
         return name;
     }
 
-    public Dictionary<string, string> ParseContext(object obj)
+    public bool ParseContext(object obj, out Dictionary<string, string> dict)
     {
         Dictionary<string, string> Dict = new Dictionary<string, string>();
 
@@ -382,7 +393,8 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
                 else
                     Dict.Add(i.Key.Replace("_", " ").ToUpperSingle(), i.Value.ToString());
             }
-            return Dict;
+            dict = Dict;
+            return Dict.Any();
         }
 
 
@@ -522,8 +534,8 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
                 Dict.Add("Data - " + i.Key, i.Value?.ToString());
             }
         }
-
-        return Dict;
+        dict = Dict;
+        return Dict.Any();
     }
 
     private void ContextAddDicionary(ref Dictionary<string, string> Dict, string key, string? value)

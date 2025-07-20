@@ -50,9 +50,9 @@
                 <div class="container-center">
                 </div>
                 <div class="d-flex container-end" style="padding: 4px !important;">
-                    <RadzenButton Variant="Variant.Filled" Text="Resolve" Icon="check" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@ResolveIssue" />
-                    <RadzenButton Variant="Variant.Filled" Text="Reviewed" Icon="person_alert" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Click="@ReviewIssue" />
-                    <RadzenButton Variant="Variant.Filled" Text="Ignore" Icon="alarm_pause" ButtonStyle="ButtonStyle.Light" Click="@IgnoreIssue" />
+                    <RadzenButton Variant="Variant.Filled" Text="Resolve" Icon="check" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@ResolveIssue" Disabled="@(Log.Status == LogStatus.Resolved)" />
+                    <RadzenButton Variant="Variant.Filled" Text="Reviewed" Icon="person_alert" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Click="@ReviewIssue" Disabled="@(Log.Status == LogStatus.Resolved || Log.Status == LogStatus.Reviewed)" />
+                    <RadzenButton Variant="Variant.Filled" Text="Ignore" Icon="alarm_pause" ButtonStyle="ButtonStyle.Light" Click="@IgnoreIssue" Disabled="@(Log.Status == LogStatus.Resolved || Log.Status == LogStatus.Ignored)" />
                     <RadzenButton Variant="Variant.Filled" Icon="delete" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@DeleteIssue" />
                 </div>
             </div>
@@ -72,7 +72,7 @@
                                 }
                                 else
                                 {
-                                    <LogEventInfo Log="@Log" Event="@Event" LatestEventDate="@LatestEventDate.GetValueOrDefault()" CurrentEventDate="@CurrentEventDate.GetValueOrDefault()" Oldest="@Oldest" Older="@Older" Newer="@Newer" Latest="@Latest"></LogEventInfo>
+                                    <LogEventInfo Log="@Log" Event="@Event" OldestEventDate="@OldestEventDate.GetValueOrDefault()" LatestEventDate="@LatestEventDate.GetValueOrDefault()" CurrentEventDate="@CurrentEventDate.GetValueOrDefault()" Oldest="@Oldest" Older="@Older" Newer="@Newer" Latest="@Latest"></LogEventInfo>
                                 }
                             </div>
                         </RadzenTabsItem>
@@ -402,6 +402,7 @@
                 var EventData = _DB.LogsEvents.Collection.Find(new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id)).SortByDescending(x => x.CreatedAt).FirstOrDefault();
                 if (EventData != null)
                 {
+                    OldestEventDate = Log.CreatedAt;
                     LatestEventDate = EventData.CreatedAt;
                     CurrentEventDate = LatestEventDate;
                     Event = SentryEvent.FromJson(JsonDocument.Parse(EventData.Json).RootElement);
@@ -529,6 +530,10 @@
             Event = SentryEvent.FromJson(JsonDocument.Parse(EventData.Json).RootElement);
             StateHasChanged();
         }
+        else
+        {
+            OldestEventDate = CurrentEventDate;
+        }
     }
 
     public async Task Oldest()
@@ -536,6 +541,7 @@
         var EventData = _DB.LogsEvents.Collection.Find(new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id)).SortBy(x => x.CreatedAt).FirstOrDefault();
         if (EventData != null)
         {
+            OldestEventDate = EventData.CreatedAt;
             CurrentEventDate = EventData.CreatedAt;
             Event = SentryEvent.FromJson(JsonDocument.Parse(EventData.Json).RootElement);
             StateHasChanged();
@@ -545,6 +551,7 @@
     public ProjectData? Project { get; set; }
     public LogData? Log { get; set; }
 
+    public DateTime? OldestEventDate;
     public DateTime? LatestEventDate;
     public DateTime? CurrentEventDate;
 
