@@ -381,7 +381,20 @@
                             {
                                 LoadPermissions();
                             }
-
+                        }
+                        else if (Resource is ProjectData project)
+                        {
+                            if (Member.HasProjectPermission(Team, project, ProjectPermission.ManagePermissions))
+                            {
+                                await project.UpdateAsync(new UpdateDefinitionBuilder<ProjectData>().Set(x => x.DefaultPermissions, perms), () =>
+                            {
+                                project.DefaultPermissions = perms;
+                            });
+                            }
+                            else
+                            {
+                                LoadPermissions();
+                            }
                         }
                     }
                     break;

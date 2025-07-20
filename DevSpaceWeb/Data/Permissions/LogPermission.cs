@@ -14,4 +14,6 @@ public enum LogPermission : ulong
     ManageLogs = 1L << 8,
     LogAdministrator = 1L << 9,
     ViewContext = 1L << 10,
+    ViewTags = 1L << 11,
+    ViewAssembly = 1L << 12,
 }

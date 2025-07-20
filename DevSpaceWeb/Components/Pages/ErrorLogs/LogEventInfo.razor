@@ -22,6 +22,8 @@
 
 <br />
 
+@if (Member != null && Member.HasLogPermission(Team, Project, LogPermission.ViewContext))
+{
 <RadzenRow Gap="10px" RowGap="10px">
     @if (Event.HasUser())
     {
@@ -110,6 +112,9 @@
     }
 </RadzenRow>
 <br />
+}
+@if (Member != null && Member.HasLogPermission(Team, Project, LogPermission.ViewTags))
+{
 <h6 id="section-tags">Tags</h6>
 <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
     @foreach (var i in Event.Tags.OrderBy(x => x.Key))
@@ -168,6 +173,7 @@
     }
 </RadzenStack>
 <br />
+}
 @if (Event.SentryExceptions != null)
 {
     <div class="container-fluid" id="section-exception">
@@ -190,6 +196,8 @@
             <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@i.Type</RadzenText>
             <RadzenText TextStyle="TextStyle.Body2">@i.Value</RadzenText>
 
+            if (Member != null && Member.HasLogPermission(Team, Project, LogPermission.ViewStacktrace))
+            {
             @if (i.Stacktrace != null)
             {
                 <RadzenDataGrid Data="@i.Stacktrace.Frames.Where(x => x.InApp.GetValueOrDefault())" AllowVirtualization="true" Style="max-height:400px">
@@ -228,6 +236,7 @@
                         </Columns>
                     </RadzenDataGrid>
             }
+            }
         }
     </div>
     <br />
@@ -248,6 +257,8 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
             </RadzenSelectBar>
         </div>
     </div>
+    if (Member != null && Member.HasLogPermission(Team, Project, LogPermission.ViewStacktrace))
+    {
     <div class="session-item">
         <RadzenDataGrid Data="@Event.SentryThreads.Last().Stacktrace.Frames.Where(x => x.InApp.GetValueOrDefault())" AllowVirtualization="true" Style="max-height:400px">
             <Columns>
@@ -266,12 +277,15 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
             </Columns>
         </RadzenDataGrid>
     </div>
+    }
 }
 <h6>SDK</h6>
 <div class="session-item">
     <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">@Event.Sdk.Name</RadzenText>
     <RadzenText TextStyle="TextStyle.Body2">@Event.Sdk.Version</RadzenText>
 </div>
+@if (Member != null && Member.HasLogPermission(Team, Project, LogPermission.ViewContext))
+{
 <br />
 <h6 id="section-context">Context</h6>
 <RadzenRow Gap="10px" RowGap="10px" class="section-context-grid">
@@ -321,7 +335,8 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
         }
     }
 </RadzenRow>
-@if (Event.Modules != null && Event.Modules.Any())
+}
+@if (Event.Modules != null && Event.Modules.Any() && Member != null && Member.HasLogPermission(Team, Project, LogPermission.ViewAssembly))
 {
     <br />
     <h6 id="section-assembly">Assembly</h6>
@@ -334,11 +349,19 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
     </div>
 }
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
     [Parameter]
     public SentryEvent Event { get; set; }
 
     [Parameter]
     public LogData? Log { get; set; }
+
+    [Parameter]
+    public ProjectData? Project { get; set; }
 
     [Parameter]
     public DateTime OldestEventDate { get; set; }
@@ -348,9 +371,6 @@ else if (Event.SentryThreads != null && Event.SentryThreads.Any() && Event.Sentr
 
     [Parameter]
     public DateTime CurrentEventDate { get; set; }
-
-    [CascadingParameter]
-    private SessionProvider Session { get; set; } = null!;
 
     [Parameter]
     public Func<Task> Oldest { get; set; }

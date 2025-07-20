@@ -50,17 +50,17 @@
                 <div class="container-center">
                 </div>
                 <div class="d-flex container-end" style="padding: 4px !important;">
-                    <RadzenButton Variant="Variant.Filled" Text="Resolve" Icon="check" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@ResolveIssue" Disabled="@(Log.Status == LogStatus.Resolved)" />
-                    <RadzenButton Variant="Variant.Filled" Text="Reviewed" Icon="person_alert" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Click="@ReviewIssue" Disabled="@(Log.Status == LogStatus.Resolved || Log.Status == LogStatus.Reviewed)" />
-                    <RadzenButton Variant="Variant.Filled" Text="Ignore" Icon="alarm_pause" ButtonStyle="ButtonStyle.Light" Click="@IgnoreIssue" Disabled="@(Log.Status == LogStatus.Resolved || Log.Status == LogStatus.Ignored)" />
-                    <RadzenButton Variant="Variant.Filled" Icon="delete" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@DeleteIssue" />
+                    <RadzenButton Variant="Variant.Filled" Text="Resolve" Icon="check" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@ResolveIssue" Disabled="@(Log.Status == LogStatus.Resolved || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
+                    <RadzenButton Variant="Variant.Filled" Text="Reviewed" Icon="person_alert" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Click="@ReviewIssue" Disabled="@(Log.Status == LogStatus.Resolved || Log.Status == LogStatus.Reviewed || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
+                    <RadzenButton Variant="Variant.Filled" Text="Ignore" Icon="alarm_pause" ButtonStyle="ButtonStyle.Light" Click="@IgnoreIssue" Disabled="@(Log.Status == LogStatus.Resolved || Log.Status == LogStatus.Ignored || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
+                    <RadzenButton Variant="Variant.Filled" Icon="delete" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@DeleteIssue" Disabled="@(Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
                 </div>
             </div>
         </div>
         
         <RadzenRow Gap="10px" RowGap="10px">
             <RadzenColumn SizeMD="9">
-                <RadzenTabs TabPosition="TabPosition.Top" RenderMode="TabRenderMode.Client">
+                <RadzenTabs TabPosition="TabPosition.Top">
                     <Tabs>
                         <RadzenTabsItem Text="Event">
                             <div class="event-details">
@@ -72,15 +72,33 @@
                                 }
                                 else
                                 {
-                                    <LogEventInfo Log="@Log" Event="@Event" OldestEventDate="@OldestEventDate.GetValueOrDefault()" LatestEventDate="@LatestEventDate.GetValueOrDefault()" CurrentEventDate="@CurrentEventDate.GetValueOrDefault()" Oldest="@Oldest" Older="@Older" Newer="@Newer" Latest="@Latest"></LogEventInfo>
+                                    <LogEventInfo Project="@Project" Log="@Log" Event="@Event" OldestEventDate="@OldestEventDate.GetValueOrDefault()" LatestEventDate="@LatestEventDate.GetValueOrDefault()" CurrentEventDate="@CurrentEventDate.GetValueOrDefault()" Oldest="@Oldest" Older="@Older" Newer="@Newer" Latest="@Latest"></LogEventInfo>
                                 }
                             </div>
                         </RadzenTabsItem>
                         <RadzenTabsItem Text="Reports">
-                            <LogReports></LogReports>
+                            @if (Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ViewReports))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                    You do not have permission for View Reports
+                                </RadzenAlert>
+                            }
+                            else
+                            {
+                                <LogReports></LogReports>
+                            }
                         </RadzenTabsItem>
                         <RadzenTabsItem Text="Comments">
-                            <LogComments></LogComments>
+                            @if (Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ViewComments))
+                            {
+                                <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+                                    You do not have permission for View Comments
+                                </RadzenAlert>
+                            }
+                            else
+                            {
+                                <LogComments></LogComments>
+                            }
                         </RadzenTabsItem>
                     </Tabs>
                 </RadzenTabs>

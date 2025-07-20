@@ -11,6 +11,7 @@ public static class PermissionsData
     public static PermissionItem<ServerPermission>[] AllServerData = GetServerData(true);
     public static PermissionItem<WebsitePermission>[] AllWebsiteData = GetWebsiteData(true);
     public static PermissionItem<ProjectPermission>[] AllProjectData = GetProjectData(true);
+    public static PermissionItem<LogPermission>[] AllLogData = GetLogData(true);
     public static PermissionItem<DockerPermission>[] AllDockerData = GetDockerData(true);
     public static PermissionItem<DockerContainerPermission>[] AllDockerContainerData = GetDockerContainerData(true);
     public static PermissionItem<ConsolePermission>[] AllConsoleData = GetConsoleData(true);
@@ -19,6 +20,7 @@ public static class PermissionsData
     public static PermissionItem<ServerPermission>[] ResourceServerData = GetServerData(false);
     public static PermissionItem<WebsitePermission>[] ResourceWebsiteData = GetWebsiteData(false);
     public static PermissionItem<ProjectPermission>[] ResourceProjectData = GetProjectData(false);
+    public static PermissionItem<LogPermission>[] ResourceLogData = GetLogData(false);
     public static PermissionItem<DockerPermission>[] ResourceDockerData = GetDockerData(false);
     public static PermissionItem<DockerContainerPermission>[] ResourceDockerContainerData = GetDockerContainerData(false);
     public static PermissionItem<ConsolePermission>[] ResourceConsoleData = GetConsoleData(false);
@@ -111,6 +113,25 @@ public static class PermissionsData
             new PermissionItem<ProjectPermission>(ProjectPermission.ManageProject, "Manage Project" + (plural ? "s" : ""), "Change all project settings."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ViewPermissions, "View Permissions", "View permissions for the project."),
             new PermissionItem<ProjectPermission>(ProjectPermission.ManagePermissions, "Manage Permissions", "Change permissions for all projects the team owns."),
+
+        ];
+    }
+
+    private static PermissionItem<LogPermission>[] GetLogData(bool plural)
+    {
+        return
+        [
+            new PermissionItem<LogPermission>(LogPermission.ManageLogs, "Manage Logs", "Resolve, review, ignore and delete log issues."),
+            new PermissionItem<LogPermission>(LogPermission.AssignTo, "Assign To User", "Assign a log issue to another team member."),
+            new PermissionItem<LogPermission>(LogPermission.ViewComments, "View Comments", "View comments on a log issue."),
+            new PermissionItem<LogPermission>(LogPermission.CreateComments, "Create Comments", "Create comments for a log issue."),
+            new PermissionItem<LogPermission>(LogPermission.ViewReports, "View Reports", "View user reports on a log issue."),
+            new PermissionItem<LogPermission>(LogPermission.ManageReports, "Manage Reports", "Delete and review user reports on a log issue."),
+            new PermissionItem<LogPermission>(LogPermission.ViewTags, "View Tags", "View tags for a log issue."),
+            new PermissionItem<LogPermission>(LogPermission.ViewAssembly, "View Assembly", "View assembly packages/modules for a log issue."),
+            new PermissionItem<LogPermission>(LogPermission.ViewContext, "View Context", "View context items for a log issue."),
+            //new PermissionItem<LogPermission>(LogPermission.ViewSensitiveInfo, "View Sensitive Info", "View sensitive info such as emails or IP."),
+            new PermissionItem<LogPermission>(LogPermission.ViewStacktrace, "View Stacktrace", "View stacktrace info for a log issue."),
 
         ];
     }

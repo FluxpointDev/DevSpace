@@ -12,6 +12,7 @@ public class PermissionsSet
         ProjectPermissions = (ProjectPermission)ulong.MaxValue,
         ServerPermissions = (ServerPermission)ulong.MaxValue,
         WebsitePermissions = (WebsitePermission)ulong.MaxValue,
+        LogPermissions = (LogPermission)ulong.MaxValue,
         AppPermissions = (AppPermission)ulong.MaxValue,
     };
 
