@@ -102,6 +102,8 @@ public class HealthCheckService
             HttpResponseMessage Res = await Program.Http.SendAsync(Message);
             IsEmailOnline = Res.IsSuccessStatusCode;
         }
+        else
+            IsEmailOnline = true;
 
         if (IsDatabaseOnline && IsEmailOnline)
         {

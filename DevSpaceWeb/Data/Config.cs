@@ -130,7 +130,7 @@ public class ConfigEmail
 }
 public enum ConfigEmailType
 {
-    FluxpointManaged, Gmail, SendGrid, Custom
+    FluxpointManaged, Gmail, SendGrid, Custom, None
 }
 public class ConfigProviders
 {

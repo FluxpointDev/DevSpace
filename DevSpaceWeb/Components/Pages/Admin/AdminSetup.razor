@@ -30,10 +30,10 @@
             <RadzenTimelineItem PointStyle="@GetStepColor(SetupStepType.Smtp)">
                 <ChildContent>
                     <RadzenCard>
-                        <RadzenText TextStyle="TextStyle.Subtitle1">Smtp/Email</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Subtitle1">Smtp/Email (Optional)</RadzenText>
 
                         <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
-                            You need to setup an email provider (smtp service) for account registration and security.
+                            You can skip this but it can be used for extra account security.
                         </RadzenAlert>
 
                         <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
@@ -43,6 +43,7 @@
                         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Email Type</RadzenText>
                         <RadzenSelectBar TValue="ConfigEmailType" @bind-Value="@EmailType" Style="width: 100%" Disabled="@(SetupStep != SetupStepType.Smtp)">
                             <Items>
+                                <RadzenSelectBarItem Value="@ConfigEmailType.None" Text="None" />
                                 <RadzenSelectBarItem Value="@ConfigEmailType.FluxpointManaged" Text="Fluxpoint Managed" />
                                 <RadzenSelectBarItem Value="@ConfigEmailType.Gmail" Text="Gmail" />
                                 <RadzenSelectBarItem Value="@ConfigEmailType.SendGrid" Text="SendGrid" />
@@ -57,6 +58,11 @@
 
                             @switch (EmailType)
                             {
+                                case ConfigEmailType.None:
+                                    {
+
+                                    }
+                                    break;
                                 case ConfigEmailType.Custom:
                                     {
                                         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-1">Smtp Host</RadzenText>
@@ -170,6 +176,10 @@
                             @if (EmailType == ConfigEmailType.FluxpointManaged)
                             {
                                 <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Next" Disabled="@(SetupStep != SetupStepType.Smtp)" Click="@CheckSmtp" />
+                            }
+                            else if (EmailType == ConfigEmailType.None)
+                            {
+                                <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Skip" Disabled="@(SetupStep != SetupStepType.Smtp)" ButtonType="ButtonType.Submit" />
                             }
                             else
                             {
@@ -444,7 +454,11 @@
         SetupStep = SetupStepType.Disabled;
         SmtpErrorMessage = string.Empty;
 
-        if (EmailType == ConfigEmailType.FluxpointManaged)
+        if (EmailType == ConfigEmailType.None)
+        {
+
+        }
+        else if (EmailType == ConfigEmailType.FluxpointManaged)
         {
             if (string.IsNullOrEmpty(ManagedEmailToken))
             {
@@ -528,9 +542,8 @@
             _Data.Config.Email.SmtpUser = SmtpForm.User;
             _Data.Config.Email.SmtpPassword = SmtpForm.Password;
             _Data.Config.Email.SenderEmailAddress = SmtpForm.EmailAddress;
-            _Data.Config.Email.Type = EmailType;
-
         }
+        _Data.Config.Email.Type = EmailType;
         _Data.Config.Save();
 
         SetupStep = SetupStepType.Instance;
@@ -579,32 +592,34 @@
             {
                 UserName = AdminAccount.Username,
                 Email = AdminAccount.Email,
-                EmailConfirmed = true,
+                EmailConfirmed = EmailType != ConfigEmailType.None,
                 IsInstanceAdmin = true
             };
-
-        if (AdminAccount.Email != SentEmailAddress)
+        if (EmailType != ConfigEmailType.None)
         {
-            SentEmailAddress = AdminAccount.Email;
-            SentEmailCode = Email.RandomCodeGenerator();
-            bool EmailSuccess = await Email.SendAccessCode(User, "Admin setup confirmation", SentEmailCode);
-            if (!EmailSuccess)
+            if (AdminAccount.Email != SentEmailAddress)
             {
-                SmtpErrorMessage = "Failed to send admin email, please update your smtp settings.";
-                SetupStep = SetupStepType.Smtp;
+                SentEmailAddress = AdminAccount.Email;
+                SentEmailCode = Email.RandomCodeGenerator();
+                bool EmailSuccess = await Email.SendAccessCode(User, "Admin setup confirmation", SentEmailCode);
+                if (!EmailSuccess)
+                {
+                    SmtpErrorMessage = "Failed to send admin email, please update your smtp settings.";
+                    SetupStep = SetupStepType.Smtp;
+                    return;
+                }
+                SetupStep = SetupStepType.Admin;
                 return;
             }
-            SetupStep = SetupStepType.Admin;
-            return;
-        }
 
-        if (!string.IsNullOrEmpty(InputEmailCode))
-            InputEmailCode = InputEmailCode.Substring(0, 6).Trim();
+            if (!string.IsNullOrEmpty(InputEmailCode))
+                InputEmailCode = InputEmailCode.Substring(0, 6).Trim();
 
-        if (InputEmailCode != SentEmailCode)
-        {
-            SetupStep = SetupStepType.Admin;
-            return;
+            if (InputEmailCode != SentEmailCode)
+            {
+                SetupStep = SetupStepType.Admin;
+                return;
+            }
         }
 
         IdentityResult result = await UserManager.CreateAsync(User, AdminAccount.Password);
@@ -629,7 +644,6 @@
                 .Set(x => x.OwnerId, User.Id)
                 .Set(x => x.Members, _DB.Teams.Cache.First().Value.Members), () =>
                 {
-                    
                     _DB.Teams.Cache.First().Value.Members.Add(User.Id, member.Id);
                 });
 

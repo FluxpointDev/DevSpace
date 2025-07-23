@@ -6,6 +6,7 @@
 @inject EmailService Email
 @inject HttpContextAccessor Http
 @inject IJSRuntime JS
+@inject DialogService Dialogs
 
 <PageTitle>New Session | @_Data.Config.Instance.Name</PageTitle>
 <div class="dash-box dash-box-content dash-center">
@@ -40,15 +41,23 @@
 
     public async Task Check2FA()
     {
+
         AuthUser? User = await Session.GetCurrentUserAsync();
         if (User == null)
             return;
 
         bool Result = false;
-        if (Program.IsDevMode)
+        if (_Data.Config.Email.Type == ConfigEmailType.None && !User.EmailConfirmed && !User.Mfa.HasAny2FA())
+        {
             Result = true;
+        }
         else
-            Result = await Session.TriggerTwoFactorAuthentication(User, true, true);
+        {
+            if (Program.IsDevMode)
+                Result = true;
+            else
+                Result = await Session.TriggerTwoFactorAuthentication(User, true, true);
+        }
 
         if (Result)
         {
@@ -84,7 +93,7 @@
                 return;
             }
             await UserManager.UpdateAsync(User);
-            if (!Program.IsDevMode && !Program.IsPreviewMode)
+            if (!Program.IsDevMode && !Program.IsPreviewMode && _Data.Config.Email.Type != ConfigEmailType.None)
                 await Email.SendNewSessionIP(User, Ip, CultureInfo.CurrentCulture.Name);
             NavigationManager.Refresh(true);
         }

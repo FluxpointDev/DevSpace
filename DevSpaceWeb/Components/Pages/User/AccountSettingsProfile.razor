@@ -112,7 +112,13 @@
     </RadzenStack>
 
     <div class="mb-4" />
-    @if (AuthUser != null && !AuthUser.EmailConfirmed)
+    @if (_Data.Config.Email.Type == ConfigEmailType.None)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+            Email can't be verified, no email service has been setup for this instance.
+        </RadzenAlert>
+    }
+    else if (AuthUser != null && !AuthUser.EmailConfirmed)
     {
         if (EmailVerifySent)
         {
@@ -369,6 +375,12 @@
 
     public async Task ChangeEmail()
     {
+        if (!Email.CanSendEmail())
+        {
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            return;
+        }
+
         AuthUser = await Session.GetCurrentUserAsync();
         if (AuthUser == null)
             return;
@@ -439,6 +451,7 @@
         if (AuthUser == null)
             return;
 
+
         if (AuthUser.IsInstanceAdmin)
         {
             await Dialogs.ShowInfoAsync("Account Info", "You can't disable your instance admin account.");
@@ -447,6 +460,12 @@
         if (!AuthUser.EmailConfirmed)
         {
             await Dialogs.ShowInfoAsync("Account Info", "You can't disable your account because your email is not verified.");
+            return;
+        }
+
+        if (!Email.CanSendEmail())
+        {
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
             return;
         }
 
@@ -532,6 +551,12 @@
 
     public async Task SendEmailVerify()
     {
+        if (!Email.CanSendEmail())
+        {
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            return;
+        }
+
         EmailVerifySent = true;
         string Code = await UserManager.GenerateEmailConfirmationTokenAsync(AuthUser);
         Code = Uri.EscapeDataString(Code);

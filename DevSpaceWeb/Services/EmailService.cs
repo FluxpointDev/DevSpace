@@ -40,6 +40,9 @@ public class EmailService
 
     public bool CanSendEmail()
     {
+        if (_Data.Config.Email.Type == ConfigEmailType.None)
+            return false;
+
         if (_Data.Config.Email.Type == ConfigEmailType.FluxpointManaged)
             return !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken);
         else
@@ -93,8 +96,11 @@ public class EmailService
         if (Program.IsPreviewMode)
             return true;
 
-        if (_Data.Config.Email.Type == ConfigEmailType.FluxpointManaged && !string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
+        if (_Data.Config.Email.Type == ConfigEmailType.FluxpointManaged)
         {
+            if (string.IsNullOrEmpty(_Data.Config.Email.ManagedEmailToken))
+                return false;
+
             ManagedEmailSystem ??= new HttpClient();
 
             HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/send")
@@ -133,7 +139,7 @@ public class EmailService
         }
         else
         {
-            if (string.IsNullOrEmpty(_Data.Config.Email.SmtpHost))
+            if (string.IsNullOrEmpty(_Data.Config.Email.SmtpHost) || _Data.Config.Email.Type == ConfigEmailType.None)
                 return false;
 
 

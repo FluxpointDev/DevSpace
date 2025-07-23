@@ -6,6 +6,7 @@
 @inject EmailService EmailService
 @inject ISwaggerProvider Swagger
 @inject NavigationManager Nav
+@inject DialogService Dialogs
 
 <PageTitle>Admin Email Settings | @_Data.Config.Instance.Name</PageTitle>
 
@@ -66,6 +67,9 @@
 
     public async Task<string?> Submit(SmtpModel data)
     {
+        if (_Data.Config.Email.Type == ConfigEmailType.None)
+            return "Email service for this instance has not been setup.";
+
         if (IsManaged)
         {
             _Data.Config.Email = new ConfigEmail
@@ -96,6 +100,12 @@
 
     public async Task TestEmail(SmtpModel data)
     {
+        if (!EmailService.CanSendEmail())
+        {
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            return;
+        }
+
         if (IsManaged)
         {
             if (string.IsNullOrEmpty(ManagedEmailToken))

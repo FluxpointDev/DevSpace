@@ -28,11 +28,20 @@
                         @AccountUsername
                     </RadzenText>
                     <br />
-                    <RadzenText TextStyle="TextStyle.Body2">
-                        You can reactive your account with an email code.
-                    </RadzenText>
+                    @if (_Data.Config.Email.Type == ConfigEmailType.None)
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                            You can't enable your account because no email service has been setup for this instance.
+                        </RadzenAlert>
+                    }
+                    else
+                    {
+                        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                            You can reactive your account with an email code.
+                        </RadzenAlert>
+                    }
+                    
                     <br />
-                    <RadzenButton Text="Reactivate Account" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@EnableAccount" />
                     @if (ShowEmailCodeConfirm)
                     {
                         <br />
@@ -42,6 +51,10 @@
                         </div>
                         <br />
                         <RadzenButton Click="@EnableAccountConfirm" Variant="Variant.Filled" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Success" Text="Verify" />
+                    }
+                    else
+                    {
+                        <RadzenButton Text="Reactivate Account" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@EnableAccount" Disabled="_Data.Config.Email.Type == ConfigEmailType.None" />
                     }
                     <a href="/logout"><RadzenButton Shade="Shade.Darker" ButtonStyle="ButtonStyle.Warning" Text="Logout" /></a>
                 }

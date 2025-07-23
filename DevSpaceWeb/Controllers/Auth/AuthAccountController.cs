@@ -62,6 +62,9 @@ public class AuthAccountController : AuthControllerContext
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
 
+        if (!Email.CanSendEmail())
+            return BadRequest("Email service has not been setup.");
+
         if (string.IsNullOrEmpty(token))
             return BadRequest("Invalid token");
 

@@ -357,10 +357,18 @@
                         Password change request has been sent to your email address.
                     </RadzenAlert>
                 }
+                if (_Data.Config.Email.Type == ConfigEmailType.None)
+                {
+                    <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false">
+                        You can't reset your password because no email service has been setup for this instance.
+                    </RadzenAlert>
+                }
 
                 <EditForm Model="@ChangePasswordForm" OnValidSubmit="@ChangePassword">
                     <DataAnnotationsValidator />
 
+                    @if (_Data.Config.Email.Type != ConfigEmailType.None)
+                    {
                     @if (!string.IsNullOrEmpty(Token))
                     {
                         <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05">
@@ -409,12 +417,13 @@
                             @ChangePasswordErrorMessage
                         </RadzenAlert>
                     }
+                    }
 
                     <div class="flex-around" style="margin-top: 30px;">
 
                         @if (string.IsNullOrEmpty(Token))
                         {
-                            <RadzenButton Text="Request Password Change" IsBusy="@FormDisabled" Disabled="@(FormDisabled || Program.IsPreviewMode)" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@CheckChangePassword" />
+                            <RadzenButton Text="Request Password Change" IsBusy="@FormDisabled" Disabled="@(FormDisabled || Program.IsPreviewMode || _Data.Config.Email.Type == ConfigEmailType.None)" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@CheckChangePassword" />
                             <RadzenButton Text="Login" Disabled="@FormDisabled" ButtonStyle="ButtonStyle.Info" Variant="Variant.Text" Shade="Shade.Dark" Click="@(() => { Page = LoginPageType.Login; })" />
                         }
                         else
@@ -423,7 +432,7 @@
                         }
                     </div>
                 </EditForm>
-
+                
             }
             break;
         case LoginPageType.AlreadyLoggedIn:
@@ -604,6 +613,12 @@
             return;
         }
 
+        if (!Email.CanSendEmail())
+        {
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            return;
+        }
+
         FormDisabled = true;
 
         AuthUser? User = await UserManager.UserManager.FindByEmailAsync(ChangePasswordForm.Email);
@@ -730,6 +745,11 @@
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
+            return;
+        }
+        if (!Email.CanSendEmail())
+        {
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
             return;
         }
 

@@ -6,6 +6,7 @@
 @inject SignInManager<AuthUser> SignInManager
 @inject NavigationManager NavigationManager
 @inject EmailService Email
+@inject DialogService Dialogs
 
 <PageTitle>Account Change Email | @_Data.Config.Instance.Name</PageTitle>
 
@@ -111,6 +112,12 @@
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (!Email.CanSendEmail())
+        {
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
             return;
         }
 

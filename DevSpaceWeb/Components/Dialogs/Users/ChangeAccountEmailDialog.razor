@@ -62,6 +62,11 @@
             Session.ShowPreviewModeNotice();
             return;
         }
+        if (!EmailService.CanSendEmail())
+        {
+            await dialogService.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            return;
+        }
 
         AuthUser? user = await Session.GetCurrentUserAsync();
         if (user == null)

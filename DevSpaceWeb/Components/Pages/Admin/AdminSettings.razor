@@ -120,6 +120,12 @@
         if (string.IsNullOrEmpty(EmailInput))
             return;
 
+        if (!EmailService.CanSendEmail())
+        {
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            return;
+        }
+
         bool Confirm = await Dialogs.ShowConfirmAsync("Verify Email", $"Are you sure you want to verify the account for {EmailInput}", "Confirm", ButtonStyle.Success);
         if (!Confirm)
             return;
@@ -184,6 +190,12 @@
             return;
         }
 
+        if (!Email.CanSendEmail())
+        {
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
+            return;
+        }
+
         if (EmailType == ConfigEmailType.FluxpointManaged)
         {
             if (string.IsNullOrEmpty(ManagedEmailToken))
@@ -231,6 +243,12 @@
         if (Program.IsPreviewMode)
         {
             Session.ShowPreviewModeNotice();
+            return;
+        }
+
+        if (!Email.CanSendEmail())
+        {
+            await Dialogs.ShowInfoAsync("Email Service", $"The email service has not been setup for this instance.");
             return;
         }
 
