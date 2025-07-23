@@ -62,12 +62,12 @@
                         AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                         TItem="APIClient" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
             <Columns>
-                <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(APIClient.Name)">
+                <RadzenDataGridColumn Title="Name" Width="@GridWidth.Name" Frozen="true" Property="@nameof(APIClient.Name)">
                     <Template>
                         <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/api/" + context.Id.ToString())" Text="@context.Name" />
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(APIClient.IsDisabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@DisabledFilterProvider.Instance">
+                <RadzenDataGridColumn Title="Status" Width="@GridWidth.Type" Property="@nameof(APIClient.IsDisabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@DisabledFilterProvider.Instance">
                     <Template>
                         @if (!context.IsDisabled)
                         {
@@ -79,12 +79,12 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Owner" Width="220px" Filterable="false">
+                <RadzenDataGridColumn Title="Owner" Width="@GridWidth.Name" Filterable="false">
                     <Template>
                         <MemberStrip Team="@Team" UserId="@context.OwnerId"></MemberStrip>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Created" Width="140px" Filterable="false">
+                <RadzenDataGridColumn Title="Created" Width="@GridWidth.Date" Filterable="false">
                     <Template>
                         @Utils.GetLocalDate(Session, context.CreatedAt)
                     </Template>

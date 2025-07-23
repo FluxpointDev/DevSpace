@@ -89,7 +89,7 @@
                                         TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsLoading" />
                 </Template>
             </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(DockerVolumeInfo.Name)">
+                <RadzenDataGridColumn Title="Name" Width="@GridWidth.Name" Frozen="true" Property="@nameof(DockerVolumeInfo.Name)">
                 <Template>
                     @if (context.Containers != null && context.Containers.Any() && context.Containers.First().Value == "registry")
                     {
@@ -102,7 +102,7 @@
                         
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Status" Width="120px" Filterable="false">
+                <RadzenDataGridColumn Title="Status" Width="@GridWidth.Type" Filterable="false">
                 <Template>
                     @if (context.ContainersCount == 0)
                     {
@@ -114,14 +114,13 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Actions" Width="70px" Filterable="false">
+                <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsOne" Filterable="false">
                 <Template>
-                    <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading)" />
-                    </RadzenStack>
+                    <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading)" />
+                    
                 </Template>
             </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Stack" Width="200px" Property="@nameof(DockerVolumeInfo.Stack)" FilterMode="FilterMode.CheckBoxList">
+                <RadzenDataGridColumn Title="Stack" Width="@GridWidth.Name" Property="@nameof(DockerVolumeInfo.Stack)" FilterMode="FilterMode.CheckBoxList">
                     <Template>
                         @if (!string.IsNullOrEmpty(context.Stack))
                         {
@@ -139,7 +138,7 @@
                     @context.Scope
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Created" Width="160px" Filterable="false">
+                <RadzenDataGridColumn Title="Created" Width="@GridWidth.Date" Filterable="false">
                 <Template>
                     @context.CreatedAt
                 </Template>

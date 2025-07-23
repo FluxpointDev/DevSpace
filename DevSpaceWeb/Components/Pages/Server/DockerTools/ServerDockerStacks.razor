@@ -91,7 +91,7 @@
                                         TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@(IsLoading || data.ControlType != DockerStackControl.Full)" />
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(DockerStackInfo.Name)">
+                <RadzenDataGridColumn Title="Name" Width="@GridWidth.Name" Frozen="true" Property="@nameof(DockerStackInfo.Name)">
                     <Template>
                         @if (string.IsNullOrEmpty(context.Id))
                         {
@@ -103,17 +103,17 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Type" Width="100px" Property="@nameof(DockerStackInfo.Type)" FilterMode="FilterMode.CheckBoxList">
+                <RadzenDataGridColumn Title="Type" Width="@GridWidth.Type" Property="@nameof(DockerStackInfo.Type)" FilterMode="FilterMode.CheckBoxList">
                     <Template>
                         @context.Type.ToString()
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Control" Width="100px" Property="@nameof(DockerStackInfo.ControlType)" FilterMode="FilterMode.CheckBoxList">
+                <RadzenDataGridColumn Title="Control" Width="@GridWidth.Type" Property="@nameof(DockerStackInfo.ControlType)" FilterMode="FilterMode.CheckBoxList">
                     <Template>
                         @context.ControlType.ToString()
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(DockerStackInfo.IsRunning)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@StackRunningFilterProvider.Instance">
+                <RadzenDataGridColumn Title="Status" Width="@GridWidth.Type" Property="@nameof(DockerStackInfo.IsRunning)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@StackRunningFilterProvider.Instance">
                     <Template>
                         <RadzenBadge Shade="Shade.Dark" BadgeStyle="@(context.IsRunning? BadgeStyle.Success: BadgeStyle.Danger)" Text="@(context.IsRunning ? "Running" : "Down")" IsPill="true" />
                     </Template>
@@ -123,11 +123,10 @@
                         <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Info" Text="@(context.Containers.Count + " container" + (context.Containers.Count != 1 ? "s" : ""))" IsPill="true" />
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Actions" Width="70px" Filterable="false">
+                <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsOne" Filterable="false">
                     <Template>
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                        </RadzenStack>
+                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Version" Width="70px" Filterable="false">
@@ -135,7 +134,7 @@
                         @context.Version
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Created" Width="140px" Filterable="false">
+                <RadzenDataGridColumn Title="Created" Width="@GridWidth.Date" Filterable="false">
                     <Template>
                         @if (context.CreatedAt.HasValue)
                         {

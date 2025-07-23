@@ -53,7 +53,7 @@
                     GotoFirstPageOnSort="true" TItem="DockerRegistry" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))"
                     LogicalFilterOperator="LogicalFilterOperator.And" FilterMode="FilterMode.Advanced">
         <Columns>
-            <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
+                <RadzenDataGridColumn Title="Name" Width="@GridWidth.NameWithIcon" Frozen="true" Filterable="false">
                 <Template>
                     @switch (context.Type)
                     {
@@ -101,7 +101,7 @@
                     @context.Name
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Status" Width="100px" Filterable="false" FilterMode="FilterMode.CheckBoxList">
+                <RadzenDataGridColumn Title="Status" Width="@GridWidth.Type" Filterable="false" FilterMode="FilterMode.CheckBoxList">
                 <Template>
                     @if (context.IsEnabled)
                     {
@@ -134,9 +134,8 @@
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Action" Filterable="false">
                     <Template>
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
-                        </RadzenStack>
+                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
+                        
                     </Template>
                 </RadzenDataGridColumn>
             </Columns>

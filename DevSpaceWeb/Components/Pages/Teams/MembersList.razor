@@ -39,7 +39,7 @@
                 PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
                 TItem="TeamMemberData" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
     <Columns>
-        <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(TeamMemberData.FilterUsername)">
+        <RadzenDataGridColumn Title="Name" Width="@GridWidth.Name" Frozen="true" Property="@nameof(TeamMemberData.FilterUsername)">
             <Template>
                 <RadzenImage Path="@context.GetCurrentAvatar()"></RadzenImage>
                 <div class="members-item-names">
@@ -52,12 +52,12 @@
                 </div>
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Created" Width="100px" Filterable="false">
+        <RadzenDataGridColumn Title="Created" Width="@GridWidth.Date" Filterable="false">
             <Template>
                 @Utils.GetLocalDate(Session, _DB.Users[context.UserId].Id.CreationTime)
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Joined" Width="100px" Filterable="false">
+        <RadzenDataGridColumn Title="Joined" Width="@GridWidth.Date" Filterable="false">
             <Template>
                 @Utils.GetLocalDate(Session, context.JoinedAt)
             </Template>
@@ -78,7 +78,7 @@
                 }
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Status" Width="100px" FilterMode="FilterMode.CheckBoxList" Property="@nameof(TeamMemberData.IsEnabled)" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
+        <RadzenDataGridColumn Title="Status" Width="@GridWidth.Type" FilterMode="FilterMode.CheckBoxList" Property="@nameof(TeamMemberData.IsEnabled)" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
             <Template>
                 @if (context.IsEnabled)
                 {
@@ -93,7 +93,7 @@
                 }
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Type" Width="100px" FilterMode="FilterMode.CheckBoxList" Property="@nameof(TeamMemberData.MemberType)">
+        <RadzenDataGridColumn Title="Type" Width="@GridWidth.Type" FilterMode="FilterMode.CheckBoxList" Property="@nameof(TeamMemberData.MemberType)">
             <Template>
                 @if (Team != null && context.UserId == Team.OwnerId)
                 {
@@ -113,7 +113,7 @@
                 }
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="2FA" Width="100px" FilterMode="FilterMode.CheckBoxList" Property="@nameof(TeamMemberData.Has2FA)" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
+        <RadzenDataGridColumn Title="2FA" Width="@GridWidth.Type" FilterMode="FilterMode.CheckBoxList" Property="@nameof(TeamMemberData.Has2FA)" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
             <Template>
                 @if (_DB.Users.TryGetValue(context.UserId, out PartialUserData? user) && user.Has2FA)
                 {
@@ -128,7 +128,7 @@
                 }
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Actions" Width="200px" Filterable="false">
+        <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsTwo" Filterable="false">
             <Template>
                 <RadzenStack Gap="8px" Orientation="Orientation.Horizontal">
                     <RadzenButton Click="@(args => ShowContextMenuWithViewItems(context, args))" Icon="visibility" Text="View" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" />

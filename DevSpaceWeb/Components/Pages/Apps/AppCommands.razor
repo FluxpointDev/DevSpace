@@ -85,12 +85,12 @@
                                                     TValue="bool" Change="@(() => CommandsGrid.SelectRow(data))" Disabled="@IsLoading" />
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(DiscordAppSlashCommand.Name)">
+                            <RadzenDataGridColumn Title="Name" Width="@GridWidth.Name" Frozen="true" Property="@nameof(DiscordAppSlashCommand.Name)">
                                 <Template>
                                     <RadzenLink Path="@("/workspaces/" + App?.Id.ToString() + "/" + context.WorkspaceId.ToString())" Target="_blank" Text="@context.Name" />
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(IDiscordAppCommand.IsEnabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
+                            <RadzenDataGridColumn Title="Status" Width="@GridWidth.Type" Property="@nameof(IDiscordAppCommand.IsEnabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
                                 <Template>
                                     @if (context.IsEnabled)
                                     {
@@ -102,7 +102,7 @@
                                     }
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
+                            <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsTwo" Filterable="false">
                                 <Template>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
                                         <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
@@ -110,17 +110,17 @@
                                     </RadzenStack>
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Created" Width="140px" Filterable="false">
+                            <RadzenDataGridColumn Title="Created" Width="@GridWidth.Date" Filterable="false">
                                 <Template>
                                     @Utils.GetLocalDate(Session, context.CreatedAt)
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="By" Width="220px" Filterable="false">
+                            <RadzenDataGridColumn Title="By" Width="@GridWidth.Name" Filterable="false">
                                 <Template>
                                     <MemberStrip Team="@Team" UserId="@context.CreatedBy"></MemberStrip>
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Update" Width="140px" Filterable="false">
+                            <RadzenDataGridColumn Title="Update" Width="@GridWidth.Date" Filterable="false">
                                 <Template>
                                     @if (context.UpdatedAt.HasValue)
                                     {
@@ -163,12 +163,12 @@
                                                     TValue="bool" Change="@(() => UsersGrid.SelectRow(data))" Disabled="@IsLoading" />
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(IDiscordAppCommand.Name)">
+                            <RadzenDataGridColumn Title="Name" Width="@GridWidth.Name" Frozen="true" Property="@nameof(IDiscordAppCommand.Name)">
                                 <Template>
                                     <RadzenLink Path="@("/workspaces/" + App?.Id.ToString() + "/" + context.WorkspaceId.ToString())" Target="_blank" Text="@context.Name" />
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(IDiscordAppCommand.IsEnabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
+                            <RadzenDataGridColumn Title="Status" Width="@GridWidth.Type" Property="@nameof(IDiscordAppCommand.IsEnabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
                                 <Template>
                                     @if (context.IsEnabled)
                                     {
@@ -180,7 +180,7 @@
                                     }
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
+                            <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsTwo" Filterable="false">
                                 <Template>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
                                         <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
@@ -188,17 +188,17 @@
                                     </RadzenStack>
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Created" Width="140px" Filterable="false">
+                            <RadzenDataGridColumn Title="Created" Width="@GridWidth.Date" Filterable="false">
                                 <Template>
                                     @Utils.GetLocalDate(Session, context.CreatedAt)
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="By" Width="220px" Filterable="false">
+                            <RadzenDataGridColumn Title="By" Width="@GridWidth.Name" Filterable="false">
                                 <Template>
                                     <MemberStrip Team="@Team" UserId="@context.CreatedBy"></MemberStrip>
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Update" Width="140px" Filterable="false">
+                            <RadzenDataGridColumn Title="Update" Width="@GridWidth.Date" Filterable="false">
                                 <Template>
                                     @if (context.UpdatedAt.HasValue)
                                     {
@@ -240,12 +240,12 @@
                                                     TValue="bool" Change="@(() => MessagesGrid.SelectRow(data))" Disabled="@IsLoading" />
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Name" Width="200px" Frozen="true" Property="@nameof(IDiscordAppCommand.Name)">
+                            <RadzenDataGridColumn Title="Name" Width="@GridWidth.Name" Frozen="true" Property="@nameof(IDiscordAppCommand.Name)">
                                 <Template>
                                     <RadzenLink Path="@("/workspaces/" + App?.Id.ToString() + "/" + context.WorkspaceId.ToString())" Target="_blank" Text="@context.Name" />
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(IDiscordAppCommand.IsEnabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
+                            <RadzenDataGridColumn Title="Status" Width="@GridWidth.Type" Property="@nameof(IDiscordAppCommand.IsEnabled)" FilterMode="FilterMode.CheckBoxList" FormatString="{0}" FormatProvider="@EnabledFilterProvider.Instance">
                                 <Template>
                                     @if (context.IsEnabled)
                                     {
@@ -257,7 +257,7 @@
                                     }
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Actions" Width="80px" Filterable="false">
+                            <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsTwo" Filterable="false">
                                 <Template>
                                     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
                                         <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" />
@@ -265,17 +265,17 @@
                                     </RadzenStack>
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Created" Width="140px" Filterable="false">
+                            <RadzenDataGridColumn Title="Created" Width="@GridWidth.Date" Filterable="false">
                                 <Template>
                                     @Utils.GetLocalDate(Session, context.CreatedAt)
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="By" Width="220px" Filterable="false">
+                            <RadzenDataGridColumn Title="By" Width="@GridWidth.Name" Filterable="false">
                                 <Template>
                                     <MemberStrip Team="@Team" UserId="@context.CreatedBy"></MemberStrip>
                                 </Template>
                             </RadzenDataGridColumn>
-                            <RadzenDataGridColumn Title="Update" Width="140px" Filterable="false">
+                            <RadzenDataGridColumn Title="Update" Width="@GridWidth.Date" Filterable="false">
                                 <Template>
                                     @if (context.UpdatedAt.HasValue)
                                     {

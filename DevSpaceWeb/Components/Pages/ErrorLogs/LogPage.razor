@@ -50,10 +50,10 @@
                 <div class="container-center">
                 </div>
                 <div class="d-flex container-end" style="padding: 4px !important;">
-                    <RadzenButton Variant="Variant.Filled" Text="Resolve" Icon="check" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@ResolveIssue" Disabled="@(Log.Status == LogStatus.Resolved || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
-                    <RadzenButton Variant="Variant.Filled" Text="Reviewed" Icon="person_alert" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Click="@ReviewIssue" Disabled="@(Log.Status == LogStatus.Resolved || Log.Status == LogStatus.Reviewed || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
-                    <RadzenButton Variant="Variant.Filled" Text="Ignore" Icon="alarm_pause" ButtonStyle="ButtonStyle.Light" Click="@IgnoreIssue" Disabled="@(Log.Status == LogStatus.Resolved || Log.Status == LogStatus.Ignored || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
-                    <RadzenButton Variant="Variant.Filled" Icon="delete" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@DeleteIssue" Disabled="@(Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
+                    <RadzenButton Variant="Variant.Filled" Text="Resolve" Icon="check" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Click="@ResolveIssueAsync" Disabled="@(Log.Status == LogStatus.Resolved || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
+                    <RadzenButton Variant="Variant.Filled" Text="Reviewed" Icon="person_alert" Shade="Shade.Dark" ButtonStyle="ButtonStyle.Info" Click="@ReviewIssueAsync" Disabled="@(Log.Status == LogStatus.Resolved || Log.Status == LogStatus.Reviewed || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
+                    <RadzenButton Variant="Variant.Filled" Text="Ignore" Icon="alarm_pause" ButtonStyle="ButtonStyle.Light" Click="@IgnoreIssueAsync" Disabled="@(Log.Status == LogStatus.Resolved || Log.Status == LogStatus.Ignored || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
+                    <RadzenButton Variant="Variant.Filled" Icon="delete" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Darker" Click="@DeleteAsync" Disabled="@(Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))" />
                 </div>
             </div>
         </div>
@@ -436,17 +436,19 @@
         IsLoading = false;
     }
 
-    public async Task ResolveIssue()
+    public async Task ResolveIssueAsync()
     {
+        if (Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))
+            return;
+
+        if (Log == null)
+            return;
+
         var User = await Session.GetCurrentUserAsync();
         if (User == null)
             return;
 
-        await Log.UpdateAsync(new UpdateDefinitionBuilder<LogData>().Set(x => x.Status, LogStatus.Resolved).Push(x => x.Activity, new LogActivity
-        {
-            ActivityType = LogActivityType.Resolved,
-            ActionUserId = User.Id
-        }), () =>
+        if (await Log.ResolveIssueAsync(User))
         {
             Log.Status = LogStatus.Resolved;
             Log.Activity.Add(new LogActivity
@@ -454,21 +456,23 @@
                 ActivityType = LogActivityType.Resolved,
                 ActionUserId = User.Id
             });
-            InvokeAsync(StateHasChanged);
-        });
+            _ = InvokeAsync(StateHasChanged);
+        }
     }
 
-    public async Task IgnoreIssue()
+    public async Task IgnoreIssueAsync()
     {
+        if (Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))
+            return;
+
+        if (Log == null)
+            return;
+
         var User = await Session.GetCurrentUserAsync();
         if (User == null)
             return;
 
-        await Log.UpdateAsync(new UpdateDefinitionBuilder<LogData>().Set(x => x.Status, LogStatus.Ignored).Push(x => x.Activity, new LogActivity
-        {
-            ActivityType = LogActivityType.Ignored,
-            ActionUserId = User.Id
-        }), () =>
+        if (await Log.IgnoreIssueAsync(User))
         {
             Log.Status = LogStatus.Ignored;
             Log.Activity.Add(new LogActivity
@@ -476,20 +480,22 @@
                 ActivityType = LogActivityType.Ignored,
                 ActionUserId = User.Id
             });
-            InvokeAsync(StateHasChanged);
-        });
+            _ = InvokeAsync(StateHasChanged);
+        }
     }
-    public async Task ReviewIssue()
+    public async Task ReviewIssueAsync()
     {
+        if (Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))
+            return;
+
+        if (Log == null)
+            return;
+
         var User = await Session.GetCurrentUserAsync();
         if (User == null)
             return;
 
-        await Log.UpdateAsync(new UpdateDefinitionBuilder<LogData>().Set(x => x.Status, LogStatus.Reviewed).Push(x => x.Activity, new LogActivity
-        {
-            ActivityType = LogActivityType.Reviewed,
-            ActionUserId = User.Id
-        }), () =>
+        if (await Log.ReviewIssueAsync(User))
         {
             Log.Status = LogStatus.Reviewed;
             Log.Activity.Add(new LogActivity
@@ -497,18 +503,27 @@
                 ActivityType = LogActivityType.Reviewed,
                 ActionUserId = User.Id
             });
-            InvokeAsync(StateHasChanged);
-        });
+            _ = InvokeAsync(StateHasChanged);
+        }
     }
 
-    public async Task DeleteIssue()
+    public async Task DeleteAsync()
     {
-        await _DB.Logs.DeleteAsync(Log);
+        if (Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))
+            return;
+
+        if (Log == null)
+            return;
+
+        await Log.DeleteAsync();
         Log = null;
     }
 
     public async Task Latest()
     {
+        if (Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ViewLogs))
+            return;
+
         var EventData = _DB.LogsEvents.Collection.Find(new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id)).SortByDescending(x => x.CreatedAt).FirstOrDefault();
         if (EventData != null)
         {
@@ -520,6 +535,9 @@
 
     public async Task Newer()
     {
+        if (Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ViewLogs))
+            return;
+
         FilterDefinition<LogEventData>[] AndFilter = new FilterDefinition<LogEventData>[]
         {
             new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id),
@@ -536,6 +554,9 @@
 
     public async Task Older()
     {
+        if (Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ViewLogs))
+            return;
+
         FilterDefinition<LogEventData>[] AndFilter = new FilterDefinition<LogEventData>[]
         {
             new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id),
@@ -556,6 +577,9 @@
 
     public async Task Oldest()
     {
+        if (Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ViewLogs))
+            return;
+
         var EventData = _DB.LogsEvents.Collection.Find(new FilterDefinitionBuilder<LogEventData>().Eq(x => x.LogId, Log.Id)).SortBy(x => x.CreatedAt).FirstOrDefault();
         if (EventData != null)
         {

@@ -1,4 +1,5 @@
 ﻿using DevSpaceWeb.Data.Teams;
+using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
@@ -9,11 +10,6 @@ namespace DevSpaceWeb.Data.Reports;
 
 public class LogData : IObject
 {
-    public LogData()
-    {
-
-    }
-
     public ObjectId TeamId { get; set; }
 
     public ObjectId ProjectId { get; set; }
@@ -46,12 +42,58 @@ public class LogData : IObject
 
     public DateTime LastSeenAt { get; set; }
 
-    public async Task UpdateAsync(UpdateDefinition<LogData> update, Action? action = null)
+    public async Task<UpdateResult> UpdateAsync(UpdateDefinition<LogData> update, Action? action = null)
     {
         FilterDefinition<LogData> filter = Builders<LogData>.Filter.Eq(r => r.Id, Id);
         UpdateResult Result = await _DB.Logs.Collection.UpdateOneAsync(filter, update);
         if (Result.IsAcknowledged)
             action?.Invoke();
+
+        return Result;
+    }
+
+    public async Task<bool> ResolveIssueAsync(AuthUser user)
+    {
+        UpdateResult Result = await UpdateAsync(new UpdateDefinitionBuilder<LogData>()
+            .Set(x => x.Status, LogStatus.Resolved)
+            .Push(x => x.Activity, new LogActivity
+            {
+                ActivityType = LogActivityType.Resolved,
+                ActionUserId = user.Id
+            }));
+
+        return Result.IsAcknowledged;
+    }
+
+    public async Task<bool> IgnoreIssueAsync(AuthUser user)
+    {
+        UpdateResult Result = await UpdateAsync(new UpdateDefinitionBuilder<LogData>()
+            .Set(x => x.Status, LogStatus.Ignored)
+            .Push(x => x.Activity, new LogActivity
+            {
+                ActivityType = LogActivityType.Ignored,
+                ActionUserId = user.Id
+            }));
+
+        return Result.IsAcknowledged;
+    }
+
+    public async Task<bool> ReviewIssueAsync(AuthUser user)
+    {
+        UpdateResult Result = await UpdateAsync(new UpdateDefinitionBuilder<LogData>()
+            .Set(x => x.Status, LogStatus.Reviewed)
+            .Push(x => x.Activity, new LogActivity
+            {
+                ActivityType = LogActivityType.Reviewed,
+                ActionUserId = user.Id
+            }));
+
+        return Result.IsAcknowledged;
+    }
+
+    public async Task DeleteAsync()
+    {
+        await _DB.Logs.DeleteAsync(this);
     }
 }
 public enum LogType

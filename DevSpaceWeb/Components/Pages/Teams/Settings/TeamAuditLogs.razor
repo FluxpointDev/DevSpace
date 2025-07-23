@@ -52,7 +52,7 @@
                         <RadzenText TextStyle="TextStyle.Body2">@Utils.GetLocalDate(Session, context.CreatedAt, true)</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Member" Property="@nameof(AuditLog.CreatedAt)" Width="160px" Filterable="false">
+                <RadzenDataGridColumn Title="Member" Property="@nameof(AuditLog.CreatedAt)" Width="@GridWidth.Name" Filterable="false">
                     <Template>
                         @if (context.Flags.HasFlag(AuditLogFlag.Automatic))
                         {
@@ -64,7 +64,7 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Type" Property="@nameof(AuditLog.CategoryType)" Width="100px"
+                <RadzenDataGridColumn Title="Type" Property="@nameof(AuditLog.CategoryType)" Width="@GridWidth.Type"
                                       FilterValue="@SelectedCategoryTypes">
                     <FilterTemplate>
                         <RadzenListBox @bind-Value="@SelectedCategoryTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "filter by Company" } })"
@@ -78,7 +78,7 @@
                         <RadzenText TextStyle="TextStyle.Body2">@context.CategoryType</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Event" Property="@nameof(AuditLog.EventType)" Width="200px"
+                <RadzenDataGridColumn Title="Event" Property="@nameof(AuditLog.EventType)" Width="@GridWidth.Name"
                                       FilterValue="@SelectedEventTypes">
                     <FilterTemplate>
                         <RadzenListBox @bind-Value="@SelectedEventTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "filter by Company" } })"
@@ -109,7 +109,7 @@
                         </RadzenText>
                     </Template>
                 </RadzenDataGridColumn> *@
-                <RadzenDataGridColumn Title="Target" Property="@nameof(AuditLog.TargetType)" Width="200px"
+                <RadzenDataGridColumn Title="Target" Property="@nameof(AuditLog.TargetType)" Width="@GridWidth.Name"
                                       FilterValue="@SelectedTargetTypes">
                     <FilterTemplate>
                         <RadzenListBox @bind-Value="@SelectedTargetTypes" Style="width:100%;" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "filter by Company" } })"
@@ -195,7 +195,7 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Properties" Width="160px" Filterable="false">
+                <RadzenDataGridColumn Title="Properties" Filterable="false">
                     <Template>
                         @if (context.Properties.Any() || !string.IsNullOrEmpty(context.TargetName))
                         {

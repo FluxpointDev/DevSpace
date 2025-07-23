@@ -124,11 +124,10 @@
                         }
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Actions" Width="70px" Sortable="false" Filterable="false" Pickable="false">
+                <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsOne" Sortable="false" Filterable="false" Pickable="false">
                     <Template>
-                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
-                            <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading)" />
-                        </RadzenStack>
+                        <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading)" />
+                        
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Title="Size" Width="80px" Filterable="false">
@@ -136,7 +135,7 @@
                         @Utils.SizeSuffix(context.Size)
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Created" Width="90px" Filterable="false">
+                <RadzenDataGridColumn Title="Created" Width="@GridWidth.Date" Filterable="false">
                     <Template>
                         <RadzenContent MouseEnter="@(args => ShowUptimeTooltip(args, $"{(int)(DateTime.Now - context.Created).TotalDays} Days ago"))">@context.Created.ToString("dd'/'MM'/'yyyy")</RadzenContent>
                     </Template>

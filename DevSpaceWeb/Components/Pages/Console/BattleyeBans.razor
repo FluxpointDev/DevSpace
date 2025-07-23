@@ -58,7 +58,7 @@
                         EmptyText="No bans." PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage" GridLines="DataGridGridLines.Horizontal">
             <Columns>
-                <RadzenDataGridColumn Title="ID/IP" Width="120px" Filterable="@Member.HasConsolePermission(Team, Console, ConsolePermission.ViewIPs)" Property="@nameof(Ban.ipguid)">
+                <RadzenDataGridColumn Title="ID/IP" Width="@GridWidth.IP" Filterable="@Member.HasConsolePermission(Team, Console, ConsolePermission.ViewIPs)" Property="@nameof(Ban.ipguid)">
                     <Template>
                         @if (!string.IsNullOrEmpty(context.ipguid) && context.ipguid.Contains('.'))
                         {
@@ -84,12 +84,12 @@
                         <RadzenText TextStyle="TextStyle.Body2">@context.reason</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Duration" Width="100px" Filterable="false">
+                <RadzenDataGridColumn Title="Duration" Width="@GridWidth.Date" Filterable="false">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@ParseTime(context.Duration)</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Action" Width="80px" Filterable="false">
+                <RadzenDataGridColumn Title="Action" Width="@GridWidth.ActionsOne" Filterable="false">
                     <Template>
                         <RadzenButton Text="Unban" Click="@(() => UnbanPlayer(context))" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Size="ButtonSize.Small" />
                     </Template>

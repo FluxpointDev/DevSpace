@@ -55,17 +55,17 @@
                                     TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsLoading" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Project" Filterable="false" Width="160px" Frozen="true">
+            <RadzenDataGridColumn Title="Project" Filterable="false" Width="@GridWidth.Name" Frozen="true">
                 <Template>
                     @_DB.Projects.Cache[context.ProjectId].Name
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Number" Filterable="false" Frozen="true" Width="60px">
+            <RadzenDataGridColumn Title="Number" Filterable="false" Frozen="true" Width="@GridWidth.Number">
                 <Template>
                     <span><span style="color: var(--rz-text-tertiary-color);">#</span>@context.IssueNumber</span>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Issue" Filterable="false" Frozen="true" Width="240px">
+            <RadzenDataGridColumn Title="Issue" Filterable="false" Frozen="true" Width="@GridWidth.LongField">
                 <Template>
                     @if (!context.IsRead)
                     {
@@ -74,7 +74,12 @@
                     <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/logs/" + context.Id)" Text="@context.Message" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Type" Filterable="false" Width="90px">
+            <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsOne" Filterable="false">
+                <Template>
+                    <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading)" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn Title="Type" Filterable="false" Width="@GridWidth.Type">
                 <Template>
                     @switch (context.LogType)
                     {
@@ -111,7 +116,7 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Status" Filterable="false" Width="90px">
+            <RadzenDataGridColumn Title="Status" Filterable="false" Width="@GridWidth.Type">
                 <Template>
                     @switch (context.Status)
                     {
@@ -143,17 +148,17 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Last Seen" Filterable="false" Width="130px">
+            <RadzenDataGridColumn Title="Last Seen" Filterable="false" Width="@GridWidth.Date">
                 <Template>
                     @Utils.GetLocalDate(Session, context.LastSeenAt, true)
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Created" Filterable="false" Width="130px">
+            <RadzenDataGridColumn Title="Created" Filterable="false" Width="@GridWidth.Date">
                 <Template>
                     @Utils.GetLocalDate(Session, context.CreatedAt, true)
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Events" Filterable="false" Width="90px">
+            <RadzenDataGridColumn Title="Events" Filterable="false" Width="@GridWidth.Number">
                 <Template>
                     @context.EventsCount
                 </Template>
@@ -184,8 +189,8 @@
 </style>
 
 @code {
-    [CascadingParameter]
-    private SessionProvider Session { get; set; } = null!;
+        [CascadingParameter]
+        private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -247,11 +252,50 @@
     void ShowContextMenuWithManageItems(LogData item, MouseEventArgs args)
     {
         ContextMenuService.Open(args,
-            new List<ContextMenuItem> {
-                                             }, x => MenuItemClick(x, item));
+            new List<ContextMenuItem>
+            {
+                new ContextMenuItem() { Text = "Resolve", Value = "resolve", Icon = "check", IconColor = Colors.InfoDark, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs) },
+                new ContextMenuItem() { Text = "Review", Value = "review", Icon = "person_alert", IconColor = Colors.InfoDark, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs) },
+                new ContextMenuItem() { Text = "Ignore", Value = "ignore", Icon = "alarm_pause", IconColor = Colors.InfoDark, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs) },
+                new ContextMenuItem() { Text = "Delete", Value = "delete", Icon = "delete", IconColor = Colors.Danger, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs) }
+            }, x => MenuItemClick(x, item));
     }
 
-    void MenuItemClick(MenuItemEventArgs args, LogData item)
+    async Task MenuItemClick(MenuItemEventArgs args, LogData item)
     {
+        if (Member == null || Project == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))
+            return;
+
+        var User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+
+        switch (args.Value.ToString())
+        {
+            case "resolve":
+                {
+                    await item.ResolveIssueAsync(User);
+                }
+                break;
+            case "review":
+                {
+                    await item.ReviewIssueAsync(User);
+                }
+                break;
+            case "ignore":
+                {
+                    await item.IgnoreIssueAsync(User);
+                }
+                break;
+            case "delete":
+                {
+                    await item.DeleteAsync();
+                }
+                break;
+        }
+
+        Dialogs.Close();
+        await Grid.RefreshDataAsync();
     }
 }
