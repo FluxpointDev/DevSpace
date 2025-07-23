@@ -18,7 +18,10 @@
     </ActionBar>
     <div class="mt-2">
         <ActionBar>
-            <RadzenButton class="actionbar-single" Variant="Variant.Outlined" Text="Mark Resolved" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Disabled="true" />
+            <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Resolve" Icon="check" Click="@(() => RunLogsAction(LogActivityType.Resolved))" IconColor="@Colors.SuccessDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Disabled="@(!AnySelected || IsLoading || Member == null)" />
+            <RadzenButton Variant="Variant.Outlined" Text="Review" Icon="person_alert" Click="@(() => RunLogsAction(LogActivityType.Reviewed))" IconColor="@Colors.InfoDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Disabled="@(!AnySelected || IsLoading || Member == null)" />
+            <RadzenButton Variant="Variant.Outlined" Text="Ignore" Icon="alarm_pause" Click="@(() => RunLogsAction(LogActivityType.Ignored))" IconColor="@Colors.WarningDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Disabled="@(!AnySelected || IsLoading || Member == null)" />
+            <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Delete" Icon="delete" Click="@(() => RunLogsAction(LogActivityType.Opened))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Disabled="@(!AnySelected || IsLoading || Member == null)" />
             <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => { CurrentProjects = new List<ProjectData>(); Grid.RefreshDataAsync(); })" Disabled="@(IsLoading)" />
             <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
                 <Start>
@@ -35,12 +38,11 @@
         </ActionBar>
     </div>
     <br />
-    <RadzenDataGrid @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
-                    Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No containers."
+    <RadzenDataGrid @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" IsLoading="@IsLoading"
+                    Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No logs."
                     PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
                     GridLines="DataGridGridLines.Horizontal" @bind-Value="@SelectedContainers" SelectionMode="DataGridSelectionMode.Multiple"
-                    PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
-                    PagingSummaryFormat="@(Count + " log" + (Count != 1 ? "s" : "") )"
+                    PageSizeOptions="@Static.TablePageSizeOptions"
                     AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                     TItem="LogData" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
         <Columns>
@@ -48,7 +50,7 @@
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
                                     Value="@(SelectedContainers == null || SelectedContainers?.Any() != true ? false : !ContainersList.All(i => SelectedContainers.Contains(i)) ? null : ContainersList.Any(i => SelectedContainers.Contains(i)))"
-                                    Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList.ToList() : null)" Disabled="@(IsLoading || Count == 0)" />
+                                    Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList.ToList() : null)" Disabled="@(IsLoading)" />
                 </HeaderTemplate>
                 <Template Context="data">
                     <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedContainers != null && SelectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"
@@ -194,7 +196,6 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ProjectData? Project => Session.Selected.Project;
 
     public ProjectData? SelectedProject { get; set; }
     IEnumerable<ProjectData> CurrentProjects = new List<ProjectData>();
@@ -243,7 +244,6 @@
         IsLoading = false;
     }
 
-    public int Count = 0;
     IList<LogData>? SelectedContainers;
     public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
     RadzenDataGrid<LogData> Grid;
@@ -251,27 +251,80 @@
 
     void ShowContextMenuWithManageItems(LogData item, MouseEventArgs args)
     {
+        if (!_DB.Projects.Cache.TryGetValue(item.ProjectId, out var project))
+            return;
+
         ContextMenuService.Open(args,
             new List<ContextMenuItem>
             {
-                new ContextMenuItem() { Text = "Resolve", Value = "resolve", Icon = "check", IconColor = Colors.InfoDark, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs) },
-                new ContextMenuItem() { Text = "Review", Value = "review", Icon = "person_alert", IconColor = Colors.InfoDark, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs) },
-                new ContextMenuItem() { Text = "Ignore", Value = "ignore", Icon = "alarm_pause", IconColor = Colors.InfoDark, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs) },
-                new ContextMenuItem() { Text = "Delete", Value = "delete", Icon = "delete", IconColor = Colors.Danger, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs) }
+                new ContextMenuItem() { Text = "Resolve", Value = "resolve", Icon = "check", IconColor = Colors.InfoDark, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, project, LogPermission.ManageLogs) },
+                new ContextMenuItem() { Text = "Review", Value = "review", Icon = "person_alert", IconColor = Colors.InfoDark, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, project, LogPermission.ManageLogs) },
+                new ContextMenuItem() { Text = "Ignore", Value = "ignore", Icon = "alarm_pause", IconColor = Colors.InfoDark, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, project, LogPermission.ManageLogs) },
+                new ContextMenuItem() { Text = "Delete", Value = "delete", Icon = "delete", IconColor = Colors.Danger, Disabled = IsLoading || Member == null || !Member.HasLogPermission(Team, project, LogPermission.ManageLogs) }
             }, x => MenuItemClick(x, item));
     }
 
-    async Task MenuItemClick(MenuItemEventArgs args, LogData item)
+    async Task RunLogsAction(LogActivityType type)
     {
-        ContextMenuService.Close();
-        if (Member == null || Project == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))
+        if (Member == null || SelectedContainers == null || !SelectedContainers.Any())
             return;
 
         var User = await Session.GetCurrentUserAsync();
         if (User == null)
             return;
 
+        IsLoading = true;
 
+        foreach(var i in SelectedContainers)
+        {
+            if (!_DB.Projects.Cache.TryGetValue(i.ProjectId, out var project))
+                continue;
+
+            if (!Member.HasLogPermission(Team, project, LogPermission.ManageLogs))
+                continue;
+
+            switch (type)
+            {
+                case LogActivityType.Resolved:
+                    {
+                        await i.ResolveIssueAsync(User);
+                    }
+                    break;
+                case LogActivityType.Reviewed:
+                    {
+                        await i.ReviewIssueAsync(User);
+                    }
+                    break;
+                case LogActivityType.Ignored:
+                    {
+                        await i.IgnoreIssueAsync(User);
+                    }
+                    break;
+                // This is deleted but kept in for type usage
+                case LogActivityType.Opened:
+                    {
+                        await i.DeleteAsync();
+                    }
+                    break;
+            }
+        }
+        IsLoading = false;
+    }
+
+    async Task MenuItemClick(MenuItemEventArgs args, LogData item)
+    {
+        ContextMenuService.Close();
+        if (!_DB.Projects.Cache.TryGetValue(item.ProjectId, out var project))
+            return;
+
+        if (Member == null || project == null || !Member.HasLogPermission(Team, project, LogPermission.ManageLogs))
+            return;
+
+        var User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        IsLoading = true;
         switch (args.Value.ToString())
         {
             case "resolve":
@@ -295,7 +348,7 @@
                 }
                 break;
         }
-
+        IsLoading = false;
         await Grid.RefreshDataAsync();
 
     }
