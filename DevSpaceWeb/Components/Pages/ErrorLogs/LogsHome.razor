@@ -12,8 +12,8 @@
     <br />
     <ActionBar>
         <RadzenDropDown Placeholder="All Projects" AllowClear="true" AllowFiltering="true" ClearSearchAfterSelection="true" Disabled="@IsLoading"
-            TextProperty="@nameof(ProjectData.Name)" @bind-Value="@SelectedProject" Data="@CurrentProjects" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
-            Style="width: 230px; max-width: 300px; height: 30px; padding-top: 4px;" Change="@(() => Grid.Reload())" />
+                        TextProperty="@nameof(ProjectData.Name)" @bind-Value="@SelectedProject" Data="@CurrentProjects" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                        Style="width: 230px; max-width: 300px; height: 30px; padding-top: 4px;" Change="@(() => Grid.Reload())" />
         <a href="https://docs.fluxpoint.dev/devspace/logs" target="_blank"><RadzenButton Text="Log Docs" Icon="menu_book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
     </ActionBar>
     <div class="mt-2">
@@ -36,14 +36,14 @@
     </div>
     <br />
     <RadzenDataGrid @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" Count="@Count" IsLoading="@IsLoading"
-                        Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No containers."
-                        PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
-                        GridLines="DataGridGridLines.Horizontal" @bind-Value="@SelectedContainers" SelectionMode="DataGridSelectionMode.Multiple"
-                        PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
-                        PagingSummaryFormat="@(Count + " log" + (Count != 1 ? "s" : "") )"
-                        AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                    Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No containers."
+                    PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
+                    GridLines="DataGridGridLines.Horizontal" @bind-Value="@SelectedContainers" SelectionMode="DataGridSelectionMode.Multiple"
+                    PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
+                    PagingSummaryFormat="@(Count + " log" + (Count != 1 ? "s" : "") )"
+                    AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                     TItem="LogData" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
-                    <Columns>
+        <Columns>
             <RadzenDataGridColumn Width="36px" Frozen="true" Filterable="false">
                 <HeaderTemplate>
                     <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
@@ -175,7 +175,7 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            </Columns>
+        </Columns>
     </RadzenDataGrid>
 </div>
 
@@ -189,8 +189,8 @@
 </style>
 
 @code {
-        [CascadingParameter]
-        private SessionProvider Session { get; set; } = null!;
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
@@ -263,6 +263,7 @@
 
     async Task MenuItemClick(MenuItemEventArgs args, LogData item)
     {
+        ContextMenuService.Close();
         if (Member == null || Project == null || !Member.HasLogPermission(Team, Project, LogPermission.ManageLogs))
             return;
 
@@ -295,7 +296,7 @@
                 break;
         }
 
-        Dialogs.Close();
         await Grid.RefreshDataAsync();
+
     }
 }
