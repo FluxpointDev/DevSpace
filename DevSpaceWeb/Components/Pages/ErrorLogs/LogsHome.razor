@@ -66,12 +66,12 @@
                     @_DB.Projects.Cache[context.ProjectId].Name
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Number" Filterable="true" Frozen="true" Width="@GridWidth.Number" Property="@nameof(LogData.IssueNumber)" FilterOperators="@(new FilterOperator[] { FilterOperator.Equals })">
+            <RadzenDataGridColumn Title="Number" Filterable="true" Frozen="true" Width="@GridWidth.Number" Property="@nameof(LogData.IssueNumber)" FilterOperators="@GridOperators.Number">
                 <Template>
                     <span><span style="color: var(--rz-text-tertiary-color);">#</span>@context.IssueNumber</span>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Issue" Filterable="true" Frozen="true" Width="@GridWidth.LongField" Property="@nameof(LogData.Message)" FilterOperators="@(new FilterOperator[] { FilterOperator.Contains })">
+            <RadzenDataGridColumn Title="Issue" Filterable="true" Frozen="true" Width="@GridWidth.LongField" Property="@nameof(LogData.Message)" FilterOperators="@GridOperators.Text">
                 <Template>
                     @if (!context.IsRead)
                     {
@@ -85,11 +85,13 @@
                     <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading)" />
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Type" Filterable="false" Width="@GridWidth.Type" Property="@nameof(LogData.LogType)" FilterOperator="FilterOperator.In" FilterMode="FilterMode.CheckBoxList" FilterValue="@selectedLogTypes">
-                <FilterValueTemplate>
-                    <RadzenListBox @bind-Value="@selectedLogTypes" Multiple="true" AllowSelectAll="false" Style="width:100%;"
+            <RadzenDataGridColumn Title="Type" Filterable="true" Width="@GridWidth.Type" Property="@nameof(LogData.LogType)" FilterMode="FilterMode.CheckBoxList" FilterOperator="FilterOperator.In" FilterValue="@selectedLogTypes">
+                <FilterTemplate>
+                    <div class="rz-grid-filter">
+                    <RadzenListBox @bind-Value="@selectedLogTypes" Multiple="true" AllowSelectAll="true" AllowFiltering="true" Style="width:100%;"
                                    Data="@(Enum.GetValues<LogType>())" />
-                </FilterValueTemplate>
+                   </div>
+                </FilterTemplate>
                 <Template>
                     @switch (context.LogType)
                     {
@@ -126,7 +128,13 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Status" Filterable="false" Width="@GridWidth.Type" Property="@nameof(LogData.Status)" FilterMode="FilterMode.CheckBoxList">
+            <RadzenDataGridColumn Title="Status" Filterable="true" Width="@GridWidth.Type" Property="@nameof(LogData.Status)" FilterMode="FilterMode.CheckBoxList" FilterOperator="FilterOperator.In" FilterValue="@selectedLogStatus">
+                <FilterTemplate>
+                    <div class="rz-grid-filter">
+                        <RadzenListBox @bind-Value="@selectedLogStatus" Multiple="true" AllowSelectAll="true" AllowFiltering="true" Style="width:100%;"
+                                       Data="@(Enum.GetValues<LogStatus>())" />
+                    </div>
+                </FilterTemplate>
                 <Template>
                     @switch (context.Status)
                     {
@@ -158,17 +166,17 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Last Seen" Filterable="false" Width="@GridWidth.Date">
+            <RadzenDataGridColumn Title="Last Seen" Filterable="true" Width="@GridWidth.Date" Property="@nameof(LogData.LastSeenAt)" FilterOperator="FilterOperator.GreaterThanOrEquals" SecondFilterOperator="FilterOperator.GreaterThanOrEquals" FilterOperators="@GridOperators.Date">
                 <Template>
                     @Utils.GetLocalDate(Session, context.LastSeenAt, true)
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Created" Filterable="false" Width="@GridWidth.Date">
+            <RadzenDataGridColumn Title="Created" Filterable="true" Width="@GridWidth.Date" Property="@nameof(LogData.CreatedAt)" FilterOperator="FilterOperator.GreaterThanOrEquals" SecondFilterOperator="FilterOperator.GreaterThanOrEquals" FilterOperators="@GridOperators.Date">
                 <Template>
                     @Utils.GetLocalDate(Session, context.CreatedAt, true)
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn Title="Events" Filterable="false" Width="@GridWidth.Number">
+            <RadzenDataGridColumn Title="Events" Filterable="true" Width="@GridWidth.Number" Property="@nameof(LogData.EventsCount)" FilterOperators="@GridOperators.Number">
                 <Template>
                     @context.EventsCount
                 </Template>
@@ -222,6 +230,7 @@
         await Grid.Reload();
     }
 
+
     public async Task LoadData(LoadDataArgs args)
     {
         if (Team == null || Member == null)
@@ -240,28 +249,7 @@
         else
             AndFilters.Add(new FilterDefinitionBuilder<LogData>().In(x => x.ProjectId, CurrentProjects.Select(x => x.Id)));
 
-        foreach(var i in args.Filters)
-        {
-            string Prop = i.FilterProperty ?? i.Property;
-            if (string.IsNullOrEmpty(Prop))
-                continue;
-
-            switch (Prop)
-            {
-                case nameof(LogData.IssueNumber):
-                    if (i.FilterValue is ulong number)
-                    {
-                        AndFilters.Add(new FilterDefinitionBuilder<LogData>().Eq(x => x.IssueNumber, number));
-                    }
-                    break;
-                case nameof(LogData.Message):
-                    if (i.FilterValue is string text && !string.IsNullOrEmpty(text))
-                    {
-                        AndFilters.Add(new FilterDefinitionBuilder<LogData>().Regex(x => x.Message, "(?i)" + text));
-                    }
-                    break;
-            }
-        }
+        GridFilters.Parse(Session, ref AndFilters, args);
 
         var Logs = _DB.Logs.Find(new FilterDefinitionBuilder<LogData>().And(AndFilters)).SortByDescending(x => x.Id).Limit(args.Top.GetValueOrDefault()).Skip(args.Skip.GetValueOrDefault());
         var List = await Logs.ToListAsync();
@@ -269,12 +257,15 @@
         IsLoading = false;
     }
 
+
     IList<LogData>? SelectedContainers;
-    IEnumerable<LogType> selectedLogTypes;
-    IEnumerable<LogStatus> selectedLogStatus;
+    List<LogType>? selectedLogTypes;
+    List<LogStatus>? selectedLogStatus;
     public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
     RadzenDataGrid<LogData> Grid;
     public bool IsLoading = true;
+
+
 
     void ShowContextMenuWithManageItems(LogData item, MouseEventArgs args)
     {
