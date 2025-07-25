@@ -150,6 +150,34 @@ public static class Permissions
         return false;
     }
 
+    public static bool CheckFailedAppPermissions(this APIClient client, AppData? app, AppPermission flags, out AppPermission? failedPerm)
+    {
+        foreach (AppPermission value in GetUniqueFlags(flags))
+        {
+            if (app == null || !client.HasAppPermission(app.Team, app, value))
+            {
+                failedPerm = value;
+                return true;
+            }
+        }
+        failedPerm = null;
+        return false;
+    }
+
+    public static bool CheckFailedProjectPermissions(this APIClient client, ProjectData? project, ProjectPermission flags, out ProjectPermission? failedPerm)
+    {
+        foreach (ProjectPermission value in GetUniqueFlags(flags))
+        {
+            if (project == null || !client.HasProjectPermission(project.Team, project, value))
+            {
+                failedPerm = value;
+                return true;
+            }
+        }
+        failedPerm = null;
+        return false;
+    }
+
     public static bool CheckFailedDockerPermissions(this APIClient client, ServerData? server, DockerPermission flags, out DockerPermission? failedPerm)
     {
         foreach (DockerPermission value in GetUniqueFlags(flags))

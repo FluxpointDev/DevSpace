@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data.Consoles;
+﻿using DevSpaceWeb.Apps.Data;
+using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Servers;
@@ -188,6 +189,36 @@ public class APIClient : IObject
         return false;
     }
 
+    public bool HasAppPermission(TeamData? SelectedTeam, AppData? app, AppPermission checkPermission)
+    {
+        if (SelectedTeam == null)
+            return false;
+
+        if (TeamId != SelectedTeam.Id)
+            return false;
+
+        if (app != null && app.ApiPermissionOverrides.TryGetValue(Id, out PermissionsSet? perms) && perms.HasAppPermission(checkPermission))
+            return true;
+
+        if (UseCustomPermissions)
+        {
+            if (CustomPermissions != null && CustomPermissions.HasAppPermission(checkPermission))
+                return true;
+        }
+        else
+        {
+            if (!AllowedPermissions.HasAppPermission(checkPermission))
+                return false;
+
+            if (SelectedTeam.DefaultPermissions.HasAppPermission(checkPermission))
+                return true;
+
+            if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
+                return member.HasAppPermission(Team, app, checkPermission);
+        }
+        return false;
+    }
+
     public bool HasServerPermission(TeamData? SelectedTeam, ServerData? server, ServerPermission checkPermission)
     {
         if (SelectedTeam == null)
@@ -214,9 +245,6 @@ public class APIClient : IObject
 
             if (SelectedTeam.Members.TryGetValue(OwnerId, out ObjectId memberObj) && SelectedTeam.CachedMembers.TryGetValue(memberObj, out TeamMemberData? member))
                 return member.HasServerPermission(Team, server, checkPermission);
-
-
-
         }
         return false;
     }

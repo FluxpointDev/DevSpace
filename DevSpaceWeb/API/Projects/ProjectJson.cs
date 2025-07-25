@@ -1,26 +1,22 @@
-﻿using DevSpaceWeb.Data.Servers;
+﻿using DevSpaceWeb.Data.Projects;
 
-namespace DevSpaceWeb.API.Servers;
+namespace DevSpaceWeb.API.Projects;
 
-public class ServerJson
+public class ProjectJson
 {
-    public ServerJson(ServerData data, bool showIp)
+    public ProjectJson(ProjectData data)
     {
         id = data.Id.ToString();
-        name = data.Name;
+        name = data.Name.ToString();
         owner_id = data.OwnerId.ToString();
         vanity_url = data.VanityUrl;
         created_at = data.CreatedAt;
-        is_online = data.IsConnected;
-        if (showIp)
-            ip = data.AgentIp;
     }
 
     public string id { get; set; }
     public string name { get; set; }
+    public string? description { get; set; }
     public string owner_id { get; set; }
     public string? vanity_url { get; set; }
     public DateTime created_at { get; set; }
-    public bool is_online { get; set; }
-    public string? ip { get; set; }
 }
