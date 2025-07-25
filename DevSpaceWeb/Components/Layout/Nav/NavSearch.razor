@@ -215,6 +215,21 @@
                         }
                     }
                 }
+
+                foreach (ProjectData p in _DB.Projects.Cache.Values)
+                {
+                    if (p.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foreach (TeamMemberData m in Members)
+                        {
+                            if (m.TeamId != p.TeamId)
+                                continue;
+
+                            if (m.HasProjectPermission(Team, p, ProjectPermission.ViewProject))
+                                items.Add(new SearchItem { Name = p.Name, Type = "project", Team = p.Team, Path = "/teams/" + m.Team?.GetVanityUrlOrId() + "/projects/" + p.GetVanityUrlOrId() });
+                        }
+                    }
+                }
                 foreach (ConsoleData c in _DB.Consoles.Cache.Values)
                 {
                     if (c.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
