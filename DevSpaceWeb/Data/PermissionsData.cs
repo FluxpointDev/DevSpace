@@ -75,6 +75,8 @@ public static class PermissionsData
             new PermissionItem<AppPermission>(AppPermission.ManageInstall, "Manage Install", "Manage install settings for the app."),
             new PermissionItem<AppPermission>(AppPermission.ViewCommands, "View Commands", "View commands for the app."),
             new PermissionItem<AppPermission>(AppPermission.ManageCommands, "Manage Commands", "Add, remove or disable commands for the app."),
+            new PermissionItem<AppPermission>(AppPermission.ViewConfig, "View Config", "View config for the app."),
+            new PermissionItem<AppPermission>(AppPermission.ManageConfig, "Manage Config", "Add or remove config for the app."),
             new PermissionItem<AppPermission>(AppPermission.ViewWorkspaces, "View Workspaces", "View workspaces for the app."),
             new PermissionItem<AppPermission>(AppPermission.ManageWorkspaces, "Manage Workspaces", "Edit and manage workspaces for the app."),
         ];
