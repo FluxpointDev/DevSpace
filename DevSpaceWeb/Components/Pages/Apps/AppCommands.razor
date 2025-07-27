@@ -776,24 +776,20 @@
         switch (value)
         {
             case "copy_id":
-                try
-                {
-                    await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.CommandId);
-                }
-                catch { }
+                    await JS.CopyTextAsync(item.CommandId);
                 break;
             case "copy_format":
                 {
-                    await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", $"</{item.Name}:{item.CommandId}>");
+                    await JS.CopyTextAsync($"</{item.Name}:{item.CommandId}>");
                 }
                 break;
             case "copy_name":
                 try
                 {
                     if (TabIndex == 0)
-                        await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", "/" + item.Name);
+                        await JS.CopyTextAsync("/" + item.Name);
                         else
-                        await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.Name);
+                        await JS.CopyTextAsync(item.Name);
                 }
                 catch { }
                 break;

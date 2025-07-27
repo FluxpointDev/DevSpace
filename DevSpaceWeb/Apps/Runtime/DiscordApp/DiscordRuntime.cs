@@ -15,6 +15,7 @@ public class DiscordRuntime : IRuntime
         UnixResponseTime = unixResponseTime;
         CurrentResponseTime = currentTime;
         AppData = app;
+        Config = app.Configs;
         if (isEphemeral)
         {
             Options = new RuntimeOptions { IsEphemeral = true };

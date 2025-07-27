@@ -24,12 +24,12 @@
                 <p>Install</p>
             </Template>
         </RadzenPanelMenuItem>
-        @* <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/config")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/config")" Match="NavLinkMatch.All">
             <Template>
-                <span class="iconify" data-icon="mdi:gear"></span>
+                <span class="iconify" data-icon="mdi:playlist-edit"></span>
                 <p>Config</p>
             </Template>
-        </RadzenPanelMenuItem> *@
+        </RadzenPanelMenuItem>
         <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/commands")" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:slash-forward-box"></span>
@@ -78,7 +78,7 @@
                 Session.TriggerNavMenuChange();
                 break;
             case "Copy App ID":
-                JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", Session.Selected.App?.Id);
+                _ = JS.CopyTextAsync(Session.Selected.App?.Id);
                 break;
         }
         ContextMenuService.Close();

@@ -13,6 +13,7 @@ public class WorkspaceData : IObject
     public string ServerId { get; set; }
     public string? JsonData { get; set; }
     public WorkspaceType Type { get; set; }
+    public bool IsPublic { get; set; }
 
     public async Task<UpdateResult> UpdateAsync(UpdateDefinition<WorkspaceData> update, Action? action = null)
     {

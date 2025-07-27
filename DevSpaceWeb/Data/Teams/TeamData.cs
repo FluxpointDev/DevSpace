@@ -52,9 +52,9 @@ public class TeamData : IResource
     [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfDocuments)]
     public Dictionary<ObjectId, ObjectId> Members = [];
 
-    public TeamMemberData? GetMember(PartialUserData user)
+    public TeamMemberData? GetMember(PartialUserData? user)
     {
-        if (Members.TryGetValue(user.Id, out ObjectId memberObj))
+        if (user != null && Members.TryGetValue(user.Id, out ObjectId memberObj))
             return CachedMembers[memberObj];
 
         return null;

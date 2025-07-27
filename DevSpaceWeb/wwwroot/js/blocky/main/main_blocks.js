@@ -463,3 +463,30 @@ Blockly.Blocks['data_string_markdown_code'] = {
         }
     }
 };
+
+Blockly.Blocks['data_config_get'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField("Get Config");
+        this.appendValueInput("name")
+            .setCheck(Connections.TextSingle)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField("name:");
+        this.setOutput(true, Connections.TextAll);
+        this.setColour('#106C50');
+        this.setTooltip("");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+    },
+    onchange: function (event) {
+
+        if (!window.blazorExtensions.WarningsEnabled)
+            return;
+
+        if ((event.type === "create" && event.json.type === this.type) || (event.type === "move" && event.reason && (event.reason[0] === 'snap' || event.reason[0] === 'connect'))) {
+
+
+            window.blazorExtensions.CheckInputsEmpty(this, [this.inputList[1]]);
+
+        }
+    }
+};

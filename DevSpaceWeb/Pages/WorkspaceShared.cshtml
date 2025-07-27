@@ -1,11 +1,11 @@
-﻿@page "/workspaces/demo"
+﻿@page "/workspaces/{app_id?}/{workspace_id?}/share/{action?}"
 @using DevSpaceWeb
 
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Workspace Demo</title>
+    <title>Workspace Shared</title>
     <base href="/">
     <link href="../css/workspace.css" rel="stylesheet" />
 </head>
@@ -53,13 +53,12 @@
         <div id="WorkspaceNav">
             <div class="container-fluid">
                 <div class="container-start">
-                    <img src="https://img.fluxpoint.dev/333590356442480640.jpg" />
                     <div class="workspace-name">
-                        <h4 style="color: white;">Dog Bot</h4>
+                        <h4 style="color: white;"></h4>
                     </div>
                 </div>
                 <div class="container-center">
-                    <p style="color: white;">This is a demo!</p>
+                    <p style="color: white;">Shared Workspace</p>
                 </div>
                 <div class="d-flex container-end">
                 </div>
@@ -107,7 +106,8 @@
             }
 
             .mud-drawer .mud-typography-h6 {
-                color: rgb(147, 122, 222);
+                color: rgb(147, 122, 222)
+                ;
             }
 
             .mud-drawer h5 {
@@ -375,7 +375,39 @@
                throw Error("Failed to send request: " + error);
             }
 
+                },
+            LoadWorkspaceJson: function (workspace) {
+                console.log('load Workspace');
+                fetch(window.location.pathname + '/fetch', {
+                method: 'GET'
+                })
+                .then((response) => { if (response.ok) { return response.json() } else { document.getElementById('WorkspaceFailed').style.display = ""; document.getElementById('WorkspaceDiv').style.display = "none"; } })
+                .then((data) => {
+                    try {
+                        Blockly.serialization.workspaces.load(data, workspace);
+                        window.blazorExtensions.WarningsEnabled = true;
+                        if (document.getElementById('WorkspaceSetDots').innerText === "False") {
+                            workspace.options.gridPattern.style.display = "none";
                 }
+                if (document.getElementById('WorkspaceSetSnap').innerText === "False") {
+                    window.WorkspaceUtils.ToggleSnap();
+                }
+                if (document.getElementById('WorkspaceSetHighlight').innerText === "True") {
+                    window.WorkspaceUtils.ToggleHighlight();
+                }
+                if (document.getElementById('WorkspaceSetMinimap').innerText === "False") {
+                    window.WorkspaceUtils.ToggleMinimap();
+                }
+                    }
+                    catch (exe) {
+                        console.log(exe);
+
+        document.getElementById('WorkspaceLoading').style.display = "none";
+        document.getElementById('WorkspaceDiv').style.display = "none";
+        document.getElementById('WorkspaceFailed').style.display = "block";
+                    }
+                });
+            }
             }
 
 
@@ -495,14 +527,7 @@
             const contentHighlight = new ContentHighlight(workspace);
             window.WorkspaceUtils.Plugins.Highlighter = contentHighlight;
 
-            var json = { "blocks": { "blocks": [
-                {
-                    "type": "block_command", "deletable": false, "x": 207, "y": 166,
-                            "fields": { "name": "test" }
-                        }
-            ] } }
-
-            Blockly.serialization.workspaces.load(json, workspace);
+            window.blazorExtensions.LoadWorkspaceJson(workspace);
             window.blazorExtensions.WarningsEnabled = true;
 
             document.getElementById('WorkspaceLoading').style.display = "none";

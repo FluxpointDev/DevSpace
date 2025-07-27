@@ -135,6 +135,8 @@
                         </Columns>
                     </RadzenDataGrid>
                 </RadzenTabsItem>
+                <RadzenTabsItem Text="Select Menus" Disabled="@(IsLoading)">
+                </RadzenTabsItem>
                 <RadzenTabsItem Text="Modals" Disabled="@(IsLoading)">
                     <ActionBar>
                         <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@RunSelectedEnableCommands" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyModalsSelected || IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageCommands))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
@@ -254,7 +256,7 @@
             {
                 if (TabIndex == 0)
                     _ = ButtonsSearchBox.FocusAsync();
-                else
+                else if (TabIndex == 2)
                     _ = ModalsSearchBox.FocusAsync();
                 CanSelect = false;
             }
@@ -563,11 +565,7 @@
         switch (value)
         {
             case "copy":
-                try
-                {
-                    await JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", item.Name);
-                }
-                catch { }
+                await JS.CopyTextAsync(item.Name);
                 break;
             case "enable":
                 {

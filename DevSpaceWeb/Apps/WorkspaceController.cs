@@ -141,6 +141,25 @@ public class WorkspaceController : ControllerBase
         return Content(Workspace.JsonData, "application/json");
     }
 
+    [HttpGet("/workspaces/{app_id?}/{workspace_id?}/share/fetch")]
+    public async Task<IActionResult> FetchSharedWorkspace([FromRoute] string? app_id = null, [FromRoute] string? workspace_id = null)
+    {
+        if (string.IsNullOrEmpty(workspace_id) || !ObjectId.TryParse(workspace_id, out ObjectId workspaceId))
+            return BadRequest("Invalid workspace id..");
+
+        if (string.IsNullOrEmpty(app_id) || !ObjectId.TryParse(app_id, out ObjectId appId))
+            return BadRequest("Could not find app.");
+
+        if (!_DB.Apps.Cache.ContainsKey(appId))
+            return BadRequest("Could not find app.");
+
+        WorkspaceData? Workspace = _DB.Workspaces.Collection.Find(new FilterDefinitionBuilder<WorkspaceData>().Eq(x => x.Id, workspaceId)).FirstOrDefault();
+        if (Workspace == null || !Workspace.IsPublic)
+            return BadRequest("Could not find workspace.");
+
+        return Content(Workspace.JsonData, "application/json");
+    }
+
     [HttpPost("/dev/workspace/update")]
     public async Task<IActionResult> SaveWorkspace()
     {

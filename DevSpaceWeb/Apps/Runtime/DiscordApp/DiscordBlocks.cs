@@ -141,6 +141,9 @@ public static class DiscordBlocks
                     case "action_modify_message":
                         Block = new ModifyMessageBlock();
                         break;
+                    case "action_update_components":
+                        Block = new UpdateComponentsBlock();
+                        break;
                     case "action_delete_interaction_message":
                         Block = new DeleteInteractionMessageBlock();
                         break;

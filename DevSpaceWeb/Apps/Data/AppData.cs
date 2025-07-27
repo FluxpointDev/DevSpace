@@ -3,7 +3,9 @@ using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using Discord;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
+using Newtonsoft.Json;
 
 namespace DevSpaceWeb.Apps.Data;
 
@@ -40,6 +42,12 @@ public class AppData : ITeamResource
     public Dictionary<string, IDiscordAppInteraction> ModalInteractions = new Dictionary<string, IDiscordAppInteraction>();
 
     public Dictionary<string, DiscordAppServerCommands> ServerCommands = new Dictionary<string, DiscordAppServerCommands>();
+
+    public Dictionary<string, AppConfig> Configs = new Dictionary<string, AppConfig>();
+
+    [BsonIgnore]
+    [JsonIgnore]
+    public SemaphoreSlim ConfigLock = new SemaphoreSlim(1, 1);
 
     public string TermsOfServiceUrl { get; set; }
     public string PrivacyPolicyUrl { get; set; }
@@ -148,6 +156,33 @@ public class AppData : ITeamResource
     }
 }
 
+public class AppConfig
+{
+    public required string Name;
+    public string? Value;
+    public AppConfigType ValueType;
+    public bool IsSensitive;
+    public bool IsEnabled = true;
+
+    public void SetEncryptedValue(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+            Value = null;
+        else
+            Value = Crypt.EncryptString(text);
+    }
+
+    public string? GetDecryptedValue()
+    {
+        if (string.IsNullOrEmpty(Value))
+            return Value;
+        return Crypt.DecryptString(Value);
+    }
+}
+public enum AppConfigType
+{
+    String, Number, Bool
+}
 public class AppCache
 {
     private Dictionary<ObjectId, WorkspaceBlock> CommandCache = new Dictionary<ObjectId, WorkspaceBlock>();

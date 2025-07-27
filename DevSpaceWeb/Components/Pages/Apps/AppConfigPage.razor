@@ -1,0 +1,414 @@
+﻿@using DevSpaceWeb
+@using DevSpaceWeb.Apps.Data
+@using System.Linq.Dynamic.Core
+@using DevSpaceWeb.Models.Apps
+@inject DialogService Dialogs
+@inject NavigationManager Nav
+@inject NotificationService Notifications
+@inject IJSRuntime JS
+@inject ContextMenuService ContextMenuService
+
+
+<PageTitle>@(App?.Name ?? "App") Home | @_Data.Config.Instance.Name</PageTitle>
+
+<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:playlist-edit"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Config</RadzenText>
+    </div>
+
+    @if (Permissions.CheckFailedAppPermissions(Member, Team, App, AppPermission.ViewConfig, out AppPermission? failedPerm))
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
+            You do not have permission for @Utils.FriendlyName(failedPerm.ToString()!)
+        </RadzenAlert>
+    }
+    else
+    {
+        <br />
+        <ActionBar>
+            <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@EnableConfigs" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnyConfigsSelected || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@DisableConfigs" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnyConfigsSelected || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Remove" Click="@RemoveConfigs" Icon="delete" Disabled="@(!AnyConfigsSelected || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Filled" Text="Create Config" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@CreateConfig" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))" />
+            <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshGrid" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ViewConfig))" />
+            <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <Start>
+                    <RadzenIcon Icon="search" />
+                </Start>
+                <ChildContent>
+                    <RadzenTextBox @ref="@CommandsSearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                                   autocapitalize="none" MaxLength="100" inputmode="search" Placeholder="Search config"
+                                   @oninput="@(args => SetNameFilter(args.Value as string))" />
+                </ChildContent>
+                <End>
+                    @if (!string.IsNullOrWhiteSpace(SearchText))
+                    {
+                        <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                    }
+                </End>
+            </RadzenFormField>
+        </ActionBar>
+        <br />
+        <RadzenDataGrid @ref="@ConfigGrid" Data="@ConfigList" LoadData="@LoadCommandsData" IsLoading="@IsLoading" Count="@(ConfigList != null ? ConfigList.Count() : 0)"
+                        Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No configs." PagerHorizontalAlign="HorizontalAlign.Center"
+                                    GridLines="DataGridGridLines.Horizontal" @bind-Value="@SelectedConfigs" SelectionMode="DataGridSelectionMode.Multiple"
+                        ShowPagingSummary="true" PagingSummaryFormat="@($"{ConfigCount}/100 config items")" AllowFiltering="true" AllowPaging="true" PageSizeOptions="@Static.TablePageSizeOptions" @bind-PageSize="@Session.ItemsPerPage"
+                                    TItem="AppConfig" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+        <Columns>
+                <RadzenDataGridColumn Width="36px" Frozen="true" Filterable="false">
+                    <HeaderTemplate>
+                        <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
+                                        Value="@(SelectedConfigs == null || SelectedConfigs?.Any() != true ? false : !ConfigList.All(i => SelectedConfigs.Contains(i)) ? null : SelectedConfigs.Any(i => SelectedConfigs.Contains(i)))"
+                                        Change="@(args => SelectedConfigs = args == true ? (SelectedConfigs != null && SelectedConfigs.Any()) ? null : ConfigList.ToList() : null)" Disabled="@(IsLoading || ConfigList == null || ConfigList.Count() == 0)" />
+                    </HeaderTemplate>
+                    <Template Context="data">
+                        <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedConfigs != null && SelectedConfigs.Contains(data))" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"
+                                        TValue="bool" Change="@(() => ConfigGrid.SelectRow(data))" Disabled="@IsLoading" />
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Name" Width="@GridWidth.Name" Frozen="true" Filterable="true" Property="@nameof(AppConfig.Name)">
+                    <Template>
+                        @context.Name
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Status" Width="@GridWidth.Type" Filterable="true" Property="@nameof(AppConfig.IsEnabled)">
+                    <Template>
+                        @if (context.IsEnabled)
+                        {
+                            <span>Enabled</span>
+                        }
+                        else
+                        {
+                            <span>Disabled</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Type" Width="@GridWidth.ActionsTwo" Filterable="true" Property="@nameof(AppConfig.ValueType)">
+                    <Template>
+                        @context.ValueType.ToString()
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsTwo" Filterable="false">
+                    <Template>
+                        <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" Gap="6px">
+                        <RadzenButton Icon="build" Click="@(args => ShowContextMenuWithManageItems(context, args))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))" />
+                        <RadzenButton Icon="edit" Click="@(() => EditConfig(context))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))" />
+                        </RadzenStack>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn Title="Value" Filterable="true" Property="@nameof(AppConfig.Value)">
+                    <Template>
+                        @if (context.IsSensitive)
+                        {
+                            <RadzenTextMask Value="@context.GetDecryptedValue()" ShowCopy="true"></RadzenTextMask>
+                        }
+                        else
+                        {
+                            @context.Value
+                            <CopyClipboard Value="@context.Value"></CopyClipboard>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+        </Columns>
+        </RadzenDataGrid>
+    }
+</div>
+
+<style>
+    .rz-data-row .iconify {
+        height: 20px;
+        width: 20px;
+        margin-right: 2px;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+    public AppData? App => Session.Selected.App;
+
+    public RadzenTextBox CommandsSearchBox { get; set; } = null!;
+
+    public IQueryable<AppConfig>? ConfigList;
+    public IList<AppConfig>? SelectedConfigs;
+    public bool AnyConfigsSelected => SelectedConfigs != null ? SelectedConfigs.Any() : false;
+    public RadzenDataGrid<AppConfig> ConfigGrid { get; set; }
+    public int ConfigCount { get; set; }
+
+    public bool IsLoading = true;
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await ConfigGrid.ColumnsCollection.ElementAt(1).SetFilterValueAsync(text);
+        }
+        catch { }
+        await ConfigGrid.Reload();
+    }
+
+    public async Task LoadCommandsData(LoadDataArgs args)
+    {
+        if (Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ViewCommands))
+            return;
+
+        IsLoading = true;
+
+        if (App.Configs.Any())
+        {
+            var query = App.Configs.Values.AsQueryable();
+            ConfigCount = query.Count();
+
+            if (!string.IsNullOrEmpty(args.Filter))
+                query = query.Where(args.Filter);
+
+            ConfigList = query.OrderBy(x => x.Name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
+        }
+        else
+        {
+            ConfigList = new List<AppConfig>().AsQueryable();
+        }
+
+        IsLoading = false;
+    }
+
+    public async Task CreateConfig()
+    {
+        if (App == null || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))
+            return;
+
+        await Dialogs.ShowDynamicFormAsync<AppConfigCreateModel>("Create Config", new AppConfigCreateModel(), async (AppConfigCreateModel data) =>
+        {
+            if (Team == null || Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))
+                return "You do not have app permission for Manage Config";
+
+            if (App.Configs.Values.Count() >= 100)
+                return "You can only add up to 100 config values";
+
+            if (App.Configs.ContainsKey(data.Name))
+                return "This config name already exists";
+
+            AppConfig config = new AppConfig
+            {
+                Name = data.Name,
+                IsSensitive = data.Sensitive
+            };
+            if (data.Sensitive)
+                config.SetEncryptedValue(data.Value);
+            else
+                config.Value = data.Value;
+
+            if (bool.TryParse(data.Value, out _))
+                config.ValueType = AppConfigType.Bool;
+            if (double.TryParse(data.Value, out _))
+                config.ValueType = AppConfigType.Number;
+
+            await App.ConfigLock.WaitAsync();
+            try
+            {
+                if (App.Configs.Values.Count() >= 100)
+                    return "You can only add up to 100 config values";
+
+                if (App.Configs.ContainsKey(data.Name))
+                    return "This config name already exists";
+
+                bool Result = await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>()
+                    .Set(x => x.Configs[config.Name], config));
+
+                if (!Result)
+                    return "Failed to add config";
+
+                App.Configs.Add(config.Name, config);
+            }
+            finally
+            {
+                App.ConfigLock.Release();
+            }
+            await RefreshGrid();
+            return null;
+        });
+    }
+
+    public async Task EditConfig(AppConfig item)
+    {
+        if (App == null || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))
+            return;
+
+        await Dialogs.ShowDynamicFormAsync<AppConfigEditModel>("Edit " + item.Name, new AppConfigEditModel { Value = item.IsSensitive ? null : item.Value }, async (AppConfigEditModel data) =>
+        {
+            if (Team == null || Member == null || App == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))
+                return "You do not have app permission for Manage Config";
+
+            await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.Configs[item.Name].Value, item.IsSensitive ? (string.IsNullOrEmpty(data.Value) ? null : Crypt.EncryptString(data.Value)) : data.Value), () =>
+            {
+                if (item.IsSensitive)
+                    item.SetEncryptedValue(data.Value);
+                else
+                    item.Value = data.Value;
+            });
+            return null;
+        });
+    }
+
+    public async Task EnableConfigs()
+    {
+        if (App == null || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))
+            return;
+
+        IsLoading = true;
+        try
+        {
+            foreach(var i in SelectedConfigs)
+            {
+                await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.Configs[i.Name].IsEnabled, true), () =>
+                {
+                    i.IsEnabled = true;
+                });
+            }
+        }
+        finally
+        {
+            SelectedConfigs = null;
+            IsLoading = false;
+        }
+        await RefreshGrid();
+    }
+
+    public async Task DisableConfigs()
+    {
+        if (App == null || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))
+            return;
+
+        IsLoading = true;
+        try
+        {
+            foreach (var i in SelectedConfigs)
+            {
+                await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.Configs[i.Name].IsEnabled, false), () =>
+                {
+                    i.IsEnabled = false;
+                });
+            }
+        }
+        finally
+        {
+            SelectedConfigs = null;
+            IsLoading = false;
+        }
+
+        await RefreshGrid();
+    }
+
+    public async Task RemoveConfigs()
+    {
+        if (App == null || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig))
+            return;
+
+        IsLoading = true;
+        await App.ConfigLock.WaitAsync();
+        try
+        {
+            foreach (var i in SelectedConfigs)
+            {
+                await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Unset(x => x.Configs[i.Name]), () =>
+                {
+                    App.Configs.Remove(i.Name);
+                });
+            }
+        }
+        finally
+        {
+            App.ConfigLock.Release();
+            SelectedConfigs = null;
+            IsLoading = false;
+        }
+
+        await RefreshGrid();
+    }
+
+    public async Task RefreshGrid()
+    {
+        await ConfigGrid.RefreshDataAsync();
+    }
+
+    void ShowContextMenuWithManageItems(AppConfig item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem> {
+                new ContextMenuItem() { Text = "Enable Config", Value = "enable", Icon = "play_arrow", Disabled = IsLoading || item.IsEnabled || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig) },
+                new ContextMenuItem() { Text = "Disable Config", Value = "disable", Icon = "pause", Disabled = IsLoading || !item.IsEnabled || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig) },
+                new ContextMenuItem() { Text = "Remove Config", Value = "remove", Icon = "delete", Disabled = IsLoading || Member == null || !Member.HasAppPermission(Team, App, AppPermission.ManageConfig) },
+                new ContextMenuItem() { Text = "Copy Name", Value = "copy_name", Icon = "content_copy" },
+                new ContextMenuItem() { Text = "Copy Value", Value = "copy_value", Icon = "content_copy" }
+                                             }, x => _ = MenuItemClick(x.Value.ToString(), item));
+    }
+
+    async Task MenuItemClick(string? value, AppConfig item, bool isSelected = false)
+    {
+        if (App == null || Member == null)
+            return;
+
+        ContextMenuService.Close();
+        switch (value)
+        {
+            case "copy_name":
+                {
+                    await JS.CopyTextAsync(item.Name);
+                    return;
+                }
+                break;
+            case "copy_value":
+                {
+                    await JS.CopyTextAsync(item.IsSensitive ? item.GetDecryptedValue() : item.Value);
+                    return;
+                }
+                break;
+            case "remove":
+                {
+                    if (!Member.HasAppPermission(Team, App, AppPermission.ManageConfig))
+                        return;
+
+                    IsLoading = true;
+                    await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Unset(x => x.Configs[item.Name]), () =>
+                    {
+                        App.Configs.Remove(item.Name);
+                    });
+                }
+                break;
+            case "enable":
+                {
+                    if (!Member.HasAppPermission(Team, App, AppPermission.ManageConfig))
+                        return;
+
+                    IsLoading = true;
+                    await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.Configs[item.Name].IsEnabled, true), () =>
+                    {
+                        item.IsEnabled = true;
+                    });
+                }
+                break;
+            case "disable":
+                {
+                    if (!Member.HasAppPermission(Team, App, AppPermission.ManageConfig))
+                        return;
+
+                    IsLoading = true;
+                    await App.UpdateAsync(new UpdateDefinitionBuilder<AppData>().Set(x => x.Configs[item.Name].IsEnabled, false), () =>
+                    {
+                        item.IsEnabled = false;
+                    });
+                }
+                break;
+        }
+        IsLoading = false;
+        _ = RefreshGrid();
+    }
+}

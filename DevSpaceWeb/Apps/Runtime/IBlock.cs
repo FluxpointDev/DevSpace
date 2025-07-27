@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Apps.Runtime.Main;
+﻿using DevSpaceWeb.Apps.Data;
+using DevSpaceWeb.Apps.Runtime.Main;
 using Discord;
 using Newtonsoft.Json.Linq;
 using System.Text;
@@ -17,6 +18,8 @@ public abstract class IRuntime
 
 
     public Dictionary<string, object> Variables = new Dictionary<string, object>();
+
+    public Dictionary<string, AppConfig> Config = new Dictionary<string, AppConfig>();
 
     public MainData MainData = new MainData();
 
@@ -92,9 +95,9 @@ public abstract class IRuntime
         return null;
     }
 
-    public abstract Task<string> GetStringFromBlock(WorkspaceBlock block);
+    public abstract Task<string?> GetStringFromBlock(WorkspaceBlock block);
 
-    public async Task<string> GetBaseStringFromBlock(WorkspaceBlock block)
+    public async Task<string?> GetBaseStringFromBlock(WorkspaceBlock block)
     {
         switch (block.type)
         {
@@ -131,6 +134,20 @@ public abstract class IRuntime
                 return block.fields["TEXT"].ToString();
             case "data_json_active":
                 return Newtonsoft.Json.JsonConvert.SerializeObject(MainData.JsonActive);
+            case "data_config_get":
+                {
+                    if (!block.inputs.TryGetValue("name", out WorkspaceBlockConnection? connection) || connection.block == null)
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed no input set.");
+
+                    string? ConfigName = await GetStringFromBlock(connection.block);
+                    if (string.IsNullOrEmpty(ConfigName))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed no config name set.");
+
+                    if (!Config.TryGetValue(ConfigName, out AppConfig? configValue))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed invalid config name " + ConfigName);
+
+                    return configValue.Value;
+                }
             case "data_selector_json":
                 {
                     if (block.inputs.TryGetValue("json", out WorkspaceBlockConnection? jsonBlock) && block.inputs.TryGetValue("select", out WorkspaceBlockConnection? keyBlock) && keyBlock.block != null && jsonBlock.block != null)
@@ -470,6 +487,26 @@ public abstract class IRuntime
                 if (Variables.TryGetValue(block.GetVariableId(), out object? obj))
                     return (bool)obj;
                 break;
+            case "data_config_get":
+                {
+                    if (!block.inputs.TryGetValue("name", out WorkspaceBlockConnection? connection) || connection.block == null)
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed no input set.");
+
+                    string? ConfigName = await GetStringFromBlock(connection.block);
+                    if (string.IsNullOrEmpty(ConfigName))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed no config name set.");
+
+                    if (!Config.TryGetValue(ConfigName, out AppConfig? configValue))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed invalid config name " + ConfigName);
+
+                    if (configValue.ValueType != AppConfigType.Bool)
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed invalid config type for " + ConfigName);
+
+                    if (string.IsNullOrEmpty(configValue.Value))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed config not set for " + ConfigName);
+
+                    return bool.Parse(configValue.Value);
+                }
             case "logic_boolean":
                 return block.fields["BOOL"].ToString() == "TRUE";
             case "data_selector_json":
@@ -499,6 +536,26 @@ public abstract class IRuntime
                 if (Variables.TryGetValue(block.GetVariableId(), out object? obj))
                     return (int)obj;
                 break;
+            case "data_config_get":
+                {
+                    if (!block.inputs.TryGetValue("name", out WorkspaceBlockConnection? connection) || connection.block == null)
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed no input set.");
+
+                    string? ConfigName = await GetStringFromBlock(connection.block);
+                    if (string.IsNullOrEmpty(ConfigName))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed no config name set.");
+
+                    if (!Config.TryGetValue(ConfigName, out AppConfig? configValue))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed invalid config name " + ConfigName);
+
+                    if (configValue.ValueType != AppConfigType.Number)
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed invalid config type for " + ConfigName);
+
+                    if (string.IsNullOrEmpty(configValue.Value))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed config not set for " + ConfigName);
+
+                    return int.Parse(configValue.Value);
+                }
             case "math_number":
                 return block.fields["NUM"].ToObject<int>();
             case "data_selector_json":
@@ -529,6 +586,26 @@ public abstract class IRuntime
                 if (Variables.TryGetValue(block.GetVariableId(), out object? obj))
                     return (double)obj;
                 break;
+            case "data_config_get":
+                {
+                    if (!block.inputs.TryGetValue("name", out WorkspaceBlockConnection? connection) || connection.block == null)
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed no input set.");
+
+                    string? ConfigName = await GetStringFromBlock(connection.block);
+                    if (string.IsNullOrEmpty(ConfigName))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed no config name set.");
+
+                    if (!Config.TryGetValue(ConfigName, out AppConfig? configValue))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed invalid config name " + ConfigName);
+
+                    if (configValue.ValueType != AppConfigType.Number)
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed invalid config type for " + ConfigName);
+
+                    if (string.IsNullOrEmpty(configValue.Value))
+                        throw new RuntimeError(RuntimeErrorType.Runtime, "Config data failed config not set for " + ConfigName);
+
+                    return double.Parse(configValue.Value);
+                }
             case "math_number":
                 return block.fields["NUM"].ToObject<double>();
             case "data_selector_json":

@@ -1,11 +1,15 @@
 ﻿@using DevSpaceWeb.Apps.Data
 @using DevSpaceWeb.Components.Layout
+@using DevSpaceWeb.Data
+@using DevSpaceWeb.Data.Teams
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
+@using MongoDB.Driver
 @using Radzen
 @using Radzen.Blazor
 @inject IJSRuntime JS
 @inject ContextMenuService ContextMenuService
+@inject DialogService Dialogs
 
 <div id="WorkspaceLoading" class="dash-box dash-main">
     <h1><span class="iconify" data-icon="mdi:puzzle" style="color: #b55143;"></span> Loading Workspace</h1>
@@ -47,6 +51,7 @@ else
                 @if (App != null)
                 {
                     <Radzen.Blazor.RadzenButton Text="Save" ButtonStyle="Radzen.ButtonStyle.Success" Shade="Radzen.Shade.Dark" Click="@SaveWorkspace"></Radzen.Blazor.RadzenButton>
+                    
                     @* <MudButton id="btnSaveWorkspace" Class="ws-button-disabled" Variant="Variant.Filled" Color="Color.Info" @onclick="@(async () => await SaveWorkspace())">Save</MudButton> *@
                     <div id="warningIcon" style="visibility: hidden;"><span class="iconify" data-icon="mdi:warning" style="color: #ff8000;"></span> <p>Invalid Blocks</p></div>
                     <span id="WorkspaceIdValue" style="display: none">@Data.Id.ToString()</span>
@@ -55,6 +60,15 @@ else
                 }
             </div>
             <div class="d-flex container-end" style="padding: 4px !important;">
+                @if (Data.IsPublic)
+                {
+                    <span id="workspacePublic" class="mr-2">Public Workspace</span>
+                }
+                else
+                {
+                    <span id="workspacePublic" class="mr-2">Private Workspace</span>
+                }
+                <RadzenButton Icon="@(Data.IsPublic ? "public" : "public_off")" Click="@ToggleVisibility" ButtonStyle="ButtonStyle.Base" Variant="Variant.Outlined"></RadzenButton>
                 <RadzenButton Icon="map" Click="@ToggleMinimap" ButtonStyle="@(Settings.MinimapEnabled? ButtonStyle.Success: ButtonStyle.Danger)" Shade="@(Settings.MinimapEnabled? Shade.Dark: Shade.Darker)" Variant="Variant.Outlined"></RadzenButton>
                 <RadzenButton Icon="transition_dissolve" Click="@ToggleDots" ButtonStyle="@(Settings.GridDotsEnabled? ButtonStyle.Success: ButtonStyle.Danger)" Shade="@(Settings.GridDotsEnabled? Shade.Dark: Shade.Darker)" Variant="Variant.Outlined"></RadzenButton>
                 <RadzenButton Icon="grid_4x4" Click="@ToggleSnap" ButtonStyle="@(Settings.GridSnapEnabled? ButtonStyle.Success: ButtonStyle.Danger)" Shade="@(Settings.GridSnapEnabled? Shade.Dark: Shade.Darker)" Variant="Variant.Outlined"></RadzenButton>
@@ -255,7 +269,7 @@ else
 </style>
 
 <script type="module">
-    import './js/blocky/main/main_blocks.js?v=3';
+    import './js/blocky/main/main_blocks.js?v=4';
     import './js/blocky/main/api_blocks.js?v=2';
     import './js/blocky/main/logic_blocks.js?v=2';
     import './js/blocky/main/file_blocks.js?v=2';
@@ -267,7 +281,7 @@ else
     import './js/blocky/discord/actions/discord_actions_channels.js?v=1';
     import './js/blocky/discord/actions/discord_actions_webhooks.js?v=1';
     import './js/blocky/discord/actions/discord_actions_members.js?v=1';
-    import './js/blocky/discord/actions/discord_actions_messages.js?v=2';
+    import './js/blocky/discord/actions/discord_actions_messages.js?v=3';
     import './js/blocky/discord/actions/discord_actions_components.js?v=1';
     import './js/blocky/discord/actions/discord_actions_servers.js?v=1';
     import './js/blocky/discord/actions/discord_actions_roles.js?v=1';
@@ -912,6 +926,45 @@ else
     //JS.InvokeVoidAsync("window.WorkspaceUtils.SetMaxBlocks", MaxBlocks);
     //}
 
+    public async Task ToggleVisibility()
+    {
+        TeamData? team = App.Team;
+        if (team == null)
+            return;
+
+        TeamMemberData? member = team.GetMember(Session.CurrentUser);
+        if (member == null)
+            return;
+
+        if (!member.HasAppPermission(team, App, DevSpaceWeb.Data.Permissions.AppPermission.ManageWorkspaces))
+            return;
+
+        if (Data.IsPublic)
+        {
+            bool Confirm = await Dialogs.ShowConfirmAsync("Set Private Workspace", "This will hide the workspace publicly and only members in your team can access this workspace.", "Confirm", ButtonStyle.Success);
+            if (!Confirm)
+                return;
+
+            await Data.UpdateAsync(new UpdateDefinitionBuilder<WorkspaceData>().Set(x => x.IsPublic, false), () =>
+            {
+                Data.IsPublic = false;
+            });
+        }
+        else
+        {
+            bool Confirm = await Dialogs.ShowConfirmAsync("Set Public Workspace", "This will make the workspace public, anyone can view your block data, fields, comments and inputs.", "Confirm", ButtonStyle.Success);
+            if (!Confirm)
+                return;
+
+            await Data.UpdateAsync(new UpdateDefinitionBuilder<WorkspaceData>().Set(x => x.IsPublic, true), () =>
+            {
+                Data.IsPublic = true;
+            });
+
+            await Dialogs.ShowInfoAsync("Public Workspace", $"Anyone can view your workspace at {_Data.Config.Instance.GetPublicUrl()}/workspaces/{App.Id.ToString()}/{Data.Id.ToString()}/share");
+        }
+    }
+
     void ShowContextMenuWithItems(MouseEventArgs args)
     {
         ContextMenuService.Open(args,
@@ -937,9 +990,9 @@ else
                 break;
             case "copy_name":
                 if (Data.Type == WorkspaceType.DiscordSlashCommand)
-                    JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", "/" + GetName());
+                    _ = JS.CopyTextAsync("/" + GetName());
                 else
-                    JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", GetName());
+                    _ = JS.CopyTextAsync(GetName());
                 break;
             case "copy_format":
                 {
@@ -958,7 +1011,7 @@ else
                     }
 
                     if (cmd != null)
-                        JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", $"</{Data.CommandFormat}:{cmd.CommandId}>");
+                        _ = JS.CopyTextAsync($"</{Data.CommandFormat}:{cmd.CommandId}>");
                 }
                 break;
             case "copy_id":
@@ -978,7 +1031,7 @@ else
                     }
 
                     if (cmd != null)
-                        JS.InvokeAsync<dynamic>("navigator.clipboard.writeText", cmd.CommandId);
+                        _ = JS.CopyTextAsync(cmd.CommandId);
                 }
                 break;
         }

@@ -1,11 +1,38 @@
-﻿using Docker.DotNet.Models;
+﻿using Discord;
+using Docker.DotNet.Models;
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
+using MongoDB.Bson;
 using System.Collections.Specialized;
 
 namespace DevSpaceWeb;
 
 public static class ExtensionMethods
 {
+    public static async Task CopyTextAsync(this IJSRuntime js, string? text)
+    {
+        try
+        {
+            await js.InvokeAsync<dynamic>("navigator.clipboard.writeText", text);
+        }
+        catch { }
+    }
+
+    public static async Task CopyTextAsync(this IJSRuntime js, ObjectId? id)
+    {
+        if (id.HasValue)
+        {
+            try
+            {
+                await js.InvokeAsync<dynamic>("navigator.clipboard.writeText", id.Value.ToString());
+            }
+            catch { }
+        }
+        else
+        {
+            await js.CopyTextAsync(string.Empty);
+        }
+    }
     public static string ToEnabledString(this bool value)
     {
         return value ? "Enabled" : "Disabled";

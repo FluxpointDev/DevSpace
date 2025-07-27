@@ -80,6 +80,26 @@ Blockly.Blocks['action_modify_message'] = {
     }
 };
 
+Blockly.Blocks['action_update_components'] = {
+    init: function () {
+        this.appendDummyInput()
+            .appendField('Update Components')
+        this.appendValueInput("message")
+            .setCheck(Connections.DataMessages)
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField("message:");
+        this.appendValueInput("components")
+            .setCheck("obj_component_row")
+            .setAlign(Blockly.inputs.Align.RIGHT)
+            .appendField("components:");
+        this.setPreviousStatement(true, Connections.ActionsList);
+        this.setNextStatement(true, Connections.ActionsList);
+        this.setColour('#a85b35');
+        this.setTooltip("");
+        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+    }
+};
+
 Blockly.Blocks["action_delete_interaction_message"] = {
     init: function () {
         this.appendDummyInput()

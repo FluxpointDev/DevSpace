@@ -2,7 +2,7 @@
 
 public class MainRuntime : IRuntime
 {
-    public override async Task<string> GetStringFromBlock(WorkspaceBlock block)
+    public override async Task<string?> GetStringFromBlock(WorkspaceBlock block)
     {
         return await base.GetBaseStringFromBlock(block);
     }
