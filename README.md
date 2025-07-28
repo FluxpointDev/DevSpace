@@ -1,67 +1,47 @@
 ## Dev Space
 Most developer tools can be clunky to use, needs a lot of ram or lacks basic features such as:
 - Sentry - Requires a minimum of 6GB ram and microservice hell.
-- Portainer - Very basic and confusing user access with features locked behind business that has a node/server limits.
+- Portainer - Very basic and confusing user access with features locked behind business that has limits.
 
 Dev Space aims to have more complete features and functionality without sacrificing ram usage or usability.
 
 ---
 
-Dev Space is a self-hostable dashboard that allows you to manage your linux servers, websites, projects and other developer tools.
-
-It's free and open source to use with frequent updates on our Discord Server.
-
-> [!WARNING]  
-> This project is currently in beta but should be on-par with what Portainer offers and more.
-
-<img src="https://github.com/user-attachments/assets/7e7dfd3f-2a41-4974-b94b-b5455ba9cf51" align="center" height="400" >
-
 ### Install
-Setup the website and database on a linux server with 1GB ram or more.
 
-Then install the Agent service on your linux server which will remotely manage your server using a websocket communication to the website.
+Dev Space is an open source self-hostable dashboard that allows you to manage your linux servers, websites, projects and other developer tools.
 
-Install instructions:
-[Website Install](https://docs.fluxpoint.dev/devspace/guides/website-guides/install-dev-space-website) | [Agent Install](https://docs.fluxpoint.dev/devspace/guides/agent-guides/install-dev-space-agent)
+> Setup Dev Space on a linux server with 1GB ram: [Website Install](https://docs.fluxpoint.dev/devspace/guides/website-guides/install-dev-space-website)
+
+<img src="https://github.com/user-attachments/assets/07931155-214e-48ec-beb3-7a02bf6653d6" align="center" height="400" >
+
+---
+
+### Docs
+
+Check out the docs for the latest information and features!
+
+https://docs.fluxpoint.dev/devspace
 
 ---
 
 ### How to Contribute?
-Pull requests are welcome if you have sufficient C# and blazor knowledge or use the Discussion page to suggest features, alternative services that we could merge or general questions about the project.
+
+Use the [Discussions](https://github.com/FluxpointDev/DevSpace/discussions) tab to suggest improvements or new features.
+
+Pull requests are welcome if you have sufficient C# and/or asp.net blazor knowledge.
+
+> Contributors: https://docs.fluxpoint.dev/devspace/credits
 
 ---
+
 ### Support
 
 <a href="https://discord.gg/fluxpoint"><img src="https://fluxpoint.dev/img/icons/discord.webp" align="left" height="32" width="32" ></a>
 <a href="https://app.revolt.chat/invite/J5Ras1J3"><img src="https://fluxpoint.dev/img/icons/revolt.png" align="left" height="32" width="32" ></a>
-<a href="[https://fluxpoint.dev/premium](https://www.patreon.com/FluxpointDev)"><img src="https://fluxpoint.dev/img/icons/patreon.webp" align="left" height="32" width="32" ></a>
+<a href="https://www.patreon.com/FluxpointDev"><img src="https://fluxpoint.dev/img/icons/patreon.webp" align="left" height="32" width="32" ></a>
 <br /><br />
 Join our Discord Server or support us on Patreon!
-
----
-
-### How does this work?
-This project is built in C# using asp.net blazor SSR (server-side rendering) and MongoDB for the database.
-
-Here is a list of [Frameworks, Tools and Libraries](https://docs.fluxpoint.dev/devspace/credits) that it uses.
-
----
-
-### Current/Planned Features
-
-Check out the docs for the latest features, changelogs and information.
-
-https://docs.fluxpoint.dev/devspace
-
-<img src="https://github.com/user-attachments/assets/e61195eb-d99c-435f-b2cd-6209cbf3080e" align="center" height="400" >
-
----
-
-### Contributors
-
-JMPJNS - Add Aspire .net support for Dev Space web deployment, stats and logging.
-
-Misha-133 - Github workflows, actions and runner to pre-build packages for web and agent including version and latest releases.
 
 ---
 
@@ -73,6 +53,13 @@ I will be taking ideas from other similar developer tools such as:
 - [HetrixTools](https://hetrixtools.com)
 - [DnsChecker](https://dnschecker.org)
 - [Coolify](https://coolify.io)
+
+---
+
+### How does this work?
+This project is built in C# using asp.net blazor SSR (server-side rendering) and MongoDB for the database.
+
+Here is a list of [Frameworks, Tools and Libraries](https://docs.fluxpoint.dev/devspace/credits) that it uses.
 
 ---
 
