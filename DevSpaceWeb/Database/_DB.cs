@@ -9,6 +9,7 @@ using DevSpaceWeb.Data.Links;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Reports;
 using DevSpaceWeb.Data.Servers;
+using DevSpaceWeb.Data.Status;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Data.Websites;
@@ -147,6 +148,8 @@ public static class _DB
         Notifications = new ICollection<Notification>("notifications");
         Apps = new ICacheCollection<AppData>("apps");
         Workspaces = new ICollection<WorkspaceData>("workspaces");
+        StatusMonitors = new ICacheCollection<StatusMonitorData>("status_monitors");
+        StatusPages = new ICacheCollection<StatusPageData>("status_pages");
         Links = new ICollection<LinkData>("links");
     }
 
@@ -632,6 +635,10 @@ public static class _DB
     public static ICacheCollection<AppData> Apps = null!;
 
     public static ICollection<WorkspaceData> Workspaces = null!;
+
+    public static ICacheCollection<StatusMonitorData> StatusMonitors = null!;
+
+    public static ICacheCollection<StatusPageData> StatusPages = null!;
 
     public static ICollection<LinkData> Links = null!;
 

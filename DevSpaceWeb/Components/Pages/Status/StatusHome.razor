@@ -1,0 +1,51 @@
+﻿<div class="dash-box dash-box-content">
+    <div class="dash-box-header">
+        <div class="dash-box-icon dash-box-back" onclick="history.back()">
+            <span class="iconify" data-icon="mdi:information-slab-circle"></span>
+            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+        </div>
+        <RadzenText TextStyle="TextStyle.H6">Status</RadzenText>
+    </div>
+    <br />
+    <div class="mb-2">
+        <ActionBar>
+            @switch (SelectedStatusType)
+            {
+                case 1:
+                    {
+                        <RadzenButton Variant="Variant.Filled" Text="Create Monitor" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                    }
+                    break;
+                    case 2:
+                    {
+                        <RadzenButton Variant="Variant.Filled" Text="Create Page" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                    }
+                    break;
+            }
+            <a href="https://docs.fluxpoint.dev/devspace/status" target="_blank"><RadzenButton Text="Status Docs" Icon="menu_book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+            <RadzenSelectBar TValue="int" Size="ButtonSize.Small" @bind-Value="@SelectedStatusType">
+                <Items>
+                    <RadzenSelectBarItem Value="1" Text="Monitors" />
+                    <RadzenSelectBarItem Value="2" Text="Pages" />
+                </Items>
+            </RadzenSelectBar>
+        </ActionBar>
+    </div>
+    @switch (SelectedStatusType)
+    {
+        case 1:
+            {
+                <StatusMonitors></StatusMonitors>
+            }
+            break;
+        case 2:
+            {
+                <StatusPages></StatusPages>
+            }
+            break;
+    }
+</div>
+
+@code {
+    public int SelectedStatusType { get; set; } = 1;
+}

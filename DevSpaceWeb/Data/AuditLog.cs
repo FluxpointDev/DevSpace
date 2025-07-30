@@ -189,7 +189,9 @@ public enum AuditLogEventType
     AppCreated, AppDeleted, AppPermissionsChanged, AppOwnershipChanged, AppSettingsChanged,
     WebsiteCreated, WebsiteDeleted, WebsitePermissionsChanged, WebsiteOwnershipChanged, WebsiteSettingsChanged,
     ProjectCreated, ProjectDeleted, ProjectPermissionsChanged, ProjectOwnershipChanged, ProjectSettingsChanged,
-    LinkCreated, LinkDeleted
+    LinkCreated, LinkDeleted,
+    StatusMonitorCreated, StatusMonitorDeleted, StatusMonitorPermissionsChanged, StatusMonitorSettingsChanged,
+    StatusPageCreated, StatusPageDeleted, StatusPagePermissionsChanged, StatusPageSettingsChanged,
 }
 [Flags]
 public enum AuditLogFlag : ulong

@@ -1,0 +1,197 @@
+﻿@using DevSpaceWeb.Data.Status
+@inject DialogService Dialogs
+@inject ContextMenuService ContextMenuService
+
+<ActionBar>
+    <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@(() => { })" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || Member == null)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+    <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@(() => { })" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || Member == null)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+    <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Delete" Icon="delete" Click="@(() => RunLogsAction(LogActivityType.Opened))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Disabled="@(!AnySelected || IsLoading || Member == null)" />
+    <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => { Grid.RefreshDataAsync(); })" Disabled="@(IsLoading)" />
+    <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
+        <Start>
+            <RadzenIcon Icon="search" />
+        </Start>
+        <ChildContent>
+            <RadzenTextBox id="actionSearch" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                           autocapitalize="none" MaxLength="100" inputmode="search" Placeholder="Search monitors"
+                           @bind-Value="@SearchText" @oninput="@(args => SetNameFilter(args.Value as string))" />
+        </ChildContent>
+        <End>
+            @if (!string.IsNullOrWhiteSpace(SearchText))
+            {
+                <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+            }
+        </End>
+    </RadzenFormField>
+</ActionBar>
+<br />
+<RadzenDataGrid @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" IsLoading="@IsLoading"
+                Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No logs."
+                PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
+                GridLines="DataGridGridLines.Horizontal" @bind-Value="@SelectedContainers" SelectionMode="DataGridSelectionMode.Multiple"
+                PageSizeOptions="@Static.TablePageSizeOptions"
+                AllowSorting="false" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+                TItem="StatusMonitorData" CellContextMenu="@(args => ShowContextMenuWithManageItems(args.Data, args))">
+    <Columns>
+        <RadzenDataGridColumn Width="36px" Frozen="true" Filterable="false">
+            <HeaderTemplate>
+                <RadzenCheckBox TabIndex="-1" TriState="false" TValue="bool?" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select all items" } })"
+                                Value="@(SelectedContainers == null || SelectedContainers?.Any() != true ? false : !ContainersList.All(i => SelectedContainers.Contains(i)) ? null : ContainersList.Any(i => SelectedContainers.Contains(i)))"
+                                Change="@(args => SelectedContainers = args == true ? (SelectedContainers != null && SelectedContainers.Any()) ? null : ContainersList.ToList() : null)" Disabled="@(IsLoading)" />
+            </HeaderTemplate>
+            <Template Context="data">
+                <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedContainers != null && SelectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"
+                                TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsLoading" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Name" Filterable="false" Width="@GridWidth.Name" Frozen="true" Property="@nameof(StatusMonitorData.Name)">
+            <Template>
+                @context.Name
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Type" Filterable="true" Width="@GridWidth.Type" Property="@nameof(StatusMonitorData.CreatedAt)">
+            <Template>
+                @Utils.FriendlyName(context.MonitorType.ToString())
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Uptime" Filterable="true" Width="@GridWidth.Date" Property="@nameof(StatusMonitorData.CreatedAt)" FilterOperator="FilterOperator.GreaterThanOrEquals" SecondFilterOperator="FilterOperator.GreaterThanOrEquals" FilterOperators="@GridOperators.Date">
+            <Template>
+                <span class="iconify" data-icon="mdi:arrow-up-thick" style="color: var(--rz-success);"></span>
+                5 Days
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Status" Filterable="true" Width="@GridWidth.Date" Property="@nameof(StatusMonitorData.CreatedAt)" FilterOperator="FilterOperator.GreaterThanOrEquals" SecondFilterOperator="FilterOperator.GreaterThanOrEquals" FilterOperators="@GridOperators.Date">
+            <Template>
+                Active
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsOne" Filterable="false">
+            <Template>
+                <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading)" />
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Created" Filterable="true" Width="@GridWidth.Date" Property="@nameof(StatusMonitorData.CreatedAt)" FilterOperator="FilterOperator.GreaterThanOrEquals" SecondFilterOperator="FilterOperator.GreaterThanOrEquals" FilterOperators="@GridOperators.Date">
+            <Template>
+                @Utils.GetLocalDate(Session, context.CreatedAt, true)
+            </Template>
+        </RadzenDataGridColumn>
+    </Columns>
+</RadzenDataGrid>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    IQueryable<StatusMonitorData>? ContainersList = new List<StatusMonitorData>
+    {
+        new StatusMonitorData
+        {
+            Name = "Test",
+            TeamId = _DB.Teams.Cache.First().Value.Id
+        }
+    }.AsQueryable();
+
+    public string? SearchText { get; set; }
+    public async Task SetNameFilter(string? text)
+    {
+        SearchText = text;
+        try
+        {
+            await Grid.ColumnsCollection.ElementAt(3).SetFilterValueAsync(text);
+        }
+        catch { }
+        await Grid.Reload();
+    }
+
+
+    public async Task LoadData(LoadDataArgs args)
+    {
+        if (Team == null || Member == null)
+            return;
+
+        IsLoading = true;
+
+        IsLoading = false;
+    }
+
+
+    IList<StatusMonitorData>? SelectedContainers;
+    public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
+    RadzenDataGrid<StatusMonitorData> Grid;
+    public bool IsLoading = false;
+
+
+
+    void ShowContextMenuWithManageItems(StatusMonitorData item, MouseEventArgs args)
+    {
+        ContextMenuService.Open(args,
+            new List<ContextMenuItem>
+            {
+                new ContextMenuItem() { Text = "Enable", Value = "enable", Icon = "play_arrow", Disabled = IsLoading || Member == null },
+                new ContextMenuItem() { Text = "Disable", Value = "disable", Icon = "pause", Disabled = IsLoading || Member == null },
+                new ContextMenuItem() { Text = "Delete", Value = "delete", Icon = "delete", IconColor = Colors.Danger, Disabled = IsLoading || Member == null }
+            }, x => MenuItemClick(x, item));
+    }
+
+    async Task RunLogsAction(LogActivityType type)
+    {
+        if (Member == null || SelectedContainers == null || !SelectedContainers.Any())
+            return;
+
+        var User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        IsLoading = true;
+
+        foreach (var i in SelectedContainers)
+        {
+
+
+        }
+        IsLoading = false;
+    }
+
+    async Task MenuItemClick(MenuItemEventArgs args, StatusMonitorData item)
+    {
+        ContextMenuService.Close();
+
+        if (Member == null)
+            return;
+
+        var User = await Session.GetCurrentUserAsync();
+        if (User == null)
+            return;
+
+        IsLoading = true;
+        switch (args.Value.ToString())
+        {
+            case "resolve":
+                {
+
+                }
+                break;
+            case "review":
+                {
+
+                }
+                break;
+            case "ignore":
+                {
+
+                }
+                break;
+            case "delete":
+                {
+
+                }
+                break;
+        }
+        IsLoading = false;
+        await Grid.RefreshDataAsync();
+
+    }
+}
