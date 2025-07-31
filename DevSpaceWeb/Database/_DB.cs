@@ -491,6 +491,18 @@ public static class _DB
                                 _Data.MinecraftRcons.Add(x.Id, rcon);
                             }
                             break;
+                        case ConsoleType.Source:
+                            {
+                                CoreRCON.RCON rcon = new CoreRCON.RCON(IPAddress.Parse(x.Ip), (ushort)x.Port, x.GetDecryptedPassword());
+                                try
+                                {
+                                    rcon.ConnectAsync();
+                                }
+                                catch { }
+                                _Data.SourceRcons.Add(x.Id, rcon);
+
+                            }
+                            break;
                     }
                 });
                 Logger.LogMessage("Database", "- Consoles: " + Consoles.Cache.Keys.Count, LogSeverity.Info);

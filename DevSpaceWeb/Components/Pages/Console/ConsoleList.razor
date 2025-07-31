@@ -316,6 +316,20 @@
                         _Data.MinecraftRcons.Add(NewConsole.Id, rcon);
                     }
                     break;
+                case ConsoleType.Source:
+                    {
+                        CoreRCON.RCON rcon = new CoreRCON.RCON(address, (ushort)data.Port, data.Password);
+                        try
+                        {
+                            await rcon.ConnectAsync();
+                        }
+                        catch { }
+                        if (!rcon.Connected)
+                            return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
+
+                        _Data.SourceRcons.Add(NewConsole.Id, rcon);
+                    }
+                    break;
             }
 
 

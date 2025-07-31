@@ -111,6 +111,20 @@
 
                 }
                 break;
+            case ConsoleType.Source:
+                {
+                    CoreRCON.RCON rcon = new CoreRCON.RCON(address, (ushort)model.Port, model.Password);
+                    try
+                    {
+                        await rcon.ConnectAsync();
+                    }
+                    catch { }
+                    if (!rcon.Connected)
+                        return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
+                }
+                break;
+            default:
+                return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
         }
 
 
@@ -136,9 +150,6 @@
                 case ConsoleType.Battleye:
                     {
                         RCon rcon = new RCon();
-
-
-
                         rcon.Connect(address, model.Port, model.Password);
                         _Data.BattleyeRcons.Remove(Console.Id);
                         _Data.BattleyeRcons.TryAdd(Console.Id, rcon);
@@ -155,6 +166,18 @@
                         await rcon.StartComms();
                         _Data.MinecraftRcons.Remove(Console.Id);
                         _Data.MinecraftRcons.TryAdd(Console.Id, rcon);
+                    }
+                    break;
+                case ConsoleType.Source:
+                    {
+                        CoreRCON.RCON rcon = new CoreRCON.RCON(address, (ushort)model.Port, model.Password);
+                        try
+                        {
+                            await rcon.ConnectAsync();
+                        }
+                        catch { }
+                        _Data.SourceRcons.Remove(Console.Id);
+                        _Data.SourceRcons.Add(Console.Id, rcon);
                     }
                     break;
             }

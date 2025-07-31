@@ -47,6 +47,12 @@ public class ConsoleData : ITeamResource
                         return true;
                 }
                 break;
+            case ConsoleType.Source:
+                {
+                    if (_Data.SourceRcons.TryGetValue(Id, out CoreRCON.RCON? rcon) && rcon.Connected)
+                        return true;
+                }
+                break;
         }
 
         return false;
@@ -136,7 +142,7 @@ public class ConsoleData : ITeamResource
 
 public enum ConsoleType
 {
-    Battleye, Minecraft
+    Battleye, Minecraft, Source
 }
 
 public enum RconStatusType

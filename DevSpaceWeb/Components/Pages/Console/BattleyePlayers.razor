@@ -15,6 +15,10 @@
             <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
         </div>
         <RadzenText TextStyle="TextStyle.H6">Players</RadzenText>
+        @if ((IsLoading) && Member != null && Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPlayers))
+        {
+            <RadzenProgressBarCircular ShowValue="false" Mode="ProgressBarMode.Indeterminate" Size="ProgressBarCircularSize.ExtraSmall" class="ml-2" />
+        }
     </div>
     <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" Text="Consoles" />
@@ -53,37 +57,37 @@
                 </RadzenFormField>
             </ActionBar>
         </div>
-        <RadzenDataGrid @ref="@Grid" Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
-                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
+        <RadzenDataGrid @ref="@Grid" Count="@PlayerCount" Data="@Players" LoadData="@LoadData" Density="Density.Compact" IsLoading="@IsLoading"
+                        AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" PagingSummaryFormat="@($"{PlayerCount} player" + (PlayerCount != 1 ? "s" : ""))"
                         EmptyText="No players." PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage" GridLines="DataGridGridLines.Horizontal">
             <Columns>
-                <RadzenDataGridColumn Title="ID" Width="60px" Property="@nameof(Player.number)">
+                <RadzenDataGridColumn Title="ID" Width="@GridWidth.Type" Property="@nameof(Player.number)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.number</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="GUID" Width="240px" Property="@nameof(Player.guid)">
+                <RadzenDataGridColumn Title="GUID" Width="@GridWidth.Name" Property="@nameof(Player.guid)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.guid</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Name" Property="@nameof(Player.name)">
+                <RadzenDataGridColumn Title="Name" Width="@GridWidth.ActionsThree" Property="@nameof(Player.name)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.name</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Ping" Width="80px" Filterable="false">
+                <RadzenDataGridColumn Title="Ping" Width="@GridWidth.ActionsOne" Filterable="false">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.ping ms</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Status" Width="100px" Property="@nameof(Player.status)" FilterMode="FilterMode.CheckBoxList">
+                <RadzenDataGridColumn Title="Status" Width="@GridWidth.Type" Property="@nameof(Player.status)">
                     <Template>
                         <RadzenText TextStyle="TextStyle.Body2">@context.status</RadzenText>
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsOne" Filterable="false">
+                <RadzenDataGridColumn Title="Actions" Filterable="false">
                     <Template>
                         <RadzenButton Icon="build" Click="@(args => ShowContextMenuWithManageItems(context, args))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
                     </Template>
@@ -112,6 +116,7 @@
 
     public IEnumerable<Player>? Players { get; set; }
     public int PlayerCount { get; set; }
+    public bool IsLoading = true;
 
     public RadzenDataGrid<Player> Grid { get; set; }
 
@@ -124,23 +129,76 @@
             await Grid.ColumnsCollection.ElementAt(2).SetFilterValueAsync(text);
         }
         catch { }
-        await Grid.Reload();
+        await Grid.RefreshDataAsync();
     }
 
-    void LoadData(LoadDataArgs args)
+    async Task LoadData(LoadDataArgs args)
     {
         if (Console == null)
             return;
 
+        IsLoading = true;
         if (_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc))
         {
             if (rc.IsConnected)
             {
                 IQueryable<Player> query = rc.GetPlayers().AsQueryable();
-                rc.GetMissions();
+
+                if (!string.IsNullOrEmpty(args.Filter))
+                    query = query.Where(args.Filter);
 
                 PlayerCount = query.Count();
                 Players = query.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
+            }
+            else
+            {
+                PlayerCount = 0;
+                Players = new List<Player>();
+            }
+
+            StateHasChanged();
+        }
+        else if (_Data.SourceRcons.TryGetValue(Console.Id, out var rcon))
+        {
+            if (rcon.Connected)
+            {
+                string Result = await rcon.SendCommandAsync("status");
+                Dictionary<string, string> groups = Result.Split('\n')
+               .Select(x => x.Split(':'))
+               .Where(x => x.Length > 1 && !string.IsNullOrEmpty(x[0].Trim())
+                   && !string.IsNullOrEmpty(x[1].Trim()))
+               .ToDictionary(x => x[0].Trim(), x => string.Join(":", x.ToList().Skip(1)).Trim());
+
+                List<DaRT.Player> Players = new List<DaRT.Player>();
+                try
+                {
+                    bool afterPlayers = false;
+                    foreach (var i in groups)
+                    {
+                        if (afterPlayers)
+                        {
+                            string PlayerString = (i.Key.Substring(1) + ":" + i.Value).Trim();
+
+                            string Name = PlayerString.GetBetween("\"", "\"");
+                            string[] Split = PlayerString.Replace($"\"{Name}\"", "").Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                            Players.Add(new Player(int.Parse(Split[0]), Split[6], Split[3], Split[1], Name, Split[5]));
+                        }
+                        else if (i.Key == "players")
+                        {
+                            afterPlayers = true;
+                        }
+                    }
+                }
+                catch { }
+
+
+                IQueryable<Player> query = Players.AsQueryable();
+
+                if (!string.IsNullOrEmpty(args.Filter))
+                    query = query.Where(args.Filter);
+
+                PlayerCount = query.Count();
+                this.Players = query.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
             }
             else
             {
@@ -155,7 +213,7 @@
             PlayerCount = 0;
             Players = new List<Player>();
         }
-
+        IsLoading = false;
     }
 
     public string ParseTime(int time)
@@ -176,7 +234,7 @@
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Message", Value = "message", Icon = "chat" },
+                new ContextMenuItem(){ Text = "Message", Value = "message", Icon = "chat", Disabled = Console.Type == ConsoleType.Source },
                 new ContextMenuItem(){ Text = "Ban Player", Value = "ban", Icon = "hardware" },
                 new ContextMenuItem(){ Text = "Ban IP", Value = "ban_ip", Icon = "plumbing" },
                 new ContextMenuItem(){ Text = "Kick Player", Value = "kick", Icon = "podiatry" },
@@ -207,24 +265,45 @@
                             return;
                         }
 
-                        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+                        switch (Console.Type)
                         {
-                            await Dialogs.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
-                            return;
+                            case ConsoleType.Source:
+                                {
+                                     bool Confirm = await Dialogs.ShowConfirmAsync("Ban " + item.name, "Are you sure you want to ban " + item.name, "Confirm", ButtonStyle.Success);
+                                    if (!Confirm)
+                                        return;
+
+                                    if (!_Data.SourceRcons.TryGetValue(Console.Id, out var rc) || !rc.Connected)
+                                    {
+                                        await Dialogs.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
+                                        return;
+                                    }
+                                    await rc.SendCommandAsync("banid " + item.number);
+                                }
+                                break;
+                            case ConsoleType.Battleye:
+                                {
+                                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+                                    {
+                                        await Dialogs.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
+                                        return;
+                                    }
+
+                                    await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                                    {
+                                        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
+                                            return "You do not have permission for Ban Players";
+
+                                        if (!rc.IsConnected)
+                                            return "Could not connect to server.";
+
+                                        rc.BanPlayer(new Ban(item.guid, 0, data.Reason));
+                                        await Dialogs.ShowInfoAsync("Ban Result", $"{item.name} has been banned.");
+                                        return null;
+                                    });
+                                }
+                                break;
                         }
-
-                        await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Ban " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
-                        {
-                            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
-                                return "You do not have permission for Ban Players";
-
-                            if (!rc.IsConnected)
-                                return "Could not connect to server.";
-
-                            rc.BanPlayer(new Ban(item.guid, 0, data.Reason));
-                            await Dialogs.ShowInfoAsync("Ban Result", $"{item.name} has been banned.");
-                            return null;
-                        });
                     }
                     break;
                 case "ban_ip":
@@ -235,7 +314,25 @@
                             return;
                         }
 
-                        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+                        switch (Console.Type)
+                        {
+                            case ConsoleType.Source:
+                                {
+                                    bool Confirm = await Dialogs.ShowConfirmAsync("Ban IP " + item.name, "Are you sure you want to ban ip for " + item.name, "Confirm", ButtonStyle.Success);
+                                    if (!Confirm)
+                                        return;
+
+                                    if (!_Data.SourceRcons.TryGetValue(Console.Id, out var rc) || !rc.Connected)
+                                    {
+                                        await Dialogs.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
+                                        return;
+                                    }
+                                    await rc.SendCommandAsync("addip " + item.ip);
+                                }
+                                break;
+                            case ConsoleType.Battleye:
+                                {
+if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                         {
                             await Dialogs.ShowInfoAsync("Failed to Ban IP", "Could not connect to server.");
                             return;
@@ -253,6 +350,11 @@
                             await Dialogs.ShowInfoAsync("IP Ban Result", $"{item.name}'s IP has been banned.");
                             return null;
                         });
+                                }
+                                break;
+                        }
+
+                        
                     }
                     break;
                 case "kick":
@@ -263,7 +365,25 @@
                             return;
                         }
 
-                        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+                        switch (Console.Type)
+                        {
+                            case ConsoleType.Source:
+                                {
+                                     bool Confirm = await Dialogs.ShowConfirmAsync("Kick " + item.name, "Are you sure you want to kick " + item.name, "Confirm", ButtonStyle.Success);
+                                    if (!Confirm)
+                                        return;
+
+                                    if (!_Data.SourceRcons.TryGetValue(Console.Id, out var rc) || !rc.Connected)
+                                    {
+                                        await Dialogs.ShowInfoAsync("Failed to Kick", "Could not connect to server.");
+                                        return;
+                                    }
+                                    await rc.SendCommandAsync("kick " + item.name);
+                                }
+                                break;
+                            case ConsoleType.Battleye:
+                                {
+                                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
                         {
                             await Dialogs.ShowInfoAsync("Failed to Kick", "Could not connect to server.");
                             return;
@@ -280,6 +400,11 @@
                             await Dialogs.ShowInfoAsync("Kick Result", $"{item.name} has been kicked.");
                             return null;
                         });
+                                }
+                                break;
+                        }
+
+                        
                     }
                     break;
                 case "message":

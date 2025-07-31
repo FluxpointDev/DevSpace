@@ -2,6 +2,7 @@
 @using DaRT
 @using DevSpaceWeb.Data.Consoles
 @using LibMCRcon.RCon
+@using System.Net
 @inject DialogService Dialogs
 
 <PageTitle>@Console?.Name | @_Data.Config.Instance.Name</PageTitle>
@@ -68,6 +69,26 @@
                         }
                     }
                     break;
+                case ConsoleType.Source:
+                    {
+                        if (_Data.SourceRcons.TryGetValue(Console.Id, out var rcon))
+                        {
+                            switch (rcon.Connected)
+                            {
+                                case true:
+                                    <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Success" Text="Connected" IsPill="true" />
+                                    break;
+                                case false:
+                                    <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Warning" Text="Connection Failed" IsPill="true" />
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            <RadzenBadge Shade="Shade.Lighter" BadgeStyle="BadgeStyle.Warning" Text="Error" IsPill="true" />
+                        }
+                    }
+                    break;
             }
 
             @switch (Console?.Type)
@@ -83,6 +104,7 @@
                                 <br />
                                 <div>
                                     <ActionBar>
+                                        <RadzenButton Click="@Reconnect" Text="Reconnect" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
                                         <RadzenButton Click="@LockServer" Text="Lock Server" Icon="lock" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
                                         <RadzenButton Click="@UnlockServer" Text="Unlock Server" Icon="lock_open_right" ButtonStyle="ButtonStyle.Primary" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
                                         <RadzenButton Click="@RestartServer" Text="Restart Server" Icon="cached" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
@@ -103,11 +125,13 @@
                     }
                     break;
                 case ConsoleType.Minecraft:
+                case ConsoleType.Source:
                     {
                         <br />
                         <br />
                         <div>
                             <ActionBar>
+                                <RadzenButton Click="@Reconnect" Text="Reconnect" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
                                 <RadzenButton Click="@RestartServer" Text="Restart Server" Icon="cached" ButtonStyle="ButtonStyle.Warning" Shade="Shade.Darker" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
                                 <RadzenButton Click="@ShutdownServer" Text="Shutdown Server" Icon="mode_off_on" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Disabled="@(Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))" Size="ButtonSize.Small" />
                             </ActionBar>
@@ -138,6 +162,7 @@
                 @switch (Console?.Type)
                 {
                     case ConsoleType.Battleye:
+                    case ConsoleType.Source:
                         {
                             <BattleyePlayers></BattleyePlayers>
                         }
@@ -170,10 +195,7 @@
                 @switch (Console?.Type)
                 {
                     case ConsoleType.Battleye:
-                        {
-                            <ConsoleCommands></ConsoleCommands>
-                        }
-                        break;
+                    case ConsoleType.Source:
                     case ConsoleType.Minecraft:
                         {
                             <ConsoleCommands></ConsoleCommands>
@@ -342,6 +364,54 @@
         rc.UnlockServer();
     }
 
+    public async Task Reconnect()
+    {
+        switch (Console.Type)
+        {
+            case ConsoleType.Battleye:
+                {
+                    if (_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc))
+                    {
+                        IPAddress? address = null;
+            if (!IPAddress.TryParse(Console.Ip, out address))
+            {
+                IPHostEntry? Host = null;
+                try
+                {
+                                Host = Dns.GetHostEntry(Console.Ip);
+                }
+                catch { }
+                if (Host != null)
+                    address = Host.AddressList.FirstOrDefault();
+            }
+
+                        rc.Connect(address, Console.Port, Console.GetDecryptedPassword());
+                        StateHasChanged();
+                    }
+                }
+                break;
+            case ConsoleType.Minecraft:
+                {
+                    if (_Data.MinecraftRcons.TryGetValue(Console.Id, out var rc))
+                    {
+                        await rc.StartComms();
+                        StateHasChanged();
+                    }
+                }
+                break;
+            case ConsoleType.Source:
+                {
+                    if (_Data.SourceRcons.TryGetValue(Console.Id, out var rc))
+        {
+            await rc.ConnectAsync();
+            StateHasChanged();
+        }
+                }
+                break;
+        }
+        
+    }
+
     public async Task RestartServer()
     {
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ControlServer))
@@ -349,6 +419,10 @@
             await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Restart Server", "Are you sure you want to restart the server?", "Confirm", ButtonStyle.Success);
+        if (!Confirm)
+            return;
 
         switch (Console.Type)
         {
@@ -379,6 +453,16 @@
                     }
                 }
                 break;
+            case ConsoleType.Source:
+                {
+                    if (!_Data.SourceRcons.TryGetValue(Console.Id, out var rc) || !rc.Connected)
+                    {
+                        await Dialogs.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
+                        return;
+                    }
+                    await rc.SendCommandAsync("_restart");
+                }
+                break;
         }
 
 
@@ -391,6 +475,10 @@
             await Dialogs.ShowPermissionErrorAsync(ConsolePermission.ControlServer);
             return;
         }
+
+        bool Confirm = await Dialogs.ShowConfirmAsync("Shutdown Server", "Are you sure you want to shutdown the server?", "Confirm", ButtonStyle.Success);
+        if (!Confirm)
+            return;
 
         switch (Console.Type)
         {
@@ -414,6 +502,16 @@
                     }
 
                     await rc.ExecuteCmd("stop");
+                }
+                break;
+            case ConsoleType.Source:
+                {
+                    if (!_Data.SourceRcons.TryGetValue(Console.Id, out var rc) || !rc.Connected)
+                    {
+                        await Dialogs.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
+                        return;
+                    }
+                    await rc.SendCommandAsync("killserver");
                 }
                 break;
         }

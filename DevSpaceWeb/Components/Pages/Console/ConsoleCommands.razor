@@ -108,6 +108,18 @@
                                 await Dialogs.ShowInfoAsync("Command Result", Result);
                             }
                             break;
+                        case ConsoleType.Source:
+                            {
+                                if (!_Data.SourceRcons.TryGetValue(Console.Id, out var rc) || !rc.Connected)
+                                {
+                                    await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    return;
+                                }
+                                string Result = await rc.SendCommandAsync(CommandInput);
+                                await Dialogs.ShowInfoAsync("Command Result", Result);
+
+                            }
+                            break;
                     }
 
 
@@ -147,6 +159,18 @@
 
                                 string Result = await rc.SayGlobal(CommandInput);
                                 await Dialogs.ShowInfoAsync("Message Result", Result);
+                            }
+                            break;
+                        case ConsoleType.Source:
+                            {
+                                if (!_Data.SourceRcons.TryGetValue(Console.Id, out var rc) || !rc.Connected)
+                                {
+                                    await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
+                                    return;
+                                }
+                                string Result = await rc.SendCommandAsync("say " + CommandInput);
+                                await Dialogs.ShowInfoAsync("Command Result", Result);
+
                             }
                             break;
                     }
@@ -194,6 +218,11 @@
 
                                 string Result = await rc.SayPlayer(SelectedPlayer.name, CommandInput);
                                 await Dialogs.ShowInfoAsync("Message Result", Result);
+                            }
+                            break;
+                        case ConsoleType.Source:
+                            {
+                                await Dialogs.ShowInfoAsync("Failed to Send Message", "Feature not implemented.");
                             }
                             break;
                     }
