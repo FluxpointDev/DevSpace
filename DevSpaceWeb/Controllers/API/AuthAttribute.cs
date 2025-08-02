@@ -27,7 +27,11 @@ public class IsAuthenticatedAttribute : ActionFilterAttribute
         APIController? controller = filterContext.Controller as APIController;
         if (controller == null)
         {
-            filterContext.Result = new JsonResult(new Response(500, "Controller failed to load."));
+            filterContext.Result = new JsonResult(new Response(500, "Controller failed to load."))
+            {
+                StatusCode = 500,
+                ContentType = "application/json"
+            };
             return;
         }
 
