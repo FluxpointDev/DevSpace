@@ -1,4 +1,7 @@
-﻿<div class="dash-box dash-box-content">
+﻿@using DevSpaceWeb.Models.Status
+@inject DialogService Dialogs
+
+<div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon dash-box-back" onclick="history.back()">
             <span class="iconify" data-icon="mdi:information-slab-circle"></span>
@@ -13,12 +16,12 @@
             {
                 case 1:
                     {
-                        <RadzenButton Variant="Variant.Filled" Text="Create Monitor" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Filled" Text="Create Monitor" Icon="add" Click="@Create" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" />
                     }
                     break;
                     case 2:
                     {
-                        <RadzenButton Variant="Variant.Filled" Text="Create Page" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                        <RadzenButton Variant="Variant.Filled" Text="Create Page" Icon="add" Click="@Create" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" />
                     }
                     break;
             }
@@ -47,5 +50,36 @@
 </div>
 
 @code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public TeamMemberData? Member => Session.Selected.Member;
+
     public int SelectedStatusType { get; set; } = 1;
+
+    public async Task Create()
+    {
+        if (Member == null || Team == null)
+            return;
+
+        switch (SelectedStatusType)
+        {
+            case 1:
+                {
+                    await Dialogs.ShowDynamicFormAsync<CreateStatusMonitorModel>("Create Status Monitor", new CreateStatusMonitorModel(), async (CreateStatusMonitorModel data) =>
+                    {
+
+
+                        return null;
+                    });
+                }
+                break;
+            case 2:
+                {
+                    
+                }
+                break;
+        }
+    }
 }
