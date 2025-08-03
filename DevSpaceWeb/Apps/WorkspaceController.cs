@@ -679,7 +679,6 @@ public class WorkspaceController : ControllerBase
             return Tuple.Create(block.inputs["name"].block.fields["TEXT"].ToString(), string.Empty);
         }
 
-
         if (block.next != null && block.next.block != null)
         {
             Tuple<string, string>? test = HasOpenModal(block.next.block);
