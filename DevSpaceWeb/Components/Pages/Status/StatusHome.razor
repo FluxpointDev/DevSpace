@@ -1,10 +1,11 @@
-﻿@using DevSpaceWeb.Models.Status
+﻿@using DevSpaceWeb.Data.Status
+@using DevSpaceWeb.Models.Status
 @inject DialogService Dialogs
 
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon dash-box-back" onclick="history.back()">
-            <span class="iconify" data-icon="mdi:information-slab-circle"></span>
+            <span class="iconify" data-icon="mdi:information"></span>
             <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
         </div>
         <RadzenText TextStyle="TextStyle.H6">Status</RadzenText>
@@ -67,9 +68,29 @@
         {
             case 1:
                 {
+                    if (!Member.HasStatusMonitorPermission(Team, null, StatusMonitorPermission.CreateMonitorResource))
+                        return;
+
                     await Dialogs.ShowDynamicFormAsync<CreateStatusMonitorModel>("Create Status Monitor", new CreateStatusMonitorModel(), async (CreateStatusMonitorModel data) =>
                     {
+                        if (Member == null || Team == null || !Member.HasStatusMonitorPermission(Team, null, StatusMonitorPermission.CreateMonitorResource))
+                            return "You do not have permission for Create Status Monitor Resources";
 
+                        StatusMonitorData NewMonitor = new StatusMonitorData
+                        {
+                            Name = data.Name!,
+                            OwnerId = Session.CurrentUser.Id,
+                            TeamId = Session.Selected.Team.Data.Id,
+                        };
+
+                        await _DB.StatusMonitors.CreateAsync(NewMonitor);
+
+                        _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.StatusMonitorCreated)
+                            .SetTarget(NewMonitor));
+
+                        _DB.StatusMonitors.Cache.TryAdd(NewMonitor.Id, NewMonitor);
+
+                        InvokeAsync(StateHasChanged);
 
                         return null;
                     });
@@ -77,7 +98,32 @@
                 break;
             case 2:
                 {
-                    
+                    if (!Member.HasStatusPagePermission(Team, null, StatusPagePermission.CreatePageResource))
+                        return;
+
+                    await Dialogs.ShowDynamicFormAsync<CreateStatusPageModel>("Create Status Page", new CreateStatusPageModel(), async (CreateStatusPageModel data) =>
+                    {
+                        if (Member == null || Team == null || !Member.HasStatusPagePermission(Team, null, StatusPagePermission.CreatePageResource))
+                            return "You do not have permission for Create Status Page Resources";
+
+                        StatusPageData NewPage = new StatusPageData
+                        {
+                            Name = data.Name!,
+                            OwnerId = Session.CurrentUser.Id,
+                            TeamId = Session.Selected.Team.Data.Id,
+                        };
+
+                        await _DB.StatusPages.CreateAsync(NewPage);
+
+                        _ = _DB.AuditLogs.CreateAsync(new AuditLog(Member, AuditLogCategoryType.Resource, AuditLogEventType.StatusPageCreated)
+                            .SetTarget(NewPage));
+
+                        _DB.StatusPages.Cache.TryAdd(NewPage.Id, NewPage);
+
+                        InvokeAsync(StateHasChanged);
+
+                        return null;
+                    });
                 }
                 break;
         }

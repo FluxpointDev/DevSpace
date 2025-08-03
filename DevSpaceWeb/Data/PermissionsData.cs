@@ -16,6 +16,8 @@ public static class PermissionsData
     public static PermissionItem<DockerContainerPermission>[] AllDockerContainerData = GetDockerContainerData(true);
     public static PermissionItem<ConsolePermission>[] AllConsoleData = GetConsoleData(true);
     public static PermissionItem<AppPermission>[] AllAppData = GetAppData(true);
+    public static PermissionItem<StatusMonitorPermission>[] AllStatusMonitorData = GetStatusMonitorData(true);
+    public static PermissionItem<StatusPagePermission>[] AllStatusPageData = GetStatusPageData(true);
 
     public static PermissionItem<ServerPermission>[] ResourceServerData = GetServerData(false);
     public static PermissionItem<WebsitePermission>[] ResourceWebsiteData = GetWebsiteData(false);
@@ -25,6 +27,8 @@ public static class PermissionsData
     public static PermissionItem<DockerContainerPermission>[] ResourceDockerContainerData = GetDockerContainerData(false);
     public static PermissionItem<ConsolePermission>[] ResourceConsoleData = GetConsoleData(false);
     public static PermissionItem<AppPermission>[] ResourceAppData = GetAppData(false);
+    public static PermissionItem<StatusMonitorPermission>[] ResourceStatusMonitorData = GetStatusMonitorData(false);
+    public static PermissionItem<StatusPagePermission>[] ResourceStatusPageData = GetStatusPageData(false);
 
     public static PermissionItem<ResourcePermission>[] AllResourceData =
     [
@@ -33,7 +37,9 @@ public static class PermissionsData
         new PermissionItem<ResourcePermission>(ResourcePermission.CreateServers, "Create Servers", "Create server resources for the team."),
         new PermissionItem<ResourcePermission>(ResourcePermission.CreateConsoles, "Create Consoles", "Create console resources for the team."),
         new PermissionItem<ResourcePermission>(ResourcePermission.CreateWebsites, "Create Websites", "Create website resources for the team."),
-        new PermissionItem<ResourcePermission>(ResourcePermission.CreateProjects, "Create Projects", "Create project resources for the team.")
+        new PermissionItem<ResourcePermission>(ResourcePermission.CreateProjects, "Create Projects", "Create project resources for the team."),
+        new PermissionItem<ResourcePermission>(ResourcePermission.CreateStatusMonitors, "Create Status Monitors", "Create status monitor resources for the team."),
+        new PermissionItem<ResourcePermission>(ResourcePermission.CreateStatusPages, "Create Status Pages", "Create status page resources for the team."),
     ];
 
     private static PermissionItem<TeamPermission>[] GetTeamData()
@@ -215,6 +221,30 @@ public static class PermissionsData
                 new PermissionItem<ConsolePermission>(ConsolePermission.ViewConnections, "View Connections", "View authorized rcon connections to the server."),
             ];
     }
+
+    private static PermissionItem<StatusMonitorPermission>[] GetStatusMonitorData(bool plural)
+    {
+        return
+        [
+            new PermissionItem<StatusMonitorPermission>(StatusMonitorPermission.DeleteMonitorResource, plural ? "Delete Status Monitor Resources" : "Delete Resource", "Delete status monitor for the team."),
+            new PermissionItem<StatusMonitorPermission>(StatusMonitorPermission.ManageMonitor, "Manage Status Monitor" + (plural ? "s" : ""), "Change status monitor settings."),
+            new PermissionItem<StatusMonitorPermission>(StatusMonitorPermission.ViewPermissions, "View Permissions", "View permissions for the status monitor."),
+            new PermissionItem<StatusMonitorPermission>(StatusMonitorPermission.ManagePermissions, "Manage Permissions", "Change permissions for all status monitors the team owns."),
+
+        ];
+    }
+
+    private static PermissionItem<StatusPagePermission>[] GetStatusPageData(bool plural)
+    {
+        return
+        [
+            new PermissionItem<StatusPagePermission>(StatusPagePermission.DeletePageResource, plural ? "Delete Status Page Resources" : "Delete Resource", "Delete status page for the team."),
+            new PermissionItem<StatusPagePermission>(StatusPagePermission.ManagePage, "Manage Status Page" + (plural ? "s" : ""), "Change status page settings."),
+            new PermissionItem<StatusPagePermission>(StatusPagePermission.ViewPermissions, "View Permissions", "View permissions for the status page."),
+            new PermissionItem<StatusPagePermission>(StatusPagePermission.ManagePermissions, "Manage Permissions", "Change permissions for all status pages the team owns."),
+
+        ];
+    }
 }
 public class PermissionGrid<T>
 {
@@ -225,5 +255,5 @@ public class PermissionGrid<T>
 }
 public enum PermissionType
 {
-    All, Server, Docker, Website, Project, Console, App
+    All, Server, Docker, Website, Project, Console, App, StatusMonitor, StatusPage
 }

@@ -2,6 +2,7 @@
 @using DevSpaceWeb.Components.Dialogs
 @using DevSpaceWeb.Data.API
 @using DevSpaceWeb.Data.Consoles
+@using DevSpaceWeb.Data.Status
 @using DevSpaceWeb.Models
 @using DevSpaceWeb.Models.Teams
 @using Microsoft.AspNetCore.Components.Forms
@@ -387,9 +388,37 @@
                             if (Member.HasProjectPermission(Team, project, ProjectPermission.ManagePermissions))
                             {
                                 await project.UpdateAsync(new UpdateDefinitionBuilder<ProjectData>().Set(x => x.DefaultPermissions, perms), () =>
+                                {
+                                    project.DefaultPermissions = perms;
+                                });
+                            }
+                            else
                             {
-                                project.DefaultPermissions = perms;
-                            });
+                                LoadPermissions();
+                            }
+                        }
+                        else if (Resource is StatusMonitorData monitor)
+                        {
+                            if (Member.HasStatusMonitorPermission(Team, monitor, StatusMonitorPermission.ManagePermissions))
+                            {
+                                await monitor.UpdateAsync(new UpdateDefinitionBuilder<StatusMonitorData>().Set(x => x.DefaultPermissions, perms), () =>
+                                {
+                                    monitor.DefaultPermissions = perms;
+                                });
+                            }
+                            else
+                            {
+                                LoadPermissions();
+                            }
+                        }
+                        else if (Resource is StatusPageData page)
+                        {
+                            if (Member.HasStatusPagePermission(Team, page, StatusPagePermission.ManagePermissions))
+                            {
+                                await page.UpdateAsync(new UpdateDefinitionBuilder<StatusPageData>().Set(x => x.DefaultPermissions, perms), () =>
+                                {
+                                    page.DefaultPermissions = perms;
+                                });
                             }
                             else
                             {
@@ -503,6 +532,16 @@
         else if (Resource is WebsiteData wd)
         {
             if (Member.HasWebsitePermission(Team, wd, WebsitePermission.ManagePermissions))
+                return true;
+        }
+        else if (Resource is StatusMonitorData md)
+        {
+            if (Member.HasStatusMonitorPermission(Team, md, StatusMonitorPermission.ManagePermissions))
+                return true;
+        }
+        else if (Resource is StatusPageData pad)
+        {
+            if (Member.HasStatusPagePermission(Team, pad, StatusPagePermission.ManagePermissions))
                 return true;
         }
         return false;

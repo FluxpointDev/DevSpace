@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace DevSpaceWeb.Data.Status;
@@ -12,6 +13,8 @@ public class StatusMonitorData : ITeamResource
     }
 
     public StatusMonitorType MonitorType { get; set; }
+
+    public StatusMonitorFlag Flag { get; set; }
 
     public string Source { get; set; }
 
@@ -40,8 +43,22 @@ public class StatusMonitorData : ITeamResource
 
         return Result.IsAcknowledged;
     }
+
+    [BsonIgnore]
+    public StatusMonitorState State = new StatusMonitorState();
+}
+
+public class StatusMonitorState
+{
+    public DateTime? Uptime { get; set; }
+    public bool IsDown { get; set; }
+    public bool HasFailedPreviously { get; set; }
 }
 public enum StatusMonitorType
 {
     Ping, Http
+}
+public enum StatusMonitorFlag
+{
+    HttpHead, HttpGet
 }

@@ -14,18 +14,17 @@ public class PermissionsSet
         WebsitePermissions = (WebsitePermission)ulong.MaxValue,
         LogPermissions = (LogPermission)ulong.MaxValue,
         AppPermissions = (AppPermission)ulong.MaxValue,
+        StatusMonitorPermissions = (StatusMonitorPermission)ulong.MaxValue,
+        StatusPagePermissions = (StatusPagePermission)ulong.MaxValue,
     };
 
     public void AddFrom(PermissionsSet perms)
     {
-        ConsolePermissions |= perms.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator)
-                ? (ConsolePermission)ulong.MaxValue : perms.ConsolePermissions;
+        TeamPermissions |= perms.TeamPermissions.HasFlag(TeamPermission.TeamAdministrator)
+        ? (TeamPermission)ulong.MaxValue : perms.TeamPermissions;
 
-        DockerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator)
-        ? (DockerPermission)ulong.MaxValue : perms.DockerPermissions;
-
-        DockerContainerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator)
-        ? (DockerContainerPermission)ulong.MaxValue : perms.DockerContainerPermissions;
+        APIPermissions |= perms.APIPermissions.HasFlag(APIPermission.APIAdministrator)
+        ? (APIPermission)ulong.MaxValue : perms.APIPermissions;
 
         ProjectPermissions |= perms.ProjectPermissions.HasFlag(ProjectPermission.ProjectAdministrator)
         ? (ProjectPermission)ulong.MaxValue : perms.ProjectPermissions;
@@ -33,17 +32,26 @@ public class PermissionsSet
         ServerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator)
         ? (ServerPermission)ulong.MaxValue : perms.ServerPermissions;
 
-        TeamPermissions |= perms.TeamPermissions.HasFlag(TeamPermission.TeamAdministrator)
-        ? (TeamPermission)ulong.MaxValue : perms.TeamPermissions;
-
-        APIPermissions |= perms.APIPermissions.HasFlag(APIPermission.APIAdministrator)
-        ? (APIPermission)ulong.MaxValue : perms.APIPermissions;
-
         WebsitePermissions |= perms.WebsitePermissions.HasFlag(WebsitePermission.WebsiteAdministrator)
         ? (WebsitePermission)ulong.MaxValue : perms.WebsitePermissions;
 
+        ConsolePermissions |= perms.ConsolePermissions.HasFlag(ConsolePermission.ConsoleAdministrator)
+        ? (ConsolePermission)ulong.MaxValue : perms.ConsolePermissions;
+
+        DockerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator)
+        ? (DockerPermission)ulong.MaxValue : perms.DockerPermissions;
+
+        DockerContainerPermissions |= perms.ServerPermissions.HasFlag(ServerPermission.ServerAdministrator) || perms.DockerPermissions.HasFlag(DockerPermission.DockerAdministrator)
+        ? (DockerContainerPermission)ulong.MaxValue : perms.DockerContainerPermissions;
+
         AppPermissions |= perms.AppPermissions.HasFlag(AppPermission.AppAdministrator)
             ? (AppPermission)ulong.MaxValue : perms.AppPermissions;
+
+        StatusMonitorPermissions |= perms.StatusMonitorPermissions.HasFlag(StatusMonitorPermission.MonitorAdministrator)
+        ? (StatusMonitorPermission)ulong.MaxValue : perms.StatusMonitorPermissions;
+
+        StatusPagePermissions |= perms.StatusPagePermissions.HasFlag(StatusPagePermission.PageAdministrator)
+        ? (StatusPagePermission)ulong.MaxValue : perms.StatusPagePermissions;
     }
 
     public TeamPermission TeamPermissions { get; set; }
@@ -55,8 +63,9 @@ public class PermissionsSet
     public DockerPermission DockerPermissions { get; set; }
     public LogPermission LogPermissions { get; set; }
     public DockerContainerPermission DockerContainerPermissions { get; set; }
-
     public AppPermission AppPermissions { get; set; }
+    public StatusMonitorPermission StatusMonitorPermissions { get; set; }
+    public StatusPagePermission StatusPagePermissions { get; set; }
 
     public bool HasTeamPermission(TeamPermission checkPermission)
     {
@@ -202,6 +211,34 @@ public class PermissionsSet
             return true;
 
         if (WebsitePermissions.HasFlag(checkPermission))
+            return true;
+
+        return false;
+    }
+
+    public bool HasStatusMonitorPermission(StatusMonitorPermission checkPermission)
+    {
+        if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
+            return true;
+
+        if (StatusMonitorPermissions.HasFlag(StatusMonitorPermission.MonitorAdministrator))
+            return true;
+
+        if (StatusMonitorPermissions.HasFlag(checkPermission))
+            return true;
+
+        return false;
+    }
+
+    public bool HasStatusPagePermission(StatusPagePermission checkPermission)
+    {
+        if (TeamPermissions.HasFlag(TeamPermission.GlobalAdministrator))
+            return true;
+
+        if (StatusPagePermissions.HasFlag(StatusPagePermission.PageAdministrator))
+            return true;
+
+        if (StatusPagePermissions.HasFlag(checkPermission))
             return true;
 
         return false;

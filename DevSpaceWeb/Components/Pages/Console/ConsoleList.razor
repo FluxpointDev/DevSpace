@@ -232,16 +232,13 @@
 
     public async Task SetupConsole()
     {
-        if (Member == null || Team == null)
+        if (Member == null || Team == null || !Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))
             return;
 
         await Dialogs.ShowDynamicFormAsync<SetupConsoleModel>("Setup Console", new SetupConsoleModel(), async (SetupConsoleModel data) =>
         {
             if (Member == null || Team == null || !Member.HasConsolePermission(Team, null, ConsolePermission.CreateConsoleResource))
                 return "You do not have permission for Create Console Resources";
-
-            if (string.IsNullOrEmpty(data.Ip))
-                return "Console ip is required.";
 
             if (Uri.CheckHostName(data.Ip) == UriHostNameType.Unknown)
                 return "Console ip has invalid format.";
@@ -266,15 +263,9 @@
             if (address == null)
                 return "Console ip invalid.";
 
-            if (Session.CurrentUser == null)
-                return "Session user is invalid.";
-
-            if (Session.Selected.Team == null)
-                return "Selected team is invalid.";
-
             ConsoleData NewConsole = new ConsoleData
             {
-                Ip = data.Ip,
+                Ip = data.Ip!,
                 Port = data.Port,
                 Name = data.Name!,
                 OwnerId = Session.CurrentUser.Id,
@@ -305,7 +296,7 @@
                     {
                         TCPRconAsync rcon = new TCPRconAsync
                         {
-                            RConHost = data.Ip,
+                            RConHost = data.Ip!,
                             RConPort = data.Port,
                             RConPass = data.Password!
                         };

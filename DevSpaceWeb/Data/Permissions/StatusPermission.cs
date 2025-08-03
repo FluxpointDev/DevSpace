@@ -1,10 +1,24 @@
 ﻿namespace DevSpaceWeb.Data.Permissions;
 
 [Flags]
-public enum StatusPermission : ulong
+public enum StatusMonitorPermission : ulong
 {
-    ViewMonitors = 1L << 0,
-    ViewPages = 1L << 1,
-    CreateMonitors = 1L << 2,
-    CreatePages = 1L << 3,
+    ViewMonitor = 1L << 0,
+    CreateMonitorResource = 1L << 1,
+    MonitorAdministrator = 1L << 2,
+    ViewPermissions = 1L << 3,
+    ManagePermissions = 1L << 4,
+    DeleteMonitorResource = 1L << 5,
+    ManageMonitor = 1L << 6,
+}
+[Flags]
+public enum StatusPagePermission : ulong
+{
+    ViewPage = 1L << 0,
+    CreatePageResource = 1L << 1,
+    PageAdministrator = 1L << 2,
+    ViewPermissions = 1L << 3,
+    ManagePermissions = 1L << 4,
+    DeletePageResource = 1L << 5,
+    ManagePage = 1L << 6,
 }

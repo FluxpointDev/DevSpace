@@ -97,7 +97,8 @@ public class AuditLog : IObject
         ResourceType.Project => AuditLogTargetType.Project,
         ResourceType.Server => AuditLogTargetType.Server,
         ResourceType.Website => AuditLogTargetType.Website,
-        _ => throw new NotImplementedException(),
+        ResourceType.StatusMonitor => AuditLogTargetType.StatusMonitor,
+        ResourceType.StatusPage => AuditLogTargetType.StatusPage,
     };
 
     public AuditLog SetTarget(TeamRoleData role)
@@ -167,7 +168,7 @@ public class AuditLog : IObject
 
 public enum AuditLogTargetType
 {
-    Instance, Team, Role, Member, Server, Website, Project, Link, API, Console, App
+    Instance, Team, Role, Member, Server, Website, Project, Link, API, Console, App, StatusMonitor, StatusPage
 }
 public enum AuditLogCategoryType
 {

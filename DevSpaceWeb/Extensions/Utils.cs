@@ -317,6 +317,28 @@ public static class Utils
         return AllowedChars[(int)result];
     }
 
+    public static string GetUptimeDate(SessionProvider session, DateTime? date)
+    {
+        if (!date.HasValue)
+            return "";
+
+        if (date.Value.Year == 0001 || date.Value.Year == 1601)
+            return "";
+
+        TimeSpan Uptime = DateTime.UtcNow - date.Value;
+
+        if (Math.Round(Uptime.TotalDays, MidpointRounding.ToZero) > 365)
+            return $"{Math.Round(Uptime.TotalDays, MidpointRounding.ToZero) / 365} year" + ((Math.Round(Uptime.TotalDays, MidpointRounding.ToZero) / 365) > 1 ? "s" : null);
+        else if (Math.Round(Uptime.TotalDays, MidpointRounding.ToZero) != 0)
+            return $"{Math.Round(Uptime.TotalDays, MidpointRounding.ToZero)} day" + (Math.Round(Uptime.TotalDays, MidpointRounding.ToZero) != 1 ? "s" : null);
+        else if (Math.Round(Uptime.TotalHours, MidpointRounding.ToZero) != 0)
+            return $"{Math.Round(Uptime.TotalHours, MidpointRounding.ToZero)} hour" + (Math.Round(Uptime.TotalHours, MidpointRounding.ToZero) != 1 ? "s" : null);
+        else if (Math.Round(Uptime.TotalMinutes, MidpointRounding.ToZero) != 0)
+            return $"{Math.Round(Uptime.TotalMinutes, MidpointRounding.ToZero)} minute" + (Math.Round(Uptime.TotalMinutes, MidpointRounding.ToZero) != 1 ? "s" : null);
+
+        return $"{Math.Round(Uptime.TotalSeconds, MidpointRounding.ToZero)} second" + (Math.Round(Uptime.TotalSeconds, MidpointRounding.ToZero) != 1 ? "s" : null);
+    }
+
     public static string GetLocalDate(SessionProvider session, DateTime? date, bool isMini = true, bool showTime = false, bool showSeconds = false)
     {
         if (!date.HasValue)

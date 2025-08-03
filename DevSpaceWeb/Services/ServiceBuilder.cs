@@ -37,6 +37,7 @@ public static class ServiceBuilder
         services.AddScoped<HttpContextAccessor>();
         services.AddRequestDecompression();
         services.AddSingleton(new BackgroundTasks());
+        services.AddSingleton(new StatusMonitorsTask());
         services.Configure<Microsoft.AspNetCore.Mvc.JsonOptions>(options =>
         {
             options.JsonSerializerOptions.IncludeFields = true;

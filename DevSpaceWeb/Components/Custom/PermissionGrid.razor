@@ -409,6 +409,90 @@
                     </div>
                 </RadzenStack>
             }
+
+            @if (PermissionType == PermissionType.All || PermissionType == PermissionType.StatusMonitor)
+            {
+                <RadzenStack Gap="0" class="permission-grid-box">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:information"></span> Status Monitor Permissions</RadzenText>
+
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@StatusMonitorAdmin" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.StatusMonitorPermissions.HasFlag(StatusMonitorPermission.MonitorAdministrator))" ReadOnly="@CheckReadOnly()" />
+                        <RadzenLabel Text="Status Monitor Administrator" class="rz-ms-2" />
+                        <span style="color: var(--rz-text-tertiary-color)">All status monitor permissions.</span>
+                    </div>
+
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@ViewStatusMonitor" Disabled="@CheckDisabled(GlobalAdministrator || StatusMonitorAdmin || !CalculatedPermissions.StatusMonitorPermissions.HasFlag(StatusMonitorPermission.ViewMonitor))" ReadOnly="@CheckReadOnly()" />
+                        @if (Resource == null)
+                        {
+                            <RadzenLabel Text="View Status Monitor" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View all status monitor resources for the team.</span>
+                        }
+                        else
+                        {
+                            <RadzenLabel Text="View Stats Monitor" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View this status monitor resource.</span>
+                        }
+                    </div>
+
+                    <div>
+                        <RadzenDropDown @ref="StatusMonitorGrid.Grid" @bind-Value="@StatusMonitorGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                                        AllowFiltering="true" Chips="true" Data="@StatusMonitorGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => StatusMonitorItemRender(evnt))"
+                                        Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || StatusMonitorAdmin || !ViewStatusMonitor)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
+                            <Template>
+                                <RadzenLabel Text="@((context as PermissionItem<StatusMonitorPermission>)!.Name)" Style="display: block;" />
+                                <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<StatusMonitorPermission>)!.Description)</span>
+
+                            </Template>
+                            <ValueTemplate>
+                                @((context as PermissionItem<StatusMonitorPermission>)!.Name)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                </RadzenStack>
+            }
+
+            @if (PermissionType == PermissionType.All || PermissionType == PermissionType.StatusPage)
+            {
+                <RadzenStack Gap="0" class="permission-grid-box">
+                    <RadzenText TextStyle="TextStyle.Subtitle2" class="rz-mb-05"><span class="iconify" data-icon="mdi:information-box"></span> Status Page Permissions</RadzenText>
+
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@StatusPageAdmin" Disabled="@CheckDisabled(GlobalAdministrator || !CalculatedPermissions.StatusPagePermissions.HasFlag(StatusPagePermission.PageAdministrator))" ReadOnly="@CheckReadOnly()" />
+                        <RadzenLabel Text="Status Page Administrator" class="rz-ms-2" />
+                        <span style="color: var(--rz-text-tertiary-color)">All status page permissions.</span>
+                    </div>
+
+                    <div class="permission-grid-info">
+                        <RadzenCheckBox @bind-Value="@ViewStatusPage" Disabled="@CheckDisabled(GlobalAdministrator || StatusPageAdmin || !CalculatedPermissions.StatusPagePermissions.HasFlag(StatusPagePermission.ViewPage))" ReadOnly="@CheckReadOnly()" />
+                        @if (Resource == null)
+                        {
+                            <RadzenLabel Text="View Status Page" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View all status page resources for the team.</span>
+                        }
+                        else
+                        {
+                            <RadzenLabel Text="View Stats Page" class="rz-ms-2" />
+                            <span style="color: var(--rz-text-tertiary-color)">View this status page resource.</span>
+                        }
+                    </div>
+
+                    <div>
+                        <RadzenDropDown @ref="StatusPageGrid.Grid" @bind-Value="@StatusPageGrid.Selected" Change="@(() => { if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } })" Placeholder="Select permission..."
+                                        AllowFiltering="true" Chips="true" Data="@StatusPageGrid.Data" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" ItemRender="@((evnt) => StatusPageItemRender(evnt))"
+                                        Multiple="true" AllowSelectAll="false" TextProperty="Name" Disabled="@CheckDisabled(GlobalAdministrator || StatusPageAdmin || !ViewStatusPage)" ReadOnly="@CheckReadOnly()" Style="width: 100%;">
+                            <Template>
+                                <RadzenLabel Text="@((context as PermissionItem<StatusPagePermission>)!.Name)" Style="display: block;" />
+                                <span style="color: var(--rz-text-tertiary-color)">@((context as PermissionItem<StatusPagePermission>)!.Description)</span>
+
+                            </Template>
+                            <ValueTemplate>
+                                @((context as PermissionItem<StatusPagePermission>)!.Name)
+                            </ValueTemplate>
+                        </RadzenDropDown>
+                    </div>
+                </RadzenStack>
+            }
         }
     </RadzenStack>
 }
@@ -588,6 +672,14 @@
                 {
                     Data = Resource == null ? PermissionsData.AllAppData : PermissionsData.ResourceAppData
                 };
+            StatusMonitorGrid = new PermissionGrid<PermissionItem<StatusMonitorPermission>>
+            {
+                Data = Resource == null ? PermissionsData.AllStatusMonitorData : PermissionsData.ResourceStatusMonitorData
+            };
+            StatusPageGrid = new PermissionGrid<PermissionItem<StatusPagePermission>>
+            {
+                Data = Resource == null ? PermissionsData.AllStatusPageData : PermissionsData.ResourceStatusPageData
+            };
         }
 
         if (_permissions != Permissions)
@@ -667,6 +759,10 @@
                     return Permissions.ProjectPermissions.HasFlag(ProjectPermission.CreateProjectResource);
                 case ResourcePermission.CreateApps:
                     return Permissions.AppPermissions.HasFlag(AppPermission.CreateAppResource);
+                case ResourcePermission.CreateStatusMonitors:
+                    return Permissions.StatusMonitorPermissions.HasFlag(StatusMonitorPermission.CreateMonitorResource);
+                case ResourcePermission.CreateStatusPages:
+                    return Permissions.StatusPagePermissions.HasFlag(StatusPagePermission.CreatePageResource);
             }
 
             return false;
@@ -682,6 +778,9 @@
         LogGrid.Selected = LogGrid.Data.Where(x => Permissions.LogPermissions.HasFlag(x.Flag));
         ConsoleGrid.Selected = ConsoleGrid.Data.Where(x => Permissions.ConsolePermissions.HasFlag(x.Flag));
         AppGrid.Selected = AppGrid.Data.Where(x => Permissions.AppPermissions.HasFlag(x.Flag));
+        StatusMonitorGrid.Selected = StatusMonitorGrid.Data.Where(x => Permissions.StatusMonitorPermissions.HasFlag(x.Flag));
+        StatusPageGrid.Selected = StatusPageGrid.Data.Where(x => Permissions.StatusPagePermissions.HasFlag(x.Flag));
+
         PermissionsLoaded = true;
     }
 
@@ -741,7 +840,6 @@
     private bool _viewContainers;
     public bool ViewContainers { get { return _viewContainers; } set { _viewContainers = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
-
     private bool _websiteAdministrator;
     public bool WebsiteAdministrator { get { return _websiteAdministrator; } set { _websiteAdministrator = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
@@ -766,6 +864,19 @@
     private bool _viewConsole;
     public bool ViewConsole { get { return _viewConsole; } set { _viewConsole = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
 
+    private bool _statusMonitorAdmin;
+    public bool StatusMonitorAdmin { get { return _statusMonitorAdmin; } set { _statusMonitorAdmin = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
+
+    private bool _viewStatusMonitor;
+    public bool ViewStatusMonitor { get { return _viewStatusMonitor; } set { _viewStatusMonitor = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
+
+    private bool _statusPageAdmin;
+    public bool StatusPageAdmin { get { return _statusPageAdmin; } set { _statusPageAdmin = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
+
+    private bool _viewStatusPage;
+    public bool ViewStatusPage { get { return _viewStatusPage; } set { _viewStatusPage = value; if (PermissionsLoaded) { _ = TriggerUnsavedDialog(); } } }
+
+
     public PermissionGrid<PermissionItem<ResourcePermission>> ResourceGrid = new PermissionGrid<PermissionItem<ResourcePermission>>
     {
         Data = PermissionsData.AllResourceData
@@ -780,6 +891,8 @@
     public PermissionGrid<PermissionItem<DockerContainerPermission>> DockerContainerGrid;
     public PermissionGrid<PermissionItem<ConsolePermission>> ConsoleGrid;
     public PermissionGrid<PermissionItem<AppPermission>> AppGrid;
+    public PermissionGrid<PermissionItem<StatusMonitorPermission>> StatusMonitorGrid;
+    public PermissionGrid<PermissionItem<StatusPagePermission>> StatusPageGrid;
 
     public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<TeamPermission>>> TeamItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<TeamPermission>>?> data)
     {
@@ -884,6 +997,34 @@
         return data;
     }
 
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<StatusMonitorPermission>>> StatusMonitorItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<StatusMonitorPermission>>?> data)
+    {
+        PermissionItem<StatusMonitorPermission> item = (PermissionItem<StatusMonitorPermission>)data.Item;
+        if (!CalculatedPermissions.StatusMonitorPermissions.HasFlag(item.Flag))
+            data.Disabled = true;
+
+        if (item.Flag == StatusMonitorPermission.ManagePermissions)
+        {
+            if (StatusMonitorGrid.Selected == null || !StatusMonitorGrid.Selected.Any(x => x.Flag == StatusMonitorPermission.ViewPermissions))
+                data.Disabled = true;
+        }
+        return data;
+    }
+
+    public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<StatusPagePermission>>> StatusPageItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<StatusPagePermission>>?> data)
+    {
+        PermissionItem<StatusPagePermission> item = (PermissionItem<StatusPagePermission>)data.Item;
+        if (!CalculatedPermissions.StatusPagePermissions.HasFlag(item.Flag))
+            data.Disabled = true;
+
+        if (item.Flag == StatusPagePermission.ManagePermissions)
+        {
+            if (StatusPageGrid.Selected == null || !StatusPageGrid.Selected.Any(x => x.Flag == StatusPagePermission.ViewPermissions))
+                data.Disabled = true;
+        }
+        return data;
+    }
+
     public DropDownItemRenderEventArgs<IEnumerable<PermissionItem<LogPermission>>> LogItemRender(DropDownItemRenderEventArgs<IEnumerable<PermissionItem<LogPermission>>?> data)
     {
         PermissionItem<LogPermission> item = (PermissionItem<LogPermission>)data.Item;
@@ -927,12 +1068,6 @@
 
         switch (item.Flag)
         {
-            // case DockerPermission.ManagePermissions:
-            //     {
-            //         if (!DockerGrid.Selected.Any(x => x.Flag == DockerPermission.ViewPermissions))
-            //             data.Disabled = true;
-            //     }
-            //     break;
             case DockerPermission.ManageCustomTemplates:
                 {
                     if (DockerGrid.Selected == null || !DockerGrid.Selected.Any(x => x.Flag == DockerPermission.UseCustomTemplates))
@@ -1186,6 +1321,38 @@
             }
         }
 
+        if (StatusMonitorAdmin)
+            Set.StatusMonitorPermissions |= StatusMonitorPermission.MonitorAdministrator;
+        else
+        {
+            if (ViewStatusMonitor)
+                Set.StatusMonitorPermissions |= StatusMonitorPermission.ViewMonitor;
+
+            if (StatusMonitorGrid.Selected != null)
+            {
+                foreach (PermissionItem<StatusMonitorPermission> i in StatusMonitorGrid.Selected)
+                {
+                    Set.StatusMonitorPermissions |= i.Flag;
+                }
+            }
+        }
+
+        if (StatusPageAdmin)
+            Set.StatusPagePermissions |= StatusPagePermission.PageAdministrator;
+        else
+        {
+            if (ViewStatusPage)
+                Set.StatusPagePermissions |= StatusPagePermission.ViewPage;
+
+            if (StatusPageGrid.Selected != null)
+            {
+                foreach (PermissionItem<StatusPagePermission> i in StatusPageGrid.Selected)
+                {
+                    Set.StatusPagePermissions |= i.Flag;
+                }
+            }
+        }
+
         if (ResourceGrid.Selected != null)
         {
             foreach (PermissionItem<ResourcePermission> i in ResourceGrid.Selected)
@@ -1209,6 +1376,12 @@
                         break;
                     case ResourcePermission.CreateApps:
                         Set.AppPermissions |= AppPermission.CreateAppResource;
+                        break;
+                    case ResourcePermission.CreateStatusMonitors:
+                        Set.StatusMonitorPermissions |= StatusMonitorPermission.CreateMonitorResource;
+                        break;
+                    case ResourcePermission.CreateStatusPages:
+                        Set.StatusPagePermissions |= StatusPagePermission.CreatePageResource;
                         break;
                 }
             }

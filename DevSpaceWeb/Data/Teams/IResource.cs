@@ -3,6 +3,7 @@ using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Servers;
+using DevSpaceWeb.Data.Status;
 using DevSpaceWeb.Data.Websites;
 using DevSpaceWeb.Database;
 using MongoDB.Bson;
@@ -132,6 +133,24 @@ public abstract class ITeamResource : IResource
                         Result = _DB.Websites.Collection.UpdateOne(filter, update);
                     }
                     break;
+                case ResourceType.StatusMonitor:
+                    {
+                        FilterDefinition<StatusMonitorData> filter = Builders<StatusMonitorData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusMonitorData> update = new UpdateDefinitionBuilder<StatusMonitorData>()
+                            .Set(x => x.RolePermissionOverrides, Permissions);
+
+                        Result = _DB.StatusMonitors.Collection.UpdateOne(filter, update);
+                    }
+                    break;
+                case ResourceType.StatusPage:
+                    {
+                        FilterDefinition<StatusPageData> filter = Builders<StatusPageData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusPageData> update = new UpdateDefinitionBuilder<StatusPageData>()
+                            .Set(x => x.RolePermissionOverrides, Permissions);
+
+                        Result = _DB.StatusPages.Collection.UpdateOne(filter, update);
+                    }
+                    break;
             }
 
             if (Result != null && Result.IsAcknowledged)
@@ -199,6 +218,24 @@ public abstract class ITeamResource : IResource
                             .Set(x => x.RolePermissionOverrides, Permissions);
 
                         Result = _DB.Websites.Collection.UpdateOne(filter, update);
+                    }
+                    break;
+                case ResourceType.StatusMonitor:
+                    {
+                        FilterDefinition<StatusMonitorData> filter = Builders<StatusMonitorData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusMonitorData> update = new UpdateDefinitionBuilder<StatusMonitorData>()
+                            .Set(x => x.RolePermissionOverrides, Permissions);
+
+                        Result = _DB.StatusMonitors.Collection.UpdateOne(filter, update);
+                    }
+                    break;
+                case ResourceType.StatusPage:
+                    {
+                        FilterDefinition<StatusPageData> filter = Builders<StatusPageData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusPageData> update = new UpdateDefinitionBuilder<StatusPageData>()
+                            .Set(x => x.RolePermissionOverrides, Permissions);
+
+                        Result = _DB.StatusPages.Collection.UpdateOne(filter, update);
                     }
                     break;
             }
@@ -276,6 +313,25 @@ public abstract class ITeamResource : IResource
                         Result = _DB.Websites.Collection.UpdateOne(filter, update);
                     }
                     break;
+                case ResourceType.StatusMonitor:
+                    {
+                        FilterDefinition<StatusMonitorData> filter = Builders<StatusMonitorData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusMonitorData> update = new UpdateDefinitionBuilder<StatusMonitorData>()
+                            .Set(x => x.MemberPermissionOverrides, Permissions);
+
+                        Result = _DB.StatusMonitors.Collection.UpdateOne(filter, update);
+                    }
+                    break;
+                case ResourceType.StatusPage:
+                    {
+                        FilterDefinition<StatusPageData> filter = Builders<StatusPageData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusPageData> update = new UpdateDefinitionBuilder<StatusPageData>()
+                            .Set(x => x.MemberPermissionOverrides, Permissions);
+
+                        Result = _DB.StatusPages.Collection.UpdateOne(filter, update);
+                    }
+                    break;
+
             }
 
             if (Result != null && Result.IsAcknowledged)
@@ -343,6 +399,24 @@ public abstract class ITeamResource : IResource
                             .Set(x => x.MemberPermissionOverrides, Permissions);
 
                         Result = _DB.Websites.Collection.UpdateOne(filter, update);
+                    }
+                    break;
+                case ResourceType.StatusMonitor:
+                    {
+                        FilterDefinition<StatusMonitorData> filter = Builders<StatusMonitorData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusMonitorData> update = new UpdateDefinitionBuilder<StatusMonitorData>()
+                            .Set(x => x.MemberPermissionOverrides, Permissions);
+
+                        Result = _DB.StatusMonitors.Collection.UpdateOne(filter, update);
+                    }
+                    break;
+                case ResourceType.StatusPage:
+                    {
+                        FilterDefinition<StatusPageData> filter = Builders<StatusPageData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusPageData> update = new UpdateDefinitionBuilder<StatusPageData>()
+                            .Set(x => x.MemberPermissionOverrides, Permissions);
+
+                        Result = _DB.StatusPages.Collection.UpdateOne(filter, update);
                     }
                     break;
             }
@@ -418,6 +492,24 @@ public abstract class ITeamResource : IResource
                         Result = _DB.Websites.Collection.UpdateOne(filter, update);
                     }
                     break;
+                case ResourceType.StatusMonitor:
+                    {
+                        FilterDefinition<StatusMonitorData> filter = Builders<StatusMonitorData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusMonitorData> update = new UpdateDefinitionBuilder<StatusMonitorData>()
+                            .Set(x => x.ApiPermissionOverrides, Permissions);
+
+                        Result = _DB.StatusMonitors.Collection.UpdateOne(filter, update);
+                    }
+                    break;
+                case ResourceType.StatusPage:
+                    {
+                        FilterDefinition<StatusPageData> filter = Builders<StatusPageData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusPageData> update = new UpdateDefinitionBuilder<StatusPageData>()
+                            .Set(x => x.ApiPermissionOverrides, Permissions);
+
+                        Result = _DB.StatusPages.Collection.UpdateOne(filter, update);
+                    }
+                    break;
             }
 
             if (Result != null && Result.IsAcknowledged)
@@ -485,6 +577,24 @@ public abstract class ITeamResource : IResource
                             .Set(x => x.ApiPermissionOverrides, Permissions);
 
                         Result = _DB.Websites.Collection.UpdateOne(filter, update);
+                    }
+                    break;
+                case ResourceType.StatusMonitor:
+                    {
+                        FilterDefinition<StatusMonitorData> filter = Builders<StatusMonitorData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusMonitorData> update = new UpdateDefinitionBuilder<StatusMonitorData>()
+                            .Set(x => x.ApiPermissionOverrides, Permissions);
+
+                        Result = _DB.StatusMonitors.Collection.UpdateOne(filter, update);
+                    }
+                    break;
+                case ResourceType.StatusPage:
+                    {
+                        FilterDefinition<StatusPageData> filter = Builders<StatusPageData>.Filter.Eq(r => r.Id, Id);
+                        UpdateDefinition<StatusPageData> update = new UpdateDefinitionBuilder<StatusPageData>()
+                            .Set(x => x.ApiPermissionOverrides, Permissions);
+
+                        Result = _DB.StatusPages.Collection.UpdateOne(filter, update);
                     }
                     break;
             }

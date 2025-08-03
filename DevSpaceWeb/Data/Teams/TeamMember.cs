@@ -89,7 +89,7 @@ public class TeamMemberData : IObject
         if (CurrentTeam.OwnerId == UserId)
             return true;
 
-        if (PermissionExtensions.HasTeamPermission(this, CurrentTeam, TeamPermission.GlobalAdministrator))
+        if (MemberPermissionExtensions.HasTeamPermission(this, CurrentTeam, TeamPermission.GlobalAdministrator))
             return true;
 
         return false;
@@ -130,10 +130,10 @@ public class TeamMemberData : IObject
         if (GetTeam.OwnerId == UserId)
             return "Owner";
 
-        if (PermissionExtensions.HasTeamPermission(this, GetTeam, TeamPermission.GlobalAdministrator))
+        if (MemberPermissionExtensions.HasTeamPermission(this, GetTeam, TeamPermission.GlobalAdministrator))
             return "Global Admin";
 
-        if (PermissionExtensions.HasTeamPermission(this, GetTeam, TeamPermission.TeamAdministrator))
+        if (MemberPermissionExtensions.HasTeamPermission(this, GetTeam, TeamPermission.TeamAdministrator))
             return "Team Admin";
 
         return "Member";
@@ -152,7 +152,7 @@ public class TeamMemberData : IObject
         if (selectedTeam.OwnerId == UserId)
             return true;
 
-        if (PermissionExtensions.HasTeamPermission(this, selectedTeam, TeamPermission.GlobalAdministrator))
+        if (MemberPermissionExtensions.HasTeamPermission(this, selectedTeam, TeamPermission.GlobalAdministrator))
             return true;
 
         return false;

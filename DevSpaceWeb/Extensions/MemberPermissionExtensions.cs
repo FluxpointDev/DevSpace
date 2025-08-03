@@ -3,13 +3,14 @@ using DevSpaceWeb.Data.Consoles;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Projects;
 using DevSpaceWeb.Data.Servers;
+using DevSpaceWeb.Data.Status;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Websites;
 using MongoDB.Bson;
 
 namespace DevSpaceWeb;
 
-public static class PermissionExtensions
+public static class MemberPermissionExtensions
 {
     public static bool HasTeamPermission(this TeamMemberData? member, TeamData? team, TeamPermission checkPermission)
     {
@@ -387,6 +388,88 @@ public static class PermissionExtensions
             if (team.CachedRoles.TryGetValue(r, out TeamRoleData? role))
             {
                 if (role.HasDockerContainerPermission(team, server, checkPermission))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool HasStatusMonitorPermission(this TeamMemberData? member, TeamData? team, StatusMonitorData? monitor, StatusMonitorPermission checkPermission)
+    {
+        if (team == null || member == null)
+            return false;
+
+        if (member.TeamId != team.Id)
+            return false;
+
+        if (monitor != null)
+        {
+            if (monitor.TeamId != member.TeamId || monitor.TeamId != team.Id)
+                return false;
+        }
+
+        if (team.OwnerId == member.UserId)
+            return true;
+
+        if (team.DefaultPermissions.HasStatusMonitorPermission(checkPermission))
+            return true;
+
+        if (monitor != null)
+        {
+            if (monitor.DefaultPermissions.HasStatusMonitorPermission(checkPermission))
+                return true;
+
+            if (monitor.MemberPermissionOverrides.TryGetValue(member.UserId, out PermissionsSet? uovr) && uovr.HasStatusMonitorPermission(checkPermission))
+                return true;
+        }
+
+        foreach (ObjectId r in member.Roles)
+        {
+            if (team.CachedRoles.TryGetValue(r, out TeamRoleData? role))
+            {
+                if (role.HasStatusMonitorPermission(team, monitor, checkPermission))
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static bool HasStatusPagePermission(this TeamMemberData? member, TeamData? team, StatusPageData? page, StatusPagePermission checkPermission)
+    {
+        if (team == null || member == null)
+            return false;
+
+        if (member.TeamId != team.Id)
+            return false;
+
+        if (page != null)
+        {
+            if (page.TeamId != member.TeamId || page.TeamId != team.Id)
+                return false;
+        }
+
+        if (team.OwnerId == member.UserId)
+            return true;
+
+        if (team.DefaultPermissions.HasStatusPagePermission(checkPermission))
+            return true;
+
+        if (page != null)
+        {
+            if (page.DefaultPermissions.HasStatusPagePermission(checkPermission))
+                return true;
+
+            if (page.MemberPermissionOverrides.TryGetValue(member.UserId, out PermissionsSet? uovr) && uovr.HasStatusPagePermission(checkPermission))
+                return true;
+        }
+
+        foreach (ObjectId r in member.Roles)
+        {
+            if (team.CachedRoles.TryGetValue(r, out TeamRoleData? role))
+            {
+                if (role.HasStatusPagePermission(team, page, checkPermission))
                     return true;
             }
         }

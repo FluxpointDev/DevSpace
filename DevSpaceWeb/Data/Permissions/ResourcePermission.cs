@@ -10,4 +10,6 @@ public enum ResourcePermission : ulong
     REDACTED,
     CreateAPIs,
     CreateApps,
+    CreateStatusMonitors,
+    CreateStatusPages
 }

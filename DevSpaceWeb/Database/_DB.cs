@@ -459,6 +459,46 @@ public static class _DB
             }
         });
 
+        Task StatusMonitorTask = Task.Run(async () =>
+        {
+            if (Program.LimitMode)
+                return;
+            try
+            {
+                await StatusMonitors.Find(Builders<StatusMonitorData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    StatusMonitors.Cache.TryAdd(x.Id, x);
+                });
+                Logger.LogMessage("Database", "- Status Monitors: " + StatusMonitors.Cache.Keys.Count, LogSeverity.Info);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogMessage("Database", "- Status Monitors: FAIL!", LogSeverity.Info);
+                Console.WriteLine(ex);
+                HasException = true;
+            }
+        });
+
+        Task StatusPageTask = Task.Run(async () =>
+        {
+            if (Program.LimitMode)
+                return;
+            try
+            {
+                await StatusPages.Find(Builders<StatusPageData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    StatusPages.Cache.TryAdd(x.Id, x);
+                });
+                Logger.LogMessage("Database", "- Status Pages: " + StatusPages.Cache.Keys.Count, LogSeverity.Info);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogMessage("Database", "- Status Pages: FAIL!", LogSeverity.Info);
+                Console.WriteLine(ex);
+                HasException = true;
+            }
+        });
+
         Task ConsoleTask = Task.Run(async () =>
         {
             if (Program.LimitMode)
@@ -570,7 +610,7 @@ public static class _DB
         });
 
         Task.WaitAll(RoleTask, MemberTask, TeamVanityTask, TemplateTask,
-            ServerTask, WebsiteTask, ProjectTask, APITask, ConsoleTask, AppTask);
+            ServerTask, WebsiteTask, ProjectTask, APITask, ConsoleTask, AppTask, StatusMonitorTask, StatusPageTask);
 
         if (HasException)
             return false;

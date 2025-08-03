@@ -26,7 +26,7 @@
 </ActionBar>
 <br />
 <RadzenDataGrid @ref="@Grid" Data="@ContainersList" LoadData="@LoadData" IsLoading="@IsLoading"
-                Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No logs."
+                Density="Density.Compact" AllowRowSelectOnRowClick="false" EmptyText="No status monitors."
                 PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage"
                 GridLines="DataGridGridLines.Horizontal" @bind-Value="@SelectedContainers" SelectionMode="DataGridSelectionMode.Multiple"
                 PageSizeOptions="@Static.TablePageSizeOptions"
@@ -44,23 +44,44 @@
                                 TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsLoading" />
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Name" Filterable="false" Width="@GridWidth.Name" Frozen="true" Property="@nameof(StatusMonitorData.Name)">
+        <RadzenDataGridColumn Title="Name" Filterable="true" Width="@GridWidth.Name" Frozen="true" Property="@nameof(StatusMonitorData.Name)">
             <Template>
                 @context.Name
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Type" Filterable="true" Width="@GridWidth.Type" Property="@nameof(StatusMonitorData.CreatedAt)">
+        <RadzenDataGridColumn Title="Type" Filterable="true" Width="@GridWidth.Number" Property="@nameof(StatusMonitorData.CreatedAt)">
             <Template>
                 @Utils.FriendlyName(context.MonitorType.ToString())
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Uptime" Filterable="true" Width="@GridWidth.Date" Property="@nameof(StatusMonitorData.CreatedAt)" FilterOperator="FilterOperator.GreaterThanOrEquals" SecondFilterOperator="FilterOperator.GreaterThanOrEquals" FilterOperators="@GridOperators.Date">
+        <RadzenDataGridColumn Title="Source" Filterable="true" Width="@GridWidth.Name" Property="@nameof(StatusMonitorData.Source)">
             <Template>
-                <span class="iconify" data-icon="mdi:arrow-up-thick" style="color: var(--rz-success);"></span>
-                5 Days
+                @context.Source
             </Template>
         </RadzenDataGridColumn>
-        <RadzenDataGridColumn Title="Status" Filterable="true" Width="@GridWidth.Date" Property="@nameof(StatusMonitorData.CreatedAt)" FilterOperator="FilterOperator.GreaterThanOrEquals" SecondFilterOperator="FilterOperator.GreaterThanOrEquals" FilterOperators="@GridOperators.Date">
+        <RadzenDataGridColumn Title="Uptime" Filterable="true" Width="@GridWidth.Date" Property="@nameof(StatusMonitorData.CreatedAt)" FilterOperator="FilterOperator.GreaterThanOrEquals" SecondFilterOperator="FilterOperator.GreaterThanOrEquals" FilterOperators="@GridOperators.Date">
+            <Template>
+                @if (!context.State.Uptime.HasValue)
+                {
+                    <span class="iconify mr-2" data-icon="mdi:minus-thick" style="color: var(--rz-warning);"></span>
+                    @("unknown")
+                }
+                else
+                {
+                if (context.State.IsDown)
+                {
+                    <span class="iconify" data-icon="mdi:arrow-down-thick" style="color: var(--rz-danger);"></span>
+                }
+                else
+                {
+                    <span class="iconify" data-icon="mdi:arrow-up-thick" style="color: var(--rz-success);"></span>
+                }
+                    @Utils.GetUptimeDate(Session, context.State.Uptime)
+                ;
+                }
+            </Template>
+        </RadzenDataGridColumn>
+        <RadzenDataGridColumn Title="Status" Filterable="true" Width="@GridWidth.Number" Property="@nameof(StatusMonitorData.CreatedAt)">
             <Template>
                 Active
             </Template>
@@ -85,14 +106,7 @@
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
 
-    IQueryable<StatusMonitorData>? ContainersList = new List<StatusMonitorData>
-    {
-        new StatusMonitorData
-        {
-            Name = "Test",
-            TeamId = _DB.Teams.Cache.First().Value.Id
-        }
-    }.AsQueryable();
+    IQueryable<StatusMonitorData>? ContainersList;
 
     public string? SearchText { get; set; }
     public async Task SetNameFilter(string? text)
@@ -106,7 +120,6 @@
         await Grid.Reload();
     }
 
-
     public async Task LoadData(LoadDataArgs args)
     {
         if (Team == null || Member == null)
@@ -114,16 +127,16 @@
 
         IsLoading = true;
 
+        var Monitors = _DB.StatusMonitors.Cache.Values.Where(x => Member != null && Member.HasStatusMonitorPermission(Team, x, StatusMonitorPermission.ViewMonitor) && (string.IsNullOrEmpty(SearchText) || x.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase))).OrderBy(x => x.Name);
+        ContainersList = Monitors.AsQueryable().Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
+
         IsLoading = false;
     }
-
 
     IList<StatusMonitorData>? SelectedContainers;
     public bool AnySelected => SelectedContainers != null ? SelectedContainers.Any() : false;
     RadzenDataGrid<StatusMonitorData> Grid;
     public bool IsLoading = false;
-
-
 
     void ShowContextMenuWithManageItems(StatusMonitorData item, MouseEventArgs args)
     {
@@ -169,21 +182,6 @@
         IsLoading = true;
         switch (args.Value.ToString())
         {
-            case "resolve":
-                {
-
-                }
-                break;
-            case "review":
-                {
-
-                }
-                break;
-            case "ignore":
-                {
-
-                }
-                break;
             case "delete":
                 {
 
