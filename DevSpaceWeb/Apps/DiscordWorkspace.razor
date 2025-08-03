@@ -1,6 +1,7 @@
 ﻿@using DevSpaceWeb.Apps.Data
 @using DevSpaceWeb.Components.Layout
 @using DevSpaceWeb.Data
+@using DevSpaceWeb.Data.Permissions
 @using DevSpaceWeb.Data.Teams
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
@@ -50,7 +51,10 @@ else
             <div class="container-center">
                 @if (App != null)
                 {
-                    <Radzen.Blazor.RadzenButton Text="Save" ButtonStyle="Radzen.ButtonStyle.Success" Shade="Radzen.Shade.Dark" Click="@SaveWorkspace"></Radzen.Blazor.RadzenButton>
+                    @if (Member.HasAppPermission(Team, App, AppPermission.ManageWorkspaces))
+                    {
+                        <Radzen.Blazor.RadzenButton Text="Save" ButtonStyle="Radzen.ButtonStyle.Success" Shade="Radzen.Shade.Dark" Click="@SaveWorkspace"></Radzen.Blazor.RadzenButton>
+                    }
                     
                     @* <MudButton id="btnSaveWorkspace" Class="ws-button-disabled" Variant="Variant.Filled" Color="Color.Info" @onclick="@(async () => await SaveWorkspace())">Save</MudButton> *@
                     <div id="warningIcon" style="visibility: hidden;"><span class="iconify" data-icon="mdi:warning" style="color: #ff8000;"></span> <p>Invalid Blocks</p></div>
@@ -60,7 +64,7 @@ else
                 }
             </div>
             <div class="d-flex container-end" style="padding: 4px !important;">
-                @if (Data.IsPublic)
+                @if (Data != null && Data.IsPublic)
                 {
                     <span id="workspacePublic" class="mr-2">Public Workspace</span>
                 }
@@ -68,7 +72,7 @@ else
                 {
                     <span id="workspacePublic" class="mr-2">Private Workspace</span>
                 }
-                <RadzenButton Icon="@(Data.IsPublic ? "public" : "public_off")" Click="@ToggleVisibility" ButtonStyle="ButtonStyle.Base" Variant="Variant.Outlined"></RadzenButton>
+                <RadzenButton Icon="@(Data.IsPublic ? "public" : "public_off")" Click="@ToggleVisibility" ButtonStyle="ButtonStyle.Base" Variant="Variant.Outlined" Disabled="@(!Member.HasAppPermission(Team, App, DevSpaceWeb.Data.Permissions.AppPermission.ManageWorkspaces))"></RadzenButton>
                 <RadzenButton Icon="map" Click="@ToggleMinimap" ButtonStyle="@(Settings.MinimapEnabled? ButtonStyle.Success: ButtonStyle.Danger)" Shade="@(Settings.MinimapEnabled? Shade.Dark: Shade.Darker)" Variant="Variant.Outlined"></RadzenButton>
                 <RadzenButton Icon="transition_dissolve" Click="@ToggleDots" ButtonStyle="@(Settings.GridDotsEnabled? ButtonStyle.Success: ButtonStyle.Danger)" Shade="@(Settings.GridDotsEnabled? Shade.Dark: Shade.Darker)" Variant="Variant.Outlined"></RadzenButton>
                 <RadzenButton Icon="grid_4x4" Click="@ToggleSnap" ButtonStyle="@(Settings.GridSnapEnabled? ButtonStyle.Success: ButtonStyle.Danger)" Shade="@(Settings.GridSnapEnabled? Shade.Dark: Shade.Darker)" Variant="Variant.Outlined"></RadzenButton>
@@ -735,10 +739,16 @@ else
     public int MaxBlocks { get; set; } = 1000;
 
     [Parameter]
-    public AppData App { get; set; }
+    public AppData? App { get; set; }
 
     [Parameter]
-    public WorkspaceData Data { get; set; }
+    public TeamData? Team { get; set; }
+
+    [Parameter]
+    public TeamMemberData? Member { get; set; }
+
+    [Parameter]
+    public WorkspaceData? Data { get; set; }
 
     public string LoadSettings()
     {
