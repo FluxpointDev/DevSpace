@@ -23,29 +23,39 @@
         <RadzenText TextStyle="TextStyle.H6">Apps</RadzenText>
     </div>
     <br />
-    <ActionBar>
-        <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create App" Icon="add" Click="@SetupApp" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
-        <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshApps" />
-        <a href="https://docs.fluxpoint.dev/devspace/apps" target="_blank"><RadzenButton Text="App Docs" Icon="menu_book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
-        <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
-            <Start>
-                <RadzenIcon Icon="search" />
-            </Start>
-            <ChildContent>
-                <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
-                               autocapitalize="none" MaxLength="100" Placeholder="Search apps" inputmode="search"
-                               @oninput="@(args => SetNameFilter(args.Value as string))" />
-            </ChildContent>
-            <End>
-                @if (!string.IsNullOrWhiteSpace(SearchText))
-                {
-                    <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
-                }
-            </End>
-        </RadzenFormField>
-    </ActionBar>
-    <br />
-    <RadzenDataListFixed @ref="@Grid" AllowPaging="true" Density="Density.Compact" EmptyText="No apps." IsLoading="@(AppsCount == -1)"
+    @if (!_Data.Config.Instance.Features.AllowApps)
+    {
+        <RadzenAlert AlertStyle="AlertStyle.Info" Shade="Shade.Dark" AllowClose="false" Size="AlertSize.Small">
+            Apps have been disabled for this instance, you can self-host Dev Space for this feature or check out the demo.
+        </RadzenAlert>
+        <a href="https://github.com/FluxpointDev/DevSpace" target="_blank"><RadzenButton Text="Dev Space GitHub" ButtonStyle="ButtonStyle.Light" /></a>
+        <a href="https://devspace.fluxpoint.dev/workspaces/demo" target="_blank"><RadzenButton Text="Apps Demo" ButtonStyle="ButtonStyle.Light" /></a>
+    }
+    else
+    {
+        <ActionBar>
+            <RadzenButton ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Text="Create App" Icon="add" Click="@SetupApp" Disabled="(Member == null || !Member.HasTeamPermission(Team, TeamPermission.GlobalAdministrator))" Size="ButtonSize.Small" />
+            <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@RefreshApps" />
+            <a href="https://docs.fluxpoint.dev/devspace/apps" target="_blank"><RadzenButton Text="App Docs" Icon="menu_book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+            <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
+                <Start>
+                    <RadzenIcon Icon="search" />
+                </Start>
+                <ChildContent>
+                    <RadzenTextBox @ref="@SearchBox" id="actionSearch" @bind-Value="@SearchText" aria-label="Search TextBox" AutoCompleteType="AutoCompleteType.Off"
+                    autocapitalize="none" MaxLength="100" Placeholder="Search apps" inputmode="search"
+                    @oninput="@(args => SetNameFilter(args.Value as string))" />
+                </ChildContent>
+                <End>
+                    @if (!string.IsNullOrWhiteSpace(SearchText))
+                    {
+                        <RadzenButton Icon="close" Click="@(args => SetNameFilter(null))" Variant="Variant.Text" ButtonStyle="ButtonStyle.Danger" Shade="Shade.Dark" Size="ButtonSize.Small" />
+                    }
+                </End>
+            </RadzenFormField>
+        </ActionBar>
+        <br />
+        <RadzenDataListFixed @ref="@Grid" AllowPaging="true" Density="Density.Compact" EmptyText="No apps." IsLoading="@(AppsCount == -1)"
                          LoadData="@LoadApps" Data="@AppsList" Count="AppsCount" PagingSummaryFormat="@(AppsCount + " app" + (AppsCount != 1 ? "s" : ""))" ShowPagingSummary="@(AppsCount != -1)"
                     @bind-PageSize="@Session.ListItemsPerPage" PageSizeOptions="@Static.ListPageSizeOptions" PagerHorizontalAlign="HorizontalAlign.Center">
         <LoadingTemplate>
@@ -82,6 +92,7 @@
 
         </Template>
     </RadzenDataListFixed>
+    }
 </div>
 
 <style>

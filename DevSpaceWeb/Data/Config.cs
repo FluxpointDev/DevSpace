@@ -67,6 +67,7 @@ public class ConfigFeatures
     public bool AllowUnauthenticatedPublicFolderAccess;
     public bool SwaggerEnabled = true;
     public bool SwaggerUIEnabled = true;
+    public bool AllowApps = true;
 }
 public class ConfigLimits
 {
