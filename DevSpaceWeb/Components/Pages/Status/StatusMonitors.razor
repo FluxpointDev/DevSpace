@@ -41,7 +41,7 @@
             </HeaderTemplate>
             <Template Context="data">
                 <RadzenCheckBox TabIndex="-1" TriState="false" Value="@(SelectedContainers != null && SelectedContainers.Contains(data))" InputAttributes="@(new Dictionary<string, object>() { { "aria-label", "Select item" } })"
-                                TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@IsLoading" />
+                                TValue="bool" Change="@(() => Grid.SelectRow(data))" Disabled="@(IsLoading || !Member.HasStatusMonitorPermission(Team, data, StatusMonitorPermission.ManageMonitor))" />
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Title="Name" Filterable="true" Width="@GridWidth.Name" Frozen="true" Property="@nameof(StatusMonitorData.Name)">
@@ -88,7 +88,7 @@
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsOne" Filterable="false">
             <Template>
-                <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading)" />
+                <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" Disabled="@(IsLoading || !Member.HasStatusMonitorPermission(Team, context, StatusMonitorPermission.ManageMonitor))" />
             </Template>
         </RadzenDataGridColumn>
         <RadzenDataGridColumn Title="Created" Filterable="true" Width="@GridWidth.Date" Property="@nameof(StatusMonitorData.CreatedAt)" FilterOperator="FilterOperator.GreaterThanOrEquals" SecondFilterOperator="FilterOperator.GreaterThanOrEquals" FilterOperators="@GridOperators.Date">
@@ -143,9 +143,9 @@
         ContextMenuService.Open(args,
             new List<ContextMenuItem>
             {
-                new ContextMenuItem() { Text = "Enable", Value = "enable", Icon = "play_arrow", Disabled = IsLoading || Member == null },
-                new ContextMenuItem() { Text = "Disable", Value = "disable", Icon = "pause", Disabled = IsLoading || Member == null },
-                new ContextMenuItem() { Text = "Delete", Value = "delete", Icon = "delete", IconColor = Colors.Danger, Disabled = IsLoading || Member == null }
+                new ContextMenuItem() { Text = "Enable", Value = "enable", Icon = "play_arrow", Disabled = IsLoading || Member == null || !Member.HasStatusMonitorPermission(Team, item, StatusMonitorPermission.ManageMonitor) },
+                new ContextMenuItem() { Text = "Disable", Value = "disable", Icon = "pause", Disabled = IsLoading || Member == null || !Member.HasStatusMonitorPermission(Team, item, StatusMonitorPermission.ManageMonitor) },
+                new ContextMenuItem() { Text = "Delete", Value = "delete", Icon = "delete", IconColor = Colors.Danger, Disabled = IsLoading || Member == null || !Member.HasStatusMonitorPermission(Team, item, StatusMonitorPermission.ManageMonitor) }
             }, x => MenuItemClick(x, item));
     }
 
