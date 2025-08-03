@@ -1,6 +1,7 @@
 ﻿using DevSpaceWeb.Apps.Data;
 using DevSpaceWeb.Apps.Runtime.DiscordApp;
 using DevSpaceWeb.Data;
+using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Database;
@@ -82,7 +83,7 @@ public class WorkspaceController : ControllerBase
             return BadRequest("Could not find team.");
 
         TeamMemberData? Member = team.GetMember(AuthUser);
-        if (Member == null || !Member.HasTeamPermission(team, DevSpaceWeb.Data.Permissions.TeamPermission.GlobalAdministrator))
+        if (Member == null || !Member.HasAppPermission(team, app, AppPermission.ViewWorkspaces))
             return BadRequest("You do not have permission.");
 
         if (string.IsNullOrEmpty(Workspace.JsonData))
@@ -185,7 +186,7 @@ public class WorkspaceController : ControllerBase
             return BadRequest("Could not find team.");
 
         TeamMemberData? Member = team.GetMember(AuthUser);
-        if (Member == null || !Member.HasTeamPermission(team, DevSpaceWeb.Data.Permissions.TeamPermission.GlobalAdministrator))
+        if (Member == null || !Member.HasAppPermission(team, app, AppPermission.ManageWorkspaces))
             return BadRequest("You do not have permission.");
 
         string body = "";
