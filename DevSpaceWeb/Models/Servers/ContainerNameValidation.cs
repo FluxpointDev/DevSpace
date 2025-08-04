@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace DevSpaceWeb.Models.Validation;
+namespace DevSpaceWeb.Models.Servers;
 
 [AttributeUsage(AttributeTargets.Property, Inherited = true)]
 public class ContainerNameValidationAttribute : ValidationAttribute

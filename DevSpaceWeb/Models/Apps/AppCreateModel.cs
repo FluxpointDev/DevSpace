@@ -14,5 +14,6 @@ public class AppCreateModel
     public string? VanityUrl { get; set; }
 
     [Required(ErrorMessage = "Bot token is required")]
+    [DataType(DataType.Password)]
     public string? BotToken { get; set; }
 }

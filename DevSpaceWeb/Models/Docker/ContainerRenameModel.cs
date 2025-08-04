@@ -1,4 +1,4 @@
-﻿using DevSpaceWeb.Models.Validation;
+﻿using DevSpaceWeb.Models.Servers;
 using System.ComponentModel.DataAnnotations;
 
 namespace DevSpaceWeb.Models.Docker;

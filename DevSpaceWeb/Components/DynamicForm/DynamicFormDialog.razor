@@ -1,4 +1,5 @@
 ﻿@using DevSpaceWeb.Components.DynamicForm
+@using DevSpaceWeb.Components.DynamicForm.Attributes
 @using Microsoft.AspNetCore.Components.Forms
 @using Newtonsoft.Json
 @using DevSpaceWeb.Models.Accounts
@@ -106,78 +107,121 @@
     {
         bool IsNumber = false;
 
-        if (propInfoValue.PropertyType == typeof(string))
+        switch (Type.GetTypeCode(propInfoValue.PropertyType))
         {
-            builder.OpenComponent(0, typeof(RadzenTextBox));
-            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
-            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<string>(this, (value) =>
-            {
-                propInfoValue.SetValue(model, value);
-            }));
-        }
-        else if (propInfoValue.PropertyType == typeof(bool))
-        {
-            builder.OpenComponent(0, typeof(RadzenSwitch));
-            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
-            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<bool>(this, (value) =>
-            {
-                propInfoValue.SetValue(model, value);
-            }));
-        }
-        else if (propInfoValue.PropertyType == typeof(int))
-        {
-            builder.OpenComponent(0, typeof(RadzenNumeric<int>));
-            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
-            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<int>(this, (value) =>
-        {
-            propInfoValue.SetValue(model, value);
-        }));
-            IsNumber = true;
-        }
-        else if (propInfoValue.PropertyType == typeof(long))
-        {
-            builder.OpenComponent(0, typeof(RadzenNumeric<long>));
-            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
-            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<long>(this, (value) =>
-        {
-            propInfoValue.SetValue(model, value);
-        }));
-            IsNumber = true;
-        }
-        else if (propInfoValue.PropertyType == typeof(short))
-        {
-            builder.OpenComponent(0, typeof(RadzenNumeric<short>));
-            builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
-            builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<short>(this, (value) =>
-        {
-            propInfoValue.SetValue(model, value);
-        }));
-            IsNumber = true;
-        }
-        else
-        {
-            throw new Exception($"Failed to get dynamic type from {propInfoValue.PropertyType.Name}");
+            case TypeCode.String:
+                {
+                    DataType type = DataType.Text;
+                    DataTypeAttribute? DataAttribute = propInfoValue.GetCustomAttribute<DataTypeAttribute>();
+                    if (DataAttribute != null)
+                        type = DataAttribute.DataType;
+
+                    switch (type)
+                    {
+                        default:
+                            {
+                                builder.OpenComponent(0, typeof(RadzenTextBox));
+                            }
+                            break;
+                        case DataType.Password:
+                            {
+                                builder.OpenComponent(0, typeof(RadzenPassword));
+                            }
+                            break;
+                    }
+
+                    builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+                    builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<string>(this, (value) =>
+                    {
+                        if (!string.IsNullOrEmpty(value))
+                            propInfoValue.SetValue(model, value.Trim());
+                        else
+                            propInfoValue.SetValue(model, value);
+                    }));
+                }
+                break;
+            case TypeCode.Boolean:
+                {
+                    builder.OpenComponent(0, typeof(RadzenSwitch));
+                    builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+                    builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<bool>(this, (value) =>
+                    {
+                        propInfoValue.SetValue(model, value);
+                    }));
+                }
+                break;
+            case TypeCode.Int32:
+                {
+                    if (propInfoValue.PropertyType.IsEnum)
+                    {
+                        builder.OpenComponent(0, typeof(RadzenDropDown<Enum>));
+                        builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+                        builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<Enum>(this, (value) =>
+                        {
+                            propInfoValue.SetValue(model, value);
+                        }));
+                        builder.AddAttribute(3, "data", propInfoValue.PropertyType.GetEnumValues().Cast<Enum>());
+                    }
+                    else
+                    {
+                        builder.OpenComponent(0, typeof(RadzenNumeric<int>));
+                        builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+                        builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<int>(this, (value) =>
+                        {
+                            propInfoValue.SetValue(model, value);
+
+                        }));
+                        IsNumber = true;
+                    }
+                }
+                break;
+            case TypeCode.Int64:
+                {
+                    builder.OpenComponent(0, typeof(RadzenNumeric<long>));
+                    builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+                    builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<long>(this, (value) =>
+                {
+                    propInfoValue.SetValue(model, value);
+                }));
+                    IsNumber = true;
+                }
+                break;
+            case TypeCode.Int16:
+                {
+                    builder.OpenComponent(0, typeof(RadzenNumeric<short>));
+                    builder.AddAttribute(1, "value", propInfoValue.GetValue(model));
+                    builder.AddAttribute(2, "valuechanged", EventCallback.Factory.Create<short>(this, (value) =>
+                {
+                    propInfoValue.SetValue(model, value);
+                }));
+                    IsNumber = true;
+                }
+                break;
+            default:
+                throw new Exception($"Failed to get dynamic type from {propInfoValue.PropertyType.Name}");
         }
 
-        builder.AddAttribute(3, "style", "width: 100%");
-        builder.AddAttribute(4, "aria-label", $"{item.Label} Text");
+        PlaceholderAttribute? placeholder = propInfoValue.GetCustomAttribute<PlaceholderAttribute>();
+        if (placeholder != null)
+            builder.AddAttribute(7, "placeholder", placeholder.Value);
+
+        builder.AddAttribute(8, "style", "width: 100%");
+        builder.AddAttribute(9, "aria-label", $"{item.Label} Text");
 
         MaxLengthAttribute? MaxLength = propInfoValue.GetCustomAttribute<MaxLengthAttribute>();
         if (MaxLength != null)
-            builder.AddAttribute(5, "maxlength", (Int64)MaxLength.Length);
+            builder.AddAttribute(10, "maxlength", (Int64)MaxLength.Length);
 
         AutoCompleteAttribute? AutoComplete = propInfoValue.GetCustomAttribute<AutoCompleteAttribute>();
         if (AutoComplete != null)
-            builder.AddAttribute(6, "autocomplete", AutoComplete.Type.GetType().GetMember(AutoComplete.Type.ToString()).First().GetCustomAttribute<DisplayAttribute>().Name);
+            builder.AddAttribute(11, "autocomplete", AutoComplete.Type.GetType().GetMember(AutoComplete.Type.ToString()).First().GetCustomAttribute<DisplayAttribute>().Name);
         else
-            builder.AddAttribute(6, "autocomplete", "off");
+            builder.AddAttribute(11, "autocomplete", "off");
 
         if (IsNumber)
-        {
-            builder.AddAttribute(7, "ShowUpDown", false);
-        }
+            builder.AddAttribute(12, "ShowUpDown", false);
 
-        builder.AddAttribute(8, "ReadOnly", Disabled);
+        builder.AddAttribute(13, "ReadOnly", Disabled);
 
         builder.CloseComponent();
     };

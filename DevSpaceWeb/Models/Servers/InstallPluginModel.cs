@@ -4,6 +4,6 @@ namespace DevSpaceWeb.Models.Servers;
 
 public class InstallPluginModel
 {
-    [Required]
+    [Required(ErrorMessage = "Plugin name is required")]
     public string? Name { get; set; }
 }

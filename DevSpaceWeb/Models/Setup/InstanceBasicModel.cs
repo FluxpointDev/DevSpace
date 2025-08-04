@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data;
+﻿using DevSpaceWeb.Components.DynamicForm.Attributes;
+using DevSpaceWeb.Data;
 using System.ComponentModel.DataAnnotations;
 
 namespace DevSpaceWeb.Models;
@@ -13,8 +14,9 @@ public class InstanceBasicModel
     [MaxLength(300, ErrorMessage = "Instance description has a maximum of 300 characters")]
     public string? Description { get; set; }
 
-    [Required]
+    [Required(ErrorMessage = "Instance domain is required")]
     [MaxLength(300, ErrorMessage = "Public domain has a maximum of 300 characters")]
+    [Placeholder("domain.com")]
     public string? PublicDomain { get; set; }
 
     public static InstanceBasicModel Create()

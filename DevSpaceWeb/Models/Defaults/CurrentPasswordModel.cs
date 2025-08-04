@@ -6,5 +6,6 @@ public class CurrentPasswordModel
 {
     [Required(ErrorMessage = "Password is required")]
     [MaxLength(100, ErrorMessage = "Password has a maxiumum 100 characters")]
+    [DataType(DataType.Password)]
     public string? CurrentPassword { get; set; }
 }
