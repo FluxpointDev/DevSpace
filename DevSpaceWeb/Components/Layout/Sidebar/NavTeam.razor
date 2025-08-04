@@ -21,46 +21,48 @@
                 </Template>
             </RadzenPanelMenuItem>
         } *@
-             <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps")" class="nav-link-server" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps")" class="nav-link-server" Match="NavLinkMatch.All">
             <Template>
                 <span class="iconify" data-icon="mdi:rocket-launch"></span>
                 <p>
                     Apps
                 </p>
             </Template>
-            </RadzenPanelMenuItem>
+        </RadzenPanelMenuItem>
         <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" class="nav-link-server" Match="NavLinkMatch.All">
-        <Template>
-            <span class="iconify" data-icon="mdi:server"></span>
-            <p>
-                Servers
-            </p>
-        </Template>
-    </RadzenPanelMenuItem>
-    @if (!Program.LimitMode)
-    {
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" class="nav-link-server" Match="NavLinkMatch.All">
             <Template>
-                <span class="iconify" data-icon="mdi:console-line"></span>
+                <span class="iconify" data-icon="mdi:server"></span>
                 <p>
-                    Consoles
+                    Servers
                 </p>
             </Template>
         </RadzenPanelMenuItem>
+        @if (!Program.LimitMode)
+        {
+            <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" class="nav-link-server" Match="NavLinkMatch.All">
+                <Template>
+                    <span class="iconify" data-icon="mdi:console-line"></span>
+                    <p>
+                        Consoles
+                    </p>
+                </Template>
+            </RadzenPanelMenuItem>
             <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/logs")" class="nav-link-server" Match="NavLinkMatch.All">
                 <Template>
                     <span class="iconify" data-icon="mdi:warning"></span>
                     <p>Logs</p>
                 </Template>
             </RadzenPanelMenuItem>
-            
-            <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/status")" class="nav-link-server" Match="NavLinkMatch.All">
+
+            @if (Program.IsDevMode)
+            {
+                <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/status")" class="nav-link-server" Match="NavLinkMatch.All">
                     <Template>
                         <span class="iconify" data-icon="mdi:information"></span>
                         <p>Status</p>
                     </Template>
                 </RadzenPanelMenuItem>
-
+            }
             <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects")" class="nav-link-server" Match="NavLinkMatch.All">
                 <Template>
                     <span class="iconify" data-icon="mdi:lightbulb"></span>
@@ -80,9 +82,9 @@
             <p>Error Logs (Sentry)</p>
         </Template>
     </RadzenPanelMenuItem> *@
-    
-    }
-</RadzenPanelMenu>
+
+        }
+    </RadzenPanelMenu>
 </div>
 
 @code {
