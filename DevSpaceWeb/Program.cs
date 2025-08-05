@@ -275,6 +275,7 @@ public class Program
         });
 
         app.UseSession();
+        app.UseStatusCodePagesWithReExecute("/not-found");
         app.UseAntiforgery();
         if (_Data.Config.Instance.Features.SwaggerEnabled)
         {

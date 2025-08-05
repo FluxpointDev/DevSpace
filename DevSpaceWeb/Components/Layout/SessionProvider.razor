@@ -142,6 +142,11 @@
                                 <AccountDisabled></AccountDisabled>
                                 break;
                             }
+                        case SessionErrorType.NotFound:
+                            {
+                                <NotFound></NotFound>
+                            }
+                            break;
                     }
                 </RadzenBody>
             </RadzenLayout>
@@ -354,10 +359,19 @@
                 Use24HourTime = User.Settings.Use24HourTime;
 
                 IsInstanceAdmin = User.IsInstanceAdmin;
-                string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
+                string? SessionId = null;
+                try
+                {
+                    SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
+                }
+                catch { }
                 if (string.IsNullOrEmpty(SessionId))
                 {
-                    NavigationManager.NavigateTo("/logout", true);
+                    try
+                    {
+                        NavigationManager.NavigateTo("/logout", true);
+                    }
+                    catch {}
                     return;
                 }
                 CurrentSessionId = SessionId;
@@ -399,6 +413,11 @@
                 SessionError = SessionErrorType.AuthenticationRequired;
                 return;
             }
+            else if (Path == "not-found")
+            {
+                SessionError = SessionErrorType.NotFound;
+                return;
+            }
             else
             {
                 _DB.SessionUpdated += SessionChangedEvent;
@@ -425,10 +444,19 @@
                 if (User.Background.Id.HasValue)
                     BackgroundUrl = User.Background.Url("webp");
 
-                string? SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
+                string? SessionId = null;
+                try
+                {
+                    SessionId = HttpContext.Request.Cookies["DevSpace.SessionId"];
+                }
+                catch { }
                 if (string.IsNullOrEmpty(SessionId))
                 {
-                    NavigationManager.NavigateTo("/logout", true);
+                    try
+                    {
+                        NavigationManager.NavigateTo("/logout", true);
+                    }
+                    catch{}
                     return;
                 }
                 CurrentSessionId = SessionId;
@@ -495,7 +523,8 @@
         AuthenticationRequired,
         DatabaseError,
         Success,
-        AccountDisabled
+        AccountDisabled,
+        NotFound
     }
 
 }
