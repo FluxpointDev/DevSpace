@@ -14,8 +14,8 @@
 <div class="dash-box dash-box-content">
     <div class="dash-box-header">
         <div class="dash-box-icon dash-box-back" onclick="history.back()">
-            <span class="iconify" data-icon="mdi:server"></span>
-            <span class="iconify" data-icon="mdi:arrow-left-thick"></span>
+            <iconify-icon icon="mdi:server"></iconify-icon>
+            <iconify-icon icon="mdi:arrow-left-thick"></iconify-icon>
         </div>
         <RadzenText TextStyle="TextStyle.H6">Servers</RadzenText>
     </div>
@@ -49,7 +49,7 @@
         <LoadingTemplate>
             <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;">
                 <div class="server-item-icon flex-none d-flex">
-                    <span class="iconify" data-icon="mdi:server"></span>
+                    <iconify-icon icon="mdi:server"></iconify-icon>
                 </div>
                 <div>
                     <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
@@ -68,7 +68,7 @@
             <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + context.GetVanityUrlOrId() + "/home")">
                 <div class="server-item d-flex flex-grow-1 gap-2" style="display: flex; vertical-align: middle;" @oncontextmenu=@(args => ShowContextMenuWithContent(args, context)) @oncontextmenu:preventDefault="true">
                     <div class="server-item-icon flex-none d-flex">
-                        <span class="iconify" data-icon="mdi:server"></span>
+                        <iconify-icon icon="mdi:server"></iconify-icon>
                     </div>
                     <div class="server-item-info flex-auto d-flex py-1">
                         <RadzenText TextStyle="TextStyle.H6" class="mt-3 ml-2">
@@ -105,23 +105,23 @@
                             }
                             @if (context.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
                             {
-                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:stack-fill"></span> @agent.Stats.StacksCount stacks</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="ri:box-3-fill"></span> @agent.Stats.ContainersCount containers</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><iconify-icon icon="ri:stack-fill"></iconify-icon> @agent.Stats.StacksCount stacks</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><iconify-icon icon="ri:box-3-fill"></iconify-icon> @agent.Stats.ContainersCount containers</RadzenText>
                                 <RadzenText TextStyle="TextStyle.Body2">
-                                    <span class="iconify" data-icon="mdi:power" style="color: var(--rz-success);"></span> @agent.Stats.ContainersRunningCount
-                                    <span class="iconify" data-icon="mdi:heart-outline" style="color: var(--rz-warning); margin-left: 8px;"></span> @agent.Stats.ContainersUnhealthyCount
-                                    <span class="iconify" data-icon="mdi:power" style="color: var(--rz-danger); margin-left: 8px;"></span> @agent.Stats.ContainersDownCount
+                                    <iconify-icon icon="mdi:power" style="color: var(--rz-success);"></iconify-icon> @agent.Stats.ContainersRunningCount
+                                    <iconify-icon icon="mdi:heart-outline" style="color: var(--rz-warning); margin-left: 8px;"></iconify-icon> @agent.Stats.ContainersUnhealthyCount
+                                    <iconify-icon icon="mdi:power" style="color: var(--rz-danger); margin-left: 8px;"></iconify-icon> @agent.Stats.ContainersDownCount
                                 </RadzenText>
                             }
                         </RadzenStack>
                         <RadzenStack Orientation="Orientation.Horizontal" class="mb-2 ml-2" Wrap="FlexWrap.Wrap">
                             @if (context.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
                             {
-                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:storage"></span> @agent.Stats.VolumesCount volumes</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:local-area-network"></span> @agent.Stats.NetworksCount networks</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:folder-image"></span> @agent.Stats.ImagesCount images</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:cpu-64-bit"></span> @(agent.Stats.IsWindows ? "Unavailable" : agent.Stats.CpuCount) CPU</RadzenText>
-                                <RadzenText TextStyle="TextStyle.Body2"><span class="iconify" data-icon="mdi:memory"></span> @(agent.Stats.IsWindows ? "Unavailable" : Utils.ToPrettySize(agent.Stats.TotalMemory)) RAM</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><iconify-icon icon="mdi:storage"></iconify-icon> @agent.Stats.VolumesCount volumes</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><iconify-icon icon="mdi:local-area-network"></iconify-icon> @agent.Stats.NetworksCount networks</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><iconify-icon icon="mdi:folder-image"></iconify-icon> @agent.Stats.ImagesCount images</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><iconify-icon icon="mdi:cpu-64-bit"></iconify-icon> @(agent.Stats.IsWindows ? "Unavailable" : agent.Stats.CpuCount) CPU</RadzenText>
+                                <RadzenText TextStyle="TextStyle.Body2"><iconify-icon icon="mdi:memory"></iconify-icon> @(agent.Stats.IsWindows ? "Unavailable" : Utils.ToPrettySize(agent.Stats.TotalMemory)) RAM</RadzenText>
                             }
                         </RadzenStack>
                     </div>
@@ -149,14 +149,13 @@
         vertical-align: center;
     }
 
-        .server-item-icon .iconify {
-            width: 40px;
-            height: 40px;
+        .server-item-icon iconify-icon {
+            font-size: 40px;
             margin-top: 16px;
             color: rgba(0,135,201,0.7) !important;
         }
 
-    .server-item:hover .server-item-icon .iconify {
+    .server-item:hover .server-item-icon iconify-icon {
         color: rgba(0,135,201,0.9) !important;
     }
 
@@ -190,9 +189,8 @@
         display: none !important;
     }
 
-    .server-item-buttons .iconify {
-        width: 20px;
-        height: 20px;
+    .server-item-buttons iconify-icon {
+        font-size: 20px;
         margin-left: 8px;
         margin-bottom: -4px;
         margin-right: 6px;
@@ -206,9 +204,8 @@
             display: inline-block !important;
         }
 
-    .server-item .rz-stack .iconify {
-        height: 16px;
-        width: 16px;
+    .server-item .rz-stack iconify-icon {
+        font-size: 16px;
         margin-right: 2px;
         margin-bottom: 2px;
     }

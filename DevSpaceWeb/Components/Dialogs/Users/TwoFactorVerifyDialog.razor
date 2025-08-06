@@ -25,43 +25,43 @@
                         if (User.Mfa.IsTwoFactorEnabled)
                         {
                             <div class="twofactor-item twofactor-item-disabled">
-                                <span class="iconify" data-icon="mdi:cloud-key"></span>
+                                <iconify-icon icon="mdi:cloud-key"></iconify-icon>
                                 <h6>Email Code</h6>
                                 <p>Disabled with more secure options</p>
                             </div>
                             <div class="twofactor-item @(User.Mfa.AuthenticatorDevices.Any(x => x.Value == true) ? "" : "twofactor-item-disabled")" @onclick="(() => { if (User.Mfa.AuthenticatorDevices.Any(x => x.Value == true)) { AuthType = TwoFactorSelector.AuthCode; } })">
-                                <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
+                                <iconify-icon icon="mdi:mobile-phone-key"></iconify-icon>
                                 <h6>Authenticator</h6>
                             </div>
 
                             <div class="twofactor-item @(User.Mfa.Passkeys.Any() ? "" : "twofactor-item-disabled")" @onclick="(() => { if (User.Mfa.Passkeys.Any()) { AuthType = TwoFactorSelector.WebAuth; _ = VerifyPasskey(); } })">
-                                <span class="iconify" data-icon="mdi:key-chain"></span>
+                                <iconify-icon icon="mdi:key-chain"></iconify-icon>
                                 <h6>Passkey, Webauth or Yubikey</h6>
                             </div>
 
                             <div class="twofactor-item @(!string.IsNullOrEmpty(User.Mfa.RecoveryCode) ? "" : "twofactor-item-disabled")" @onclick="@(() => { if (!string.IsNullOrEmpty(User.Mfa.RecoveryCode)) { AuthType = TwoFactorSelector.RecoveryCode; } })">
-                                <span class="iconify" data-icon="mdi:file-key"></span>
+                                <iconify-icon icon="mdi:file-key"></iconify-icon>
                                 <h6>Recovery Code</h6>
                             </div>
                         }
                         else
                         {
                             <div class="twofactor-item" @onclick="(() => { AuthType = TwoFactorSelector.EmailCode; })">
-                                <span class="iconify" data-icon="mdi:cloud-key"></span>
+                                <iconify-icon icon="mdi:cloud-key"></iconify-icon>
                                 <h6>Email Code</h6>
                             </div>
                             <div class="twofactor-item twofactor-item-disabled">
-                                <span class="iconify" data-icon="mdi:mobile-phone-key"></span>
+                                <iconify-icon icon="mdi:mobile-phone-key"></iconify-icon>
                                 <h6>Authenticator</h6>
                                 <p>Disabled: Not setup</p>
                             </div>
                             <div class="twofactor-item twofactor-item-disabled">
-                                <span class="iconify" data-icon="mdi:key-chain"></span>
+                                <iconify-icon icon="mdi:key-chain"></iconify-icon>
                                 <h6>Passkey, Webauth or Yubikey</h6>
                                 <p>Disabled: Not setup</p>
                             </div>
                             <div class="twofactor-item twofactor-item-disabled">
-                                <span class="iconify" data-icon="mdi:file-key"></span>
+                                <iconify-icon icon="mdi:file-key"></iconify-icon>
                                 <h6>Recovery Code</h6>
                                 <p>Disabled: Not setup</p>
                             </div>
@@ -149,10 +149,9 @@
 </RadzenStack>
 
 <style>
-    .twofactor-item .iconify {
+    .twofactor-item iconify-icon {
         color: #0bba83 !important;
-        width: 32px;
-        height: 32px;
+        font-size: 32px;
         float: left;
         margin-right: 10px;
     }
