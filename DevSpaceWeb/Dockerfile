@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS base
+FROM mcr.microsoft.com/dotnet/nightly/aspnet:10.0-preview AS base
 USER root
 WORKDIR /app
 
