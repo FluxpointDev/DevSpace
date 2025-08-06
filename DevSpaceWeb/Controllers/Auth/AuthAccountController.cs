@@ -28,7 +28,7 @@ public class AuthAccountController : AuthControllerContext
     public async Task<IActionResult> RecoveryCode([FromQuery] string token = "")
     {
         if (User.Identity == null || !User.Identity.IsAuthenticated)
-            return Redirect("/login");
+            return LocalRedirect("/login");
 
         if (Program.IsPreviewMode)
             return BadRequest("Preview mode is enabled.");
@@ -69,7 +69,7 @@ public class AuthAccountController : AuthControllerContext
             return BadRequest("Invalid token");
 
         if (User.Identity == null || !User.Identity.IsAuthenticated)
-            return Redirect("/login?token=" + token);
+            return LocalRedirect("/login?token=" + token);
 
         AuthUser? AuthUser = await _userManager.GetUserAsync(User);
         if (AuthUser == null)

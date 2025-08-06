@@ -1,15 +1,21 @@
-﻿<div class="nav-list nav-list-sub">
-    <div class="nav-list-header">
-        <iconify-icon icon="mdi:lightbulb"></iconify-icon>
-        <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Project?.Name</h5>
-    </div>
+﻿@inject ContextMenuService ContextMenuService
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<div class="nav-list nav-list-sub">
+    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
+        <div class="nav-list-header">
+            <iconify-icon icon="mdi:lightbulb" style="color: #a5a5a5 !important;"></iconify-icon>
+            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Project?.Name</h5>
+        </div>
+    </RadzenLink>
     <RadzenPanelMenu>
         <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:home"></iconify-icon>
-            <p>Home</p>
-        </Template>
-    </RadzenPanelMenuItem>
+                <p>Home</p>
+            </Template>
+        </RadzenPanelMenuItem>
         <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/logs")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:warning"></iconify-icon>
@@ -17,7 +23,7 @@
             </Template>
         </RadzenPanelMenuItem>
     </RadzenPanelMenu>
-    
+
 </div>
 
 @code {
@@ -26,4 +32,38 @@
 
     [Parameter]
     public bool StateChange { get; set; }
+
+    public TeamData? Team => Session.Selected.Team?.Data;
+    public ProjectData? Project => Session.Selected.Project;
+    public TeamMemberData? Member => Session.Selected.Member;
+
+    void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
+                new ContextMenuItem(){ Text = "Close", Icon = "close"  },
+                new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = Member == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.ManageProject) },
+                new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.ViewPermissions) },
+                new ContextMenuItem() { Text = "Copy Project ID", Icon = "content_copy" }
+         }, OnMenuItemClick);
+
+    void OnMenuItemClick(MenuItemEventArgs arg)
+    {
+        switch (arg.Text)
+        {
+            case "Close":
+                if (Session.Selected.Team != null && Session.Selected.Team.Project != null)
+                    Session.Selected.Team.Project.IsVisible = false;
+
+                Session.TriggerNavMenuChange();
+                break;
+            case "Settings":
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/settings");
+                break;
+            case "Permissions":
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/permissions");
+                break;
+            case "Copy Project ID":
+                _ = JS.CopyTextAsync(Session.Selected.Project?.Id);
+                break;
+        }
+        ContextMenuService.Close();
+    }
 }

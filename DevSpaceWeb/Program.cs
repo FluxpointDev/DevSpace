@@ -251,7 +251,7 @@ public class Program
         {
             ResponseWriter = HealthCheckService.WriteResponse
         });
-        app.UseRouting();
+
         app.UseRequestDecompression();
         app.UseAuthentication();
         app.UseAuthorization();
@@ -274,8 +274,9 @@ public class Program
             }
         });
 
+        app.UseRouting();
+
         app.UseSession();
-        app.UseStatusCodePagesWithReExecute("/not-found");
         app.UseAntiforgery();
         if (_Data.Config.Instance.Features.SwaggerEnabled)
         {

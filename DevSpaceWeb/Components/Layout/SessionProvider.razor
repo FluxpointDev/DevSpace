@@ -142,11 +142,6 @@
                                 <AccountDisabled></AccountDisabled>
                                 break;
                             }
-                        case SessionErrorType.NotFound:
-                            {
-                                <NotFound></NotFound>
-                            }
-                            break;
                     }
                 </RadzenBody>
             </RadzenLayout>
@@ -211,6 +206,14 @@
     public async Task<AuthUser?> GetCurrentUserAsync()
     {
         return await UserManager.GetUserAsync(State.User)!;
+    }
+
+    public async Task ConfirmOpenTab(string link)
+    {
+        await Dialogs.OpenAsync<ConfirmOpenTabDialog>("Open Link", new Dictionary<string, object>
+        {
+            { "Url", link }
+        });
     }
 
     public string? CurrentCountry { get; set; }
@@ -413,11 +416,6 @@
                 SessionError = SessionErrorType.AuthenticationRequired;
                 return;
             }
-            else if (Path == "not-found")
-            {
-                SessionError = SessionErrorType.NotFound;
-                return;
-            }
             else
             {
                 _DB.SessionUpdated += SessionChangedEvent;
@@ -490,8 +488,6 @@
 
     }
 
-
-
     public void SessionChangedEvent(ObjectId user, SessionEventType type)
     {
         if (CurrentUser == null || CurrentUser.Id != user || type != SessionEventType.Logout)
@@ -523,8 +519,7 @@
         AuthenticationRequired,
         DatabaseError,
         Success,
-        AccountDisabled,
-        NotFound
+        AccountDisabled
     }
 
 }

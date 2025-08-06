@@ -1,4 +1,5 @@
 ﻿@using System.Text
+
 @if (string.IsNullOrEmpty(Value))
 {
     <RadzenText TextStyle="TextStyle.Body2">
@@ -24,73 +25,4 @@ else
             <CopyClipboard Value="@Value"></CopyClipboard>
         }
     </RadzenText>
-}
-
-@code {
-    [Parameter]
-    public string? Value { get; set; }
-
-    [Parameter]
-    public bool IsEmail { get; set; }
-
-    [Parameter]
-    public bool IsIp { get; set; }
-
-    [Parameter]
-    public bool ShowCopy { get; set; }
-
-    private bool IsVisible { get; set; }
-
-    public string? GetMask()
-    {
-        if (string.IsNullOrEmpty(Value))
-            return Value;
-
-        if (IsIp)
-        {
-            bool FirstDot = false;
-            StringBuilder result = new StringBuilder();
-            foreach (char c in Value)
-            {
-                if (c == '.')
-                {
-                    result.Append(c);
-                    FirstDot = true;
-                }
-                else
-                {
-                    if (FirstDot)
-                        result.Append('*');
-                    else
-                        result.Append(c);
-                }
-            }
-            return result.ToString();
-        }
-        if (IsEmail)
-        {
-            StringBuilder result = new StringBuilder();
-            bool AtSignDone = false;
-            foreach(char c in Value)
-            {
-                if (AtSignDone)
-                {
-                    result.Append(c);
-                }
-                else
-                {
-                    if (c == '@')
-                    {
-                        AtSignDone = true;
-                        result.Append(c);
-                    }
-                    else
-                        result.Append('*');
-                }
-            }
-            return result.ToString();
-        }
-
-        return new String(Value.Select(x => '*').ToArray());
-    }
 }

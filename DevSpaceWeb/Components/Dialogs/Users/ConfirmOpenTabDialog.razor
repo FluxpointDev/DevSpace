@@ -1,0 +1,42 @@
+﻿@using DevSpaceWeb.Models.Accounts
+@using DevSpaceWeb.Models.Defaults
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<AuthUser> UserManager
+@inject Radzen.DialogService dialogService
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        <RadzenText TextStyle="TextStyle.Body2">
+            This link takes your to an external website.
+        </RadzenText>
+        <div class="open-url">
+            <span>@Url</span>
+        </div>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Filled" ButtonStyle="ButtonStyle.Base" Text="Go Back" Style="width: 90px" />
+        <a href="@Url" target="_blank"><RadzenButton Click="@((args) => dialogService.Close(false))" Variant="Variant.Filled" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Text="Visit Url" Style="width: 90px" /></a>
+    </RadzenStack>
+</RadzenStack>
+
+<style>
+    .open-url {
+        box-sizing: border-box;
+        border: var(--rz-input-border);
+        border-block-end: var(--rz-input-border-block-end);
+        border-radius: var(--rz-input-border-radius);
+        padding: 12px;
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+</style>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    [Parameter]
+    public string Url { get; set; }
+
+}

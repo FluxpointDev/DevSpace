@@ -180,15 +180,15 @@ else
                         <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" Wrap="FlexWrap.Wrap">
                             @if (!string.IsNullOrEmpty(Image.Website) && Image.Website != Image.Source)
                             {
-                                <a href="@Image.Website" target="_blank"><RadzenButton Text="Website" Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+                                <a href="@Image.Website" target="_blank" @onclick="@(() => Session.ConfirmOpenTab(Image.Website))" @onclick:preventDefault="true"><RadzenButton Text="Website" Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
                             }
                             @if (!string.IsNullOrEmpty(Image.Docs))
                             {
-                                <a href="@Image.Docs" target="_blank"><RadzenButton Text="Docs" Icon="book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+                                <a href="@Image.Docs" target="_blank" @onclick="@(() => Session.ConfirmOpenTab(Image.Docs))" @onclick:preventDefault="true"><RadzenButton Text="Docs" Icon="book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
                             }
                             @if (!string.IsNullOrEmpty(Image.Source))
                             {
-                                <a href="@Image.Source" target="_blank"><RadzenButton Text="Source" Icon="code" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+                                <a href="@Image.Source" target="_blank" @onclick="@(() => Session.ConfirmOpenTab(Image.Source))" @onclick:preventDefault="true"><RadzenButton Text="Source" Icon="code" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
                             }
                         </RadzenStack>
                     </RadzenTableCell>
@@ -510,7 +510,7 @@ else
                                 <RadzenButton Click="@(args => ShowContextMenuWithManageItems(context, args))" Icon="build" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
                                 @if (!string.IsNullOrEmpty(context.Url))
                                 {
-                                    <a href="@context.Url" target="_blank"><RadzenButton Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
+                                    <a href="@context.Url" target="_blank" @onclick="@(() => Session.ConfirmOpenTab(context.Url))" @onclick:preventDefault="true"><RadzenButton Icon="open_in_new" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
                                 }
                             </RadzenStack>
                         </Template>
