@@ -150,6 +150,7 @@ public static class _DB
         Workspaces = new ICollection<WorkspaceData>("workspaces");
         StatusMonitors = new ICacheCollection<StatusMonitorData>("status_monitors");
         StatusPages = new ICacheCollection<StatusPageData>("status_pages");
+        StatusIssues = new ICacheCollection<StatusIssueData>("status_issues");
         Links = new ICollection<LinkData>("links");
     }
 
@@ -499,6 +500,26 @@ public static class _DB
             }
         });
 
+        Task StatusIssueTask = Task.Run(async () =>
+        {
+            if (Program.LimitMode)
+                return;
+            try
+            {
+                await StatusIssues.Find(Builders<StatusIssueData>.Filter.Empty).ForEachAsync(x =>
+                {
+                    StatusIssues.Cache.TryAdd(x.Id, x);
+                });
+                Logger.LogMessage("Database", "- Status Issues: " + StatusIssues.Cache.Keys.Count, LogSeverity.Info);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogMessage("Database", "- Status Issues: FAIL!", LogSeverity.Info);
+                Console.WriteLine(ex);
+                HasException = true;
+            }
+        });
+
         Task ConsoleTask = Task.Run(async () =>
         {
             if (Program.LimitMode)
@@ -610,7 +631,8 @@ public static class _DB
         });
 
         Task.WaitAll(RoleTask, MemberTask, TeamVanityTask, TemplateTask,
-            ServerTask, WebsiteTask, ProjectTask, APITask, ConsoleTask, AppTask, StatusMonitorTask, StatusPageTask);
+            ServerTask, WebsiteTask, ProjectTask, APITask, ConsoleTask, AppTask,
+            StatusMonitorTask, StatusPageTask, StatusIssueTask);
 
         if (HasException)
             return false;
@@ -691,6 +713,8 @@ public static class _DB
     public static ICacheCollection<StatusMonitorData> StatusMonitors = null!;
 
     public static ICacheCollection<StatusPageData> StatusPages = null!;
+
+    public static ICacheCollection<StatusIssueData> StatusIssues = null!;
 
     public static ICollection<LinkData> Links = null!;
 

@@ -99,6 +99,7 @@ public class AuditLog : IObject
         ResourceType.Website => AuditLogTargetType.Website,
         ResourceType.StatusMonitor => AuditLogTargetType.StatusMonitor,
         ResourceType.StatusPage => AuditLogTargetType.StatusPage,
+        ResourceType.StatusIssue => AuditLogTargetType.StatusIssue
     };
 
     public AuditLog SetTarget(TeamRoleData role)
@@ -168,7 +169,7 @@ public class AuditLog : IObject
 
 public enum AuditLogTargetType
 {
-    Instance, Team, Role, Member, Server, Website, Project, Link, API, Console, App, StatusMonitor, StatusPage
+    Instance, Team, Role, Member, Server, Website, Project, Link, API, Console, App, StatusMonitor, StatusPage, StatusIssue
 }
 public enum AuditLogCategoryType
 {
@@ -193,6 +194,7 @@ public enum AuditLogEventType
     LinkCreated, LinkDeleted,
     StatusMonitorCreated, StatusMonitorDeleted, StatusMonitorPermissionsChanged, StatusMonitorSettingsChanged,
     StatusPageCreated, StatusPageDeleted, StatusPagePermissionsChanged, StatusPageSettingsChanged,
+    StatusIssueCreated, StatusIssueDeleted, StatusIssuePermissionsChanged, StatusIssueSettingsChanged,
 }
 [Flags]
 public enum AuditLogFlag : ulong

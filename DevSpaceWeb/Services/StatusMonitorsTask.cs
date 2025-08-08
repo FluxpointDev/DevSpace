@@ -37,7 +37,8 @@ public class StatusMonitorsTask
                         catch { }
                     }
                     break;
-                case StatusMonitorType.Http:
+                case StatusMonitorType.Website:
+                case StatusMonitorType.API:
                     {
                         HttpRequestMessage message = new HttpRequestMessage(i.Flag.HasFlag(StatusMonitorFlag.HttpGet) ? HttpMethod.Get : HttpMethod.Head, i.Source);
                         using (HttpResponseMessage req = await Program.Http.SendAsync(message))

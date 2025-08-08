@@ -608,5 +608,5 @@ public abstract class ITeamResource : IResource
 }
 public enum ResourceType
 {
-    Server, Console, Project, Website, App, Link, StatusMonitor, StatusPage
+    Server, Console, Project, Website, App, Link, StatusMonitor, StatusPage, StatusIssue
 }

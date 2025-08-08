@@ -1,4 +1,5 @@
-﻿@using DevSpaceWeb.Data.Status
+﻿@using DevSpaceWeb.Components.Dialogs.Status
+@using DevSpaceWeb.Data.Status
 @using DevSpaceWeb.Models.Status
 @inject DialogService Dialogs
 
@@ -20,19 +21,25 @@
                         <RadzenButton Variant="Variant.Filled" Text="Create Monitor" Icon="add" Click="@Create" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasStatusMonitorPermission(Team, null, StatusMonitorPermission.CreateMonitorResource))" />
                     }
                     break;
-                    case 2:
+                case 2:
+                    {
+                        <RadzenButton Variant="Variant.Filled" Text="Create Issue" Icon="add" Click="@Create" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasStatusPagePermission(Team, null, StatusPagePermission.CreatePageResource))" />
+                    }
+                    break;
+                    case 3:
                     {
                         <RadzenButton Variant="Variant.Filled" Text="Create Page" Icon="add" Click="@Create" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasStatusPagePermission(Team, null, StatusPagePermission.CreatePageResource))" />
                     }
                     break;
             }
             <a href="https://docs.fluxpoint.dev/devspace/status" target="_blank"><RadzenButton Text="Status Docs" Icon="menu_book" ButtonStyle="ButtonStyle.Light" Size="ButtonSize.Small" /></a>
-            @* <RadzenSelectBar TValue="int" Size="ButtonSize.Small" @bind-Value="@SelectedStatusType">
+            <RadzenSelectBar TValue="int" Size="ButtonSize.Small" @bind-Value="@SelectedStatusType">
                 <Items>
                     <RadzenSelectBarItem Value="1" Text="Monitors" />
-                    <RadzenSelectBarItem Value="2" Text="Pages" />
+                    <RadzenSelectBarItem Value="2" Text="Issues" />
+                    <RadzenSelectBarItem Value="3" Text="Pages" />
                 </Items>
-            </RadzenSelectBar> *@
+            </RadzenSelectBar>
         </ActionBar>
     </div>
     @switch (SelectedStatusType)
@@ -43,6 +50,11 @@
             }
             break;
         case 2:
+            {
+                <StatusIssues></StatusIssues>
+            }
+            break;
+        case 3:
             {
                 <StatusPages></StatusPages>
             }
@@ -81,6 +93,8 @@
                             Name = data.Name!,
                             OwnerId = Session.CurrentUser.Id,
                             TeamId = Session.Selected.Team.Data.Id,
+                            Source = data.Source,
+                            MonitorType = data.Type
                         };
 
                         await _DB.StatusMonitors.CreateAsync(NewMonitor);
@@ -97,6 +111,11 @@
                 }
                 break;
             case 2:
+                {
+                    Dialogs.OpenAsync<CustomizePage>("Customize Status Page");
+                }
+                break;
+            case 3:
                 {
                     if (!Member.HasStatusPagePermission(Team, null, StatusPagePermission.CreatePageResource))
                         return;

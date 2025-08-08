@@ -1,0 +1,80 @@
+﻿@inject Radzen.DialogService dialogService
+
+<PageTitle>Customize Status Page | @_Data.Config.Instance.Name</PageTitle>
+
+<RadzenStack Gap="0.5rem" Orientation="Orientation.Vertical" Style="height: 100%;">
+    <RadzenStack JustifyContent="JustifyContent.Start">
+        <RadzenStack Gap="6px" Orientation="Orientation.Horizontal">
+            <div>
+                <RadzenText TextStyle="TextStyle.Subtitle2" Text="Background"></RadzenText>
+                <RadzenColorPicker @bind-Value="@Background" />
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" Text="Header"></RadzenText>
+                <RadzenColorPicker @bind-Value="@Header" />
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" Text="Banner"></RadzenText>
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" Text="Section"></RadzenText>
+                <RadzenColorPicker @bind-Value="@Section" />
+
+                <br />
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" Text="Operational"></RadzenText>
+                <RadzenColorPicker @bind-Value="@Online" />
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" Text="Degraded Performance"></RadzenText>
+                <RadzenColorPicker @bind-Value="@Degraded" />
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" Text="Partial Outage"></RadzenText>
+                <RadzenColorPicker @bind-Value="@PartialOutage" />
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" Text="Major Outage"></RadzenText>
+                <RadzenColorPicker @bind-Value="@MajorOutage" />
+
+                <RadzenText TextStyle="TextStyle.Subtitle2" Text="Maintenance"></RadzenText>
+                <RadzenColorPicker @bind-Value="@Maintenance" />
+            </div>
+            <div>
+                <div class="status-page" style="background-color: @Background;">
+                    <div class="status-page-header" style="background-color: @Header;">
+                        <h6>My Status Page!</h6>
+                    </div>
+                    <div class="status-page-section" style="background-color: @Section;">
+                        <RadzenText TextStyle="TextStyle.Body2" Text="Operational" Style="@($"color: {Online};")"></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" Text="Degraded" Style="@($"color: {Degraded};")"></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" Text="Partial Outage" Style="@($"color: {PartialOutage};")"></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" Text="Major Outage" Style="@($"color: {MajorOutage};")"></RadzenText>
+                        <RadzenText TextStyle="TextStyle.Body2" Text="Maintenance" Style="@($"color: {Maintenance};")"></RadzenText>
+                    </div>
+                </div>
+            </div>
+        </RadzenStack>
+    </RadzenStack>
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.End" Gap="0.5rem">
+        <RadzenButton Click="@((args) => { dialogService.Close(false); })" Variant="Variant.Text" ButtonStyle="ButtonStyle.Base" Text="Close" Style="width: 90px" />
+        <RadzenButton Click="@Save" Variant="Variant.Text" ButtonStyle="ButtonStyle.Success" Text="Update" Style="width: 100px" />
+    </RadzenStack>
+</RadzenStack>
+
+@code {
+    public string Background { get; set; } = "#282727";
+
+    public string Header { get; set; } = "#3A75CB";
+
+    public string Section { get; set; } = "#2F2F2F";
+
+    public string Online { get; set; }
+
+    public string Degraded { get; set; }
+
+    public string PartialOutage { get; set; }
+
+    public string MajorOutage { get; set; }
+
+    public string Maintenance { get; set; }
+
+    public async Task Save()
+    {
+        
+    }
+}

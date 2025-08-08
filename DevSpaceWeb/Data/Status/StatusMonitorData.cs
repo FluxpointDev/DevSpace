@@ -12,6 +12,8 @@ public class StatusMonitorData : ITeamResource
 
     }
 
+    public StatusMonitorStatus Status { get; set; }
+
     public StatusMonitorType MonitorType { get; set; }
 
     public StatusMonitorFlag Flag { get; set; }
@@ -54,9 +56,13 @@ public class StatusMonitorState
     public bool IsDown { get; set; }
     public bool HasFailedPreviously { get; set; }
 }
+public enum StatusMonitorStatus
+{
+    Active, Maintenance, Disabled
+}
 public enum StatusMonitorType
 {
-    Ping, Http
+    Ping, Website, API
 }
 public enum StatusMonitorFlag
 {

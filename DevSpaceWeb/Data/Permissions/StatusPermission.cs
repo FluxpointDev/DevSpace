@@ -22,3 +22,14 @@ public enum StatusPagePermission : ulong
     DeletePageResource = 1L << 5,
     ManagePage = 1L << 6,
 }
+[Flags]
+public enum StatusIssuePermission : ulong
+{
+    ViewIssue = 1L << 0,
+    CreateIssueResource = 1L << 1,
+    IssueAdministrator = 1L << 2,
+    ViewPermissions = 1L << 3,
+    ManagePermissions = 1L << 4,
+    DeleteIssueResource = 1L << 5,
+    ManageIssue = 1L << 6,
+}

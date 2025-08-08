@@ -5,6 +5,7 @@
 <ActionBar>
     <RadzenButton class="actionbar-first" Variant="Variant.Outlined" Text="Enable" Click="@(() => { })" Icon="play_arrow" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || Member == null)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
     <RadzenButton Variant="Variant.Outlined" Text="Disable" Click="@(() => { })" Icon="pause" IconColor="@Colors.InfoDark" Disabled="@(!AnySelected || Member == null)" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" />
+    <RadzenButton Variant="Variant.Outlined" Text="Maintenance" Icon="notifications_active" Click="@(() => RunLogsAction(LogActivityType.Opened))" IconColor="@Colors.WarningDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Disabled="@(!AnySelected || IsLoading || Member == null)" />
     <RadzenButton class="actionbar-last" Variant="Variant.Outlined" Text="Delete" Icon="delete" Click="@(() => RunLogsAction(LogActivityType.Opened))" IconColor="@Colors.DangerDark" ButtonStyle="ButtonStyle.Base" Size="ButtonSize.Small" Disabled="@(!AnySelected || IsLoading || Member == null)" />
     <RadzenButton Variant="Variant.Filled" Text="Refresh" Icon="refresh" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Size="ButtonSize.Small" Click="@(() => { Grid.RefreshDataAsync(); })" Disabled="@(IsLoading)" />
     <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
@@ -144,6 +145,7 @@
             {
                 new ContextMenuItem() { Text = "Enable", Value = "enable", Icon = "play_arrow", Disabled = IsLoading || Member == null || !Member.HasStatusMonitorPermission(Team, item, StatusMonitorPermission.ManageMonitor) },
                 new ContextMenuItem() { Text = "Disable", Value = "disable", Icon = "pause", Disabled = IsLoading || Member == null || !Member.HasStatusMonitorPermission(Team, item, StatusMonitorPermission.ManageMonitor) },
+                new ContextMenuItem() { Text = "Maintenance", Value = "maintenance", Icon = "notifications_active", Disabled = IsLoading || Member == null || !Member.HasStatusMonitorPermission(Team, item, StatusMonitorPermission.ManageMonitor) },
                 new ContextMenuItem() { Text = "Delete", Value = "delete", Icon = "delete", IconColor = Colors.Danger, Disabled = IsLoading || Member == null || !Member.HasStatusMonitorPermission(Team, item, StatusMonitorPermission.ManageMonitor) }
             }, x => MenuItemClick(x, item));
     }
