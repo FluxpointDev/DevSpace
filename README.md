@@ -1,9 +1,29 @@
-## Dev Space
-Most developer tools can be clunky to use, needs a lot of ram or lacks basic features such as:
+<p align="center" style="margin-top: 120px">
+  <h3 align="center">Dev Space</h3>
+  <p align="center">
+    Manage your linux servers, websites, projects and other developer tools.
+    <br />
+    <br />
+    <a href="https://discord.gg/fluxpoint" target="_blank">Discord</a>
+    ·
+    <a href="https://app.revolt.chat/invite/J5Ras1J3" target="_blank">Revolt</a>
+    ·
+    <a href="https://www.patreon.com/FluxpointDev" target="_blank">Patreon</a>
+     ·
+    <a href="https://docs.fluxpoint.dev/devspace" target="_blank">Documentation</a>
+    <br />
+    <br />
+    <img align="center" src="https://github.com/user-attachments/assets/07931155-214e-48ec-beb3-7a02bf6653d6" height="400" >
+  </p>
+  
+</p>
+
+## Inspiration
+Some developer tools can be annoying to use, heavily paywalled or lacks basic features such as:
 - Sentry - Requires a minimum of 6GB ram and microservice hell.
 - Portainer - Very basic and confusing user access with features locked behind business that has limits.
 
-Dev Space aims to have more complete features and functionality without sacrificing ram usage or usability.
+Dev Space aims to have more complete features and functionality without sacrificing features or usability, you control the service and its limits.
 
 ---
 
@@ -12,8 +32,6 @@ Dev Space aims to have more complete features and functionality without sacrific
 Dev Space is an open source self-hostable dashboard that allows you to manage your linux servers, websites, projects and other developer tools.
 
 > Setup Dev Space on a linux server with 1GB ram: [Website Install](https://docs.fluxpoint.dev/devspace/guides/website-guides/install-dev-space-website)
-
-<img src="https://github.com/user-attachments/assets/07931155-214e-48ec-beb3-7a02bf6653d6" align="center" height="400" >
 
 ---
 
@@ -35,13 +53,9 @@ Pull requests are welcome if you have sufficient C# and/or asp.net blazor knowle
 
 ---
 
-### Support
+### Stats
 
-<a href="https://discord.gg/fluxpoint"><img src="https://fluxpoint.dev/img/icons/discord.webp" align="left" height="32" width="32" ></a>
-<a href="https://app.revolt.chat/invite/J5Ras1J3"><img src="https://fluxpoint.dev/img/icons/revolt.png" align="left" height="32" width="32" ></a>
-<a href="https://www.patreon.com/FluxpointDev"><img src="https://fluxpoint.dev/img/icons/patreon.webp" align="left" height="32" width="32" ></a>
-<br /><br />
-Join our Discord Server or support us on Patreon!
+![Alt](https://repobeats.axiom.co/api/embed/4ccfcc533b56f14e464fc8bb9864ad53dba9114f.svg "Repobeats analytics image")
 
 ---
 
