@@ -4,45 +4,45 @@
 @inject IJSRuntime JS
 
 <div class="nav-list nav-list-sub">
-    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
+    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
         <div class="nav-list-header">
             <iconify-icon icon="mdi:rocket" style="color: #a5a5a5 !important;"></iconify-icon>
-            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.App?.Name</h5>
+            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Resource?.Name</h5>
         </div>
     </RadzenLink>
 
     <RadzenPanelMenu>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:home"></iconify-icon>
                 <p>Home</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/install")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.Resource?.VanityUrl + "/install")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:plus-circle"></iconify-icon>
                 <p>Install</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/config")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.Resource?.VanityUrl + "/config")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:playlist-edit"></iconify-icon>
                 <p>Config</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/commands")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.Resource?.VanityUrl + "/commands")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:slash-forward-box"></iconify-icon>
                 <p>Commands</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/interactions")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.Resource?.VanityUrl + "/interactions")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:gesture-touch-hold"></iconify-icon>
                 <p>Interactions</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/logs")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.Resource?.VanityUrl + "/logs")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:format-list-bulleted"></iconify-icon>
                 <p>Logs</p>
@@ -59,11 +59,10 @@
     public bool StateChange { get; set; }
 
     public TeamData? Team => Session.Selected.Team?.Data;
-    public AppData? App => Session.Selected.App;
+    public AppData? App => Session.Selected.Resource as AppData;
     public TeamMemberData? Member => Session.Selected.Member;
 
     void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Close", Icon = "close"  },
                 new ContextMenuItem() { Text = "Copy App ID", Icon = "content_copy" }
          }, OnMenuItemClick);
 
@@ -71,14 +70,8 @@
     {
         switch (arg.Text)
         {
-            case "Close":
-                if (Session.Selected.Team != null && Session.Selected.Team.App != null)
-                    Session.Selected.Team.App.IsVisible = false;
-
-                Session.TriggerNavMenuChange();
-                break;
             case "Copy App ID":
-                _ = JS.CopyTextAsync(Session.Selected.App?.Id);
+                _ = JS.CopyTextAsync(Session.Selected.Resource?.Id);
                 break;
         }
         ContextMenuService.Close();

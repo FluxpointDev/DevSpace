@@ -13,8 +13,8 @@
     </div>
     <RadzenBreadCrumb class="mt-2">
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/templates")" Text="Templates" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl)" Text="@Session.Selected.Team?.Resource?.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/templates")" Text="Templates" />
         <RadzenBreadCrumbItem Text="Custom" />
     </RadzenBreadCrumb>
     @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.UseCustomTemplates))
@@ -36,7 +36,7 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
 
     public async Task Import()
     {

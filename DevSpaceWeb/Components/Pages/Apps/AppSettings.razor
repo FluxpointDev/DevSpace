@@ -11,13 +11,13 @@
     </div>
     <br />
     <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/settings")">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.Resource?.VanityUrl + "/settings")">
             <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasAppPermission(Team, App, AppPermission.ManageApp) ? "" : " settings-item-disabled"))">
                 <iconify-icon icon="mdi:gear"></iconify-icon>
                 <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.App?.VanityUrl + "/permissions")">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/" + Session.Selected.Team?.Resource?.VanityUrl + "/permissions")">
             <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasAppPermission(Team, App, AppPermission.ViewPermissions) ? "" : " settings-item-disabled"))">
                 <iconify-icon icon="mdi:shield-key"></iconify-icon>
                 <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
@@ -84,7 +84,7 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public AppData? App => Session.Selected.App;
+    public AppData? App => Session.Selected.Resource as AppData;
 
     public string? OwnerUser { get; set; }
 

@@ -16,7 +16,7 @@
             <RadzenText TextStyle="TextStyle.H6">Volume Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes")" Text="Volumes" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/volumes")" Text="Volumes" />
             <RadzenBreadCrumbItem Text="@VolumeId" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -41,7 +41,7 @@ else if (Volume == null)
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes")" Text="Volumes" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/volumes")" Text="Volumes" />
             <RadzenBreadCrumbItem Text="@VolumeId" />
         </RadzenBreadCrumb>
         @if (IsActionLoading)
@@ -78,7 +78,7 @@ else
             <RadzenText TextStyle="TextStyle.H6">Volume Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes")" Text="Volumes" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/volumes")" Text="Volumes" />
             @if (Volume.ContainersList != null && Volume.ContainersList.Any() && Volume.ContainersList.First().Value.Name == "registry")
             {
                 <RadzenBreadCrumbItem Text="docker_registry" />
@@ -123,7 +123,7 @@ else
                     <RadzenTableCell>
                         @if (!string.IsNullOrEmpty(Volume.Stack))
                         {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + Volume.Stack)" Text="@Volume.Stack" />
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks/" + Volume.Stack)" Text="@Volume.Stack" />
                         }
                     </RadzenTableCell>
                 </RadzenTableRow>
@@ -245,7 +245,7 @@ else
             <Columns>
                 <RadzenDataGridColumn Title="Name" Width="@GridWidth.Name">
                     <Template>
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + context.Key)" Text="@context.Value.Name" />
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/containers/" + context.Key)" Text="@context.Value.Name" />
                     </Template>
                 </RadzenDataGridColumn>
                 <RadzenDataGridColumn Width="120px">
@@ -277,7 +277,7 @@ else
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
 
     [Parameter]
     public required string VolumeId { get; set; }

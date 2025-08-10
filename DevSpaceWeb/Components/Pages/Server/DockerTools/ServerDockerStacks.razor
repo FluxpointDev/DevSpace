@@ -30,7 +30,7 @@
     </div>
     <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important; margin-bottom: 10px;">
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl)" Text="@Session.Selected.Team?.Resource?.Data.Name" />
         <RadzenBreadCrumbItem Text="Stacks" />
     </RadzenBreadCrumb>
     @if (Member == null || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
@@ -45,7 +45,7 @@
     {
         <div class="dash-box-content">
             <ActionBar>
-                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/build")"><RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))" /></a>
+                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks/build")"><RadzenButton Variant="Variant.Filled" Text="Create Stack" Icon="add" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))" /></a>
                 <RadzenButton Variant="Variant.Filled" Click="@ImportStack" Text="Import Stack" Icon="publish" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Size="ButtonSize.Small" Disabled="@(Member == null || Team == null || Server == null || Program.IsPreviewMode || !Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.CreateStacks))" />
             </ActionBar>
             <div class="mt-2">
@@ -95,11 +95,11 @@
                     <Template>
                         @if (string.IsNullOrEmpty(context.Id))
                         {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + context.Name)">@context.Name</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks/" + context.Name)">@context.Name</RadzenLink>
                         }
                         else
                         {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + context.Id)">@context.Name</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks/" + context.Id)">@context.Name</RadzenLink>
                         }
                     </Template>
                 </RadzenDataGridColumn>
@@ -161,7 +161,7 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
 
     SocketResponse<List<DockerStackInfo>?>? StacksResponse = null;
 
@@ -326,13 +326,13 @@
                     if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ViewStacks))
                         return;
 
-                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + item.Id);
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks/" + item.Id);
                     break;
                 case "edit":
                     if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))
                         return;
 
-                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + item.Id + "/edit");
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks/" + item.Id + "/edit");
                     break;
                 case "remove":
                     if (!Member.HasDockerContainerPermission(Team, Server, DockerContainerPermission.ManageStacks))

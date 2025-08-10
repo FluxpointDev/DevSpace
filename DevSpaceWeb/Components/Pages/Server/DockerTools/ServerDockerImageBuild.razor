@@ -19,7 +19,7 @@
         }
     </div>
     <RadzenBreadCrumb class="mt-2">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images")" Text="Images" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/images")" Text="Images" />
         <RadzenBreadCrumbItem Text="Build" />
     </RadzenBreadCrumb>
     @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ManageImages))
@@ -119,7 +119,7 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
 
     public CreateImageType SelectedType { get; set; } = CreateImageType.Editor;
 
@@ -246,6 +246,6 @@
             return;
         }
 
-        Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images");
+        Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/images");
     }
 }

@@ -10,31 +10,31 @@
     </div>
     <br />
     <RadzenStack Gap="10px" JustifyContent="JustifyContent.Left" Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap">
-        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/host")">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/host")">
             <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ViewHostInfo) ? "" : " settings-item-disabled"))">
                 <iconify-icon icon="mdi:information"></iconify-icon>
                 <RadzenText TextStyle="TextStyle.H6">Host Info</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/settings")">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/settings")">
             <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ManageServer) ? "" : " settings-item-disabled"))">
                 <iconify-icon icon="mdi:gear"></iconify-icon>
                 <RadzenText TextStyle="TextStyle.H6">Settings</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/permissions")">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/permissions")">
             <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ViewPermissions) ? "" : " settings-item-disabled"))">
                 <iconify-icon icon="mdi:shield-key"></iconify-icon>
                 <RadzenText TextStyle="TextStyle.H6">Permissions</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/connection")">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/connection")">
             <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ManageConnection) ? "" : " settings-item-disabled"))">
                 <iconify-icon icon="mdi:lightning-bolt"></iconify-icon>
                 <RadzenText TextStyle="TextStyle.H6">Connection</RadzenText>
             </RadzenCard>
         </a>
-        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/options")">
+        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/options")">
             <RadzenCard class="@("rz-p-1 rz-text-align-center settings-item" + (Member != null && Member.HasServerPermission(Team, Server, ServerPermission.ServerAdministrator) ? "" : " settings-item-disabled"))">
                 <iconify-icon icon="mdi:mixer-settings"></iconify-icon>
                 <RadzenText TextStyle="TextStyle.H6">Agent Options</RadzenText>
@@ -105,7 +105,7 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
 
     public string? OwnerUser { get; set; }
 

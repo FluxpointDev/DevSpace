@@ -21,7 +21,7 @@
             <RadzenText TextStyle="TextStyle.H6">Container Info</RadzenText>
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/containers")" Text="Containers" />
             <RadzenBreadCrumbItem Text="@ContainerId" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -46,7 +46,7 @@ else if (Container == null)
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/containers")" Text="Containers" />
             <RadzenBreadCrumbItem Text="@ContainerId" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -74,7 +74,7 @@ else
             }
         </div>
         <RadzenBreadCrumb class="mt-2">
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers")" Text="Containers" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/containers")" Text="Containers" />
             <RadzenBreadCrumbItem Text="@Container.Name.Substring(1)" />
         </RadzenBreadCrumb>
         <br />
@@ -201,7 +201,7 @@ else
                         Image
                     </RadzenTableCell>
                     <RadzenTableCell>
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/images/" + Container.Image)">@Container.Config.Image</RadzenLink>
+                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/images/" + Container.Image)">@Container.Config.Image</RadzenLink>
                     </RadzenTableCell>
                 </RadzenTableRow>
 
@@ -237,11 +237,11 @@ else
 
                 <RadzenTableRow>
                     <RadzenStack Orientation="Orientation.Horizontal" Gap="6px" class="mt-2">
-                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/logs")"><RadzenButton Icon="description" Variant="Variant.Text" Text="Logs" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewLogs)" /></a>
-                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/stats")"><RadzenButton Icon="bar_chart_4_bars" Variant="Variant.Text" Text="Stats" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewStats)" /></a>
-                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/changes")"><RadzenButton Icon="topic" Variant="Variant.Text" Text="Changes" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewChanges)" /></a>
-                        @* <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/console")"><RadzenButton Icon="terminal" Variant="Variant.Text" Text="Console" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanUseConsole)" /></a> *@
-                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + ContainerId + "/inspect")"><RadzenButton Icon="info" Variant="Variant.Text" Text="Inspect" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanInspect)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/containers/" + ContainerId + "/logs")"><RadzenButton Icon="description" Variant="Variant.Text" Text="Logs" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewLogs)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/containers/" + ContainerId + "/stats")"><RadzenButton Icon="bar_chart_4_bars" Variant="Variant.Text" Text="Stats" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewStats)" /></a>
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/containers/" + ContainerId + "/changes")"><RadzenButton Icon="topic" Variant="Variant.Text" Text="Changes" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanViewChanges)" /></a>
+                        @* <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/containers/" + ContainerId + "/console")"><RadzenButton Icon="terminal" Variant="Variant.Text" Text="Console" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanUseConsole)" /></a> *@
+                        <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/containers/" + ContainerId + "/inspect")"><RadzenButton Icon="info" Variant="Variant.Text" Text="Inspect" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Disabled="@(!CanInspect)" /></a>
                     </RadzenStack>
                 </RadzenTableRow>
             </RadzenTableBody>
@@ -422,7 +422,7 @@ else
                                         Network
                                     </RadzenTableCell>
                                     <RadzenTableCell>
-                                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + Container.HostConfig.NetworkMode)">@Container.HostConfig.NetworkMode</RadzenLink>
+                                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/networks/" + Container.HostConfig.NetworkMode)">@Container.HostConfig.NetworkMode</RadzenLink>
                                     </RadzenTableCell>
                                 </RadzenTableRow>
 
@@ -809,11 +809,11 @@ else
                             {
                                 @if (Container.Name == "/registry")
                                 {
-                                    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">docker_registry</RadzenLink>
+                                    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/volumes/" + context.Name)">docker_registry</RadzenLink>
                                 }
                                 else
                                 {
-                                    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                                    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
                                 }
                             }
                             else
@@ -861,7 +861,7 @@ else
                 <Columns>
                     <RadzenDataGridColumn Title="Name" Width="240px" Frozen="true" Filterable="false">
                         <Template>
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/networks/" + (string.IsNullOrEmpty(context.Value.NetworkID) ? context.Key : context.Value.NetworkID))">@context.Key</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/networks/" + (string.IsNullOrEmpty(context.Value.NetworkID) ? context.Key : context.Value.NetworkID))">@context.Key</RadzenLink>
                             @if (DockerExtensions.IsNetworkSystem(context.Key))
                             {
                                 <RadzenBadge Shade="Shade.Dark" IsPill="true" BadgeStyle="BadgeStyle.Info" Text="System" class="ml-2" />
@@ -999,7 +999,7 @@ else
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
 
     [Parameter]
     public string? ContainerId { get; set; }
@@ -1494,7 +1494,7 @@ else
         SocketResponse<CreateContainerResponse?> Result = await Server.RunJsonAsync<CreateContainerResponse, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, ContainerId, containerType: ControlContainerType.Recreate));
         if (Result.IsSuccess && Result.Data != null)
         {
-            Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/containers/" + Result.Data.ID);
+            Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/containers/" + Result.Data.ID);
         }
     }
 

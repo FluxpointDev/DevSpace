@@ -23,8 +23,8 @@
         <RadzenText TextStyle="TextStyle.H6">Docker Stack Edit</RadzenText>
     </div>
     <RadzenBreadCrumb class="mt-2">
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks")" Text="Stacks" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId)" Text="@(StackName ?? StackId)" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks")" Text="Stacks" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks/" + StackId)" Text="@(StackName ?? StackId)" />
         <RadzenBreadCrumbItem Text="Edit" />
     </RadzenBreadCrumb>
     <br />
@@ -64,7 +64,7 @@
             <h6>Stack Created</h6>
             <p>Your containers are now running click the button to show the stack.</p>
             <br />
-            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId)"><RadzenButton Text="View Stack" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+            <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks/" + StackId)"><RadzenButton Text="View Stack" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
             <br />
         }
         else if (Failed)
@@ -80,7 +80,7 @@
                 <h6>Start Failed</h6>
                 <p>One or more of your containers failed to start.</p>
                 <br />
-                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
+                <a href="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks/" + StackId + "/logs")"><RadzenButton Text="View Logs" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" /></a>
             }
             <br />
         }
@@ -127,7 +127,7 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
 
 
     public bool IsLoading = true;

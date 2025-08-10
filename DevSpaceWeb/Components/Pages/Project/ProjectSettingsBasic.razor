@@ -12,7 +12,7 @@
     </div>
     <RadzenBreadCrumb class="mt-2">
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects")" Text="Projects" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl)" Text="@Session.Selected.Team?.Project?.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Resource?.VanityUrl)" Text="@Session.Selected.Team?.Resource?.Data.Name" />
         <RadzenBreadCrumbItem Text="Settings" />
     </RadzenBreadCrumb>
     @if (Member == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.ManageProject))
@@ -38,7 +38,7 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ProjectData? Project => Session.Selected.Project;
+    public ProjectData? Project => Session.Selected.Resource as ProjectData;
 
     protected override async Task OnInitializedAsync()
     {

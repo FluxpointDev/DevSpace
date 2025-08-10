@@ -162,15 +162,6 @@
     <a href="https://discord.gg/fluxpoint" target="_blank"></a>
 </div>
 
-@if (!string.IsNullOrEmpty(BackgroundUrl))
-{
-    <style>
-        html {
-        background-image: url("@BackgroundUrl") !important;
-        }
-    </style>
-}
-
 
 @code {
     [Parameter]
@@ -190,8 +181,6 @@
     public AuthenticationState State { get; set; }
 
     public SelectedSessionData Selected = new SelectedSessionData();
-
-    public string BackgroundUrl { get; set; } = Static.DefaultBackgroundUrl;
 
     public int UserDateOffset { get; set; }
     public DateFormatLang UserDateFormat { get; set; } = DateFormatLang.MDY_Slash;
@@ -438,9 +427,6 @@
                     SessionError = SessionErrorType.AccountDisabled;
                     return;
                 }
-
-                if (User.Background.Id.HasValue)
-                    BackgroundUrl = User.Background.Url("webp");
 
                 string? SessionId = null;
                 try

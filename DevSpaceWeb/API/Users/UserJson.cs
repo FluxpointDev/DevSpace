@@ -18,7 +18,6 @@ public class UserJson
     public string username;
     public string? displayname;
     public string? avatar_url;
-    public string? background_url;
     public bool is_managed;
     public DateTime created_at;
 }

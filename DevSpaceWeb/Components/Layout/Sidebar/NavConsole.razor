@@ -4,42 +4,42 @@
 @inject IJSRuntime JS
 
 <div class="nav-list nav-list-sub">
-    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
+    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
     <div class="nav-list-header">
             <iconify-icon icon="mdi:console" style="color: #a5a5a5 !important;"></iconify-icon>
-            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Console?.Name</h5>
+            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Resource?.Name</h5>
     </div>
     </RadzenLink>
     <RadzenPanelMenu>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:home"></iconify-icon>
                 <p>Home</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/players")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Resource?.VanityUrl + "/players")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:account"></iconify-icon>
                 <p>Players</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/bans")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Resource?.VanityUrl + "/bans")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:court-hammer"></iconify-icon>
                 <p>Bans</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/console")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Resource?.VanityUrl + "/console")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:console-line"></iconify-icon>
                 <p>Console</p>
             </Template>
         </RadzenPanelMenuItem>
-        @switch (Session.Selected.Team?.Console?.Data.Type)
+        @switch (Console?.Type)
         {
             case ConsoleType.Battleye:
                 {
-                    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl + "/connections")" Match="NavLinkMatch.All">
+                    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Resource?.VanityUrl + "/connections")" Match="NavLinkMatch.All">
                         <Template>
                             <iconify-icon icon="mdi:lightning-bolt"></iconify-icon>
                             <p>Connections</p>
@@ -59,11 +59,10 @@
     public bool StateChange { get; set; }
 
     public TeamData? Team => Session.Selected.Team?.Data;
-    public ConsoleData? Console => Session.Selected.Console;
+    public ConsoleData? Console => Session.Selected.Resource as ConsoleData;
     public TeamMemberData? Member => Session.Selected.Member;
 
     void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Close", Icon = "close"  },
                 new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ManageConsole) },
                 new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPermissions) },
                 new ContextMenuItem(){ Text = "Copy Console ID", Icon = "content_copy" }
@@ -73,20 +72,14 @@
     {
         switch (arg.Text)
         {
-            case "Close":
-                if (Session.Selected.Team != null && Session.Selected.Team.Console != null)
-                    Session.Selected.Team.Console.IsVisible = false;
-
-                Session.TriggerNavMenuChange();
-                break;
             case "Settings":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected?.Console?.VanityUrl + "/settings");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected?.Resource?.VanityUrl + "/settings");
                 break;
             case "Permissions":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected?.Console?.VanityUrl + "/permissions");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected?.Resource?.VanityUrl + "/permissions");
                 break;
             case "Copy Console ID":
-                _ = JS.CopyTextAsync(Session.Selected.Console?.Id);
+                _ = JS.CopyTextAsync(Session.Selected.Resource?.Id);
                 break;
         }
         ContextMenuService.Close();

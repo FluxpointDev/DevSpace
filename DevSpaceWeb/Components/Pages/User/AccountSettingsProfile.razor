@@ -212,8 +212,7 @@
         </RadzenText>
     }
     <br />
-    <RadzenButton Text="Change Background" ButtonStyle="ButtonStyle.Info" Shade="Shade.Dark" Click="@ChangeBackgroundDialog" Disabled="@(AuthUser == null)" />
-    <RadzenButton Click="@RemoveBackground" Variant="Variant.Text" ButtonStyle="ButtonStyle.Info" Size="ButtonSize.Small" Text="Remove Background" Disabled="@(AuthUser == null || !AuthUser.BackgroundId.HasValue)" />
+
 </div>
 
 <style>
@@ -563,51 +562,6 @@
         await Email.SendAccountConfirm(AuthUser, (NavigationManager.BaseUri + "auth/account/confirmEmail?token=" + Code));
     }
 
-    public async Task ChangeBackgroundDialog()
-    {
-        if (Program.IsPreviewMode)
-        {
-            await Dialogs.ShowDynamicFormAsync<AccountBackgroundModel>("Change Background", new AccountBackgroundModel() { BackgroundUrl = Session.BackgroundUrl }, (AccountBackgroundModel data) =>
-            {
-                Session.BackgroundUrl = data.BackgroundUrl;
-                Session.TriggerChange();
-                return null;
-            });
-        }
-        else
-        {
-            await Dialogs.OpenAsync<ChangeAccountBackgroundDialog>("Change Background");
-        }
-    }
 
-    public async Task RemoveBackground()
-    {
-        bool Confirm = await Dialogs.ShowConfirmAsync("Remove Background", "Are you sure you want to remove your background?", "Confirm", ButtonStyle.Success);
 
-        if (!Confirm)
-            return;
-
-        AuthUser = await Session.GetCurrentUserAsync();
-        if (AuthUser == null)
-            return;
-
-        if (!AuthUser.BackgroundId.HasValue)
-            return;
-
-        Guid? CurrentBackground = AuthUser.BackgroundId.GetValueOrDefault();
-
-        AuthUser.BackgroundId = null;
-
-        IdentityResult Result = await UserManager.UpdateAsync(AuthUser);
-        if (Result.Succeeded)
-        {
-            try
-            {
-                File.Delete(new FileResource("Background", AuthUser.ResourceId, CurrentBackground).Path("webp"));
-            }
-            catch { }
-            Session.BackgroundUrl = Static.DefaultBackgroundUrl;
-            Session.TriggerChange();
-        }
-    }
 }

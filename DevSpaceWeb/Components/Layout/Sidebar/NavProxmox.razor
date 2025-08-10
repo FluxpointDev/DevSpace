@@ -3,36 +3,36 @@
 @inject IJSRuntime JS
 
 <div class="nav-list nav-list-sub">
-    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
+    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
         <div class="nav-list-header">
             <iconify-icon icon="mdi:network-pos" style="color: #a5a5a5 !important;"></iconify-icon>
-            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Server?.Name</h5>
+            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Resource?.Name</h5>
         </div>
     </RadzenLink>
 
     <RadzenPanelMenu>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:home"></iconify-icon>
                 <p>Home</p>
             </Template>
         </RadzenPanelMenuItem>
 
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:cloud-alert"></iconify-icon>
                 <p>Monitors</p>
             </Template>
         </RadzenPanelMenuItem>
 
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:list-status"></iconify-icon>
                 <p>Pages</p>
             </Template>
         </RadzenPanelMenuItem>
 
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:message-notification"></iconify-icon>
                 <p>Alerts</p>
@@ -47,11 +47,10 @@
     private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
     public TeamMemberData? Member => Session.Selected.Member;
 
     void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Close", Icon = "close"  },
                 new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ManageServer) },
                 new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasServerPermission(Team, Server, ServerPermission.ViewPermissions) },
                 new ContextMenuItem() { Text = "Copy Status ID", Icon = "content_copy" }
@@ -61,20 +60,14 @@
     {
         switch (arg.Text)
         {
-            case "Close":
-                if (Session.Selected.Team != null && Session.Selected.Team.Server != null)
-                    Session.Selected.Team.Server.IsVisible = false;
-
-                Session.TriggerNavMenuChange();
-                break;
             case "Settings":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/settings");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/settings");
                 break;
             case "Permissions":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/permissions");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/permissions");
                 break;
             case "Copy Server ID":
-                _ = JS.CopyTextAsync(Session.Selected.Server?.Id);
+                _ = JS.CopyTextAsync(Session.Selected.Resource?.Id);
                 break;
         }
         ContextMenuService.Close();

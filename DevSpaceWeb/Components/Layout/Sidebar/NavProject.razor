@@ -3,20 +3,20 @@
 @inject IJSRuntime JS
 
 <div class="nav-list nav-list-sub">
-    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
+    <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" ContextMenu="@((arg) => ShowContextMenuWithContent(arg))">
         <div class="nav-list-header">
             <iconify-icon icon="mdi:lightbulb" style="color: #a5a5a5 !important;"></iconify-icon>
-            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Project?.Name</h5>
+            <h5 style="color: var(--rz-menu-top-item-color) !important; text-decoration: none !important; height: 40px;">@Session.Selected.Resource?.Name</h5>
         </div>
     </RadzenLink>
     <RadzenPanelMenu>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/home")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Resource?.VanityUrl + "/home")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:home"></iconify-icon>
                 <p>Home</p>
             </Template>
         </RadzenPanelMenuItem>
-        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/logs")" Match="NavLinkMatch.All">
+        <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Resource?.VanityUrl + "/logs")" Match="NavLinkMatch.All">
             <Template>
                 <iconify-icon icon="mdi:warning"></iconify-icon>
                 <p>Logs</p>
@@ -34,11 +34,10 @@
     public bool StateChange { get; set; }
 
     public TeamData? Team => Session.Selected.Team?.Data;
-    public ProjectData? Project => Session.Selected.Project;
+    public ProjectData? Project => Session.Selected.Resource as ProjectData;
     public TeamMemberData? Member => Session.Selected.Member;
 
     void ShowContextMenuWithContent(MouseEventArgs args) => ContextMenuService.Open(args, new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Close", Icon = "close"  },
                 new ContextMenuItem(){ Text = "Settings", Icon = "settings", Disabled = Member == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.ManageProject) },
                 new ContextMenuItem(){ Text = "Permissions", Icon = "key", Disabled = Member == null || !Member.HasProjectPermission(Team, Project, ProjectPermission.ViewPermissions) },
                 new ContextMenuItem() { Text = "Copy Project ID", Icon = "content_copy" }
@@ -48,20 +47,14 @@
     {
         switch (arg.Text)
         {
-            case "Close":
-                if (Session.Selected.Team != null && Session.Selected.Team.Project != null)
-                    Session.Selected.Team.Project.IsVisible = false;
-
-                Session.TriggerNavMenuChange();
-                break;
             case "Settings":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/settings");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Resource?.VanityUrl + "/settings");
                 break;
             case "Permissions":
-                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Project?.VanityUrl + "/permissions");
+                Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/" + Session.Selected.Team?.Resource?.VanityUrl + "/permissions");
                 break;
             case "Copy Project ID":
-                _ = JS.CopyTextAsync(Session.Selected.Project?.Id);
+                _ = JS.CopyTextAsync(Session.Selected.Resource?.Id);
                 break;
         }
         ContextMenuService.Close();

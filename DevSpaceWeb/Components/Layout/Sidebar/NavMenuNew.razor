@@ -1,0 +1,120 @@
+﻿@implements IDisposable
+
+<RadzenStack Orientation="Orientation.Horizontal" Gap="0px">
+    <div id="sidebar-main">
+         <RadzenPanelMenu>
+            @if (Session.Selected.Team != null)
+            {
+                <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl)" Match="NavLinkMatch.All">
+                    <Template>
+                    <img src="@Session.Selected.Team?.Data.GetIconOrDefault()" style="border-radius: 20%;" />
+                </Template>
+            </RadzenPanelMenuItem>
+            }
+            <RadzenPanelMenuItem Path="@("/")" Match="NavLinkMatch.All">
+                <Template>
+                    <iconify-icon icon="mdi:view-dashboard"></iconify-icon>
+                    <p>Dashboard</p>
+                </Template>
+            </RadzenPanelMenuItem>
+            @if (Session.Selected.Team != null)
+            {
+                <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/apps/")" Match="NavLinkMatch.Prefix">
+                    <Template>
+                        <iconify-icon icon="mdi:rocket-launch"></iconify-icon>
+                        <p>Apps</p>
+                    </Template>
+                </RadzenPanelMenuItem>
+                <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/")" Match="NavLinkMatch.Prefix">
+                    <Template>
+                        <iconify-icon icon="mdi:server"></iconify-icon>
+                        <p>Servers</p>
+                    </Template>
+                </RadzenPanelMenuItem>
+                <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/")" Match="NavLinkMatch.Prefix">
+                    <Template>
+                        <iconify-icon icon="mdi:console-line"></iconify-icon>
+                        <p>Consoles</p>
+                    </Template>
+                </RadzenPanelMenuItem>
+                <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/logs/")" Match="NavLinkMatch.Prefix">
+                    <Template>
+                        <iconify-icon icon="mdi:warning"></iconify-icon>
+                        <p>Logs</p>
+                    </Template>
+                </RadzenPanelMenuItem>
+
+                @if (Program.IsDevMode)
+                {
+                    <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/status/")" Match="NavLinkMatch.Prefix">
+                        <Template>
+                            <iconify-icon icon="mdi:information"></iconify-icon>
+                            <p>Status</p>
+                        </Template>
+                    </RadzenPanelMenuItem>
+                }
+                <RadzenPanelMenuItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/projects/")" Match="NavLinkMatch.Prefix">
+                    <Template>
+                    <iconify-icon icon="mdi:lightbulb"></iconify-icon>
+                    <p>Projects</p>
+                </Template>
+            </RadzenPanelMenuItem>
+            }
+        </RadzenPanelMenu>
+    </div>
+    <div id="sidebar-nav">
+        @if (Session.Selected.Team == null)
+        {
+            
+        }
+        else
+        {
+            <h5 style="vertical-align: center;">@Session.Selected.Team?.Data.Name</h5>
+        @if (Session.Selected.Team?.Resource != null && Session.Selected.Team.Resource.Data != null)
+        {
+            
+            switch (Session.Selected.Team.Resource.Data.ResourceType)
+            {
+                case ResourceType.App:
+                    <NavApp></NavApp>
+                    break;
+                case ResourceType.Server:
+                    <NavServer></NavServer>
+                    break;
+                case ResourceType.Console:
+                    <NavConsole></NavConsole>
+                    break;
+                case ResourceType.StatusMonitor:
+                    <NavStatus></NavStatus>
+                    break;
+                case ResourceType.Project:
+                    <NavProject></NavProject>
+                    break;
+            }
+        }
+        }
+    </div>
+</RadzenStack>
+
+@code {
+    [CascadingParameter]
+    private SessionProvider Session { get; set; } = null!;
+
+    public bool StateChange { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        Session.EventNavMenuChange += UpdateState;
+    }
+
+    void IDisposable.Dispose()
+    {
+        Session.EventNavMenuChange -= UpdateState;
+    }
+
+    public void UpdateState(object? sender, EventArgs e)
+    {
+        StateChange = !StateChange;
+        StateHasChanged();
+    }
+}

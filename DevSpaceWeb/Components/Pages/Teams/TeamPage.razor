@@ -535,11 +535,11 @@ else
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public AppData? App => Session.Selected.App;
-    public ServerData? Server => Session.Selected.Server;
-    public ProjectData? Project => Session.Selected.Project;
-    public ConsoleData? Console => Session.Selected.Console;
-    public WebsiteData? Website => Session.Selected.Website;
+    public AppData? App => Session.Selected.Resource as AppData;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
+    public ProjectData? Project => Session.Selected.Resource as ProjectData;
+    public ConsoleData? Console => Session.Selected.Resource as ConsoleData;
+    public WebsiteData? Website => Session.Selected.Resource as WebsiteData;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -590,12 +590,12 @@ else
                                     }
                                 }
 
-                                if (GotApp != null && (Session.Selected.App == null || !Session.Selected.Team.App.IsVisible || Session.Selected.App.Id != GotApp.Id))
+                                if (GotApp != null && (Session.Selected.Resource == null || Session.Selected.Resource.ResourceType != ResourceType.App || Session.Selected.Resource.Id != GotApp.Id))
                                 {
                                     if (Member.TeamId == GotApp.TeamId && Member.HasAppPermission(Team, GotApp, AppPermission.ViewApp))
-                                        Session.Selected.Team.App = new SelectedAppData(GotApp);
+                                        Session.Selected.Team.Resource = new SelectedResourceData(GotApp);
                                     else
-                                        Session.Selected.Team.App = null;
+                                        Session.Selected.Team.Resource = null;
 
                                     UpdateNav = true;
                                 }
@@ -615,12 +615,12 @@ else
                                     }
                                 }
 
-                                if (GotServer != null && (Session.Selected.Server == null || !Session.Selected.Team.Server.IsVisible || Session.Selected.Server.Id != GotServer.Id))
+                                if (GotServer != null && (Session.Selected.Resource == null || Session.Selected.Resource.ResourceType != ResourceType.Server || Session.Selected.Resource.Id != GotServer.Id))
                                 {
                                     if (Member.TeamId == GotServer.TeamId && Member.HasServerPermission(Team, GotServer, ServerPermission.ViewServer))
-                                        Session.Selected.Team.Server = new SelectedServerData(GotServer);
+                                        Session.Selected.Team.Resource = new SelectedResourceData(GotServer);
                                     else
-                                        Session.Selected.Team.Server = null;
+                                        Session.Selected.Team.Resource = null;
 
                                     UpdateNav = true;
                                 }
@@ -641,12 +641,12 @@ else
                                 }
 
 
-                                if (GotConsole != null && (Session.Selected.Console == null || !Session.Selected.Team.Console.IsVisible || Session.Selected.Console.Id != GotConsole.Id))
+                                if (GotConsole != null && (Session.Selected.Resource == null || Session.Selected.Resource.ResourceType != ResourceType.Console || Session.Selected.Resource.Id != GotConsole.Id))
                                 {
                                     if (Member.TeamId == GotConsole.TeamId && Member.HasConsolePermission(Team, GotConsole, ConsolePermission.ViewConsole))
-                                        Session.Selected.Team.Console = new SelectedConsoleData(GotConsole);
+                                        Session.Selected.Team.Resource = new SelectedResourceData(GotConsole);
                                     else
-                                        Session.Selected.Team.Console = null;
+                                        Session.Selected.Team.Resource = null;
 
                                     UpdateNav = true;
                                 }
@@ -667,12 +667,12 @@ else
                                 }
 
 
-                                if (GotProject != null && (Session.Selected.Project == null || !Session.Selected.Team.Project.IsVisible || Session.Selected.Project.Id != GotProject.Id))
+                                if (GotProject != null && (Session.Selected.Resource == null || Session.Selected.Resource.ResourceType != ResourceType.Project || Session.Selected.Resource.Id != GotProject.Id))
                                 {
                                     if (Member.TeamId == GotProject.TeamId && Member.HasProjectPermission(Team, GotProject, ProjectPermission.ViewProject))
-                                        Session.Selected.Team.Project = new SelectedProjectData(GotProject);
+                                        Session.Selected.Team.Resource = new SelectedResourceData(GotProject);
                                     else
-                                        Session.Selected.Team.Project = null;
+                                        Session.Selected.Team.Resource = null;
 
                                     UpdateNav = true;
                                 }
@@ -692,13 +692,12 @@ else
                                     }
                                 }
 
-                                if (GotWebsite != null && (Session.Selected.Website == null || !Session.Selected.Team.Website.IsVisible || Session.Selected.Website.Id != GotWebsite.Id))
+                                if (GotWebsite != null && (Session.Selected.Resource == null || Session.Selected.Resource.ResourceType != ResourceType.Website || Session.Selected.Resource.Id != GotWebsite.Id))
                                 {
                                     if (Member.TeamId == GotWebsite.TeamId && Member.HasWebsitePermission(Team, GotWebsite, WebsitePermission.ViewWebsite))
-                                        Session.Selected.Team.Website = new SelectedWebsiteData(GotWebsite);
+                                        Session.Selected.Team.Resource = new SelectedResourceData(GotWebsite);
                                     else
-                                        Session.Selected.Team.Website = null;
-
+                                        Session.Selected.Team.Resource = null;
 
                                     UpdateNav = true;
                                 }

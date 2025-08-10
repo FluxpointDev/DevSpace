@@ -23,7 +23,7 @@
     </div>
     <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important; margin-bottom: 10px;">
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl)" Text="@Session.Selected.Team?.Resource?.Data.Name" />
         <RadzenBreadCrumbItem Text="Registry" />
     </RadzenBreadCrumb>
     @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewRegistries))
@@ -158,7 +158,7 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
 
     IQueryable<DockerRegistry>? employees;
     public int count = 0;

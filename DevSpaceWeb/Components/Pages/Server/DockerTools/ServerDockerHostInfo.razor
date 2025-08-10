@@ -17,7 +17,7 @@
         </div>
         <RadzenBreadCrumb class="mt-2">
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl)" Text="@Session.Selected.Team?.Resource?.Data.Name" />
             <RadzenBreadCrumbItem Text="Host" />
         </RadzenBreadCrumb>
         <RadzenAlert AlertStyle="AlertStyle.Warning" Shade="Shade.Dark" AllowClose="false">
@@ -43,7 +43,7 @@ else if (Host == null)
         </div>
         <RadzenBreadCrumb class="mt-2">
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl)" Text="@Session.Selected.Team?.Resource?.Data.Name" />
             <RadzenBreadCrumbItem Text="Host" />
         </RadzenBreadCrumb>
         @if (Failed)
@@ -56,7 +56,7 @@ else if (Host == null)
 }
 else
 {
-    <PageTitle>@Session.Selected.Team?.Server?.Data.Name Host Info | @_Data.Config.Instance.Name</PageTitle>
+    <PageTitle>@Session.Selected.Team?.Resource?.Data.Name Host Info | @_Data.Config.Instance.Name</PageTitle>
 
     <div class="dash-box dash-box-content">
         <div class="dash-box-header">
@@ -68,7 +68,7 @@ else
         </div>
         <RadzenBreadCrumb class="mt-2">
             <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
-            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
+            <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl)" Text="@Session.Selected.Team?.Resource?.Data.Name" />
             <RadzenBreadCrumbItem Text="Host" />
         </RadzenBreadCrumb>
         <br />
@@ -353,7 +353,7 @@ else
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
 
     public SystemInfoFullResponse? Host { get; set; }
     public bool Failed { get; set; }

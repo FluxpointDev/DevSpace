@@ -16,7 +16,7 @@
     </div>
     <RadzenBreadCrumb class="mt-2">
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" Text="Consoles" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl)" Text="@Session.Selected.Team?.Console?.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Resource?.VanityUrl)" Text="@Session.Selected.Team?.Resource?.Data.Name" />
         <RadzenBreadCrumbItem Text="Settings" />
     </RadzenBreadCrumb>
 
@@ -41,7 +41,7 @@
     private SessionProvider Session { get; set; } = null!;
 
     public TeamData? Team => Session.Selected.Team?.Data;
-    public ConsoleData? Console => Session.Selected.Console;
+    public ConsoleData? Console => Session.Selected.Resource as ConsoleData;
     public TeamMemberData? Member => Session.Selected.Member;
 
     protected override async Task OnInitializedAsync()
@@ -83,8 +83,8 @@
             VanityUrlData Vanity = Team.GetVanityUrlData();
             await Vanity.UpdateAsync(Console, VanityUrl);
 
-            if (Session.Selected.Team != null && Session.Selected.Team.Console != null)
-                Session.Selected.Team.Console.VanityUrl = Console.GetVanityUrlOrId();
+            if (Session.Selected.Team != null && Session.Selected.Team.Resource != null)
+                Session.Selected.Team.Resource.VanityUrl = Console.GetVanityUrlOrId();
             Session.TriggerNavMenuChange();
         });
         return null;

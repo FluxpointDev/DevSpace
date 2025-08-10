@@ -16,13 +16,11 @@ public class AuthUser : MongoIdentityUser<ObjectId>
 
     public Guid? AvatarId { get; set; }
 
+    [Obsolete]
     public Guid? BackgroundId { get; set; }
 
     [BsonIgnore]
     public FileResource Avatar => new FileResource("Avatar", ResourceId, AvatarId);
-
-    [BsonIgnore]
-    public FileResource Background => new FileResource("Background", ResourceId, BackgroundId);
 
     [BsonIgnore]
     public bool HasAvatar => AvatarId != null;
@@ -50,14 +48,6 @@ public class AuthUser : MongoIdentityUser<ObjectId>
         string md5Email = MD5.Calculate(System.Text.Encoding.ASCII.GetBytes(Email != null ? Email : ""));
 
         return $"https://secure.gravatar.com/avatar/{md5Email}?d=mp&s=128";
-    }
-
-    public string? GetBackground()
-    {
-        if (BackgroundId.HasValue)
-            return Background.Url("webp");
-
-        return null;
     }
 
     public bool IsInstanceAdmin { get; set; }

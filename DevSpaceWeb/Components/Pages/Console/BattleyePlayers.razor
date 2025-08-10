@@ -22,7 +22,7 @@
     </div>
     <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important;">
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles")" Text="Consoles" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Console?.VanityUrl)" Text="@Session.Selected.Team?.Console?.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/consoles/" + Session.Selected.Team?.Resource?.VanityUrl)" Text="@Session.Selected.Team?.Resource?.Data.Name" />
         <RadzenBreadCrumbItem Text="Players" />
     </RadzenBreadCrumb>
 
@@ -111,7 +111,7 @@
     }
 
     public TeamData? Team => Session.Selected.Team?.Data;
-    public ConsoleData? Console => Session.Selected.Console;
+    public ConsoleData? Console => Session.Selected.Resource as ConsoleData;
     public TeamMemberData? Member => Session.Selected.Member;
 
     public IEnumerable<Player>? Players { get; set; }

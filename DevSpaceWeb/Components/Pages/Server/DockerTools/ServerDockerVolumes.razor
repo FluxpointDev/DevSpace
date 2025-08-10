@@ -29,7 +29,7 @@
     </div>
     <RadzenBreadCrumb class="mt-2 ml-4" style="margin-top: -2px !important; margin-bottom: 10px;">
         <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers")" Text="Servers" />
-        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl)" Text="@Session.Selected.Team?.Server?.Data.Name" />
+        <RadzenBreadCrumbItem Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl)" Text="@Session.Selected.Team?.Resource?.Data.Name" />
         <RadzenBreadCrumbItem Text="Volumes" />
     </RadzenBreadCrumb>
     @if (Member == null || !Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
@@ -93,11 +93,11 @@
                 <Template>
                     @if (context.Containers != null && context.Containers.Any() && context.Containers.First().Value == "registry")
                     {
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">docker_registry</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/volumes/" + context.Name)">docker_registry</RadzenLink>
                     }
                     else
                     {
-                        <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/volumes/" + context.Name)">@context.Name</RadzenLink>
                     }
                         
                 </Template>
@@ -124,7 +124,7 @@
                     <Template>
                         @if (!string.IsNullOrEmpty(context.Stack))
                         {
-                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/stacks/" + context.Stack)" Text="@context.Stack" />
+                            <RadzenLink Path="@("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/stacks/" + context.Stack)" Text="@context.Stack" />
                         }
                     </Template>
                 </RadzenDataGridColumn>
@@ -166,7 +166,7 @@
 
     public TeamData? Team => Session.Selected.Team?.Data;
     public TeamMemberData? Member => Session.Selected.Member;
-    public ServerData? Server => Session.Selected.Server;
+    public ServerData? Server => Session.Selected.Resource as ServerData;
 
     SocketResponse<DockerVolumeInfo[]?>? VolumesResponse = null;
 
@@ -356,7 +356,7 @@
                     if (!Member.HasDockerPermission(Team, Server, DockerPermission.ViewVolumes))
                         return;
 
-                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Server?.VanityUrl + "/volumes/" + item.Name);
+                    Nav.NavigateTo("/teams/" + Session.Selected.Team?.VanityUrl + "/servers/" + Session.Selected.Team?.Resource?.VanityUrl + "/volumes/" + item.Name);
                     break;
                 case "remove":
                     {
