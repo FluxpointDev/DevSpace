@@ -2,7 +2,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0-preview-alpine AS base
 USER root
 WORKDIR /app
 
-LABEL org.opencontainers.image.source=https://github.com/FluxpointDev/DevSpace
+LABEL org.opencontainers.image.source=https://github.com/FluxpointDev/CloudFrost-Dev
 LABEL org.opencontainers.image.documentation=https://docs.fluxpoint.dev/devspace
 
 
