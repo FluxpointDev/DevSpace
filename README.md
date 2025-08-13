@@ -1,5 +1,5 @@
 <p align="center" style="margin-top: 120px">
-  <h3 align="center">Dev Space</h3>
+  <h3 align="center">CloudFrost Dev</h3>
   <p align="center">
     Manage your linux servers, websites, projects and other developer tools.
     <br />
@@ -23,15 +23,15 @@ Some developer tools can be annoying to use, heavily paywalled or lacks basic fe
 - Sentry - Requires a minimum of 6GB ram and microservice hell.
 - Portainer - Very basic and confusing user access with features locked behind business that has limits.
 
-Dev Space aims to have more complete features and functionality without sacrificing features or usability, you control the service and its limits.
+CloudFrost Dev aims to have more complete features and functionality without sacrificing features or usability, you control the service and its limits.
 
 ---
 
 ### Install
 
-Dev Space is an open source self-hostable dashboard that allows you to manage your linux servers, websites, projects and other developer tools.
+CloudFrost Dev is an open source self-hostable dashboard that allows you to manage your linux servers, websites, projects and other developer tools.
 
-> Setup Dev Space on a linux server with 1GB ram: [Website Install](https://docs.fluxpoint.dev/devspace/guides/website-guides/install-dev-space-website)
+> Setup CloudFrost Dev on a linux server with 1GB ram: [Website Install](https://docs.fluxpoint.dev/devspace/guides/website-guides/install-dev-space-website)
 
 ---
 
@@ -45,7 +45,7 @@ https://docs.fluxpoint.dev/devspace
 
 ### Demo
 
-See a live demo of Dev Space in action here.
+See a live demo of CloudFrost Dev in action here.
 
 https://devspace-demo.fluxpoint.dev
 
@@ -67,7 +67,7 @@ Pull requests are welcome if you have sufficient C# and/or asp.net blazor knowle
 
 ---
 
-### Inspiration/Ideas
+### Ideas
 I will be taking ideas from other similar developer tools such as:
 - [Sentry](https://sentry.io/welcome/)
 - [Portainer](https://www.portainer.io/)
