@@ -50,7 +50,7 @@ public static class ServiceBuilder
         {
             options.IdleTimeout = TimeSpan.FromMinutes(2);
             options.Cookie.HttpOnly = true;
-            options.Cookie.Name = "DevSpace.Session";
+            options.Cookie.Name = "CloudFrost_Dev.Session";
             options.Cookie.SameSite = SameSiteMode.Lax;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
         });
@@ -131,7 +131,7 @@ public static class ServiceBuilder
         services.ConfigureApplicationCookie(options =>
         {
             // Cookie settings
-            options.Cookie.Name = "DevSpace.Auth";
+            options.Cookie.Name = "CloudFrost_Dev.Auth";
             options.Cookie.HttpOnly = true;
             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             options.Cookie.SameSite = SameSiteMode.Lax;
@@ -160,9 +160,9 @@ public static class ServiceBuilder
             });
             OpenApiInfo Info = new OpenApiInfo
             {
-                Title = "Dev Space API",
+                Title = "CloudFrost Dev API",
                 Version = "v1",
-                Description = "API server for this Dev Space instance.",
+                Description = "API server for this CloudFrost Dev instance.",
                 //TermsOfService = new Uri("https://fluxpoint.dev/terms"),
             };
             if (!string.IsNullOrEmpty(_Data.Config.Instance.Email))

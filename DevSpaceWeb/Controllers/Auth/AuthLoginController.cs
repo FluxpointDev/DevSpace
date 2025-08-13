@@ -78,11 +78,14 @@ public class AuthLoginController : AuthControllerContext
             return BadRequest("Invalid email or password.");
         }
 
-        string? SessionId = Request.Cookies["DevSpace.SessionId"];
+        string? SessionId = Request.Cookies["CloudFrost_Dev.SessionId"];
+        if (string.IsNullOrEmpty(SessionId))
+            SessionId = Request.Cookies["DevSpace.SessionId"];
+
         if (string.IsNullOrEmpty(SessionId))
         {
             SessionId = Guid.NewGuid().ToString();
-            Response.Cookies.Append("DevSpace.SessionId", SessionId, new CookieOptions
+            Response.Cookies.Append("CloudFrost_Dev.SessionId", SessionId, new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
@@ -219,11 +222,14 @@ public class AuthLoginController : AuthControllerContext
 
         if (!AlreadyAuthed)
         {
-            string? SessionId = Request.Cookies["DevSpace.SessionId"];
+            string? SessionId = Request.Cookies["CloudFrost_Dev.SessionId"];
+            if (string.IsNullOrEmpty(SessionId))
+                SessionId = Request.Cookies["DevSpace.SessionId"];
+
             if (string.IsNullOrEmpty(SessionId))
             {
                 SessionId = Guid.NewGuid().ToString();
-                Response.Cookies.Append("DevSpace.SessionId", SessionId, new CookieOptions
+                Response.Cookies.Append("CloudFrost_Dev.SessionId", SessionId, new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true,
@@ -277,7 +283,10 @@ public class AuthLoginController : AuthControllerContext
             AuthUser? AuthUser = await _userManager.GetUserAsync(User);
             if (AuthUser != null)
             {
-                string? SessionId = Request.Cookies["DevSpace.SessionId"];
+                string? SessionId = Request.Cookies["CloudFrost_Dev.SessionId"];
+                if (string.IsNullOrEmpty(SessionId))
+                    SessionId = Request.Cookies["DevSpace.SessionId"];
+
                 if (!string.IsNullOrEmpty(SessionId) && AuthUser.Account.Sessions.TryGetValue(SessionId, out UserSession? Session))
                 {
                     Session.AuthorizedIps.Clear();

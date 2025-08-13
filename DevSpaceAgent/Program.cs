@@ -75,7 +75,7 @@ public class Program
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config data.");
 
-        Logger.RunLogger("Dev Space Agent", LogSeverity.Error);
+        Logger.RunLogger("CloudFrost Agent", LogSeverity.Error);
 
         try
         {
@@ -111,7 +111,7 @@ public class Program
         if (DockerFailed)
             Console.WriteLine("[Docker] Failed to connect to socket!");
 
-        // Cleanup Dev Space images.
+        // Cleanup CloudFrost images.
         _ = Task.Run(async () =>
         {
             IList<ImagesListResponse> Images = await DockerClient.Images.ListImagesAsync(new ImagesListParameters
@@ -124,7 +124,7 @@ public class Program
                 if (i.RepoTags != null && i.RepoTags.Any())
                     continue;
 
-                if (i.RepoDigests != null && i.RepoDigests.Any() && i.RepoDigests.First().StartsWith("ghcr.io/fluxpointdev/devspace"))
+                if (i.RepoDigests != null && i.RepoDigests.Any() && (i.RepoDigests.First().StartsWith("ghcr.io/fluxpointdev/devspace", StringComparison.OrdinalIgnoreCase) || i.RepoDigests.First().StartsWith("ghcr.io/fluxpointdev/cloudfrost", StringComparison.OrdinalIgnoreCase)))
                 {
                     try
                     {

@@ -134,7 +134,10 @@ public class AuthAccountController : AuthControllerContext
         if (string.IsNullOrEmpty(Ip))
             return BadRequest("IP address failed.");
 
-        string? SessionId = Request.Cookies["DevSpace.SessionId"];
+        string? SessionId = Request.Cookies["CloudFrost_Dev.SessionId"];
+        if (string.IsNullOrEmpty(SessionId))
+            SessionId = Request.Cookies["DevSpace.SessionId"];
+
         if (string.IsNullOrEmpty(SessionId))
             return BadRequest("Invalid session.");
 

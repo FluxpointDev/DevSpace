@@ -72,7 +72,10 @@
             if (string.IsNullOrEmpty(Ip))
                 return;
 
-            string? SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
+            string? SessionId = Http.HttpContext.Request.Cookies["CloudFrost_Dev.SessionId"];
+            if (string.IsNullOrEmpty(SessionId))
+                SessionId = Http.HttpContext.Request.Cookies["DevSpace.SessionId"];
+
             if (!string.IsNullOrEmpty(SessionId))
             {
                 if (User.Account.Sessions.TryGetValue(SessionId, out UserSession? session))

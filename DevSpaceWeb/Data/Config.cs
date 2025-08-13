@@ -31,7 +31,7 @@ public class Config
 }
 public class ConfigInstance
 {
-    public string? Name = "Dev Space Self-hosted";
+    public string? Name = "CloudFrost Dev Self-hosted";
     public string? Description;
     public string? Email;
     public bool HasIcon;

@@ -321,7 +321,7 @@ public static class DockerStacks
             throw new Exception("Stack arguments failed to parse.");
 
         if (!Directory.Exists("/var/lib/docker/volumes/portainer_data/_data/compose/"))
-            throw new Exception("Dev Space Agent has not been mounted with the Portainer compose folder to import containers.");
+            throw new Exception("CloudFrost Agent has not been mounted with the Portainer compose folder to import containers.");
 
         if (!Directory.Exists("/var/lib/docker/volumes/portainer_data/_data/compose/" + stack.Id))
             throw new Exception("Stack folder does not exist.");

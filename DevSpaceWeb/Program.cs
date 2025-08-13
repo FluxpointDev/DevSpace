@@ -97,8 +97,8 @@ public class Program
 
         //WebRequest.DefaultWebProxy = new WebProxy("127.0.0.1", 8888);
 
-        Logger.RunLogger("Dev Space", DefaultLogMode);
-        Logger.LogMessage("Dev Space v" + GetVersionText(), LogSeverity.Info);
+        Logger.RunLogger("CloudFrost Dev", DefaultLogMode);
+        Logger.LogMessage("CloudFrost Dev v" + GetVersionText(), LogSeverity.Info);
 
         if (!_Data.LoadConfig())
             throw new Exception("Failed to load config file.");
@@ -291,7 +291,7 @@ public class Program
                 Logger.LogMessage("Swagger UI Enabled", LogSeverity.Info);
                 app.UseSwaggerUI(c =>
                 {
-                    c.DocumentTitle = "Dev Space API";
+                    c.DocumentTitle = "CloudFrost Dev API";
                     c.ConfigObject = new ConfigObject
                     {
                         Urls = new List<UrlDescriptor>
