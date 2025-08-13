@@ -6,7 +6,7 @@ public class Player
     public String? ip;
     public String? ping;
     public String? guid;
-    public String? name;
+    public String? name { get; set; }
     public String? status;
     public String? lastseen;
     public String? lastseenon;

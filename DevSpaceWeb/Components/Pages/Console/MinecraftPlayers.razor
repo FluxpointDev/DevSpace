@@ -36,6 +36,7 @@
         <br />
         <div class="dash-box-content">
             <ActionBar>
+                <RadzenButton Variant="Variant.Filled" Text="Refresh" Click="@(() => LoadData(new LoadDataArgs { Top = Session.ItemsPerPage }))" Icon="refresh" Disabled="@(!Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPlayers))" ButtonStyle="ButtonStyle.Info" Shade="Shade.Darker" Size="ButtonSize.Small" />
                 <RadzenFormField Variant="Variant.Outlined" AllowFloatingLabel="false">
                     <Start>
                         <RadzenIcon Icon="search" />
@@ -54,17 +55,18 @@
                 </RadzenFormField>
             </ActionBar>
         </div>
-        <RadzenDataGrid @ref="@Grid" Count="@PlayerCount" Data="@Players" LoadData="@LoadData"
+        <RadzenDataGrid @ref="@Grid" Count="@PlayerCount" Data="@Players" LoadData="@LoadData" Density="Density.Compact"
+                        PagingSummaryFormat="@($"{PlayerCount} player" + (PlayerCount != 1 ? "s" : ""))"
                         AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive"
                         EmptyText="No players." PageSizeOptions="@Static.TablePageSizeOptions" ShowPagingSummary="true"
                         PagerHorizontalAlign="HorizontalAlign.Center" AllowPaging="true" @bind-PageSize="@Session.ItemsPerPage" GridLines="DataGridGridLines.Horizontal">
             <Columns>
                 <RadzenDataGridColumn Title="Name" Width="@GridWidth.Name" Property="@nameof(Player.name)">
                     <Template>
-                        <RadzenText TextStyle="TextStyle.Body2">@context.name</RadzenText>
+                        @context.name
                     </Template>
                 </RadzenDataGridColumn>
-                <RadzenDataGridColumn Title="Actions" Width="@GridWidth.ActionsOne" Filterable="false">
+                <RadzenDataGridColumn Title="Actions" Filterable="false">
                     <Template>
                         <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center">
                             <RadzenButton Icon="build" Click="@(args => ShowContextMenuWithManageItems(context, args))" ButtonStyle="ButtonStyle.Primary" Size="ButtonSize.Small" />
@@ -107,12 +109,13 @@
         await Grid.Reload();
     }
 
-    public IEnumerable<Player> Players { get; set; }
+    public IQueryable<Player> Players { get; set; }
+
     public int PlayerCount { get; set; }
 
     async Task LoadData(LoadDataArgs args)
     {
-        if (Console == null || Member == null)
+        if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPlayers))
             return;
 
         if (_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc))
@@ -140,14 +143,18 @@
                         list.Add(i);
                 }
 
+                IQueryable<Player> query = list.AsQueryable();
 
-                PlayerCount = list.Count();
-                Players = list.Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault()).ToList();
+                if (!string.IsNullOrEmpty(args.Filter))
+                    query = query.Where(args.Filter);
+
+                PlayerCount = query.Count();
+                Players = query.OrderBy(x => x.name).Skip(args.Skip.GetValueOrDefault()).Take(args.Top.GetValueOrDefault());
             }
             else
             {
                 PlayerCount = 0;
-                Players = new List<Player>();
+                Players = new List<Player>().AsQueryable();
             }
 
             StateHasChanged();
@@ -155,7 +162,7 @@
         else
         {
             PlayerCount = 0;
-            Players = new List<Player>();
+            Players = new List<Player>().AsQueryable();
         }
 
     }
@@ -165,9 +172,11 @@
     {
         ContextMenuService.Open(args,
             new List<ContextMenuItem> {
-                new ContextMenuItem(){ Text = "Message", Value = "message", Icon = "chat" },
-                new ContextMenuItem(){ Text = "Ban Player", Value = "ban", Icon = "hardware" },
-                new ContextMenuItem(){ Text = "Kick Player", Value = "kick", Icon = "podiatry" },
+                new ContextMenuItem(){ Text = "Message", Value = "message", Icon = "chat", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers) },
+                new ContextMenuItem(){ Text = "Teleport To", Value = "teleport", Icon = "move_location", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.UseConsoleCommands) },
+                new ContextMenuItem(){ Text = "Ban Player", Value = "ban", Icon = "hardware", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers) },
+                new ContextMenuItem(){ Text = "Ban IP", Value = "ban_ip", Icon = "hardware", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers) },
+                new ContextMenuItem(){ Text = "Kick Player", Value = "kick", Icon = "podiatry", Disabled = !Member.HasConsolePermission(Team, Console, ConsolePermission.KickPlayers) },
                                                              }, x => MenuItemClick(x, item));
     }
 
@@ -197,7 +206,7 @@
 
                         if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
                         {
-                            await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
+                            await Dialogs.ShowInfoAsync("Failed to ban", "Could not connect to server.");
                             return;
                         }
 
@@ -208,9 +217,46 @@
 
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";
+                            string Command = "ban " + item.name;
+                            if (!string.IsNullOrEmpty(data.Reason))
+                                Command += " " + data.Reason;
 
-                            string Result = await rcon.ExecuteCmd("ban " + item.name);
+                            string Result = await rcon.ExecuteCmd(Command);
                             await Dialogs.ShowInfoAsync("Ban Result", Result);
+                            Grid.Reload();
+                            return null;
+                        });
+                    }
+                    break;
+                case "ban_ip":
+                    {
+                        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
+                        {
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.BanPlayers);
+                            return;
+                        }
+
+                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
+                        {
+                            await Dialogs.ShowInfoAsync("Failed to ban", "Could not connect to server.");
+                            return;
+                        }
+
+                        await Dialogs.ShowDynamicFormAsync<ConsoleReasonModel>("Ban IP " + item.name, new ConsoleReasonModel(), async (ConsoleReasonModel data) =>
+                        {
+                            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
+                                return "You do not have permission for Ban Players";
+
+                            if (!rcon.IsConnected)
+                                return "Could not connect to server.";
+
+                            string Command = "ban-ip " + item.name;
+                            if (!string.IsNullOrEmpty(data.Reason))
+                                Command += " " + data.Reason;
+
+                            string Result = await rcon.ExecuteCmd(Command);
+                            await Dialogs.ShowInfoAsync("Ban Result", Result);
+                            Grid.Reload();
                             return null;
                         });
                     }
@@ -237,8 +283,43 @@
                             if (!rcon.IsConnected)
                                 return "Could not connect to server.";
 
-                            string Result = await rcon.ExecuteCmd("kick " + item.name);
+                            string Command = "kick " + item.name;
+                            if (!string.IsNullOrEmpty(data.Reason))
+                                Command += " " + data.Reason;
+
+                            string Result = await rcon.ExecuteCmd(Command);
                             await Dialogs.ShowInfoAsync("Kick Result", Result);
+                            Grid.Reload();
+                            return null;
+                        });
+                    }
+                    break;
+                case "teleport":
+                    {
+                        if (!Member.HasConsolePermission(Team, Console, ConsolePermission.UseConsoleCommands))
+                        {
+                            await Dialogs.ShowPermissionErrorAsync(ConsolePermission.UseConsoleCommands);
+                            return;
+                        }
+
+                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
+                        {
+                            await Dialogs.ShowInfoAsync("Failed to Teleport", "Could not connect to server.");
+                            return;
+                        }
+
+                        await Dialogs.ShowDynamicFormAsync<ConsolePlayerModel>("Teleport " + item.name, new ConsolePlayerModel(), async (ConsolePlayerModel data) =>
+                        {
+                            if (!Member.HasConsolePermission(Team, Console, ConsolePermission.UseConsoleCommands))
+                                return "You do not have permission for Use Console Commands";
+
+                            if (!rcon.IsConnected)
+                                return "Could not connect to server.";
+
+                            string Command = $"tp {item.name} {data.Player}";
+
+                            string Result = await rcon.ExecuteCmd(Command);
+                            await Dialogs.ShowInfoAsync("Teleport Result", Result);
                             return null;
                         });
                     }

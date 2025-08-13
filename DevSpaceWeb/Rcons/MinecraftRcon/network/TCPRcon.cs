@@ -63,20 +63,6 @@ public class TCPRcon : Queue<RconPacket>
     }
 
     /// <summary>
-    /// Clones the current connection allowing another session to the rcon server.
-    /// </summary>
-    /// <returns>Return TCPRcon with the same host,port, and password.</returns>
-    public TCPRcon CopyConnection()
-    {
-
-        TCPRcon r = new TCPRcon(RConHost, RConPort, RConPass);
-        if (r.StartComms() == false)
-            return r;
-
-        return r;
-    }
-
-    /// <summary>
     /// Start the asynchronous communication process.
     /// </summary>
     /// <returns>True of successfully started, otherwise false.</returns>
@@ -116,8 +102,6 @@ public class TCPRcon : Queue<RconPacket>
 
         }
 
-
-
         return false;
     }
     /// <summary>
@@ -125,7 +109,6 @@ public class TCPRcon : Queue<RconPacket>
     /// </summary>
     public void StopComms()
     {
-
         StateTCP = TCPState.CLOSING;
         AbortTCP = true;
         if (bgCommThread != null)
