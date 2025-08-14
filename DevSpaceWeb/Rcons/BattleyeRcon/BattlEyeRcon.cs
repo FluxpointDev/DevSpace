@@ -27,8 +27,6 @@ public class BattlEyeRcon
     public bool SetShowAdminCalls = true;
     public bool SetUseNameForAdminCalls;
 
-
-
     public bool IsConnected
     {
         get { return _initialized && _client.Connected && !_reconnecting; }

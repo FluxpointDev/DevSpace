@@ -9,11 +9,32 @@ namespace LibMCRcon;
 /// </summary>
 public class MCRconPacket
 {
-    Int32 size;
-    Int32 packettype;
+    int size;
+    int packettype;
     string cmd;
     string response;
     bool isBadPacket;
+
+    /// <summary>
+    /// Returns the current response stored.
+    /// </summary>
+    public string Response { get { return response; } }
+    /// <summary>
+    /// Generally bad packets/communication won't automatically close the connection.  The packet is marked bad if something wrong happens.
+    /// </summary>
+    public bool IsBadPacket { get { return isBadPacket; } }
+    /// <summary>
+    /// The RCon packet type.
+    /// </summary>
+    public Int32 ServerType { get { return packettype; } }
+    /// <summary>
+    /// The session id for the packet.
+    /// </summary>
+    public Int32 SessionID { get; private set; }
+    /// <summary>
+    /// The payload of an RCon packet, in this case expected to be a minecraft command.
+    /// </summary>
+    public string Cmd { get { return cmd; } }
 
     /// <summary>
     /// Constructor with default settings, empty packet.
@@ -23,7 +44,6 @@ public class MCRconPacket
         size = 10;
         SessionID = 0;
         packettype = 1;
-
     }
 
     /// <summary>
@@ -32,7 +52,7 @@ public class MCRconPacket
     /// <param name="Command">Payload to send to server such as minecraft commands.</param>
     /// <param name="ServerPacket">As per RCon specification, what type of packet.</param>
     /// <param name="SessionID">Once generated, used throughout lifespan of connection.</param>
-    private MCRconPacket(String Command, Int32 ServerPacket, Int32 SessionID)
+    private MCRconPacket(string Command, int ServerPacket, int SessionID)
     {
         if (Command.Length > 1446)
             cmd = Command.Substring(0, 1446);
@@ -50,7 +70,7 @@ public class MCRconPacket
     /// <param name="Password">Password, plain text.</param>
     /// <param name="SessionID">Randomly generated integer, maintained throughout authorized connection lifetime.</param>
     /// <returns>A RCon packet ready to participate in Authentication handshake.</returns>
-    public static MCRconPacket AuthPacket(String Password, Int32 SessionID)
+    public static MCRconPacket AuthPacket(string Password, int SessionID)
     {
         return new MCRconPacket(Password, 3, SessionID);
     }
@@ -60,7 +80,7 @@ public class MCRconPacket
     /// <param name="Command">The payload of the packet, the minecraft server command in text.</param>
     /// <param name="SessionID">Maintains authorization and keeps all communication related.</param>
     /// <returns>A RCon packet ready to be transmitted and receive response.</returns>
-    public static MCRconPacket CmdPacket(String Command, Int32 SessionID)
+    public static MCRconPacket CmdPacket(string Command, int SessionID)
     {
         return new MCRconPacket(Command, 2, SessionID);
     }
@@ -301,26 +321,4 @@ public class MCRconPacket
 
 
     }
-
-    /// <summary>
-    /// Returns the current response stored.
-    /// </summary>
-    public string Response { get { return response; } }
-    /// <summary>
-    /// Generally bad packets/communication won't automatically close the connection.  The packet is marked bad if something wrong happens.
-    /// </summary>
-    public bool IsBadPacket { get { return isBadPacket; } }
-    /// <summary>
-    /// The RCon packet type.
-    /// </summary>
-    public Int32 ServerType { get { return packettype; } }
-    /// <summary>
-    /// The session id for the packet.
-    /// </summary>
-    public Int32 SessionID { get; private set; }
-    /// <summary>
-    /// The payload of an RCon packet, in this case expected to be a minecraft command.
-    /// </summary>
-    public string Cmd { get { return cmd; } }
-
 }
