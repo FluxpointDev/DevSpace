@@ -1,5 +1,5 @@
 ﻿//!Classes directly related to the minecraft server.
-namespace LibMCRcon.RCon;
+namespace LibMCRcon;
 
 //!Track time passing using computer time.
 public class TimeCheck

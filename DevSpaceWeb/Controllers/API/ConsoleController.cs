@@ -5,6 +5,7 @@ using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Permissions;
 using DevSpaceWeb.Database;
 using DevSpaceWeb.Extensions;
+using LibMCRcon;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Bson;
 using Swashbuckle.AspNetCore.Annotations;
@@ -79,7 +80,7 @@ public class ConsoleController : APIController
                 }
             case Data.Consoles.ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out LibMCRcon.RCon.TCPRconAsync? rcon) || !rcon.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     string ListCommand = await rcon.ExecuteCmd("list");
@@ -161,7 +162,7 @@ public class ConsoleController : APIController
                 }
             case Data.Consoles.ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out LibMCRcon.RCon.TCPRconAsync? rcon) || !rcon.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     string Command = await rcon.ExecuteCmd(command.command);
@@ -202,7 +203,7 @@ public class ConsoleController : APIController
                 }
             case Data.Consoles.ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out LibMCRcon.RCon.TCPRconAsync? rcon) || !rcon.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     await rcon.ExecuteCmd("say " + message);
@@ -246,7 +247,7 @@ public class ConsoleController : APIController
                 }
             case Data.Consoles.ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out LibMCRcon.RCon.TCPRconAsync? rcon) || !rcon.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     await rcon.ExecuteCmd($"tell {json.player} {json.message}");
@@ -287,7 +288,7 @@ public class ConsoleController : APIController
                 }
             case Data.Consoles.ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out LibMCRcon.RCon.TCPRconAsync? rcon) || !rcon.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     await rcon.ExecuteCmd($"kick {json.player} {json.reason}");
@@ -330,7 +331,7 @@ public class ConsoleController : APIController
                 }
             case Data.Consoles.ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out LibMCRcon.RCon.TCPRconAsync? rcon) || !rcon.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     await rcon.ExecuteCmd($"ban {json.player} {json.reason}");
@@ -402,7 +403,7 @@ public class ConsoleController : APIController
                 }
             case Data.Consoles.ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out LibMCRcon.RCon.TCPRconAsync? rcon) || !rcon.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(server.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     switch (controlType)

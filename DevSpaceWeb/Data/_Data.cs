@@ -2,7 +2,7 @@
 using DevSpaceWeb.Agents;
 using DevSpaceWeb.Data.Proxmox;
 using Discord.Rest;
-using LibMCRcon.RCon;
+using LibMCRcon;
 using MongoDB.Bson;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
@@ -14,7 +14,7 @@ public static class _Data
 {
     public static Config Config = null!;
     public static Dictionary<ObjectId, RCon> BattleyeRcons = [];
-    public static Dictionary<ObjectId, TCPRconAsync> MinecraftRcons = [];
+    public static Dictionary<ObjectId, MCRconAsync> MinecraftRcons = [];
     public static Dictionary<ObjectId, CoreRCON.RCON> SourceRcons = [];
     public static Dictionary<ObjectId, ProxmoxAgent> ProxmoxAgents = [];
     public static Dictionary<ObjectId, EdgeAgent> EdgeAgents = [];

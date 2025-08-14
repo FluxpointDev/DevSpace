@@ -2,7 +2,7 @@
 @using DevSpaceWeb.Data.Consoles
 @using DevSpaceWeb.Models.Consoles
 @using System.Net
-@using LibMCRcon.RCon
+@using LibMCRcon
 
 <PageTitle>Console Rcon | @_Data.Config.Instance.Name</PageTitle>
 
@@ -99,12 +99,7 @@
                 break;
             case ConsoleType.Minecraft:
                 {
-                    TCPRconAsync rcon = new TCPRconAsync
-                        {
-                            RConHost = model.Ip,
-                            RConPort = model.Port,
-                            RConPass = model.Password
-                        };
+                    MCRconAsync rcon = new MCRconAsync(model.Ip, model.Port, model.Password);
                     bool Success = await rcon.StartComms();
                     if (!Success)
                         return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";
@@ -157,12 +152,7 @@
                     break;
                 case ConsoleType.Minecraft:
                     {
-                        TCPRconAsync rcon = new TCPRconAsync
-                            {
-                                RConHost = model.Ip,
-                                RConPort = model.Port,
-                                RConPass = model.Password
-                            };
+                        MCRconAsync rcon = new MCRconAsync(model.Ip, model.Port, model.Password);
                         await rcon.StartComms();
                         _Data.MinecraftRcons.Remove(Console.Id);
                         _Data.MinecraftRcons.TryAdd(Console.Id, rcon);

@@ -1,6 +1,6 @@
 ﻿@using DaRT
 @using DevSpaceWeb.Data.Consoles
-@using LibMCRcon.RCon
+@using LibMCRcon
 @inject DialogService Dialogs
 
 <PageTitle>Console Commands | @_Data.Config.Instance.Name</PageTitle>
@@ -34,7 +34,7 @@
             {
                 <RadzenDropDown @bind-Value="@SelectedPlayer" Data="@Players" TextProperty="@nameof(Player.name)" Style="min-width: 200px;" />
             }
-            <RadzenTextBox @bind-Value="@CommandInput" Style="width: 100%" aria-label="Command TextBox" />
+            <RadzenTextBox @bind-Value="@CommandInput" Style="width: 100%" aria-label="Command TextBox" MaxLength="300" />
             <RadzenButton Click="@SendCommand" Text="Send" ButtonStyle="ButtonStyle.Success" Shade="Shade.Dark" Style="min-width: 60px;" />
         </RadzenStack>
     }
@@ -98,7 +98,7 @@
                             break;
                         case ConsoleType.Minecraft:
                             {
-                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
+                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rc) || !rc.IsReadyForCommands)
                                 {
                                     await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
@@ -151,13 +151,13 @@
                             break;
                         case ConsoleType.Minecraft:
                             {
-                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
+                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rc) || !rc.IsReadyForCommands)
                                 {
                                     await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
                                 }
 
-                                string Result = await rc.SayGlobal(CommandInput);
+                                string Result = await rc.ExecuteCmd("say " + CommandInput);
                                 await Dialogs.ShowInfoAsync("Message Result", Result);
                             }
                             break;
@@ -207,7 +207,7 @@
                             break;
                         case ConsoleType.Minecraft:
                             {
-                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
+                                if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rc) || !rc.IsReadyForCommands)
                                 {
                                     await Dialogs.ShowInfoAsync("Failed to Send Message", "Could not connect to server.");
                                     return;
@@ -216,7 +216,7 @@
                                 if (string.IsNullOrEmpty(SelectedPlayer.name))
                                     return;
 
-                                string Result = await rc.SayPlayer(SelectedPlayer.name, CommandInput);
+                                string Result = await rc.ExecuteCmd("tell " + SelectedPlayer.name, CommandInput);
                                 await Dialogs.ShowInfoAsync("Message Result", Result);
                             }
                             break;

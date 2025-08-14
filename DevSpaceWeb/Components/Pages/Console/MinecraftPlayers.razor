@@ -2,7 +2,7 @@
 @using System.Linq.Dynamic.Core
 @using DevSpaceWeb.Data.Consoles
 @using DevSpaceWeb.Models.Consoles
-@using LibMCRcon.RCon
+@using LibMCRcon
 @using Newtonsoft.Json.Linq
 @inject ContextMenuService ContextMenuService
 @inject DialogService Dialogs
@@ -118,9 +118,9 @@
         if (Console == null || Member == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewPlayers))
             return;
 
-        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc))
+        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rc))
         {
-            if (rc.IsConnected)
+            if (rc.IsReadyForCommands)
             {
                 string ListCommand = await rc.ExecuteCmd("list");
                 try
@@ -204,7 +204,7 @@
                             return;
                         }
 
-                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
+                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         {
                             await Dialogs.ShowInfoAsync("Failed to ban", "Could not connect to server.");
                             return;
@@ -215,7 +215,7 @@
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                                 return "You do not have permission for Ban Players";
 
-                            if (!rcon.IsConnected)
+                            if (!rcon.IsReadyForCommands)
                                 return "Could not connect to server.";
                             string Command = "ban " + item.name;
                             if (!string.IsNullOrEmpty(data.Reason))
@@ -236,7 +236,7 @@
                             return;
                         }
 
-                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
+                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         {
                             await Dialogs.ShowInfoAsync("Failed to ban", "Could not connect to server.");
                             return;
@@ -247,7 +247,7 @@
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                                 return "You do not have permission for Ban Players";
 
-                            if (!rcon.IsConnected)
+                            if (!rcon.IsReadyForCommands)
                                 return "Could not connect to server.";
 
                             string Command = "ban-ip " + item.name;
@@ -269,7 +269,7 @@
                             return;
                         }
 
-                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
+                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         {
                             await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
                             return;
@@ -280,7 +280,7 @@
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.KickPlayers))
                                 return "You do not have permission for Kick Players";
 
-                            if (!rcon.IsConnected)
+                            if (!rcon.IsReadyForCommands)
                                 return "Could not connect to server.";
 
                             string Command = "kick " + item.name;
@@ -302,7 +302,7 @@
                             return;
                         }
 
-                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
+                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         {
                             await Dialogs.ShowInfoAsync("Failed to Teleport", "Could not connect to server.");
                             return;
@@ -313,7 +313,7 @@
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.UseConsoleCommands))
                                 return "You do not have permission for Use Console Commands";
 
-                            if (!rcon.IsConnected)
+                            if (!rcon.IsReadyForCommands)
                                 return "Could not connect to server.";
 
                             string Command = $"tp {item.name} {data.Player}";
@@ -332,7 +332,7 @@
                             return;
                         }
 
-                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
+                        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
                         {
                             await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
                             return;
@@ -343,7 +343,7 @@
                             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.MessagePlayers))
                                 return "You do not have permission for Message Players";
 
-                            if (!rcon.IsConnected)
+                            if (!rcon.IsReadyForCommands)
                                 return "Could not connect to server.";
 
                             string Result = await rcon.ExecuteCmd("tell " + item.name + " " + data.Message);

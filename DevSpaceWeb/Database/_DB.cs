@@ -14,7 +14,7 @@ using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Data.Users;
 using DevSpaceWeb.Data.Websites;
 using Discord.Rest;
-using LibMCRcon.RCon;
+using LibMCRcon;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Newtonsoft.Json;
@@ -542,12 +542,7 @@ public static class _DB
                             break;
                         case ConsoleType.Minecraft:
                             {
-                                TCPRconAsync rcon = new TCPRconAsync
-                                {
-                                    RConHost = x.Ip,
-                                    RConPort = x.Port,
-                                    RConPass = x.GetDecryptedPassword()
-                                };
+                                MCRconAsync rcon = new MCRconAsync(x.Ip, x.Port, x.GetDecryptedPassword());
                                 _ = rcon.StartComms();
                                 _Data.MinecraftRcons.Add(x.Id, rcon);
                             }

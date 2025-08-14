@@ -1,5 +1,6 @@
 ﻿using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Consoles;
+using LibMCRcon;
 
 namespace DevSpaceWeb.API.Consoles;
 
@@ -21,7 +22,7 @@ public class ConsoleJson
                 break;
             case ConsoleType.Minecraft:
                 {
-                    if (_Data.MinecraftRcons.TryGetValue(data.Id, out LibMCRcon.RCon.TCPRconAsync? rcon) && rcon.IsConnected)
+                    if (_Data.MinecraftRcons.TryGetValue(data.Id, out MCRconAsync? rcon) && rcon.IsConnected)
                         is_online = true;
                 }
                 break;

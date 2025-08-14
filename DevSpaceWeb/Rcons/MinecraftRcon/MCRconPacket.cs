@@ -2,12 +2,12 @@
 using System.Text;
 
 //!Classes directly related to the minecraft server.
-namespace LibMCRcon.RCon;
+namespace LibMCRcon;
 
 /// <summary>
 /// RCon packet reader/writter.
 /// </summary>
-public class RconPacket
+public class MCRconPacket
 {
     Int32 size;
     Int32 packettype;
@@ -18,7 +18,7 @@ public class RconPacket
     /// <summary>
     /// Constructor with default settings, empty packet.
     /// </summary>
-    public RconPacket()
+    public MCRconPacket()
     {
         size = 10;
         SessionID = 0;
@@ -32,7 +32,7 @@ public class RconPacket
     /// <param name="Command">Payload to send to server such as minecraft commands.</param>
     /// <param name="ServerPacket">As per RCon specification, what type of packet.</param>
     /// <param name="SessionID">Once generated, used throughout lifespan of connection.</param>
-    private RconPacket(String Command, Int32 ServerPacket, Int32 SessionID)
+    private MCRconPacket(String Command, Int32 ServerPacket, Int32 SessionID)
     {
         if (Command.Length > 1446)
             cmd = Command.Substring(0, 1446);
@@ -50,9 +50,9 @@ public class RconPacket
     /// <param name="Password">Password, plain text.</param>
     /// <param name="SessionID">Randomly generated integer, maintained throughout authorized connection lifetime.</param>
     /// <returns>A RCon packet ready to participate in Authentication handshake.</returns>
-    public static RconPacket AuthPacket(String Password, Int32 SessionID)
+    public static MCRconPacket AuthPacket(String Password, Int32 SessionID)
     {
-        return new RconPacket(Password, 3, SessionID);
+        return new MCRconPacket(Password, 3, SessionID);
     }
     /// <summary>
     /// Helper function to create a communication packet from client->server.
@@ -60,9 +60,9 @@ public class RconPacket
     /// <param name="Command">The payload of the packet, the minecraft server command in text.</param>
     /// <param name="SessionID">Maintains authorization and keeps all communication related.</param>
     /// <returns>A RCon packet ready to be transmitted and receive response.</returns>
-    public static RconPacket CmdPacket(String Command, Int32 SessionID)
+    public static MCRconPacket CmdPacket(String Command, Int32 SessionID)
     {
-        return new RconPacket(Command, 2, SessionID);
+        return new MCRconPacket(Command, 2, SessionID);
     }
     /// <summary>
     /// Helper function to fill a section of a byte array from using the entire source array.

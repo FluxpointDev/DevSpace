@@ -1,7 +1,7 @@
 ﻿@using BattleNET
 @using DaRT
 @using DevSpaceWeb.Data.Consoles
-@using LibMCRcon.RCon
+@using LibMCRcon
 @using System.Net
 @inject DialogService Dialogs
 
@@ -51,7 +51,7 @@
                     break;
                 case ConsoleType.Minecraft:
                     {
-                        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon))
+                        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rcon))
                         {
                             switch (rcon.IsConnected)
                             {
@@ -373,17 +373,17 @@
                     if (_Data.BattleyeRcons.TryGetValue(Console.Id, out var rc))
                     {
                         IPAddress? address = null;
-            if (!IPAddress.TryParse(Console.Ip, out address))
-            {
-                IPHostEntry? Host = null;
-                try
-                {
+                        if (!IPAddress.TryParse(Console.Ip, out address))
+                        {
+                            IPHostEntry? Host = null;
+                            try
+                            {
                                 Host = Dns.GetHostEntry(Console.Ip);
-                }
-                catch { }
-                if (Host != null)
-                    address = Host.AddressList.FirstOrDefault();
-            }
+                            }
+                            catch { }
+                            if (Host != null)
+                                address = Host.AddressList.FirstOrDefault();
+                        }
 
                         rc.Connect(address, Console.Port, Console.GetDecryptedPassword());
                         StateHasChanged();
@@ -402,14 +402,14 @@
             case ConsoleType.Source:
                 {
                     if (_Data.SourceRcons.TryGetValue(Console.Id, out var rc))
-        {
-            await rc.ConnectAsync();
-            StateHasChanged();
-        }
+                    {
+                        await rc.ConnectAsync();
+                        StateHasChanged();
+                    }
                 }
                 break;
         }
-        
+
     }
 
     public async Task RestartServer()
@@ -439,7 +439,7 @@
                 break;
             case ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rc) || !rc.IsReadyForCommands)
                     {
                         await Dialogs.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
                         return;
@@ -495,7 +495,7 @@
                 break;
             case ConsoleType.Minecraft:
                 {
-                    if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc) || !rc.IsConnected)
+                    if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rc) || !rc.IsReadyForCommands)
                     {
                         await Dialogs.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
                         return;

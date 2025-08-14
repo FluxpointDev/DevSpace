@@ -2,7 +2,7 @@
 @using System.Linq.Dynamic.Core
 @using DevSpaceWeb.Data.Consoles
 @using DevSpaceWeb.Models.Consoles
-@using LibMCRcon.RCon
+@using LibMCRcon
 @using Newtonsoft.Json.Linq
 @using System.Text
 @using System.Net
@@ -157,9 +157,9 @@
         if (Console == null || !Member.HasConsolePermission(Team, Console, ConsolePermission.ViewBans))
             return;
 
-        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rc))
+        if (_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rc))
         {
-            if (rc.IsConnected)
+            if (rc.IsReadyForCommands)
             {
                 string ListCommand = await rc.ExecuteCmd("banlist");
                 try
@@ -242,7 +242,7 @@
             return;
         }
 
-        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
+        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
         {
             await Dialogs.ShowInfoAsync("Failed to Ban", "Could not connect to server.");
             return;
@@ -253,8 +253,9 @@
             if (!Member.HasConsolePermission(Team, Console, ConsolePermission.BanPlayers))
                 return "You do not have permission for Ban Players";
 
-            if (!rcon.IsConnected)
+            if (!rcon.IsReadyForCommands)
                 return "Could not connect to server.";
+
             string Command = $"{(IPAddress.TryParse(data.Player, out _) ? "ban-ip" : "ban")} {data.Player}";
             if (!string.IsNullOrEmpty(data.Reason))
                 Command += " " + data.Reason;
@@ -274,7 +275,7 @@
             return;
         }
 
-        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out TCPRconAsync? rcon) || !rcon.IsConnected)
+        if (!_Data.MinecraftRcons.TryGetValue(Console.Id, out MCRconAsync? rcon) || !rcon.IsReadyForCommands)
         {
             await Dialogs.ShowInfoAsync("Failed to Unban", "Could not connect to server.");
             return;
@@ -285,7 +286,7 @@
         if (!Confirm)
             return;
 
-        if (rcon.IsConnected)
+        if (rcon.IsReadyForCommands)
         {
             string Result = await rcon.ExecuteCmd($"{(player.number == 1 ? "pardon-ip" : "pardon")} {player.name}");
             await Dialogs.ShowInfoAsync("Unban Result", Result);

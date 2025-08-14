@@ -3,7 +3,7 @@
 @using DevSpaceWeb.Models.Consoles
 @using DevSpaceWeb.Models.Setup
 @using System.Net
-@using LibMCRcon.RCon
+@using LibMCRcon
 @inject DialogService Dialogs
 @inject ContextMenuService ContextMenuService
 @inject NavigationManager Nav
@@ -292,12 +292,7 @@
                     break;
                 case ConsoleType.Minecraft:
                     {
-                        TCPRconAsync rcon = new TCPRconAsync
-                        {
-                            RConHost = data.Ip!,
-                            RConPort = data.Port,
-                            RConPass = data.Password!
-                        };
+                        MCRconAsync rcon = new MCRconAsync(data.Ip!, data.Port, data.Password!);
                         bool Success = await rcon.StartComms();
                         if (!Success)
                             return "Failed to connect to server with rcon, please check your settings and make sure rcon is enabled.";

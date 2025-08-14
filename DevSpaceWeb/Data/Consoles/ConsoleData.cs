@@ -1,6 +1,6 @@
 ﻿using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
-using LibMCRcon.RCon;
+using LibMCRcon;
 using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
@@ -43,7 +43,7 @@ public class ConsoleData : ITeamResource
                 break;
             case ConsoleType.Minecraft:
                 {
-                    if (_Data.MinecraftRcons.TryGetValue(Id, out TCPRconAsync? rcon) && rcon.IsConnected)
+                    if (_Data.MinecraftRcons.TryGetValue(Id, out MCRconAsync? rcon) && rcon.IsConnected)
                         return true;
                 }
                 break;
@@ -124,7 +124,7 @@ public class ConsoleData : ITeamResource
                     break;
                 case ConsoleType.Minecraft:
                     {
-                        if (_Data.MinecraftRcons.TryGetValue(Id, out LibMCRcon.RCon.TCPRconAsync? rcon))
+                        if (_Data.MinecraftRcons.TryGetValue(Id, out MCRconAsync? rcon))
                         {
                             _Data.MinecraftRcons.Remove(Id);
                             await rcon.StopComms();
