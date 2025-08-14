@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data;
+﻿using DaRT;
+using DevSpaceWeb.Data;
 using DevSpaceWeb.Data.Consoles;
 using LibMCRcon;
 
@@ -16,7 +17,7 @@ public class ConsoleJson
         {
             case ConsoleType.Battleye:
                 {
-                    if (_Data.BattleyeRcons.TryGetValue(data.Id, out DaRT.RCon? rcon) && rcon.IsConnected)
+                    if (_Data.BattleyeRcons.TryGetValue(data.Id, out BattlEyeRcon? rcon) && rcon.IsConnected)
                         is_online = true;
                 }
                 break;

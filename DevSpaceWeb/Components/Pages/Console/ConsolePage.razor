@@ -28,7 +28,7 @@
             {
                 case ConsoleType.Battleye:
                     {
-                        if (_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rcon))
+                        if (_Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rcon))
                         {
                             switch (rcon.BEResult)
                             {
@@ -148,16 +148,6 @@
             case "home":
                 <ConsoleSettings></ConsoleSettings>
                 break;
-            case "test":
-                @if (Program.IsDevMode)
-                {
-                    <ConsoleTests></ConsoleTests>
-                }
-                else
-                {
-                    <p>The cake is a lie</p>
-                }
-                break;
             case "players":
                 @switch (Console?.Type)
                 {
@@ -234,7 +224,7 @@
     @if (Console != null && Console.Type == ConsoleType.Battleye)
     {
         <RadzenSidebar @bind-Expanded="@LogSidebarExpanded" class="rz-right-sidebar" Style="@("width: " + (LogSidebarExpanded ? "340px" : "0px") + " !important; grid-area: rz-right-sidebar")">
-            @if (Member != null && Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConsoleLogs) && _Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rcon))
+            @if (Member != null && Member.HasConsolePermission(Team, Console, ConsolePermission.ViewConsoleLogs) && _Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rcon))
             {
                 <div>
                     <div class="dash-box-header dash-box-content">
@@ -338,7 +328,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rc) || !rc.IsConnected)
         {
             await Dialogs.ShowInfoAsync("Failed to Lock Server", "Could not connect to server.");
             return;
@@ -355,7 +345,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rc) || !rc.IsConnected)
         {
             await Dialogs.ShowInfoAsync("Failed to Unlock Server", "Could not connect to server.");
             return;
@@ -428,7 +418,7 @@
         {
             case ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rc) || !rc.IsConnected)
                     {
                         await Dialogs.ShowInfoAsync("Failed to Restart Server", "Could not connect to server.");
                         return;
@@ -484,7 +474,7 @@
         {
             case ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rc) || !rc.IsConnected)
                     {
                         await Dialogs.ShowInfoAsync("Failed to Stop Server", "Could not connect to server.");
                         return;
@@ -525,7 +515,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rc) || !rc.IsConnected)
         {
             await Dialogs.ShowInfoAsync("Failed to Reload Config", "Could not connect to server.");
             return;
@@ -542,7 +532,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rc) || !rc.IsConnected)
         {
             await Dialogs.ShowInfoAsync("Failed to Reload Events", "Could not connect to server.");
             return;
@@ -558,7 +548,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rc) || !rc.IsConnected)
         {
             await Dialogs.ShowInfoAsync("Failed to Reload Scripts", "Could not connect to server.");
             return;
@@ -575,7 +565,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rc) || !rc.IsConnected)
         {
             await Dialogs.ShowInfoAsync("Failed to Reload Bans", "Could not connect to server.");
             return;
@@ -592,7 +582,7 @@
             return;
         }
 
-        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out RCon? rc) || !rc.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(Console.Id, out BattlEyeRcon? rc) || !rc.IsConnected)
         {
             await Dialogs.ShowInfoAsync("Failed to Reassign", "Could not connect to server.");
             return;

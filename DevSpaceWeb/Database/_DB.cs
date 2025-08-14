@@ -533,7 +533,7 @@ public static class _DB
                     {
                         case ConsoleType.Battleye:
                             {
-                                RCon rc = new RCon();
+                                BattlEyeRcon rc = new BattlEyeRcon();
                                 rc.Connect(IPAddress.Parse(x.Ip), x.Port, x.GetDecryptedPassword());
                                 if (rc.IsConnected)
                                     x.ConnectedAt = DateTime.UtcNow;

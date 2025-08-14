@@ -5,7 +5,8 @@ using System.Net;
 namespace DaRT;
 
 #pragma warning disable CS8600 // Converting null literal or possible null value to non-nullable type.
-public class RCon
+
+public class BattlEyeRcon
 {
     private BattlEyeClient _client;
     private BattlEyeLoginCredentials _credentials;
@@ -54,7 +55,7 @@ public class RCon
         set { _reconnecting = value; }
     }
 
-    public RCon()
+    public BattlEyeRcon()
     {
 
         // Initializing date

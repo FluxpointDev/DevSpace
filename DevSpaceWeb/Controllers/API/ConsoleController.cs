@@ -72,7 +72,7 @@ public class ConsoleController : APIController
         {
             case Data.Consoles.ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out RCon? rcon) || !rcon.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out BattlEyeRcon? rcon) || !rcon.IsConnected)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     List<Player> Players = rcon.GetPlayers();
@@ -126,7 +126,7 @@ public class ConsoleController : APIController
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
-        if (!_Data.BattleyeRcons.TryGetValue(server.Id, out RCon? rcon) || !rcon.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(server.Id, out BattlEyeRcon? rcon) || !rcon.IsConnected)
             return Conflict("Rcon connection is unavailable or server is offline.");
 
         bool ShowIp = Client.HasConsolePermission(server.Team, server, ConsolePermission.ViewIPs);
@@ -154,7 +154,7 @@ public class ConsoleController : APIController
         {
             case Data.Consoles.ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out RCon? rcon) || !rcon.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out BattlEyeRcon? rcon) || !rcon.IsConnected)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     rcon.ExecuteCommand(command.command);
@@ -195,7 +195,7 @@ public class ConsoleController : APIController
         {
             case Data.Consoles.ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out RCon? rcon) || !rcon.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out BattlEyeRcon? rcon) || !rcon.IsConnected)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     rcon.SayGlobal(message.message);
@@ -236,7 +236,7 @@ public class ConsoleController : APIController
         {
             case Data.Consoles.ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out RCon? rcon) || !rcon.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out BattlEyeRcon? rcon) || !rcon.IsConnected)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     if (!int.TryParse(json.player, out int number))
@@ -277,7 +277,7 @@ public class ConsoleController : APIController
         {
             case Data.Consoles.ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out RCon? rcon) || !rcon.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out BattlEyeRcon? rcon) || !rcon.IsConnected)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     if (!int.TryParse(json.player, out int number))
@@ -320,7 +320,7 @@ public class ConsoleController : APIController
         {
             case Data.Consoles.ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out RCon? rcon) || !rcon.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out BattlEyeRcon? rcon) || !rcon.IsConnected)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     if (!int.TryParse(json.player, out int number))
@@ -363,7 +363,7 @@ public class ConsoleController : APIController
         {
             case Data.Consoles.ConsoleType.Battleye:
                 {
-                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out RCon? rcon) || !rcon.IsConnected)
+                    if (!_Data.BattleyeRcons.TryGetValue(server.Id, out BattlEyeRcon? rcon) || !rcon.IsConnected)
                         return Conflict("Rcon connection is unavailable or server is offline.");
 
                     switch (controlType)
@@ -449,7 +449,7 @@ public class ConsoleController : APIController
         if (server.Type != Data.Consoles.ConsoleType.Battleye)
             return BadRequest("Invalid console type that can't be used for this endpoint.");
 
-        if (!_Data.BattleyeRcons.TryGetValue(server.Id, out RCon? rcon) || !rcon.IsConnected)
+        if (!_Data.BattleyeRcons.TryGetValue(server.Id, out BattlEyeRcon? rcon) || !rcon.IsConnected)
             return Conflict("Rcon connection is unavailable or server is offline.");
 
         bool ShowIp = Client.HasConsolePermission(server.Team, server, ConsolePermission.ViewIPs);

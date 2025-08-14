@@ -1,4 +1,5 @@
-﻿using DevSpaceWeb.Data.Teams;
+﻿using DaRT;
+using DevSpaceWeb.Data.Teams;
 using DevSpaceWeb.Database;
 using LibMCRcon;
 using MongoDB.Bson.Serialization.Attributes;
@@ -37,7 +38,7 @@ public class ConsoleData : ITeamResource
         {
             case ConsoleType.Battleye:
                 {
-                    if (_Data.BattleyeRcons.TryGetValue(Id, out DaRT.RCon? rcon) && rcon.BEResult == BattleNET.BattlEyeConnectionResult.Success)
+                    if (_Data.BattleyeRcons.TryGetValue(Id, out BattlEyeRcon? rcon) && rcon.BEResult == BattleNET.BattlEyeConnectionResult.Success)
                         return true;
                 }
                 break;
@@ -60,7 +61,7 @@ public class ConsoleData : ITeamResource
 
     public List<DaRT.Player> RconPlayers()
     {
-        if (_Data.BattleyeRcons.TryGetValue(Id, out DaRT.RCon? rcon))
+        if (_Data.BattleyeRcons.TryGetValue(Id, out BattlEyeRcon? rcon))
         {
             return rcon.CachedPlayers;
         }
@@ -70,7 +71,7 @@ public class ConsoleData : ITeamResource
 
     public RconStatusType RconStatus()
     {
-        if (_Data.BattleyeRcons.TryGetValue(Id, out DaRT.RCon? rcon))
+        if (_Data.BattleyeRcons.TryGetValue(Id, out BattlEyeRcon? rcon))
         {
             if (rcon.IsError)
                 return RconStatusType.Error;
@@ -115,7 +116,7 @@ public class ConsoleData : ITeamResource
             {
                 case ConsoleType.Battleye:
                     {
-                        if (_Data.BattleyeRcons.TryGetValue(Id, out DaRT.RCon? rcon))
+                        if (_Data.BattleyeRcons.TryGetValue(Id, out BattlEyeRcon? rcon))
                         {
                             _Data.BattleyeRcons.Remove(Id);
                             rcon.Disconnect();
