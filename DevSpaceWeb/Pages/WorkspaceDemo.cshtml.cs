@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace DevSpaceWeb.Pages
+namespace DevSpaceWeb.Pages;
+
+public class WorkspaceDemoModel : PageModel
 {
-    public class WorkspaceDemoModel : PageModel
+    public void OnGet()
     {
-        public void OnGet()
-        {
-        }
     }
 }

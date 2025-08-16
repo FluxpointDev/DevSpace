@@ -15,7 +15,7 @@ public class DeleteRoleBlock : DiscordActionBlock
             return new RuntimeError(RuntimeErrorType.Runtime, "Failed to delete role, could not find role.");
 
         await Role.DeleteAsync();
-        
+
 
         return null;
     }

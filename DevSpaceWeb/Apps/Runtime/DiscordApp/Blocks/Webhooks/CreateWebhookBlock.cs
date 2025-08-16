@@ -84,7 +84,7 @@ public class CreateWebhookBlock : DiscordActionBlock
         }
         else
             return new RuntimeError(RuntimeErrorType.Server, "Failed to create webhook, could not use invalid channel type.");
-        
+
 
         return null;
     }

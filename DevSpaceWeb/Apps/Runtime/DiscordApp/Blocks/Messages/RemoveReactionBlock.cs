@@ -108,7 +108,7 @@ public class RemoveReactionBlock : DiscordActionBlock
                 return new RuntimeError(RuntimeErrorType.Server, "Failed to remove reaction, server could not run invalid action type.");
 
         }
-        
+
 
         return null;
     }
