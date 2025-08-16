@@ -147,8 +147,13 @@
 
         if (!Result.IsSuccess || Result.Data == null)
         {
-            UpdateStatus = UpdateStatusType.UpdateFailed;
-            return;
+            Result = await Server.RunJsonAsync<ContainerInspectResponse, DockerEvent>(Notifications, new DockerEvent(DockerEventType.ControlContainer, "cloudfrost-agent", containerType: ControlContainerType.Inspect));
+
+            if (!Result.IsSuccess || Result.Data == null)
+            {
+                UpdateStatus = UpdateStatusType.UpdateFailed;
+                return;
+            }
         }
 
         string? UpdatePath = Result.Data.HostConfig.Binds.FirstOrDefault(x => x.Contains(":/app/Data"));
@@ -183,18 +188,18 @@
 
         string RunCommand = "docker run -d \\ " +
         (string.IsNullOrEmpty(HostPort) ? "" : $"-p {HostPort}:5555 \\ ") +
-        "--name devspace-agent-new \\ " +
+        "--name cloudfrost-agent-new \\ " +
         "--pull always \\ " +
         "--restart on-failure:3 \\ -v " +
         string.Join(" \\ -v ", Volumes) + " \\ " +
         (Environments == null ? "" : "-e " + string.Join(" \\ -e ", Environments) + " \\ ") +
-        "ghcr.io/fluxpointdev/devspace/agent:" + (SelectedVersionType == "Release" ? "latest" : "master");
+        "ghcr.io/fluxpointdev/cloudfrost-dev/agent:" + (SelectedVersionType == "Release" ? "latest" : "master");
 
         string Compose = @"services:
-  devspace-agent-updater:
-    container_name: devspace-agent-updater
+  cloudfrost-agent-updater:
+    container_name: cloudfrost-agent-updater
     image: docker:dind
-    command: sh -c ""docker container stop devspace-agent && docker rm -f devspace-agent-new && " + RunCommand + @" && docker rm -f devspace-agent && docker container rename devspace-agent-new devspace-agent""
+    command: sh -c ""docker container stop " + Result.Data.Name + " && docker rm -f cloudfrost-agent-new && " + RunCommand + @" && docker rm -f " + Result.Data.Name + @" && docker container rename cloudfrost-agent-new cloudfrost-agent""
     volumes:
         - /var/run/docker.sock:/var/run/docker.sock:ro
     network_mode: bridge
@@ -208,7 +213,7 @@
         {
             Data = AgentJsonOptions.FromObject(new CreateStackEvent
             {
-                Name = "devspace-agent-updater-" + ObjectId.GenerateNewId().ToString(),
+                Name = "cloudfrost-agent-updater-" + ObjectId.GenerateNewId().ToString(),
                 PullImage = true,
                 Content = Compose,
                 IsAdministrator = true
@@ -255,7 +260,7 @@
 
                     try
                     {
-                        await Server.RecieveJsonAsync<object, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, "devspace-agent-updater", containerType: ControlContainerType.ForceRemove));
+                        await Server.RecieveJsonAsync<object, DockerEvent>(new DockerEvent(DockerEventType.ControlContainer, "cloudfrost-agent-updater", containerType: ControlContainerType.ForceRemove));
                     }
                     catch { }
 

@@ -22,9 +22,9 @@ public class ConfigDatabase
 }
 public class InlineDatabase
 {
-    public string? Host = "devspace-mongodb";
+    public string? Host = "cloudfrost-mongodb";
     public short Port = 5557;
-    public string? Name = "devspace";
+    public string? Name = "cloudfrost-dev";
     public string? User = "root";
     public string? Password = null;
     /// <summary>
