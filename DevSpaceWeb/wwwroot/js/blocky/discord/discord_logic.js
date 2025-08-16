@@ -60,7 +60,7 @@ Blockly.Blocks['logic_check_discord_channel'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
         
     },
     onchange: function (event) {
@@ -109,7 +109,7 @@ Blockly.Blocks['logic_check_discord_server'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -168,7 +168,7 @@ Blockly.Blocks['logic_check_discord_message'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -220,7 +220,7 @@ Blockly.Blocks['logic_check_discord_member'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -278,7 +278,7 @@ Blockly.Blocks['logic_check_discord_user'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -327,7 +327,7 @@ Blockly.Blocks['logic_check_discord_role'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -376,7 +376,7 @@ Blockly.Blocks['logic_check_discord_category'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -423,7 +423,7 @@ Blockly.Blocks['logic_check_discord_webhook'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -472,7 +472,7 @@ Blockly.Blocks['logic_check_discord_emoji'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -525,7 +525,7 @@ Blockly.Blocks['logic_check_discord_variable'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 

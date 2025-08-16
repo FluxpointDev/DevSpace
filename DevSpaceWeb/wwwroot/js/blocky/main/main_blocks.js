@@ -7,7 +7,7 @@ Blockly.Blocks['color_hex'] = {
             .appendField('Color HEX:');
         this.setOutput(true, 'color_hex');
         this.setTooltip('');
-        this.setHelpUrl('https://docs.fluxpoint.dev/devspace');
+        this.setHelpUrl('https://docs.fluxpoint.dev/cloudfrost-dev');
     }
 };
 
@@ -44,7 +44,7 @@ Blockly.Blocks['color_hex_picker'] = {
             .appendField(new Blockly.FieldTextInput('#ff0000', ColorTextValidator), 'custom_color');
         this.setOutput(true, 'color_hex_picker');
         this.setTooltip('');
-        this.setHelpUrl('https://docs.fluxpoint.dev/devspace');
+        this.setHelpUrl('https://docs.fluxpoint.dev/cloudfrost-dev');
     },
     initSvg2: function () {
         base.initSvg();
@@ -72,7 +72,7 @@ Blockly.Blocks['color_rgb'] = {
         this.setOutput(true, 'color_rgb');
         this.setColour(120);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -85,7 +85,7 @@ Blockly.Blocks['math_number_between'] = {
         this.setOutput(true, "math_number_between");
         this.setColour(120);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -108,7 +108,7 @@ Blockly.Blocks['data_string_response_time'] = {
         this.setOutput(true, Connections.TextSingle);
         this.setColour('#106c22');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -128,7 +128,7 @@ Blockly.Blocks['data_string_join'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true);
     }
 };
@@ -146,7 +146,7 @@ Blockly.Blocks['action_stop_execution'] = {
         this.setPreviousStatement(true, null);
         this.setColour('#a85b35');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -170,7 +170,7 @@ Blockly.Blocks['block_try_catch'] = {
         this.setColour(220);
         this.setInputsInline(false);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -187,7 +187,7 @@ Blockly.Blocks['data_string_base64'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -216,7 +216,7 @@ Blockly.Blocks['data_string_format'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -243,7 +243,7 @@ Blockly.Blocks['data_string_offset'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -271,7 +271,7 @@ Blockly.Blocks['data_string_offset_end'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -300,7 +300,7 @@ Blockly.Blocks['data_string_between'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -332,7 +332,7 @@ Blockly.Blocks['data_string_color'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -371,7 +371,7 @@ Blockly.Blocks['data_string_markdown'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -407,7 +407,7 @@ Blockly.Blocks['data_string_markdown_link'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -448,7 +448,7 @@ Blockly.Blocks['data_string_markdown_code'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -475,7 +475,7 @@ Blockly.Blocks['data_config_get'] = {
         this.setOutput(true, Connections.TextAll);
         this.setColour('#106C50');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 

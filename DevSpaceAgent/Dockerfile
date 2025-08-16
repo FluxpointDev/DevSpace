@@ -4,7 +4,7 @@ WORKDIR /app
 EXPOSE 5555
 
 LABEL org.opencontainers.image.source=https://github.com/FluxpointDev/CloudFrost-Dev
-LABEL org.opencontainers.image.documentation=https://docs.fluxpoint.dev/devspace
+LABEL org.opencontainers.image.documentation=https://docs.fluxpoint.dev/cloudfrost-dev
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS build
 ARG BUILD_CONFIGURATION=Release

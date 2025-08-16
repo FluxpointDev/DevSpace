@@ -19,7 +19,7 @@ Blockly.Blocks['option_allowmentions'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -36,7 +36,7 @@ Blockly.Blocks['option_allowmentions_user'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -65,7 +65,7 @@ Blockly.Blocks['option_allowmentions_role'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -99,7 +99,7 @@ Blockly.Blocks['option_open_modal'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -124,7 +124,7 @@ Blockly.Blocks['option_require_app_premium'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -137,7 +137,7 @@ Blockly.Blocks['option_ephemeral'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -150,7 +150,7 @@ Blockly.Blocks['option_nsfw_only'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -163,7 +163,7 @@ Blockly.Blocks['option_app_owner_only'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -176,7 +176,7 @@ Blockly.Blocks['option_app_developer_only'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -189,7 +189,7 @@ Blockly.Blocks['option_server_owner_only'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -202,7 +202,7 @@ Blockly.Blocks['option_require_server'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -215,7 +215,7 @@ Blockly.Blocks['option_require_private_channel'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -228,7 +228,7 @@ Blockly.Blocks['option_require_group_channel'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -241,7 +241,7 @@ Blockly.Blocks['option_allow_user_apps'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     }
 };
 
@@ -263,7 +263,7 @@ Blockly.Blocks['option_require_server_permission'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 
@@ -301,7 +301,7 @@ Blockly.Blocks['option_require_channel_permission'] = {
         this.setNextStatement(true, null);
         this.setColour('#a9902c');
         this.setTooltip("Message is optional");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
     },
     onchange: function (event) {
 

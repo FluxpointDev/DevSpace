@@ -12,7 +12,7 @@ Blockly.Blocks['logic_condition_and'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true)
     }
 };
@@ -28,7 +28,7 @@ Blockly.Blocks['logic_condition_or'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
         Blockly.Extensions.apply('dynamic_list_mutator', this, true)
     }
 };
@@ -78,7 +78,7 @@ Blockly.Blocks['logic_check_basic'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
 
     },
     onchange: function (event) {
@@ -135,7 +135,7 @@ Blockly.Blocks['logic_check_file'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
 
         
     },
@@ -187,7 +187,7 @@ Blockly.Blocks['logic_check_json'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
 
     },
     onchange: function (event) {
@@ -246,7 +246,7 @@ Blockly.Blocks['logic_check_response'] = {
         this.setOutput(true, null);
         this.setColour(210);
         this.setTooltip("");
-        this.setHelpUrl("https://docs.fluxpoint.dev/devspace/apps");
+        this.setHelpUrl("https://docs.fluxpoint.dev/cloudfrost-dev/apps");
 
     },
     onchange: function (event) {

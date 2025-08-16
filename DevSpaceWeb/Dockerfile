@@ -3,7 +3,7 @@ USER root
 WORKDIR /app
 
 LABEL org.opencontainers.image.source=https://github.com/FluxpointDev/CloudFrost-Dev
-LABEL org.opencontainers.image.documentation=https://docs.fluxpoint.dev/devspace
+LABEL org.opencontainers.image.documentation=https://docs.fluxpoint.dev/cloudfrost-dev
 
 
 FROM mcr.microsoft.com/dotnet/sdk:10.0-preview-alpine AS build
