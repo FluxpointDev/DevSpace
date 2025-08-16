@@ -19,6 +19,8 @@ public class SystemInfoResponse
 
     public required SystemDockerInfo Docker { get; set; }
 
+    public SystemInfoSwarmResponse? Swarm { get; set; }
+
     [JsonIgnore]
     public bool IsWindows => OperatingSystem == "Docker Desktop";
 
@@ -34,6 +36,18 @@ public class SystemInfoResponse
         return $"{runtime.Seconds} Seconds";
     }
 }
+public class SystemInfoSwarmResponse
+{
+    public string NodeID { get; set; }
+    public string NodeAddress { get; set; }
+    public string NodeState { get; set; }
+    public bool ControlAvailable { get; set; }
+    public string? Error { get; set; }
+    public long Managers { get; set; }
+    public long Nodes { get; set; }
+    public IList<string> Warnings { get; set; }
+}
+
 public class SystemInfoFullResponse : SystemInfoResponse
 {
     public string? KernelVersion { get; set; }

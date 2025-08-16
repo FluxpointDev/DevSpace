@@ -158,7 +158,7 @@ public class SystemInfoResponse // (types.Info)
     public string DefaultRuntime { get; set; }
 
     [JsonPropertyName("Swarm")]
-    public Info Swarm { get; set; }
+    public SwarmInfo Swarm { get; set; }
 
     [JsonPropertyName("LiveRestoreEnabled")]
     public bool LiveRestoreEnabled { get; set; }

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Docker.DotNet.Models;
 
-public class Info // (swarm.Info)
+public class SwarmInfo // (swarm.Info)
 {
     [JsonPropertyName("NodeID")]
     public string NodeID { get; set; }

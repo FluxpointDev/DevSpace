@@ -70,6 +70,7 @@ public class Program
     private static AgentServer Server;
     private static EdgeClient Client;
     public static bool EdgeMode;
+    public static bool IsSwarm;
     static async Task Main(string[] args)
     {
         if (!_Data.LoadConfig())
@@ -81,7 +82,9 @@ public class Program
         {
             DockerClient = new DockerClientConfiguration(new Uri("unix:///var/run/docker.sock")).CreateClient();
             await DockerClient.System.PingAsync();
-
+            var SystemInfo = await DockerClient.System.GetSystemInfoAsync();
+            IsSwarm = !string.IsNullOrEmpty(SystemInfo.Swarm.NodeID);
+            Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(SystemInfo, Formatting.Indented));
             _ = Task.Run(async () =>
             {
                 foreach (ContainerListResponse? c in await DockerClient.Containers.ListContainersAsync(new ContainersListParameters
