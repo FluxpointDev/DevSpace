@@ -1,4 +1,5 @@
-﻿using DevSpaceShared.WebSocket;
+﻿using DevSpaceShared.Responses;
+using DevSpaceShared.WebSocket;
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
@@ -10,7 +11,7 @@ public class AgentStatsResponse : IWebSocketEvent
 
     }
 
-    public static async Task<AgentStatsResponse> Create(string? agentVersion, DockerClient client, SystemInfoResponse systemInfo)
+    public static async Task<AgentStatsResponse> Create(string? agentVersion, DockerClient client, Docker.DotNet.Models.SystemInfoResponse systemInfo)
     {
         IList<ContainerListResponse> Containers = await client.Containers.ListContainersAsync(new ContainersListParameters
         {
@@ -34,7 +35,13 @@ public class AgentStatsResponse : IWebSocketEvent
             ImagesCount = systemInfo.Images,
             AgentVersion = agentVersion,
             DockerVersion = systemInfo.ServerVersion,
-            IsWindows = systemInfo.OperatingSystem == "Docker Desktop"
+            IsWindows = systemInfo.OperatingSystem == "Docker Desktop",
+            Swarm = !string.IsNullOrEmpty(systemInfo.Swarm.NodeID) ? new SystemInfoSwarmResponse
+            {
+                Managers = systemInfo.Swarm.Managers,
+                Nodes = systemInfo.Swarm.Nodes,
+                IsManager = systemInfo.Swarm.RemoteManagers.Any(x => x.NodeID == systemInfo.Swarm.NodeID)
+            } : null,
         };
     }
     public long StacksCount { get; set; }
@@ -50,4 +57,5 @@ public class AgentStatsResponse : IWebSocketEvent
     public string? AgentVersion { get; set; }
     public string DockerVersion { get; set; }
     public bool IsWindows { get; set; }
+    public SystemInfoSwarmResponse? Swarm { get; set; }
 }

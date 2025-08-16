@@ -86,7 +86,14 @@
                             <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Agent " + context.GetAgentVersion())</RadzenText>
                             @if (context.TryGetWebSocket(out IAgent? agent) && agent.Stats != null)
                             {
-                                <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker v" + agent.Stats.DockerVersion)</RadzenText>
+                                if (agent.Stats.Swarm != null)
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker Swarm v" + agent.Stats.DockerVersion)</RadzenText>
+                                }
+                                else
+                                {
+                                    <RadzenText TextStyle="TextStyle.Body2" Style="color: var(--rz-text-tertiary-color);">@("Docker Standalone v" + agent.Stats.DockerVersion)</RadzenText>
+                                }
                             }
                             @switch (context.AgentType)
                             {

@@ -38,6 +38,7 @@ public class SystemInfoResponse
 }
 public class SystemInfoSwarmResponse
 {
+    public bool IsManager { get; set; }
     public string NodeID { get; set; }
     public string NodeAddress { get; set; }
     public string NodeState { get; set; }
