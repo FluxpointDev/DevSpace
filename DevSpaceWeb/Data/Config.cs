@@ -55,7 +55,7 @@ public class ConfigInstance
     public string GetIconOrDefault(bool usePng = false)
     {
         if (!HasIcon)
-            return "https://cdn.fluxpoint.dev/devspace/instance_icon." + (usePng ? "png" : "webp");
+            return "https://cdn.fluxpoint.dev/devspace/cloudfrost-dev." + (usePng ? "png" : "webp");
 
         return "";
     }
