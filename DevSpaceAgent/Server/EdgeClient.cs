@@ -64,6 +64,7 @@ public class EdgeClient : IAgent
                 if (Program.DockerClient != null)
                 {
                     SystemInfoResponse HostInfo = await Program.DockerClient.System.GetSystemInfoAsync();
+                    Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(HostInfo.Swarm, Newtonsoft.Json.Formatting.Indented));
                     AgentStatsResponse Stats = await AgentStatsResponse.Create(Program.Version, Program.DockerClient, HostInfo);
 
                     _ = WebSocket.SendAsync(Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(Stats, AgentJsonOptions.Options)), WebSocketMessageType.Text, true, CancellationToken.None);

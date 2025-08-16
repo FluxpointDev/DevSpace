@@ -235,7 +235,7 @@ public class EdgeController : Controller
                                         AgentStatsResponse? Data = payload.Deserialize<AgentStatsResponse>(AgentJsonOptions.Options);
                                         if (Data == null)
                                             return;
-
+                                        Console.WriteLine(Newtonsoft.Json.JsonConvert.SerializeObject(Data, Formatting.Indented));
                                         edgeAgent.Stats = Data;
                                     }
                                     break;
