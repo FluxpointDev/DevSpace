@@ -103,7 +103,7 @@ public class EmailService
 
             ManagedEmailSystem ??= new HttpClient();
 
-            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, "https://devspacesmtp.fluxpoint.dev/send")
+            HttpRequestMessage message = new HttpRequestMessage(HttpMethod.Get, "https://cloudfrost-smtp.fluxpoint.dev/send")
             {
                 Content = JsonContent.Create(new SendMailJson
                 {

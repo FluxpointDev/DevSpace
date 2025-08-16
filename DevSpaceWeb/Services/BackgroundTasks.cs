@@ -21,7 +21,7 @@ public class BackgroundTasks
         VersionCheck? Version = null;
         try
         {
-            string Test = await Program.Http.GetStringAsync("https://devspacesmtp.fluxpoint.dev/version");
+            string Test = await Program.Http.GetStringAsync("https://cloudfrost-smtp.fluxpoint.dev/version");
             Version = Newtonsoft.Json.JsonConvert.DeserializeObject<VersionCheck>(Test);
         }
         catch { }
