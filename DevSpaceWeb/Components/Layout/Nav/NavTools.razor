@@ -6,17 +6,20 @@
         <RadzenText TextStyle="TextStyle.Body1" Style="color: var(--rz-text-tertiary-color); font-weight: 600; margin-top: 8px; margin-left: 4px; margin-bottom: 2px;">Tools</RadzenText>
     </RadzenStack>
     <div>
-        @foreach (Pages.Previews.PreviewsPage.Feature i in Pages.Home.Features.OrderBy(x => x.Name))
-        {
-            <a href="@i.Path" target="_blank" style="color: cornflowerblue">
-                <div Class="tool-item">
-                    <RadzenText TextStyle="TextStyle.Subtitle1">@i.Name</RadzenText>
-                    <RadzenText TextStyle="TextStyle.Overline">@i.Desc</RadzenText>
-                    <iconify-icon icon="@i.Icon"></iconify-icon>
+        <RadzenStack Orientation="Orientation.Horizontal" Wrap="FlexWrap.Wrap" Gap="2px;" JustifyContent="JustifyContent.Center">
+            @foreach (Pages.Previews.PreviewsPage.Feature i in Pages.Home.Features.OrderBy(x => x.Name))
+            {
+                <a href="@i.Path" target="_blank" style="color: cornflowerblue">
+                    <div Class="tool-item">
+                        <RadzenText TextStyle="TextStyle.Subtitle1">@i.Name</RadzenText>
+                        <RadzenText TextStyle="TextStyle.Overline">@i.Desc</RadzenText>
+                        <iconify-icon icon="@i.Icon"></iconify-icon>
 
-                </div>
-            </a>
-        }
+                    </div>
+                </a>
+            }
+        </RadzenStack>
+        
     </div>
 </Popup>
 
@@ -35,12 +38,9 @@
     }
 
     .popup-tools > div:last-child {
-        overflow: scroll !important;
+        overflow-y: scroll !important;
+        scrollbar-width: thin;
         height: 100%;
-        padding-bottom: 36px;
-        align-self: start;
-        display: flex;
-        flex-wrap: wrap;
     }
 </style>
 
@@ -85,6 +85,7 @@
         .tool-item iconify-icon {
             font-size: 36px;
         }
+
 </style>
 
 @code {
